@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Lucene1", "TheFarm.Umbraco.Lucene\UmbracoExamine.Lucene1.csproj", "{6918A99D-046F-4E83-B916-26A5D203CA5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Lucene2", "TheFarm.Umbraco.Lucene2\UmbracoExamine.Lucene2.csproj", "{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine", "TheFarm.Umbraco.Lucene.Common\UmbracoExamine.csproj", "{14495F4C-9989-4FE0-860B-AE13ACDF9B15}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release DLLs|Any CPU = Release DLLs|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Release DLLs|Any CPU.ActiveCfg = Release DLLs|Any CPU
+		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Release DLLs|Any CPU.Build.0 = Release DLLs|Any CPU
+		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Release DLLs|Any CPU.ActiveCfg = Release DLLs|Any CPU
+		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Release DLLs|Any CPU.Build.0 = Release DLLs|Any CPU
+		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14495F4C-9989-4FE0-860B-AE13ACDF9B15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14495F4C-9989-4FE0-860B-AE13ACDF9B15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14495F4C-9989-4FE0-860B-AE13ACDF9B15}.Release DLLs|Any CPU.ActiveCfg = Release DLLs|Any CPU
+		{14495F4C-9989-4FE0-860B-AE13ACDF9B15}.Release DLLs|Any CPU.Build.0 = Release DLLs|Any CPU
+		{14495F4C-9989-4FE0-860B-AE13ACDF9B15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14495F4C-9989-4FE0-860B-AE13ACDF9B15}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
