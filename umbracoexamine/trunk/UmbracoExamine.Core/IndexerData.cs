@@ -33,4 +33,6 @@ namespace UmbracoExamine
         public DirectoryInfo IndexDirectory { get; private set; }
         public int MaxResults { get; private set; }
     }
+
+    
 }

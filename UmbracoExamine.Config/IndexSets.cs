@@ -30,7 +30,7 @@ namespace UmbracoExamine.Configuration
 
         #endregion
 
-        private const string SectionName = "UmbLuceneIndex";
+        private const string SectionName = "UmbracoExamineIndex";
 
         [ConfigurationCollection(typeof(IndexSetCollection))]
         [ConfigurationProperty("", IsDefaultCollection = true, IsRequired = true)]

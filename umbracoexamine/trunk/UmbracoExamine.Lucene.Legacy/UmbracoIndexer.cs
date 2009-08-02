@@ -17,9 +17,10 @@ using UmbracoExamine;
 using Lucene.Net.Search;
 using Lucene.Net.QueryParsers;
 using UmbracoExamine.Configuration;
+using UmbracoExamine.Core;
 using System.Runtime.CompilerServices;
 using umbraco.BusinessLogic;
-using UmbracoExamine;
+
 
 namespace UmbracoExamine.Lucene1
 {
@@ -27,7 +28,7 @@ namespace UmbracoExamine.Lucene1
     /// <summary>
     /// Used to index umbraco data. The UmbracoIndexer is configured by application settings.
     /// </summary>
-    public class UmbracoIndexer : IUmbracoIndexer
+    public class UmbracoIndexer : IIndexer
     {
 
         /// <summary>
@@ -211,24 +212,25 @@ namespace UmbracoExamine.Lucene1
         #region Indexing
 
         #region Public
-        /// <summary>
-        /// Re-indexes all of the node sets defined in config. This does not allow for event handling.
-        /// </summary>
-        public static void IndexAll()
-        {
-            foreach (IndexSet set in IndexSets.Instance.Sets)
-            {
-                UmbracoIndexer indexer = new UmbracoIndexer(set.SetName);
-                indexer.Index();
-            }
-        }
+
+        ///// <summary>
+        ///// Re-indexes all of the node sets defined in config. This does not allow for event handling.
+        ///// </summary>
+        //public static void IndexAll()
+        //{
+        //    foreach (IndexSet set in IndexSets.Instance.Sets)
+        //    {
+        //        UmbracoIndexer indexer = new UmbracoIndexer(set.SetName);
+        //        indexer.IndexAll();
+        //    }
+        //}
 
         /// <summary>
         /// Re-indexes everything defined for the set name.
         /// Locking is applied to this method
         /// </summary>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void Index()
+        public void IndexAll()
         {
             IndexWriter writer = null;
             try
@@ -368,7 +370,7 @@ namespace UmbracoExamine.Lucene1
 
                 //check if the index doesn't exist, and if so, create it and reindex everything
                 if (!IndexExists())
-                    Index();
+                    IndexAll();
 
                 //check if the index is ready to be written to.
                 if (!IndexReady())

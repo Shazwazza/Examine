@@ -28,12 +28,12 @@ namespace UmbracoExamine.Lucene1
         }       
 
         private List<IAction> m_Actions;
-        private IUmbracoIndexer m_Indexer;
+        private IIndexer m_Indexer;
 
         /// <summary>
         /// Override this method to use a custom indexer
         /// </summary>
-        protected virtual IUmbracoIndexer Indexer
+        protected virtual IIndexer Indexer
         {
             get
             {

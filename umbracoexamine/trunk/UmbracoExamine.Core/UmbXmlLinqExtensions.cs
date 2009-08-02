@@ -34,7 +34,7 @@ namespace UmbracoExamine
                     return XDocument.Parse(xml.Current.OuterXml);
                 }
                 return null;
-            }                
+            }
             else if (xml.Count > 1)
             {
                 //create an XDocument and add a node to it
@@ -46,7 +46,7 @@ namespace UmbracoExamine
                 {
                     rootNode.Add(XElement.Parse(xml.Current.OuterXml));
                 }
-                    
+
 
                 return xDoc;
             }
@@ -158,16 +158,16 @@ namespace UmbracoExamine
                 val = xml.DescendantsAndSelf("data")
                     .UmbSelectDataWhereAlias(alias);
             }
-            else 
+            else
             {
                 val = xml.Elements("data")
                     .UmbSelectDataWhereAlias(alias);
             }
-            
+
             string strVal = val.DefaultIfEmpty(XElement.Parse(string.Format("<node>{0}</node>", valueIfNull.ToString()))) //ensures no error is thrown if no node is found
                             .First()
                             .Value;
-            
+
             if (string.IsNullOrEmpty(strVal))
                 return valueIfNull.ToString();
             return strVal;

@@ -105,6 +105,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\UmbracoExamine.Config\UmbracoExamine.Configuration.csproj">
+      <Project>{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}</Project>
+      <Name>UmbracoExamine.Configuration</Name>
+    </ProjectReference>
     <ProjectReference Include="..\UmbracoExamine.Core\UmbracoExamine.Core.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>UmbracoExamine.Core</Name>

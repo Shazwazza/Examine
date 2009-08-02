@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</ProjectGuid>
+    <ProjectGuid>{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UmbracoExamine.Core</RootNamespace>
-    <AssemblyName>UmbracoExamine.Core</AssemblyName>
+    <RootNamespace>UmbracoExamine.Configuration</RootNamespace>
+    <AssemblyName>UmbracoExamine.Configuration</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -49,33 +49,16 @@
     </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="umbraco, Version=1.0.3441.17657, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DLLs\umbraco.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IndexerData.cs" />
-    <Compile Include="IndexingErrorEventArgs.cs" />
-    <Compile Include="IndexingFieldDataEventArgs.cs" />
-    <Compile Include="IndexingNodeDataEventArgs.cs" />
-    <Compile Include="IndexingNodeEventArgs.cs" />
-    <Compile Include="IndexingNodesEventArgs.cs" />
-    <Compile Include="IndexSetExtensions.cs" />
-    <Compile Include="IIndexer.cs" />
-    <Compile Include="ISearcher.cs" />
+    <Compile Include="IndexField.cs" />
+    <Compile Include="IndexFieldCollection.cs" />
+    <Compile Include="IndexSet.cs" />
+    <Compile Include="IndexSetCollection.cs" />
+    <Compile Include="IndexSets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SearchResult.cs" />
-    <Compile Include="UmbXmlLinqExtensions.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\UmbracoExamine.Config\UmbracoExamine.Configuration.csproj">
-      <Project>{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}</Project>
-      <Name>UmbracoExamine.Configuration</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
+    <Compile Include="IndexProvidersSection.cs" />
+    <Compile Include="SearchProvidersSection.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
