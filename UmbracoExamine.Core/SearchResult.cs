@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace UmbracoExamine
+namespace UmbracoExamine.Core
 {
     public class SearchResult
     {
 
         public int Id { get; set; }
         public float Score { get; set; }
-        public Dictionary<string, string> Fields { get; set; }
+        public IDictionary<string, string> Fields { get; set; }
 
         /// <summary>
         /// Override this method so that the Distinct() operator works

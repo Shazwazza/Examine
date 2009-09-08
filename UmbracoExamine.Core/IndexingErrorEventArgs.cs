@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace UmbracoExamine
+namespace UmbracoExamine.Core
 {
     public class IndexingErrorEventArgs : IndexingNodeEventArgs
     {

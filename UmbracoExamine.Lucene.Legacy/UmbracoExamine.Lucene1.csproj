@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6918A99D-046F-4E83-B916-26A5D203CA5B}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -94,7 +94,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\UmbracoExamine.Config\UmbracoExamine.Configuration.csproj">
+    <ProjectReference Include="..\UmbracoExamine.Config\UmbracoExamine.Configuration.csproj">
       <Project>{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}</Project>
       <Name>UmbracoExamine.Configuration</Name>
     </ProjectReference>

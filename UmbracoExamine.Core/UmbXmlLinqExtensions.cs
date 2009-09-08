@@ -6,7 +6,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using umbraco;
 
-namespace UmbracoExamine
+namespace UmbracoExamine.Core
 {
     /// <summary>
     /// Static methods to help query umbraco xml
