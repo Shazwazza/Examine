@@ -12,8 +12,8 @@ namespace UmbracoExamine.Core
         public SearchCriteria(string searchText, string[] searchFields, string[] nodeTypes, bool useWildcards, int? parentNodeId, int maxResults)
         {
             Text = searchText;
-            SearchFields = searchFields.ToList();
-            NodeTypeAliases = nodeTypes.ToList();
+            SearchFields = searchFields == null ? new List<string>() : searchFields.ToList();
+            NodeTypeAliases = nodeTypes == null ? new List<string>() : nodeTypes.ToList();
             UseWildcards = useWildcards;
             ParentNodeId = parentNodeId;
             MaxResults = maxResults;

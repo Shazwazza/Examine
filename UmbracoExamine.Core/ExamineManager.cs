@@ -9,7 +9,7 @@ using UmbracoExamine.Core.Config;
 
 namespace UmbracoExamine.Core
 {
-    public class ExamineManager
+    public class ExamineManager : ISearcher, IIndexer
     {
 
         private ExamineManager()
@@ -33,37 +33,93 @@ namespace UmbracoExamine.Core
         private object m_Lock = new object();
 
         public BaseSearchProvider DefaultSearchProvider { get; private set; }
-        
-        private SearchProviderCollection m_SearchProviders = null;
-        private IndexProviderCollection m_IndexProviders = null;
+        public BaseIndexProvider DefaultIndexProvider { get; private set; }
 
-        
-        //private const string SectionName = "UmbracoExamineProviders";
+        public SearchProviderCollection SearchProviderCollection { get; private set; }
+        public IndexProviderCollection IndexProviderCollection { get; private set; }
 
         private void LoadProviders()
         {
-            if (m_IndexProviders == null)
+            if (IndexProviderCollection == null)
             {
                 lock (m_Lock)
                 {
                     // Do this again to make sure _provider is still null
-                    if (m_IndexProviders == null)
+                    if (IndexProviderCollection == null)
                     {
-                        m_IndexProviders = new IndexProviderCollection();
-                        
-                        // Load registered providers and point _provider to the default provider	
-                        ProvidersHelper.InstantiateProviders(IndexProvidersSection.Instance.Providers, m_IndexProviders, typeof(BaseIndexProvider));
 
-                        m_SearchProviders = new SearchProviderCollection();
-                        ProvidersHelper.InstantiateProviders(SearchProvidersSection.Instance.Providers, m_SearchProviders, typeof(BaseSearchProvider));
+                        // Load registered providers and point _provider to the default provider	
+
+                        IndexProviderCollection = new IndexProviderCollection();
+                        ProvidersHelper.InstantiateProviders(IndexProvidersSection.Instance.Providers, IndexProviderCollection, typeof(BaseIndexProvider));
+
+                        SearchProviderCollection = new SearchProviderCollection();
+                        ProvidersHelper.InstantiateProviders(SearchProvidersSection.Instance.Providers, SearchProviderCollection, typeof(BaseSearchProvider));
+
                         //set the default
-                        DefaultSearchProvider = m_SearchProviders[SearchProvidersSection.Instance.DefaultProvider];
+                        DefaultSearchProvider = SearchProviderCollection[SearchProvidersSection.Instance.DefaultProvider];
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
+                        DefaultIndexProvider = IndexProviderCollection[IndexProvidersSection.Instance.DefaultProvider];
+                        if (DefaultSearchProvider == null)
+                            throw new ProviderException("Unable to load default index provider");
 
                     }
                 }
             }
         }
+        
+
+        #region ISearcher Members
+
+        /// <summary>
+        /// Uses the default provider specified to search
+        /// </summary>
+        /// <param name="criteria"></param>
+        /// <returns></returns>
+        /// <remarks>This is just a wrapper for the default provider</remarks>
+        public IEnumerable<SearchResult> Search(ISearchCriteria criteria)
+        {
+            return DefaultSearchProvider.Search(criteria);
+        }
+
+        #endregion
+
+        #region IIndexer Members
+
+        /// <summary>
+        /// Uses the default provider specified to index
+        /// </summary>
+        /// <param name="criteria"></param>
+        /// <returns></returns>
+        /// <remarks>This is just a wrapper for the default provider</remarks>
+        public void ReIndexNode(int nodeId)
+        {
+            DefaultIndexProvider.ReIndexNode(nodeId);
+        }
+
+        /// <summary>
+        /// Uses the default provider specified to delete
+        /// </summary>
+        /// <param name="criteria"></param>
+        /// <returns></returns>
+        /// <remarks>This is just a wrapper for the default provider</remarks>
+        public bool DeleteFromIndex(int nodeId)
+        {
+            return DefaultIndexProvider.DeleteFromIndex(nodeId);
+        }
+
+        /// <summary>
+        /// Uses the default provider specified to index
+        /// </summary>
+        /// <param name="criteria"></param>
+        /// <returns></returns>
+        /// <remarks>This is just a wrapper for the default provider</remarks>
+        public void IndexAll()
+        {
+            DefaultIndexProvider.IndexAll();
+        }
+
+        #endregion
     }
 }

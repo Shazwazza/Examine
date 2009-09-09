@@ -11,26 +11,26 @@ namespace UmbracoExamine.Providers.Config
     /// <summary>
     /// Defines XPath statements that map to specific umbraco nodes
     /// </summary>
-    public sealed class IndexSets : ConfigurationSection
+    public sealed class ExamineLuceneIndexes : ConfigurationSection
     {
 
         #region Singleton definition
 
-        private static readonly IndexSets m_IndexSets;
-        private IndexSets() { }
-        static IndexSets()
+        private static readonly ExamineLuceneIndexes m_IndexSets;
+        private ExamineLuceneIndexes() { }
+        static ExamineLuceneIndexes()
         {
-            m_IndexSets = ConfigurationManager.GetSection(SectionName) as IndexSets;     
+            m_IndexSets = ConfigurationManager.GetSection(SectionName) as ExamineLuceneIndexes;     
   
         }
-        public static IndexSets Instance
+        public static ExamineLuceneIndexes Instance
         {
             get { return m_IndexSets; }
         }
 
         #endregion
 
-        private const string SectionName = "UmbracoExamineIndex";
+        private const string SectionName = "ExamineLuceneIndexSets";
 
         [ConfigurationCollection(typeof(IndexSetCollection))]
         [ConfigurationProperty("", IsDefaultCollection = true, IsRequired = true)]

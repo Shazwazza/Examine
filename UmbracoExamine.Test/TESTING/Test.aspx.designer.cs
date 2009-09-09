@@ -21,5 +21,32 @@ namespace UmbracoExamine.Test.Testing {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
+        
+        /// <summary>
+        /// TestProviders1 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::UmbracoExamine.Test.TESTING.TestProviders TestProviders1;
+        
+        /// <summary>
+        /// TestIndexing1 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::UmbracoExamine.Test.TESTING.TestIndexing TestIndexing1;
+        
+        /// <summary>
+        /// TestSearching1 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::UmbracoExamine.Test.TESTING.TestSearching TestSearching1;
     }
 }

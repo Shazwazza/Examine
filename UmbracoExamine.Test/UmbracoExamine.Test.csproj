@@ -34,6 +34,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AjaxControlToolkit, Version=1.0.10920.32880, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\AjaxControlToolkit.dll</HintPath>
+    </Reference>
     <Reference Include="businesslogic, Version=1.0.3441.18044, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\businesslogic.dll</HintPath>
@@ -46,13 +50,45 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\controls.dll</HintPath>
     </Reference>
+    <Reference Include="CookComputing.XmlRpcV2, Version=2.2.0.4, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\CookComputing.XmlRpcV2.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenMail, Version=1.0.2085.34555, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\DotNetOpenMail.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.85.4.369, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageManipulation, Version=1.0.2105.41209, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\ImageManipulation.dll</HintPath>
+    </Reference>
     <Reference Include="interfaces, Version=1.0.3438.34252, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\interfaces.dll</HintPath>
     </Reference>
+    <Reference Include="IronMath, Version=1.0.60816.1877, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\IronMath.dll</HintPath>
+    </Reference>
+    <Reference Include="IronPython, Version=1.0.60816.1877, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\IronPython.dll</HintPath>
+    </Reference>
     <Reference Include="Lucene.Net, Version=2.0.0.4, Culture=neutral">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\Lucene.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ApplicationBlocks.Data, Version=1.0.1559.20655, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\Microsoft.ApplicationBlocks.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data, Version=5.1.2.2, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\MySql.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -75,6 +111,10 @@
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.Web.Mobile" />
+    <Reference Include="TidyNet, Version=1.0.0.0, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\TidyNet.dll</HintPath>
+    </Reference>
     <Reference Include="umbraco, Version=1.0.3441.17657, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\umbraco.dll</HintPath>
@@ -107,6 +147,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\umbraco.XmlSerializers.dll</HintPath>
     </Reference>
+    <Reference Include="UrlRewritingNet.UrlRewriter, Version=2.0.60829.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\UrlRewritingNet.UrlRewriter.dll</HintPath>
+    </Reference>
+    <Reference Include="VistaDB For Umbraco, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\VistaDB For Umbraco.dll</HintPath>
+    </Reference>
+    <Reference Include="VistaDB.NET20, Version=3.4.1.69, Culture=neutral, PublicKeyToken=dfc935afe2125461, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\VistaDB.NET20.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -116,6 +168,27 @@
     </Compile>
     <Compile Include="TESTING\Test.aspx.designer.cs">
       <DependentUpon>Test.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TESTING\TestIndexing.ascx.cs">
+      <DependentUpon>TestIndexing.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TESTING\TestIndexing.ascx.designer.cs">
+      <DependentUpon>TestIndexing.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="TESTING\TestProviders.ascx.cs">
+      <DependentUpon>TestProviders.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TESTING\TestProviders.ascx.designer.cs">
+      <DependentUpon>TestProviders.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="TESTING\TestSearching.ascx.cs">
+      <DependentUpon>TestSearching.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TESTING\TestSearching.ascx.designer.cs">
+      <DependentUpon>TestSearching.ascx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -138,10 +211,6 @@
     <Content Include="TESTING\Test.aspx" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\UmbracoExamine.Config\UmbracoExamine.Configuration.csproj">
-      <Project>{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}</Project>
-      <Name>UmbracoExamine.Configuration</Name>
-    </ProjectReference>
     <ProjectReference Include="..\UmbracoExamine.Core\UmbracoExamine.Core.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>UmbracoExamine.Core</Name>
@@ -153,6 +222,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="config\UmbracoExamine.config" />
+    <Content Include="TESTING\TestIndexing.ascx" />
+    <Content Include="TESTING\TestProviders.ascx" />
+    <Content Include="TESTING\TestSearching.ascx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

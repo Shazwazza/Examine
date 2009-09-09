@@ -64,7 +64,6 @@
     <Compile Include="IndexingNodeDataEventArgs.cs" />
     <Compile Include="IndexingNodeEventArgs.cs" />
     <Compile Include="IndexingNodesEventArgs.cs" />
-    <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="IIndexer.cs" />
     <Compile Include="ISearchCriteria.cs" />
     <Compile Include="ISearcher.cs" />

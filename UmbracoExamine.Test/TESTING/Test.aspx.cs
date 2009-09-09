@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using UmbracoExamine.Core;
+using UmbracoExamine.Providers;
 
 namespace UmbracoExamine.Test.Testing
 {
@@ -12,7 +13,10 @@ namespace UmbracoExamine.Test.Testing
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            Response.Write(ExamineManager.Instance.DefaultSearchProvider.Description);
+            
+            
+
+            
         }
     }
 }
