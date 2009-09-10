@@ -6,10 +6,11 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using UmbracoExamine.Core;
 using UmbracoExamine.Providers;
+using System.Drawing;
 
 namespace UmbracoExamine.Test.TESTING
 {
-    public partial class TestProviders : System.Web.UI.UserControl
+    public partial class TestProviders : TestControl
     {
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -20,8 +21,13 @@ namespace UmbracoExamine.Test.TESTING
         {
             foreach (BaseIndexProvider indexer in ExamineManager.Instance.IndexProviderCollection)
             {
-                Trace.Warn("TestProviders", indexer.Name + " : " + indexer.Description);
+                AddTrace("TestProviders", "INDEXER: " + indexer.Name + " : " + indexer.Description, Color.Black);
+            }
+            foreach (BaseSearchProvider searcher in ExamineManager.Instance.SearchProviderCollection)
+            {
+                AddTrace("TestProviders", "SEARCHER: " + searcher.Name + " : " + searcher.Description, Color.Black);
             }            
+
         }
     }
 }

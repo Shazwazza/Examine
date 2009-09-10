@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Configuration.Provider;
+using System.Collections;
 
 namespace UmbracoExamine.Providers
 {
@@ -11,6 +12,14 @@ namespace UmbracoExamine.Providers
         public new BaseIndexProvider this[string name]
         {
             get { return (BaseIndexProvider)base[name]; }
+        }
+
+        public BaseIndexProvider this[int index]
+        {
+            get
+            {
+                return this.Cast<BaseIndexProvider>().ToArray()[index];
+            }
         }
 
         public override void Add(ProviderBase provider)

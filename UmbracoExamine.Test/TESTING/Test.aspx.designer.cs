@@ -48,5 +48,14 @@ namespace UmbracoExamine.Test.Testing {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::UmbracoExamine.Test.TESTING.TestSearching TestSearching1;
+        
+        /// <summary>
+        /// TraceOutput control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.PlaceHolder TraceOutput;
     }
 }

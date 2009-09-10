@@ -10,6 +10,7 @@ using Lucene.Net.QueryParsers;
 using Lucene.Net.Analysis.Standard;
 using System.IO;
 using UmbracoExamine.Providers.Config;
+using System.Collections;
 
 namespace UmbracoExamine.Providers
 {
@@ -37,18 +38,25 @@ namespace UmbracoExamine.Providers
 
         protected string IndexSetName { get; set; }
 
-        public override IEnumerable<SearchResult> Search(ISearchCriteria criteria)
+        public override IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards)
+        {
+            return Search(new SearchCriteria(searchText, new string[] { }, new string[] { }, useWildcards, null, maxResults));
+        }
+
+        public override IEnumerable<SearchResult> Search(ISearchCriteria searchParams)
         {
             string text;
-            string[] searchFields = criteria.SearchFields.ToArray();
+
+            string[] searchFields = searchParams.SearchFields.ToArray();
             IndexSearcher searcher = null;
             try
             {
-                text = criteria.Text.ToLower();
+                text = searchParams.Text.ToLower();
                 //nodeTypeAlias = nodeTypeAlias.ToLower();
 
                 List<SearchResult> results = new List<SearchResult>();
-                if (string.IsNullOrEmpty(text))
+                //search string needs to be bigger than 2 chars
+                if (string.IsNullOrEmpty(text) || text.Length < 3)
                     return results;
 
                 // Remove all entries that are 2 letters or less, remove other invalid search chars. Replace all " " with AND 
@@ -57,22 +65,17 @@ namespace UmbracoExamine.Providers
                 searcher = new IndexSearcher(LuceneIndexFolder.FullName);
 
                 //create the full query
-                BooleanQuery fullQry = new BooleanQuery();
+                BooleanQuery fullQry = new BooleanQuery();             
 
-                //add the nodeTypeAlias query if specified
-                //TODO : Allow for multiple node type aliases
-                //if (!string.IsNullOrEmpty(nodeTypeAlias))
-                //    fullQry.Add(GetNodeTypeLookupQuery(nodeTypeAlias), BooleanClause.Occur.MUST);
-
-                foreach (var nodeType in criteria.NodeTypeAliases)
+                foreach (var nodeType in searchParams.NodeTypeAliases)
                 {
                     fullQry.Add(GetNodeTypeLookupQuery(nodeType), BooleanClause.Occur.MUST);
                 }
 
                 //add the path query if specified
-                if (criteria.ParentNodeId.HasValue)
+                if (searchParams.ParentNodeId.HasValue)
                 {
-                    Query qryParent = GetParentDocQuery(criteria.ParentNodeId.Value);
+                    Query qryParent = GetParentDocQuery(searchParams.ParentNodeId.Value);
                     if (qryParent == null)
                         return results;
                     fullQry.Add(qryParent, BooleanClause.Occur.MUST);
@@ -82,9 +85,23 @@ namespace UmbracoExamine.Providers
 
                 //create an inner query to query our fields using both an exact match and wildcard match.
                 BooleanQuery fieldQry = new BooleanQuery();
+
+                //if there are no field specified, we'll search them all
+                if (searchFields.Length == 0)
+                {
+                    IndexReader reader = searcher.GetIndexReader();
+                    var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
+                    //exclude the special index fields
+                    searchFields = fields.Cast<DictionaryEntry>()
+                        .Where(x => x.Key != LuceneExamineIndexer.IndexNodeIdFieldName || x.Key != LuceneExamineIndexer.IndexTypeFieldName)
+                        .Select(x => (string)x.Value)
+                        .ToArray();                        
+                }
+                
+
                 Query standardFieldQry = GetStandardFieldQuery(queryText, searchFields);
                 fieldQry.Add(standardFieldQry, BooleanClause.Occur.SHOULD);
-                if (criteria.UseWildcards)
+                if (searchParams.UseWildcards)
                 {
                     //get the wildcard query
                     Query wildcardFieldQry = GetWildcardFieldQuery(queryText, searchFields);
@@ -96,7 +113,7 @@ namespace UmbracoExamine.Providers
 
                 fullQry.Add(fieldQry, BooleanClause.Occur.MUST);
 
-                TopDocs tDocs = searcher.Search(fullQry, (Filter)null, criteria.MaxResults);
+                TopDocs tDocs = searcher.Search(fullQry, (Filter)null, searchParams.MaxResults);
 
                 results = PrepareResults(tDocs, searchFields, searcher);
 

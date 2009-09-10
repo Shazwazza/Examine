@@ -32,12 +32,24 @@ namespace UmbracoExamine.Core.Config
             get { return (ProviderSettingsCollection)base["providers"]; }
         }
 
-        [StringValidator(MinLength = 1)]
-        [ConfigurationProperty("defaultProvider", DefaultValue = "InternalIndex")]
-        public string DefaultProvider
+        //[StringValidator(MinLength = 1)]
+        //[ConfigurationProperty("defaultProvider", DefaultValue = "InternalIndex")]
+        //public string DefaultProvider
+        //{
+        //    get { return (string)base["defaultProvider"]; }
+        //    set { base["defaultProvider"] = value; }
+        //}
+
+        /// <summary>
+        /// If true, the IndexingActionHandler will be run to keep the default index up to date.
+        /// </summary>
+        [ConfigurationProperty("enabledDefaultEventHandler", IsRequired = true)]
+        public bool EnabledDefaultEventHandler
         {
-            get { return (string)base["defaultProvider"]; }
-            set { base["defaultProvider"] = value; }
+            get
+            {
+                return (bool)this["enabledDefaultEventHandler"];
+            }
         }
     }
 }

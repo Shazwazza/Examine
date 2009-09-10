@@ -41,30 +41,6 @@ namespace UmbracoExamine.Providers.Config
                 return (IndexSetCollection)base[""];
             }
         }
-
-        /// <summary>
-        /// Specifies the default index set to use for the default action handler.
-        /// </summary>
-        [ConfigurationProperty("DefaultIndexSet", IsRequired = true)]
-        public string DefaultIndexSet
-        {
-            get
-            {
-                return (string)this["DefaultIndexSet"];
-            }
-        }
-
-        /// <summary>
-        /// If true, the IndexingActionHandler will be run to keep the default index up to date.
-        /// </summary>
-        [ConfigurationProperty("EnableDefaultActionHandler", IsRequired = true)]
-        public bool EnableDefaultActionHandler
-        {
-            get
-            {
-                return (bool)this["EnableDefaultActionHandler"];
-            }
-        }
                 
     }
 

@@ -8,7 +8,8 @@ namespace UmbracoExamine.Core
     public interface ISearcher
     {
 
-        IEnumerable<SearchResult> Search(ISearchCriteria criteria);
+        IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards);
+        IEnumerable<SearchResult> Search(ISearchCriteria searchParameters);
 
     }
 }

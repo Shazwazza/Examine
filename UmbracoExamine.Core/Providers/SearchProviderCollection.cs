@@ -13,6 +13,14 @@ namespace UmbracoExamine.Providers
             get { return (BaseSearchProvider)base[name]; }
         }
 
+        public BaseSearchProvider this[int index]
+        {
+            get
+            {
+                return this.Cast<BaseSearchProvider>().ToArray()[index];
+            }
+        }
+
         public override void Add(ProviderBase provider)
         {
             if (provider == null)

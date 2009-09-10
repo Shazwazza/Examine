@@ -17,7 +17,7 @@ namespace UmbracoExamine.Providers.Config
         /// </summary>
         /// <param name="set"></param>
         /// <returns></returns>
-        public static IIndexCriteria ToIndexerData(this IndexSet set)
+        public static IIndexCriteria ToIndexCriteria(this IndexSet set)
         {
             return new IndexCriteria(
                 set.IndexUmbracoFields.ToList().Select(x => x.Name).ToArray(),
@@ -26,5 +26,16 @@ namespace UmbracoExamine.Providers.Config
                 set.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 set.IndexParentId);
         }
+
+        /// <summary>
+        /// Returns a string array of all fields that are indexed including Umbraco fields
+        /// </summary>
+        public static IEnumerable<string> CombinedUmbracoFields(this IndexSet set)
+        {
+            return set.IndexUserFields.ToList().Select(x => x.Name)
+                .Concat(set.IndexUmbracoFields.ToList().Select(x => x.Name));
+        }
+
+      
     }
 }

@@ -35,6 +35,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="businesslogic, Version=1.0.3441.18044, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\businesslogic.dll</HintPath>
+    </Reference>
+    <Reference Include="cms, Version=1.0.3441.17655, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\cms.dll</HintPath>
+    </Reference>
+    <Reference Include="interfaces, Version=1.0.3438.34252, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\interfaces.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -65,6 +77,7 @@
     <Compile Include="IndexingNodeEventArgs.cs" />
     <Compile Include="IndexingNodesEventArgs.cs" />
     <Compile Include="IIndexer.cs" />
+    <Compile Include="IndexType.cs" />
     <Compile Include="ISearchCriteria.cs" />
     <Compile Include="ISearcher.cs" />
     <Compile Include="ExamineManager.cs" />
@@ -75,6 +88,7 @@
     <Compile Include="Providers\BaseSearchProvider.cs" />
     <Compile Include="Providers\IndexProviderCollection.cs" />
     <Compile Include="Providers\SearchProviderCollection.cs" />
+    <Compile Include="UmbracoEventManager.cs" />
     <Compile Include="UmbXmlLinqExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

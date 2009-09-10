@@ -10,7 +10,12 @@ namespace UmbracoExamine.Providers
     public abstract class BaseSearchProvider : ProviderBase, ISearcher
     {
 
-        public abstract IEnumerable<SearchResult> Search(ISearchCriteria criteria);
-    
+        #region ISearcher Members
+
+        public abstract IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards);
+        public abstract IEnumerable<SearchResult> Search(ISearchCriteria searchParams);
+
+
+        #endregion
     }
 }

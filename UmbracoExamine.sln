@@ -1,42 +1,27 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Configuration", "UmbracoExamine.Config\UmbracoExamine.Configuration.csproj", "{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Providers", "UmbracoExamine.Providers\UmbracoExamine.Providers.csproj", "{07FBC26B-2927-4A22-8D96-D644C667FECC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Core", "UmbracoExamine.Core\UmbracoExamine.Core.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Lucene2", "UmbracoExamine.Lucene\UmbracoExamine.Lucene2.csproj", "{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Lucene1", "UmbracoExamine.Lucene.Legacy\UmbracoExamine.Lucene1.csproj", "{6918A99D-046F-4E83-B916-26A5D203CA5B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Test", "UmbracoExamine.Test\UmbracoExamine.Test.csproj", "{413BC05F-2AC6-4D2B-931B-556690AF1EFA}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 7
+		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs05.codeplex.com/
 		SccLocalPath0 = .
-		SccProjectUniqueName1 = UmbracoExamine.Config\\UmbracoExamine.Configuration.csproj
-		SccProjectName1 = UmbracoExamine.Config
-		SccLocalPath1 = UmbracoExamine.Config
-		SccProjectUniqueName2 = UmbracoExamine.Providers\\UmbracoExamine.Providers.csproj
-		SccProjectName2 = UmbracoExamine.Providers
-		SccLocalPath2 = UmbracoExamine.Providers
-		SccProjectUniqueName3 = UmbracoExamine.Core\\UmbracoExamine.Core.csproj
-		SccProjectName3 = UmbracoExamine.Core
-		SccLocalPath3 = UmbracoExamine.Core
-		SccProjectUniqueName4 = UmbracoExamine.Lucene\\UmbracoExamine.Lucene2.csproj
-		SccProjectName4 = UmbracoExamine.Lucene
-		SccLocalPath4 = UmbracoExamine.Lucene
-		SccProjectUniqueName5 = UmbracoExamine.Lucene.Legacy\\UmbracoExamine.Lucene1.csproj
-		SccProjectName5 = UmbracoExamine.Lucene.Legacy
-		SccLocalPath5 = UmbracoExamine.Lucene.Legacy
-		SccProjectUniqueName6 = UmbracoExamine.Test\\UmbracoExamine.Test.csproj
-		SccProjectName6 = UmbracoExamine.Test
-		SccLocalPath6 = UmbracoExamine.Test
+		SccProjectUniqueName1 = UmbracoExamine.Providers\\UmbracoExamine.Providers.csproj
+		SccProjectName1 = UmbracoExamine.Providers
+		SccLocalPath1 = UmbracoExamine.Providers
+		SccProjectUniqueName2 = UmbracoExamine.Core\\UmbracoExamine.Core.csproj
+		SccProjectName2 = UmbracoExamine.Core
+		SccLocalPath2 = UmbracoExamine.Core
+		SccProjectUniqueName3 = UmbracoExamine.Test\\UmbracoExamine.Test.csproj
+		SccProjectName3 = UmbracoExamine.Test
+		SccLocalPath3 = UmbracoExamine.Test
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,12 +29,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}.Release DLLs|Any CPU.ActiveCfg = Release|Any CPU
-		{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}.Release DLLs|Any CPU.Build.0 = Release|Any CPU
-		{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AD989B08-6C5E-4865-9F49-A0B9ACBDB0CC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{07FBC26B-2927-4A22-8D96-D644C667FECC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{07FBC26B-2927-4A22-8D96-D644C667FECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07FBC26B-2927-4A22-8D96-D644C667FECC}.Release DLLs|Any CPU.ActiveCfg = Release|Any CPU
@@ -62,18 +41,6 @@ Global
 		{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}.Release DLLs|Any CPU.Build.0 = Release|Any CPU
 		{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Release DLLs|Any CPU.ActiveCfg = Release DLLs|Any CPU
-		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Release DLLs|Any CPU.Build.0 = Release DLLs|Any CPU
-		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{27B91669-0EEE-4BE7-AE03-6CE18B24D3D8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Release DLLs|Any CPU.ActiveCfg = Release DLLs|Any CPU
-		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Release DLLs|Any CPU.Build.0 = Release DLLs|Any CPU
-		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6918A99D-046F-4E83-B916-26A5D203CA5B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{413BC05F-2AC6-4D2B-931B-556690AF1EFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{413BC05F-2AC6-4D2B-931B-556690AF1EFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{413BC05F-2AC6-4D2B-931B-556690AF1EFA}.Release DLLs|Any CPU.ActiveCfg = Release|Any CPU

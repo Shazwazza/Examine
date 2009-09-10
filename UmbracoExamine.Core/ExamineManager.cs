@@ -33,7 +33,7 @@ namespace UmbracoExamine.Core
         private object m_Lock = new object();
 
         public BaseSearchProvider DefaultSearchProvider { get; private set; }
-        public BaseIndexProvider DefaultIndexProvider { get; private set; }
+        //public BaseIndexProvider DefaultIndexProvider { get; private set; }
 
         public SearchProviderCollection SearchProviderCollection { get; private set; }
         public IndexProviderCollection IndexProviderCollection { get; private set; }
@@ -60,7 +60,7 @@ namespace UmbracoExamine.Core
                         DefaultSearchProvider = SearchProviderCollection[SearchProvidersSection.Instance.DefaultProvider];
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
-                        DefaultIndexProvider = IndexProviderCollection[IndexProvidersSection.Instance.DefaultProvider];
+                        //DefaultIndexProvider = IndexProviderCollection[IndexProvidersSection.Instance.DefaultProvider];
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default index provider");
 
@@ -75,13 +75,26 @@ namespace UmbracoExamine.Core
         /// <summary>
         /// Uses the default provider specified to search
         /// </summary>
-        /// <param name="criteria"></param>
+        /// <param name="searchParameters"></param>
         /// <returns></returns>
         /// <remarks>This is just a wrapper for the default provider</remarks>
-        public IEnumerable<SearchResult> Search(ISearchCriteria criteria)
+        public IEnumerable<SearchResult> Search(ISearchCriteria searchParameters)
         {
-            return DefaultSearchProvider.Search(criteria);
+            return DefaultSearchProvider.Search(searchParameters);
         }
+
+        /// <summary>
+        /// Uses the default provider specified to search
+        /// </summary>
+        /// <param name="searchText"></param>
+        /// <param name="maxResults"></param>
+        /// <param name="useWildcards"></param>
+        /// <returns></returns>
+        public IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards)
+        {
+            return DefaultSearchProvider.Search(searchText, maxResults, useWildcards);
+        }
+       
 
         #endregion
 
@@ -93,9 +106,12 @@ namespace UmbracoExamine.Core
         /// <param name="criteria"></param>
         /// <returns></returns>
         /// <remarks>This is just a wrapper for the default provider</remarks>
-        public void ReIndexNode(int nodeId)
+        public void ReIndexNode(int nodeId, IndexType type)
         {
-            DefaultIndexProvider.ReIndexNode(nodeId);
+            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            {
+                provider.ReIndexNode(nodeId, type);
+            }
         }
 
         /// <summary>
@@ -104,9 +120,12 @@ namespace UmbracoExamine.Core
         /// <param name="criteria"></param>
         /// <returns></returns>
         /// <remarks>This is just a wrapper for the default provider</remarks>
-        public bool DeleteFromIndex(int nodeId)
-        {
-            return DefaultIndexProvider.DeleteFromIndex(nodeId);
+        public void DeleteFromIndex(int nodeId)
+        {            
+            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            {
+                provider.DeleteFromIndex(nodeId);
+            }
         }
 
         /// <summary>
@@ -115,9 +134,36 @@ namespace UmbracoExamine.Core
         /// <param name="criteria"></param>
         /// <returns></returns>
         /// <remarks>This is just a wrapper for the default provider</remarks>
-        public void IndexAll()
+        public void IndexAll(IndexType type)
         {
-            DefaultIndexProvider.IndexAll();
+            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            {
+                provider.IndexAll(type);
+            }
+        }
+
+        public void RebuildIndex()
+        {
+            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            {
+                provider.RebuildIndex();
+            }
+        }
+
+        /// <summary>
+        /// A wrapper for the default Index provider's IndexerData
+        /// TODO: Perhaps this is not a good thing to do....
+        /// </summary>
+        public IIndexCriteria IndexerData
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
         }
 
         #endregion

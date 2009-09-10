@@ -12,6 +12,7 @@ using System.Xml.XPath;
 using Lucene.Net.Documents;
 using System.Runtime.CompilerServices;
 using Lucene.Net.Analysis.Standard;
+using umbraco.cms.businesslogic.media;
 
 namespace UmbracoExamine.Providers
 {
@@ -34,11 +35,21 @@ namespace UmbracoExamine.Providers
             IndexSetName = config["indexSet"];
 
             //get the index criteria
-            IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexerData();
+            IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria();
 
             //get the folder to index
             LuceneIndexFolder = ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory;
         }
+
+        /// <summary>
+        /// Used to store a non-tokenized key for the document
+        /// </summary>
+        public const string IndexTypeFieldName = "__IndexType";
+
+        /// <summary>
+        /// Used to store a non-tokenized type for the document
+        /// </summary>
+        public const string IndexNodeIdFieldName = "__NodeId";
 
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
         
@@ -75,15 +86,67 @@ namespace UmbracoExamine.Providers
    
         #region Provider implementation
 
-        public override void ReIndexNode(int nodeId)
+        public override void ReIndexNode(int nodeId, IndexType type)
         {
-            if (DeleteFromIndex(nodeId))
-                AddSingleNodeToIndex(nodeId);
+            DeleteFromIndex(nodeId);
+            AddSingleNodeToIndex(nodeId, type);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public override bool DeleteFromIndex(int nodeId)
+        /// <summary>
+        /// Rebuilds the entire index from scratch for all index types
+        /// </summary>
+        /// <remarks>This will completely delete the index and recrete it</remarks>
+        public override void RebuildIndex()
         {
+            IndexWriter writer = null;
+            try
+            {
+                //ensure the folder exists
+                VerifyFolder(LuceneIndexFolder);
+
+                //check if the index exists and it's locked
+                if (IndexExists() && !IndexReady())
+                {
+                    OnIndexingError(new IndexingErrorEventArgs("Cannot rebuild index, the index is currently locked", -1, new Exception()));
+                    return;
+                }
+
+                //create the writer (this will overwrite old index files)
+                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), true);
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("An error occured recreating the index set", -1, ex));
+                return;
+            }
+            finally
+            {
+                if (writer != null)
+                    writer.Close();
+            }
+
+            IndexAll(IndexType.Content);
+            IndexAll(IndexType.Media);
+        }
+             
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public override void DeleteFromIndex(int nodeId)
+        {
+            DeleteFromIndex(new Term(IndexNodeIdFieldName, nodeId.ToString()));
+        }
+
+        /// <summary>
+        /// Removes the specified term from the index
+        /// </summary>
+        /// <param name="indexTerm"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void DeleteFromIndex(Term indexTerm)
+        {
+            int nodeId = -1;
+            if (indexTerm.Field() == "id")
+                int.TryParse(indexTerm.Text(), out nodeId);
+
             IndexReader ir = null;
             try
             {
@@ -91,18 +154,18 @@ namespace UmbracoExamine.Providers
 
                 //if the index doesn't exist, then no don't attempt to open it.
                 if (!IndexExists())
-                    return true;
+                    return;
 
                 ir = IndexReader.Open(LuceneIndexFolder.FullName);
-                ir.DeleteDocuments(new Term("id", nodeId.ToString()));
+                int delCount = ir.DeleteDocuments(indexTerm);
 
                 OnNodeIndexDeleted(new IndexingNodeEventArgs(nodeId));
-                return true;
+                return;
             }
             catch (Exception ee)
             {
                 OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeId, ee));
-                return false;
+                return;
             }
             finally
             {
@@ -112,8 +175,11 @@ namespace UmbracoExamine.Providers
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public override void IndexAll()
+        public override void IndexAll(IndexType type)
         {
+            //we'll need to remove the type from the index first
+            DeleteFromIndex(new Term(IndexTypeFieldName, type.ToString()));
+
             IndexWriter writer = null;
             try
             {
@@ -128,13 +194,13 @@ namespace UmbracoExamine.Providers
                 }
 
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), true);
+                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
 
                 string xPath = "//node[{0}]";
                 StringBuilder sb = new StringBuilder();
 
                 //create the xpath statement to match node type aliases if specified
-                if (IndexerData.IncludeNodeTypes.Length > 0)
+                if (IndexerData.IncludeNodeTypes.Count() > 0)
                 {
                     sb.Append("(");
                     foreach (string field in IndexerData.IncludeNodeTypes)
@@ -167,7 +233,7 @@ namespace UmbracoExamine.Providers
                 //raise the event and set the xpath statement to the value returned
                 xPath = OnNodesIndexing(new IndexingNodesEventArgs(IndexerData, xPath));
 
-                AddNodesToIndex(xPath, writer);
+                AddNodesToIndex(xPath, writer, type);
 
                 //raise the completed event, the data returned is irrelevant.
                 OnNodesIndexed(new IndexingNodesEventArgs(IndexerData, xPath));
@@ -190,7 +256,7 @@ namespace UmbracoExamine.Providers
         /// </summary>
         /// <param name="nodeID"></param>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void AddSingleNodeToIndex(int nodeID)
+        public void AddSingleNodeToIndex(int nodeID, IndexType type)
         {
             if (nodeID <= 0)
                 return;
@@ -201,7 +267,7 @@ namespace UmbracoExamine.Providers
 
                 //check if the index doesn't exist, and if so, create it and reindex everything
                 if (!IndexExists())
-                    IndexAll();
+                    IndexAll(type);
 
                 //check if the index is ready to be written to.
                 if (!IndexReady())
@@ -210,8 +276,11 @@ namespace UmbracoExamine.Providers
                     return;
                 }
 
-                XPathNodeIterator umbXml = umbraco.library.GetXmlNodeById(nodeID.ToString());
+                XPathNodeIterator umbXml = GetNodeIterator(nodeID, type);
                 XDocument xDoc = umbXml.UmbToXDocument();
+                if (xDoc == null)
+                    return;
+
                 var rootNode = xDoc.Elements().First();
                 if (!ValidateDocument(rootNode))
                 {
@@ -219,12 +288,8 @@ namespace UmbracoExamine.Providers
                     return;
                 }
 
-                //check if we need to create a new index...
-                bool createNew = false;
-                if (!IndexReader.IndexExists(LuceneIndexFolder.FullName))
-                    createNew = true;
-                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), createNew);
-                AddDocument(GetDataToIndex(rootNode), writer, nodeID);
+                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
+                AddDocument(GetDataToIndex(rootNode), writer, nodeID, type);
 
                 writer.Optimize();
 
@@ -251,12 +316,12 @@ namespace UmbracoExamine.Providers
         protected virtual bool ValidateDocument(XElement node)
         {
             //check if this document is of a correct type of node type alias
-            if (IndexerData.IncludeNodeTypes.Length > 0)
+            if (IndexerData.IncludeNodeTypes.Count() > 0)
                 if (!IndexerData.IncludeNodeTypes.Contains((string)node.Attribute("nodeTypeAlias")))
                     return false;
 
             //if this node type is part of our exclusion list, do not validate
-            if (IndexerData.ExcludeNodeTypes.Length > 0)
+            if (IndexerData.ExcludeNodeTypes.Count() > 0)
                 if (IndexerData.ExcludeNodeTypes.Contains((string)node.Attribute("nodeTypeAlias")))
                     return false;
 
@@ -315,16 +380,75 @@ namespace UmbracoExamine.Providers
         /// <param name="fields"></param>
         /// <param name="writer"></param>
         /// <param name="nodeId"></param>
-        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId)
+        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type)
         {
+            
+
             Document d = new Document();
             //add all of our fields to the document index individally            
             fields.ToList().ForEach(x => d.Add(new Field(x.Key, x.Value, Field.Store.YES, Field.Index.TOKENIZED, Field.TermVector.YES)));
+
+            //we want to store the nodeId seperately as it's the index
+            d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NO_NORMS, Field.TermVector.NO));
+            //add the index type first
+            d.Add(new Field(IndexTypeFieldName, type.ToString(), Field.Store.YES, Field.Index.NO_NORMS, Field.TermVector.NO));
 
             writer.AddDocument(d);
 
             OnNodeIndexed(new IndexingNodeEventArgs(nodeId));
         }
+
+        protected XPathNodeIterator GetNodeIterator(string xPath, IndexType type)
+        {
+            // Get all the nodes of nodeTypeAlias == nodeTypeAlias
+            XPathNodeIterator umbXml;
+            switch (type)
+            {
+                case IndexType.Content:
+                    umbXml = umbraco.library.GetXmlNodeByXPath(xPath);
+                    break;
+                case IndexType.Media:
+
+                    //TODO: This doesn't work! how to get all media?
+                    //do this, then iterate over the root medias with full tree and run xpath against
+                    Media[] rootMedia = Media.GetRootMedias();
+                    var xml = XDocument.Parse("<media></media>");
+                    foreach (var media in rootMedia)
+                    {
+                        var nodes = umbraco.library.GetMedia(media.Id, true);
+                        xml.Root.Add(XElement.Parse(nodes.Current.OuterXml));
+
+                    }
+                    umbXml = (XPathNodeIterator)xml.CreateNavigator().Evaluate(xPath);
+                    break;
+                default:
+                    umbXml = null;
+                    break;
+            }
+
+            return umbXml;
+        }
+
+        protected XPathNodeIterator GetNodeIterator(int nodeId, IndexType type)
+        {
+            // Get all the nodes of nodeTypeAlias == nodeTypeAlias
+            XPathNodeIterator umbXml;
+            switch (type)
+            {
+                case IndexType.Content:
+                    umbXml = umbraco.library.GetXmlNodeById(nodeId.ToString());
+                    break;
+                case IndexType.Media:
+                    umbXml = umbraco.library.GetMedia(nodeId, false);
+                    break;
+                default:
+                    umbXml = null;
+                    break;
+            }
+
+            return umbXml;
+        }
+
         #endregion
 
         #region Private
@@ -333,11 +457,17 @@ namespace UmbracoExamine.Providers
         /// </summary>
         /// <param name="xPath"></param>
         /// <param name="writer"></param>
-        private void AddNodesToIndex(string xPath, IndexWriter writer)
+        private void AddNodesToIndex(string xPath, IndexWriter writer, IndexType type)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
-            XPathNodeIterator umbXml = umbraco.library.GetXmlNodeByXPath(xPath);
+            XPathNodeIterator umbXml = GetNodeIterator(xPath, type);
+            if (umbXml == null)
+                return;
+
             XDocument xDoc = umbXml.UmbToXDocument();
+            if (xDoc == null)
+                return;
+
             XElement rootNode = xDoc.Elements().First();
 
             IEnumerable<XElement> children = rootNode.Elements();
@@ -345,7 +475,7 @@ namespace UmbracoExamine.Providers
             foreach (XElement node in children)
             {
                 if (ValidateDocument(node))
-                    AddDocument(GetDataToIndex(node), writer, int.Parse(node.Attribute("id").Value));
+                    AddDocument(GetDataToIndex(node), writer, int.Parse(node.Attribute("id").Value), type);
             }
 
         }

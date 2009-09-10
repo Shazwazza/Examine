@@ -17,11 +17,31 @@ namespace UmbracoExamine.Providers
             IndexerData = indexerData;
         }
 
+        public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
+        {
+            base.Initialize(name, config);
+            if (config["enabled"] == null)
+                throw new ArgumentNullException("enabled flag on index provider has not been set");
 
+            bool enabled;
+            if (!bool.TryParse(config["enabled"], out enabled))
+                throw new ArgumentNullException("enabled flag on index provider has not been set");
 
-        public abstract void ReIndexNode(int nodeId);
-        public abstract bool DeleteFromIndex(int nodeId);
-        public abstract void IndexAll();
+            Enabled = enabled;
+        }
+
+        public bool Enabled { get; set; }
+
+        #region IIndexer members
+        public abstract void ReIndexNode(int nodeId, IndexType type);
+        public abstract void DeleteFromIndex(int nodeId);
+        public abstract void IndexAll(IndexType type);
+        public abstract void RebuildIndex();
+        /// <summary>
+        /// Gets/sets the index criteria to create the index with
+        /// </summary>
+        public IIndexCriteria IndexerData { get; set; }
+        #endregion
 
         #region Delegates
         public delegate void IndexingNodeEventHandler(object sender, IndexingNodeEventArgs e);
@@ -63,7 +83,7 @@ namespace UmbracoExamine.Providers
         public event IndexingNodeEventHandler NodeIndexDeleted;
         public event IndexingFieldDataEventHandler GatheringFieldData;
         public event IndexingErrorEventHandler IndexingError;
-        public event IndexingNodeDataEventHandler IgnoringNode; 
+        public event IndexingNodeDataEventHandler IgnoringNode;
         #endregion
 
         #region Protected Event callers
@@ -127,25 +147,11 @@ namespace UmbracoExamine.Providers
                 NodesIndexing(this, e);
 
             return e.XPath;
-        } 
+        }
 
         #endregion
 
-        /// <summary>
-        /// Gets/sets the index criteria to create the index with
-        /// </summary>
-        public IIndexCriteria IndexerData { get; set; }
+        
 
-        /// <summary>
-        /// Returns a string array of all fields that are indexed including Umbraco fields
-        /// </summary>
-        public string[] AllIndexedFields
-        {
-            get
-            {
-                return IndexerData.UserFields.Concat(IndexerData.UmbracoFields).ToArray();
-            }
-        }
-    
     }
 }

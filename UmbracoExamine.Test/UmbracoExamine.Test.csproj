@@ -169,6 +169,9 @@
     <Compile Include="TESTING\Test.aspx.designer.cs">
       <DependentUpon>Test.aspx</DependentUpon>
     </Compile>
+    <Compile Include="TESTING\TestControl.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="TESTING\TestIndexing.ascx.cs">
       <DependentUpon>TestIndexing.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

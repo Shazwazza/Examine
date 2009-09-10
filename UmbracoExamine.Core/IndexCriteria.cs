@@ -12,7 +12,7 @@ namespace UmbracoExamine.Core
     public class IndexCriteria : IIndexCriteria
     {
 
-        public IndexCriteria(string[] umbracoFields, string[] userFields, string[] includeNodeTypes, string[] excludeNodeTypes, int? parentNodeId)
+        public IndexCriteria(IEnumerable<string> umbracoFields, IEnumerable<string> userFields, IEnumerable<string> includeNodeTypes, IEnumerable<string> excludeNodeTypes, int? parentNodeId)
         {
             UserFields = userFields.ToList();
             UmbracoFields = umbracoFields.ToList();
@@ -24,8 +24,8 @@ namespace UmbracoExamine.Core
         public IEnumerable<string> UmbracoFields { get; private set; }
         public IEnumerable<string> UserFields { get; private set; }
 
-        public string[] IncludeNodeTypes { get; private set; }
-        public string[] ExcludeNodeTypes { get; private set; }
+        public IEnumerable<string> IncludeNodeTypes { get; private set; }
+        public IEnumerable<string> ExcludeNodeTypes { get; private set; }
         public int? ParentNodeId { get; private set; }
     }
 
