@@ -13,6 +13,34 @@ namespace UmbracoExamine.Core
         public IDictionary<string, string> Fields { get; set; }
 
         /// <summary>
+        /// Returns the key value pair for the index specified
+        /// </summary>
+        /// <param name="resultIndex"></param>
+        /// <returns></returns>
+        public KeyValuePair<string, string> this[int resultIndex] 
+        {
+            get
+            {
+                return Fields.ToArray()[resultIndex];
+            }
+        }
+
+        /// <summary>
+        /// Returns the value for the key specified
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public string this[string key] 
+        {
+            get
+            {
+                return Fields[key];
+            }
+        }
+        
+        
+
+        /// <summary>
         /// Override this method so that the Distinct() operator works
         /// </summary>
         /// <param name="obj"></param>

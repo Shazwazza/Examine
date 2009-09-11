@@ -62,6 +62,9 @@ namespace UmbracoExamine.Providers
                 // Remove all entries that are 2 letters or less, remove other invalid search chars. Replace all " " with AND 
                 string queryText = PrepareSearchText(text, true, true);
 
+                if (!LuceneIndexFolder.Exists)
+                    throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
+
                 searcher = new IndexSearcher(LuceneIndexFolder.FullName);
 
                 //create the full query
