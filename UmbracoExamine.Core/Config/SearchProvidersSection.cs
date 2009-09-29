@@ -6,26 +6,9 @@ using System.Configuration;
 
 namespace UmbracoExamine.Core.Config
 {
-    public class SearchProvidersSection : ConfigurationSection
+    public class SearchProvidersSection : ConfigurationElement
     {
-        #region Singleton definition
-
-        private static readonly SearchProvidersSection m_Providers;
-        private SearchProvidersSection() { }
-        static SearchProvidersSection()
-        {
-            m_Providers = ConfigurationManager.GetSection(SectionName) as SearchProvidersSection;
-
-        }
-        public static SearchProvidersSection Instance
-        {
-            get { return m_Providers; }
-        }
-
-        #endregion
-
-        private const string SectionName = "ExamineSearchProviders";
-
+        
         [ConfigurationProperty("providers")]
         public ProviderSettingsCollection Providers
         {

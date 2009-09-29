@@ -51,13 +51,13 @@ namespace UmbracoExamine.Core
                         // Load registered providers and point _provider to the default provider	
 
                         IndexProviderCollection = new IndexProviderCollection();
-                        ProvidersHelper.InstantiateProviders(IndexProvidersSection.Instance.Providers, IndexProviderCollection, typeof(BaseIndexProvider));
+                        ProvidersHelper.InstantiateProviders(UmbracoExamineSettings.Instance.IndexProviders.Providers, IndexProviderCollection, typeof(BaseIndexProvider));
 
                         SearchProviderCollection = new SearchProviderCollection();
-                        ProvidersHelper.InstantiateProviders(SearchProvidersSection.Instance.Providers, SearchProviderCollection, typeof(BaseSearchProvider));
+                        ProvidersHelper.InstantiateProviders(UmbracoExamineSettings.Instance.SearchProviders.Providers, SearchProviderCollection, typeof(BaseSearchProvider));
 
                         //set the default
-                        DefaultSearchProvider = SearchProviderCollection[SearchProvidersSection.Instance.DefaultProvider];
+                        DefaultSearchProvider = SearchProviderCollection[UmbracoExamineSettings.Instance.SearchProviders.DefaultProvider];
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
                         //DefaultIndexProvider = IndexProviderCollection[IndexProvidersSection.Instance.DefaultProvider];

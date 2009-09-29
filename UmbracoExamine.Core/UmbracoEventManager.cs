@@ -24,13 +24,13 @@ namespace UmbracoExamine.Core
 
         void content_AfterUpdateDocumentCache(Document sender, umbraco.cms.businesslogic.DocumentCacheEventArgs e)
         {
-            if (IndexProvidersSection.Instance.EnabledDefaultEventHandler)
+            if (UmbracoExamineSettings.Instance.IndexProviders.EnabledDefaultEventHandler)
                 ExamineManager.Instance.ReIndexNode(sender.Id, IndexType.Content);
         }
 
         void Media_AfterSave(Media sender, umbraco.cms.businesslogic.SaveEventArgs e)
         {
-            if (IndexProvidersSection.Instance.EnabledDefaultEventHandler)
+            if (UmbracoExamineSettings.Instance.IndexProviders.EnabledDefaultEventHandler)
                 ExamineManager.Instance.ReIndexNode(sender.Id, IndexType.Media);
         }
 
