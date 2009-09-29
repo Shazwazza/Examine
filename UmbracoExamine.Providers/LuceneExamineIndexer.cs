@@ -13,9 +13,14 @@ using Lucene.Net.Documents;
 using System.Runtime.CompilerServices;
 using Lucene.Net.Analysis.Standard;
 using umbraco.cms.businesslogic.media;
+using umbraco.cms.businesslogic;
 
 namespace UmbracoExamine.Providers
 {
+
+    /// <summary>
+    /// TODO: Need to add support for indexing NON-published nodes (i.e. don't query from cache!)
+    /// </summary>
     public class LuceneExamineIndexer : BaseIndexProvider
     {
         public LuceneExamineIndexer() : base() { }
@@ -52,7 +57,7 @@ namespace UmbracoExamine.Providers
         public const string IndexNodeIdFieldName = "__NodeId";
 
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
-        
+
         protected string IndexSetName { get; set; }
 
         /// <summary>
@@ -83,13 +88,13 @@ namespace UmbracoExamine.Providers
             AddLog(e.NodeId, string.Format("Index deleted for node ({0})", LuceneIndexFolder.FullName), LogTypes.System);
             base.OnNodeIndexDeleted(e);
         }
-   
+
         #region Provider implementation
 
-        public override void ReIndexNode(int nodeId, IndexType type)
+        public override void ReIndexNode(Content node, IndexType type)
         {
-            DeleteFromIndex(nodeId);
-            AddSingleNodeToIndex(nodeId, type);
+            DeleteFromIndex(node);
+            AddSingleNodeToIndex(node.Id, type);
         }
 
         /// <summary>
@@ -128,12 +133,12 @@ namespace UmbracoExamine.Providers
             IndexAll(IndexType.Content);
             IndexAll(IndexType.Media);
         }
-             
+
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public override void DeleteFromIndex(int nodeId)
+        public override void DeleteFromIndex(Content node)
         {
-            DeleteFromIndex(new Term(IndexNodeIdFieldName, nodeId.ToString()));
+            DeleteFromIndex(new Term(IndexNodeIdFieldName, node.Id.ToString()));
         }
 
         /// <summary>
@@ -386,7 +391,15 @@ namespace UmbracoExamine.Providers
 
             Document d = new Document();
             //add all of our fields to the document index individally            
-            fields.ToList().ForEach(x => d.Add(new Field(x.Key, x.Value, Field.Store.YES, Field.Index.TOKENIZED, Field.TermVector.YES)));
+            fields.ToList().ForEach(x => 
+                {
+                    var policy = UmbracoFieldPolicies.GetPolicy(x.Key);
+                    d.Add(
+                        new Field(x.Key, GetFieldValue(x.Value),
+                            Field.Store.YES,
+                            policy,
+                            policy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES));
+                });
 
             //we want to store the nodeId seperately as it's the index
             d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NO_NORMS, Field.TermVector.NO));
@@ -396,6 +409,22 @@ namespace UmbracoExamine.Providers
             writer.AddDocument(d);
 
             OnNodeIndexed(new IndexingNodeEventArgs(nodeId));
+        }
+
+        /// <summary>
+        /// All field data will be stored into Lucene as is except for dates, these can be stored as standard: yyyy-MM-dd
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        private string GetFieldValue(string val)
+        {
+            DateTime date;
+            if (DateTime.TryParse(val, out date))
+            {
+                return date.ToString("yyyy-MM-dd");
+            }
+            else
+                return val;
         }
 
         protected XPathNodeIterator GetNodeIterator(string xPath, IndexType type)

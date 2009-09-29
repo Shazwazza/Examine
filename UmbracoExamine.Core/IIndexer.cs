@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using umbraco.cms.businesslogic;
 
 namespace UmbracoExamine.Core
 {
     public interface IIndexer
     {
 
-        void ReIndexNode(int nodeId, IndexType type);
-        void DeleteFromIndex(int nodeId);
+        void ReIndexNode(Content node, IndexType type);
+        void DeleteFromIndex(Content node);
         void IndexAll(IndexType type);
         void RebuildIndex();
 

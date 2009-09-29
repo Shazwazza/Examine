@@ -15,12 +15,7 @@ namespace UmbracoExamine.Providers.Config
             {
                 return (string)this["Name"];
             }
-            set
-            {
-                this["Name"] = value;
-            }
         }
-
 
     }
 }

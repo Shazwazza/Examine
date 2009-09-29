@@ -5,6 +5,7 @@ using System.Text;
 using System.Configuration.Provider;
 using System.IO;
 using UmbracoExamine.Core;
+using umbraco.cms.businesslogic;
 
 namespace UmbracoExamine.Providers
 {
@@ -33,8 +34,8 @@ namespace UmbracoExamine.Providers
         public bool Enabled { get; set; }
 
         #region IIndexer members
-        public abstract void ReIndexNode(int nodeId, IndexType type);
-        public abstract void DeleteFromIndex(int nodeId);
+        public abstract void ReIndexNode(Content node, IndexType type);
+        public abstract void DeleteFromIndex(Content node);
         public abstract void IndexAll(IndexType type);
         public abstract void RebuildIndex();
         /// <summary>

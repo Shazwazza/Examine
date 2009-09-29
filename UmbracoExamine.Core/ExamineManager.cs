@@ -6,6 +6,8 @@ using System.Web.Configuration;
 using System.Configuration.Provider;
 using UmbracoExamine.Providers;
 using UmbracoExamine.Core.Config;
+using System.Threading;
+using umbraco.cms.businesslogic;
 
 namespace UmbracoExamine.Core
 {
@@ -106,11 +108,15 @@ namespace UmbracoExamine.Core
         /// <param name="criteria"></param>
         /// <returns></returns>
         /// <remarks>This is just a wrapper for the default provider</remarks>
-        public void ReIndexNode(int nodeId, IndexType type)
+        public void ReIndexNode(Content node, IndexType type)
         {
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
-                provider.ReIndexNode(nodeId, type);
+                //ThreadPool.QueueUserWorkItem(
+                //    delegate
+                //    {
+                        provider.ReIndexNode(node, type);
+                    //});
             }
         }
 
@@ -120,11 +126,15 @@ namespace UmbracoExamine.Core
         /// <param name="criteria"></param>
         /// <returns></returns>
         /// <remarks>This is just a wrapper for the default provider</remarks>
-        public void DeleteFromIndex(int nodeId)
+        public void DeleteFromIndex(Content node)
         {            
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
-                provider.DeleteFromIndex(nodeId);
+                //ThreadPool.QueueUserWorkItem(
+                //    delegate
+                //    {
+                provider.DeleteFromIndex(node);
+                    //});
             }
         }
 
@@ -138,7 +148,11 @@ namespace UmbracoExamine.Core
         {
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
-                provider.IndexAll(type);
+                //ThreadPool.QueueUserWorkItem(
+                //    delegate
+                //    {
+                        provider.IndexAll(type);
+                    //});
             }
         }
 
@@ -146,7 +160,11 @@ namespace UmbracoExamine.Core
         {
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
-                provider.RebuildIndex();
+                //ThreadPool.QueueUserWorkItem(
+                //    delegate
+                //    {
+                        provider.RebuildIndex();
+                    //});
             }
         }
 
