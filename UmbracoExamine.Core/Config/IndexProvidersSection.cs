@@ -18,13 +18,14 @@ namespace UmbracoExamine.Core.Config
         /// <summary>
         /// If true, the IndexingActionHandler will be run to keep the default index up to date.
         /// </summary>
-        [ConfigurationProperty("enabledDefaultEventHandler", IsRequired = true)]
-        public bool EnabledDefaultEventHandler
+        [ConfigurationProperty("enableDefaultEventHandler", IsRequired = true)]
+        public bool EnableDefaultEventHandler
         {
             get
             {
-                return (bool)this["enabledDefaultEventHandler"];
+                return (bool)this["enableDefaultEventHandler"];
             }
         }
+
     }
 }
