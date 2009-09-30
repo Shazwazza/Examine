@@ -5,22 +5,65 @@ using System.Text;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using umbraco;
+using System.Xml;
+using umbraco.cms.businesslogic;
+using umbraco.cms.businesslogic.web;
 
 namespace UmbracoExamine.Core
 {
     /// <summary>
     /// Static methods to help query umbraco xml
     /// </summary>
-    public static class UmbXmlLinqExtensions
+    public static class LinqXmlExtensions
     {
 
+        /// <summary>
+        /// Converts a content node to XDocument
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="cacheOnly">true if data is going to be returned from cache</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// If the type of node is not a Document, the cacheOnly has no effect, it will use the API to return
+        /// the xml. 
+        /// </remarks>
+        public static XDocument ToXDocument(this Content node, bool cacheOnly)
+        {
+            if (cacheOnly && node.GetType().Equals(typeof(Document)))
+            {
+                var umbXml = library.GetXmlNodeById(node.Id.ToString());
+                return umbXml.ToXDocument();
+            }
+
+            //if it's not a using cache and it's not cacheOnly, then retrieve the Xml using the API
+
+            XmlDocument xDoc = new XmlDocument();
+            var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");
+            node.XmlPopulate(xDoc, ref xNode, false);
+            return xDoc.ToXDocument();
+        }
+
+        /// <summary>
+        /// Based on this blog, this is the fastest way to convert XmlDocument to XDocument
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <returns></returns>
+        public static XDocument ToXDocument(this XmlDocument doc)
+        {
+            return XDocument.Load(new XmlNodeReader(doc));
+        }
+
+        public static XElement ToXElement(this XmlNode node)
+        {
+            return XElement.Load(new XmlNodeReader(node));
+        }
 
         /// <summary>
         /// Converts an umbraco library call to an XDocument
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        public static XDocument UmbToXDocument(this XPathNodeIterator xml)
+        public static XDocument ToXDocument(this XPathNodeIterator xml)
         {
             if (xml.Count == 1)
             {
@@ -28,10 +71,12 @@ namespace UmbracoExamine.Core
                 if (xml.MoveNext())
                 {
                     //if ever the id is -1 then it's returned the whole tree which means its not found
+                    //TODO: This is bug with older umbraco versions, i'm fairly sure it's fixed in new ones
+                    //but just in case, we'll keep this here.
                     if (xml.Current.InnerXml.StartsWith("<root"))
                         return null;
 
-                    return XDocument.Parse(xml.Current.OuterXml);
+                    return XDocument.Load(xml.Current.ReadSubtree());
                 }
                 return null;
             }
@@ -78,21 +123,8 @@ namespace UmbracoExamine.Core
         public static XElement GetNodeByXpath(string xPath)
         {
             XPathNodeIterator umbXml = umbraco.library.GetXmlNodeByXPath(xPath);
-            return umbXml.UmbToXDocument().Elements().First();
+            return umbXml.ToXDocument().Elements().First();
         }
-
-
-        /// <summary>
-        /// Gets the id of a node by its xpath. Note that this will only return the first node found.
-        /// </summary>
-        /// <param name="xPath"></param>
-        /// <returns></returns>
-        public static int GetNodeIDByXpath(string xPath)
-        {
-            XPathNodeIterator umbXml = umbraco.library.GetXmlNodeByXPath(xPath);
-            return (int)umbXml.UmbToXDocument().Elements().First().Attribute("id");
-        }
-
 
         /// <summary>
         /// Returns umbraco NODE xml elements of a specific type

@@ -33,5 +33,6 @@ namespace UmbracoExamine.Providers
             base.Add(provider);
         }
 
+
     }
 }

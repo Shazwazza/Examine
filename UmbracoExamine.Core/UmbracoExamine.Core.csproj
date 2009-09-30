@@ -90,7 +90,7 @@
     <Compile Include="Providers\IndexProviderCollection.cs" />
     <Compile Include="Providers\SearchProviderCollection.cs" />
     <Compile Include="UmbracoEventManager.cs" />
-    <Compile Include="UmbXmlLinqExtensions.cs" />
+    <Compile Include="LinqXmlExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -48,7 +48,7 @@ namespace UmbracoExamine.Test.TESTING
 
         string TestIndexing_NodesIndexing(object sender, IndexingNodesEventArgs e)
         {
-            AddTrace("Nodes Indexing", string.Format("Indexing nodes with Provider: {0} and XPath statement: {1}", ((BaseIndexProvider)sender).Name, e.XPath), Color.Black);
+            AddTrace("Nodes Indexing", string.Format("Indexing " + e.Type.ToString().ToUpper() + " nodes with Provider: {0} and XPath statement: {1}", ((BaseIndexProvider)sender).Name, e.XPath), Color.Black);
             return e.XPath;
         }
 

@@ -6,6 +6,7 @@ using System.Configuration.Provider;
 using System.IO;
 using UmbracoExamine.Core;
 using umbraco.cms.businesslogic;
+using System.Xml.Linq;
 
 namespace UmbracoExamine.Providers
 {
@@ -34,8 +35,13 @@ namespace UmbracoExamine.Providers
         public bool Enabled { get; set; }
 
         #region IIndexer members
-        public abstract void ReIndexNode(Content node, IndexType type);
-        public abstract void DeleteFromIndex(Content node);
+        /// <summary>
+        /// Determines if the manager will call the indexing methods when content is saved or deleted as
+        /// opposed to cache being updated.
+        /// </summary>
+        public abstract bool SupportUnpublishedContent { get; protected set; }
+        public abstract void ReIndexNode(XElement node, IndexType type);
+        public abstract void DeleteFromIndex(XElement node);
         public abstract void IndexAll(IndexType type);
         public abstract void RebuildIndex();
         /// <summary>

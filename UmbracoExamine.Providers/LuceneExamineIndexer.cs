@@ -14,6 +14,9 @@ using System.Runtime.CompilerServices;
 using Lucene.Net.Analysis.Standard;
 using umbraco.cms.businesslogic.media;
 using umbraco.cms.businesslogic;
+using System.Xml;
+
+
 
 namespace UmbracoExamine.Providers
 {
@@ -44,6 +47,14 @@ namespace UmbracoExamine.Providers
 
             //get the folder to index
             LuceneIndexFolder = ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory;
+
+            //check if there's a flag specifying to support unpublished content,
+            //if not, set to false;
+            bool supportUnpublished;
+            if (config["supportUnpublished"] != null && bool.TryParse(config["supportUnpublished"], out supportUnpublished))
+                SupportUnpublishedContent = supportUnpublished;
+            else
+                SupportUnpublishedContent = false;
         }
 
         /// <summary>
@@ -91,10 +102,12 @@ namespace UmbracoExamine.Providers
 
         #region Provider implementation
 
-        public override void ReIndexNode(Content node, IndexType type)
+        public override bool SupportUnpublishedContent { get; protected set; }
+
+        public override void ReIndexNode(XElement node, IndexType type)
         {
             DeleteFromIndex(node);
-            AddSingleNodeToIndex(node.Id, type);
+            AddSingleNodeToIndex(node, type);
         }
 
         /// <summary>
@@ -136,9 +149,10 @@ namespace UmbracoExamine.Providers
 
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public override void DeleteFromIndex(Content node)
+        public override void DeleteFromIndex(XElement node)
         {
-            DeleteFromIndex(new Term(IndexNodeIdFieldName, node.Id.ToString()));
+            var id = (string)node.Attribute("id");
+            DeleteFromIndex(new Term(IndexNodeIdFieldName, id));
         }
 
         /// <summary>
@@ -179,6 +193,10 @@ namespace UmbracoExamine.Providers
             }
         }
 
+        /// <summary>
+        /// Re-indexes all data for the index type specified
+        /// </summary>
+        /// <param name="type"></param>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public override void IndexAll(IndexType type)
         {
@@ -236,12 +254,12 @@ namespace UmbracoExamine.Providers
                 xPath = xPath.Replace("[]", "");
 
                 //raise the event and set the xpath statement to the value returned
-                xPath = OnNodesIndexing(new IndexingNodesEventArgs(IndexerData, xPath));
+                xPath = OnNodesIndexing(new IndexingNodesEventArgs(IndexerData, xPath, type));
 
                 AddNodesToIndex(xPath, writer, type);
 
                 //raise the completed event, the data returned is irrelevant.
-                OnNodesIndexed(new IndexingNodesEventArgs(IndexerData, xPath));
+                OnNodesIndexed(new IndexingNodesEventArgs(IndexerData, xPath, type));
 
                 writer.Optimize();
             }
@@ -261,10 +279,13 @@ namespace UmbracoExamine.Providers
         /// </summary>
         /// <param name="nodeID"></param>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void AddSingleNodeToIndex(int nodeID, IndexType type)
+        public void AddSingleNodeToIndex(XElement node, IndexType type)
         {
-            if (nodeID <= 0)
+            int nodeId = -1;
+            int.TryParse((string)node.Attribute("id"), out nodeId);            
+            if (nodeId <= 0)
                 return;
+
             IndexWriter writer = null;
             try
             {
@@ -277,31 +298,28 @@ namespace UmbracoExamine.Providers
                 //check if the index is ready to be written to.
                 if (!IndexReady())
                 {
-                    OnIndexingError(new IndexingErrorEventArgs("Cannot index node, the index is currently locked", nodeID, new Exception()));
+                    OnIndexingError(new IndexingErrorEventArgs("Cannot index node, the index is currently locked", nodeId, new Exception()));
                     return;
                 }
 
-                XPathNodeIterator umbXml = GetNodeIterator(nodeID, type);
-                XDocument xDoc = umbXml.UmbToXDocument();
-                if (xDoc == null)
-                    return;
-
-                var rootNode = xDoc.Elements().First();
-                if (!ValidateDocument(rootNode))
+                //XPathNodeIterator umbXml = GetNodeIterator(nodeID, type);
+                //XDocument xDoc = umbXml.ToXDocument();
+                //var rootNode = xDoc.Elements().First();
+                if (!ValidateDocument(node))
                 {
-                    OnIgnoringNode(new IndexingNodeDataEventArgs(rootNode, null, nodeID));
+                    OnIgnoringNode(new IndexingNodeDataEventArgs(node, null, nodeId));
                     return;
                 }
 
                 writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
-                AddDocument(GetDataToIndex(rootNode), writer, nodeID, type);
+                AddDocument(GetDataToIndex(node), writer, nodeId, type);
 
                 writer.Optimize();
 
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeID, ex));
+                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeId, ex));
             }
             finally
             {
@@ -339,6 +357,39 @@ namespace UmbracoExamine.Providers
         }
 
         /// <summary>
+        /// Unfortunately, we need to implement our own IsProtected method since 
+        /// the Umbraco core code requires an HttpContext for this method and when we're running
+        /// async, there is no context
+        /// </summary>
+        /// <param name="documentId"></param>
+        /// <returns></returns>
+        private XmlNode GetPage(int documentId)
+        {
+            XmlNode x = umbraco.cms.businesslogic.web.Access.AccessXml.SelectSingleNode("/access/page [@id=" + documentId.ToString() + "]");
+            return x;
+        }
+
+        /// <summary>
+        /// Unfortunately, we need to implement our own IsProtected method since 
+        /// the Umbraco core code requires an HttpContext for this method and when we're running
+        /// async, there is no context
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private bool IsProtected(int nodeId, string path)
+        {
+            foreach (string id in path.Split(','))
+            {
+                if (GetPage(int.Parse(id)) != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Collects all of the data that neesd to be indexed as defined in the index set.
         /// </summary>
         /// <param name="node"></param>
@@ -349,8 +400,8 @@ namespace UmbracoExamine.Providers
 
             int nodeId = int.Parse(node.Attribute("id").Value);
 
-            // Test for access
-            if (umbraco.library.IsProtected(nodeId, node.Attribute("path").Value))
+            // Test for access if we're only indexing published content
+            if (!SupportUnpublishedContent && IsProtected(nodeId, node.Attribute("path").Value))
                 return values;
 
             // Get all user data that we want to index and store into a dictionary 
@@ -427,56 +478,55 @@ namespace UmbracoExamine.Providers
                 return val;
         }
 
-        protected XPathNodeIterator GetNodeIterator(string xPath, IndexType type)
+        protected XDocument GetXDocument(string xPath, IndexType type)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
             XPathNodeIterator umbXml;
             switch (type)
             {
                 case IndexType.Content:
-                    umbXml = umbraco.library.GetXmlNodeByXPath(xPath);
-                    break;
+                    if (this.SupportUnpublishedContent)
+                    {
+                        //This is quite an intensive operation...
+                        //get all root content, then get the XML structure for all children,
+                        //then run xpath against the navigator that's created
+                        var rootContent = umbraco.cms.businesslogic.web.Document.GetRootDocuments();
+                        var xmlContent = XDocument.Parse("<content></content>");
+                        var xDoc = new XmlDocument();
+                        foreach (var c in rootContent)
+                        {
+                            var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");
+                            c.XmlPopulate(xDoc, ref xNode, true); 
+                            xmlContent.Root.Add(xNode.ToXElement());
+                        }
+                        umbXml = (XPathNodeIterator)xmlContent.CreateNavigator().Evaluate(xPath);
+                        return umbXml.ToXDocument();
+                    }
+                    else
+                    {
+                        //If we're only dealing with published content, this is easy
+                        return umbraco.library.GetXmlNodeByXPath(xPath).ToXDocument();
+                    }
                 case IndexType.Media:
 
-                    //TODO: This doesn't work! how to get all media?
-                    //do this, then iterate over the root medias with full tree and run xpath against
+                    //This is quite an intensive operation...
+                    //get all root media, then get the XML structure for all children,
+                    //then run xpath against the navigator that's created
                     Media[] rootMedia = Media.GetRootMedias();
-                    var xml = XDocument.Parse("<media></media>");
+                    var xmlMedia = XDocument.Parse("<media></media>");
                     foreach (var media in rootMedia)
                     {
                         var nodes = umbraco.library.GetMedia(media.Id, true);
-                        xml.Root.Add(XElement.Parse(nodes.Current.OuterXml));
+                        xmlMedia.Root.Add(XElement.Parse(nodes.Current.OuterXml));
 
                     }
-                    umbXml = (XPathNodeIterator)xml.CreateNavigator().Evaluate(xPath);
-                    break;
-                default:
-                    umbXml = null;
-                    break;
+                    umbXml = (XPathNodeIterator)xmlMedia.CreateNavigator().Evaluate(xPath);
+                    return umbXml.ToXDocument();
             }
 
-            return umbXml;
+            return null;
         }
 
-        protected XPathNodeIterator GetNodeIterator(int nodeId, IndexType type)
-        {
-            // Get all the nodes of nodeTypeAlias == nodeTypeAlias
-            XPathNodeIterator umbXml;
-            switch (type)
-            {
-                case IndexType.Content:
-                    umbXml = umbraco.library.GetXmlNodeById(nodeId.ToString());
-                    break;
-                case IndexType.Media:
-                    umbXml = umbraco.library.GetMedia(nodeId, false);
-                    break;
-                default:
-                    umbXml = null;
-                    break;
-            }
-
-            return umbXml;
-        }
 
         #endregion
 
@@ -489,11 +539,7 @@ namespace UmbracoExamine.Providers
         private void AddNodesToIndex(string xPath, IndexWriter writer, IndexType type)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
-            XPathNodeIterator umbXml = GetNodeIterator(xPath, type);
-            if (umbXml == null)
-                return;
-
-            XDocument xDoc = umbXml.UmbToXDocument();
+            XDocument xDoc = GetXDocument(xPath, type);
             if (xDoc == null)
                 return;
 
