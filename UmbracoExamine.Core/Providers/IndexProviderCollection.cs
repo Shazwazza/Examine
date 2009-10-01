@@ -33,12 +33,21 @@ namespace UmbracoExamine.Providers
             base.Add(provider);
         }
 
+        private List<BaseIndexProvider> m_List = null;
 
         #region IEnumerable<BaseIndexProvider> Members
 
         IEnumerator<BaseIndexProvider> IEnumerable<BaseIndexProvider>.GetEnumerator()
         {
-            return this.AsEnumerable().GetEnumerator();
+            if (m_List == null)
+            {
+                m_List = new List<BaseIndexProvider>();
+                foreach (var x in this)
+                {
+                    m_List.Add((BaseIndexProvider)x);
+                }
+            }
+            return m_List.GetEnumerator();
         }
 
         #endregion

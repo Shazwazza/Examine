@@ -40,7 +40,7 @@ namespace UmbracoExamine.Core
             XmlDocument xDoc = new XmlDocument();
             var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");
             node.XmlPopulate(xDoc, ref xNode, false);
-            return xDoc.ToXDocument();
+            return new XDocument(xNode.ToXElement());
         }
 
         /// <summary>
@@ -50,12 +50,16 @@ namespace UmbracoExamine.Core
         /// <returns></returns>
         public static XDocument ToXDocument(this XmlDocument doc)
         {
-            return XDocument.Load(new XmlNodeReader(doc));
+            var x = new XmlNodeReader(doc);
+            x.MoveToContent();
+            return XDocument.Load(x);
         }
 
         public static XElement ToXElement(this XmlNode node)
         {
-            return XElement.Load(new XmlNodeReader(node));
+            var x = new XmlNodeReader(node);
+            x.MoveToContent();
+            return XElement.Load(x);
         }
 
         /// <summary>

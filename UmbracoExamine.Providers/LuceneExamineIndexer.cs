@@ -55,7 +55,12 @@ namespace UmbracoExamine.Providers
                 SupportUnpublishedContent = supportUnpublished;
             else
                 SupportUnpublishedContent = false;
+
+            if (config["debug"] != null)
+                bool.TryParse(config["debug"], out m_ThrowExceptions);  
         }
+
+        private bool m_ThrowExceptions = false;
 
         /// <summary>
         /// Used to store a non-tokenized key for the document
@@ -84,6 +89,9 @@ namespace UmbracoExamine.Providers
 
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
+            if (m_ThrowExceptions)
+                throw new Exception("Indexing Error Occurred: " + e.Message, e.InnerException);
+
             AddLog(e.NodeId, e.Message + ". INNER EXCEPTION: " + e.InnerException.Message, LogTypes.Error);
             base.OnIndexingError(e);
         }

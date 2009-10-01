@@ -29,7 +29,8 @@ namespace UmbracoExamine.Core
             content.AfterUpdateDocumentCache += new content.DocumentCacheEventHandler(content_AfterUpdateDocumentCache);
             content.AfterClearDocumentCache += new content.DocumentCacheEventHandler(content_AfterClearDocumentCache);
 
-            //TODO: These should only fire if indexing is happening for non-published items!
+            //TODO: This fires on publish too so need to change the update doc cache handlers to only 
+            //index content for indexers that support published content only!
             Document.AfterSave += new Document.SaveEventHandler(Document_AfterSave);
             Document.AfterDelete += new Document.DeleteEventHandler(Document_AfterDelete);
         }
