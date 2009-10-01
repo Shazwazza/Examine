@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace UmbracoExamine.Providers
 {
-    public class IndexProviderCollection : ProviderCollection
+    public class IndexProviderCollection : ProviderCollection, IEnumerable<BaseIndexProvider>
     {
         public new BaseIndexProvider this[string name]
         {
@@ -34,5 +34,24 @@ namespace UmbracoExamine.Providers
         }
 
 
+        #region IEnumerable<BaseIndexProvider> Members
+
+        IEnumerator<BaseIndexProvider> IEnumerable<BaseIndexProvider>.GetEnumerator()
+        {
+            return this.AsEnumerable().GetEnumerator();
+        }
+
+        #endregion
+
+        #region IEnumerable Members
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        #endregion
     }
+
+   
 }

@@ -14,7 +14,7 @@ using System.Xml.XPath;
 
 namespace UmbracoExamine.Core
 {
-    public class ExamineManager : ISearcher
+    public class ExamineManager : ISearcher, IIndexer
     {
 
         private ExamineManager()
@@ -103,7 +103,7 @@ namespace UmbracoExamine.Core
 
         #region IIndexer Members
 
-        public void ReIndexNode(Content node, IndexType type)
+        public void ReIndexNode(XElement node, IndexType type)
         {
             if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
             {
@@ -116,40 +116,17 @@ namespace UmbracoExamine.Core
             else
             {
                 _ReIndexNode(node, type);
-            }        
+            }
         }
-        private void _ReIndexNode(Content node, IndexType type)
+        private void _ReIndexNode(XElement node, IndexType type)
         {
-            //We need to vars, one that returns xml from cache and one that returns xml from the live api
-            //we'll lazy load these in if we need them, this depends on what the providers require (whether
-            //or not they are configured to use or not use cache)
-            XDocument cacheXml = null;
-            XDocument liveXml = null;
-
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
-                XDocument xml;
-                if (provider.SupportUnpublishedContent && liveXml == null)
-                {
-                    liveXml = node.ToXDocument(false);
-                    xml = liveXml;
-                }
-                else
-                {
-                    cacheXml = node.ToXDocument(true);
-                    xml = cacheXml;
-                }
-
-
-                //ThreadPool.QueueUserWorkItem(
-                //    delegate
-                //    {
-                provider.ReIndexNode(xml.Root, type);
-                //});
+                provider.ReIndexNode(node, type);                
             }
         }
 
-        public void DeleteFromIndex(Content node)
+        public void DeleteFromIndex(XElement node)
         {
             if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
             {
@@ -162,29 +139,13 @@ namespace UmbracoExamine.Core
             else
             {
                 _DeleteFromIndex(node);
-            }            
+            }
         }
-        private void _DeleteFromIndex(Content node)
+        private void _DeleteFromIndex(XElement node)
         {
-            //We need to vars, one that returns xml from cache and one that returns xml from the live api
-            //we'll lazy load these in if we need them, this depends on what the providers require (whether
-            //or not they are configured to use or not use cache)
-            XDocument cacheXml = null;
-            XDocument liveXml = null;
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
-                XDocument xml;
-                if (provider.SupportUnpublishedContent && liveXml == null)
-                {
-                    liveXml = node.ToXDocument(false);
-                    xml = liveXml;
-                }
-                else
-                {
-                    cacheXml = node.ToXDocument(true);
-                    xml = cacheXml;
-                }
-                provider.DeleteFromIndex(xml.Root);
+                provider.DeleteFromIndex(node);
             }
         }
 
@@ -201,17 +162,13 @@ namespace UmbracoExamine.Core
             else
             {
                 _IndexAll(type);
-            }     
+            }
         }
         private void _IndexAll(IndexType type)
         {
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
-                //ThreadPool.QueueUserWorkItem(
-                //    delegate
-                //    {
                 provider.IndexAll(type);
-                //});
             }
         }
 
@@ -234,18 +191,10 @@ namespace UmbracoExamine.Core
         {
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
-                //ThreadPool.QueueUserWorkItem(
-                //    delegate
-                //    {
                 provider.RebuildIndex();
-                //});
             }
         }
 
-        /// <summary>
-        /// A wrapper for the default Index provider's IndexerData
-        /// TODO: Perhaps this is not a good thing to do....
-        /// </summary>
         public IIndexCriteria IndexerData
         {
             get
@@ -259,5 +208,6 @@ namespace UmbracoExamine.Core
         }
 
         #endregion
+
     }
 }
