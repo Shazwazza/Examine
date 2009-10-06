@@ -471,7 +471,7 @@ namespace UmbracoExamine.Providers
         }
 
         /// <summary>
-        /// All field data will be stored into Lucene as is except for dates, these can be stored as standard: yyyy-MM-dd
+        /// All field data will be stored into Lucene as is except for dates, these can be stored as standard: yyyyMMdd
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
@@ -480,7 +480,7 @@ namespace UmbracoExamine.Providers
             DateTime date;
             if (DateTime.TryParse(val, out date))
             {
-                return date.ToString("yyyy-MM-dd");
+                return date.ToString("yyyyMMdd");
             }
             else
                 return val;
