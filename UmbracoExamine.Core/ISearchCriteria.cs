@@ -10,5 +10,6 @@ namespace UmbracoExamine.Core
         IEnumerable<string> SearchFields { get; }
         string Text { get; }
         bool UseWildcards { get; }
+        IndexType SearchIndexType { get; }
     }
 }

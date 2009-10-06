@@ -37,6 +37,13 @@ namespace UmbracoExamine.Providers
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
 
         protected string IndexSetName { get; set; }
+        /// <summary>
+        /// Simple search method which defaults to searching content nodes
+        /// </summary>
+        /// <param name="searchText"></param>
+        /// <param name="maxResults"></param>
+        /// <param name="useWildcards"></param>
+        /// <returns></returns>
 
         public override IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards)
         {
@@ -52,7 +59,6 @@ namespace UmbracoExamine.Providers
             try
             {
                 text = searchParams.Text.ToLower();
-                //nodeTypeAlias = nodeTypeAlias.ToLower();
 
                 List<SearchResult> results = new List<SearchResult>();
                 //search string needs to be bigger than 2 chars
@@ -69,6 +75,9 @@ namespace UmbracoExamine.Providers
 
                 //create the full query
                 BooleanQuery fullQry = new BooleanQuery();             
+
+                //add the type query
+                fullQry.Add(GetIndexTypeQuery(searchParams.SearchIndexType), BooleanClause.Occur.MUST);
 
                 foreach (var nodeType in searchParams.NodeTypeAliases)
                 {
@@ -96,7 +105,7 @@ namespace UmbracoExamine.Providers
                     var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
                     //exclude the special index fields
                     searchFields = fields.Cast<DictionaryEntry>()
-                        .Where(x => x.Key != LuceneExamineIndexer.IndexNodeIdFieldName || x.Key != LuceneExamineIndexer.IndexTypeFieldName)
+                        .Where(x => x.Key.ToString() != LuceneExamineIndexer.IndexNodeIdFieldName || x.Key.ToString() != LuceneExamineIndexer.IndexTypeFieldName)
                         .Select(x => (string)x.Value)
                         .ToArray();                        
                 }
@@ -177,11 +186,24 @@ namespace UmbracoExamine.Providers
         /// <returns></returns>
         private Query GetNodeTypeLookupQuery(string nodeTypeAlias)
         {
+            // a phrase query without 'slop' is an exact match
             PhraseQuery phraseQuery = new PhraseQuery();
             string[] terms = nodeTypeAlias.Split(' ');
             foreach (string term in terms)
                 phraseQuery.Add(new Term("nodeTypeAlias", term.ToLower()));
             return phraseQuery;
+        }
+
+        /// <summary>
+        /// Returns a query to match the index type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private Query GetIndexTypeQuery(IndexType type)
+        {
+            var pq = new PhraseQuery();
+            pq.Add(new Term(LuceneExamineIndexer.IndexTypeFieldName, type.ToString()));
+            return pq;
         }
 
         /// <summary>

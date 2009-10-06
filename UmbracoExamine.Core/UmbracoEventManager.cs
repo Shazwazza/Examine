@@ -31,6 +31,7 @@ namespace UmbracoExamine.Core
 
             //TODO: This fires on publish too so need to change the update doc cache handlers to only 
             //index content for indexers that support published content only!
+            //TODO: Need to add event for when doc is created!!!
             Document.AfterSave += new Document.SaveEventHandler(Document_AfterSave);
             Document.AfterDelete += new Document.DeleteEventHandler(Document_AfterDelete);
         }
