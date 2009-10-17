@@ -66,7 +66,7 @@ namespace UmbracoExamine.Providers
                     return results;
 
                 // Remove all entries that are 2 letters or less, remove other invalid search chars. Replace all " " with AND 
-                string queryText = PrepareSearchText(text, true, true);
+                string queryText = PrepareSearchText(text, true, searchParams.MatchAllWords);
 
                 if (!LuceneIndexFolder.Exists)
                     throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
@@ -116,7 +116,7 @@ namespace UmbracoExamine.Providers
                 if (searchParams.UseWildcards)
                 {
                     //get the wildcard query
-                    Query wildcardFieldQry = GetWildcardFieldQuery(queryText, searchFields);
+                    Query wildcardFieldQry = GetWildcardFieldQuery(queryText, searchFields, searchParams.MatchAllWords);
                     //change the weighting of the queries so exact match have a higher priority
                     standardFieldQry.SetBoost(2);
                     wildcardFieldQry.SetBoost((float)0.5);
@@ -141,17 +141,20 @@ namespace UmbracoExamine.Providers
         #region Private
         /// <summary>
         /// This will create a query with wildcards to match.
-        /// TODO: this doesn't support prefixed wildcards. this must be enabled in lucene and produces very slow queries.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        private Query GetWildcardFieldQuery(string text, string[] searchFields)
+        private Query GetWildcardFieldQuery(string text, string[] searchFields, bool matchAllWords)
         {
+            //get search terms split without booleans
             string queryText = PrepareSearchText(text, false, false);
             List<string> words = queryText.Split(" ".ToCharArray(), StringSplitOptions.None).ToList();
+            
+            //add * to search terms
             List<string> fixedWords = new List<string>();
             words.ForEach(x => fixedWords.Add(x + "*"));
-            string wildcardQuery = PrepareSearchText(string.Join(" ", fixedWords.ToArray()), false, true);
+
+            string wildcardQuery = PrepareSearchText(string.Join(" ", fixedWords.ToArray()), false, matchAllWords);
             //now that we have a wildcard match for each word, we'll make a query with it
 
             BooleanClause.Occur[] bc = new BooleanClause.Occur[searchFields.Length];

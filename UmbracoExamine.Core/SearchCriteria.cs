@@ -20,7 +20,7 @@ namespace UmbracoExamine.Core
             : this(searchText, useWildcards, parentNodeId, maxResults, IndexType.Content) { }
 
         public SearchCriteria(string searchText, bool useWildcards, int? parentNodeId, int maxResults, IndexType type)
-            : this(searchText, new string[] { }, new string[] { }, useWildcards, parentNodeId, maxResults, type) { }
+            : this(searchText, new string[] { }, new string[] { }, useWildcards, parentNodeId, maxResults, type, false) { }
 
         /// <summary>
         /// New Search Criteria defaulting to Content searching
@@ -32,9 +32,9 @@ namespace UmbracoExamine.Core
         /// <param name="parentNodeId"></param>
         /// <param name="maxResults"></param>
         public SearchCriteria(string searchText, IEnumerable<string> searchFields, IEnumerable<string> nodeTypes, bool useWildcards, int? parentNodeId, int maxResults)
-            : this(searchText, searchFields, nodeTypes, useWildcards, parentNodeId, maxResults, IndexType.Content) { }
+            : this(searchText, searchFields, nodeTypes, useWildcards, parentNodeId, maxResults, IndexType.Content, false) { }
 
-        public SearchCriteria(string searchText, IEnumerable<string> searchFields, IEnumerable<string> nodeTypes, bool useWildcards, int? parentNodeId, int maxResults, IndexType type)
+        public SearchCriteria(string searchText, IEnumerable<string> searchFields, IEnumerable<string> nodeTypes, bool useWildcards, int? parentNodeId, int maxResults, IndexType type, bool matchAllWords)
         {
             Text = searchText;
             SearchFields = searchFields;
@@ -43,6 +43,7 @@ namespace UmbracoExamine.Core
             ParentNodeId = parentNodeId;
             MaxResults = maxResults;
             SearchIndexType = type;
+            MatchAllWords = matchAllWords;
         }
 
         public string Text { get; private set; }
@@ -52,5 +53,6 @@ namespace UmbracoExamine.Core
         public IEnumerable<string> SearchFields { get; private set; }
         public IEnumerable<string> NodeTypeAliases { get; private set; }
         public IndexType SearchIndexType { get; private set; }
+        public bool MatchAllWords { get; private set; }
     }
 }
