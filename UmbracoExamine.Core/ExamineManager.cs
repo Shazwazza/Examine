@@ -11,6 +11,7 @@ using umbraco.cms.businesslogic;
 using System.Xml.Linq;
 using System.Xml;
 using System.Xml.XPath;
+using System.Runtime.CompilerServices;
 
 namespace UmbracoExamine.Core
 {
@@ -101,54 +102,87 @@ namespace UmbracoExamine.Core
 
         #endregion
 
+        /// <summary>
+        /// Reindex nodes for the providers specified
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="type"></param>
+        /// <param name="providers"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void ReIndexNode(XElement node, IndexType type, IEnumerable<BaseIndexProvider> providers)
+        {
+            if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
+            {
+                ThreadPool.QueueUserWorkItem(
+                    delegate
+                    {
+                        _ReIndexNode(node, type, providers);
+                    });
+            }
+            else
+            {
+                _ReIndexNode(node, type, providers);
+            }
+        }
+
+        /// <summary>
+        /// Deletes index for node for the specified providers
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="providers"></param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void DeleteFromIndex(XElement node, IEnumerable<BaseIndexProvider> providers)
+        {
+            if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
+            {
+                ThreadPool.QueueUserWorkItem(
+                    delegate
+                    {
+                        _DeleteFromIndex(node, providers);
+                    });
+            }
+            else
+            {
+                _DeleteFromIndex(node, providers);
+            }
+        }
+
         #region IIndexer Members
 
+        /// <summary>
+        /// Reindex nodes for all providers
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="type"></param>
         public void ReIndexNode(XElement node, IndexType type)
         {
-            if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
-            {
-                ThreadPool.QueueUserWorkItem(
-                    delegate
-                    {
-                        _ReIndexNode(node, type);
-                    });
-            }
-            else
-            {
-                _ReIndexNode(node, type);
-            }
-        }
-        private void _ReIndexNode(XElement node, IndexType type)
+            _ReIndexNode(node, type, IndexProviderCollection);
+        }       
+        private void _ReIndexNode(XElement node, IndexType type, IEnumerable<BaseIndexProvider> providers)
         {
-            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            foreach (var provider in providers)
             {
-                provider.ReIndexNode(node, type);                
+                provider.ReIndexNode(node, type);
             }
         }
 
+        /// <summary>
+        /// Deletes index for node for all providers
+        /// </summary>
+        /// <param name="node"></param>
         public void DeleteFromIndex(XElement node)
         {
-            if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
-            {
-                ThreadPool.QueueUserWorkItem(
-                    delegate
-                    {
-                        _DeleteFromIndex(node);
-                    });
-            }
-            else
-            {
-                _DeleteFromIndex(node);
-            }
-        }
-        private void _DeleteFromIndex(XElement node)
+            _DeleteFromIndex(node, IndexProviderCollection);
+        }    
+        private void _DeleteFromIndex(XElement node, IEnumerable<BaseIndexProvider> providers)
         {
-            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            foreach (var provider in providers)
             {
                 provider.DeleteFromIndex(node);
             }
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void IndexAll(IndexType type)
         {
             if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
@@ -172,6 +206,7 @@ namespace UmbracoExamine.Core
             }
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void RebuildIndex()
         {
             if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)

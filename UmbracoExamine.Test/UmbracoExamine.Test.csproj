@@ -186,6 +186,13 @@
     <Compile Include="TESTING\TestProviders.ascx.designer.cs">
       <DependentUpon>TestProviders.ascx</DependentUpon>
     </Compile>
+    <Compile Include="TESTING\TestPublishing.ascx.cs">
+      <DependentUpon>TestPublishing.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TESTING\TestPublishing.ascx.designer.cs">
+      <DependentUpon>TestPublishing.ascx</DependentUpon>
+    </Compile>
     <Compile Include="TESTING\TestSearching.ascx.cs">
       <DependentUpon>TestSearching.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -233,6 +240,7 @@
   <ItemGroup>
     <Content Include="data\umbraco.config" />
     <None Include="data\vistadb\VistaDB.vdb3" />
+    <Content Include="TESTING\TestPublishing.ascx" />
     <Content Include="umbraco\masterpages\default.Master" />
     <Content Include="umbraco\masterpages\umbracoDialog.Master" />
     <Content Include="umbraco\masterpages\umbracoPage.Master" />

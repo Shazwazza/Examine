@@ -3,6 +3,7 @@
 <%@ Register src="TestIndexing.ascx" tagname="TestIndexing" tagprefix="uc1" %>
 <%@ Register src="TestProviders.ascx" tagname="TestProviders" tagprefix="uc2" %>
 <%@ Register src="TestSearching.ascx" tagname="TestSearching" tagprefix="uc3" %>
+<%@ Register src="TestPublishing.ascx" tagname="TestPublishing" tagprefix="uc4" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -31,6 +32,7 @@
 			<uc2:TestProviders ID="TestProviders1" runat="server" />
 			<uc1:TestIndexing ID="TestIndexing1" runat="server" />		
 			<uc3:TestSearching ID="TestSearching1" runat="server" />
+			<uc4:TestPublishing ID="TestPublishing1" runat="server" />
 		</div>
 		<div class="testTrace">
 			<asp:PlaceHolder runat="server" ID="TraceOutput"></asp:PlaceHolder>

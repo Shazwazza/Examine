@@ -24,51 +24,40 @@ namespace UmbracoExamine.Core
             
             Media.AfterSave += new Media.SaveEventHandler(Media_AfterSave);
             Media.AfterDelete += new Media.DeleteEventHandler(Media_AfterDelete);
-            
-            //updates index after the cache is refreshed
+
+            //These should only fire for providers that DONT have SupportUnpublishedContent set to true
             content.AfterUpdateDocumentCache += new content.DocumentCacheEventHandler(content_AfterUpdateDocumentCache);
             content.AfterClearDocumentCache += new content.DocumentCacheEventHandler(content_AfterClearDocumentCache);
 
-            //TODO: This fires on publish too so need to change the update doc cache handlers to only 
-            //index content for indexers that support published content only!
-            //TODO: Need to add event for when doc is created!!!
+            //These should only fire for providers that have SupportUnpublishedContent set to true
             Document.AfterSave += new Document.SaveEventHandler(Document_AfterSave);
             Document.AfterDelete += new Document.DeleteEventHandler(Document_AfterDelete);
         }
 
-        
         /// <summary>
-        /// Since this is on save, then get the data for the node from the raw data, not from cache
+        /// Only index using providers that SupportUnpublishedContent
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        /// <remarks>
-        /// This will first check if there are any providers that require unpublished content
-        /// </remarks>
         void Document_AfterSave(Document sender, SaveEventArgs e)
         {
-            if (ExamineManager.Instance.IndexProviderCollection
-                .Count(x => x.SupportUnpublishedContent) > 0)
-            {
-                ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexType.Content);
-            }
+            //ensure that only the providers that have unpublishing support enabled           
+            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexType.Content, 
+                ExamineManager.Instance.IndexProviderCollection
+                    .Where(x => x.SupportUnpublishedContent));            
         }
 
         /// <summary>
-        /// Since this is on save, then get the data for the node from the raw data, not from cache
+        /// Only remove indexes using providers that SupportUnpublishedContent
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        /// <remarks>
-        /// This will first check if there are any providers that require unpublished content
-        /// </remarks>
         void Document_AfterDelete(Document sender, DeleteEventArgs e)
         {
-            if (ExamineManager.Instance.IndexProviderCollection
-                .Count(x => x.SupportUnpublishedContent) > 0)
-            {
-                ExamineManager.Instance.DeleteFromIndex(sender.ToXDocument(false).Root);
-            }            
+            //ensure that only the providers that have unpublishing support enabled           
+            ExamineManager.Instance.DeleteFromIndex(sender.ToXDocument(false).Root,
+                ExamineManager.Instance.IndexProviderCollection
+                    .Where(x => x.SupportUnpublishedContent));               
         }
 
         void Media_AfterDelete(Media sender, DeleteEventArgs e)
@@ -81,14 +70,30 @@ namespace UmbracoExamine.Core
             ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, IndexType.Media);
         }
 
+        /// <summary>
+        /// Only Update indexes for providers that dont SupportUnpublishedContent
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void content_AfterUpdateDocumentCache(Document sender, umbraco.cms.businesslogic.DocumentCacheEventArgs e)
         {
-            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, IndexType.Content);
+            //ensure that only the providers that have DONT unpublishing support enabled           
+            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexType.Content,
+                ExamineManager.Instance.IndexProviderCollection
+                    .Where(x => !x.SupportUnpublishedContent));            
         }
 
+        /// <summary>
+        /// Only update indexes for providers that don't SupportUnpublishedContnet
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void content_AfterClearDocumentCache(Document sender, DocumentCacheEventArgs e)
         {
-            ExamineManager.Instance.DeleteFromIndex(sender.ToXDocument(false).Root);
+            //ensure that only the providers that DONT have unpublishing support enabled           
+            ExamineManager.Instance.DeleteFromIndex(sender.ToXDocument(false).Root,
+                ExamineManager.Instance.IndexProviderCollection
+                    .Where(x => !x.SupportUnpublishedContent));   
         }
 
 

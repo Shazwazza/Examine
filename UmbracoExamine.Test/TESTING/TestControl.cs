@@ -4,13 +4,72 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Drawing;
+using UmbracoExamine.Core;
+using UmbracoExamine.Providers;
 
 namespace UmbracoExamine.Test.TESTING
 {
     public class TestControl : UserControl
     {
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
 
-        
+            if (EventsRegistered)
+                return;
+
+            foreach (BaseIndexProvider indexer in ExamineManager.Instance.IndexProviderCollection)
+            {
+
+                ExamineManager.Instance.IndexProviderCollection[indexer.Name].NodesIndexing += new BaseIndexProvider.IndexingNodesEventHandler(TestIndexing_NodesIndexing);
+                ExamineManager.Instance.IndexProviderCollection[indexer.Name].NodeIndexed += new BaseIndexProvider.IndexingNodeEventHandler(TestIndexing_NodeIndexed);
+                ExamineManager.Instance.IndexProviderCollection[indexer.Name].IndexingError += new BaseIndexProvider.IndexingErrorEventHandler(TestIndexing_IndexingError);
+                ExamineManager.Instance.IndexProviderCollection[indexer.Name].GatheringNodeData += new BaseIndexProvider.IndexingNodeDataEventHandler(TestIndexing_GatheringNodeData);
+            }
+
+            EventsRegistered = true;
+        }
+
+        protected bool EventsRegistered
+        {
+            get
+            {
+                if (HttpContext.Current.Items["eventsRegistered"] != null)
+                    return bool.Parse(HttpContext.Current.Items["eventsRegistered"].ToString());
+                return false;
+            }
+            set
+            {
+                HttpContext.Current.Items["eventsRegistered"] = value;
+            }
+        }
+
+        Dictionary<string, string> TestIndexing_GatheringNodeData(object sender, IndexingNodeDataEventArgs e)
+        {
+            foreach (var entry in e.Values)
+            {
+                AddTrace("Gathering Index Data", string.Format("DATA: {0} : {1}", entry.Key, entry.Value), Color.Brown);
+            }
+            return e.Values;
+        }
+
+        void TestIndexing_IndexingError(object sender, IndexingErrorEventArgs e)
+        {
+            AddTrace("Indexing Error", string.Format("{0} : {1},{2}", e.NodeId, e.Message, e.InnerException != null ? e.InnerException.Message : ""), Color.Red);
+        }
+
+        void TestIndexing_NodeIndexed(object sender, IndexingNodeEventArgs e)
+        {
+
+            AddTrace("Node Indexed", string.Format("Node {0} Index with Provider: {1}", e.NodeId, ((BaseIndexProvider)sender).Name), Color.Blue);
+        }
+
+        string TestIndexing_NodesIndexing(object sender, IndexingNodesEventArgs e)
+        {
+            AddTrace("Nodes Indexing", string.Format("Indexing " + e.Type.ToString().ToUpper() + " nodes with Provider: {0} and XPath statement: {1}", ((BaseIndexProvider)sender).Name, e.XPath), Color.Black);
+            return e.XPath;
+        }
+
 
         protected void AddTrace(string category, string message, Color color)
         {
