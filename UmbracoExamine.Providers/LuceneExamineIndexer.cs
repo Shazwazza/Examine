@@ -15,6 +15,8 @@ using Lucene.Net.Analysis.Standard;
 using umbraco.cms.businesslogic.media;
 using umbraco.cms.businesslogic;
 using System.Xml;
+using System.Threading;
+using System.Xml.Serialization;
 
 
 
@@ -47,6 +49,7 @@ namespace UmbracoExamine.Providers
 
             //get the folder to index
             LuceneIndexFolder = ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory;
+            IndexQueueItemFolder = new DirectoryInfo(Path.Combine(LuceneIndexFolder.FullName, "Queue"));
 
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
@@ -58,6 +61,13 @@ namespace UmbracoExamine.Providers
 
             if (config["debug"] != null)
                 bool.TryParse(config["debug"], out m_ThrowExceptions);  
+
+            //optimize the index async
+            ThreadPool.QueueUserWorkItem(
+                delegate
+                {
+                    OptimizeIndex();
+                });
         }
 
         private bool m_ThrowExceptions = false;
@@ -73,6 +83,7 @@ namespace UmbracoExamine.Providers
         public const string IndexNodeIdFieldName = "__NodeId";
 
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
+        public DirectoryInfo IndexQueueItemFolder { get; protected set; }
 
         protected string IndexSetName { get; set; }
 
@@ -147,16 +158,13 @@ namespace UmbracoExamine.Providers
             }
             finally
             {
-                if (writer != null)
-                    writer.Close();
+                TryWriterClose(ref writer);   
             }
 
             IndexAll(IndexType.Content);
             IndexAll(IndexType.Media);
         }
 
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public override void DeleteFromIndex(XElement node)
         {
             var id = (string)node.Attribute("id");
@@ -269,7 +277,13 @@ namespace UmbracoExamine.Providers
                 //raise the completed event, the data returned is irrelevant.
                 OnNodesIndexed(new IndexingNodesEventArgs(IndexerData, xPath, type));
 
-                writer.Optimize();
+                //TODO: This throws an error when multi-publishing... why? should be caught no?
+                //based on the info here:
+                //http://www.gossamer-threads.com/lists/lucene/java-dev/47895
+                //http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
+                //it is best to only call optimize when there is no activity. 
+                //I'll move optimized to be called either on app startup!.. in async
+                //writer.Optimize();
             }
             catch (Exception ex)
             {
@@ -277,11 +291,14 @@ namespace UmbracoExamine.Providers
             }
             finally
             {
-                if (writer != null)
-                    writer.Close();
+                TryWriterClose(ref writer);   
             }
         }
 
+        
+        #endregion
+
+        #region Public
         /// <summary>
         /// Adds single node to index. If the node already exists, a duplicate will probably be created. To re-index, use the ReIndex method.
         /// </summary>
@@ -290,7 +307,7 @@ namespace UmbracoExamine.Providers
         public void AddSingleNodeToIndex(XElement node, IndexType type)
         {
             int nodeId = -1;
-            int.TryParse((string)node.Attribute("id"), out nodeId);            
+            int.TryParse((string)node.Attribute("id"), out nodeId);
             if (nodeId <= 0)
                 return;
 
@@ -322,8 +339,13 @@ namespace UmbracoExamine.Providers
                 writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
                 AddDocument(GetDataToIndex(node), writer, nodeId, type);
 
-                writer.Optimize();
-
+                //TODO: This throws an error when multi-publishing... why? should be caught no?
+                //based on the info here:
+                //http://www.gossamer-threads.com/lists/lucene/java-dev/47895
+                //http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
+                //it is best to only call optimize when there is no activity. 
+                //I'll move optimized to be called either on app startup!.. in async
+                //writer.Optimize();
             }
             catch (Exception ex)
             {
@@ -331,11 +353,54 @@ namespace UmbracoExamine.Providers
             }
             finally
             {
-                if (writer != null)
-                    writer.Close();
+                TryWriterClose(ref writer);
             }
         }
 
+
+        /// <summary>
+        /// This wil optimize the index for searching, this gets executed when this class instance is instantiated.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <remarks>
+        /// This can be an expensive operation and should only be called when there is no indexing activity
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void OptimizeIndex()
+        {
+            IndexWriter writer = null;
+            try
+            {
+                VerifyFolder(LuceneIndexFolder);
+
+                //check if the index doesn't exist, and if so, create it and reindex everything
+                if (!IndexExists())
+                    return;
+
+                //check if the index is ready to be written to.
+                if (!IndexReady())
+                {
+                    OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, new Exception()));
+                    return;
+                }
+
+                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
+
+                //based on the info here:
+                //http://www.gossamer-threads.com/lists/lucene/java-dev/47895
+                //http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
+                //it is best to only call optimize when there is no activity. 
+                writer.Optimize();
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Error optmizing Lucene index", -1, ex));
+            }
+            finally
+            {
+                TryWriterClose(ref writer);
+            }
+        } 
         #endregion
 
         #region Protected
@@ -446,7 +511,8 @@ namespace UmbracoExamine.Providers
         /// <param name="nodeId"></param>
         protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type)
         {
-            
+            //TODO: Implement this instead of AddDocument then add the documents based on the file queue!
+            //SaveIndexQueueItem(fields, nodeId);
 
             Document d = new Document();
             //add all of our fields to the document index individally            
@@ -468,6 +534,30 @@ namespace UmbracoExamine.Providers
             writer.AddDocument(d);
 
             OnNodeIndexed(new IndexingNodeEventArgs(nodeId));
+        }
+
+        protected void SaveIndexQueueItem(Dictionary<string, string> fields, int nodeId)
+        {
+            VerifyFolder(IndexQueueItemFolder);
+            SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
+            fields.ToList().ForEach(x =>
+            {
+                sd.Add(x.Key, x.Value);
+            });
+            XmlSerializer xs = new XmlSerializer(sd.GetType());
+            string output = "";
+            using (StringWriter sw = new StringWriter())
+            {
+                xs.Serialize(sw, sd);
+                output = sw.ToString();
+                sw.Close();
+            }
+            FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, nodeId.ToString() + "-" + Guid.NewGuid().ToString("N") + ".xml"));
+            using (var fileWriter = fi.CreateText())
+            {
+                fileWriter.Write(output);
+                fileWriter.Close();
+            }            
         }
 
         /// <summary>
@@ -539,6 +629,34 @@ namespace UmbracoExamine.Providers
         #endregion
 
         #region Private
+
+        
+
+        private void TryWriterClose(ref IndexWriter writer)
+        {
+
+            //TODO: MAKE THIS WORK!!!!!!!!!!!!!!!!!!!!
+
+            if (writer != null)
+            {                
+                //set timer to re-try close
+                //uint loops = 0;
+                //while (!IndexReady())
+                //{
+                //    if ((++loops % 100) == 0)
+                //    {
+                //        OnIndexingError(new IndexingErrorEventArgs("Cannot close/flush indexing documents, index is locked with too many thread cycles completed.", -1, null));
+                //        writer = null;                        
+                //    }
+                //    else
+                //    {
+                //        Thread.Sleep(1000);
+                //    }
+                //}
+                writer.Close();
+            }
+        }
+
         /// <summary>
         /// Adds all nodes with the given xPath root.
         /// </summary>

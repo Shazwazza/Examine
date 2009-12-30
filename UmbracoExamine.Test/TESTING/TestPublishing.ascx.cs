@@ -25,19 +25,36 @@ namespace UmbracoExamine.Test.TESTING
             PublishAllNodes();
         }
 
+        User m_Admin = new User(0);
+
         private void PublishAllNodes()
         {
             var docs = Document.GetRootDocuments().ToList();
-            var admin = new User(0);
-            for (int i = 0; i < 50; i++)
+            
+            //publishes every node in the tree 10 times over
+            for (int i = 0; i < 10; i++)
             {
                 docs.ForEach(x =>
                 {
-                    AddTrace("Multi-Publishing", "Publishing node: " + ID.ToString(), Color.Magenta);
-                    x.Publish(admin);
-                    umbraco.library.UpdateDocumentCache(x.Id);
+                    PublishNode(x);
                 });
             }            
+        }
+
+        private void PublishNode(Document x)
+        {
+            AddTrace("Multi-Publishing", "Publishing node: " + x.Id.ToString(), Color.Magenta);
+            x.Publish(m_Admin);
+            umbraco.library.UpdateDocumentCache(x.Id);
+
+            //check for children and recurse
+            if (x.HasChildren)
+            {
+                x.Children.ToList().ForEach(d =>
+                {
+                    PublishNode(d);
+                });
+            }
         }
     }
 }

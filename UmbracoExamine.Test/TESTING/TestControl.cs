@@ -56,6 +56,7 @@ namespace UmbracoExamine.Test.TESTING
         void TestIndexing_IndexingError(object sender, IndexingErrorEventArgs e)
         {
             AddTrace("Indexing Error", string.Format("{0} : {1},{2}", e.NodeId, e.Message, e.InnerException != null ? e.InnerException.Message : ""), Color.Red);
+            Page.ClientScript.RegisterStartupScript(typeof(TestControl), "ErrorAlert", "alert('There were errors');", true);
         }
 
         void TestIndexing_NodeIndexed(object sender, IndexingNodeEventArgs e)
