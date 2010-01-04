@@ -31,7 +31,7 @@ namespace UmbracoExamine.Providers
             IndexSetName = config["indexSet"];
             
             //get the folder to index
-            LuceneIndexFolder = ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory;
+            LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
         }
 
         public DirectoryInfo LuceneIndexFolder { get; protected set; }

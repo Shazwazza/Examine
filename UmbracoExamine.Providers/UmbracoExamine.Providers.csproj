@@ -74,10 +74,13 @@
     <Compile Include="Config\ExamineLuceneIndexes.cs" />
     <Compile Include="Config\IndexSetExtensions.cs" />
     <Compile Include="Config\UmbracoFieldDefinitions.cs" />
+    <Compile Include="FileSystemExtensions.cs" />
+    <Compile Include="IndexerExecutive.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LuceneExamineIndexer.cs" />
     <Compile Include="LuceneExamineSearcher.cs" />
     <Compile Include="SerializableDictionary.cs" />
+    <Compile Include="SerializableDictionaryExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\UmbracoExamine.Core\UmbracoExamine.Core.csproj">

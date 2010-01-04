@@ -31,6 +31,14 @@ namespace UmbracoExamine.Providers
         public LuceneExamineIndexer() : base() { }
         public LuceneExamineIndexer(IIndexCriteria indexerData) : base(indexerData) { }
 
+        /// <summary>
+        /// Set up all properties for the indexer based on configuration information specified. This will ensure that
+        /// all of the folders required by the indexer are created and exist. This will also create an instruction
+        /// file declaring the computer name that is part taking in the indexing. This file will then be used to
+        /// determine the master indexer machine in a load balanced environment (if one exists).
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="config"></param>
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -48,8 +56,13 @@ namespace UmbracoExamine.Providers
             IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria();
 
             //get the folder to index
-            LuceneIndexFolder = ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory;
-            IndexQueueItemFolder = new DirectoryInfo(Path.Combine(LuceneIndexFolder.FullName, "Queue"));
+            LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+            IndexQueueItemFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
+
+            //ensure all of the folders are created at startup
+            VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+            VerifyFolder(LuceneIndexFolder);
+            VerifyFolder(IndexQueueItemFolder);
 
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
@@ -60,13 +73,20 @@ namespace UmbracoExamine.Providers
                 SupportUnpublishedContent = false;
 
             if (config["debug"] != null)
-                bool.TryParse(config["debug"], out m_ThrowExceptions);  
+                bool.TryParse(config["debug"], out m_ThrowExceptions);
+
+            ExecutiveIndex = new IndexerExecutive(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+
+            ExecutiveIndex.Initialize();
 
             //optimize the index async
             ThreadPool.QueueUserWorkItem(
                 delegate
                 {
-                    OptimizeIndex();
+                    if (ExecutiveIndex.IsExecutiveMachine)
+                    {
+                        OptimizeIndex();
+                    }                    
                 });
         }
 
@@ -86,6 +106,11 @@ namespace UmbracoExamine.Providers
         public DirectoryInfo IndexQueueItemFolder { get; protected set; }
 
         protected string IndexSetName { get; set; }
+
+        /// <summary>
+        /// The Executive to determine if this is the master indexer
+        /// </summary>
+        protected IndexerExecutive ExecutiveIndex;
 
         /// <summary>
         /// Adds a log entry to the umbraco log
@@ -141,6 +166,9 @@ namespace UmbracoExamine.Providers
                 //ensure the folder exists
                 VerifyFolder(LuceneIndexFolder);
 
+                //need to remove the queue as we're rebuilding from scratch
+                IndexQueueItemFolder.ClearFiles();
+
                 //check if the index exists and it's locked
                 if (IndexExists() && !IndexReady())
                 {
@@ -178,6 +206,8 @@ namespace UmbracoExamine.Providers
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void DeleteFromIndex(Term indexTerm)
         {
+            //TODO: Get deletions using the queue as well!!!!!!!!!
+
             int nodeId = -1;
             if (indexTerm.Field() == "id")
                 int.TryParse(indexTerm.Text(), out nodeId);
@@ -232,7 +262,7 @@ namespace UmbracoExamine.Providers
                     return;
                 }
 
-                //create the writer (this will overwrite old index files)
+                //create the writer
                 writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
 
                 string xPath = "//node[{0}]";
@@ -316,9 +346,13 @@ namespace UmbracoExamine.Providers
             {
                 VerifyFolder(LuceneIndexFolder);
 
-                //check if the index doesn't exist, and if so, create it and reindex everything
+                //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
+                //particular node
                 if (!IndexExists())
+                {
                     IndexAll(type);
+                    return;
+                }                    
 
                 //check if the index is ready to be written to.
                 if (!IndexReady())
@@ -327,17 +361,18 @@ namespace UmbracoExamine.Providers
                     return;
                 }
 
-                //XPathNodeIterator umbXml = GetNodeIterator(nodeID, type);
-                //XDocument xDoc = umbXml.ToXDocument();
-                //var rootNode = xDoc.Elements().First();
+                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
+
                 if (!ValidateDocument(node))
                 {
                     OnIgnoringNode(new IndexingNodeDataEventArgs(node, null, nodeId));
                     return;
                 }
-
-                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
-                AddDocument(GetDataToIndex(node), writer, nodeId, type);
+                
+                //save the index item to a queue file
+                SaveIndexQueueItem(GetDataToIndex(node), nodeId, type);
+                //run the indexer on all queued files
+                IndexQueueItems(writer);
 
                 //TODO: This throws an error when multi-publishing... why? should be caught no?
                 //based on the info here:
@@ -511,12 +546,13 @@ namespace UmbracoExamine.Providers
         /// <param name="nodeId"></param>
         protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type)
         {
-            //TODO: Implement this instead of AddDocument then add the documents based on the file queue!
-            //SaveIndexQueueItem(fields, nodeId);
-
+            
             Document d = new Document();
-            //add all of our fields to the document index individally            
-            fields.ToList().ForEach(x => 
+            //add all of our fields to the document index individally, don't include the special fields if they exists            
+            fields
+                .Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName)
+                .ToList()
+                .ForEach(x => 
                 {
                     var policy = UmbracoFieldPolicies.GetPolicy(x.Key);
                     d.Add(
@@ -536,28 +572,56 @@ namespace UmbracoExamine.Providers
             OnNodeIndexed(new IndexingNodeEventArgs(nodeId));
         }
 
-        protected void SaveIndexQueueItem(Dictionary<string, string> fields, int nodeId)
+        /// <summary>
+        /// Loop through all files in the queue item folder and index them.
+        /// This will only execute the indexing if this machine is the executive indexer.
+        /// </summary>
+        protected void IndexQueueItems(IndexWriter writer)
+        {
+            if (!ExecutiveIndex.IsExecutiveMachine)
+                return;
+
+            //TODO: Move the writer creation here and ensure that this method is threadsafe, 
+            //this should be the only method that requires it.
+            //IndexWriter writer = null;
+
+            VerifyFolder(IndexQueueItemFolder);
+            IndexQueueItemFolder.GetFiles("*.add").ToList()
+                .ForEach(x =>
+                {
+                    //get the dictionary object from the file data
+                    SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
+                    sd.ReadFromDisk(x);                    
+                    
+                    //get the index type
+                    IndexType indexType = (IndexType)Enum.Parse(typeof(IndexType), sd[IndexTypeFieldName]);
+                    //get the node id
+                    int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
+                    //now, add the index with our dictionary object
+                    AddDocument(sd.ToDictionary(), writer, nodeId, indexType);
+                    
+                    //remove the file
+                    x.Delete();
+                });
+        }
+
+        /// <summary>
+        /// Writes the information for the fields to a file names with the computer's name that is running the index and 
+        /// a GUID value. The indexer will then index the values stored in the files in another thread so that processing may continue.
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="nodeId"></param>
+        protected void SaveIndexQueueItem(Dictionary<string, string> fields, int nodeId, IndexType type)
         {
             VerifyFolder(IndexQueueItemFolder);
-            SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
-            fields.ToList().ForEach(x =>
-            {
-                sd.Add(x.Key, x.Value);
-            });
-            XmlSerializer xs = new XmlSerializer(sd.GetType());
-            string output = "";
-            using (StringWriter sw = new StringWriter())
-            {
-                xs.Serialize(sw, sd);
-                output = sw.ToString();
-                sw.Close();
-            }
-            FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, nodeId.ToString() + "-" + Guid.NewGuid().ToString("N") + ".xml"));
-            using (var fileWriter = fi.CreateText())
-            {
-                fileWriter.Write(output);
-                fileWriter.Close();
-            }            
+
+            //ensure the special fields are added to the dictionary to be saved to file
+            if (!fields.ContainsKey(IndexNodeIdFieldName)) fields.Add(IndexNodeIdFieldName, nodeId.ToString());
+            if (!fields.ContainsKey(IndexTypeFieldName)) fields.Add(IndexTypeFieldName, type.ToString());
+
+            var fileName = Environment.MachineName + "-" + nodeId.ToString() + "-" + Guid.NewGuid().ToString("N");
+            FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
+            fields.SaveToDisk(fi);
         }
 
         /// <summary>
@@ -632,6 +696,9 @@ namespace UmbracoExamine.Providers
 
         
 
+        
+
+        
         private void TryWriterClose(ref IndexWriter writer)
         {
 
@@ -676,8 +743,15 @@ namespace UmbracoExamine.Providers
             foreach (XElement node in children)
             {
                 if (ValidateDocument(node))
-                    AddDocument(GetDataToIndex(node), writer, int.Parse(node.Attribute("id").Value), type);
+                {
+                    //save the index item to a queue file
+                    SaveIndexQueueItem(GetDataToIndex(node), int.Parse(node.Attribute("id").Value), type);
+                }
+                    
             }
+
+            //run the indexer on all queued files
+            IndexQueueItems(writer);
 
         }
 
