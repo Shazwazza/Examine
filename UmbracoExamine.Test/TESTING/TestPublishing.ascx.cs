@@ -21,24 +21,30 @@ namespace UmbracoExamine.Test.TESTING
         
         protected void TestMultiplePublish_Click(object sender, EventArgs e)
         {
-            AddTrace("Multi-Publishing", "Start publishing many nodes", Color.Green);
+            AddTrace("Consecutive-Publishing", "Start publishing many nodes consecutively", Color.Green);
             PublishAllNodes();
+        }
+
+        protected void TestSinglePublish_Click(object sender, EventArgs e)
+        {
+            AddTrace("Single-Publishing", "Start publishing one nodes", Color.Green);
+            var doc = Document.GetRootDocuments().ToList().First();
+            doc.Publish(m_Admin);
+            umbraco.library.UpdateDocumentCache(doc.Id);
         }
 
         User m_Admin = new User(0);
 
+        /// <summary>
+        /// This will individual publish all nodes in the tree
+        /// </summary>
         private void PublishAllNodes()
         {
             var docs = Document.GetRootDocuments().ToList();
-            
-            //publishes every node in the tree 10 times over
-            for (int i = 0; i < 10; i++)
+            docs.ForEach(x =>
             {
-                docs.ForEach(x =>
-                {
-                    PublishNode(x);
-                });
-            }            
+                PublishNode(x);
+            });
         }
 
         private void PublishNode(Document x)

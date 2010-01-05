@@ -70,8 +70,11 @@
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\UmbracoExamineSection.cs" />
+    <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IndexCriteria.cs" />
+    <Compile Include="IndexedNode.cs" />
+    <Compile Include="IndexedNodesEventArgs.cs" />
     <Compile Include="IndexingErrorEventArgs.cs" />
     <Compile Include="IndexingFieldDataEventArgs.cs" />
     <Compile Include="IndexingNodeDataEventArgs.cs" />

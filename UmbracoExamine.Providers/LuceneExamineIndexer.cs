@@ -24,13 +24,27 @@ namespace UmbracoExamine.Providers
 {
 
     /// <summary>
-    /// TODO: Need to add support for indexing NON-published nodes (i.e. don't query from cache!)
+    /// 
     /// </summary>
+    /// <remarks>
+    /// Some links picked up along the way:
+    /// 
+    /// A matrix of concurrent lucene operations: 
+    /// http://www.jguru.com/faq/view.jsp?EID=913302.
+    /// 
+    /// based on the info here, it is best to only call optimize when there is no activity,
+    /// we only optimized after the queue has been processed and at startup:
+    /// http://www.gossamer-threads.com/lists/lucene/java-dev/47895
+    /// http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
+    /// </remarks>
     public class LuceneExamineIndexer : BaseIndexProvider
     {
+        #region Constructors
         public LuceneExamineIndexer() : base() { }
-        public LuceneExamineIndexer(IIndexCriteria indexerData) : base(indexerData) { }
+        public LuceneExamineIndexer(IIndexCriteria indexerData) : base(indexerData) { } 
+        #endregion
 
+        #region Initialize
         /// <summary>
         /// Set up all properties for the indexer based on configuration information specified. This will ensure that
         /// all of the folders required by the indexer are created and exist. This will also create an instruction
@@ -59,10 +73,19 @@ namespace UmbracoExamine.Providers
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
             IndexQueueItemFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
 
-            //ensure all of the folders are created at startup
-            VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
-            VerifyFolder(LuceneIndexFolder);
-            VerifyFolder(IndexQueueItemFolder);
+
+            try
+            {
+                //ensure all of the folders are created at startup
+                VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+                VerifyFolder(LuceneIndexFolder);
+                VerifyFolder(IndexQueueItemFolder);
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Cannot initialize indexer, an error occurred verifying all index folders", -1, ex));
+                return;
+            }
 
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
@@ -83,12 +106,12 @@ namespace UmbracoExamine.Providers
             ThreadPool.QueueUserWorkItem(
                 delegate
                 {
-                    if (ExecutiveIndex.IsExecutiveMachine)
-                    {
-                        OptimizeIndex();
-                    }                    
+                    OptimizeIndex();
                 });
-        }
+        } 
+        #endregion
+
+        #region Constants & Fields
 
         private bool m_ThrowExceptions = false;
 
@@ -102,31 +125,44 @@ namespace UmbracoExamine.Providers
         /// </summary>
         public const string IndexNodeIdFieldName = "__NodeId";
 
-        public DirectoryInfo LuceneIndexFolder { get; protected set; }
-        public DirectoryInfo IndexQueueItemFolder { get; protected set; }
+        /// <summary>
+        /// Used to perform thread locking
+        /// </summary>
+        private readonly object m_IndexerLocker = new object();
 
-        protected string IndexSetName { get; set; }
+        /// <summary>
+        /// used to thread lock calls for creating and verifying folders
+        /// </summary>
+        private readonly object m_FolderLocker = new object();
+
+        /// <summary>
+        /// used to lock calls for the optimization
+        /// </summary>
+        private readonly object m_OptimizeLocker = new object();
+
+        #endregion
+
+        #region Properties
+        public DirectoryInfo LuceneIndexFolder { get; protected set; }
+
+        public DirectoryInfo IndexQueueItemFolder { get; protected set; }
 
         /// <summary>
         /// The Executive to determine if this is the master indexer
         /// </summary>
-        protected IndexerExecutive ExecutiveIndex;
+        protected IndexerExecutive ExecutiveIndex { get; private set; }
 
-        /// <summary>
-        /// Adds a log entry to the umbraco log
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="msg"></param>
-        /// <param name="type"></param>
-        private void AddLog(int nodeId, string msg, LogTypes type)
-        {
-            Log.Add(type, nodeId, "[UmbracoExamine] " + msg);
-        }
+        protected string IndexSetName { get; set; } 
+        #endregion
 
+        #region Event handlers
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
             if (m_ThrowExceptions)
+            {
                 throw new Exception("Indexing Error Occurred: " + e.Message, e.InnerException);
+            }
+
 
             AddLog(e.NodeId, e.Message + ". INNER EXCEPTION: " + e.InnerException.Message, LogTypes.Error);
             base.OnIndexingError(e);
@@ -138,11 +174,13 @@ namespace UmbracoExamine.Providers
             base.OnNodeIndexed(e);
         }
 
-        protected override void OnNodeIndexDeleted(IndexingNodeEventArgs e)
+        protected override void OnIndexDeleted(DeleteIndexEventArgs e)
         {
-            AddLog(e.NodeId, string.Format("Index deleted for node ({0})", LuceneIndexFolder.FullName), LogTypes.System);
-            base.OnNodeIndexDeleted(e);
+            AddLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value), LogTypes.System);
+            base.OnIndexDeleted(e);
         }
+
+        #endregion
 
         #region Provider implementation
 
@@ -150,7 +188,10 @@ namespace UmbracoExamine.Providers
 
         public override void ReIndexNode(XElement node, IndexType type)
         {
-            DeleteFromIndex(node);
+            //first delete the index for the node
+            var id = (string)node.Attribute("id");
+            SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, id));
+            //now index the single node
             AddSingleNodeToIndex(node, type);
         }
 
@@ -166,18 +207,18 @@ namespace UmbracoExamine.Providers
                 //ensure the folder exists
                 VerifyFolder(LuceneIndexFolder);
 
-                //need to remove the queue as we're rebuilding from scratch
-                IndexQueueItemFolder.ClearFiles();
-
                 //check if the index exists and it's locked
                 if (IndexExists() && !IndexReady())
                 {
-                    OnIndexingError(new IndexingErrorEventArgs("Cannot rebuild index, the index is currently locked", -1, new Exception()));
+                    OnIndexingError(new IndexingErrorEventArgs("Cannot rebuild index, the index is currently locked", -1, null));
                     return;
                 }
 
                 //create the writer (this will overwrite old index files)
                 writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), true);
+
+                //need to remove the queue as we're rebuilding from scratch
+                IndexQueueItemFolder.ClearFiles();
             }
             catch (Exception ex)
             {
@@ -186,212 +227,120 @@ namespace UmbracoExamine.Providers
             }
             finally
             {
-                TryWriterClose(ref writer);   
+                CloseWriter(ref writer);   
             }
 
             IndexAll(IndexType.Content);
             IndexAll(IndexType.Media);
         }
 
+        /// <summary>
+        /// Deletes a node from the index
+        /// </summary>
+        /// <param name="node"></param>
         public override void DeleteFromIndex(XElement node)
         {
+            //create the queue item to be deleted
             var id = (string)node.Attribute("id");
-            DeleteFromIndex(new Term(IndexNodeIdFieldName, id));
-        }
-
-        /// <summary>
-        /// Removes the specified term from the index
-        /// </summary>
-        /// <param name="indexTerm"></param>
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public void DeleteFromIndex(Term indexTerm)
-        {
-            //TODO: Get deletions using the queue as well!!!!!!!!!
-
-            int nodeId = -1;
-            if (indexTerm.Field() == "id")
-                int.TryParse(indexTerm.Text(), out nodeId);
-
-            IndexReader ir = null;
-            try
-            {
-                VerifyFolder(LuceneIndexFolder);
-
-                //if the index doesn't exist, then no don't attempt to open it.
-                if (!IndexExists())
-                    return;
-
-                ir = IndexReader.Open(LuceneIndexFolder.FullName);
-                int delCount = ir.DeleteDocuments(indexTerm);
-
-                OnNodeIndexDeleted(new IndexingNodeEventArgs(nodeId));
-                return;
-            }
-            catch (Exception ee)
-            {
-                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeId, ee));
-                return;
-            }
-            finally
-            {
-                if (ir != null)
-                    ir.Close();
-            }
+            SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, id));
         }
 
         /// <summary>
         /// Re-indexes all data for the index type specified
         /// </summary>
         /// <param name="type"></param>
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public override void IndexAll(IndexType type)
         {
-            //we'll need to remove the type from the index first
-            DeleteFromIndex(new Term(IndexTypeFieldName, type.ToString()));
-
-            IndexWriter writer = null;
-            try
+            //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
+            //particular node
+            if (!IndexExists())
             {
-                //ensure the folder exists
-                VerifyFolder(LuceneIndexFolder);
-
-                //check if the index exists and it's locked
-                if (IndexExists() && !IndexReady())
-                {
-                    OnIndexingError(new IndexingErrorEventArgs("Cannot index node, the index is currently locked", -1, new Exception()));
-                    return;
-                }
-
-                //create the writer
-                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
-
-                string xPath = "//node[{0}]";
-                StringBuilder sb = new StringBuilder();
-
-                //create the xpath statement to match node type aliases if specified
-                if (IndexerData.IncludeNodeTypes.Count() > 0)
-                {
-                    sb.Append("(");
-                    foreach (string field in IndexerData.IncludeNodeTypes)
-                    {
-                        string nodeTypeAlias = "@nodeTypeAlias='{0}'";
-                        sb.Append(string.Format(nodeTypeAlias, field));
-                        sb.Append(" or ");
-                    }
-                    sb.Remove(sb.Length - 4, 4); //remove last " or "
-                    sb.Append(")");
-                }
-
-                //create the xpath statement to match all children of the current node.
-                if (IndexerData.ParentNodeId.HasValue)
-                {
-                    if (sb.Length > 0)
-                        sb.Append(" and ");
-                    sb.Append("(");
-                    //contains(@path, ',1234,')
-                    sb.Append("contains(@path, '," + IndexerData.ParentNodeId.Value.ToString() + ",')"); //if the path contains comma - id - comma then the nodes must be a child
-                    sb.Append(")");
-                }
-
-                //create the full xpath statement to match the appropriate nodes
-                xPath = string.Format(xPath, sb.ToString());
-
-                //in case there are no filters:
-                xPath = xPath.Replace("[]", "");
-
-                //raise the event and set the xpath statement to the value returned
-                xPath = OnNodesIndexing(new IndexingNodesEventArgs(IndexerData, xPath, type));
-
-                AddNodesToIndex(xPath, writer, type);
-
-                //raise the completed event, the data returned is irrelevant.
-                OnNodesIndexed(new IndexingNodesEventArgs(IndexerData, xPath, type));
-
-                //TODO: This throws an error when multi-publishing... why? should be caught no?
-                //based on the info here:
-                //http://www.gossamer-threads.com/lists/lucene/java-dev/47895
-                //http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
-                //it is best to only call optimize when there is no activity. 
-                //I'll move optimized to be called either on app startup!.. in async
-                //writer.Optimize();
+                RebuildIndex();
+                return;
             }
-            catch (Exception ex)
+            else
             {
-                OnIndexingError(new IndexingErrorEventArgs("An error occured recreating the index set", -1, ex));
+                //create a deletion queue item to remove all items of the specified index type
+                SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexTypeFieldName, type.ToString()));
             }
-            finally
+               
+            string xPath = "//node[{0}]";
+            StringBuilder sb = new StringBuilder();
+
+            //create the xpath statement to match node type aliases if specified
+            if (IndexerData.IncludeNodeTypes.Count() > 0)
             {
-                TryWriterClose(ref writer);   
+                sb.Append("(");
+                foreach (string field in IndexerData.IncludeNodeTypes)
+                {
+                    string nodeTypeAlias = "@nodeTypeAlias='{0}'";
+                    sb.Append(string.Format(nodeTypeAlias, field));
+                    sb.Append(" or ");
+                }
+                sb.Remove(sb.Length - 4, 4); //remove last " or "
+                sb.Append(")");
             }
+
+            //create the xpath statement to match all children of the current node.
+            if (IndexerData.ParentNodeId.HasValue)
+            {
+                if (sb.Length > 0)
+                    sb.Append(" and ");
+                sb.Append("(");
+                //contains(@path, ',1234,')
+                sb.Append("contains(@path, '," + IndexerData.ParentNodeId.Value.ToString() + ",')"); //if the path contains comma - id - comma then the nodes must be a child
+                sb.Append(")");
+            }
+
+            //create the full xpath statement to match the appropriate nodes
+            xPath = string.Format(xPath, sb.ToString());
+
+            //in case there are no filters:
+            xPath = xPath.Replace("[]", "");
+
+            //raise the event and set the xpath statement to the value returned
+            xPath = OnNodesIndexing(new IndexingNodesEventArgs(IndexerData, xPath, type));
+
+            AddNodesToIndex(xPath, type);                            
         }
-
         
         #endregion
 
-        #region Public
+        #region Protected
+
         /// <summary>
-        /// Adds single node to index. If the node already exists, a duplicate will probably be created. To re-index, use the ReIndex method.
+        /// Adds single node to index. If the node already exists, a duplicate will probably be created, 
+        /// To re-index, use the ReIndexNode method.
         /// </summary>
         /// <param name="nodeID"></param>
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public void AddSingleNodeToIndex(XElement node, IndexType type)
+        protected void AddSingleNodeToIndex(XElement node, IndexType type)
         {
             int nodeId = -1;
             int.TryParse((string)node.Attribute("id"), out nodeId);
             if (nodeId <= 0)
                 return;
 
-            IndexWriter writer = null;
-            try
+            //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
+            //particular node
+            if (!IndexExists())
             {
-                VerifyFolder(LuceneIndexFolder);
-
-                //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
-                //particular node
-                if (!IndexExists())
-                {
-                    IndexAll(type);
-                    return;
-                }                    
-
-                //check if the index is ready to be written to.
-                if (!IndexReady())
-                {
-                    OnIndexingError(new IndexingErrorEventArgs("Cannot index node, the index is currently locked", nodeId, new Exception()));
-                    return;
-                }
-
-                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
-
-                if (!ValidateDocument(node))
-                {
-                    OnIgnoringNode(new IndexingNodeDataEventArgs(node, null, nodeId));
-                    return;
-                }
-                
-                //save the index item to a queue file
-                SaveIndexQueueItem(GetDataToIndex(node), nodeId, type);
-                //run the indexer on all queued files
-                IndexQueueItems(writer);
-
-                //TODO: This throws an error when multi-publishing... why? should be caught no?
-                //based on the info here:
-                //http://www.gossamer-threads.com/lists/lucene/java-dev/47895
-                //http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
-                //it is best to only call optimize when there is no activity. 
-                //I'll move optimized to be called either on app startup!.. in async
-                //writer.Optimize();
+                RebuildIndex();
+                return;
             }
-            catch (Exception ex)
+
+            if (!ValidateDocument(node))
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeId, ex));
+                OnIgnoringNode(new IndexingNodeDataEventArgs(node, null, nodeId));
+                return;
             }
-            finally
-            {
-                TryWriterClose(ref writer);
-            }
+
+            //save the index item to a queue file
+            SaveAddIndexQueueItem(GetDataToIndex(node), nodeId, type);
+
+            //run the indexer on all queued files
+            ProcessQueueItems();
+
         }
-
 
         /// <summary>
         /// This wil optimize the index for searching, this gets executed when this class instance is instantiated.
@@ -400,45 +349,77 @@ namespace UmbracoExamine.Providers
         /// <remarks>
         /// This can be an expensive operation and should only be called when there is no indexing activity
         /// </remarks>
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public void OptimizeIndex()
+        protected void OptimizeIndex()
         {
-            IndexWriter writer = null;
+            //check if this machine is the executive.
+            if (!ExecutiveIndex.IsExecutiveMachine)
+                return;
+
+            lock (m_OptimizeLocker)
+            {
+                IndexWriter writer = null;
+                try
+                {
+                    VerifyFolder(LuceneIndexFolder);
+
+                    if (!IndexExists())
+                        return;
+
+                    //check if the index is ready to be written to.
+                    if (!IndexReady())
+                    {
+                        OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null));
+                        return;
+                    }
+
+                    writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
+
+                    writer.Optimize();
+                }
+                catch (Exception ex)
+                {
+                    OnIndexingError(new IndexingErrorEventArgs("Error optmizing Lucene index", -1, ex));
+                }
+                finally
+                {
+                    CloseWriter(ref writer);
+                } 
+            }
+        } 
+
+        /// <summary>
+        /// Removes the specified term from the index
+        /// </summary>
+        /// <param name="indexTerm"></param>
+        /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
+        protected bool DeleteFromIndex(Term indexTerm, IndexReader ir)
+        {
+            int nodeId = -1;
+            if (indexTerm.Field() == "id")
+                int.TryParse(indexTerm.Text(), out nodeId);
+
             try
             {
                 VerifyFolder(LuceneIndexFolder);
 
-                //check if the index doesn't exist, and if so, create it and reindex everything
+                //if the index doesn't exist, then no don't attempt to open it.
                 if (!IndexExists())
-                    return;
+                    return true;
 
-                //check if the index is ready to be written to.
-                if (!IndexReady())
+                int delCount = ir.DeleteDocuments(indexTerm);
+                if (delCount > 0)
                 {
-                    OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, new Exception()));
-                    return;
-                }
-
-                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
-
-                //based on the info here:
-                //http://www.gossamer-threads.com/lists/lucene/java-dev/47895
-                //http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
-                //it is best to only call optimize when there is no activity. 
-                writer.Optimize();
+                    OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text()), delCount));
+                }                
+                return true;
             }
-            catch (Exception ex)
+            catch (Exception ee)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error optmizing Lucene index", -1, ex));
-            }
-            finally
-            {
-                TryWriterClose(ref writer);
-            }
-        } 
-        #endregion
+                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeId, ee));
+                return false;
+            }            
+        }
 
-        #region Protected
         /// <summary>
         /// Ensures that the node being indexed is of a correct type and is a descendent of the parent id specified.
         /// </summary>
@@ -462,39 +443,6 @@ namespace UmbracoExamine.Providers
                     return false;
 
             return true;
-        }
-
-        /// <summary>
-        /// Unfortunately, we need to implement our own IsProtected method since 
-        /// the Umbraco core code requires an HttpContext for this method and when we're running
-        /// async, there is no context
-        /// </summary>
-        /// <param name="documentId"></param>
-        /// <returns></returns>
-        private XmlNode GetPage(int documentId)
-        {
-            XmlNode x = umbraco.cms.businesslogic.web.Access.AccessXml.SelectSingleNode("/access/page [@id=" + documentId.ToString() + "]");
-            return x;
-        }
-
-        /// <summary>
-        /// Unfortunately, we need to implement our own IsProtected method since 
-        /// the Umbraco core code requires an HttpContext for this method and when we're running
-        /// async, there is no context
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        private bool IsProtected(int nodeId, string path)
-        {
-            foreach (string id in path.Split(','))
-            {
-                if (GetPage(int.Parse(id)) != null)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         /// <summary>
@@ -537,7 +485,6 @@ namespace UmbracoExamine.Providers
             return values;
         }
 
-
         /// <summary>
         /// Collects the data for the fields and adds the document.
         /// </summary>
@@ -576,69 +523,99 @@ namespace UmbracoExamine.Providers
         /// Loop through all files in the queue item folder and index them.
         /// This will only execute the indexing if this machine is the executive indexer.
         /// </summary>
-        protected void IndexQueueItems(IndexWriter writer)
+        protected void ProcessQueueItems()
         {
             if (!ExecutiveIndex.IsExecutiveMachine)
                 return;
 
-            //TODO: Move the writer creation here and ensure that this method is threadsafe, 
-            //this should be the only method that requires it.
-            //IndexWriter writer = null;
-
-            VerifyFolder(IndexQueueItemFolder);
-            IndexQueueItemFolder.GetFiles("*.add").ToList()
-                .ForEach(x =>
-                {
-                    //get the dictionary object from the file data
-                    SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
-                    sd.ReadFromDisk(x);                    
-                    
-                    //get the index type
-                    IndexType indexType = (IndexType)Enum.Parse(typeof(IndexType), sd[IndexTypeFieldName]);
-                    //get the node id
-                    int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
-                    //now, add the index with our dictionary object
-                    AddDocument(sd.ToDictionary(), writer, nodeId, indexType);
-                    
-                    //remove the file
-                    x.Delete();
-                });
-        }
-
-        /// <summary>
-        /// Writes the information for the fields to a file names with the computer's name that is running the index and 
-        /// a GUID value. The indexer will then index the values stored in the files in another thread so that processing may continue.
-        /// </summary>
-        /// <param name="fields"></param>
-        /// <param name="nodeId"></param>
-        protected void SaveIndexQueueItem(Dictionary<string, string> fields, int nodeId, IndexType type)
-        {
-            VerifyFolder(IndexQueueItemFolder);
-
-            //ensure the special fields are added to the dictionary to be saved to file
-            if (!fields.ContainsKey(IndexNodeIdFieldName)) fields.Add(IndexNodeIdFieldName, nodeId.ToString());
-            if (!fields.ContainsKey(IndexTypeFieldName)) fields.Add(IndexTypeFieldName, type.ToString());
-
-            var fileName = Environment.MachineName + "-" + nodeId.ToString() + "-" + Guid.NewGuid().ToString("N");
-            FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
-            fields.SaveToDisk(fi);
-        }
-
-        /// <summary>
-        /// All field data will be stored into Lucene as is except for dates, these can be stored as standard: yyyyMMdd
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        private string GetFieldValue(string val)
-        {
-            DateTime date;
-            if (DateTime.TryParse(val, out date))
+            try
             {
-                return date.ToString("yyyyMMdd");
+                VerifyFolder(LuceneIndexFolder);
+                VerifyFolder(IndexQueueItemFolder);
             }
-            else
-                return val;
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, an error occurred verifying index folders", -1, ex));
+                return;
+            }
+
+            if (!IndexExists())
+            {
+                //this shouldn't happen!
+                OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, the index doesn't exist!", -1, null));
+                return;
+            }
+
+            //check if the index is ready to be written to.
+            if (!IndexReady())
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, the index is currently locked", -1, null));
+                return;
+            }
+
+            lock (m_IndexerLocker)
+            {
+                IndexWriter writer = null;
+                IndexReader reader = null;
+                try
+                {
+
+                    //track all of the nodes indexed
+                    var indexedNodes = new List<IndexedNode>();
+
+                    //iterate through all files to add or delete to the index and index the content
+                    //and order by time created as to process them in order
+                    foreach (var x in IndexQueueItemFolder.GetFiles()
+                        .Where(x => x.Extension == ".del" || x.Extension == ".add")
+                        .OrderBy(x => x.CreationTime)
+                        .ToList())
+                    {
+                        if (x.Extension == ".del")
+                        {
+                            if (GetExclusiveIndexReader(ref reader, ref writer))
+                            {
+                                ProcessDeleteQueueItem(x, reader);
+                            }
+                            else
+                            {
+                                OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null));
+                                return;
+                            }
+                        }
+                        else if (x.Extension == ".add")
+                        {
+                            if (GetExclusiveIndexWriter(ref writer, ref reader))
+                            {
+                                ProcessAddQueueItem(x, writer);
+                            }
+                            else
+                            {
+                                OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null));
+                                return;
+                            }
+                        }
+                    }
+
+                    //raise the completed event
+                    OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
+
+                }
+                catch (Exception ex)
+                {
+                    OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
+                }
+                finally
+                {
+                    CloseWriter(ref writer);
+                    CloseReader(ref reader);
+                }            
+
+                //optimize index
+                OptimizeIndex();
+            }
         }
+
+        
 
         protected XDocument GetXDocument(string xPath, IndexType type)
         {
@@ -689,38 +666,229 @@ namespace UmbracoExamine.Providers
             return null;
         }
 
+        /// <summary>
+        /// Saves a file indicating that the executive indexer should remove the from the index those that match
+        /// the term saved in this file.
+        /// This will save a file prefixed with the current machine name with an extension of .dev
+        /// </summary>
+        /// <param name="term"></param>
+        protected void SaveDeleteIndexQueueItem(KeyValuePair<string, string> term)
+        {
+            try
+            {
+                VerifyFolder(IndexQueueItemFolder);
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Cannot save index queue item for deletion, an error occurred verifying queue folder", -1, ex));
+                return;
+            }
+
+            var terms = new Dictionary<string, string>();
+            terms.Add(term.Key, term.Value);
+            var fileName = Environment.MachineName + "-" + Guid.NewGuid().ToString("N");
+            FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".del"));
+            terms.SaveToDisk(fi);
+        }
+
+        /// <summary>
+        /// Writes the information for the fields to a file names with the computer's name that is running the index and 
+        /// a GUID value. The indexer will then index the values stored in the files in another thread so that processing may continue.
+        /// This will save a file prefixed with the current machine name with an extension of .add
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="nodeId"></param>
+        protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, IndexType type)
+        {
+            try
+            {
+                VerifyFolder(IndexQueueItemFolder);
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Cannot save index queue item, an error occurred verifying queue folder", nodeId, ex));
+                return;
+            }
+
+            //ensure the special fields are added to the dictionary to be saved to file
+            if (!fields.ContainsKey(IndexNodeIdFieldName)) fields.Add(IndexNodeIdFieldName, nodeId.ToString());
+            if (!fields.ContainsKey(IndexTypeFieldName)) fields.Add(IndexTypeFieldName, type.ToString());
+
+            var fileName = Environment.MachineName + "-" + nodeId.ToString() + "-" + Guid.NewGuid().ToString("N");
+            FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
+            fields.SaveToDisk(fi);
+        }
 
         #endregion
 
         #region Private
 
-        
-
-        
-
-        
-        private void TryWriterClose(ref IndexWriter writer)
+        /// <summary>
+        /// Checks the writer passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
+        /// returns checks if the reader is not null and tries to close it. if it's still locked returns null, otherwise
+        /// creates a new writer.
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <returns></returns>
+        private bool GetExclusiveIndexWriter(ref IndexWriter writer, ref IndexReader reader)
         {
-
-            //TODO: MAKE THIS WORK!!!!!!!!!!!!!!!!!!!!
-
             if (writer != null)
-            {                
-                //set timer to re-try close
-                //uint loops = 0;
-                //while (!IndexReady())
-                //{
-                //    if ((++loops % 100) == 0)
-                //    {
-                //        OnIndexingError(new IndexingErrorEventArgs("Cannot close/flush indexing documents, index is locked with too many thread cycles completed.", -1, null));
-                //        writer = null;                        
-                //    }
-                //    else
-                //    {
-                //        Thread.Sleep(1000);
-                //    }
-                //}
+                return true;
+
+            if (!IndexReady())
+            {
+                if (reader != null)
+                {
+                    CloseReader(ref reader);
+                    if (!IndexReady())
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), false);
+            return true;
+        }
+
+        /// <summary>
+        /// Checks the reader passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
+        /// returns checks if the writer is not null and tries to close it. if it's still locked returns null, otherwise
+        /// creates a new reader.
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <returns></returns>
+        private bool GetExclusiveIndexReader(ref IndexReader reader, ref IndexWriter writer)
+        {
+            if (reader != null)
+                return true;
+
+            if (!IndexReady())
+            {
+                if (writer != null)
+                {
+                    CloseWriter(ref writer);
+                    if (!IndexReady())
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            reader = IndexReader.Open(LuceneIndexFolder.FullName);
+            return true;
+        }
+
+        /// <summary>
+        /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
+        /// </summary>
+        /// <param name="x"></param>
+        private void ProcessDeleteQueueItem(FileInfo x, IndexReader ir)
+        {
+            //get the dictionary object from the file data
+            SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
+            sd.ReadFromDisk(x);
+            
+            //we know that there's only ever one item saved to the dictionary for deletions
+            if (sd.Count != 1)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Could not remove queue item from index, the file is not properly formatted", -1, null));
+                return;
+            }
+            var term = sd.First();
+            DeleteFromIndex(new Term(term.Key, term.Value), ir);
+
+            //remove the file
+            x.Delete();
+        }
+
+        /// <summary>
+        /// Reads the FileInfo passed in into a dictionary object and adds it to the index
+        /// </summary>
+        /// <param name="x"></param>
+        private IndexedNode ProcessAddQueueItem(FileInfo x, IndexWriter writer)
+        {
+            //get the dictionary object from the file data
+            SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
+            sd.ReadFromDisk(x);
+
+            //get the index type
+            IndexType indexType = (IndexType)Enum.Parse(typeof(IndexType), sd[IndexTypeFieldName]);
+            //get the node id
+            int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
+            //now, add the index with our dictionary object
+            AddDocument(sd.ToDictionary(), writer, nodeId, indexType);
+
+            //remove the file
+            x.Delete();
+
+            return new IndexedNode() { NodeId = nodeId, Type = indexType };
+        }
+
+        /// <summary>
+        /// All field data will be stored into Lucene as is except for dates, these can be stored as standard: yyyyMMdd
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        private string GetFieldValue(string val)
+        {
+            DateTime date;
+            if (DateTime.TryParse(val, out date))
+            {
+                return date.ToString("yyyyMMdd");
+            }
+            else
+                return val;
+        }
+
+        /// <summary>
+        /// Unfortunately, we need to implement our own IsProtected method since 
+        /// the Umbraco core code requires an HttpContext for this method and when we're running
+        /// async, there is no context
+        /// </summary>
+        /// <param name="documentId"></param>
+        /// <returns></returns>
+        private XmlNode GetPage(int documentId)
+        {
+            XmlNode x = umbraco.cms.businesslogic.web.Access.AccessXml.SelectSingleNode("/access/page [@id=" + documentId.ToString() + "]");
+            return x;
+        }
+
+        /// <summary>
+        /// Unfortunately, we need to implement our own IsProtected method since 
+        /// the Umbraco core code requires an HttpContext for this method and when we're running
+        /// async, there is no context
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private bool IsProtected(int nodeId, string path)
+        {
+            foreach (string id in path.Split(','))
+            {
+                if (GetPage(int.Parse(id)) != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+       
+        private void CloseWriter(ref IndexWriter writer)
+        {
+            if (writer != null)
+            {                               
                 writer.Close();
+                writer = null;
+            }
+        }
+
+        private void CloseReader(ref IndexReader reader)
+        {
+            if (reader != null)
+            {
+                reader.Close();
+                reader = null;
             }
         }
 
@@ -729,7 +897,7 @@ namespace UmbracoExamine.Providers
         /// </summary>
         /// <param name="xPath"></param>
         /// <param name="writer"></param>
-        private void AddNodesToIndex(string xPath, IndexWriter writer, IndexType type)
+        private void AddNodesToIndex(string xPath, IndexType type)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
             XDocument xDoc = GetXDocument(xPath, type);
@@ -745,13 +913,13 @@ namespace UmbracoExamine.Providers
                 if (ValidateDocument(node))
                 {
                     //save the index item to a queue file
-                    SaveIndexQueueItem(GetDataToIndex(node), int.Parse(node.Attribute("id").Value), type);
+                    SaveAddIndexQueueItem(GetDataToIndex(node), int.Parse(node.Attribute("id").Value), type);
                 }
                     
             }
 
             //run the indexer on all queued files
-            IndexQueueItems(writer);
+            ProcessQueueItems();
 
         }
 
@@ -761,8 +929,11 @@ namespace UmbracoExamine.Providers
         /// <param name="folder"></param>
         private void VerifyFolder(DirectoryInfo folder)
         {
-            if (!folder.Exists)
-                folder.Create();
+            lock (m_FolderLocker)
+            {
+                if (!folder.Exists)
+                    folder.Create();
+            }
         }
 
         /// <summary>
@@ -775,12 +946,23 @@ namespace UmbracoExamine.Providers
         }
 
         /// <summary>
-        /// If the index doesn't exist, then create it AND re=index everything.
+        /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
         private bool IndexExists()
         {
             return (IndexReader.IndexExists(LuceneIndexFolder.FullName));
+        }
+
+        /// <summary>
+        /// Adds a log entry to the umbraco log
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="msg"></param>
+        /// <param name="type"></param>
+        private void AddLog(int nodeId, string msg, LogTypes type)
+        {
+            Log.Add(type, nodeId, "[UmbracoExamine] " + msg);
         }
 
         #endregion

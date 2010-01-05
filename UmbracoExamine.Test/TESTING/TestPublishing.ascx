@@ -1,7 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="TestPublishing.ascx.cs" Inherits="UmbracoExamine.Test.TESTING.TestPublishing" %>
 <div class="testBox">
-    <p>
-        This will test the indexing service when many nodes are being published consecutively<br />
-        <asp:Button runat="server" ID="TestMultiplePublish" Text="Test Multi-Publishing" onclick="TestMultiplePublish_Click" />
-    </p>
+
+    <asp:Button runat="server" ToolTip="Publish a single node" ID="Button1" Text="Test Single Node Publish" onclick="TestSinglePublish_Click" />
+    <asp:Button runat="server" ToolTip="Publish many individual nodes consecutively" ID="TestMultiplePublish" Text="Test Consecutive Publishing" onclick="TestMultiplePublish_Click" />
+    
 </div>

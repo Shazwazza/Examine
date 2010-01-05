@@ -77,6 +77,10 @@ namespace UmbracoExamine.Providers
         /// <param name="e"></param>
         /// <returns></returns>
         public delegate string IndexingNodesEventHandler(object sender, IndexingNodesEventArgs e);
+
+        public delegate void IndexedNodesEventHandler(object sender, IndexedNodesEventArgs e);
+        public delegate void DeletedIndexEventHandler(object sender, DeleteIndexEventArgs e);
+
         #endregion
 
         #region Events
@@ -84,10 +88,10 @@ namespace UmbracoExamine.Providers
         public event IndexingNodeEventHandler NodeIndexed;
 
         public event IndexingNodesEventHandler NodesIndexing;
-        public event IndexingNodesEventHandler NodesIndexed;
+        public event IndexedNodesEventHandler NodesIndexed;
 
         public event IndexingNodeDataEventHandler GatheringNodeData;
-        public event IndexingNodeEventHandler NodeIndexDeleted;
+        public event DeletedIndexEventHandler IndexDeleted;
         public event IndexingFieldDataEventHandler GatheringFieldData;
         public event IndexingErrorEventHandler IndexingError;
         public event IndexingNodeDataEventHandler IgnoringNode;
@@ -117,10 +121,10 @@ namespace UmbracoExamine.Providers
                 NodeIndexed(this, e);
         }
 
-        protected virtual void OnNodeIndexDeleted(IndexingNodeEventArgs e)
+        protected virtual void OnIndexDeleted(DeleteIndexEventArgs e)
         {
-            if (NodeIndexDeleted != null)
-                NodeIndexDeleted(this, e);
+            if (IndexDeleted != null)
+                IndexDeleted(this, e);
         }
 
         protected virtual Dictionary<string, string> OnGatheringNodeData(IndexingNodeDataEventArgs e)
@@ -139,12 +143,10 @@ namespace UmbracoExamine.Providers
             return e.FieldValue;
         }
 
-        protected virtual string OnNodesIndexed(IndexingNodesEventArgs e)
+        protected virtual void OnNodesIndexed(IndexedNodesEventArgs e)
         {
             if (NodesIndexed != null)
                 NodesIndexed(this, e);
-
-            return e.XPath;
         }
 
         protected virtual string OnNodesIndexing(IndexingNodesEventArgs e)

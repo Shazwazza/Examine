@@ -108,7 +108,6 @@ namespace UmbracoExamine.Core
         /// <param name="node"></param>
         /// <param name="type"></param>
         /// <param name="providers"></param>
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public void ReIndexNode(XElement node, IndexType type, IEnumerable<BaseIndexProvider> providers)
         {
             if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
@@ -130,7 +129,6 @@ namespace UmbracoExamine.Core
         /// </summary>
         /// <param name="node"></param>
         /// <param name="providers"></param>
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public void DeleteFromIndex(XElement node, IEnumerable<BaseIndexProvider> providers)
         {
             if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
@@ -182,7 +180,6 @@ namespace UmbracoExamine.Core
             }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public void IndexAll(IndexType type)
         {
             if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
@@ -206,7 +203,6 @@ namespace UmbracoExamine.Core
             }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public void RebuildIndex()
         {
             if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)

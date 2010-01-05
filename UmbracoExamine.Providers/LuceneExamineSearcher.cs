@@ -67,6 +67,9 @@ namespace UmbracoExamine.Providers
 
                 // Remove all entries that are 2 letters or less, remove other invalid search chars. Replace all " " with AND 
                 string queryText = PrepareSearchText(text, true, searchParams.MatchAllWords);
+                //check again that the query string is long enough
+                if (queryText.Length < 3)
+                    return results;
 
                 if (!LuceneIndexFolder.Exists)
                     throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
@@ -260,6 +263,9 @@ namespace UmbracoExamine.Providers
             for (int i = 0; i < words.Count(); i++)
                 foreach (char c in charsToRemove)
                     words[i] = words[i].Replace(c.ToString(), "");
+
+            // Now that invalid chars are removed, check again to ensure that no words are less than 2 chars
+            words = words.Where(x => x.Length > 2).ToList();
 
             if (addBooleans)
             {

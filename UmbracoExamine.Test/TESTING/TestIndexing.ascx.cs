@@ -13,23 +13,23 @@ namespace UmbracoExamine.Test.TESTING
     public partial class TestIndexing : TestControl
     {
 
-        
-
-        protected void TestIndexButton_Click(object sender, EventArgs e)
-        {
-            AddTrace("Indexing Content", "Start all content indexing", Color.Green);
-            ExamineManager.Instance.IndexAll(IndexType.Content);
+        protected void TestIndexMediaButton_Click(object sender, EventArgs e)
+        {            
             AddTrace("Indexing Media", "Start all media indexing", Color.Green);
             ExamineManager.Instance.IndexAll(IndexType.Media);
         }
 
-        protected void TestRebuildButton_Click(object sender, EventArgs e)
+        protected void TestIndexContentButton_Click(object sender, EventArgs e)
         {
-            AddTrace("Rebuilding Index", "Start rebuilding the indexes", Color.Green);
-            ExamineManager.Instance.RebuildIndex();
+            AddTrace("Indexing Content", "Start all content indexing", Color.Green);
+            ExamineManager.Instance.IndexAll(IndexType.Content);         
         }
 
-        
+        protected void TestRebuildButton_Click(object sender, EventArgs e)
+        {
+            AddTrace("Rebuilding Index", "Start rebuilding the index from scratch", Color.Green);
+            ExamineManager.Instance.RebuildIndex();
+        }
 
     }
 }

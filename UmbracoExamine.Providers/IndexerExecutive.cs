@@ -52,7 +52,12 @@ namespace UmbracoExamine.Providers
                 {
                     //since we know there's no Executive, clear all lock files and start the race.
                     ClearOldLockFiles(DateTime.Now);
-                    RaceForMasterIndexer();                
+                    RaceForMasterIndexer();
+                }
+                else
+                {
+                    //update machine's files with new timestamp
+                    TimestampFiles();
                 }
 
                 //if the lck file exists with this machine name, then it is executive.
@@ -107,6 +112,41 @@ namespace UmbracoExamine.Providers
         }
 
         /// <summary>
+        /// Updates the timestamp for both exa and lck files
+        /// </summary>
+        private void TimestampFiles()
+        {
+            var exa = GetEXA();
+            exa["Updated"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            exa.SaveToDisk(ExaFile);
+            var lck = GetLCK();
+            lck["Updated"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            lck.SaveToDisk(LckFile);
+        }
+
+        /// <summary>
+        /// Read the machines EXA file
+        /// </summary>
+        /// <returns></returns>
+        private SerializableDictionary<string, string> GetEXA()
+        {
+            var dExa = new SerializableDictionary<string, string>();
+            dExa.ReadFromDisk(ExaFile);
+            return dExa;
+        }
+
+        /// <summary>
+        /// Read the machines LCK file
+        /// </summary>
+        /// <returns></returns>
+        private SerializableDictionary<string, string> GetLCK()
+        {
+            var dLck = new SerializableDictionary<string, string>();
+            dLck.ReadFromDisk(LckFile);
+            return dLck;
+        }
+
+        /// <summary>
         /// This will check for any lock files, not created by the current machine. If there are any, then this machine will flag it's
         /// exa file as not being the master indexer, otherwise, it will try to create it's own lock file to let others know it is the race
         /// winner and therefore the master indexer. If this succeeds, it will update it's exa file to flag it as the master indexer.
@@ -114,8 +154,7 @@ namespace UmbracoExamine.Providers
         private void RaceForMasterIndexer()
         {
             //get this machine's exa file
-            var dExa = new SerializableDictionary<string, string>();
-            dExa.ReadFromDisk(ExaFile);
+            var dExa = GetEXA();
 
             if (GetLockFiles().Count == 0)
             {
@@ -126,6 +165,7 @@ namespace UmbracoExamine.Providers
                 var dLck = new SerializableDictionary<string, string>();
                 dLck.Add("Name", Environment.MachineName);
                 dLck.Add("Created", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                dLck.Add("Updated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
 
                 //check one more time
                 if (GetLockFiles().Count == 0)

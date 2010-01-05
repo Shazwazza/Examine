@@ -25,10 +25,18 @@ namespace UmbracoExamine.Test.TESTING
                 ExamineManager.Instance.IndexProviderCollection[indexer.Name].NodeIndexed += new BaseIndexProvider.IndexingNodeEventHandler(TestIndexing_NodeIndexed);
                 ExamineManager.Instance.IndexProviderCollection[indexer.Name].IndexingError += new BaseIndexProvider.IndexingErrorEventHandler(TestIndexing_IndexingError);
                 ExamineManager.Instance.IndexProviderCollection[indexer.Name].GatheringNodeData += new BaseIndexProvider.IndexingNodeDataEventHandler(TestIndexing_GatheringNodeData);
+                ExamineManager.Instance.IndexProviderCollection[indexer.Name].IndexDeleted += new BaseIndexProvider.DeletedIndexEventHandler(TestControl_IndexDeleted);
             }
 
             EventsRegistered = true;
         }
+
+        void TestControl_IndexDeleted(object sender, DeleteIndexEventArgs e)
+        {
+            AddTrace("Index Deleted", string.Format("Term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value), Color.Purple);
+        }
+
+        
 
         protected bool EventsRegistered
         {
@@ -43,6 +51,7 @@ namespace UmbracoExamine.Test.TESTING
                 HttpContext.Current.Items["eventsRegistered"] = value;
             }
         }
+
 
         Dictionary<string, string> TestIndexing_GatheringNodeData(object sender, IndexingNodeDataEventArgs e)
         {

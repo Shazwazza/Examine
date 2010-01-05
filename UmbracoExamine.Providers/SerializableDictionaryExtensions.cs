@@ -30,7 +30,7 @@ namespace UmbracoExamine.Providers
             return d;
         }
 
-        public static void SaveToDisk<TKey, TValue>(this SerializableDictionary<TKey, TValue> sd, FileInfo fi)
+        private static void SaveToDisk<TKey, TValue>(this SerializableDictionary<TKey, TValue> sd, FileInfo fi)
         {
             XmlSerializer xs = new XmlSerializer(sd.GetType());
             string output = "";
