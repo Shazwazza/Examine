@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UmbracoExamine.Providers.Config;
 using System.IO;
+using System.Timers;
 
 namespace UmbracoExamine.Providers
 {
@@ -22,21 +23,62 @@ namespace UmbracoExamine.Providers
         public IndexerExecutive(DirectoryInfo d)
         {
             ExamineDirectory = d;
-            ExaFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + ".exa"));
-            LckFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + ".lck"));
+            ExaFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + EXAExtension));
+            LckFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + LCKExtension));
+
+            //new 10 minute timer
+            TimestampTimer = new Timer(new TimeSpan(0, 10, 0).TotalMilliseconds);
+            TimestampTimer.AutoReset = true;
+            TimestampTimer.Elapsed += new ElapsedEventHandler(TimestampTimer_Elapsed);
         }
 
         public DirectoryInfo ExamineDirectory { get; private set; }
 
         private FileInfo ExaFile;
         private FileInfo LckFile;
+        private Timer TimestampTimer;
+
+        private const string TimeStampFormat = "yyyy-MM-dd HH:mm:ss.fff";
+        private const string LCKExtension = ".lck";
+        private const string EXAExtension = ".exa";
+
+        private static readonly object m_Lock = new object();
+
+        public enum EXAFields
+        {
+            Name, Created, Updated, IsMaster
+        }
+        public enum LCKFields
+        {
+            Name, Created, Updated
+        }
 
         public void Initialize()
         {
-            CreateAnnounceFile();
+            CreateEXAFile();
+            
             //only clear lock files older than 1 hour as there may already be an active Executive
-            ClearOldLockFiles(DateTime.Now.AddHours(-1));
+            ClearOldLCKFiles(DateTime.Now.AddHours(-1));
+            //only clear exa files older than 1 hour as this file is updated every 10 mins
+            ClearOldEXAFiles(DateTime.Now.AddHours(-1));
+
             RaceForMasterIndexer();
+
+            //start the timestamp timer
+            TimestampTimer.Start();
+        }
+
+        /// <summary>
+        /// Fired every 10 minutes by the timer object. This timestamps the EXA file to 
+        /// enure the system knows that this server is active.
+        /// This is to ensure that all systems in a Load Balanced environment are aware of exactly how
+        /// many other servers are taking part in the load balancing and who they are.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void TimestampTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            TimestampEXA();
         }
 
         /// <summary>
@@ -47,17 +89,19 @@ namespace UmbracoExamine.Providers
         {
             get
             {
-                int count = LockFileCount();
+                int count = LCKFileCount();
                 if (count != 1)
                 {
-                    //since we know there's no Executive, clear all lock files and start the race.
-                    ClearOldLockFiles(DateTime.Now);
+                    //since we know there's no Executive (or somehow more than 1 have been declared), 
+                    //clear all lock files and start the race.
+                    ClearOldLCKFiles(DateTime.Now);
                     RaceForMasterIndexer();
                 }
                 else
                 {
                     //update machine's files with new timestamp
-                    TimestampFiles();
+                    TimestampLck();
+                    TimestampEXA();
                 }
 
                 //if the lck file exists with this machine name, then it is executive.
@@ -66,71 +110,185 @@ namespace UmbracoExamine.Providers
         }
 
         /// <summary>
+        /// Returns a boolean determining whether or not this server involved in a LoadBalanced
+        /// environment with Umbraco Examine.
+        /// </summary>
+        public bool IsLoadBalancedEnvironment
+        {
+            get
+            {
+                return EXAFileCount() > 1;
+            }
+        }
+
+        /// <summary>
+        /// Returns the machine name of the executive indexer
+        /// </summary>
+        public string ExecutiveIndexerMachineName
+        {
+            get
+            {
+                if (LckFile.Exists)
+                {
+                    return GetLCK()[LCKFields.Name];
+                }
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// The number of servers active in indexing
+        /// </summary>
+        public int ServerCount
+        {
+            get
+            {
+                return EXAFileCount();
+            }
+        }
+
+        /// <summary>
         /// Creates an xml file to declare that this machine is taking part in the index writing.
         /// This is used to determine the master indexer if this app exists in a load balanced environment.
         /// </summary>
-        private void CreateAnnounceFile()
+        private void CreateEXAFile()
         {
-
-            var d = new SerializableDictionary<string, string>();
-            d.Add("Name", Environment.MachineName);
-            d.Add("Created", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-            d.Add("Updated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-            d.Add("IsMaster", false.ToString());
-            d.SaveToDisk(ExaFile);
+            lock (m_Lock)
+            {
+                var d = new SerializableDictionary<EXAFields, string>();
+                d.Add(EXAFields.Name, Environment.MachineName);
+                d.Add(EXAFields.Created, DateTime.Now.ToString(TimeStampFormat));
+                d.Add(EXAFields.Updated, DateTime.Now.ToString(TimeStampFormat));
+                d.Add(EXAFields.IsMaster, false.ToString());
+                d.SaveToDisk(ExaFile); 
+            }
         }
 
-        private void ClearOldLockFiles(DateTime cutoffTime)
+        /// <summary>
+        /// Creates a lock file for this machine if there aren't other ones.
+        /// </summary>
+        /// <returns>returns true if a lock file was successfully created for this machine.</returns>
+        private bool CreateLCKFile()
         {
-            //delete all old lck files (any that are more than cutoffTime old)
-            ExamineDirectory
-                .GetFiles("*.lck")
-                .Where(x => x.CreationTime < cutoffTime)
-                .ToList()
-                .ForEach(x => x.Delete());
+            lock (m_Lock)
+            {
+                if (GetOtherLCKFiles().Count == 0)
+                {
+                    var lckFileName = Environment.MachineName + LCKExtension;
+                    var fLck = new FileInfo(Path.Combine(ExamineDirectory.FullName, lckFileName));
+                    var dLck = new SerializableDictionary<LCKFields, string>();
+                    dLck.Add(LCKFields.Name, Environment.MachineName);
+                    dLck.Add(LCKFields.Created, DateTime.Now.ToString(TimeStampFormat));
+                    dLck.Add(LCKFields.Updated, DateTime.Now.ToString(TimeStampFormat));
 
+                    //check one more time
+                    if (GetOtherLCKFiles().Count == 0)
+                    {
+                        dLck.SaveToDisk(fLck);
+                        return true;
+                    }
+                } 
+            }
+
+            return false;
         }
+
+        /// <summary>
+        /// delete all old lck files (any that are more than cutoffTime old)
+        /// </summary>
+        /// <param name="cutoffTime"></param>
+        private void ClearOldLCKFiles(DateTime cutoffTime)
+        {
+            lock (m_Lock)
+            {
+                ExamineDirectory
+                        .GetFiles(LCKExtension)
+                        .Where(x => x.CreationTime < cutoffTime)
+                        .ToList()
+                        .ForEach(x => x.Delete()); 
+            }
+        }
+
+        /// <summary>
+        /// delete all old exa files (any that are more than cutoffTime old)
+        /// </summary>
+        /// <param name="cutoffTime"></param>
+        private void ClearOldEXAFiles(DateTime cutoffTime)
+        {
+            lock (m_Lock)
+            {
+                ExamineDirectory
+                        .GetFiles(EXAExtension)
+                        .Where(x => x.CreationTime < cutoffTime)
+                        .ToList()
+                        .ForEach(x => x.Delete()); 
+            }
+        }
+
         /// <summary>
         /// Get all lck files that are not named by this machines name. If there are any, this means that another machine
         /// has won the race and created the lck file for itself. If there is a lck file with the current machines name, then this
         /// must mean it was previously the master indexer and the apppool has recycled in less than the hour.
         /// </summary>
         /// <returns></returns>
-        private List<FileInfo> GetLockFiles()
+        private List<FileInfo> GetOtherLCKFiles()
         {
             return ExamineDirectory
-                .GetFiles("*.lck")
+                .GetFiles(LCKExtension)
                 .Where(x => !x.Name.StartsWith(Environment.MachineName))
                 .ToList();
         }
 
-        private int LockFileCount()
+        private int LCKFileCount()
         {
             return ExamineDirectory
-               .GetFiles("*.lck")
-               .Count();                
+               .GetFiles("*" + LCKExtension)
+               .Count();
+        }
+
+        private int EXAFileCount()
+        {
+            return ExamineDirectory
+               .GetFiles("*" + EXAExtension)
+               .Count();
         }
 
         /// <summary>
-        /// Updates the timestamp for both exa and lck files
+        /// Updates the timestamp for lck file if it exists
         /// </summary>
-        private void TimestampFiles()
+        private void TimestampLck()
         {
-            var exa = GetEXA();
-            exa["Updated"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            exa.SaveToDisk(ExaFile);
-            var lck = GetLCK();
-            lck["Updated"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            lck.SaveToDisk(LckFile);
+            lock (m_Lock)
+            {
+                if (LckFile.Exists)
+                {
+                    var lck = GetLCK();
+                    lck[LCKFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
+                    lck.SaveToDisk(LckFile);
+                }            
+            } 
+        }
+
+        /// <summary>
+        /// Updates the timestamp for the exa file
+        /// </summary>
+        private void TimestampEXA()
+        {
+            lock (m_Lock)
+            {
+                var exa = GetEXA();
+                exa[EXAFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
+                exa.SaveToDisk(ExaFile); 
+            }
         }
 
         /// <summary>
         /// Read the machines EXA file
         /// </summary>
         /// <returns></returns>
-        private SerializableDictionary<string, string> GetEXA()
+        private SerializableDictionary<EXAFields, string> GetEXA()
         {
-            var dExa = new SerializableDictionary<string, string>();
+            var dExa = new SerializableDictionary<EXAFields, string>();
             dExa.ReadFromDisk(ExaFile);
             return dExa;
         }
@@ -139,9 +297,9 @@ namespace UmbracoExamine.Providers
         /// Read the machines LCK file
         /// </summary>
         /// <returns></returns>
-        private SerializableDictionary<string, string> GetLCK()
+        private SerializableDictionary<LCKFields, string> GetLCK()
         {
-            var dLck = new SerializableDictionary<string, string>();
+            var dLck = new SerializableDictionary<LCKFields, string>();
             dLck.ReadFromDisk(LckFile);
             return dLck;
         }
@@ -153,38 +311,22 @@ namespace UmbracoExamine.Providers
         /// </summary>
         private void RaceForMasterIndexer()
         {
-            //get this machine's exa file
-            var dExa = GetEXA();
-
-            if (GetLockFiles().Count == 0)
+            lock (m_Lock)
             {
-                dExa["IsMaster"] = true.ToString();
+                //get this machine's exa file
+                var dExa = GetEXA();
 
-                var lckFileName = Environment.MachineName + ".lck";
-                var fLck = new FileInfo(Path.Combine(ExamineDirectory.FullName, lckFileName));
-                var dLck = new SerializableDictionary<string, string>();
-                dLck.Add("Name", Environment.MachineName);
-                dLck.Add("Created", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-                dLck.Add("Updated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-
-                //check one more time
-                if (GetLockFiles().Count == 0)
+                if (CreateLCKFile())
                 {
-                    dLck.SaveToDisk(fLck);
+                    dExa[EXAFields.IsMaster] = true.ToString();
                 }
                 else
                 {
-                    //if there is an lck file at this stage, the race was won by a hair by another machine, so this machine
-                    //will back down.
-                    dExa["IsMaster"] = false.ToString();
+                    dExa[EXAFields.IsMaster] = false.ToString();
                 }
+                dExa[EXAFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
+                dExa.SaveToDisk(ExaFile); 
             }
-            else
-            {
-                dExa["IsMaster"] = false.ToString();
-            }
-            dExa["Updated"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            dExa.SaveToDisk(ExaFile);
 
         }
 

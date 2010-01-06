@@ -40,8 +40,16 @@ namespace UmbracoExamine.Providers
     public class LuceneExamineIndexer : BaseIndexProvider
     {
         #region Constructors
-        public LuceneExamineIndexer() : base() { }
-        public LuceneExamineIndexer(IIndexCriteria indexerData) : base(indexerData) { } 
+        public LuceneExamineIndexer()
+            : base()
+        {
+            m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
+        }
+        public LuceneExamineIndexer(IIndexCriteria indexerData)
+            : base(indexerData)
+        {
+            m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
+        }
         #endregion
 
         #region Initialize
@@ -102,6 +110,15 @@ namespace UmbracoExamine.Providers
 
             ExecutiveIndex.Initialize();
 
+            //log some info if executive indexer
+            if (ExecutiveIndex.IsExecutiveMachine)
+            {
+                AddLog(-1, string.Format("{0} machine is the Executive Indexer with {1} servers in the cluster",
+                    ExecutiveIndex.ExecutiveIndexerMachineName,
+                    ExecutiveIndex.ServerCount), LogTypes.Custom);
+            }
+            
+
             //optimize the index async
             ThreadPool.QueueUserWorkItem(
                 delegate
@@ -135,11 +152,9 @@ namespace UmbracoExamine.Providers
         /// </summary>
         private readonly object m_FolderLocker = new object();
 
-        /// <summary>
-        /// used to lock calls for the optimization
-        /// </summary>
-        private readonly object m_OptimizeLocker = new object();
-
+        private System.Timers.Timer m_FileWatcher = null;
+        private System.Timers.ElapsedEventHandler m_FileWatcher_ElapsedEventHandler;
+        
         #endregion
 
         #region Properties
@@ -170,13 +185,13 @@ namespace UmbracoExamine.Providers
 
         protected override void OnNodeIndexed(IndexingNodeEventArgs e)
         {
-            AddLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName), LogTypes.System);
+            AddLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName), LogTypes.Custom);
             base.OnNodeIndexed(e);
         }
 
         protected override void OnIndexDeleted(DeleteIndexEventArgs e)
         {
-            AddLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value), LogTypes.System);
+            AddLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value), LogTypes.Custom);
             base.OnIndexDeleted(e);
         }
 
@@ -338,7 +353,7 @@ namespace UmbracoExamine.Providers
             SaveAddIndexQueueItem(GetDataToIndex(node), nodeId, type);
 
             //run the indexer on all queued files
-            ProcessQueueItems();
+            SafelyProcessQueueItems();
 
         }
 
@@ -355,7 +370,7 @@ namespace UmbracoExamine.Providers
             if (!ExecutiveIndex.IsExecutiveMachine)
                 return;
 
-            lock (m_OptimizeLocker)
+            lock (m_IndexerLocker)
             {
                 IndexWriter writer = null;
                 try
@@ -520,14 +535,47 @@ namespace UmbracoExamine.Providers
         }
 
         /// <summary>
-        /// Loop through all files in the queue item folder and index them.
-        /// This will only execute the indexing if this machine is the executive indexer.
+        /// Process all of the queue items. This checks if this machine is the Executive and if it's in a load balanced
+        /// environments. If then acts accordingly: 
+        ///     Not the executive = doesn't index, i
+        ///     In Load Balanced environment = use file watcher timer
         /// </summary>
-        protected void ProcessQueueItems()
+        protected void SafelyProcessQueueItems()
         {
+            //if this is not the master indexer, exit
             if (!ExecutiveIndex.IsExecutiveMachine)
                 return;
 
+            //if this is in a Load Balanced environment, then 
+            //we will rely on a File system watcher to do the indexing, 
+            //otherwise, simply process the queue items
+            if (ExecutiveIndex.IsLoadBalancedEnvironment)
+            {
+                InitializeFileWatcherTimer();
+            }
+            else
+            {
+                ForceProcessQueueItems();
+            }
+            
+            
+        }
+
+        /// <summary>
+        /// Loop through all files in the queue item folder and index them.
+        /// Regardless of weather this machine is the executive indexer or not or is in a load balanced environment
+        /// or not, this WILL attempt to process the queue items into the index.
+        /// </summary>
+        /// <returns>
+        /// The number of queue items processed
+        /// </returns>
+        /// <remarks>
+        /// Inheritors should be very carefly using this method, SafelyProcessQueueItems will ensure
+        /// that the correct machine processes the items into the index. SafelyQueueItems calls this method
+        /// if it confirms that this machine is the one to process the queue.
+        /// </remarks>
+        protected int ForceProcessQueueItems()
+        {
             try
             {
                 VerifyFolder(LuceneIndexFolder);
@@ -536,32 +584,33 @@ namespace UmbracoExamine.Providers
             catch (Exception ex)
             {
                 OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, an error occurred verifying index folders", -1, ex));
-                return;
+                return 0;
             }
 
             if (!IndexExists())
             {
                 //this shouldn't happen!
                 OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, the index doesn't exist!", -1, null));
-                return;
+                return 0;
             }
 
             //check if the index is ready to be written to.
             if (!IndexReady())
             {
                 OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, the index is currently locked", -1, null));
-                return;
+                return 0;
             }
 
             lock (m_IndexerLocker)
             {
                 IndexWriter writer = null;
                 IndexReader reader = null;
+
+                //track all of the nodes indexed
+                var indexedNodes = new List<IndexedNode>();
+
                 try
                 {
-
-                    //track all of the nodes indexed
-                    var indexedNodes = new List<IndexedNode>();
 
                     //iterate through all files to add or delete to the index and index the content
                     //and order by time created as to process them in order
@@ -579,7 +628,7 @@ namespace UmbracoExamine.Providers
                             else
                             {
                                 OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null));
-                                return;
+                                return indexedNodes.Count;
                             }
                         }
                         else if (x.Extension == ".add")
@@ -591,7 +640,7 @@ namespace UmbracoExamine.Providers
                             else
                             {
                                 OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null));
-                                return;
+                                return indexedNodes.Count;
                             }
                         }
                     }
@@ -608,15 +657,17 @@ namespace UmbracoExamine.Providers
                 {
                     CloseWriter(ref writer);
                     CloseReader(ref reader);
-                }            
+                }
 
                 //optimize index
                 OptimizeIndex();
+
+                return indexedNodes.Count;
             }
+
+
         }
-
         
-
         protected XDocument GetXDocument(string xPath, IndexType type)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
@@ -722,6 +773,55 @@ namespace UmbracoExamine.Providers
         #endregion
 
         #region Private
+
+        private void InitializeFileWatcherTimer()
+        {
+            if (m_FileWatcher != null)
+            {
+                //if this is not the master indexer anymore... perhaps another server has taken over somehow...
+                if (!ExecutiveIndex.IsExecutiveMachine)
+                {
+                    //stop the timer, remove event handlers and close
+                    m_FileWatcher.Stop();
+                    m_FileWatcher.Elapsed -= m_FileWatcher_ElapsedEventHandler;
+                    m_FileWatcher.Dispose();
+                    m_FileWatcher = null;
+                }
+
+                return;
+            }
+         
+            m_FileWatcher = new System.Timers.Timer(new TimeSpan(0, 1, 0).TotalMilliseconds);
+            m_FileWatcher.Elapsed += m_FileWatcher_ElapsedEventHandler;
+            m_FileWatcher.AutoReset = false;
+            m_FileWatcher.Start();
+        }
+       
+
+        /// <summary>
+        /// Handles the file watcher timer poll elapsed event
+        /// This will:
+        /// - Disable the FileSystemWatcher        
+        /// - Recursively process all queue items in the folder and check after processing if any more files have been added
+        /// - Once there's no more files to be processed, re-enables the watcher
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void m_FileWatcher_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+
+            //stop the event system
+            m_FileWatcher.Stop();
+            var numProcessedItems = 0;
+            do
+            {
+                numProcessedItems = ForceProcessQueueItems();
+            } while (numProcessedItems > 0);
+
+            //restart the timer.
+            m_FileWatcher.Start();
+      
+        }        
 
         /// <summary>
         /// Checks the writer passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
@@ -919,7 +1019,7 @@ namespace UmbracoExamine.Providers
             }
 
             //run the indexer on all queued files
-            ProcessQueueItems();
+            SafelyProcessQueueItems();
 
         }
 

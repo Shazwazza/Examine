@@ -55,7 +55,7 @@ namespace UmbracoExamine.Providers
         public static void ReadFromDisk<TKey, TValue>(this SerializableDictionary<TKey, TValue> sd, FileInfo fi)
         {
             //get the dictionary object from the file data
-            XmlSerializer xs = new XmlSerializer(typeof(SerializableDictionary<string, string>));
+            XmlSerializer xs = new XmlSerializer(typeof(SerializableDictionary<TKey, TValue>));
             var deserialized = new SerializableDictionary<TKey, TValue>();
             using (var s = fi.OpenText())
             {
