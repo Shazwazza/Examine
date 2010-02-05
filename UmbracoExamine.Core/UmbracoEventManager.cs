@@ -21,7 +21,9 @@ namespace UmbracoExamine.Core
             //don't bind event handlers if we're not suppose to listen
             if (!UmbracoExamineSettings.Instance.IndexProviders.EnableDefaultEventHandler)
                 return;
-            
+
+            Log.Add(LogTypes.Custom, -1, "[UmbracoExamine] Adding examine event handlers ");            
+
             Media.AfterSave += new Media.SaveEventHandler(Media_AfterSave);
             Media.AfterDelete += new Media.DeleteEventHandler(Media_AfterDelete);
 
