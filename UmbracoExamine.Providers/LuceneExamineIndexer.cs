@@ -95,6 +95,7 @@ namespace UmbracoExamine.Providers
                 return;
             }
 
+
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
             bool supportUnpublished;
@@ -102,6 +103,16 @@ namespace UmbracoExamine.Providers
                 SupportUnpublishedContent = supportUnpublished;
             else
                 SupportUnpublishedContent = false;
+
+
+            //check if there's a flag specifying to support protected content,
+            //if not, set to false;
+            bool supportProtected;
+            if (config["supportProtected"] != null && bool.TryParse(config["supportProtected"], out supportProtected))
+                SupportProtectedContent = supportProtected;
+            else
+                SupportProtectedContent = false;
+
 
             if (config["debug"] != null)
                 bool.TryParse(config["debug"], out m_ThrowExceptions);
@@ -167,7 +178,14 @@ namespace UmbracoExamine.Providers
         /// </summary>
         protected IndexerExecutive ExecutiveIndex { get; private set; }
 
-        protected string IndexSetName { get; set; } 
+        protected string IndexSetName { get; set; }
+
+        /// <summary>
+        /// By default this is false, if set to true then the indexer will include indexing content that is flagged as publicly protected.
+        /// This property is ignored if SupportUnpublishedContent is set to true.
+        /// </summary>
+        public bool SupportProtectedContent { get; protected set; }
+
         #endregion
 
         #region Event handlers
@@ -472,7 +490,8 @@ namespace UmbracoExamine.Providers
             int nodeId = int.Parse(node.Attribute("id").Value);
 
             // Test for access if we're only indexing published content
-            if (!SupportUnpublishedContent && IsProtected(nodeId, node.Attribute("path").Value))
+            // return nothing if we're not supporting protected content and it is protected, and we're not supporting unpublished content
+            if (!SupportUnpublishedContent && (!SupportProtectedContent && IsProtected(nodeId, node.Attribute("path").Value)))
                 return values;
 
             // Get all user data that we want to index and store into a dictionary 
