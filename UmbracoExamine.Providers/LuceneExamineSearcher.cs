@@ -230,7 +230,7 @@ namespace UmbracoExamine.Providers
                 searchPath.Add(path[i]);
 
             //need to remove the leading "-" as Lucene will not search on this for whatever reason.
-            string pathQuery = (string.Join(",", searchPath.ToArray()) + ",*").Replace("-", "");
+            string pathQuery = (string.Join(",", searchPath.ToArray()) + ",*").Replace("-", "?");
             return new WildcardQuery(new Term("path", pathQuery));
         }
 

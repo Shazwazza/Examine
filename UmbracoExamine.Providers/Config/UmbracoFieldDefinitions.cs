@@ -32,7 +32,7 @@ namespace UmbracoExamine.Providers.Config
                 { "writerName", Field.Index.UN_TOKENIZED},
                 { "creatorName", Field.Index.UN_TOKENIZED},
                 { "nodeTypeAlias", Field.Index.UN_TOKENIZED},
-                { "path", Field.Index.NO}
+                { "path", Field.Index.UN_TOKENIZED}
             };
 
         /// <summary>
