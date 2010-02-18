@@ -141,12 +141,18 @@ namespace UmbracoExamine.Providers
                     ExecutiveIndex.ServerCount), LogTypes.Custom);
             }
 
+            CommitCount = 0;
 
             OptimizeIndex();
         } 
         #endregion
 
         #region Constants & Fields
+
+        /// <summary>
+        /// Specifies how many index commits are performed before running an optimization
+        /// </summary>
+        public const int OptimizationCommitThreshold = 100;
 
         /// <summary>
         /// Used to store a non-tokenized key for the document
@@ -175,6 +181,12 @@ namespace UmbracoExamine.Providers
 
         #region Properties
 
+        /// <summary>
+        /// Used to keep track of how many index commits have been performed.
+        /// This is used to determine when index optimization needs to occur.
+        /// </summary>
+        public int CommitCount { get; set; }
+
         public bool IsDebug { get; set; }
 
         public int IndexSecondsInterval { get; set; }
@@ -198,6 +210,8 @@ namespace UmbracoExamine.Providers
       
 
         #endregion
+
+        public event EventHandler IndexOptimizing;
 
         #region Event handlers
         protected override void OnIndexingError(IndexingErrorEventArgs e)
@@ -224,6 +238,13 @@ namespace UmbracoExamine.Providers
         {
             AddLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value), LogTypes.Custom);
             base.OnIndexDeleted(e);
+        }
+
+        protected virtual void OnIndexOptimizing(EventArgs e)
+        {
+            AddLog(-1, "Index is being optimized", LogTypes.Custom);
+            if (IndexOptimizing != null)
+                IndexOptimizing(this, e);
         }
 
         #endregion
@@ -420,6 +441,8 @@ namespace UmbracoExamine.Providers
                     }
 
                     writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
+
+                    OnIndexOptimizing(new EventArgs());
 
                     writer.Optimize();
                 }
@@ -677,7 +700,7 @@ namespace UmbracoExamine.Providers
                     }
 
                     //raise the completed event
-                    OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
+                    OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes)); 
 
                 }
                 catch (Exception ex)
@@ -688,6 +711,13 @@ namespace UmbracoExamine.Providers
                 {
                     CloseWriter(ref writer);
                     CloseReader(ref reader);
+                }
+
+                //if there are enough commits, the we'll run an optimization
+                if (CommitCount >= OptimizationCommitThreshold)
+                {
+                    OptimizeIndex();
+                    CommitCount = 0; //reset the counter
                 }
 
                 return indexedNodes.Count;
@@ -941,6 +971,8 @@ namespace UmbracoExamine.Providers
 
             //remove the file
             x.Delete();
+
+            CommitCount++;
         }
 
         /// <summary>
@@ -962,6 +994,8 @@ namespace UmbracoExamine.Providers
 
             //remove the file
             x.Delete();
+
+            CommitCount++;
 
             return new IndexedNode() { NodeId = nodeId, Type = indexType };
         }
