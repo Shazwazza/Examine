@@ -43,23 +43,29 @@ namespace UmbracoExamine.Core
             return new XDocument(xNode.ToXElement());
         }
 
-        /// <summary>
-        /// Based on this blog, this is the fastest way to convert XmlDocument to XDocument
-        /// </summary>
-        /// <param name="doc"></param>
-        /// <returns></returns>
-        public static XDocument ToXDocument(this XmlDocument doc)
-        {
-            var x = new XmlNodeReader(doc);
-            x.MoveToContent();
-            return XDocument.Load(x);
-        }
-
         public static XElement ToXElement(this XmlNode node)
         {
             var x = new XmlNodeReader(node);
             x.MoveToContent();
             return XElement.Load(x);
+        }
+
+        public static XDocument ToXDocument(this IEnumerable<XElement> elements)
+        {
+            if (elements.Count() == 1)
+            {
+                //if ever the id is -1 then it's returned the whole tree which means its not found
+                //TODO: This is bug with older umbraco versions, i'm fairly sure it's fixed in new ones
+                //but just in case, we'll keep this here.
+                if (elements.First().Name.LocalName.StartsWith("<root"))
+                    return null;
+                return new XDocument(elements.First());
+            }
+            else if (elements.Count() > 1)
+            {
+                return new XDocument(new XElement("nodes", elements));
+            }
+            return null;
         }
 
         /// <summary>
@@ -93,9 +99,8 @@ namespace UmbracoExamine.Core
                 //Import all elements from umbraco to the root node
                 while (xml.MoveNext())
                 {
-                    rootNode.Add(XElement.Parse(xml.Current.OuterXml));
+                    rootNode.Add(XElement.Load(xml.Current.ReadSubtree()));                 
                 }
-
 
                 return xDoc;
             }
@@ -104,134 +109,92 @@ namespace UmbracoExamine.Core
         }
 
         /// <summary>
-        /// Select the umbraco nodes within the xml document
+        /// Checks if the XElement is an umbraco property based on an alias.
+        /// This works for both types of schemas
         /// </summary>
-        /// <param name="xml"></param>
-        /// <returns></returns>
-        public static IEnumerable<XElement> UmbSelectNodes(this XDocument xml)
-        {
-            return xml.Descendants("node");
-        }
-
-        /// <summary>
-        /// Returns a node by XPath.
-        /// 
-        /// Examples:
-        /// GetNodeByXpath("//node[data[@alias='ShowInFooterMenu']/text()=1]")
-        /// GetNodeByXpath("//node[@id='{0}']/ancestor-or-self::node[@level='3']")
-        /// GetNodeByXpath("//node[@nodeTypeAlias='Home Page']")
-        /// 
-        /// </summary>
-        /// <param name="xPath"></param>
-        /// <returns></returns>
-        public static XElement GetNodeByXpath(string xPath)
-        {
-            XPathNodeIterator umbXml = umbraco.library.GetXmlNodeByXPath(xPath);
-            return umbXml.ToXDocument().Elements().First();
-        }
-
-        /// <summary>
-        /// Returns umbraco NODE xml elements of a specific type
-        /// </summary>
-        /// <param name="xml"></param>
-        /// <param name="nodeTypeAlias"></param>
-        /// <returns></returns>
-        public static IEnumerable<XElement> UmbSelectNodesWhereNodeTypeAlias(this IEnumerable<XElement> xml, string nodeTypeAlias)
-        {
-            return xml.Where(x => (string)x.Attribute("nodeTypeAlias") == nodeTypeAlias);
-        }
-
-
-        /// <summary>
-        /// Returns true if current node is of type nodeTypeAlias. Else returns false.
-        /// </summary>
-        /// <param name="xml"></param>
-        /// <param name="nodeTypeAlias"></param>
-        /// <returns></returns>
-        public static bool UmbIsNodeTypeAlias(this XElement xml, string nodeTypeAlias)
-        {
-            return ((string)xml.Attribute("nodeTypeAlias") == nodeTypeAlias);
-        }
-
-
-        /// <summary>
-        /// Returns umbraco DATA xml elements of a specific type
-        /// </summary>
-        /// <param name="xml"></param>
+        /// <param name="x"></param>
         /// <param name="alias"></param>
         /// <returns></returns>
-        public static IEnumerable<XElement> UmbSelectDataWhereAlias(this IEnumerable<XElement> xml, string alias)
+        public static bool UmbIsProperty(this XElement x, string alias)
         {
-            return xml.DescendantsAndSelf("data").Where(x => (string)x.Attribute("alias") == alias);
-        }
-
-
-        /// <summary>
-        /// Returns umbraco NODE xml elements that have a data element with the specified alias
-        /// </summary>
-        /// <param name="xml"></param>
-        /// <param name="alias"></param>
-        /// <returns></returns>
-        public static IEnumerable<XElement> UmbSelectNodesWhereDataAlias(this IEnumerable<XElement> xml, string alias)
-        {
-            return xml.DescendantsAndSelf("node")
-                .Where(x => x.Elements("data").Where(d => (string)d.Attribute("alias") == alias).Count() > 0);
-        }
-
-        /// <summary>
-        /// Returns umbraco value for a data element with the specified alias. The XElement can either be a NODE or a DATA node and it will still work.
-        /// </summary>
-        /// <param name="xml"></param>
-        /// <param name="alias"></param>
-        /// <param name="valueIfNull"></param>
-        /// <returns>If not found or the value is empty, returns the string value of the object passed as valueIfNull</returns>
-        public static string UmbSelectDataValue(this XElement xml, string alias, object valueIfNull)
-        {
-            IEnumerable<XElement> val;
-
-            if (xml.Name == "data")
+            if ((x.Name == alias) //this will match if its the new schema
+                || (x.Name == "data" && (string)x.Attribute("nodeTypeAlias") == alias)) //this will match old schema
             {
-                val = xml.DescendantsAndSelf("data")
-                    .UmbSelectDataWhereAlias(alias);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the XElement is recognized as an umbraco xml NODE (doc type) 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static bool UmbIsElement(this XElement x)
+        {
+            return ((string)x.Attribute("id") != "" && int.Parse((string)x.Attribute("id")) > 0);
+        }
+
+        /// <summary>
+        /// This takes into account both schemas and returns the node type alias.
+        /// If this isn't recognized as an element node, this returns an empty string
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static string UmbNodeTypeAlias(this XElement x)
+        {
+            return !x.UmbIsElement() ? string.Empty 
+                : string.IsNullOrEmpty(((string)x.Attribute("nodeTypeAlias"))) ? x.Name.LocalName
+                : (string)x.Attribute("nodeTypeAlias");
+        }
+
+        /// <summary>
+        /// Returns the property value for the doc type element (such as id, path, etc...)
+        /// If the element is not an umbraco doc type node, or the property name isn't found, it returns String.Empty 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="alias"></param>
+        /// <returns></returns>
+        public static string UmbSelectPropertyValue(this XElement x, string alias)
+        {
+            if (alias == "nodeTypeAlias")
+            {
+                return x.UmbNodeTypeAlias();
             }
             else
             {
-                val = xml.Elements("data")
-                    .UmbSelectDataWhereAlias(alias);
+                return (string)x.Attribute(alias);
             }
-
-            string strVal = val.DefaultIfEmpty(XElement.Parse(string.Format("<node>{0}</node>", valueIfNull.ToString()))) //ensures no error is thrown if no node is found
-                            .First()
-                            .Value;
-
-            if (string.IsNullOrEmpty(strVal))
-                return valueIfNull.ToString();
-            return strVal;
         }
 
         /// <summary>
-        /// Returns a typed object using the designated Converter.
+        /// Returns umbraco value for a data element with the specified alias.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="xml"></param>
         /// <param name="alias"></param>
-        /// <param name="converter"></param>
         /// <returns></returns>
-        public static T UmbSelectDataValue<T>(this XElement xml, string alias, Converter<string, T> converter)
-        {
-            string val = UmbSelectDataValue(xml, alias, "");
-            return converter.Invoke(val);
-        }
-
-        /// <summary>
-        /// Returns umbraco value for a data element with the specified alias
-        /// </summary>
-        /// <param name="xml"></param>
-        /// <param name="alias"></param>
-        /// <returns>If not found, returns an empty string</returns>
         public static string UmbSelectDataValue(this XElement xml, string alias)
         {
-            return UmbSelectDataValue(xml, alias, "");
+            if (!xml.UmbIsElement())
+                return string.Empty;
+            
+            XElement val = null;
+
+            //it is a 'node' node (doc type)
+            var data = xml.Elements().Where(x => x.UmbIsProperty(alias)).ToList();
+            if (data.Count == 1)
+            {
+                //found the property
+                val = data.First();
+            }                    
+
+            if (val != null)
+            {
+                return val.Value;
+            }
+
+            return string.Empty;
         }
 
     }

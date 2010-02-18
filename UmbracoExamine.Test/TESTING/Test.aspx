@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Test.aspx.cs" Inherits="UmbracoExamine.Test.Testing.Test" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Test.aspx.cs" Inherits="UmbracoExamine.Test.Testing.Test" Async="true" %>
 
 <%@ Register src="TestIndexing.ascx" tagname="TestIndexing" tagprefix="uc1" %>
 <%@ Register src="TestProviders.ascx" tagname="TestProviders" tagprefix="uc2" %>

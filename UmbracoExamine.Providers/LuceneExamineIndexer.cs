@@ -17,6 +17,10 @@ using umbraco.cms.businesslogic;
 using System.Xml;
 using System.Threading;
 using System.Xml.Serialization;
+using umbraco.presentation.nodeFactory;
+using umbraco;
+using System.Collections;
+using UmbracoExamine.Core.Config;
 
 
 
@@ -113,9 +117,17 @@ namespace UmbracoExamine.Providers
             else
                 SupportProtectedContent = false;
 
-
+            IsDebug = false;
             if (config["debug"] != null)
-                bool.TryParse(config["debug"], out m_ThrowExceptions);
+            {
+                IsDebug = bool.Parse(config["debug"]);
+            }
+
+            IndexSecondsInterval = 30;
+            if (config["interval"] != null)
+            {
+                IndexSecondsInterval = int.Parse(config["interval"]);
+            }
 
             ExecutiveIndex = new IndexerExecutive(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
 
@@ -128,20 +140,13 @@ namespace UmbracoExamine.Providers
                     ExecutiveIndex.ExecutiveIndexerMachineName,
                     ExecutiveIndex.ServerCount), LogTypes.Custom);
             }
-            
 
-            //optimize the index async
-            ThreadPool.QueueUserWorkItem(
-                delegate
-                {
-                    OptimizeIndex();
-                });
+
+            OptimizeIndex();
         } 
         #endregion
 
         #region Constants & Fields
-
-        private bool m_ThrowExceptions = false;
 
         /// <summary>
         /// Used to store a non-tokenized key for the document
@@ -169,6 +174,11 @@ namespace UmbracoExamine.Providers
         #endregion
 
         #region Properties
+
+        public bool IsDebug { get; set; }
+
+        public int IndexSecondsInterval { get; set; }
+
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
 
         public DirectoryInfo IndexQueueItemFolder { get; protected set; }
@@ -185,20 +195,23 @@ namespace UmbracoExamine.Providers
         /// This property is ignored if SupportUnpublishedContent is set to true.
         /// </summary>
         public bool SupportProtectedContent { get; protected set; }
+      
 
         #endregion
 
         #region Event handlers
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
-            if (m_ThrowExceptions)
+
+            AddLog(e.NodeId, string.Format("{0},{1}", e.Message, e.InnerException != null ? e.InnerException.Message : "")
+                , LogTypes.Error);
+            base.OnIndexingError(e);
+
+            if (IsDebug)
             {
                 throw new Exception("Indexing Error Occurred: " + e.Message, e.InnerException);
             }
-
-
-            AddLog(e.NodeId, e.Message + ". INNER EXCEPTION: " + e.InnerException.Message, LogTypes.Error);
-            base.OnIndexingError(e);
+            
         }
 
         protected override void OnNodeIndexed(IndexingNodeEventArgs e)
@@ -296,8 +309,9 @@ namespace UmbracoExamine.Providers
                 //create a deletion queue item to remove all items of the specified index type
                 SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexTypeFieldName, type.ToString()));
             }
-               
-            string xPath = "//node[{0}]";
+
+            string xPath = "//*[(number(@id) > 0){0}]"; //we'll add more filters to this below if needed
+
             StringBuilder sb = new StringBuilder();
 
             //create the xpath statement to match node type aliases if specified
@@ -306,7 +320,9 @@ namespace UmbracoExamine.Providers
                 sb.Append("(");
                 foreach (string field in IndexerData.IncludeNodeTypes)
                 {
-                    string nodeTypeAlias = "@nodeTypeAlias='{0}'";
+                    //this can be used across both schemas
+                    string nodeTypeAlias = "(@nodeTypeAlias='{0}' or (count(@nodeTypeAlias)=0 and name()='{0}'))";
+
                     sb.Append(string.Format(nodeTypeAlias, field));
                     sb.Append(" or ");
                 }
@@ -320,16 +336,14 @@ namespace UmbracoExamine.Providers
                 if (sb.Length > 0)
                     sb.Append(" and ");
                 sb.Append("(");
-                //contains(@path, ',1234,')
                 sb.Append("contains(@path, '," + IndexerData.ParentNodeId.Value.ToString() + ",')"); //if the path contains comma - id - comma then the nodes must be a child
                 sb.Append(")");
             }
 
-            //create the full xpath statement to match the appropriate nodes
-            xPath = string.Format(xPath, sb.ToString());
-
-            //in case there are no filters:
-            xPath = xPath.Replace("[]", "");
+            //create the full xpath statement to match the appropriate nodes. If there is a filter
+            //then apply it, otherwise just select all nodes.
+            var filter = sb.ToString();
+            xPath = string.Format(xPath, filter.Length > 0 ? " and " + filter : "");
 
             //raise the event and set the xpath statement to the value returned
             xPath = OnNodesIndexing(new IndexingNodesEventArgs(IndexerData, xPath, type));
@@ -462,12 +476,12 @@ namespace UmbracoExamine.Providers
         {
             //check if this document is of a correct type of node type alias
             if (IndexerData.IncludeNodeTypes.Count() > 0)
-                if (!IndexerData.IncludeNodeTypes.Contains((string)node.Attribute("nodeTypeAlias")))
+                if (!IndexerData.IncludeNodeTypes.Contains(node.UmbNodeTypeAlias()))
                     return false;
 
             //if this node type is part of our exclusion list, do not validate
             if (IndexerData.ExcludeNodeTypes.Count() > 0)
-                if (IndexerData.ExcludeNodeTypes.Contains((string)node.Attribute("nodeTypeAlias")))
+                if (IndexerData.ExcludeNodeTypes.Contains(node.UmbNodeTypeAlias()))
                     return false;
 
             //check if this document is a descendent of the parent
@@ -508,7 +522,7 @@ namespace UmbracoExamine.Providers
             // Add umbraco node properties 
             foreach (string fieldName in IndexerData.UmbracoFields)
             {
-                string val = (string)node.Attribute(fieldName);
+                string val = node.UmbSelectPropertyValue(fieldName);
                 val = OnGatheringFieldData(new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId));
                 values.Add(fieldName, val);
             }
@@ -557,7 +571,7 @@ namespace UmbracoExamine.Providers
         /// Process all of the queue items. This checks if this machine is the Executive and if it's in a load balanced
         /// environments. If then acts accordingly: 
         ///     Not the executive = doesn't index, i
-        ///     In Load Balanced environment = use file watcher timer
+        ///     Not in debug mode = use file watcher timer
         /// </summary>
         protected void SafelyProcessQueueItems()
         {
@@ -565,10 +579,8 @@ namespace UmbracoExamine.Providers
             if (!ExecutiveIndex.IsExecutiveMachine)
                 return;
 
-            //if this is in a Load Balanced environment, then 
-            //we will rely on a File system watcher to do the indexing, 
-            //otherwise, simply process the queue items
-            if (ExecutiveIndex.IsLoadBalancedEnvironment)
+            //if not debug mode, then process the queue using the timer            
+            if (!IsDebug)
             {
                 InitializeFileWatcherTimer();
             }
@@ -678,9 +690,6 @@ namespace UmbracoExamine.Providers
                     CloseReader(ref reader);
                 }
 
-                //optimize index
-                OptimizeIndex();
-
                 return indexedNodes.Count;
             }
 
@@ -699,17 +708,30 @@ namespace UmbracoExamine.Providers
                         //This is quite an intensive operation...
                         //get all root content, then get the XML structure for all children,
                         //then run xpath against the navigator that's created
+                        
                         var rootContent = umbraco.cms.businesslogic.web.Document.GetRootDocuments();
                         var xmlContent = XDocument.Parse("<content></content>");
                         var xDoc = new XmlDocument();
                         foreach (var c in rootContent)
                         {
-                            var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");
-                            c.XmlPopulate(xDoc, ref xNode, true); 
+                            var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");                            
+                            c.XmlPopulate(xDoc, ref xNode, true);
+
+                            if (xNode.Attributes["nodeTypeAlias"] == null)
+                            {
+                                //we'll add the nodeTypeAlias ourselves                                
+                                XmlAttribute d = xDoc.CreateAttribute("nodeTypeAlias");
+                                d.Value = c.ContentType.Alias;
+                                xNode.Attributes.Append(d);
+                            }
+
                             xmlContent.Root.Add(xNode.ToXElement());
                         }
-                        umbXml = (XPathNodeIterator)xmlContent.CreateNavigator().Evaluate(xPath);
-                        return umbXml.ToXDocument();
+                        //umbXml = (XPathNodeIterator)xmlContent.CreateNavigator().Evaluate(xPath);
+                        //return umbXml.ToXDocument();
+
+                        var result = ((IEnumerable)xmlContent.XPathEvaluate(xPath)).Cast<XElement>();
+                        return result.ToXDocument();
                     }
                     else
                     {
@@ -810,7 +832,7 @@ namespace UmbracoExamine.Providers
                 return;
             }
          
-            m_FileWatcher = new System.Timers.Timer(new TimeSpan(0, 1, 0).TotalMilliseconds);
+            m_FileWatcher = new System.Timers.Timer(new TimeSpan(0, 0, IndexSecondsInterval).TotalMilliseconds);
             m_FileWatcher.Elapsed += m_FileWatcher_ElapsedEventHandler;
             m_FileWatcher.AutoReset = false;
             m_FileWatcher.Start();
@@ -1020,26 +1042,25 @@ namespace UmbracoExamine.Providers
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
             XDocument xDoc = GetXDocument(xPath, type);
-            if (xDoc == null)
-                return;
-
-            XElement rootNode = xDoc.Elements().First();
-
-            IEnumerable<XElement> children = rootNode.Elements();
-
-            foreach (XElement node in children)
+            if (xDoc != null)
             {
-                if (ValidateDocument(node))
+                XElement rootNode = xDoc.Elements().First();
+
+                IEnumerable<XElement> children = rootNode.Elements();
+
+                foreach (XElement node in children)
                 {
-                    //save the index item to a queue file
-                    SaveAddIndexQueueItem(GetDataToIndex(node), int.Parse(node.Attribute("id").Value), type);
+                    if (ValidateDocument(node))
+                    {
+                        //save the index item to a queue file
+                        SaveAddIndexQueueItem(GetDataToIndex(node), int.Parse(node.Attribute("id").Value), type);
+                    }
+
                 }
-                    
             }
 
             //run the indexer on all queued files
             SafelyProcessQueueItems();
-
         }
 
         /// <summary>

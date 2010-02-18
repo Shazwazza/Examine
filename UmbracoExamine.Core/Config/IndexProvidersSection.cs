@@ -27,17 +27,6 @@ namespace UmbracoExamine.Core.Config
             }
         }
 
-        /// <summary>
-        /// Enabling this will ensure that indexing happens async on a different thread.
-        /// </summary>
-        [ConfigurationProperty("enableAsync", DefaultValue = true)]
-        public bool EnableAsync
-        {
-            get
-            {
-                return (bool)this["enableAsync"];
-            }
-        }
 
     }
 }

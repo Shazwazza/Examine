@@ -85,6 +85,10 @@ namespace UmbracoExamine.Test.TESTING
         {
             ((UmbracoExamine.Test.Testing.Test)Page).AddTrace(category, message, color);
         }
+        protected void AddTrace(TraceMessage msg)
+        {
+            ((UmbracoExamine.Test.Testing.Test)Page).AddTrace(msg.Category, msg.Message, msg.Color);
+        }
 
     }
 }

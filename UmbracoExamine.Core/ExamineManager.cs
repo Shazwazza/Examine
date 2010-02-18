@@ -110,18 +110,7 @@ namespace UmbracoExamine.Core
         /// <param name="providers"></param>
         public void ReIndexNode(XElement node, IndexType type, IEnumerable<BaseIndexProvider> providers)
         {
-            if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
-            {
-                ThreadPool.QueueUserWorkItem(
-                    delegate
-                    {
-                        _ReIndexNode(node, type, providers);
-                    });
-            }
-            else
-            {
-                _ReIndexNode(node, type, providers);
-            }
+            _ReIndexNode(node, type, providers);
         }
 
         /// <summary>
@@ -131,18 +120,7 @@ namespace UmbracoExamine.Core
         /// <param name="providers"></param>
         public void DeleteFromIndex(XElement node, IEnumerable<BaseIndexProvider> providers)
         {
-            if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
-            {
-                ThreadPool.QueueUserWorkItem(
-                    delegate
-                    {
-                        _DeleteFromIndex(node, providers);
-                    });
-            }
-            else
-            {
-                _DeleteFromIndex(node, providers);
-            }
+            _DeleteFromIndex(node, providers);
         }
 
         #region IIndexer Members
@@ -182,18 +160,7 @@ namespace UmbracoExamine.Core
 
         public void IndexAll(IndexType type)
         {
-            if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
-            {
-                ThreadPool.QueueUserWorkItem(
-                    delegate
-                    {
-                        _IndexAll(type);
-                    });
-            }
-            else
-            {
-                _IndexAll(type);
-            }
+            _IndexAll(type);
         }
         private void _IndexAll(IndexType type)
         {
@@ -205,18 +172,7 @@ namespace UmbracoExamine.Core
 
         public void RebuildIndex()
         {
-            if (UmbracoExamineSettings.Instance.IndexProviders.EnableAsync)
-            {
-                ThreadPool.QueueUserWorkItem(
-                    delegate
-                    {
-                        _RebuildIndex();
-                    });
-            }
-            else
-            {
-                _RebuildIndex();
-            }
+            _RebuildIndex();
         }
         private void _RebuildIndex()
         {

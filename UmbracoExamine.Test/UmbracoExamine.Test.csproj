@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{413BC05F-2AC6-4D2B-931B-556690AF1EFA}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
@@ -200,6 +200,7 @@
     <Compile Include="TESTING\TestSearching.ascx.designer.cs">
       <DependentUpon>TestSearching.ascx</DependentUpon>
     </Compile>
+    <Compile Include="TESTING\TraceMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="config\404handlers.config" />
@@ -231,22 +232,24 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="config\UmbracoExamine.config" />
     <Content Include="data\access.xml" />
     <Content Include="TESTING\TestIndexing.ascx" />
     <Content Include="TESTING\TestProviders.ascx" />
     <Content Include="TESTING\TestSearching.ascx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="data\umbraco.config" />
+    <Content Include="App_Data\umbraco.config" />
+    <Content Include="config\UrlRewriting.config" />
+    <Content Include="config\ExamineIndex.config" />
+    <Content Include="config\ExamineSettings.config" />
     <None Include="data\vistadb\VistaDB.vdb3" />
+    <Content Include="App_Data\XPathTests.xslt" />
     <Content Include="TESTING\TestPublishing.ascx" />
     <Content Include="umbraco\masterpages\default.Master" />
     <Content Include="umbraco\masterpages\umbracoDialog.Master" />
     <Content Include="umbraco\masterpages\umbracoPage.Master" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="App_Data\" />
     <Folder Include="masterpages\" />
     <Folder Include="usercontrols\" />
     <Folder Include="xslt\" />
@@ -271,6 +274,9 @@
           <IISUrl>
           </IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
           <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
