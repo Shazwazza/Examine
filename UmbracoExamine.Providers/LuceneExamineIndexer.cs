@@ -21,6 +21,7 @@ using umbraco.presentation.nodeFactory;
 using umbraco;
 using System.Collections;
 using UmbracoExamine.Core.Config;
+using Lucene.Net.Analysis;
 
 
 
@@ -129,6 +130,17 @@ namespace UmbracoExamine.Providers
                 IndexSecondsInterval = int.Parse(config["interval"]);
             }
 
+            if (config["analyzer"] != null)
+            {
+                //this should be a fully qualified type
+                var analyzerType = Type.GetType(config["analyzer"]);
+                IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+            }
+            else
+            {
+                IndexingAnalyzer = new StandardAnalyzer();
+            }
+
             ExecutiveIndex = new IndexerExecutive(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
 
             ExecutiveIndex.Initialize();
@@ -180,6 +192,11 @@ namespace UmbracoExamine.Providers
         #endregion
 
         #region Properties
+
+        /// <summary>
+        /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
+        /// </summary>
+        public Analyzer IndexingAnalyzer { get; set; } 
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
@@ -282,7 +299,7 @@ namespace UmbracoExamine.Providers
                 }
 
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), true);
+                writer = new IndexWriter(LuceneIndexFolder.FullName, IndexingAnalyzer, true);
 
                 //need to remove the queue as we're rebuilding from scratch
                 IndexQueueItemFolder.ClearFiles();
@@ -440,7 +457,7 @@ namespace UmbracoExamine.Providers
                         return;
                     }
 
-                    writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), !IndexExists());
+                    writer = new IndexWriter(LuceneIndexFolder.FullName, IndexingAnalyzer, !IndexExists());
 
                     OnIndexOptimizing(new EventArgs());
 
@@ -559,6 +576,9 @@ namespace UmbracoExamine.Providers
         /// <summary>
         /// Collects the data for the fields and adds the document.
         /// </summary>
+        /// <remarks>
+        /// This will normalize (lowercase) all text before it goes in to the index.
+        /// </remarks>
         /// <param name="fields"></param>
         /// <param name="writer"></param>
         /// <param name="nodeId"></param>
@@ -918,7 +938,7 @@ namespace UmbracoExamine.Providers
                 }
             }
 
-            writer = new IndexWriter(LuceneIndexFolder.FullName, new StandardAnalyzer(), false);
+            writer = new IndexWriter(LuceneIndexFolder.FullName, IndexingAnalyzer, false);
             return true;
         }
 
@@ -1002,6 +1022,7 @@ namespace UmbracoExamine.Providers
 
         /// <summary>
         /// All field data will be stored into Lucene as is except for dates, these can be stored as standard: yyyyMMdd
+        /// Any standard text will be put in lower case format.
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
@@ -1013,7 +1034,7 @@ namespace UmbracoExamine.Providers
                 return date.ToString("yyyyMMdd");
             }
             else
-                return val;
+                return val.ToLower();
         }
 
         /// <summary>

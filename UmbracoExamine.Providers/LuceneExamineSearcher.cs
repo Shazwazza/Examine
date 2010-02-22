@@ -11,6 +11,7 @@ using Lucene.Net.Analysis.Standard;
 using System.IO;
 using UmbracoExamine.Providers.Config;
 using System.Collections;
+using Lucene.Net.Analysis;
 
 namespace UmbracoExamine.Providers
 {
@@ -25,16 +26,34 @@ namespace UmbracoExamine.Providers
             if (config["indexSet"] == null)
                 throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration and/or the IndexerData property has not been explicitly set");
 
+
+
             if (ExamineLuceneIndexes.Instance.Sets[config["indexSet"]] == null)
                 throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
 
             IndexSetName = config["indexSet"];
-            
+
+            if (config["analyzer"] != null)
+            {
+                //this should be a fully qualified type
+                var analyzerType = Type.GetType(config["analyzer"]);
+                IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+            }
+            else
+            {
+                IndexingAnalyzer = new StandardAnalyzer();
+            }
+
             //get the folder to index
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
         }
 
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
+
+        /// <summary>
+        /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
+        /// </summary>
+        public Analyzer IndexingAnalyzer { get; set; } 
 
         protected string IndexSetName { get; set; }
         /// <summary>
@@ -59,7 +78,7 @@ namespace UmbracoExamine.Providers
             try
             {
                 text = searchParams.Text.ToLower();
-
+                
                 List<SearchResult> results = new List<SearchResult>();
                 //search string needs to be bigger than 2 chars
                 if (string.IsNullOrEmpty(text) || text.Length < 3)
@@ -108,7 +127,7 @@ namespace UmbracoExamine.Providers
                     var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
                     //exclude the special index fields
                     searchFields = fields.Cast<DictionaryEntry>()
-                        .Where(x => x.Key.ToString() != LuceneExamineIndexer.IndexNodeIdFieldName || x.Key.ToString() != LuceneExamineIndexer.IndexTypeFieldName)
+                        .Where(x => x.Key.ToString() != LuceneExamineIndexer.IndexNodeIdFieldName && x.Key.ToString() != LuceneExamineIndexer.IndexTypeFieldName)
                         .Select(x => (string)x.Value)
                         .ToArray();                        
                 }
@@ -166,7 +185,7 @@ namespace UmbracoExamine.Providers
                 bc[i] = BooleanClause.Occur.SHOULD;
             }
 
-            return MultiFieldQueryParser.Parse(wildcardQuery, searchFields, bc, new StandardAnalyzer());
+            return MultiFieldQueryParser.Parse(wildcardQuery, searchFields, bc, IndexingAnalyzer);
         }
 
         /// <summary>
@@ -182,7 +201,7 @@ namespace UmbracoExamine.Providers
                 bc[i] = BooleanClause.Occur.SHOULD;
             }
 
-            return MultiFieldQueryParser.Parse(queryText, searchFields, bc, new StandardAnalyzer());
+            return MultiFieldQueryParser.Parse(queryText, searchFields, bc, IndexingAnalyzer);
         }
 
         /// <summary>
@@ -230,7 +249,8 @@ namespace UmbracoExamine.Providers
                 searchPath.Add(path[i]);
 
             //need to remove the leading "-" as Lucene will not search on this for whatever reason.
-            string pathQuery = (string.Join(",", searchPath.ToArray()) + ",*").Replace("-", "?");
+            //string pathQuery = (string.Join(",", searchPath.ToArray()) + ",*").Replace("-", "?");
+            string pathQuery = QueryParser.Escape((string.Join(",", searchPath.ToArray()) + ",*"));
             return new WildcardQuery(new Term("path", pathQuery));
         }
 
@@ -246,10 +266,8 @@ namespace UmbracoExamine.Providers
             if (text.Length < 3)
                 return "";
 
-            string charsToRemove = "~!@#$%^&()_+`-={}|[]\\:\";'<>,./";
-
             if (removeWildcards)
-                charsToRemove = charsToRemove.Replace("*", "").Replace("?", "");
+                text = text.Replace("*", "").Replace("?", "");
 
             List<string> words = new List<string>();
 
@@ -258,11 +276,6 @@ namespace UmbracoExamine.Providers
                         .Split(' ')
                         .Select(x => x.ToString())
                         .Where(x => x.Length > 2).ToList();
-
-            // Remove all other invalid chars
-            for (int i = 0; i < words.Count(); i++)
-                foreach (char c in charsToRemove)
-                    words[i] = words[i].Replace(c.ToString(), "");
 
             // Now that invalid chars are removed, check again to ensure that no words are less than 2 chars
             words = words.Where(x => x.Length > 2).ToList();
@@ -273,11 +286,11 @@ namespace UmbracoExamine.Providers
                 string queryText = "";
                 words.ForEach(x => queryText += " AND " + x.ToString());
 
-                return queryText.Remove(0, 5); // remove first " AND "
+                return QueryParser.Escape(queryText.Remove(0, 5)); // remove first " AND "
             }
             else
             {
-                return string.Join(" ", words.ToArray());
+                return QueryParser.Escape(string.Join(" ", words.ToArray()));
             }
 
         }
@@ -300,8 +313,8 @@ namespace UmbracoExamine.Providers
 
                 foreach (Field f in doc.Fields())
                 {
-                    if (searchFields.Contains(f.Name()))
-                        fields.Add(f.Name(), f.StringValue());
+                    //if (searchFields.Contains(f.Name()))
+                    fields.Add(f.Name(), f.StringValue());
                 }
 
                 results.Add(new SearchResult()
