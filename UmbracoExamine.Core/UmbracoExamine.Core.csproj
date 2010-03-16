@@ -89,6 +89,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Solution Items\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\UmbracoExamineSection.cs" />

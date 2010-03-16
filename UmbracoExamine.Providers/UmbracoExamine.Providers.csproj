@@ -89,6 +89,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Solution Items\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
     <Compile Include="Config\IndexField.cs" />
     <Compile Include="Config\IndexFieldCollection.cs" />
     <Compile Include="Config\IndexSet.cs" />
