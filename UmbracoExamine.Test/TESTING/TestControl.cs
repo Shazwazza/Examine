@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Drawing;
@@ -21,7 +19,7 @@ namespace UmbracoExamine.Test.TESTING
             foreach (BaseIndexProvider indexer in ExamineManager.Instance.IndexProviderCollection)
             {
                 ExamineManager.Instance.IndexProviderCollection[indexer.Name].NodesIndexing += new EventHandler<IndexingNodesEventArgs>(TestControl_NodesIndexing);
-                ExamineManager.Instance.IndexProviderCollection[indexer.Name].NodeIndexed += new EventHandler<IndexingNodeEventArgs>(TestControl_NodeIndexed);
+                ExamineManager.Instance.IndexProviderCollection[indexer.Name].NodeIndexed += new EventHandler<IndexedNodeEventArgs>(TestControl_NodeIndexed);
                 ExamineManager.Instance.IndexProviderCollection[indexer.Name].IndexingError +=new EventHandler<IndexingErrorEventArgs>(TestControl_IndexingError);
                 ExamineManager.Instance.IndexProviderCollection[indexer.Name].GatheringNodeData +=new EventHandler<IndexingNodeDataEventArgs>(TestControl_GatheringNodeData);
                 ExamineManager.Instance.IndexProviderCollection[indexer.Name].IndexDeleted +=new EventHandler<DeleteIndexEventArgs>(TestControl_IndexDeleted);
@@ -44,7 +42,7 @@ namespace UmbracoExamine.Test.TESTING
             Page.ClientScript.RegisterStartupScript(typeof(TestControl), "ErrorAlert", "alert('There were errors');", true);
         }
 
-        void TestControl_NodeIndexed(object sender, IndexingNodeEventArgs e)
+        void TestControl_NodeIndexed(object sender, IndexedNodeEventArgs e)
         {
             AddTrace("Node Indexed", string.Format("Node {0} Index with Provider: {1}", e.NodeId, ((BaseIndexProvider)sender).Name), Color.Blue);
         }

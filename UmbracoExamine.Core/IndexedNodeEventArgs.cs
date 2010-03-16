@@ -1,10 +1,10 @@
-﻿using System.ComponentModel;
+﻿using System;
 
 namespace UmbracoExamine.Core
 {
-    public class IndexingNodeEventArgs : CancelEventArgs 
+    public class IndexedNodeEventArgs : EventArgs
     {
-        public IndexingNodeEventArgs(int nodeId)
+        public IndexedNodeEventArgs(int nodeId)
         {
             NodeId = nodeId;
         }

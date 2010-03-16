@@ -10,17 +10,11 @@ using Lucene.Net.Index;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Lucene.Net.Documents;
-using System.Runtime.CompilerServices;
 using Lucene.Net.Analysis.Standard;
 using umbraco.cms.businesslogic.media;
 using umbraco.cms.businesslogic;
 using System.Xml;
-using System.Threading;
-using System.Xml.Serialization;
-using umbraco.presentation.nodeFactory;
-using umbraco;
 using System.Collections;
-using UmbracoExamine.Core.Config;
 using Lucene.Net.Analysis;
 
 
@@ -245,7 +239,7 @@ namespace UmbracoExamine.Providers
             
         }
 
-        protected override void OnNodeIndexed(IndexingNodeEventArgs e)
+        protected override void OnNodeIndexed(IndexedNodeEventArgs e)
         {
             AddLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName), LogTypes.Custom);
             base.OnNodeIndexed(e);
@@ -386,6 +380,10 @@ namespace UmbracoExamine.Providers
             //raise the event and set the xpath statement to the value returned
             var args = new IndexingNodesEventArgs(IndexerData, xPath, type);
             OnNodesIndexing(args);
+            if (args.Cancel)
+            {
+                return;
+            }
 
             xPath = args.XPath;
 
@@ -594,7 +592,13 @@ namespace UmbracoExamine.Providers
         /// <param name="nodeId"></param>
         protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type)
         {
-            
+            var args = new IndexingNodeEventArgs(nodeId);
+            OnNodeIndexing(args);
+            if (args.Cancel)
+            {
+                return;
+            }
+
             Document d = new Document();
             //add all of our fields to the document index individally, don't include the special fields if they exists            
             fields
@@ -617,7 +621,7 @@ namespace UmbracoExamine.Providers
 
             writer.AddDocument(d);
 
-            OnNodeIndexed(new IndexingNodeEventArgs(nodeId));
+            OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
         }
 
         /// <summary>

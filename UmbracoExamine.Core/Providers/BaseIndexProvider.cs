@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Configuration.Provider;
-using System.IO;
 using UmbracoExamine.Core;
-using umbraco.cms.businesslogic;
 using System.Xml.Linq;
 
 namespace UmbracoExamine.Providers
@@ -51,11 +46,11 @@ namespace UmbracoExamine.Providers
         #endregion
 
         #region Events
-        public event EventHandler<IndexedNodesEventArgs> IndexingNode;
         public event EventHandler<IndexingErrorEventArgs> IndexingError;
 
+        public event EventHandler<IndexingNodeEventArgs> NodeIndexing;
+        public event EventHandler<IndexedNodeEventArgs> NodeIndexed;
         public event EventHandler<IndexingNodesEventArgs> NodesIndexing;
-        public event EventHandler<IndexingNodeEventArgs> NodeIndexed;
         public event EventHandler<IndexedNodesEventArgs> NodesIndexed;
 
         public event EventHandler<IndexingNodeDataEventArgs> GatheringNodeData;
@@ -82,10 +77,16 @@ namespace UmbracoExamine.Providers
                 IndexingError(this, e);
         }
 
-        protected virtual void OnNodeIndexed(IndexingNodeEventArgs e)
+        protected virtual void OnNodeIndexed(IndexedNodeEventArgs e)
         {
             if (NodeIndexed != null)
                 NodeIndexed(this, e);
+        }
+
+        protected virtual void OnNodeIndexing(IndexingNodeEventArgs e)
+        {
+            if (NodeIndexing != null)
+                NodeIndexing(this, e);
         }
 
         protected virtual void OnIndexDeleted(DeleteIndexEventArgs e)
@@ -120,7 +121,7 @@ namespace UmbracoExamine.Providers
 
         #endregion
 
-        
+
 
     }
 }

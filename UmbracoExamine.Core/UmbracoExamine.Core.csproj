@@ -108,6 +108,7 @@
     <Compile Include="ISearcher.cs" />
     <Compile Include="ExamineManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IndexedNodeEventArgs.cs" />
     <Compile Include="SearchCriteria.cs" />
     <Compile Include="SearchResult.cs" />
     <Compile Include="Providers\BaseIndexProvider.cs" />

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
+﻿using System.ComponentModel;
 
 
 namespace UmbracoExamine.Core
 {
-    public class IndexingNodesEventArgs : EventArgs
+    public class IndexingNodesEventArgs : CancelEventArgs
     {
 
         public IndexingNodesEventArgs(IIndexCriteria indexData, string xPath, IndexType type)
