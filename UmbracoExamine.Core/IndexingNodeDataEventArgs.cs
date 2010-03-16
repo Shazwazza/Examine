@@ -17,6 +17,9 @@ namespace UmbracoExamine.Core
         }
 
         public XElement Node { get; private set; }
+        /// <summary>
+        /// Collection of node fields and their associated data
+        /// </summary>
         public Dictionary<string, string> Values { get; private set; }
 
     }

@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Providers", "UmbracoExamine.Providers\UmbracoExamine.Providers.csproj", "{07FBC26B-2927-4A22-8D96-D644C667FECC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Core", "UmbracoExamine.Core\UmbracoExamine.Core.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"

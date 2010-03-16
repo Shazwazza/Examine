@@ -384,7 +384,10 @@ namespace UmbracoExamine.Providers
             xPath = string.Format(xPath, filter.Length > 0 ? " and " + filter : "");
 
             //raise the event and set the xpath statement to the value returned
-            xPath = OnNodesIndexing(new IndexingNodesEventArgs(IndexerData, xPath, type));
+            var args = new IndexingNodesEventArgs(IndexerData, xPath, type);
+            OnNodesIndexing(args);
+
+            xPath = args.XPath;
 
             AddNodesToIndex(xPath, type);                            
         }
@@ -554,7 +557,10 @@ namespace UmbracoExamine.Providers
                 // Get the value of the data                
                 string value = node.UmbSelectDataValue(fieldName);
                 //raise the event and assign the value to the returned data from the event
-                value = OnGatheringFieldData(new IndexingFieldDataEventArgs(node, fieldName, value, false, nodeId));
+                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, fieldName, value, false, nodeId);
+                OnGatheringFieldData(indexingFieldDataArgs);
+                value = indexingFieldDataArgs.FieldValue;
+
                 if (!string.IsNullOrEmpty(value))
                     values.Add(fieldName, umbraco.library.StripHtml(value));
             }
@@ -563,12 +569,16 @@ namespace UmbracoExamine.Providers
             foreach (string fieldName in IndexerData.UmbracoFields)
             {
                 string val = node.UmbSelectPropertyValue(fieldName);
-                val = OnGatheringFieldData(new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId));
+                var args = new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId);
+                OnGatheringFieldData(args);
+                val = args.FieldValue;
                 values.Add(fieldName, val);
             }
 
             //raise the event and assign the value to the returned data from the event
-            values = OnGatheringNodeData(new IndexingNodeDataEventArgs(node, values, nodeId));
+            var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, values, nodeId);
+            OnGatheringNodeData(indexingNodeDataArgs);
+            values = indexingNodeDataArgs.Values;
 
             return values;
         }

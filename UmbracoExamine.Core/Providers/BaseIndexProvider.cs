@@ -50,51 +50,18 @@ namespace UmbracoExamine.Providers
         public IIndexCriteria IndexerData { get; set; }
         #endregion
 
-        #region Delegates
-        public delegate void IndexingNodeEventHandler(object sender, IndexingNodeEventArgs e);
-        public delegate void IndexingErrorEventHandler(object sender, IndexingErrorEventArgs e);
-
-        /// <summary>
-        /// Returns the value of what will be indexed. Event subscribers should return e.FieldValue if they wish not to modify it.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        public delegate string IndexingFieldDataEventHandler(object sender, IndexingFieldDataEventArgs e);
-
-        /// <summary>
-        /// Returns the full dictionary of what will be indexed. Event subscribers should return e.Value if they wish not to modify it.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        public delegate Dictionary<string, string> IndexingNodeDataEventHandler(object sender, IndexingNodeDataEventArgs e);
-
-        /// <summary>
-        /// Returns the xpath statement to select the umbraco nodes that will be indexed. Event subscribers should return e.XPath if they wish not to modify it.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        public delegate string IndexingNodesEventHandler(object sender, IndexingNodesEventArgs e);
-
-        public delegate void IndexedNodesEventHandler(object sender, IndexedNodesEventArgs e);
-        public delegate void DeletedIndexEventHandler(object sender, DeleteIndexEventArgs e);
-
-        #endregion
-
         #region Events
-        
-        public event IndexingNodeEventHandler NodeIndexed;
+        public event EventHandler<IndexedNodesEventArgs> IndexingNode;
+        public event EventHandler<IndexingErrorEventArgs> IndexingError;
 
-        public event IndexingNodesEventHandler NodesIndexing;
-        public event IndexedNodesEventHandler NodesIndexed;
+        public event EventHandler<IndexingNodesEventArgs> NodesIndexing;
+        public event EventHandler<IndexingNodeEventArgs> NodeIndexed;
+        public event EventHandler<IndexedNodesEventArgs> NodesIndexed;
 
-        public event IndexingNodeDataEventHandler GatheringNodeData;
-        public event DeletedIndexEventHandler IndexDeleted;
-        public event IndexingFieldDataEventHandler GatheringFieldData;
-        public event IndexingErrorEventHandler IndexingError;
-        public event IndexingNodeDataEventHandler IgnoringNode;
+        public event EventHandler<IndexingNodeDataEventArgs> GatheringNodeData;
+        public event EventHandler<DeleteIndexEventArgs> IndexDeleted;
+        public event EventHandler<IndexingFieldDataEventArgs> GatheringFieldData;
+        public event EventHandler<IndexingNodeDataEventArgs> IgnoringNode;
         #endregion
 
         #region Protected Event callers
@@ -127,20 +94,16 @@ namespace UmbracoExamine.Providers
                 IndexDeleted(this, e);
         }
 
-        protected virtual Dictionary<string, string> OnGatheringNodeData(IndexingNodeDataEventArgs e)
+        protected virtual void OnGatheringNodeData(IndexingNodeDataEventArgs e)
         {
             if (GatheringNodeData != null)
-                return GatheringNodeData(this, e);
-
-            return e.Values;
+                GatheringNodeData(this, e);
         }
 
-        protected virtual string OnGatheringFieldData(IndexingFieldDataEventArgs e)
+        protected virtual void OnGatheringFieldData(IndexingFieldDataEventArgs e)
         {
             if (GatheringFieldData != null)
-                return GatheringFieldData(this, e);
-
-            return e.FieldValue;
+                GatheringFieldData(this, e);
         }
 
         protected virtual void OnNodesIndexed(IndexedNodesEventArgs e)
@@ -149,13 +112,10 @@ namespace UmbracoExamine.Providers
                 NodesIndexed(this, e);
         }
 
-        protected virtual string OnNodesIndexing(IndexingNodesEventArgs e)
+        protected virtual void OnNodesIndexing(IndexingNodesEventArgs e)
         {
-
             if (NodesIndexing != null)
                 NodesIndexing(this, e);
-
-            return e.XPath;
         }
 
         #endregion
