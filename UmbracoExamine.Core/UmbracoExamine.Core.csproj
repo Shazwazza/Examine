@@ -46,6 +46,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Debug\UmbracoExamine.Core.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -107,6 +109,7 @@
     <Compile Include="IndexingNodesEventArgs.cs" />
     <Compile Include="IIndexer.cs" />
     <Compile Include="IndexType.cs" />
+    <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchCriteria.cs" />
     <Compile Include="ISearcher.cs" />
     <Compile Include="ExamineManager.cs" />

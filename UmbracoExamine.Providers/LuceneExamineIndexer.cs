@@ -36,7 +36,7 @@ namespace UmbracoExamine.Providers
     /// http://www.gossamer-threads.com/lists/lucene/java-dev/47895
     /// http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
     /// </remarks>
-    public class LuceneExamineIndexer : BaseIndexProvider
+    public class LuceneExamineIndexer : BaseIndexProvider, IDisposable
     {
         #region Constructors
         public LuceneExamineIndexer()
@@ -416,12 +416,12 @@ namespace UmbracoExamine.Providers
 
             if (!ValidateDocument(node))
             {
-                OnIgnoringNode(new IndexingNodeDataEventArgs(node, null, nodeId));
+                OnIgnoringNode(new IndexingNodeDataEventArgs(node, nodeId, null, type));
                 return;
             }
 
             //save the index item to a queue file
-            SaveAddIndexQueueItem(GetDataToIndex(node), nodeId, type);
+            SaveAddIndexQueueItem(GetDataToIndex(node, type), nodeId, type);
 
             //run the indexer on all queued files
             SafelyProcessQueueItems();
@@ -538,7 +538,7 @@ namespace UmbracoExamine.Providers
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        protected virtual Dictionary<string, string> GetDataToIndex(XElement node)
+        protected virtual Dictionary<string, string> GetDataToIndex(XElement node, IndexType type)
         {
             Dictionary<string, string> values = new Dictionary<string, string>();
 
@@ -574,9 +574,9 @@ namespace UmbracoExamine.Providers
             }
 
             //raise the event and assign the value to the returned data from the event
-            var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, values, nodeId);
+            var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
             OnGatheringNodeData(indexingNodeDataArgs);
-            values = indexingNodeDataArgs.Values;
+            values = indexingNodeDataArgs.Fields;
 
             return values;
         }
@@ -592,7 +592,7 @@ namespace UmbracoExamine.Providers
         /// <param name="nodeId"></param>
         protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type)
         {
-            var args = new IndexingNodeEventArgs(nodeId);
+            var args = new IndexingNodeEventArgs(nodeId, fields, type);
             OnNodeIndexing(args);
             if (args.Cancel)
             {
@@ -1122,7 +1122,7 @@ namespace UmbracoExamine.Providers
                     if (ValidateDocument(node))
                     {
                         //save the index item to a queue file
-                        SaveAddIndexQueueItem(GetDataToIndex(node), int.Parse(node.Attribute("id").Value), type);
+                        SaveAddIndexQueueItem(GetDataToIndex(node, type), int.Parse(node.Attribute("id").Value), type);
                     }
 
                 }
@@ -1172,6 +1172,37 @@ namespace UmbracoExamine.Providers
         private void AddLog(int nodeId, string msg, LogTypes type)
         {
             Log.Add(type, nodeId, "[UmbracoExamine] " + msg);
+        }
+
+        #endregion
+
+        #region IDisposable Members
+
+        protected bool _disposed;
+
+        protected void CheckDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException("UmbracoExamine.Providers.LuceneExamineIndexer");
+            }
+        }
+
+        /// <summary>
+        /// When the object is disposed, all data should be written
+        /// </summary>
+        public void Dispose()
+        {
+            this.CheckDisposed();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            this.CheckDisposed();
+            if (disposing)
+                this.m_FileWatcher.Dispose();
         }
 
         #endregion

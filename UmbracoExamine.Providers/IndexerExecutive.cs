@@ -17,7 +17,7 @@ namespace UmbracoExamine.Providers
     /// The Executive is determined by file lock (.lck) file, theoretically there should only be one of these.
     /// If there is only 1 server in the cluster, then obviously it is the Executive.
     /// </summary>
-    public sealed class IndexerExecutive
+    public sealed class IndexerExecutive : IDisposable
     {
 
         public IndexerExecutive(DirectoryInfo d)
@@ -78,6 +78,8 @@ namespace UmbracoExamine.Providers
         /// <param name="e"></param>
         void TimestampTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            CheckDisposed();
+
             TimestampEXA();
         }
 
@@ -329,8 +331,35 @@ namespace UmbracoExamine.Providers
             }
 
         }
+        #region IDisposable Members
 
+        private bool _disposed;
 
+        private void CheckDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException("UmbracoExamine.Providers.IndexerExecutive");
+            }
+        }
 
+        /// <summary>
+        /// When the object is disposed, all data should be written
+        /// </summary>
+        public void Dispose()
+        {
+            this.CheckDisposed();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            this.CheckDisposed();
+            if (disposing)
+                this.TimestampTimer.Dispose();
+        }
+
+        #endregion
     }
 }

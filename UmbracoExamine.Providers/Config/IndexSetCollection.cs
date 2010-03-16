@@ -38,7 +38,7 @@ namespace UmbracoExamine.Providers.Config
         /// </summary>
         /// <param name="setType"></param>
         /// <returns></returns>
-        public IndexSet this[string setName]
+        public new IndexSet this[string setName]
         {
             get
             {

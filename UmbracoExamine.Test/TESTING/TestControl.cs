@@ -30,7 +30,7 @@ namespace UmbracoExamine.Test.TESTING
 
         void TestControl_GatheringNodeData(object sender, IndexingNodeDataEventArgs e)
         {
-            foreach (var entry in e.Values)
+            foreach (var entry in e.Fields)
             {
                 AddTrace("Gathering Index Data", string.Format("DATA: {0} : {1}", entry.Key, entry.Value), Color.Brown);
             }

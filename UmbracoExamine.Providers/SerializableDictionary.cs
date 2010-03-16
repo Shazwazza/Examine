@@ -1,16 +1,11 @@
 ﻿using System;
-
 using System.Collections.Generic;
-
-using System.Text;
-
 using System.Xml.Serialization;
 
 namespace UmbracoExamine.Providers
 {
-
-
     [XmlRoot("dictionary")]
+    [Serializable]
     public class SerializableDictionary<TKey, TValue>
 
         : Dictionary<TKey, TValue>, IXmlSerializable

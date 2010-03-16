@@ -38,12 +38,10 @@ namespace UmbracoExamine.Providers
             {
                 xs.Serialize(sw, sd);
                 output = sw.ToString();
-                sw.Close();
             }
             using (var fileWriter = fi.CreateText())
             {
                 fileWriter.Write(output);
-                fileWriter.Close();
             }
         }
 
@@ -60,7 +58,6 @@ namespace UmbracoExamine.Providers
             using (var s = fi.OpenText())
             {
                 deserialized = xs.Deserialize(s) as SerializableDictionary<TKey, TValue>;
-                s.Close();
             }
             sd.Clear();
             foreach (var x in deserialized)

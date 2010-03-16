@@ -25,7 +25,7 @@ namespace UmbracoExamine.Providers.Config
         /// </summary>
         /// <param name="imageSize"></param>
         /// <returns></returns>
-        public IndexField this[string name]
+        public new IndexField this[string name]
         {
             get
             {

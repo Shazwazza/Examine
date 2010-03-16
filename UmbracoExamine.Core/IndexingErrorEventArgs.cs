@@ -5,12 +5,12 @@ using System.Text;
 
 namespace UmbracoExamine.Core
 {
-    public class IndexingErrorEventArgs : IndexingNodeEventArgs
+    public class IndexingErrorEventArgs : EventArgs, INodeEventArgs
     {
 
         public IndexingErrorEventArgs(string message, int nodeId, Exception innerException)
-            : base(nodeId)
         {
+            this.NodeId = nodeId;
             this.Message = message;
             this.InnerException = innerException;
         }
@@ -18,5 +18,10 @@ namespace UmbracoExamine.Core
         public Exception InnerException { get; private set; }
         public string Message { get; private set; }
 
+        #region INodeEventArgs Members
+
+        public int NodeId { get; private set; }
+
+        #endregion
     }
 }
