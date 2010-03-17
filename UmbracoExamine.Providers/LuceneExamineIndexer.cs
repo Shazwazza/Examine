@@ -223,6 +223,7 @@ namespace UmbracoExamine.Providers
         #endregion
 
         public event EventHandler IndexOptimizing;
+        public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
 
         #region Event handlers
         protected override void OnIndexingError(IndexingErrorEventArgs e)
@@ -237,6 +238,13 @@ namespace UmbracoExamine.Providers
                 throw new Exception("Indexing Error Occurred: " + e.Message, e.InnerException);
             }
             
+        }
+
+        protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
+        {
+            AddLog(docArgs.NodeId, string.Format("DocumentWriting event for node ({0})", LuceneIndexFolder.FullName), LogTypes.Custom);
+            if (DocumentWriting != null)
+                DocumentWriting(this, docArgs);
         }
 
         protected override void OnNodeIndexed(IndexedNodeEventArgs e)
@@ -590,6 +598,7 @@ namespace UmbracoExamine.Providers
         /// <param name="fields"></param>
         /// <param name="writer"></param>
         /// <param name="nodeId"></param>
+        /// <param name="type"></param>
         protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type)
         {
             var args = new IndexingNodeEventArgs(nodeId, fields, type);
@@ -619,10 +628,18 @@ namespace UmbracoExamine.Providers
             //add the index type first
             d.Add(new Field(IndexTypeFieldName, type.ToString(), Field.Store.YES, Field.Index.NO_NORMS, Field.TermVector.NO));
 
+            var docArgs = new DocumentWritingEventArgs(nodeId, d, fields);
+            OnDocumentWriting(docArgs);
+            if (docArgs.Cancel)
+            {
+                return;
+            }
+
             writer.AddDocument(d);
 
             OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
         }
+
 
         /// <summary>
         /// Process all of the queue items. This checks if this machine is the Executive and if it's in a load balanced
@@ -1045,7 +1062,8 @@ namespace UmbracoExamine.Providers
             DateTime date;
             if (DateTime.TryParse(val, out date))
             {
-                return date.ToString("yyyyMMdd");
+                //return it as UniversalSortable so it's easier to parse
+                return date.ToString("u");
             }
             else
                 return val.ToLower();

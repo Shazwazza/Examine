@@ -102,6 +102,7 @@
     <Compile Include="Config\ExamineLuceneIndexes.cs" />
     <Compile Include="Config\IndexSetExtensions.cs" />
     <Compile Include="Config\UmbracoFieldDefinitions.cs" />
+    <Compile Include="DocumentWritingEventArgs.cs" />
     <Compile Include="FileSystemExtensions.cs" />
     <Compile Include="IndexerExecutive.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
