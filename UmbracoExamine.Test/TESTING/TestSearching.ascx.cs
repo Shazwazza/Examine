@@ -7,6 +7,7 @@ using System.Web.UI.WebControls;
 using UmbracoExamine.Providers;
 using UmbracoExamine.Core;
 using System.Drawing;
+using UmbracoExamine.Providers.SearchCriteria;
 
 namespace UmbracoExamine.Test.TESTING
 {
@@ -19,8 +20,21 @@ namespace UmbracoExamine.Test.TESTING
 
         protected void TestSearch_Click(object sender, EventArgs e)
         {
-            var results = ExamineManager.Instance.Search(SearchTextBox.Text, 100, true);
+            //var results = ExamineManager.Instance.Search(SearchTextBox.Text, 100, true);
 
+            var searchCriteria = ExamineManager.Instance.CreateSearchCriteria(100, IndexType.Content);
+
+            searchCriteria = searchCriteria
+                .Id(1080)
+                .Or()
+                .Field("headerText", "umb".Fuzzy())
+                .And()
+                .NodeTypeAlias("cws".MultipleCharacterWildcard())
+                .Not()
+                .NodeName("home")
+                .Compile();
+
+            var results = ExamineManager.Instance.Search(searchCriteria);
 
             foreach (var r in results)
             {

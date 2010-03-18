@@ -108,6 +108,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LuceneExamineIndexer.cs" />
     <Compile Include="LuceneExamineSearcher.cs" />
+    <Compile Include="SearchCriteria\LuceneQuery.cs" />
+    <Compile Include="SearchCriteria\LuceneBooleanOperation.cs" />
+    <Compile Include="SearchCriteria\LuceneSearchCriteria.cs" />
+    <Compile Include="SearchCriteria\LuceneSearchExtensions.cs" />
+    <Compile Include="SearchCriteria\ExamineValue.cs" />
     <Compile Include="SerializableDictionary.cs" />
     <Compile Include="SerializableDictionaryExtensions.cs" />
   </ItemGroup>

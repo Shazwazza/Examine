@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using System.Xml;
 using System.Xml.XPath;
 using System.Runtime.CompilerServices;
+using UmbracoExamine.Core.SearchCriteria;
 
 namespace UmbracoExamine.Core
 {
@@ -196,5 +197,15 @@ namespace UmbracoExamine.Core
 
         #endregion
 
+
+        #region ISearcher Members
+
+
+        public ISearchCriteria CreateSearchCriteria(int maxResults, IndexType type)
+        {
+            return this.DefaultSearchProvider.CreateSearchCriteria(maxResults, type);
+        }
+
+        #endregion
     }
 }
