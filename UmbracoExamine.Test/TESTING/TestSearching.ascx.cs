@@ -23,7 +23,7 @@ namespace UmbracoExamine.Test.TESTING
             //var results = ExamineManager.Instance.Search(SearchTextBox.Text, 100, true);
 
             var searchCriteria = ExamineManager.Instance.CreateSearchCriteria(100, IndexType.Content);
-
+            searchCriteria.IncludeHitCount = true;
             searchCriteria = searchCriteria
                 .Id(1080)
                 .Or()

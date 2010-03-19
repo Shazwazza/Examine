@@ -10,6 +10,7 @@ namespace UmbracoExamine.SearchCriteria
     public class LuceneSearchCriteria : ISearchCriteria
     {
         internal BooleanQuery query;
+        private BooleanClause.Occur occurance = BooleanClause.Occur.SHOULD;
 
         internal LuceneSearchCriteria(int max, IndexType type)
         {
@@ -17,6 +18,8 @@ namespace UmbracoExamine.SearchCriteria
             SearchIndexType = type;
             query = new BooleanQuery();
         }
+
+
 
         private static void ValidateIExamineValue(IExamineValue v)
         {
@@ -41,13 +44,25 @@ namespace UmbracoExamine.SearchCriteria
             private set;
         }
 
+        public bool IncludeHitCount
+        {
+            get;
+            set;
+        }
+
+        public int TotalHits
+        {
+            get;
+            internal protected set;
+        }
+
         #endregion
 
         #region ISearch Members
 
         public IBooleanOperation Id(int id)
         {
-            return IdInternal(id, BooleanClause.Occur.SHOULD);
+            return IdInternal(id, occurance);
         }
 
         internal protected IBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
@@ -64,7 +79,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation NodeName(IExamineValue nodeName)
         {
-            return this.NodeNameInternal(nodeName, BooleanClause.Occur.SHOULD);
+            return this.NodeNameInternal(nodeName, occurance);
         }
 
         internal protected IBooleanOperation NodeNameInternal(IExamineValue ev, BooleanClause.Occur occurance)
@@ -94,7 +109,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias)
         {
-            return this.NodeTypeAliasInternal(nodeTypeAlias, BooleanClause.Occur.SHOULD);
+            return this.NodeTypeAliasInternal(nodeTypeAlias, occurance);
         }
 
         internal protected IBooleanOperation NodeTypeAliasInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
@@ -119,7 +134,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation ParentId(int id)
         {
-            return this.ParentIdInternal(id, BooleanClause.Occur.SHOULD);
+            return this.ParentIdInternal(id, occurance);
         }
 
         internal protected IBooleanOperation ParentIdInternal(int id, BooleanClause.Occur occurance)
@@ -131,12 +146,12 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Field(string fieldName, string fieldValue)
         {
-            return this.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), BooleanClause.Occur.SHOULD);
+            return this.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), occurance);
         }
 
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
-            return this.FieldInternal(fieldName, fieldValue, BooleanClause.Occur.SHOULD); 
+            return this.FieldInternal(fieldName, fieldValue, occurance); 
         }
 
         internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
@@ -166,7 +181,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool inclusive)
         {
-            return this.RangeInternal(fieldName, start.ToString("yyyyMMdd"), end.ToString("yyyyMMdd"), inclusive, BooleanClause.Occur.SHOULD);
+            return this.RangeInternal(fieldName, start.ToString("yyyyMMdd"), end.ToString("yyyyMMdd"), inclusive, occurance);
         }
 
         public IBooleanOperation Range(string fieldName, int start, int end)
@@ -186,7 +201,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, string start, string end, bool inclusive)
         {
-            return this.RangeInternal(fieldName, start, end, inclusive, BooleanClause.Occur.SHOULD);
+            return this.RangeInternal(fieldName, start, end, inclusive, occurance);
         }
 
         protected internal IBooleanOperation RangeInternal(string fieldName, string start, string end, bool inclusive, BooleanClause.Occur occurance)
@@ -208,7 +223,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation MultipleFields(IEnumerable<string> fieldNames, IExamineValue fieldValue)
         {
-            return this.MultipleFieldsInternal(fieldNames, fieldValue, BooleanClause.Occur.SHOULD);
+            return this.MultipleFieldsInternal(fieldNames, fieldValue, occurance);
         }
 
         #endregion

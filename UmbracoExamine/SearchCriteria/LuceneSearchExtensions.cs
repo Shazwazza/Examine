@@ -21,7 +21,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public static IExamineValue Fuzzy(this string s, double fuzzieness)
         {
-            return new ExamineValue(Examineness.Fuzzy, s + "~") { Scope = fuzzieness };
+            return new ExamineValue(Examineness.Fuzzy, s) { Scope = fuzzieness };
         }
 
         public static IExamineValue Boost(this string s, double boost)
@@ -31,7 +31,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public static IExamineValue Proximity(this string s, double proximity)
         {
-            return new ExamineValue(Examineness.Proximity, s + "~") { Scope = proximity };
+            return new ExamineValue(Examineness.Proximity, s) { Scope = proximity };
         }
 
         public static IExamineValue Excape(this string s)

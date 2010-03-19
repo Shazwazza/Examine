@@ -27,8 +27,6 @@ namespace UmbracoExamine
             if (config["indexSet"] == null)
                 throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration and/or the IndexerData property has not been explicitly set");
 
-
-
             if (ExamineLuceneIndexes.Instance.Sets[config["indexSet"]] == null)
                 throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
 
@@ -49,6 +47,9 @@ namespace UmbracoExamine
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
         }
 
+        /// <summary>
+        /// Directory where the Lucene.NET Index resides
+        /// </summary>
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
 
         /// <summary>
@@ -56,7 +57,11 @@ namespace UmbracoExamine
         /// </summary>
         public Analyzer IndexingAnalyzer { get; set; }
 
+        /// <summary>
+        /// Name of the Lucene.NET index set
+        /// </summary>
         protected string IndexSetName { get; set; }
+
         /// <summary>
         /// Simple search method which defaults to searching content nodes
         /// </summary>
@@ -88,9 +93,7 @@ namespace UmbracoExamine
             {
                 var luceneParams = searchParams as LuceneSearchCriteria;
                 if (luceneParams == null)
-                {
                     throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
-                }
 
                 if (!LuceneIndexFolder.Exists)
                     throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
@@ -102,8 +105,13 @@ namespace UmbracoExamine
                 IndexReader reader = searcher.GetIndexReader();
                 var searchFields = GetSearchFields(reader);
 
-
                 var results = PrepareResults(tDocs, searchFields, searcher);
+
+                if (luceneParams.IncludeHitCount)
+                {
+                    var hits = searcher.Search(luceneParams.query);
+                    luceneParams.TotalHits = hits.Length();
+                }
 
                 return results.ToList();
             }
@@ -114,6 +122,11 @@ namespace UmbracoExamine
                     searcher.Close();
                 }
             }
+        }
+
+        public override ISearchCriteria CreateSearchCriteria(int maxResults, IndexType type)
+        {
+            return new LuceneSearchCriteria(maxResults, type);
         }
 
         #region Private
@@ -142,16 +155,10 @@ namespace UmbracoExamine
             return searchFields;
         }
 
-        public override ISearchCriteria CreateSearchCriteria(int maxResults, IndexType type)
-        {
-            return new LuceneSearchCriteria(maxResults, type);
-        }
-
         /// <summary>
         /// Creates a list of dictionary's from the hits object and returns a list of SearchResult.
         /// This also removes duplicates.
         /// </summary>
-        /// <param name="hits"></param>
         /// <param name="searchFields"></param>
         /// <returns></returns>
         private List<SearchResult> PrepareResults(TopDocs tDocs, string[] searchFields, IndexSearcher searcher)

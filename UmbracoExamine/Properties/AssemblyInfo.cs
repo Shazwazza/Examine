@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("UmbracoExamine")]
-[assembly: AssemblyDescription("Umbraco index & search providers based on the Examine model using Lucene.NET")]
+[assembly: AssemblyDescription("Umbraco index & search providers based on the Examine model using Lucene.NET 2.0.0.4")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("UmbracoExamine")]
 
