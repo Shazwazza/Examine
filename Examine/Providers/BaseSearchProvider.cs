@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Configuration.Provider;
-using UmbracoExamine.Core;
+using Examine;
+using Examine.SearchCriteria;
 
-namespace UmbracoExamine.Providers
+namespace Examine.Providers
 {
     public abstract class BaseSearchProvider : ProviderBase, ISearcher
     {
@@ -22,7 +23,11 @@ namespace UmbracoExamine.Providers
         public abstract IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards);
         public abstract IEnumerable<SearchResult> Search(ISearchCriteria searchParams);
 
-
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <returns>A blank SearchCriteria</returns>
+        public abstract ISearchCriteria CreateSearchCriteria(int maxResults, IndexType type);
         #endregion
     }
 }

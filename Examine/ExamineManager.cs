@@ -1,20 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Web.Configuration;
 using System.Configuration.Provider;
-using UmbracoExamine.Providers;
-using UmbracoExamine.Core.Config;
-using System.Threading;
-using umbraco.cms.businesslogic;
+using System.Web.Configuration;
 using System.Xml.Linq;
-using System.Xml;
-using System.Xml.XPath;
-using System.Runtime.CompilerServices;
-using UmbracoExamine.Core.SearchCriteria;
+using Examine.Config;
+using Examine.Providers;
+using Examine.SearchCriteria;
 
-namespace UmbracoExamine.Core
+namespace Examine
 {
     public class ExamineManager : ISearcher, IIndexer
     {
@@ -57,13 +50,13 @@ namespace UmbracoExamine.Core
                         // Load registered providers and point _provider to the default provider	
 
                         IndexProviderCollection = new IndexProviderCollection();
-                        ProvidersHelper.InstantiateProviders(UmbracoExamineSettings.Instance.IndexProviders.Providers, IndexProviderCollection, typeof(BaseIndexProvider));
+                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, IndexProviderCollection, typeof(BaseIndexProvider));
 
                         SearchProviderCollection = new SearchProviderCollection();
-                        ProvidersHelper.InstantiateProviders(UmbracoExamineSettings.Instance.SearchProviders.Providers, SearchProviderCollection, typeof(BaseSearchProvider));
+                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, SearchProviderCollection, typeof(BaseSearchProvider));
 
                         //set the default
-                        DefaultSearchProvider = SearchProviderCollection[UmbracoExamineSettings.Instance.SearchProviders.DefaultProvider];
+                        DefaultSearchProvider = SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider];
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
                         if (DefaultSearchProvider == null)

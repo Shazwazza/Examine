@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace UmbracoExamine.Providers
+namespace UmbracoExamine
 {
     public static class FileSystemExtensions
     {

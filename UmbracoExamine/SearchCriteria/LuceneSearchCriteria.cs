@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
-using UmbracoExamine.Core;
-using UmbracoExamine.Core.SearchCriteria;
+using Examine;
+using Examine.SearchCriteria;
 
-namespace UmbracoExamine.Providers.SearchCriteria
+namespace UmbracoExamine.SearchCriteria
 {
     public class LuceneSearchCriteria : ISearchCriteria
     {

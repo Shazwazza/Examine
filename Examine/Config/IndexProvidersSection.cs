@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Configuration;
 
-namespace UmbracoExamine.Core.Config
+namespace Examine.Config
 {
     public class IndexProvidersSection : ConfigurationElement
     {

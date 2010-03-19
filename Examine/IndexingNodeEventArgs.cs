@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Collections.Generic;
 
-namespace UmbracoExamine.Core
+namespace Examine
 {
     public class IndexingNodeEventArgs : CancelEventArgs, INodeEventArgs
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace UmbracoExamine.Core
+namespace Examine
 {
     /// <summary>
     /// a data structure for storing indexing/searching instructions
@@ -12,16 +12,16 @@ namespace UmbracoExamine.Core
     public class IndexCriteria : IIndexCriteria
     {
 
-        public IndexCriteria(IEnumerable<string> umbracoFields, IEnumerable<string> userFields, IEnumerable<string> includeNodeTypes, IEnumerable<string> excludeNodeTypes, int? parentNodeId)
+        public IndexCriteria(IEnumerable<string> standardFields, IEnumerable<string> userFields, IEnumerable<string> includeNodeTypes, IEnumerable<string> excludeNodeTypes, int? parentNodeId)
         {
             UserFields = userFields.ToList();
-            UmbracoFields = umbracoFields.ToList();
+            StandardFields = standardFields.ToList();
             IncludeNodeTypes = includeNodeTypes;
             ExcludeNodeTypes = excludeNodeTypes;
             ParentNodeId = parentNodeId;
         }
         
-        public IEnumerable<string> UmbracoFields { get; private set; }
+        public IEnumerable<string> StandardFields { get; private set; }
         public IEnumerable<string> UserFields { get; private set; }
 
         public IEnumerable<string> IncludeNodeTypes { get; private set; }

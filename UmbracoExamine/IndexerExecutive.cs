@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UmbracoExamine.Providers.Config;
+using UmbracoExamine.Config;
 using System.IO;
 using System.Timers;
 
-namespace UmbracoExamine.Providers
+namespace UmbracoExamine
 {
 
     /// <summary>
@@ -339,7 +339,7 @@ namespace UmbracoExamine.Providers
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException("UmbracoExamine.Providers.IndexerExecutive");
+                throw new ObjectDisposedException("UmbracoExamine.IndexerExecutive");
             }
         }
 

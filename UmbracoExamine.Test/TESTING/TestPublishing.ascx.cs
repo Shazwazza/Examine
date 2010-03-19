@@ -15,7 +15,7 @@ using umbraco.cms.businesslogic.web;
 using umbraco.BusinessLogic;
 using System.ComponentModel;
 using System.Threading;
-using UmbracoExamine.Core;
+using Examine;
 
 namespace UmbracoExamine.Test.TESTING
 {

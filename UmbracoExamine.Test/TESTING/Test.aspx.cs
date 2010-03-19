@@ -4,8 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using UmbracoExamine.Core;
-using UmbracoExamine.Providers;
+using Examine;
+using UmbracoExamine;
 using System.Drawing;
 
 namespace UmbracoExamine.Test.Testing

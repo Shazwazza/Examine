@@ -5,7 +5,7 @@ using System.Text;
 using System.Configuration.Provider;
 using System.Collections;
 
-namespace UmbracoExamine.Providers
+namespace Examine.Providers
 {
     public class IndexProviderCollection : ProviderCollection, IEnumerable<BaseIndexProvider>
     {

@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using umbraco;
-using System.Xml;
 using umbraco.cms.businesslogic;
 using umbraco.cms.businesslogic.web;
 
-namespace UmbracoExamine.Core
+namespace UmbracoExamine
 {
     /// <summary>
     /// Static methods to help query umbraco xml
@@ -40,9 +38,22 @@ namespace UmbracoExamine.Core
             XmlDocument xDoc = new XmlDocument();
             var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");
             node.XmlPopulate(xDoc, ref xNode, false);
+
+            if (xNode.Attributes["nodeTypeAlias"] == null)
+            {
+                //we'll add the nodeTypeAlias ourselves                                
+                XmlAttribute d = xDoc.CreateAttribute("nodeTypeAlias");
+                d.Value = node.ContentType.Alias;
+                xNode.Attributes.Append(d);
+            }
+
             return new XDocument(xNode.ToXElement());
         }
-
+        /// <summary>
+        /// Converts an <see cref="System.Xml.XmlNode"/> to a <see cref="System.Xml.Linq.XElement"/>
+        /// </summary>
+        /// <param name="node">Node to convert</param>
+        /// <returns>Converted node</returns>
         public static XElement ToXElement(this XmlNode node)
         {
             var x = new XmlNodeReader(node);
@@ -50,6 +61,11 @@ namespace UmbracoExamine.Core
             return XElement.Load(x);
         }
 
+        /// <summary>
+        /// Creates an <see cref="System.Xml.Linq.XDocument"/> from the collection of <see cref="System.Xml.Linq.XElement"/>
+        /// </summary>
+        /// <param name="elements">Elements to create document from</param>
+        /// <returns>Document containing elements</returns>
         public static XDocument ToXDocument(this IEnumerable<XElement> elements)
         {
             if (elements.Count() == 1)

@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using UmbracoExamine.Core;
-using UmbracoExamine.Providers;
 using System.Drawing;
+using Examine;
+using Examine.Providers;
 
 namespace UmbracoExamine.Test.TESTING
 {

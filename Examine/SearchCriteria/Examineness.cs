@@ -1,5 +1,5 @@
 ﻿
-namespace UmbracoExamine.Core.SearchCriteria
+namespace Examine.SearchCriteria
 {
     public enum Examineness
     {

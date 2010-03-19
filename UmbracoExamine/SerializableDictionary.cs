@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace UmbracoExamine.Providers
+namespace UmbracoExamine
 {
     [XmlRoot("dictionary")]
     [Serializable]

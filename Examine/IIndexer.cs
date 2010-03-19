@@ -1,17 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using umbraco.cms.businesslogic;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
-namespace UmbracoExamine.Core
+namespace Examine
 {
     public interface IIndexer
     {
-
+        /// <summary>
+        /// Forces a particular XML node to be reindexed
+        /// </summary>
+        /// <param name="node">XML node to reindex</param>
+        /// <param name="type">Type of index to use</param>
         void ReIndexNode(XElement node, IndexType type);
+        /// <summary>
+        /// Deletes a node from the index
+        /// </summary>
+        /// <param name="node">Node to delete</param>
         void DeleteFromIndex(XElement node);
         
         /// <summary>

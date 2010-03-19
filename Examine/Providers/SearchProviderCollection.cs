@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Configuration.Provider;
 
-namespace UmbracoExamine.Providers
+namespace Examine.Providers
 {
     public class SearchProviderCollection : ProviderCollection
     {

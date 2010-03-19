@@ -4,10 +4,10 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using UmbracoExamine.Providers;
-using UmbracoExamine.Core;
+using UmbracoExamine;
+using Examine;
 using System.Drawing;
-using UmbracoExamine.Providers.SearchCriteria;
+using UmbracoExamine.SearchCriteria;
 
 namespace UmbracoExamine.Test.TESTING
 {

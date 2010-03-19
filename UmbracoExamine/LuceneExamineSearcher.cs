@@ -4,17 +4,18 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using Examine;
+using Examine.Providers;
+using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
-using UmbracoExamine.Core;
-using UmbracoExamine.Core.SearchCriteria;
-using UmbracoExamine.Providers.Config;
-using UmbracoExamine.Providers.SearchCriteria;
+using UmbracoExamine.Config;
+using UmbracoExamine.SearchCriteria;
 
-namespace UmbracoExamine.Providers
+namespace UmbracoExamine
 {
     public class LuceneExamineSearcher : BaseSearchProvider
     {

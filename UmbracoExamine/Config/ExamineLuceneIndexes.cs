@@ -6,7 +6,7 @@ using System.Configuration;
 using System.IO;
 using System.Web;
 
-namespace UmbracoExamine.Providers.Config
+namespace UmbracoExamine.Config
 {
     /// <summary>
     /// Defines XPath statements that map to specific umbraco nodes

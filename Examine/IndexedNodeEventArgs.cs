@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UmbracoExamine.Core
+namespace Examine
 {
     public class IndexedNodeEventArgs : EventArgs
     {

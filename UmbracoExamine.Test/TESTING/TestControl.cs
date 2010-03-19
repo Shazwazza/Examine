@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using System.Web;
 using System.Web.UI;
-using System.Drawing;
-using UmbracoExamine.Core;
-using UmbracoExamine.Providers;
+using Examine;
+using Examine.Providers;
 
 namespace UmbracoExamine.Test.TESTING
 {

@@ -233,16 +233,6 @@
     <Content Include="TESTING\Test.aspx" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\UmbracoExamine.Core\UmbracoExamine.Core.csproj">
-      <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
-      <Name>UmbracoExamine.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\UmbracoExamine.Providers\UmbracoExamine.Providers.csproj">
-      <Project>{07FBC26B-2927-4A22-8D96-D644C667FECC}</Project>
-      <Name>UmbracoExamine.Providers</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="data\access.xml" />
     <Content Include="TESTING\TestIndexing.ascx" />
     <Content Include="TESTING\TestProviders.ascx" />
@@ -264,6 +254,16 @@
     <Folder Include="masterpages\" />
     <Folder Include="usercontrols\" />
     <Folder Include="xslt\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Examine\Examine.csproj">
+      <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
+      <Name>Examine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UmbracoExamine\UmbracoExamine.csproj">
+      <Project>{07FBC26B-2927-4A22-8D96-D644C667FECC}</Project>
+      <Name>UmbracoExamine</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />

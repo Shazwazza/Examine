@@ -1,6 +1,6 @@
-﻿using UmbracoExamine.Core.SearchCriteria;
+﻿using Examine.SearchCriteria;
 
-namespace UmbracoExamine.Providers.SearchCriteria
+namespace UmbracoExamine.SearchCriteria
 {
     internal class ExamineValue : IExamineValue
     {

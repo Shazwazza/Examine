@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UmbracoExamine.Core.SearchCriteria;
+using Examine.SearchCriteria;
 
-namespace UmbracoExamine.Core
+namespace Examine
 {
     public interface ISearcher
     {

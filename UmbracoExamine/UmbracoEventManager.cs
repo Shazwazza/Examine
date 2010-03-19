@@ -1,25 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using umbraco.BusinessLogic;
-using umbraco.cms.businesslogic.web;
-using umbraco.cms.businesslogic.media;
-using UmbracoExamine.Core.Config;
+﻿using System.Linq;
+using Examine.Config;
 using umbraco;
+using umbraco.BusinessLogic;
 using umbraco.cms.businesslogic;
-using umbraco.cms.businesslogic.member;
-using System.Web.Security;
+using umbraco.cms.businesslogic.media;
+using umbraco.cms.businesslogic.web;
+using Examine;
 
-namespace UmbracoExamine.Core
+namespace UmbracoExamine
 {
+    /// <summary>
+    /// An <see cref="umbraco.BusinessLogic.ApplicationBase"/> instance for wiring up Examine to the Umbraco events system
+    /// </summary>
     public class UmbracoEventManager : ApplicationBase
     {
-
+        /// <summary>
+        /// Creates a new instance of the class
+        /// </summary>
         public UmbracoEventManager() 
         {
             //don't bind event handlers if we're not suppose to listen
-            if (!UmbracoExamineSettings.Instance.IndexProviders.EnableDefaultEventHandler)
+            if (!ExamineSettings.Instance.IndexProviders.EnableDefaultEventHandler)
                 return;
 
             Log.Add(LogTypes.Custom, -1, "[UmbracoExamine] Adding examine event handlers ");            

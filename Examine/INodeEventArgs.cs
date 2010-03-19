@@ -1,5 +1,5 @@
 ﻿using System;
-namespace UmbracoExamine.Core
+namespace Examine
 {
     public interface INodeEventArgs
     {

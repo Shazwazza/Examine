@@ -1,25 +1,26 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using UmbracoExamine.Core;
-using UmbracoExamine.Providers.Config;
-using System.IO;
-using umbraco.BusinessLogic;
-using Lucene.Net.Index;
+using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using Lucene.Net.Documents;
-using Lucene.Net.Analysis.Standard;
-using umbraco.cms.businesslogic.media;
-using umbraco.cms.businesslogic;
-using System.Xml;
-using System.Collections;
+using Examine;
+using Examine.Providers;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Documents;
+using Lucene.Net.Index;
+using umbraco.BusinessLogic;
+using umbraco.cms.businesslogic;
+using umbraco.cms.businesslogic.media;
+using UmbracoExamine.Config;
 
 
 
-namespace UmbracoExamine.Providers
+namespace UmbracoExamine
 {
 
     /// <summary>
@@ -572,7 +573,7 @@ namespace UmbracoExamine.Providers
             }
 
             // Add umbraco node properties 
-            foreach (string fieldName in IndexerData.UmbracoFields)
+            foreach (string fieldName in IndexerData.StandardFields)
             {
                 string val = node.UmbSelectPropertyValue(fieldName);
                 var args = new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId);
@@ -1202,7 +1203,7 @@ namespace UmbracoExamine.Providers
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException("UmbracoExamine.Providers.LuceneExamineIndexer");
+                throw new ObjectDisposedException("UmbracoExamine.LuceneExamineIndexer");
             }
         }
 

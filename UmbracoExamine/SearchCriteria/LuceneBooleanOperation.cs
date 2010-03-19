@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UmbracoExamine.Core.SearchCriteria;
+using Examine.SearchCriteria;
 using Lucene.Net.Search;
 
-namespace UmbracoExamine.Providers.SearchCriteria
+namespace UmbracoExamine.SearchCriteria
 {
     public class LuceneBooleanOperation : IBooleanOperation
     {

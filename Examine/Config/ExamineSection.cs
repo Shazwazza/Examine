@@ -4,22 +4,22 @@ using System.Linq;
 using System.Text;
 using System.Configuration;
 
-namespace UmbracoExamine.Core.Config
+namespace Examine.Config
 {
-    public class UmbracoExamineSettings : ConfigurationSection
+    public class ExamineSettings : ConfigurationSection
     {
-        private const string SectionName = "UmbracoExamine";
+        private const string SectionName = "Examine";
 
         #region Singleton definition
 
-        private static readonly UmbracoExamineSettings m_Examine;
-        private UmbracoExamineSettings() { }
-        static UmbracoExamineSettings()
+        private static readonly ExamineSettings m_Examine;
+        private ExamineSettings() { }
+        static ExamineSettings()
         {
-            m_Examine = ConfigurationManager.GetSection(SectionName) as UmbracoExamineSettings;
+            m_Examine = ConfigurationManager.GetSection(SectionName) as ExamineSettings;
 
         }
-        public static UmbracoExamineSettings Instance
+        public static ExamineSettings Instance
         {
             get { return m_Examine; }
         }

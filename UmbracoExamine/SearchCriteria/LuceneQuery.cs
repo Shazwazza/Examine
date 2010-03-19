@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lucene.Net.Search;
-using UmbracoExamine.Core.SearchCriteria;
+using Examine.SearchCriteria;
 
-namespace UmbracoExamine.Providers.SearchCriteria
+namespace UmbracoExamine.SearchCriteria
 {
     public class LuceneQuery : IQuery
     {

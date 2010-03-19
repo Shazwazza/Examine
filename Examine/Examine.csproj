@@ -8,8 +8,8 @@
     <ProjectGuid>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UmbracoExamine.Core</RootNamespace>
-    <AssemblyName>UmbracoExamine.Core</AssemblyName>
+    <RootNamespace>Examine</RootNamespace>
+    <AssemblyName>Examine</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -47,7 +47,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Debug\UmbracoExamine.Core.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Examine.xml</DocumentationFile>
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -60,18 +60,6 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="businesslogic, Version=1.0.3441.18044, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DLLs\businesslogic.dll</HintPath>
-    </Reference>
-    <Reference Include="cms, Version=1.0.3441.17655, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DLLs\cms.dll</HintPath>
-    </Reference>
-    <Reference Include="interfaces, Version=1.0.3438.34252, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DLLs\interfaces.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -81,15 +69,7 @@
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="umbraco, Version=1.0.3441.17657, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DLLs\umbraco.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Solution Items\SolutionInfo.cs">
@@ -97,7 +77,7 @@
     </Compile>
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
-    <Compile Include="Config\UmbracoExamineSection.cs" />
+    <Compile Include="Config\ExamineSection.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IndexCriteria.cs" />
@@ -126,8 +106,6 @@
     <Compile Include="Providers\BaseSearchProvider.cs" />
     <Compile Include="Providers\IndexProviderCollection.cs" />
     <Compile Include="Providers\SearchProviderCollection.cs" />
-    <Compile Include="UmbracoEventManager.cs" />
-    <Compile Include="LinqXmlExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

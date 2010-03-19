@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Lucene.Net.Documents;
 
-namespace UmbracoExamine.Providers.Config
+namespace UmbracoExamine.Config
 {
     /// <summary>
     /// A class that defines the type of index for each Umbraco field (non user defined fields)

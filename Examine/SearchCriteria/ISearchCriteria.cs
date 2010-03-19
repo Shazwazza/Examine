@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace UmbracoExamine.Core.SearchCriteria
+namespace Examine.SearchCriteria
 {
     public interface ISearchCriteria : IQuery
     {

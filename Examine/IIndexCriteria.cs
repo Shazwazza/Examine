@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-namespace UmbracoExamine.Core
+namespace Examine
 {
     public interface IIndexCriteria
     {
         IEnumerable<string> ExcludeNodeTypes { get; }
         IEnumerable<string> IncludeNodeTypes { get; }
         int? ParentNodeId { get; }
-        IEnumerable<string> UmbracoFields { get; }
+        IEnumerable<string> StandardFields { get; }
         IEnumerable<string> UserFields { get; }
     }
 }

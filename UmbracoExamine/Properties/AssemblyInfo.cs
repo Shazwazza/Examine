@@ -4,10 +4,10 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("UmbracoExamine.Providers")]
-[assembly: AssemblyDescription("Umbraco Examine Lucene.NET providers")]
+[assembly: AssemblyTitle("UmbracoExamine")]
+[assembly: AssemblyDescription("Umbraco index & search providers based on the Examine model using Lucene.NET")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyProduct("UmbracoExamine.Providers")]
+[assembly: AssemblyProduct("UmbracoExamine")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

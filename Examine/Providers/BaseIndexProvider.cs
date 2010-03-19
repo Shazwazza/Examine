@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Configuration.Provider;
-using UmbracoExamine.Core;
+using Examine;
 using System.Xml.Linq;
 
-namespace UmbracoExamine.Providers
+namespace Examine.Providers
 {
     public abstract class BaseIndexProvider : ProviderBase, IIndexer
     {

@@ -7,7 +7,7 @@ using System.IO;
 using System.Web;
 using UmbracoExamine;
 
-namespace UmbracoExamine.Providers.Config
+namespace UmbracoExamine.Config
 {
     public sealed class IndexSet : ConfigurationElement
     {
@@ -131,12 +131,12 @@ namespace UmbracoExamine.Providers.Config
         /// The fields umbraco values that will be indexed. i.e. id, nodeTypeAlias, writer, etc...
         /// </summary>
         [ConfigurationCollection(typeof(IndexFieldCollection))]
-        [ConfigurationProperty("IndexUmbracoFields", IsDefaultCollection = false, IsRequired = true)]
-        public IndexFieldCollection IndexUmbracoFields
+        [ConfigurationProperty("IndexStandardFields", IsDefaultCollection = false, IsRequired = true)]
+        public IndexFieldCollection IndexStandardFields
         {
             get
             {
-                return (IndexFieldCollection)base["IndexUmbracoFields"];
+                return (IndexFieldCollection)base["IndexStandardFields"];
             }
         }
 

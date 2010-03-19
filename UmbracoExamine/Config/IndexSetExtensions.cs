@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UmbracoExamine.Core;
+using Examine;
 
-namespace UmbracoExamine.Providers.Config
+namespace UmbracoExamine.Config
 {
     /// <summary>
     /// Extension methods for IndexSet
@@ -20,7 +20,7 @@ namespace UmbracoExamine.Providers.Config
         public static IIndexCriteria ToIndexCriteria(this IndexSet set)
         {
             return new IndexCriteria(
-                set.IndexUmbracoFields.ToList().Select(x => x.Name).ToArray(),
+                set.IndexStandardFields.ToList().Select(x => x.Name).ToArray(),
                 set.IndexUserFields.ToList().Select(x => x.Name).ToArray(),
                 set.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 set.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
@@ -33,7 +33,7 @@ namespace UmbracoExamine.Providers.Config
         public static IEnumerable<string> CombinedUmbracoFields(this IndexSet set)
         {
             return set.IndexUserFields.ToList().Select(x => x.Name)
-                .Concat(set.IndexUmbracoFields.ToList().Select(x => x.Name));
+                .Concat(set.IndexStandardFields.ToList().Select(x => x.Name));
         }
 
       

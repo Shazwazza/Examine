@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.ComponentModel;
 using Lucene.Net.Documents;
-using UmbracoExamine.Core;
+using Examine;
 
-namespace UmbracoExamine.Providers
+namespace UmbracoExamine
 {
     /// <summary>
     /// Event arguments for a Document Writing event

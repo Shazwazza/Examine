@@ -1,6 +1,6 @@
-﻿using UmbracoExamine.Core.SearchCriteria;
+﻿using Examine.SearchCriteria;
 
-namespace UmbracoExamine.Providers.SearchCriteria
+namespace UmbracoExamine.SearchCriteria
 {
     public static class LuceneSearchExtensions
     {

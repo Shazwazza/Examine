@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace UmbracoExamine.Core
+namespace Examine
 {
     public enum IndexType
     {
