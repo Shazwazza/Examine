@@ -10,7 +10,6 @@ namespace Examine.Providers
 {
     public abstract class BaseSearchProvider : ProviderBase, ISearcher
     {
-
         #region ISearcher Members
 
         /// <summary>

@@ -2,6 +2,9 @@
 
 namespace Examine
 {
+    /// <summary>
+    /// Interface to represent an Examine Indexer
+    /// </summary>
     public interface IIndexer
     {
         /// <summary>
@@ -27,6 +30,10 @@ namespace Examine
         /// </summary>
         void RebuildIndex();
 
+        /// <summary>
+        /// Gets/sets the index criteria to create the index with
+        /// </summary>
+        /// <value>The indexer data.</value>
         IIndexCriteria IndexerData { get; set; }
 
     }

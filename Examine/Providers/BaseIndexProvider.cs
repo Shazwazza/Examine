@@ -5,15 +5,38 @@ using System.Xml.Linq;
 
 namespace Examine.Providers
 {
+    /// <summary>
+    /// Base class for an Examine Index Provider. You must implement this class to create an IndexProvider
+    /// </summary>
     public abstract class BaseIndexProvider : ProviderBase, IIndexer
     {
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
+        /// </summary>
         public BaseIndexProvider() { }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
+        /// </summary>
+        /// <param name="indexerData">The indexer data.</param>
         public BaseIndexProvider(IIndexCriteria indexerData)
         {
             IndexerData = indexerData;
         }
 
+        /// <summary>
+        /// Initializes the provider.
+        /// </summary>
+        /// <param name="name">The friendly name of the provider.</param>
+        /// <param name="config">A collection of the name/value pairs representing the provider-specific attributes specified in the configuration for this provider.</param>
+        /// <exception cref="T:System.ArgumentNullException">
+        /// The name of the provider is null.
+        /// </exception>
+        /// <exception cref="T:System.ArgumentException">
+        /// The name of the provider has a length of zero.
+        /// </exception>
+        /// <exception cref="T:System.InvalidOperationException">
+        /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
+        /// </exception>
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -27,6 +50,10 @@ namespace Examine.Providers
             Enabled = enabled;
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="BaseIndexProvider"/> is enabled.
+        /// </summary>
+        /// <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
         public bool Enabled { get; set; }
 
         #region IIndexer members
@@ -35,9 +62,25 @@ namespace Examine.Providers
         /// opposed to cache being updated.
         /// </summary>
         public abstract bool SupportUnpublishedContent { get; protected set; }
+        /// <summary>
+        /// Forces a particular XML node to be reindexed
+        /// </summary>
+        /// <param name="node">XML node to reindex</param>
+        /// <param name="type">Type of index to use</param>
         public abstract void ReIndexNode(XElement node, IndexType type);
+        /// <summary>
+        /// Deletes a node from the index
+        /// </summary>
+        /// <param name="node">Node to delete</param>
         public abstract void DeleteFromIndex(XElement node);
+        /// <summary>
+        /// Re-indexes all data for the index type specified
+        /// </summary>
+        /// <param name="type"></param>
         public abstract void IndexAll(IndexType type);
+        /// <summary>
+        /// Rebuilds the entire index from scratch for all index types
+        /// </summary>
         public abstract void RebuildIndex();
         /// <summary>
         /// Gets/sets the index criteria to create the index with
@@ -46,16 +89,43 @@ namespace Examine.Providers
         #endregion
 
         #region Events
+        /// <summary>
+        /// Occurs for an Indexing Error
+        /// </summary>
         public event EventHandler<IndexingErrorEventArgs> IndexingError;
 
+        /// <summary>
+        /// Occurs when a node is in its Indexing phase
+        /// </summary>
         public event EventHandler<IndexingNodeEventArgs> NodeIndexing;
+        /// <summary>
+        /// Occurs when a node is in its Indexed phase
+        /// </summary>
         public event EventHandler<IndexedNodeEventArgs> NodeIndexed;
+        /// <summary>
+        /// Occurs when a collection of nodes are in their Indexing phase (before a single node is processed)
+        /// </summary>
         public event EventHandler<IndexingNodesEventArgs> NodesIndexing;
+        /// <summary>
+        /// Occurs when the collection of nodes have been indexed
+        /// </summary>
         public event EventHandler<IndexedNodesEventArgs> NodesIndexed;
 
+        /// <summary>
+        /// Occurs when the indexer is gathering the fields and their associated data for the index
+        /// </summary>
         public event EventHandler<IndexingNodeDataEventArgs> GatheringNodeData;
+        /// <summary>
+        /// Occurs when a node is deleted from the index
+        /// </summary>
         public event EventHandler<DeleteIndexEventArgs> IndexDeleted;
+        /// <summary>
+        /// Occurs when a particular field is having its data obtained
+        /// </summary>
         public event EventHandler<IndexingFieldDataEventArgs> GatheringFieldData;
+        /// <summary>
+        /// Occurs when node is found but outside the supported node set
+        /// </summary>
         public event EventHandler<IndexingNodeDataEventArgs> IgnoringNode;
         #endregion
 
@@ -71,48 +141,80 @@ namespace Examine.Providers
                 IgnoringNode(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:IndexingError"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Examine.IndexingErrorEventArgs"/> instance containing the event data.</param>
         protected virtual void OnIndexingError(IndexingErrorEventArgs e)
         {
             if (IndexingError != null)
                 IndexingError(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:NodeIndexed"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Examine.IndexedNodeEventArgs"/> instance containing the event data.</param>
         protected virtual void OnNodeIndexed(IndexedNodeEventArgs e)
         {
             if (NodeIndexed != null)
                 NodeIndexed(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:NodeIndexing"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Examine.IndexingNodeEventArgs"/> instance containing the event data.</param>
         protected virtual void OnNodeIndexing(IndexingNodeEventArgs e)
         {
             if (NodeIndexing != null)
                 NodeIndexing(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:IndexDeleted"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Examine.DeleteIndexEventArgs"/> instance containing the event data.</param>
         protected virtual void OnIndexDeleted(DeleteIndexEventArgs e)
         {
             if (IndexDeleted != null)
                 IndexDeleted(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:GatheringNodeData"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Examine.IndexingNodeDataEventArgs"/> instance containing the event data.</param>
         protected virtual void OnGatheringNodeData(IndexingNodeDataEventArgs e)
         {
             if (GatheringNodeData != null)
                 GatheringNodeData(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:GatheringFieldData"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Examine.IndexingFieldDataEventArgs"/> instance containing the event data.</param>
         protected virtual void OnGatheringFieldData(IndexingFieldDataEventArgs e)
         {
             if (GatheringFieldData != null)
                 GatheringFieldData(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:NodesIndexed"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Examine.IndexedNodesEventArgs"/> instance containing the event data.</param>
         protected virtual void OnNodesIndexed(IndexedNodesEventArgs e)
         {
             if (NodesIndexed != null)
                 NodesIndexed(this, e);
         }
 
+        /// <summary>
+        /// Raises the <see cref="E:NodesIndexing"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Examine.IndexingNodesEventArgs"/> instance containing the event data.</param>
         protected virtual void OnNodesIndexing(IndexingNodesEventArgs e)
         {
             if (NodesIndexing != null)
