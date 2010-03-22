@@ -17,6 +17,7 @@ using umbraco.BusinessLogic;
 using umbraco.cms.businesslogic;
 using umbraco.cms.businesslogic.media;
 using UmbracoExamine.Config;
+using Lucene.Net.Store;
 
 
 
@@ -133,7 +134,7 @@ namespace UmbracoExamine
             }
             else
             {
-                IndexingAnalyzer = new StandardAnalyzer();
+                IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
             }
 
             ExecutiveIndex = new IndexerExecutive(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
@@ -151,7 +152,7 @@ namespace UmbracoExamine
             CommitCount = 0;
 
             OptimizeIndex();
-        } 
+        }
         #endregion
 
         #region Constants & Fields
@@ -183,7 +184,7 @@ namespace UmbracoExamine
 
         private System.Timers.Timer m_FileWatcher = null;
         private System.Timers.ElapsedEventHandler m_FileWatcher_ElapsedEventHandler;
-        
+
         #endregion
 
         #region Properties
@@ -191,7 +192,7 @@ namespace UmbracoExamine
         /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
         /// </summary>
-        public Analyzer IndexingAnalyzer { get; set; } 
+        public Analyzer IndexingAnalyzer { get; set; }
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
@@ -219,11 +220,17 @@ namespace UmbracoExamine
         /// This property is ignored if SupportUnpublishedContent is set to true.
         /// </summary>
         public bool SupportProtectedContent { get; protected set; }
-      
+
 
         #endregion
 
+        /// <summary>
+        /// Occurs when [index optimizing].
+        /// </summary>
         public event EventHandler IndexOptimizing;
+        /// <summary>
+        /// Occurs when [document writing].
+        /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
 
         #region Event handlers
@@ -238,7 +245,7 @@ namespace UmbracoExamine
             {
                 throw new Exception("Indexing Error Occurred: " + e.Message, e.InnerException);
             }
-            
+
         }
 
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
@@ -271,8 +278,18 @@ namespace UmbracoExamine
 
         #region Provider implementation
 
+        /// <summary>
+        /// Determines if the manager will call the indexing methods when content is saved or deleted as
+        /// opposed to cache being updated.
+        /// </summary>
+        /// <value></value>
         public override bool SupportUnpublishedContent { get; protected set; }
 
+        /// <summary>
+        /// Forces a particular XML node to be reindexed
+        /// </summary>
+        /// <param name="node">XML node to reindex</param>
+        /// <param name="type">Type of index to use</param>
         public override void ReIndexNode(XElement node, IndexType type)
         {
             //first delete the index for the node
@@ -285,7 +302,7 @@ namespace UmbracoExamine
         /// <summary>
         /// Rebuilds the entire index from scratch for all index types
         /// </summary>
-        /// <remarks>This will completely delete the index and recrete it</remarks>
+        /// <remarks>This will completely delete the index and recreate it</remarks>
         public override void RebuildIndex()
         {
             IndexWriter writer = null;
@@ -302,19 +319,19 @@ namespace UmbracoExamine
                 }
 
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(LuceneIndexFolder.FullName, IndexingAnalyzer, true);
+                writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
 
                 //need to remove the queue as we're rebuilding from scratch
                 IndexQueueItemFolder.ClearFiles();
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs("An error occured recreating the index set", -1, ex));
+                OnIndexingError(new IndexingErrorEventArgs("An error occurred recreating the index set", -1, ex));
                 return;
             }
             finally
             {
-                CloseWriter(ref writer);   
+                CloseWriter(ref writer);
             }
 
             IndexAll(IndexType.Content);
@@ -396,18 +413,19 @@ namespace UmbracoExamine
 
             xPath = args.XPath;
 
-            AddNodesToIndex(xPath, type);                            
+            AddNodesToIndex(xPath, type);
         }
-        
+
         #endregion
 
         #region Protected
 
         /// <summary>
-        /// Adds single node to index. If the node already exists, a duplicate will probably be created, 
+        /// Adds single node to index. If the node already exists, a duplicate will probably be created,
         /// To re-index, use the ReIndexNode method.
         /// </summary>
-        /// <param name="nodeID"></param>
+        /// <param name="node">The node.</param>
+        /// <param name="type">The type.</param>
         protected void AddSingleNodeToIndex(XElement node, IndexType type)
         {
             int nodeId = -1;
@@ -440,7 +458,6 @@ namespace UmbracoExamine
         /// <summary>
         /// This wil optimize the index for searching, this gets executed when this class instance is instantiated.
         /// </summary>
-        /// <param name="type"></param>
         /// <remarks>
         /// This can be an expensive operation and should only be called when there is no indexing activity
         /// </remarks>
@@ -467,7 +484,7 @@ namespace UmbracoExamine
                         return;
                     }
 
-                    writer = new IndexWriter(LuceneIndexFolder.FullName, IndexingAnalyzer, !IndexExists());
+                    writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, !IndexExists(), IndexWriter.MaxFieldLength.UNLIMITED);
 
                     OnIndexOptimizing(new EventArgs());
 
@@ -475,14 +492,14 @@ namespace UmbracoExamine
                 }
                 catch (Exception ex)
                 {
-                    OnIndexingError(new IndexingErrorEventArgs("Error optmizing Lucene index", -1, ex));
+                    OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
                 }
                 finally
                 {
                     CloseWriter(ref writer);
-                } 
+                }
             }
-        } 
+        }
 
         /// <summary>
         /// Removes the specified term from the index
@@ -507,14 +524,14 @@ namespace UmbracoExamine
                 if (delCount > 0)
                 {
                     OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text()), delCount));
-                }                
+                }
                 return true;
             }
             catch (Exception ee)
             {
                 OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeId, ee));
                 return false;
-            }            
+            }
         }
 
         /// <summary>
@@ -614,7 +631,7 @@ namespace UmbracoExamine
             fields
                 .Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName)
                 .ToList()
-                .ForEach(x => 
+                .ForEach(x =>
                 {
                     var policy = UmbracoFieldPolicies.GetPolicy(x.Key);
                     d.Add(
@@ -625,9 +642,9 @@ namespace UmbracoExamine
                 });
 
             //we want to store the nodeId seperately as it's the index
-            d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NO_NORMS, Field.TermVector.NO));
+            d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
             //add the index type first
-            d.Add(new Field(IndexTypeFieldName, type.ToString(), Field.Store.YES, Field.Index.NO_NORMS, Field.TermVector.NO));
+            d.Add(new Field(IndexTypeFieldName, type.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
 
             var docArgs = new DocumentWritingEventArgs(nodeId, d, fields);
             OnDocumentWriting(docArgs);
@@ -663,8 +680,8 @@ namespace UmbracoExamine
             {
                 ForceProcessQueueItems();
             }
-            
-            
+
+
         }
 
         /// <summary>
@@ -752,7 +769,7 @@ namespace UmbracoExamine
                     }
 
                     //raise the completed event
-                    OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes)); 
+                    OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
 
                 }
                 catch (Exception ex)
@@ -777,7 +794,7 @@ namespace UmbracoExamine
 
 
         }
-        
+
         protected XDocument GetXDocument(string xPath, IndexType type)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
@@ -790,13 +807,13 @@ namespace UmbracoExamine
                         //This is quite an intensive operation...
                         //get all root content, then get the XML structure for all children,
                         //then run xpath against the navigator that's created
-                        
+
                         var rootContent = umbraco.cms.businesslogic.web.Document.GetRootDocuments();
                         var xmlContent = XDocument.Parse("<content></content>");
                         var xDoc = new XmlDocument();
                         foreach (var c in rootContent)
                         {
-                            var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");                            
+                            var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");
                             c.XmlPopulate(xDoc, ref xNode, true);
 
                             if (xNode.Attributes["nodeTypeAlias"] == null)
@@ -913,13 +930,13 @@ namespace UmbracoExamine
 
                 return;
             }
-         
+
             m_FileWatcher = new System.Timers.Timer(new TimeSpan(0, 0, IndexSecondsInterval).TotalMilliseconds);
             m_FileWatcher.Elapsed += m_FileWatcher_ElapsedEventHandler;
             m_FileWatcher.AutoReset = false;
             m_FileWatcher.Start();
         }
-       
+
 
         /// <summary>
         /// Handles the file watcher timer poll elapsed event
@@ -943,8 +960,8 @@ namespace UmbracoExamine
 
             //restart the timer.
             m_FileWatcher.Start();
-      
-        }        
+
+        }
 
         /// <summary>
         /// Checks the writer passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
@@ -970,7 +987,7 @@ namespace UmbracoExamine
                 }
             }
 
-            writer = new IndexWriter(LuceneIndexFolder.FullName, IndexingAnalyzer, false);
+            writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
             return true;
         }
 
@@ -998,7 +1015,7 @@ namespace UmbracoExamine
                 }
             }
 
-            reader = IndexReader.Open(LuceneIndexFolder.FullName);
+            reader = IndexReader.Open(new SimpleFSDirectory(LuceneIndexFolder), false);
             return true;
         }
 
@@ -1011,7 +1028,7 @@ namespace UmbracoExamine
             //get the dictionary object from the file data
             SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
             sd.ReadFromDisk(x);
-            
+
             //we know that there's only ever one item saved to the dictionary for deletions
             if (sd.Count != 1)
             {
@@ -1102,11 +1119,11 @@ namespace UmbracoExamine
             }
             return false;
         }
-       
+
         private void CloseWriter(ref IndexWriter writer)
         {
             if (writer != null)
-            {                               
+            {
                 writer.Close();
                 writer = null;
             }
@@ -1170,7 +1187,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         private bool IndexReady()
         {
-            return (!IndexReader.IsLocked(LuceneIndexFolder.FullName));
+            return (!IndexWriter.IsLocked(new SimpleFSDirectory(LuceneIndexFolder)));
         }
 
         /// <summary>
@@ -1179,7 +1196,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         private bool IndexExists()
         {
-            return (IndexReader.IndexExists(LuceneIndexFolder.FullName));
+            return (IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder)));
         }
 
         /// <summary>
@@ -1215,6 +1232,7 @@ namespace UmbracoExamine
             this.CheckDisposed();
             this.Dispose(true);
             GC.SuppressFinalize(this);
+            this._disposed = true;
         }
 
         protected virtual void Dispose(bool disposing)

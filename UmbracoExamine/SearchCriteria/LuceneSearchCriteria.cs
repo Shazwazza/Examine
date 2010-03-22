@@ -176,37 +176,39 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end)
         {
-            return this.Range(fieldName, start, end, true);
+            return this.Range(fieldName, start, end, true, true);
         }
 
-        public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool inclusive)
+        public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
         {
-            return this.RangeInternal(fieldName, start.ToString("yyyyMMdd"), end.ToString("yyyyMMdd"), inclusive, occurance);
+            return this.RangeInternal(fieldName, start.ToString("yyyyMMdd"), end.ToString("yyyyMMdd"), includeLower, includeUpper, occurance);
         }
 
         public IBooleanOperation Range(string fieldName, int start, int end)
         {
-            return this.Range(fieldName, start, end, true);
+            return this.Range(fieldName, start, end, true, true);
         }
 
-        public IBooleanOperation Range(string fieldName, int start, int end, bool inclusive)
+        public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
         {
-            return this.Range(fieldName, start.ToString(), end.ToString(), inclusive);
+            query.Add(NumericRangeQuery.NewIntRange(fieldName, start, end, includeLower, includeUpper), occurance);
+
+            return new LuceneBooleanOperation(this);
         }
 
         public IBooleanOperation Range(string fieldName, string start, string end)
         {
-            return this.Range(fieldName, start, end, true);
+            return this.Range(fieldName, start, end, true, true);
         }
 
-        public IBooleanOperation Range(string fieldName, string start, string end, bool inclusive)
+        public IBooleanOperation Range(string fieldName, string start, string end, bool includeLower, bool includeUpper)
         {
-            return this.RangeInternal(fieldName, start, end, inclusive, occurance);
+            return this.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
         }
 
-        protected internal IBooleanOperation RangeInternal(string fieldName, string start, string end, bool inclusive, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation RangeInternal(string fieldName, string start, string end, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
         {
-            query.Add(new RangeQuery(new Term(fieldName, start), new Term(fieldName, end), inclusive), occurance);
+            query.Add(new TermRangeQuery(fieldName, start, end, includeLower, includeUpper), occurance);
 
             return new LuceneBooleanOperation(this);
         }

@@ -351,6 +351,7 @@ namespace UmbracoExamine
             this.CheckDisposed();
             this.Dispose(true);
             GC.SuppressFinalize(this);
+            this._disposed = true;
         }
 
         private void Dispose(bool disposing)

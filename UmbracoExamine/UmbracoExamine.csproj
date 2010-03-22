@@ -74,7 +74,7 @@
     </Reference>
     <Reference Include="Lucene.Net, Version=2.0.0.4, Culture=neutral">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DLLs\Lucene2\Lucene.Net.dll</HintPath>
+      <HintPath>..\DLLs\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />

@@ -56,9 +56,11 @@ namespace UmbracoExamine
         /// <returns>Converted node</returns>
         public static XElement ToXElement(this XmlNode node)
         {
-            var x = new XmlNodeReader(node);
-            x.MoveToContent();
-            return XElement.Load(x);
+            using (var x = new XmlNodeReader(node))
+            {
+                x.MoveToContent();
+                return XElement.Load(x);
+            }
         }
 
         /// <summary>

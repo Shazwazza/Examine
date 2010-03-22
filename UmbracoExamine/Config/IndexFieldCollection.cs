@@ -23,7 +23,7 @@ namespace UmbracoExamine.Config
         /// <summary>
         /// Default property for accessing an IndexField definition
         /// </summary>
-        /// <param name="imageSize"></param>
+        /// <value>Field Name</value>
         /// <returns></returns>
         public new IndexField this[string name]
         {

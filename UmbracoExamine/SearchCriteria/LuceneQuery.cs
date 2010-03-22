@@ -45,32 +45,32 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end)
         {
-            return this.Range(fieldName, start, end, true);
+            return this.Range(fieldName, start, end, true, true);
         }
 
-        public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool inclusive)
+        public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
         {
-            return this.Range(fieldName, start.ToString("yyyyMMdd"), end.ToString("yyyyMMdd"), inclusive);
+            return this.Range(fieldName, start.ToString("yyyyMMdd"), end.ToString("yyyyMMdd"), includeLower, includeUpper);
         }
 
         public IBooleanOperation Range(string fieldName, int start, int end)
         {
-            return this.Range(fieldName, start, end, true);
+            return this.Range(fieldName, start, end, true, true);
         }
 
-        public IBooleanOperation Range(string fieldName, int start, int end, bool inclusive)
+        public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
         {
-            return this.Range(fieldName, start.ToString(), end.ToString(), inclusive);
+            return this.Range(fieldName, start, end, includeLower, includeUpper);
         }
 
         public IBooleanOperation Range(string fieldName, string start, string end)
         {
-            return this.Range(fieldName, start, end, true);
+            return this.Range(fieldName, start, end, true, true);
         }
   
-        public IBooleanOperation Range(string fieldName, string start, string end, bool inclusive)
+        public IBooleanOperation Range(string fieldName, string start, string end, bool includeLower, bool includeUpper)
         {
-            return this.search.RangeInternal(fieldName, start, end, inclusive, occurance);
+            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
         }
 
         public ISearchCriteria Compile()

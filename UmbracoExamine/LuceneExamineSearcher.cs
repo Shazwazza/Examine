@@ -40,7 +40,7 @@ namespace UmbracoExamine
             }
             else
             {
-                IndexingAnalyzer = new StandardAnalyzer();
+                IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
             }
 
             //get the folder to index
@@ -98,7 +98,7 @@ namespace UmbracoExamine
                 if (!LuceneIndexFolder.Exists)
                     throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
 
-                searcher = new IndexSearcher(LuceneIndexFolder.FullName);
+                searcher = new IndexSearcher(new Lucene.Net.Store.SimpleFSDirectory(LuceneIndexFolder), true);
 
                 TopDocs tDocs = searcher.Search(luceneParams.query, (Filter)null, searchParams.MaxResults);
 
@@ -109,8 +109,9 @@ namespace UmbracoExamine
 
                 if (luceneParams.IncludeHitCount)
                 {
-                    var hits = searcher.Search(luceneParams.query);
-                    luceneParams.TotalHits = hits.Length();
+                    //TODO: Work out how to do this properly!!!
+                    var hits = searcher.Search(luceneParams.query, null, luceneParams.MaxResults);
+                    luceneParams.TotalHits = hits.totalHits;
                 }
 
                 return results.ToList();
@@ -133,10 +134,10 @@ namespace UmbracoExamine
 
         private string[] GetSearchFields()
         {
-            var searcher = new IndexSearcher(LuceneIndexFolder.FullName);
+            var searcher = new IndexSearcher(new Lucene.Net.Store.SimpleFSDirectory(LuceneIndexFolder), true);
             try
             {
-                return GetSearchFields(searcher.Reader);
+                return GetSearchFields(searcher.GetIndexReader());
             }
             finally
             {
@@ -148,9 +149,8 @@ namespace UmbracoExamine
         {
             var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
-            var searchFields = fields.Cast<DictionaryEntry>()
-                .Where(x => x.Key.ToString() != LuceneExamineIndexer.IndexNodeIdFieldName && x.Key.ToString() != LuceneExamineIndexer.IndexTypeFieldName)
-                .Select(x => (string)x.Value)
+            var searchFields = fields
+                .Where(x => x != LuceneExamineIndexer.IndexNodeIdFieldName && x != LuceneExamineIndexer.IndexTypeFieldName)
                 .ToArray();
             return searchFields;
         }
@@ -159,7 +159,9 @@ namespace UmbracoExamine
         /// Creates a list of dictionary's from the hits object and returns a list of SearchResult.
         /// This also removes duplicates.
         /// </summary>
-        /// <param name="searchFields"></param>
+        /// <param name="tDocs">The top docs.</param>
+        /// <param name="searchFields">The search fields.</param>
+        /// <param name="searcher">The searcher.</param>
         /// <returns></returns>
         private List<SearchResult> PrepareResults(TopDocs tDocs, string[] searchFields, IndexSearcher searcher)
         {
@@ -170,7 +172,7 @@ namespace UmbracoExamine
                 Document doc = searcher.Doc(tDocs.scoreDocs[i].doc);
                 Dictionary<string, string> fields = new Dictionary<string, string>();
 
-                foreach (Field f in doc.Fields())
+                foreach (Field f in doc.GetFields())
                 {
                     //if (searchFields.Contains(f.Name()))
                     fields.Add(f.Name(), f.StringValue());

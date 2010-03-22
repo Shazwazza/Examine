@@ -16,23 +16,23 @@ namespace UmbracoExamine.Config
         private static readonly Dictionary<string, Field.Index> m_Definitions
             = new Dictionary<string, Field.Index>()
             {
-                { "id", Field.Index.UN_TOKENIZED},
+                { "id", Field.Index.NOT_ANALYZED},
                 { "version", Field.Index.NO},
                 { "parentID", Field.Index.NO},
                 { "level", Field.Index.NO},
                 { "writerID", Field.Index.NO},
                 { "creatorID", Field.Index.NO},
-                { "nodeType", Field.Index.UN_TOKENIZED},
-                { "template", Field.Index.UN_TOKENIZED},
+                { "nodeType", Field.Index.NOT_ANALYZED},
+                { "template", Field.Index.NOT_ANALYZED},
                 { "sortOrder", Field.Index.NO},
-                { "createDate", Field.Index.NO_NORMS},
-                { "updateDate", Field.Index.NO_NORMS},
-                { "nodeName", Field.Index.TOKENIZED},
-                { "urlName", Field.Index.UN_TOKENIZED},
-                { "writerName", Field.Index.UN_TOKENIZED},
-                { "creatorName", Field.Index.UN_TOKENIZED},
-                { "nodeTypeAlias", Field.Index.UN_TOKENIZED},
-                { "path", Field.Index.UN_TOKENIZED}
+                { "createDate", Field.Index.NOT_ANALYZED_NO_NORMS},
+                { "updateDate", Field.Index.NOT_ANALYZED_NO_NORMS},
+                { "nodeName", Field.Index.ANALYZED},
+                { "urlName", Field.Index.NOT_ANALYZED},
+                { "writerName", Field.Index.NOT_ANALYZED},
+                { "creatorName", Field.Index.NOT_ANALYZED},
+                { "nodeTypeAlias", Field.Index.NOT_ANALYZED},
+                { "path", Field.Index.NOT_ANALYZED}
             };
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace UmbracoExamine.Config
         public static Field.Index GetPolicy(string fieldName)
         {
             var def = m_Definitions.Where(x => x.Key == fieldName);
-            return (def.Count() == 0 ? Field.Index.TOKENIZED : def.Single().Value);
+            return (def.Count() == 0 ? Field.Index.ANALYZED : def.Single().Value);
         }
     }
 }
