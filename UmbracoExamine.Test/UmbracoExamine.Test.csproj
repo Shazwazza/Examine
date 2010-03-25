@@ -223,7 +223,9 @@
     <Content Include="config\tinyMceConfig.config" />
     <Content Include="config\umbracoSettings.config" />
     <Content Include="config\xsltExtensions.config" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="config\splashes\booting.aspx" />
@@ -239,18 +241,17 @@
     <Content Include="TESTING\TestSearching.ascx" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\umbraco.config" />
     <Content Include="config\UrlRewriting.config" />
     <Content Include="config\ExamineIndex.config" />
     <Content Include="config\ExamineSettings.config" />
     <None Include="data\vistadb\VistaDB.vdb3" />
-    <Content Include="App_Data\XPathTests.xslt" />
     <Content Include="TESTING\TestPublishing.ascx" />
     <Content Include="umbraco\masterpages\default.Master" />
     <Content Include="umbraco\masterpages\umbracoDialog.Master" />
     <Content Include="umbraco\masterpages\umbracoPage.Master" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="App_Data\" />
     <Folder Include="masterpages\" />
     <Folder Include="usercontrols\" />
     <Folder Include="xslt\" />

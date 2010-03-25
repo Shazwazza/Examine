@@ -50,7 +50,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
         {
-            return this.Range(fieldName, start.ToString("yyyyMMdd"), end.ToString("yyyyMMdd"), includeLower, includeUpper);
+            return this.search.Range(fieldName, start, end, includeLower, includeUpper);
         }
 
         public IBooleanOperation Range(string fieldName, int start, int end)
@@ -60,7 +60,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
         {
-            return this.Range(fieldName, start, end, includeLower, includeUpper);
+            return this.search.Range(fieldName, start, end, includeLower, includeUpper);
         }
 
         public IBooleanOperation Range(string fieldName, string start, string end)

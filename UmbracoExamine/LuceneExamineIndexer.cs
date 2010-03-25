@@ -1141,8 +1141,8 @@ namespace UmbracoExamine
         /// <summary>
         /// Adds all nodes with the given xPath root.
         /// </summary>
-        /// <param name="xPath"></param>
-        /// <param name="writer"></param>
+        /// <param name="xPath">The x path.</param>
+        /// <param name="type">The type.</param>
         private void AddNodesToIndex(string xPath, IndexType type)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
@@ -1177,7 +1177,10 @@ namespace UmbracoExamine
             lock (m_FolderLocker)
             {
                 if (!folder.Exists)
+                {
                     folder.Create();
+                    folder.Refresh();
+                }
             }
         }
 
@@ -1196,7 +1199,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         private bool IndexExists()
         {
-            return (IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder)));
+            return IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder));
         }
 
         /// <summary>
