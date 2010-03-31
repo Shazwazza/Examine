@@ -131,12 +131,12 @@ namespace UmbracoExamine.Config
         /// The fields umbraco values that will be indexed. i.e. id, nodeTypeAlias, writer, etc...
         /// </summary>
         [ConfigurationCollection(typeof(IndexFieldCollection))]
-        [ConfigurationProperty("IndexStandardFields", IsDefaultCollection = false, IsRequired = true)]
-        public IndexFieldCollection IndexStandardFields
+        [ConfigurationProperty("IndexAttributeFields", IsDefaultCollection = false, IsRequired = true)]
+        public IndexFieldCollection IndexAttributeFields
         {
             get
             {
-                return (IndexFieldCollection)base["IndexStandardFields"];
+                return (IndexFieldCollection)base["IndexAttributeFields"];
             }
         }
 

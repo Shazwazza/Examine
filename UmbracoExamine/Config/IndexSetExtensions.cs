@@ -20,7 +20,7 @@ namespace UmbracoExamine.Config
         public static IIndexCriteria ToIndexCriteria(this IndexSet set)
         {
             return new IndexCriteria(
-                set.IndexStandardFields.ToList().Select(x => x.Name).ToArray(),
+                set.IndexAttributeFields.ToList().Select(x => x.Name).ToArray(),
                 set.IndexUserFields.ToList().Select(x => x.Name).ToArray(),
                 set.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 set.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
@@ -33,7 +33,7 @@ namespace UmbracoExamine.Config
         public static IEnumerable<string> CombinedUmbracoFields(this IndexSet set)
         {
             return set.IndexUserFields.ToList().Select(x => x.Name)
-                .Concat(set.IndexStandardFields.ToList().Select(x => x.Name));
+                .Concat(set.IndexAttributeFields.ToList().Select(x => x.Name));
         }
 
       
