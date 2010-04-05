@@ -58,6 +58,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>bin\Release\UmbracoExamine.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="businesslogic, Version=1.0.3441.18044, Culture=neutral, processorArchitecture=MSIL">

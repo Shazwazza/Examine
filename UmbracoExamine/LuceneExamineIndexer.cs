@@ -114,10 +114,10 @@ namespace UmbracoExamine
             else
                 SupportProtectedContent = false;
 
-            IsDebug = false;
-            if (config["debug"] != null)
+            RunAsync = true;
+            if (config["runAsync"] != null)
             {
-                IsDebug = bool.Parse(config["debug"]);
+                RunAsync = bool.Parse(config["runAsync"]);
             }
 
             IndexSecondsInterval = 30;
@@ -200,7 +200,7 @@ namespace UmbracoExamine
         /// </summary>
         public int CommitCount { get; set; }
 
-        public bool IsDebug { get; set; }
+        public bool RunAsync { get; set; }
 
         public int IndexSecondsInterval { get; set; }
 
@@ -241,7 +241,7 @@ namespace UmbracoExamine
                 , LogTypes.Error);
             base.OnIndexingError(e);
 
-            if (IsDebug)
+            if (!RunAsync)
             {
                 throw new Exception("Indexing Error Occurred: " + e.Message, e.InnerException);
             }
@@ -663,7 +663,7 @@ namespace UmbracoExamine
         /// Process all of the queue items. This checks if this machine is the Executive and if it's in a load balanced
         /// environments. If then acts accordingly: 
         ///     Not the executive = doesn't index, i
-        ///     Not in debug mode = use file watcher timer
+        ///     In async mode = use file watcher timer
         /// </summary>
         protected void SafelyProcessQueueItems()
         {
@@ -671,8 +671,8 @@ namespace UmbracoExamine
             if (!ExecutiveIndex.IsExecutiveMachine)
                 return;
 
-            //if not debug mode, then process the queue using the timer            
-            if (!IsDebug)
+            //if in async mode, then process the queue using the timer            
+            if (RunAsync)
             {
                 InitializeFileWatcherTimer();
             }
