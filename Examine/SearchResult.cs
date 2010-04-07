@@ -7,6 +7,10 @@ namespace Examine
 {
     public class SearchResult
     {
+        public SearchResult()
+        {
+            this.Fields = new Dictionary<string, string>();
+        }
 
         public int Id { get; set; }
         public float Score { get; set; }

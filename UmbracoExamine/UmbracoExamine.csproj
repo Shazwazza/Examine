@@ -45,10 +45,11 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\UmbracoExamine.xml</DocumentationFile>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,6 +60,16 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Release\UmbracoExamine.XML</DocumentationFile>
+    <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DelaySign>true</DelaySign>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Solution Items\TheFARM-Public.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="businesslogic, Version=1.0.3441.18044, Culture=neutral, processorArchitecture=MSIL">
@@ -96,6 +107,7 @@
     <Compile Include="..\Solution Items\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="AllHitsCollector.cs" />
     <Compile Include="Config\IndexField.cs" />
     <Compile Include="Config\IndexFieldCollection.cs" />
     <Compile Include="Config\IndexSet.cs" />
@@ -104,6 +116,7 @@
     <Compile Include="Config\IndexSetExtensions.cs" />
     <Compile Include="Config\UmbracoFieldDefinitions.cs" />
     <Compile Include="DocumentWritingEventArgs.cs" />
+    <Compile Include="SearchResults.cs" />
     <Compile Include="FileSystemExtensions.cs" />
     <Compile Include="IndexerExecutive.cs" />
     <Compile Include="LinqXmlExtensions.cs" />

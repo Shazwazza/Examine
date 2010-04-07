@@ -76,7 +76,7 @@ namespace Examine
         /// <param name="searchParameters"></param>
         /// <returns></returns>
         /// <remarks>This is just a wrapper for the default provider</remarks>
-        public IEnumerable<SearchResult> Search(ISearchCriteria searchParameters)
+        public ISearchResults Search(ISearchCriteria searchParameters)
         {
             return DefaultSearchProvider.Search(searchParameters);
         }
@@ -88,7 +88,7 @@ namespace Examine
         /// <param name="maxResults"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
-        public IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards)
+        public ISearchResults Search(string searchText, int maxResults, bool useWildcards)
         {
             return DefaultSearchProvider.Search(searchText, maxResults, useWildcards);
         }
@@ -194,9 +194,14 @@ namespace Examine
         #region ISearcher Members
 
 
-        public ISearchCriteria CreateSearchCriteria(int maxResults, IndexType type)
+        public ISearchCriteria CreateSearchCriteria(IndexType type)
         {
-            return this.DefaultSearchProvider.CreateSearchCriteria(maxResults, type);
+            return this.CreateSearchCriteria(type, BooleanOperation.And);
+        }
+
+        public ISearchCriteria CreateSearchCriteria(IndexType type, BooleanOperation defaultOperation)
+        {
+            return this.DefaultSearchProvider.CreateSearchCriteria(type, defaultOperation);
         }
 
         #endregion

@@ -117,7 +117,7 @@ namespace UmbracoExamine
                 //Import all elements from umbraco to the root node
                 while (xml.MoveNext())
                 {
-                    rootNode.Add(XElement.Load(xml.Current.ReadSubtree()));                 
+                    rootNode.Add(XElement.Load(xml.Current.ReadSubtree()));
                 }
 
                 return xDoc;
@@ -162,7 +162,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         public static string UmbNodeTypeAlias(this XElement x)
         {
-            return !x.UmbIsElement() ? string.Empty 
+            return !x.UmbIsElement() ? string.Empty
                 : string.IsNullOrEmpty(((string)x.Attribute("nodeTypeAlias"))) ? x.Name.LocalName
                 : (string)x.Attribute("nodeTypeAlias");
         }
@@ -196,23 +196,27 @@ namespace UmbracoExamine
         {
             if (!xml.UmbIsElement())
                 return string.Empty;
+
+            XElement nodeData = null;
+
+            if (xml.Attribute("isDoc") == null)
+            {
+                nodeData = xml.Elements("data").SingleOrDefault(x => (string)x.Attribute("alias") == alias);
+            }
+            else
+            {
+                nodeData = xml.Element(alias);
+            }
             
-            XElement val = null;
-
-            //it is a 'node' node (doc type)
-            var data = xml.Elements().Where(x => x.UmbIsProperty(alias)).ToList();
-            if (data.Count == 1)
+            if (nodeData == null)
             {
-                //found the property
-                val = data.First();
-            }                    
-
-            if (val != null)
+                return string.Empty;
+            }
+            else
             {
-                return val.Value;
+                return nodeData.Value;
             }
 
-            return string.Empty;
         }
 
     }

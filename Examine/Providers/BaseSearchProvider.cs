@@ -19,14 +19,29 @@ namespace Examine.Providers
         /// <param name="maxResults"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
-        public abstract IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards);
-        public abstract IEnumerable<SearchResult> Search(ISearchCriteria searchParams);
+        public abstract ISearchResults Search(string searchText, int maxResults, bool useWildcards);
+        /// <summary>
+        /// Searches the data source using the Examine Fluent API
+        /// </summary>
+        /// <param name="searchParams">The fluent API search.</param>
+        /// <returns></returns>
+        public abstract ISearchResults Search(ISearchCriteria searchParams);
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
+        /// <param name="maxResults">The max number of results.</param>
+        /// <param name="type">The type of data in the index.</param>
         /// <returns>A blank SearchCriteria</returns>
-        public abstract ISearchCriteria CreateSearchCriteria(int maxResults, IndexType type);
+        public abstract ISearchCriteria CreateSearchCriteria(IndexType type);
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <param name="maxResults">The max number of results.</param>
+        /// <param name="type">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
+        /// <returns>A blank SearchCriteria</returns>
+        public abstract ISearchCriteria CreateSearchCriteria(IndexType type, BooleanOperation defaultOperation);
         #endregion
     }
 }

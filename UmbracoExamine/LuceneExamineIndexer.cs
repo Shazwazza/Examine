@@ -644,7 +644,7 @@ namespace UmbracoExamine
             //we want to store the nodeId seperately as it's the index
             d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
             //add the index type first
-            d.Add(new Field(IndexTypeFieldName, type.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+            d.Add(new Field(IndexTypeFieldName, type.ToString().ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
 
             var docArgs = new DocumentWritingEventArgs(nodeId, d, fields);
             OnDocumentWriting(docArgs);
@@ -903,7 +903,7 @@ namespace UmbracoExamine
 
             //ensure the special fields are added to the dictionary to be saved to file
             if (!fields.ContainsKey(IndexNodeIdFieldName)) fields.Add(IndexNodeIdFieldName, nodeId.ToString());
-            if (!fields.ContainsKey(IndexTypeFieldName)) fields.Add(IndexTypeFieldName, type.ToString());
+            if (!fields.ContainsKey(IndexTypeFieldName)) fields.Add(IndexTypeFieldName, type.ToString().ToLower());
 
             var fileName = Environment.MachineName + "-" + nodeId.ToString() + "-" + Guid.NewGuid().ToString("N");
             FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
@@ -1055,7 +1055,7 @@ namespace UmbracoExamine
             sd.ReadFromDisk(x);
 
             //get the index type
-            IndexType indexType = (IndexType)Enum.Parse(typeof(IndexType), sd[IndexTypeFieldName]);
+            IndexType indexType = (IndexType)Enum.Parse(typeof(IndexType), sd[IndexTypeFieldName], true);
             //get the node id
             int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
             //now, add the index with our dictionary object

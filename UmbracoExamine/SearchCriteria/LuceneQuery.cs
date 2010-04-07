@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using Lucene.Net.Search;
 using Examine.SearchCriteria;
@@ -15,6 +16,12 @@ namespace UmbracoExamine.SearchCriteria
             this.search = search;
             this.occurance = occurance;
         }
+
+        public BooleanOperation BooleanOperation
+        {
+            get { return occurance.ToBooleanOperation(); }
+        }
+
 
         #region ISearch Members
 
@@ -73,11 +80,6 @@ namespace UmbracoExamine.SearchCriteria
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
         }
 
-        public ISearchCriteria Compile()
-        {
-            return search;
-        }
-
         public IBooleanOperation NodeName(IExamineValue nodeName)
         {
             return this.search.NodeNameInternal(nodeName, occurance);
@@ -93,18 +95,26 @@ namespace UmbracoExamine.SearchCriteria
             return this.search.FieldInternal(fieldName, fieldValue, occurance);
         }
         
-        public IBooleanOperation MultipleFields(IEnumerable<string> fieldNames, string fieldValue)
+        public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
         {
-            return this.MultipleFields(fieldNames, new ExamineValue(Examineness.Explicit, fieldValue));
+            return this.search.GroupedAndInternal(fields.ToArray(), query, this.occurance);
         }
 
-        public IBooleanOperation MultipleFields(IEnumerable<string> fieldNames, IExamineValue fieldValue)
+        public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
         {
-            return this.search.MultipleFieldsInternal(fieldNames, fieldValue, occurance);
+            return this.search.GroupedOrInternal(fields.ToArray(), query, this.occurance);
         }
 
+        public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
+        {
+            return this.search.GroupedNotInternal(fields.ToArray(), query, this.occurance);
+        }
+
+        public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
+        {
+            return this.search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, occurance);
+        }
 
         #endregion
-
     }
 }

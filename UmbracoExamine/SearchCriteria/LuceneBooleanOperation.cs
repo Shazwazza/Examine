@@ -16,7 +16,7 @@ namespace UmbracoExamine.SearchCriteria
             this.search = search;
         }
 
-        #region IQuery Members
+        #region IBooleanOperation Members
 
         public IQuery And()
         {
@@ -35,6 +35,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public ISearchCriteria Compile()
         {
+            this.search.FieldInternal(LuceneExamineIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this.search.SearchIndexType.ToString().ToLower()), BooleanClause.Occur.MUST);
             return this.search;
         }
 

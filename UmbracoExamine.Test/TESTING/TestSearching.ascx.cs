@@ -8,6 +8,7 @@ using UmbracoExamine;
 using Examine;
 using System.Drawing;
 using UmbracoExamine.SearchCriteria;
+using Examine.SearchCriteria;
 
 namespace UmbracoExamine.Test.TESTING
 {
@@ -22,16 +23,13 @@ namespace UmbracoExamine.Test.TESTING
         {
             //var results = ExamineManager.Instance.Search(SearchTextBox.Text, 100, true);
 
-            var searchCriteria = ExamineManager.Instance.CreateSearchCriteria(100, IndexType.Content);
-            searchCriteria.IncludeHitCount = true;
+            var searchCriteria = ExamineManager.Instance.CreateSearchCriteria(IndexType.Content);
             searchCriteria = searchCriteria
-                .Id(1080)
-                .Or()
-                .Field("headerText", "umb".Fuzzy())
-                .And()
                 .NodeTypeAlias("cws".MultipleCharacterWildcard())
-                .Not()
-                .NodeName("home")
+                //.And()
+                //.GroupedAnd(new[] { "bodyText", "headerText" }, "umbraco")
+                //.And()
+                //.GroupedFlexible(new [] { "bodyText", "headerText" }, new[] { BooleanOperation.Not, BooleanOperation.And }, "sucks", "rocks")
                 .Compile();
 
             var results = ExamineManager.Instance.Search(searchCriteria);

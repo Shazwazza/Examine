@@ -4,22 +4,53 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Examine;
 using Examine.SearchCriteria;
+using Lucene.Net.Analysis;
+using System.Linq;
+using Lucene.Net.QueryParsers;
 
 namespace UmbracoExamine.SearchCriteria
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class LuceneSearchCriteria : ISearchCriteria
     {
+        internal MultiFieldQueryParser queryParser;
         internal BooleanQuery query;
-        private BooleanClause.Occur occurance = BooleanClause.Occur.SHOULD;
+        private readonly BooleanClause.Occur occurance;
+        private readonly Lucene.Net.Util.Version luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
-        internal LuceneSearchCriteria(int max, IndexType type)
+        internal LuceneSearchCriteria(IndexType type, Analyzer analyzer, string[] fields, BooleanOperation occurance)
         {
-            MaxResults = max;
+            Enforcer.ArgumentNotNull(fields, "fields");
+
             SearchIndexType = type;
             query = new BooleanQuery();
+            this.BooleanOperation = occurance;
+            this.queryParser = new MultiFieldQueryParser(luceneVersion, fields, analyzer);
+            this.occurance = occurance.ToLuceneOccurance();
         }
 
+        /// <summary>
+        /// Gets the boolean operation which this query method will be added as
+        /// </summary>
+        /// <value>The boolean operation.</value>
+        public BooleanOperation BooleanOperation
+        {
+            get;
+            protected set;
+        }
 
+        /// <summary>
+        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String"/> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return string.Format("{{ MaxResults: {0}, SearchIndexType: {1}, LuceneQuery: {2} }}", this.MaxResults, this.SearchIndexType, this.query.ToString());
+        }
 
         private static void ValidateIExamineValue(IExamineValue v)
         {
@@ -35,13 +66,13 @@ namespace UmbracoExamine.SearchCriteria
         public int MaxResults
         {
             get;
-            private set;
+            protected set;
         }
 
         public IndexType SearchIndexType
         {
             get;
-            private set;
+            protected set;
         }
 
         public bool IncludeHitCount
@@ -60,6 +91,11 @@ namespace UmbracoExamine.SearchCriteria
 
         #region ISearch Members
 
+        /// <summary>
+        /// Query on the id
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <returns></returns>
         public IBooleanOperation Id(int id)
         {
             return IdInternal(id, occurance);
@@ -67,18 +103,20 @@ namespace UmbracoExamine.SearchCriteria
 
         internal protected IBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
         {
-            query.Add(new TermQuery(new Term(LuceneExamineIndexer.IndexNodeIdFieldName, id.ToString())), occurance);
+            query.Add(this.queryParser.GetFieldQuery(LuceneExamineIndexer.IndexNodeIdFieldName, id.ToString()), occurance);
 
             return new LuceneBooleanOperation(this);
         }
 
         public IBooleanOperation NodeName(string nodeName)
         {
+            Enforcer.ArgumentNotNull(nodeName, "nodeName");
             return NodeName(new ExamineValue(Examineness.Explicit, nodeName));
         }
 
         public IBooleanOperation NodeName(IExamineValue nodeName)
         {
+            Enforcer.ArgumentNotNull(nodeName, "nodeName");
             return this.NodeNameInternal(nodeName, occurance);
         }
 
@@ -87,15 +125,15 @@ namespace UmbracoExamine.SearchCriteria
             switch (ev.Examineness)
             {
                 case Examineness.Fuzzy:
-                    query.Add(new FuzzyQuery(new Term("nodeName", ev.Value)), occurance);
+                    query.Add(this.queryParser.GetFuzzyQuery("nodeName", ev.Value, ev.Level), occurance);
                     break;
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
-                    query.Add(new WildcardQuery(new Term("nodeName", ev.Value)), occurance);
+                    query.Add(this.queryParser.GetWildcardQuery("nodeName", ev.Value), occurance);
                     break;
                 case Examineness.Explicit:
                 default:
-                    query.Add(new TermQuery(new Term("nodeName", ev.Value)), occurance);
+                    query.Add(this.queryParser.GetFieldQuery("nodeName", ev.Value), occurance);
                     break;
             }
 
@@ -104,11 +142,13 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation NodeTypeAlias(string nodeTypeAlias)
         {
+            Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
             return this.NodeTypeAlias(new ExamineValue(Examineness.Explicit, nodeTypeAlias));
         }
 
         public IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias)
         {
+            Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
             return this.NodeTypeAliasInternal(nodeTypeAlias, occurance);
         }
 
@@ -117,18 +157,18 @@ namespace UmbracoExamine.SearchCriteria
             switch (examineValue.Examineness)
             {
                 case Examineness.Fuzzy:
-                    query.Add(new FuzzyQuery(new Term("nodeTypeAlias", examineValue.Value)), occurance);
+                    query.Add(this.queryParser.GetFuzzyQuery("nodeTypeAlias", examineValue.Value, examineValue.Level), occurance);
                     break;
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
-                    query.Add(new WildcardQuery(new Term("nodeTypeAlias", examineValue.Value)), occurance);
+                    query.Add(this.queryParser.GetWildcardQuery("nodeTypeAlias", examineValue.Value), occurance);
                     break;
                 case Examineness.Explicit:
                 default:
-                    query.Add(new TermQuery(new Term("nodeTypeAlias", examineValue.Value)), occurance);
+                    query.Add(this.queryParser.GetFieldQuery("nodeTypeAlias", examineValue.Value), occurance);
                     break;
             }
-            
+
             return new LuceneBooleanOperation(this);
         }
 
@@ -139,19 +179,23 @@ namespace UmbracoExamine.SearchCriteria
 
         internal protected IBooleanOperation ParentIdInternal(int id, BooleanClause.Occur occurance)
         {
-            query.Add(new TermQuery(new Term("parentID", id.ToString())), occurance);
+            query.Add(this.queryParser.GetFieldQuery("parentID", id.ToString()), occurance);
 
             return new LuceneBooleanOperation(this);
         }
 
         public IBooleanOperation Field(string fieldName, string fieldValue)
         {
+            Enforcer.ArgumentNotNull(fieldName, "fieldName");
+            Enforcer.ArgumentNotNull(fieldValue, "fieldValue");
             return this.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), occurance);
         }
 
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
-            return this.FieldInternal(fieldName, fieldValue, occurance); 
+            Enforcer.ArgumentNotNull(fieldName, "fieldName");
+            Enforcer.ArgumentNotNull(fieldValue, "fieldValue");
+            return this.FieldInternal(fieldName, fieldValue, occurance);
         }
 
         internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
@@ -159,15 +203,15 @@ namespace UmbracoExamine.SearchCriteria
             switch (fieldValue.Examineness)
             {
                 case Examineness.Fuzzy:
-                    query.Add(new FuzzyQuery(new Term(fieldName, fieldValue.Value)), occurance);
+                    query.Add(this.queryParser.GetFuzzyQuery(fieldName, fieldValue.Value, fieldValue.Level), occurance);
                     break;
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
-                    query.Add(new WildcardQuery(new Term(fieldName, fieldValue.Value)), occurance);
+                    query.Add(this.queryParser.GetWildcardQuery(fieldName, fieldValue.Value), occurance);
                     break;
                 case Examineness.Explicit:
                 default:
-                    query.Add(new TermQuery(new Term(fieldName, fieldValue.Value)), occurance);
+                    query.Add(this.queryParser.GetFieldQuery(fieldName, fieldValue.Value), occurance);
                     break;
             }
 
@@ -186,6 +230,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, int start, int end)
         {
+            Enforcer.ArgumentNotNull(fieldName, "fieldName");
             return this.Range(fieldName, start, end, true, true);
         }
 
@@ -198,11 +243,17 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, string start, string end)
         {
+            Enforcer.ArgumentNotNull(fieldName, "fieldName");
+            Enforcer.ArgumentNotNull(start, "start");
+            Enforcer.ArgumentNotNull(end, "end");
             return this.Range(fieldName, start, end, true, true);
         }
 
         public IBooleanOperation Range(string fieldName, string start, string end, bool includeLower, bool includeUpper)
         {
+            Enforcer.ArgumentNotNull(fieldName, "fieldName");
+            Enforcer.ArgumentNotNull(start, "start");
+            Enforcer.ArgumentNotNull(end, "end");
             return this.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
         }
 
@@ -213,32 +264,94 @@ namespace UmbracoExamine.SearchCriteria
             return new LuceneBooleanOperation(this);
         }
 
-        public IBooleanOperation MultipleFields(IEnumerable<string> fieldNames, string fieldValue)
+        public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
         {
-            foreach (var fieldName in fieldNames)
-            {
-                this.Field(fieldName, fieldValue);
-            }
+            Enforcer.ArgumentNotNull(fields, "fields");
+            Enforcer.ArgumentNotNull(query, "query");
+            return this.GroupedAndInternal(fields.ToArray(), query, occurance);
+        }
+
+        protected internal IBooleanOperation GroupedAndInternal(string[] fields, string[] query, BooleanClause.Occur occurance)
+        {
+            var flags = new BooleanClause.Occur[fields.Length];
+            for (int i = 0; i < flags.Length; i++)
+                flags[i] = BooleanClause.Occur.MUST;
+
+            if (query.Length > 1)
+                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
+            else
+                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query[0], fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
 
             return new LuceneBooleanOperation(this);
         }
 
-        public IBooleanOperation MultipleFields(IEnumerable<string> fieldNames, IExamineValue fieldValue)
+        public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
         {
-            return this.MultipleFieldsInternal(fieldNames, fieldValue, occurance);
+            Enforcer.ArgumentNotNull(fields, "fields");
+            Enforcer.ArgumentNotNull(query, "query");
+
+            return this.GroupedOrInternal(fields.ToArray(), query, occurance);
+        }
+
+        protected internal IBooleanOperation GroupedOrInternal(string[] fields, string[] query, BooleanClause.Occur occurance)
+        {
+            var flags = new BooleanClause.Occur[fields.Length];
+            for (int i = 0; i < flags.Length; i++)
+                flags[i] = BooleanClause.Occur.SHOULD;
+
+            if (query.Length > 1)
+                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
+            else
+                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query[0], fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
+
+            return new LuceneBooleanOperation(this);
+        }
+
+        public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
+        {
+            Enforcer.ArgumentNotNull(fields, "fields");
+            Enforcer.ArgumentNotNull(query, "query");
+
+            return this.GroupedNotInternal(fields.ToArray(), query, occurance);
+        }
+
+        protected internal IBooleanOperation GroupedNotInternal(string[] fields, string[] query, BooleanClause.Occur occurance)
+        {
+            var flags = new BooleanClause.Occur[fields.Length];
+            for (int i = 0; i < flags.Length; i++)
+                flags[i] = BooleanClause.Occur.MUST_NOT;
+
+            if (query.Length > 1)
+                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
+            else
+                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query[0], fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
+
+            return new LuceneBooleanOperation(this);
+        }
+
+        public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
+        {
+            Enforcer.ArgumentNotNull(fields, "fields");
+            Enforcer.ArgumentNotNull(query, "query");
+            Enforcer.ArgumentNotNull(operations, "operations");
+
+            return this.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, occurance);
+        }
+
+        protected internal IBooleanOperation GroupedFlexibleInternal(string[] fields, BooleanOperation[] operations, string[] query, BooleanClause.Occur occurance)
+        {
+            var flags = new BooleanClause.Occur[operations.Count()];
+            for (int i = 0; i < flags.Length; i++)
+                flags[i] = operations.ElementAt(i).ToLuceneOccurance();
+
+            if (query.Length > 1)
+                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields, flags, this.queryParser.GetAnalyzer()), occurance);
+            else
+                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query[0], fields, flags, this.queryParser.GetAnalyzer()), occurance);
+
+            return new LuceneBooleanOperation(this);
         }
 
         #endregion
-
-
-        internal IBooleanOperation MultipleFieldsInternal(IEnumerable<string> fieldNames, IExamineValue fieldValue, BooleanClause.Occur occurance)
-        {
-            foreach (var fieldName in fieldNames)
-            {
-                this.FieldInternal(fieldName, fieldValue, occurance);
-            }
-
-            return new LuceneBooleanOperation(this);
-        }
     }
 }

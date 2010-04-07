@@ -49,6 +49,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\Examine.xml</DocumentationFile>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,6 +60,15 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Release\Examine.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DelaySign>true</DelaySign>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Solution Items\TheFARM-Public.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -80,6 +90,7 @@
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\ExamineSection.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
+    <Compile Include="Enforcer.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IndexCriteria.cs" />
     <Compile Include="IndexedNode.cs" />
@@ -92,6 +103,8 @@
     <Compile Include="IIndexer.cs" />
     <Compile Include="IndexType.cs" />
     <Compile Include="INodeEventArgs.cs" />
+    <Compile Include="ISearchResults.cs" />
+    <Compile Include="SearchCriteria\BooleanOperation.cs" />
     <Compile Include="SearchCriteria\IBooleanOperation.cs" />
     <Compile Include="SearchCriteria\IQuery.cs" />
     <Compile Include="SearchCriteria\ISearchCriteria.cs" />

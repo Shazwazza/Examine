@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
@@ -17,8 +16,25 @@ using UmbracoExamine.SearchCriteria;
 
 namespace UmbracoExamine
 {
+    /// <summary>
+    /// An Examine searcher which uses Lucene.Net as the 
+    /// </summary>
     public class LuceneExamineSearcher : BaseSearchProvider
     {
+        /// <summary>
+        /// Initializes the provider.
+        /// </summary>
+        /// <param name="name">The friendly name of the provider.</param>
+        /// <param name="config">A collection of the name/value pairs representing the provider-specific attributes specified in the configuration for this provider.</param>
+        /// <exception cref="T:System.ArgumentNullException">
+        /// The name of the provider is null.
+        /// </exception>
+        /// <exception cref="T:System.ArgumentException">
+        /// The name of the provider has a length of zero.
+        /// </exception>
+        /// <exception cref="T:System.InvalidOperationException">
+        /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
+        /// </exception>
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -69,28 +85,35 @@ namespace UmbracoExamine
         /// <param name="maxResults"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
-        public override IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards)
+        public override ISearchResults Search(string searchText, int maxResults, bool useWildcards)
         {
-            var sc = this.CreateSearchCriteria(maxResults, IndexType.Content);
+            var sc = this.CreateSearchCriteria(IndexType.Content);
 
             if (useWildcards)
             {
-                sc = sc.MultipleFields(GetSearchFields(), searchText.MultipleCharacterWildcard()).Compile();
+                sc = sc.GroupedOr(GetSearchFields(), searchText.MultipleCharacterWildcard().Value).Compile();
             }
             else
             {
-                sc = sc.MultipleFields(GetSearchFields(), searchText).Compile();
+                sc = sc.GroupedOr(GetSearchFields(), searchText).Compile();
             }
 
             return Search(sc);
         }
 
-        public override IEnumerable<SearchResult> Search(ISearchCriteria searchParams)
+        /// <summary>
+        /// Searches the data source using the Examine Fluent API
+        /// </summary>
+        /// <param name="searchParams">The fluent API search.</param>
+        /// <returns></returns>
+        public override ISearchResults Search(ISearchCriteria searchParams)
         {
             IndexSearcher searcher = null;
 
             try
             {
+                Enforcer.ArgumentNotNull(searchParams, "searchParams");
+
                 var luceneParams = searchParams as LuceneSearchCriteria;
                 if (luceneParams == null)
                     throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
@@ -98,23 +121,8 @@ namespace UmbracoExamine
                 if (!LuceneIndexFolder.Exists)
                     throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
 
-                searcher = new IndexSearcher(new Lucene.Net.Store.SimpleFSDirectory(LuceneIndexFolder), true);
-
-                TopDocs tDocs = searcher.Search(luceneParams.query, (Filter)null, searchParams.MaxResults);
-
-                IndexReader reader = searcher.GetIndexReader();
-                var searchFields = GetSearchFields(reader);
-
-                var results = PrepareResults(tDocs, searchFields, searcher);
-
-                if (luceneParams.IncludeHitCount)
-                {
-                    //TODO: Work out how to do this properly!!!
-                    var hits = searcher.Search(luceneParams.query, null, luceneParams.MaxResults);
-                    luceneParams.TotalHits = hits.totalHits;
-                }
-
-                return results.ToList();
+                var pagesResults = new SearchResults(luceneParams.query, this);
+                return pagesResults;
             }
             finally
             {
@@ -125,9 +133,14 @@ namespace UmbracoExamine
             }
         }
 
-        public override ISearchCriteria CreateSearchCriteria(int maxResults, IndexType type)
+        public override ISearchCriteria CreateSearchCriteria(IndexType type)
         {
-            return new LuceneSearchCriteria(maxResults, type);
+            return this.CreateSearchCriteria(type, BooleanOperation.And);
+        }
+
+        public override ISearchCriteria CreateSearchCriteria(IndexType type, BooleanOperation defaultOperation)
+        {
+            return new LuceneSearchCriteria(type, this.IndexingAnalyzer, this.GetSearchFields(), defaultOperation);
         }
 
         #region Private

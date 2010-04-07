@@ -18,13 +18,13 @@ namespace Examine
         /// <param name="maxResults">The max number of results.</param>
         /// <param name="useWildcards">if set to <c>true</c> the search will use wildcards.</param>
         /// <returns>Search Results</returns>
-        IEnumerable<SearchResult> Search(string searchText, int maxResults, bool useWildcards);
+        ISearchResults Search(string searchText, int maxResults, bool useWildcards);
         /// <summary>
         /// Searches using the specified search query parameters
         /// </summary>
         /// <param name="searchParameters">The search parameters.</param>
         /// <returns>Search Results</returns>
-        IEnumerable<SearchResult> Search(ISearchCriteria searchParameters);
+        ISearchResults Search(ISearchCriteria searchParameters);
 
         /// <summary>
         /// Creates a search criteria instance as required by the implementation
@@ -32,6 +32,17 @@ namespace Examine
         /// <param name="maxResults">The max number of results.</param>
         /// <param name="type">The type of data in the index.</param>
         /// <returns>An instance of <see cref="Examine.SearchCriteria.ISearchCriteria"/></returns>
-        ISearchCriteria CreateSearchCriteria(int maxResults, IndexType type);
+        ISearchCriteria CreateSearchCriteria(IndexType type);
+
+        /// <summary>
+        /// Creates a search criteria instance as required by the implementation
+        /// </summary>
+        /// <param name="maxResults">The max number of results.</param>
+        /// <param name="type">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
+        /// <returns>
+        /// An instance of <see cref="Examine.SearchCriteria.ISearchCriteria"/>
+        /// </returns>
+        ISearchCriteria CreateSearchCriteria(IndexType type, BooleanOperation defaultOperation);
     }
 }
