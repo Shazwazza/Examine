@@ -16,18 +16,29 @@ namespace UmbracoExamine.Test.TESTING
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            
         }
 
         protected void TestSearch_Click(object sender, EventArgs e)
         {
             //var results = ExamineManager.Instance.Search(SearchTextBox.Text, 100, true);
 
+            var s = "AEIOU";
+
+            var fields = new string[s.Length];
+            var query = new string[s.Length];
+
+            for (int i = 0; i < s.Length; i++)
+            {
+                fields[i] = "bodyText";
+                query[i] = s[i].ToString();
+            }
+
             var searchCriteria = ExamineManager.Instance.CreateSearchCriteria(IndexType.Content);
             searchCriteria = searchCriteria
-                .NodeTypeAlias("cws".MultipleCharacterWildcard())
+                //.NodeTypeAlias("cws".MultipleCharacterWildcard())
                 //.And()
-                //.GroupedAnd(new[] { "bodyText", "headerText" }, "umbraco")
+                .GroupedOr(fields, query)
                 //.And()
                 //.GroupedFlexible(new [] { "bodyText", "headerText" }, new[] { BooleanOperation.Not, BooleanOperation.And }, "sucks", "rocks")
                 .Compile();

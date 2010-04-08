@@ -236,9 +236,14 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
         {
-            query.Add(NumericRangeQuery.NewIntRange(fieldName, start, end, includeLower, includeUpper), occurance);
+            return this.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
+        }
 
-            return new LuceneBooleanOperation(this);
+        protected internal IBooleanOperation RangeInternal(string fieldName, int start, int end, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        {
+            //query.Add(NumericRangeQuery.NewIntRange(fieldName, start, end, includeLower, includeUpper), occurance);
+            //return new LuceneBooleanOperation(this);
+            return this.RangeInternal(fieldName, start.ToString(), end.ToString(), includeLower, includeUpper, occurance);
         }
 
         public IBooleanOperation Range(string fieldName, string start, string end)

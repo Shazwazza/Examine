@@ -67,7 +67,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
         {
-            return this.search.Range(fieldName, start, end, includeLower, includeUpper);
+            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
         }
 
         public IBooleanOperation Range(string fieldName, string start, string end)
