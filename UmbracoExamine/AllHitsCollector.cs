@@ -40,9 +40,11 @@ namespace UmbracoExamine
 
         public override void Collect(int doc)
         {
+            //this will be called for each document that is matched in the query
             var score = 1.0f;
             if (shouldScore)
             {
+                //only get the score if required
                 score = scorer.Score();
             }
             hits.Add(new AllHit(doc, score));
@@ -58,11 +60,21 @@ namespace UmbracoExamine
             this.scorer = scorer;
         }
 
+        /// <summary>
+        /// Gets the doc id at a specified index
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns></returns>
         public int GetDocId(int index)
         {
             return hits.ElementAt(index).DocId;
         }
 
+        /// <summary>
+        /// Gets the doc score for a doc at a specified index
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns></returns>
         public float GetDocScore(int index)
         {
             return hits.ElementAt(index).Score;

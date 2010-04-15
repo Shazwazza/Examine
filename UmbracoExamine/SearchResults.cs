@@ -35,7 +35,10 @@ namespace UmbracoExamine
                 Score = score
             };
 
+            //we can use lucene to find out the fields which have been stored for this particular document
+            //I'm not sure if it'll return fields that have null values though
             var fields = doc.GetFields();
+            //ignore our internal fields though
             foreach (Field field in fields
                 .Cast<Field>()
                 .Where(x => x.Name() != LuceneExamineIndexer.IndexNodeIdFieldName && x.Name() != LuceneExamineIndexer.IndexTypeFieldName))
@@ -46,6 +49,14 @@ namespace UmbracoExamine
             return sr;
         }
 
+        /// <summary>
+        /// Skips to a particular point in the search results.
+        /// </summary>
+        /// <remarks>
+        /// This allows for lazy loading of the results paging. We don't go into Lucene until we have to.
+        /// </remarks>
+        /// <param name="skip">The skip.</param>
+        /// <returns></returns>
         public IEnumerable<SearchResult> Skip(int skip)
         {
             for (int i = skip; i < this.TotalItemCount; i++)
@@ -58,6 +69,8 @@ namespace UmbracoExamine
 
                     docs.Add(i, CreateSearchResult(doc, score));
                 }
+                //using yield return means if the user breaks out we wont keep going
+                //only load what we need to load!
                 yield return docs[i];
             }
         }
@@ -66,6 +79,8 @@ namespace UmbracoExamine
 
         public IEnumerator<SearchResult> GetEnumerator()
         {
+            //if we're going to Enumerate from this itself we're not going to be skipping
+            //so unless we made it IQueryable we can't do anything better than start from 0
             return this.Skip(0).GetEnumerator();
         }
 
