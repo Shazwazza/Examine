@@ -2,7 +2,9 @@ using System.Reflection;
 [assembly: AssemblyCompany("TheFARM")]
 [assembly: AssemblyCopyright("Copyright © TheFARM 2010")]
 [assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("en-AU")]
+
+//Can't set assembly culture because it will then search for the assembly in a specific folder, needs to be neutral
+//[assembly: AssemblyCulture("en-AU")]
 
 
 // Version information for an assembly consists of the following four values:

@@ -1,10 +1,10 @@
 <%@ Page Language="C#" AutoEventWireup="true" Codebehind="noNodes.aspx.cs" Inherits="umbraco.presentation.config.splashes.noNodes" %>
 <%@ Register TagPrefix="cc1" Namespace="umbraco.uicontrols" Assembly="controls" %>
+<%@ Register TagPrefix="umb" Namespace="ClientDependency.Core.Controls" Assembly="ClientDependency.Core" %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" >
 <html>
-<head>
+<head runat="server">
   <title>Umbraco <%=umbraco.GlobalSettings.CurrentVersion%> - no pages found</title>
-  	<script type="text/javascript" src="/umbraco_client/ui/jquery.js"></script>
   	
   	<style type="text/css">
   			
@@ -49,6 +49,9 @@
 </head>
 <body>
 
+	<cc1:UmbracoClientDependencyLoader runat="server" id="ClientLoader" />
+	<umb:JsInclude ID="JsInclude4" runat="server" FilePath="ui/jquery.js" PathNameAlias="UmbracoClient" Priority="0" />
+
 <form id="Form1" method="post" runat="server">
 
 <asp:ScriptManager runat="server" ID="umbracoScriptManager"></asp:ScriptManager>
@@ -80,13 +83,13 @@ some content. You can do this by clicking the "launch umbraco" button below.
 <tr>
 <td>
 <a target="_blank" href="http://umbraco.org/documentation/videos/getting-started/building-a-simple-site">
-<img src="/install/images/packagesVid1.png" />
+<img runat="server" id="vid1" src="~/install/images/packagesVid1.png" />
 <span>Watch: Building a simple site.</span>
 </a>
 </td>
 <td>
 <a target="_blank" href="http://umbraco.org/documentation/videos/getting-started/using-packages">
-<img src="/install/images/packagesVid2.png" />
+<img runat="server" id="vid2" src="~/install/images/packagesVid2.png" />
 <span>Watch: using packages</span>
 </a>
 </td>

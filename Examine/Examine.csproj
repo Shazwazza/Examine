@@ -88,7 +88,7 @@
     </Compile>
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
-    <Compile Include="Config\ExamineSection.cs" />
+    <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="IIndexCriteria.cs" />

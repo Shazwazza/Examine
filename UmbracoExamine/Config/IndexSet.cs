@@ -18,23 +18,30 @@ namespace UmbracoExamine.Config
             get
             {
                 return (string)this["SetName"];
-            }
-            set
-            {
-                this["SetName"] = value;
-            }
+            }           
         }
 
+        private string m_IndexPath = "";
+        
+        /// <summary>
+        /// The folder path of where the lucene index is stored
+        /// </summary>
+        /// <remarks>
+        /// This can be set at runtime but will not be persisted to the configuration file
+        /// </remarks>
         [ConfigurationProperty("IndexPath", IsRequired = true, IsKey = false)]
         public string IndexPath
         {
             get
             {
-                return (string)this["IndexPath"];
+                if (string.IsNullOrEmpty(m_IndexPath)) {
+                    m_IndexPath = (string)this["IndexPath"];   
+                }
+                return m_IndexPath;
             }
             set
             {
-                this["IndexPath"] = value;
+                m_IndexPath = value;
             }
         }
 
@@ -51,11 +58,7 @@ namespace UmbracoExamine.Config
                     return 200;
 
                 return (int)this["MaxResults"];
-            }
-            set
-            {
-                this["MaxResults"] = value;
-            }
+            }            
         }
 
         /// <summary>
@@ -65,7 +68,16 @@ namespace UmbracoExamine.Config
         {
             get
             {
-                return new DirectoryInfo(HttpContext.Current.Server.MapPath(this.IndexPath));
+                //we need to de-couple the context
+                if (HttpContext.Current != null)
+                {
+                    return new DirectoryInfo(HttpContext.Current.Server.MapPath(this.IndexPath));
+                }
+                else
+                {
+                    return new DirectoryInfo(this.IndexPath);
+                }
+                
             }
         }
 
@@ -81,10 +93,6 @@ namespace UmbracoExamine.Config
                     return null;
 
                 return (int)this["IndexParentId"];
-            }
-            set
-            {
-                this["IndexParentId"] = value;
             }
         }
 

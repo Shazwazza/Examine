@@ -18,6 +18,8 @@ using umbraco.cms.businesslogic;
 using umbraco.cms.businesslogic.media;
 using UmbracoExamine.Config;
 using Lucene.Net.Store;
+using umbraco.presentation;
+using System.Web;
 
 
 
@@ -1210,7 +1212,11 @@ namespace UmbracoExamine
         /// <param name="type"></param>
         private void AddLog(int nodeId, string msg, LogTypes type)
         {
-            Log.Add(type, nodeId, "[UmbracoExamine] " + msg);
+            if (HttpContext.Current != null)
+            {
+                Log.Add(type, nodeId, "[UmbracoExamine] " + msg);
+            }
+            
         }
 
         #endregion

@@ -131,6 +131,7 @@
     <Compile Include="SerializableDictionary.cs" />
     <Compile Include="SerializableDictionaryExtensions.cs" />
     <Compile Include="UmbracoEventManager.cs" />
+    <Compile Include="XsltExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
