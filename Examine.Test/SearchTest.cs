@@ -16,15 +16,12 @@ namespace Examine.Test
 
         #region Initialize and Cleanup
 
-        private static IndexInit m_Init = new IndexInit("SearchWorkingTest");
+        private static IndexInit m_Init;
         
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            m_Init.RemoveWorkingIndex();
-
-            var d = m_Init.CreateFromTemplate();
-            m_Init.UpdateIndexPaths();
+            m_Init = new IndexInit();
         }
 
         [ClassCleanup()]
@@ -38,14 +35,14 @@ namespace Examine.Test
         [TestMethod]
         public void TestSimpleSearch()
         {
-            var result = ExamineManager.Instance.Search("sam", false);
+            var result = ExamineManager.Instance.SearchProviderCollection["CWSSearch"].Search("sam", false);
             Assert.AreEqual(result.Count(), 4, "Results returned for 'sam' should be equal to 4 with the StandardAnalyzer");            
         }
 
         [TestMethod]
         public void TestSimpleSearchWithWildcard()
         {
-            var result = ExamineManager.Instance.Search("umb", true);
+            var result = ExamineManager.Instance.SearchProviderCollection["CWSSearch"].Search("umb", true);
             Assert.AreEqual(result.Count(), 7, "Total results for 'umb' is 7 using wildcards");
         }
 

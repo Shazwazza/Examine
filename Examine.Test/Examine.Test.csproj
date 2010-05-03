@@ -43,6 +43,8 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
@@ -53,6 +55,10 @@
     <Compile Include="..\Solution Items\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="DataServices\TestContentService.cs" />
+    <Compile Include="DataServices\TestDataService.cs" />
+    <Compile Include="DataServices\TestLogService.cs" />
+    <Compile Include="DataServices\TestMediaService.cs" />
     <Compile Include="IndexInit.cs" />
     <Compile Include="IndexTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,13 +66,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="TestIndex\TemplateIndex\segments.gen">
+    <None Include="App_Data\umbraco.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="TestIndex\TemplateIndex\segments_2">
+    <None Include="App_Data\TemplateIndex\segments.gen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="TestIndex\TemplateIndex\_0.cfs">
+    <None Include="App_Data\TemplateIndex\segments_2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="App_Data\TemplateIndex\_0.cfs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -80,6 +89,7 @@
       <Name>UmbracoExamine</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

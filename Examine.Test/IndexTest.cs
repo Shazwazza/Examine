@@ -11,15 +11,12 @@ namespace Examine.Test
     {
         #region Initialize and Cleanup
 
-        private static IndexInit m_Init = new IndexInit("IndexWorkingTest");
+        private static IndexInit m_Init;
 
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            m_Init.RemoveWorkingIndex();
-
-            var d = m_Init.CreateFromTemplate();
-            m_Init.UpdateIndexPaths();
+            m_Init = new IndexInit();
         }
 
         [ClassCleanup()]
@@ -31,8 +28,9 @@ namespace Examine.Test
         #endregion
 
         [TestMethod]
-        public void TestMethod1()
+        public void TestRebuildIndex()
         {
+            ExamineManager.Instance.RebuildIndex();
         }
     }
 }

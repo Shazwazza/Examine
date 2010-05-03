@@ -5,20 +5,23 @@ using System.Text;
 using System.IO;
 using System.Reflection;
 using UmbracoExamine.Config;
+using UmbracoExamine;
+using Examine.Test.DataServices;
+using System.Threading;
 
 namespace Examine.Test
 {
     public class IndexInit
     {
-        public IndexInit(string workingIndexFolderName)
+        public IndexInit()
         {
-            m_WorkingIndexFolderName = workingIndexFolderName;
+            RemoveWorkingIndex();
+            UpdateIndexPaths();            
         }
 
-        private string m_WorkingIndexFolderName;
-
         private DirectoryInfo GetTemplateFolder() {
-            var template = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("TestIndex")
+            var template = GetWorkingFolder()
+                .GetDirectories("App_Data")
                 .Single()
                 .GetDirectories("TemplateIndex")
                 .Single();
@@ -27,40 +30,46 @@ namespace Examine.Test
 
         private DirectoryInfo GetWorkingFolder()
         {
-            var di = new DirectoryInfo(Path.Combine(GetTemplateFolder().FullName, "..\\" + m_WorkingIndexFolderName));
-            if (!di.Exists)
-            {
-                di.Create();
-            }
-            return di;
+            return new FileInfo(Assembly.GetExecutingAssembly().Location).Directory;
         }
 
         public void RemoveWorkingIndex() 
         {
-            var working = GetWorkingFolder();
-            working.GetFiles().ToList().ForEach(x => x.Delete());
-            working.Delete(true);
+            //need to wait between test classes so lucene closes it's locks!
+            Thread.Sleep(2000);
+
+            var searchTest = GetWorkingFolder().GetDirectories("App_Data").First().GetDirectories("SearchWorkingTest").FirstOrDefault();
+            if (searchTest != null)
+            {
+                searchTest.GetFiles().ToList().ForEach(x => x.Delete());
+                searchTest.Delete(true);
+            }            
+
+            var indexText = GetWorkingFolder().GetDirectories("App_Data").First().GetDirectories("IndexWorkingTest").FirstOrDefault();
+            if (indexText != null)
+            {
+                indexText.GetFiles().ToList().ForEach(x => x.Delete());
+                indexText.Delete(true);
+            }
+            
         }
 
-        public DirectoryInfo CreateFromTemplate()
-        {           
-            var template = GetTemplateFolder();
-            var working = GetWorkingFolder();
-            if (working.Exists) 
-                working.Delete(true);
-            working.Create();
-            var indexDir = working.CreateSubdirectory("Index");
-            template.GetFiles().ToList().ForEach(x => x.CopyTo(Path.Combine(indexDir.FullName, x.Name)));
 
-            return working;
-        }
-
-        public void UpdateIndexPaths()
+        private void UpdateIndexPaths()
         {
+            var template = GetTemplateFolder();
             ExamineLuceneIndexes.Instance.Sets.Cast<IndexSet>().ToList()
                 .ForEach(x =>
                 {
-                    x.IndexPath = GetWorkingFolder().FullName;
+                    x.IndexPath = Path.Combine(GetWorkingFolder().FullName, x.IndexPath);
+                    var di = new DirectoryInfo(x.IndexPath);
+                    if (!di.Exists)
+                    {
+                        di.Create();
+                    }
+
+                    var indexDir = di.CreateSubdirectory("Index");
+                    template.GetFiles().ToList().ForEach(f => f.CopyTo(Path.Combine(indexDir.FullName, f.Name)));
                 });
         }
 

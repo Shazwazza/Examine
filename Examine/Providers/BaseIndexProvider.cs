@@ -40,21 +40,21 @@ namespace Examine.Providers
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
-            if (config["enabled"] == null)
-                throw new ArgumentNullException("enabled flag on index provider has not been set");
+            //if (config["enabled"] == null)
+            //    throw new ArgumentNullException("enabled flag on index provider has not been set");
 
-            bool enabled;
-            if (!bool.TryParse(config["enabled"], out enabled))
-                throw new ArgumentNullException("enabled flag on index provider has not been set");
+            //bool enabled;
+            //if (!bool.TryParse(config["enabled"], out enabled))
+            //    throw new ArgumentNullException("enabled flag on index provider has not been set");
 
-            Enabled = enabled;
+            //Enabled = enabled;
         }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="BaseIndexProvider"/> is enabled.
         /// </summary>
         /// <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
-        public bool Enabled { get; set; }
+        //public bool Enabled { get; set; }
 
         #region IIndexer members
         /// <summary>
