@@ -13,13 +13,10 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using umbraco.BusinessLogic;
-using umbraco.cms.businesslogic;
-using umbraco.cms.businesslogic.media;
 using UmbracoExamine.Config;
 using Lucene.Net.Store;
-using umbraco.presentation;
 using System.Web;
+using UmbracoExamine.DataServices;
 
 
 
@@ -56,6 +53,7 @@ namespace UmbracoExamine
         #endregion
 
         #region Initialize
+
         /// <summary>
         /// Set up all properties for the indexer based on configuration information specified. This will ensure that
         /// all of the folders required by the indexer are created and exist. This will also create an instruction
@@ -67,6 +65,19 @@ namespace UmbracoExamine
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
+
+            if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
+            {
+                //this should be a fully qualified type
+                var serviceType = Type.GetType(config["dataService"]);
+                DataService = (IDataService)Activator.CreateInstance(serviceType);
+            }
+            else
+            {
+                //By default, we will be using the UmbracoDataService
+                //generally this would only need to be set differently for unit testing
+                DataService = new UmbracoDataService();
+            }
 
             //need to check if the index set is specified
             if (config["indexSet"] == null && IndexerData == null)
@@ -146,15 +157,16 @@ namespace UmbracoExamine
             //log some info if executive indexer
             if (ExecutiveIndex.IsExecutiveMachine)
             {
-                AddLog(-1, string.Format("{0} machine is the Executive Indexer with {1} servers in the cluster",
+                DataService.LogService.AddInfoLog(-1, string.Format("{0} machine is the Executive Indexer with {1} servers in the cluster",
                     ExecutiveIndex.ExecutiveIndexerMachineName,
-                    ExecutiveIndex.ServerCount), LogTypes.Custom);
+                    ExecutiveIndex.ServerCount));
             }
 
             CommitCount = 0;
 
             OptimizeIndex();
         }
+
         #endregion
 
         #region Constants & Fields
@@ -192,6 +204,11 @@ namespace UmbracoExamine
         #region Properties
 
         /// <summary>
+        /// The data service used for retreiving and submitting data to the cms
+        /// </summary>
+        public IDataService DataService { get; set; }        
+
+        /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
         /// </summary>
         public Analyzer IndexingAnalyzer { get; set; }
@@ -226,6 +243,7 @@ namespace UmbracoExamine
 
         #endregion
 
+        #region Events
         /// <summary>
         /// Occurs when [index optimizing].
         /// </summary>
@@ -233,14 +251,15 @@ namespace UmbracoExamine
         /// <summary>
         /// Occurs when [document writing].
         /// </summary>
-        public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
+        public event EventHandler<DocumentWritingEventArgs> DocumentWriting; 
+        #endregion
 
         #region Event handlers
+
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
 
-            AddLog(e.NodeId, string.Format("{0},{1}", e.Message, e.InnerException != null ? e.InnerException.Message : "")
-                , LogTypes.Error);
+            DataService.LogService.AddErrorLog(e.NodeId, string.Format("{0},{1}", e.Message, e.InnerException != null ? e.InnerException.Message : ""));
             base.OnIndexingError(e);
 
             if (!RunAsync)
@@ -252,26 +271,26 @@ namespace UmbracoExamine
 
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
         {
-            AddLog(docArgs.NodeId, string.Format("DocumentWriting event for node ({0})", LuceneIndexFolder.FullName), LogTypes.Custom);
+            DataService.LogService.AddInfoLog(docArgs.NodeId, string.Format("DocumentWriting event for node ({0})", LuceneIndexFolder.FullName));
             if (DocumentWriting != null)
                 DocumentWriting(this, docArgs);
         }
 
         protected override void OnNodeIndexed(IndexedNodeEventArgs e)
         {
-            AddLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName), LogTypes.Custom);
+            DataService.LogService.AddInfoLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName));
             base.OnNodeIndexed(e);
         }
 
         protected override void OnIndexDeleted(DeleteIndexEventArgs e)
         {
-            AddLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value), LogTypes.Custom);
+            DataService.LogService.AddInfoLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value));
             base.OnIndexDeleted(e);
         }
 
         protected virtual void OnIndexOptimizing(EventArgs e)
         {
-            AddLog(-1, "Index is being optimized", LogTypes.Custom);
+            DataService.LogService.AddInfoLog(-1, "Index is being optimized");
             if (IndexOptimizing != null)
                 IndexOptimizing(this, e);
         }
@@ -574,7 +593,7 @@ namespace UmbracoExamine
 
             // Test for access if we're only indexing published content
             // return nothing if we're not supporting protected content and it is protected, and we're not supporting unpublished content
-            if (!SupportUnpublishedContent && (!SupportProtectedContent && IsProtected(nodeId, node.Attribute("path").Value)))
+            if (!SupportUnpublishedContent && (!SupportProtectedContent && DataService.ContentService.IsProtected(nodeId, node.Attribute("path").Value)))
                 return values;
 
             // Get all user data that we want to index and store into a dictionary 
@@ -588,7 +607,7 @@ namespace UmbracoExamine
                 value = indexingFieldDataArgs.FieldValue;
 
                 if (!string.IsNullOrEmpty(value))
-                    values.Add(fieldName, umbraco.library.StripHtml(value));
+                    values.Add(fieldName, DataService.ContentService.StripHtml(value));
             }
 
             // Add umbraco node properties 
@@ -797,63 +816,29 @@ namespace UmbracoExamine
 
         }
 
+        /// <summary>
+        /// Returns an XDocument for the entire tree stored for the IndexType specified.
+        /// </summary>
+        /// <param name="xPath"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         protected XDocument GetXDocument(string xPath, IndexType type)
         {
-            // Get all the nodes of nodeTypeAlias == nodeTypeAlias
-            XPathNodeIterator umbXml;
+            
             switch (type)
             {
                 case IndexType.Content:
                     if (this.SupportUnpublishedContent)
                     {
-                        //This is quite an intensive operation...
-                        //get all root content, then get the XML structure for all children,
-                        //then run xpath against the navigator that's created
-
-                        var rootContent = umbraco.cms.businesslogic.web.Document.GetRootDocuments();
-                        var xmlContent = XDocument.Parse("<content></content>");
-                        var xDoc = new XmlDocument();
-                        foreach (var c in rootContent)
-                        {
-                            var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");
-                            c.XmlPopulate(xDoc, ref xNode, true);
-
-                            if (xNode.Attributes["nodeTypeAlias"] == null)
-                            {
-                                //we'll add the nodeTypeAlias ourselves                                
-                                XmlAttribute d = xDoc.CreateAttribute("nodeTypeAlias");
-                                d.Value = c.ContentType.Alias;
-                                xNode.Attributes.Append(d);
-                            }
-
-                            xmlContent.Root.Add(xNode.ToXElement());
-                        }
-                        //umbXml = (XPathNodeIterator)xmlContent.CreateNavigator().Evaluate(xPath);
-                        //return umbXml.ToXDocument();
-
-                        var result = ((IEnumerable)xmlContent.XPathEvaluate(xPath)).Cast<XElement>();
-                        return result.ToXDocument();
+                        return DataService.ContentService.GetLatestContentByXPath(xPath);
                     }
                     else
                     {
-                        //If we're only dealing with published content, this is easy
-                        return umbraco.library.GetXmlNodeByXPath(xPath).ToXDocument();
+                        return DataService.ContentService.GetPublishedContentByXPath(xPath);
                     }
                 case IndexType.Media:
-
-                    //This is quite an intensive operation...
-                    //get all root media, then get the XML structure for all children,
-                    //then run xpath against the navigator that's created
-                    Media[] rootMedia = Media.GetRootMedias();
-                    var xmlMedia = XDocument.Parse("<media></media>");
-                    foreach (var media in rootMedia)
-                    {
-                        var nodes = umbraco.library.GetMedia(media.Id, true);
-                        xmlMedia.Root.Add(XElement.Parse(nodes.Current.OuterXml));
-
-                    }
-                    umbXml = (XPathNodeIterator)xmlMedia.CreateNavigator().Evaluate(xPath);
-                    return umbXml.ToXDocument();
+                    return DataService.MediaService.GetLatestMediaByXpath(xPath);
+                                
             }
 
             return null;
@@ -1089,38 +1074,7 @@ namespace UmbracoExamine
                 return val.ToLower();
         }
 
-        /// <summary>
-        /// Unfortunately, we need to implement our own IsProtected method since 
-        /// the Umbraco core code requires an HttpContext for this method and when we're running
-        /// async, there is no context
-        /// </summary>
-        /// <param name="documentId"></param>
-        /// <returns></returns>
-        private XmlNode GetPage(int documentId)
-        {
-            XmlNode x = umbraco.cms.businesslogic.web.Access.AccessXml.SelectSingleNode("/access/page [@id=" + documentId.ToString() + "]");
-            return x;
-        }
-
-        /// <summary>
-        /// Unfortunately, we need to implement our own IsProtected method since 
-        /// the Umbraco core code requires an HttpContext for this method and when we're running
-        /// async, there is no context
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        private bool IsProtected(int nodeId, string path)
-        {
-            foreach (string id in path.Split(','))
-            {
-                if (GetPage(int.Parse(id)) != null)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+        
 
         private void CloseWriter(ref IndexWriter writer)
         {
@@ -1204,20 +1158,6 @@ namespace UmbracoExamine
             return IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder));
         }
 
-        /// <summary>
-        /// Adds a log entry to the umbraco log
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="msg"></param>
-        /// <param name="type"></param>
-        private void AddLog(int nodeId, string msg, LogTypes type)
-        {
-            if (HttpContext.Current != null)
-            {
-                Log.Add(type, nodeId, "[UmbracoExamine] " + msg);
-            }
-            
-        }
 
         #endregion
 

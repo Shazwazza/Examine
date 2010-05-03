@@ -115,6 +115,13 @@
     <Compile Include="Config\ExamineLuceneIndexes.cs" />
     <Compile Include="Config\IndexSetExtensions.cs" />
     <Compile Include="Config\UmbracoFieldDefinitions.cs" />
+    <Compile Include="DataServices\IDataService.cs" />
+    <Compile Include="DataServices\UmbracoDataService.cs" />
+    <Compile Include="DataServices\IContentService.cs" />
+    <Compile Include="DataServices\UmbracoContentService.cs" />
+    <Compile Include="DataServices\ILogService.cs" />
+    <Compile Include="DataServices\IMediaService.cs" />
+    <Compile Include="DataServices\UmbracoMediaService.cs" />
     <Compile Include="DocumentWritingEventArgs.cs" />
     <Compile Include="SearchResults.cs" />
     <Compile Include="FileSystemExtensions.cs" />
@@ -130,6 +137,7 @@
     <Compile Include="SearchCriteria\ExamineValue.cs" />
     <Compile Include="SerializableDictionary.cs" />
     <Compile Include="SerializableDictionaryExtensions.cs" />
+    <Compile Include="DataServices\UmbracoLogService.cs" />
     <Compile Include="UmbracoEventManager.cs" />
     <Compile Include="XsltExtensions.cs" />
   </ItemGroup>
@@ -156,6 +164,7 @@
       <Name>Examine</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

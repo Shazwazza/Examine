@@ -19,7 +19,7 @@ namespace Examine.Providers
         /// <param name="maxResults"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
-        public abstract ISearchResults Search(string searchText, int maxResults, bool useWildcards);
+        public abstract ISearchResults Search(string searchText, bool useWildcards);
         /// <summary>
         /// Searches the data source using the Examine Fluent API
         /// </summary>

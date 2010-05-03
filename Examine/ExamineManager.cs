@@ -57,10 +57,9 @@ namespace Examine
 
                         //set the default
                         DefaultSearchProvider = SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider];
+                        
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
-                        if (DefaultSearchProvider == null)
-                            throw new ProviderException("Unable to load default index provider");
 
                     }
                 }
@@ -88,9 +87,9 @@ namespace Examine
         /// <param name="maxResults"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
-        public ISearchResults Search(string searchText, int maxResults, bool useWildcards)
+        public ISearchResults Search(string searchText, bool useWildcards)
         {
-            return DefaultSearchProvider.Search(searchText, maxResults, useWildcards);
+            return DefaultSearchProvider.Search(searchText, useWildcards);
         }
 
 

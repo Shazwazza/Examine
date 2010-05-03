@@ -13,7 +13,7 @@ namespace UmbracoExamine
         public static XPathNodeIterator Search(string criteria)
         {
             //TODO: Finish all of these methods
-            var resuts = ExamineManager.Instance.Search("sdf", 100, true);
+            var resuts = ExamineManager.Instance.Search("sdf", true);
 
             return null;
         }

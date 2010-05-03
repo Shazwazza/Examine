@@ -13,64 +13,43 @@ namespace Examine.Test
     [TestClass]
     public class SearchTest
     {
-        public SearchTest()
-        {
-            //
-            // TODO: Add constructor logic here
-            //
-        }
-
-        private TestContext testContextInstance;
-
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
 
         #region Initialize and Cleanup
+
+        private static IndexInit m_Init = new IndexInit("SearchWorkingTest");
+        
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            var d = IndexInit.CreateFromTemplate();
-            IndexInit.UpdateIndexPaths();
+            m_Init.RemoveWorkingIndex();
+
+            var d = m_Init.CreateFromTemplate();
+            m_Init.UpdateIndexPaths();
         }
 
         [ClassCleanup()]
         public static void MyClassCleanup()
         {
-            IndexInit.RemoveWorkingIndex();
+            //IndexInit.RemoveWorkingIndex();
         } 
-        #endregion
 
-        #region Additional test attributes
-       
-        //
-        // Use TestInitialize to run code before running each test 
-        // [TestInitialize()]
-        // public void MyTestInitialize() { }
-        //
-        // Use TestCleanup to run code after each test has run
-        // [TestCleanup()]
-        // public void MyTestCleanup() { }
-        //
         #endregion
 
         [TestMethod]
         public void TestSimpleSearch()
         {
-            var result = ExamineManager.Instance.Search("home", 10, false);
-            Assert.IsTrue(result.Count() > 0, "Results returned for 'home' search: " + result.Count());
+            var result = ExamineManager.Instance.Search("sam", false);
+            Assert.AreEqual(result.Count(), 4, "Results returned for 'sam' should be equal to 4 with the StandardAnalyzer");            
         }
+
+        [TestMethod]
+        public void TestSimpleSearchWithWildcard()
+        {
+            var result = ExamineManager.Instance.Search("umb", true);
+            Assert.AreEqual(result.Count(), 7, "Total results for 'umb' is 7 using wildcards");
+        }
+
+
+
     }
 }

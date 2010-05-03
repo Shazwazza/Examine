@@ -85,7 +85,7 @@ namespace UmbracoExamine
         /// <param name="maxResults"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
-        public override ISearchResults Search(string searchText, int maxResults, bool useWildcards)
+        public override ISearchResults Search(string searchText, bool useWildcards)
         {
             var sc = this.CreateSearchCriteria(IndexType.Content);
 

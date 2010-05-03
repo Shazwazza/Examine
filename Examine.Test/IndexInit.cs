@@ -10,8 +10,14 @@ namespace Examine.Test
 {
     public class IndexInit
     {
+        public IndexInit(string workingIndexFolderName)
+        {
+            m_WorkingIndexFolderName = workingIndexFolderName;
+        }
 
-        private static DirectoryInfo GetTemplateFolder() {
+        private string m_WorkingIndexFolderName;
+
+        private DirectoryInfo GetTemplateFolder() {
             var template = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("TestIndex")
                 .Single()
                 .GetDirectories("TemplateIndex")
@@ -19,19 +25,24 @@ namespace Examine.Test
             return template;
         }
 
-        private static DirectoryInfo GetWorkingFolder()
+        private DirectoryInfo GetWorkingFolder()
         {
-            return new DirectoryInfo(Path.Combine(GetTemplateFolder().FullName, "..\\WorkingIndex"));
+            var di = new DirectoryInfo(Path.Combine(GetTemplateFolder().FullName, "..\\" + m_WorkingIndexFolderName));
+            if (!di.Exists)
+            {
+                di.Create();
+            }
+            return di;
         }
 
-        public static void RemoveWorkingIndex() 
+        public void RemoveWorkingIndex() 
         {
             var working = GetWorkingFolder();
             working.GetFiles().ToList().ForEach(x => x.Delete());
             working.Delete(true);
         }
 
-        public static DirectoryInfo CreateFromTemplate()
+        public DirectoryInfo CreateFromTemplate()
         {           
             var template = GetTemplateFolder();
             var working = GetWorkingFolder();
@@ -44,7 +55,7 @@ namespace Examine.Test
             return working;
         }
 
-        public static void UpdateIndexPaths()
+        public void UpdateIndexPaths()
         {
             ExamineLuceneIndexes.Instance.Sets.Cast<IndexSet>().ToList()
                 .ForEach(x =>

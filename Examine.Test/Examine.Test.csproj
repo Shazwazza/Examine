@@ -54,6 +54,7 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="IndexInit.cs" />
+    <Compile Include="IndexTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchTest.cs" />
   </ItemGroup>
