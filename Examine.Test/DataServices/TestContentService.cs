@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Xml.XPath;
 
 namespace Examine.Test.DataServices
 {
@@ -38,7 +39,10 @@ namespace Examine.Test.DataServices
         /// </remarks>
         public XDocument GetLatestContentByXPath(string xpath)
         {
-            return m_XDoc;
+            var xdoc = XDocument.Parse("<content></content>");
+            xdoc.Root.Add(m_XDoc.XPathSelectElements(xpath));
+
+            return xdoc;
         }
 
         /// <summary>
@@ -48,7 +52,10 @@ namespace Examine.Test.DataServices
         /// <returns></returns>
         public XDocument GetPublishedContentByXPath(string xpath)
         {
-            return m_XDoc;
+            var xdoc = XDocument.Parse("<content></content>");
+            xdoc.Root.Add(m_XDoc.XPathSelectElements(xpath));
+
+            return xdoc;
         }
 
         public string StripHtml(string value)

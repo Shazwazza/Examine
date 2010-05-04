@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using Lucene.Net.Index;
-using Lucene.Net.Search;
+using System.Globalization;
+using System.Linq;
 using Examine;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
-using System.Linq;
 using Lucene.Net.QueryParsers;
-using System.Globalization;
+using Lucene.Net.Search;
 
 namespace UmbracoExamine.SearchCriteria
 {
@@ -18,6 +17,7 @@ namespace UmbracoExamine.SearchCriteria
     {
         internal MultiFieldQueryParser queryParser;
         internal BooleanQuery query;
+        internal List<SortField> sortFields = new List<SortField>();
         private readonly BooleanClause.Occur occurance;
         private readonly Lucene.Net.Util.Version luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
@@ -342,11 +342,56 @@ namespace UmbracoExamine.SearchCriteria
             return new LuceneBooleanOperation(this);
         }
 
+        /// <summary>
+        /// Passes a raw search query to the provider to handle
+        /// </summary>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
         public ISearchCriteria RawQuery(string query)
         {
             this.query.Add(this.queryParser.Parse(query), this.occurance);
 
             return this;
+        }
+
+        /// <summary>
+        /// Orders the results by the specified fields
+        /// </summary>
+        /// <param name="fieldNames">The field names.</param>
+        /// <returns></returns>
+        public IBooleanOperation OrderBy(params string[] fieldNames)
+        {
+            Enforcer.ArgumentNotNull(fieldNames, "fieldNames");
+
+            return this.OrderByInternal(false, fieldNames);
+        }
+
+        /// <summary>
+        /// Orders the results by the specified fields in a descending order
+        /// </summary>
+        /// <param name="fieldNames">The field names.</param>
+        /// <returns></returns>
+        public IBooleanOperation OrderByDescending(params string[] fieldNames)
+        {
+            Enforcer.ArgumentNotNull(fieldNames, "fieldNames");
+
+            return this.OrderByInternal(true, fieldNames);
+        }
+
+        /// <summary>
+        /// Internal operation for adding the ordered results
+        /// </summary>
+        /// <param name="descending">if set to <c>true</c> [descending].</param>
+        /// <param name="fieldNames">The field names.</param>
+        /// <returns></returns>
+        protected internal IBooleanOperation OrderByInternal(bool descending, params string[] fieldNames)
+        {
+            foreach (var fieldName in fieldNames)
+            {
+                this.sortFields.Add(new SortField(LuceneExamineIndexer.SORT_PREFIX + fieldName, SortField.STRING, descending));
+            }
+
+            return new LuceneBooleanOperation(this);
         }
 
         #endregion

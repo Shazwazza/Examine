@@ -4,21 +4,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml;
 using System.Xml.Linq;
-using System.Xml.XPath;
 using Examine;
 using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using UmbracoExamine.Config;
 using Lucene.Net.Store;
-using System.Web;
+using umbraco.cms.businesslogic;
+using UmbracoExamine.Config;
 using UmbracoExamine.DataServices;
-
-
 
 namespace UmbracoExamine
 {
@@ -27,18 +23,23 @@ namespace UmbracoExamine
     /// 
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Some links picked up along the way:
-    /// 
+    /// </para>
+    /// <para>
     /// A matrix of concurrent lucene operations: 
     /// http://www.jguru.com/faq/view.jsp?EID=913302.
-    /// 
-    /// based on the info here, it is best to only call optimize when there is no activity,
+    /// </para>
+    /// <para>
+    /// Based on the info here, it is best to only call optimize when there is no activity,
     /// we only optimized after the queue has been processed and at startup:
     /// http://www.gossamer-threads.com/lists/lucene/java-dev/47895
     /// http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
+    /// </para>
     /// </remarks>
     public class LuceneExamineIndexer : BaseIndexProvider, IDisposable
     {
+        internal const string SORT_PREFIX = "__Sort_";
         #region Constructors
         public LuceneExamineIndexer()
             : base()
@@ -581,7 +582,7 @@ namespace UmbracoExamine
         }
 
         /// <summary>
-        /// Collects all of the data that neesd to be indexed as defined in the index set.
+        /// Collects all of the data that needs to be indexed as defined in the index set.
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
@@ -643,12 +644,11 @@ namespace UmbracoExamine
             var args = new IndexingNodeEventArgs(nodeId, fields, type);
             OnNodeIndexing(args);
             if (args.Cancel)
-            {
                 return;
-            }
 
             Document d = new Document();
-            //add all of our fields to the document index individally, don't include the special fields if they exists            
+            var indexSetFields = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName].CombinedUmbracoFields();
+           //add all of our fields to the document index individually, don't include the special fields if they exists            
             fields
                 .Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName)
                 .ToList()
@@ -656,13 +656,31 @@ namespace UmbracoExamine
                 {
                     var policy = UmbracoFieldPolicies.GetPolicy(x.Key);
                     d.Add(
-                        new Field(x.Key, GetFieldValue(x.Value),
+                        new Field(x.Key, 
+                            GetFieldValue(x.Value),
                             Field.Store.YES,
                             policy,
                             policy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES));
+
+                    var indexedFields = indexSetFields.Where(o => o.Name == x.Key);
+                    if (indexSetFields.Count() > 0)
+                    {
+                        if (indexedFields.Count() > 1)
+                            throw new IndexOutOfRangeException("Field \"" + x.Key + "\" is listed multiple times in the index set \"" + this.IndexSetName + "\". Please ensure all names are unique");
+
+                        if (indexedFields.First().EnableSorting)
+                        {
+                            d.Add(new Field(SORT_PREFIX + x.Key,
+                                    GetFieldValue(x.Value),
+                                    Field.Store.YES,
+                                    Field.Index.NOT_ANALYZED,
+                                    Field.TermVector.NO
+                                   ));
+                        }
+                    }
                 });
 
-            //we want to store the nodeId seperately as it's the index
+            //we want to store the nodeId separately as it's the index
             d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
             //add the index type first
             d.Add(new Field(IndexTypeFieldName, type.ToString().ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));

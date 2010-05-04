@@ -17,5 +17,13 @@ namespace UmbracoExamine.Config
             }
         }
 
+        [ConfigurationProperty("EnableSorting", IsRequired = false)]
+        public bool EnableSorting
+        {
+            get
+            {
+                return (bool)this["EnableSorting"];
+            }
+        }
     }
 }

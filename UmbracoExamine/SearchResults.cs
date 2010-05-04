@@ -15,12 +15,19 @@ namespace UmbracoExamine
         private Searcher searcher;
         private AllHitsCollector collector;
 
-        internal SearchResults(Query query, LuceneExamineSearcher examineSearcher)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, LuceneExamineSearcher examineSearcher)
         {
-            collector = new AllHitsCollector(false, true);
             searcher = new IndexSearcher(new SimpleFSDirectory(examineSearcher.LuceneIndexFolder), true);
-            searcher.Search(query, collector);
-
+            if (sortField.Count() == 0)
+            {
+                collector = new AllHitsCollector(false, true);
+                searcher.Search(query, collector); 
+            }
+            else
+            {
+                var topDocs = searcher.Search(query, null, searcher.MaxDoc() - 1, new Sort(sortField.ToArray()));
+                collector = new AllHitsCollector(topDocs.scoreDocs);
+            }
             this.TotalItemCount = collector.Count;
         }
 
@@ -31,7 +38,7 @@ namespace UmbracoExamine
         {
             var sr = new SearchResult()
             {
-                Id = int.Parse(doc.GetField("id").StringValue()),
+                Id = int.Parse(doc.Get("id")),
                 Score = score
             };
 
@@ -43,7 +50,7 @@ namespace UmbracoExamine
                 .Cast<Field>()
                 .Where(x => x.Name() != LuceneExamineIndexer.IndexNodeIdFieldName && x.Name() != LuceneExamineIndexer.IndexTypeFieldName))
             {
-                sr.Fields.Add(field.Name(), field.StringValue());
+                sr.Fields.Add(field.Name(), doc.Get(field.Name()));
             }
 
             return sr;

@@ -30,10 +30,10 @@ namespace UmbracoExamine.Config
         /// <summary>
         /// Returns a string array of all fields that are indexed including Umbraco fields
         /// </summary>
-        public static IEnumerable<string> CombinedUmbracoFields(this IndexSet set)
+        public static IEnumerable<IndexField> CombinedUmbracoFields(this IndexSet set)
         {
-            return set.IndexUserFields.ToList().Select(x => x.Name)
-                .Concat(set.IndexAttributeFields.ToList().Select(x => x.Name));
+            return set.IndexUserFields.ToList()
+                .Concat(set.IndexAttributeFields.ToList());
         }
 
       

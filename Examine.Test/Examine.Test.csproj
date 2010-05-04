@@ -59,6 +59,7 @@
     <Compile Include="DataServices\TestDataService.cs" />
     <Compile Include="DataServices\TestLogService.cs" />
     <Compile Include="DataServices\TestMediaService.cs" />
+    <Compile Include="FluentApiTests.cs" />
     <Compile Include="IndexInit.cs" />
     <Compile Include="IndexTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -66,16 +67,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="App_Data\umbraco.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="App_Data\TemplateIndex\segments.gen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="App_Data\TemplateIndex\segments_2">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="App_Data\TemplateIndex\_0.cfs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="App_Data\umbraco.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="App_Data\TemplateIndex\segments.gen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

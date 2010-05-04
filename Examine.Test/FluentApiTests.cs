@@ -3,15 +3,11 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using UmbracoExamine.Config;
 
 namespace Examine.Test
 {
-    /// <summary>
-    /// Summary description for UnitTest1
-    /// </summary>
     [TestClass]
-    public class SearchTest
+    public class FluentApiTests
     {
         #region Initialize and Cleanup
 
@@ -35,17 +31,18 @@ namespace Examine.Test
         #endregion
 
         [TestMethod]
-        public void TestSimpleSearch()
+        public void Sort_Result_By_Single_Field()
         {
-            var result = Searcher.Search("sam", false);
-            Assert.AreEqual(result.Count(), 4, "Results returned for 'sam' should be equal to 4 with the StandardAnalyzer");            
-        }
+            var sc = Searcher.CreateSearchCriteria(IndexType.Content);
+            var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName").Compile();
 
-        [TestMethod]
-        public void TestSimpleSearchWithWildcard()
-        {
-            var result = Searcher.Search("umb", true);
-            Assert.AreEqual(result.Count(), 7, "Total results for 'umb' is 7 using wildcards");
+            sc = Searcher.CreateSearchCriteria(IndexType.Content);
+            var sc2 = sc.Field("writerName", "administrator").And().OrderByDescending("nodeName").Compile();
+
+            var results1 = Searcher.Search(sc1);
+            var results2 = Searcher.Search(sc2);
+
+            Assert.AreNotEqual(results1.First().Id, results2.First().Id);
         }
     }
 }

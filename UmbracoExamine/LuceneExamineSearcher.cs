@@ -121,7 +121,7 @@ namespace UmbracoExamine
                 if (!LuceneIndexFolder.Exists)
                     throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
 
-                var pagesResults = new SearchResults(luceneParams.query, this);
+                var pagesResults = new SearchResults(luceneParams.query, luceneParams.sortFields, this);
                 return pagesResults;
             }
             finally

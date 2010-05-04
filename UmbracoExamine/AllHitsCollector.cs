@@ -33,6 +33,17 @@ namespace UmbracoExamine
             this.shouldScore = shouldScore;
         }
 
+        public AllHitsCollector(ScoreDoc[] docs)
+        {
+            this.outOfOrder = true;
+            this.shouldScore = true;
+
+            foreach (var doc in docs)
+            {
+                this.hits.Add(new AllHit(doc.doc, doc.score));
+            }
+        }
+
         public override bool AcceptsDocsOutOfOrder()
         {
             return this.outOfOrder;
