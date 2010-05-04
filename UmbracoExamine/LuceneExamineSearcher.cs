@@ -13,6 +13,10 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using UmbracoExamine.Config;
 using UmbracoExamine.SearchCriteria;
+using System.Runtime.CompilerServices;
+
+//make friend to test app
+[assembly: InternalsVisibleTo("Examine.Test")]
 
 namespace UmbracoExamine
 {
@@ -143,11 +147,19 @@ namespace UmbracoExamine
             return new LuceneSearchCriteria(type, this.IndexingAnalyzer, this.GetSearchFields(), defaultOperation);
         }
 
+        #region Internal
+        internal IndexSearcher GetSearcher()
+        {
+            var searcher = new IndexSearcher(new Lucene.Net.Store.SimpleFSDirectory(LuceneIndexFolder), true);
+            return searcher;
+        } 
+        #endregion
+
         #region Private
 
         private string[] GetSearchFields()
         {
-            var searcher = new IndexSearcher(new Lucene.Net.Store.SimpleFSDirectory(LuceneIndexFolder), true);
+            var searcher = GetSearcher();
             try
             {
                 return GetSearchFields(searcher.GetIndexReader());
@@ -168,42 +180,6 @@ namespace UmbracoExamine
             return searchFields;
         }
 
-        /// <summary>
-        /// Creates a list of dictionary's from the hits object and returns a list of SearchResult.
-        /// This also removes duplicates.
-        /// </summary>
-        /// <param name="tDocs">The top docs.</param>
-        /// <param name="searchFields">The search fields.</param>
-        /// <param name="searcher">The searcher.</param>
-        /// <returns></returns>
-        private List<SearchResult> PrepareResults(TopDocs tDocs, string[] searchFields, IndexSearcher searcher)
-        {
-            List<SearchResult> results = new List<SearchResult>();
-
-            for (int i = 0; i < tDocs.scoreDocs.Length; i++)
-            {
-                Document doc = searcher.Doc(tDocs.scoreDocs[i].doc);
-                Dictionary<string, string> fields = new Dictionary<string, string>();
-
-                foreach (Field f in doc.GetFields())
-                {
-                    //if (searchFields.Contains(f.Name()))
-                    fields.Add(f.Name(), f.StringValue());
-                }
-
-                results.Add(new SearchResult()
-                {
-                    Score = tDocs.scoreDocs[i].score,
-                    Id = int.Parse(fields["id"]), //if the id field isn't indexed in the config, an error will occur!
-                    Fields = fields
-                });
-            }
-
-            //return the distinct results ordered by the highest score descending.
-            return (from r in results.Distinct().ToList()
-                    orderby r.Score descending
-                    select r).ToList();
-        }
         #endregion
     }
 }

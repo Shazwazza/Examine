@@ -39,7 +39,7 @@ namespace UmbracoExamine
     /// </remarks>
     public class LuceneExamineIndexer : BaseIndexProvider, IDisposable
     {
-        internal const string SORT_PREFIX = "__Sort_";
+        
         #region Constructors
         public LuceneExamineIndexer()
             : base()
@@ -171,6 +171,8 @@ namespace UmbracoExamine
         #endregion
 
         #region Constants & Fields
+
+        public const string SortedFieldNamePrefix = "__Sort_";
 
         /// <summary>
         /// Specifies how many index commits are performed before running an optimization
@@ -670,7 +672,7 @@ namespace UmbracoExamine
 
                         if (indexedFields.First().EnableSorting)
                         {
-                            d.Add(new Field(SORT_PREFIX + x.Key,
+                            d.Add(new Field(SortedFieldNamePrefix + x.Key,
                                     GetFieldValue(x.Value),
                                     Field.Store.YES,
                                     Field.Index.NOT_ANALYZED,

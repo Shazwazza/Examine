@@ -388,7 +388,7 @@ namespace UmbracoExamine.SearchCriteria
         {
             foreach (var fieldName in fieldNames)
             {
-                this.sortFields.Add(new SortField(LuceneExamineIndexer.SORT_PREFIX + fieldName, SortField.STRING, descending));
+                this.sortFields.Add(new SortField(LuceneExamineIndexer.SortedFieldNamePrefix + fieldName, SortField.STRING, descending));
             }
 
             return new LuceneBooleanOperation(this);
