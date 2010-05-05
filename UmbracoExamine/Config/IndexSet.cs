@@ -49,17 +49,17 @@ namespace UmbracoExamine.Config
         /// Set this to configure the default maximum search results for an index set.
         /// If not set, 200 is the default.
         /// </summary>
-        [ConfigurationProperty("MaxResults", IsRequired = false, IsKey = false)]
-        public int MaxResults
-        {
-            get
-            {
-                if (this["MaxResults"] == null)
-                    return 200;
+        //[ConfigurationProperty("MaxResults", IsRequired = false, IsKey = false)]
+        //public int MaxResults
+        //{
+        //    get
+        //    {
+        //        if (this["MaxResults"] == null)
+        //            return 200;
 
-                return (int)this["MaxResults"];
-            }            
-        }
+        //        return (int)this["MaxResults"];
+        //    }            
+        //}
 
         /// <summary>
         /// Returns the DirectoryInfo object for the index path.

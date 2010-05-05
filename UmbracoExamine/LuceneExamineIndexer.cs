@@ -665,7 +665,7 @@ namespace UmbracoExamine
                             policy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES));
 
                     var indexedFields = indexSetFields.Where(o => o.Name == x.Key);
-                    if (indexSetFields.Count() > 0)
+                    if (indexedFields.Count() > 0)
                     {
                         if (indexedFields.Count() > 1)
                             throw new IndexOutOfRangeException("Field \"" + x.Key + "\" is listed multiple times in the index set \"" + this.IndexSetName + "\". Please ensure all names are unique");

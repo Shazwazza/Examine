@@ -10,6 +10,9 @@ using Lucene.Net.Documents;
 
 namespace UmbracoExamine
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class SearchResults : ISearchResults
     {
         private Searcher searcher;
@@ -31,14 +34,33 @@ namespace UmbracoExamine
             this.TotalItemCount = collector.Count;
         }
 
+        /// <summary>
+        /// Gets the total number of results for the search
+        /// </summary>
+        /// <value>The total item count.</value>
         public int TotalItemCount { get; private set; }
 
-        private Dictionary<int, SearchResult> docs = new Dictionary<int, SearchResult>();
-        private SearchResult CreateSearchResult(Document doc, float score)
+        /// <summary>
+        /// Internal cache of search results
+        /// </summary>
+        protected Dictionary<int, SearchResult> docs = new Dictionary<int, SearchResult>();
+
+        /// <summary>
+        /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
+        /// </summary>
+        /// <param name="doc">The doc to convert.</param>
+        /// <param name="score">The score.</param>
+        /// <returns>A populated search result object</returns>
+        protected SearchResult CreateSearchResult(Document doc, float score)
         {
+            string id = doc.Get("id");
+            if (string.IsNullOrEmpty(id))
+            {
+                id = doc.Get(LuceneExamineIndexer.IndexNodeIdFieldName);
+            }
             var sr = new SearchResult()
             {
-                Id = int.Parse(doc.Get("id")),
+                Id = int.Parse(id),
                 Score = score
             };
 
@@ -68,6 +90,7 @@ namespace UmbracoExamine
         {
             for (int i = skip; i < this.TotalItemCount; i++)
             {
+                //first check our own cache to make sure it's not there
                 if (!docs.ContainsKey(i))
                 {
                     var docId = collector.GetDocId(i);
@@ -78,12 +101,18 @@ namespace UmbracoExamine
                 }
                 //using yield return means if the user breaks out we wont keep going
                 //only load what we need to load!
+                //and we'll get it from our cache, this means you can go 
+                //forward/ backwards without degrading performance
                 yield return docs[i];
             }
         }
 
         #region IEnumerable<SearchResult> Members
 
+        /// <summary>
+        /// Gets the enumerator.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<SearchResult> GetEnumerator()
         {
             //if we're going to Enumerate from this itself we're not going to be skipping
@@ -95,6 +124,12 @@ namespace UmbracoExamine
 
         #region IEnumerable Members
 
+        /// <summary>
+        /// Returns an enumerator that iterates through a collection.
+        /// </summary>
+        /// <returns>
+        /// An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
+        /// </returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();

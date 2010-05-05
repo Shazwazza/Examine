@@ -14,7 +14,7 @@ namespace Examine
 
         public int Id { get; set; }
         public float Score { get; set; }
-        public IDictionary<string, string> Fields { get; set; }
+        public IDictionary<string, string> Fields { get; protected set; }
 
         /// <summary>
         /// Returns the key value pair for the index specified
@@ -42,8 +42,6 @@ namespace Examine
             }
         }
         
-        
-
         /// <summary>
         /// Override this method so that the Distinct() operator works
         /// </summary>
