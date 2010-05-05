@@ -25,18 +25,20 @@ namespace UmbracoExamine
         private bool outOfOrder;
         private bool shouldScore;
         private Scorer scorer;
-        private List<AllHit> hits = new List<AllHit>();
+        private List<AllHit> hits;
 
         public AllHitsCollector(bool outOfOrder, bool shouldScore)
         {
             this.outOfOrder = outOfOrder;
             this.shouldScore = shouldScore;
+            hits = new List<AllHit>();
         }
 
         public AllHitsCollector(ScoreDoc[] docs)
         {
             this.outOfOrder = true;
             this.shouldScore = true;
+            hits = new List<AllHit>(docs.Length);
 
             foreach (var doc in docs)
             {

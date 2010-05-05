@@ -15,21 +15,30 @@ namespace UmbracoExamine
     /// </summary>
     public class SearchResults : ISearchResults
     {
-        private Searcher searcher;
+        private IndexSearcher searcher;
         private AllHitsCollector collector;
 
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, LuceneExamineSearcher examineSearcher)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, IndexSearcher searcher)
         {
-            searcher = new IndexSearcher(new SimpleFSDirectory(examineSearcher.LuceneIndexFolder), true);
+            //searcher = new IndexSearcher(new SimpleFSDirectory(examineSearcher.LuceneIndexFolder), true);
+            this.searcher = searcher;
+            this.searcher.SetDefaultFieldSortScoring(true, true);
+            DoSearch(query, sortField);
+        }
+
+        private void DoSearch(Query query, IEnumerable<SortField> sortField)
+        {
             if (sortField.Count() == 0)
             {
-                collector = new AllHitsCollector(false, true);
-                searcher.Search(query, collector); 
+                var topDocs = searcher.Search(query, null, searcher.MaxDoc(), new Sort());
+                collector = new AllHitsCollector(topDocs.scoreDocs);
+                topDocs = null;
             }
             else
             {
-                var topDocs = searcher.Search(query, null, searcher.MaxDoc() - 1, new Sort(sortField.ToArray()));
+                var topDocs = searcher.Search(query, null, searcher.MaxDoc(), new Sort(sortField.ToArray()));
                 collector = new AllHitsCollector(topDocs.scoreDocs);
+                topDocs = null;
             }
             this.TotalItemCount = collector.Count;
         }

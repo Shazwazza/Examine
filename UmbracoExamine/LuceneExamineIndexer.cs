@@ -1178,7 +1178,6 @@ namespace UmbracoExamine
             return IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder));
         }
 
-
         #endregion
 
         #region IDisposable Members

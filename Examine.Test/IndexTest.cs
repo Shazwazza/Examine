@@ -38,6 +38,7 @@ namespace Examine.Test
         private IndexSearcher GetSearcher()
         {
             var searcher = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSIndex"];
+            searcher.ValidateSearcher(true);
             return searcher.GetSearcher();
         }
 

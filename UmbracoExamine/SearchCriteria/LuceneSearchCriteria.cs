@@ -172,20 +172,25 @@ namespace UmbracoExamine.SearchCriteria
 
         internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
         {
+            Query queryToAdd;
+
             switch (fieldValue.Examineness)
             {
                 case Examineness.Fuzzy:
-                    query.Add(this.queryParser.GetFuzzyQuery(fieldName, fieldValue.Value, fieldValue.Level), occurance);
+                    queryToAdd = this.queryParser.GetFuzzyQuery(fieldName, fieldValue.Value, fieldValue.Level);
                     break;
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
-                    query.Add(this.queryParser.GetWildcardQuery(fieldName, fieldValue.Value), occurance);
+                    queryToAdd = this.queryParser.GetWildcardQuery(fieldName, fieldValue.Value);
                     break;
                 case Examineness.Explicit:
                 default:
-                    query.Add(this.queryParser.GetFieldQuery(fieldName, fieldValue.Value), occurance);
+                    queryToAdd = this.queryParser.GetFieldQuery(fieldName, fieldValue.Value);
                     break;
             }
+
+            if (queryToAdd != null)
+                query.Add(queryToAdd, occurance);
 
             return new LuceneBooleanOperation(this);
         }

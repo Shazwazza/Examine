@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using UmbracoExamine;
 
 namespace Examine.Test
 {
@@ -20,6 +21,7 @@ namespace Examine.Test
         {
             m_Init = new IndexInit();
             Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearch"];
+            ((LuceneExamineSearcher)Searcher).ValidateSearcher(true);
         }
 
         [ClassCleanup()]
@@ -43,6 +45,29 @@ namespace Examine.Test
             var results2 = Searcher.Search(sc2);
 
             Assert.AreNotEqual(results1.First().Id, results2.First().Id);
+        }
+
+        [TestMethod]
+        public void Standard_Results_Sorted_By_Score()
+        {
+            //Arrange
+            var sc = Searcher.CreateSearchCriteria(IndexType.Content, SearchCriteria.BooleanOperation.Or);
+            sc = sc.NodeName("umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco").Compile();
+
+            //Act
+            var results = Searcher.Search(sc);
+
+            //Assert
+            for (int i = 0; i < results.TotalItemCount - 1; i++)
+            {
+                var curr = results.ElementAt(i);
+                var next = results.ElementAtOrDefault(i + 1);
+
+                if (next == null)
+                    break;
+
+                Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
+            }
         }
     }
 }

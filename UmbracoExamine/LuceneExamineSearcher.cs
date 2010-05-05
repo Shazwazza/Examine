@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -8,15 +7,11 @@ using Examine.Providers;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Store;
 using UmbracoExamine.Config;
 using UmbracoExamine.SearchCriteria;
-using System.Runtime.CompilerServices;
-
-//make friend to test app
-[assembly: InternalsVisibleTo("Examine.Test")]
 
 namespace UmbracoExamine
 {
@@ -67,6 +62,8 @@ namespace UmbracoExamine
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
         }
 
+        private static IndexSearcher Searcher;
+
         /// <summary>
         /// Directory where the Lucene.NET Index resides
         /// </summary>
@@ -86,7 +83,6 @@ namespace UmbracoExamine
         /// Simple search method which defaults to searching content nodes
         /// </summary>
         /// <param name="searchText"></param>
-        /// <param name="maxResults"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
         public override ISearchResults Search(string searchText, bool useWildcards)
@@ -112,62 +108,58 @@ namespace UmbracoExamine
         /// <returns></returns>
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
-            IndexSearcher searcher = null;
+            ValidateSearcher(false);
 
-            try
-            {
-                Enforcer.ArgumentNotNull(searchParams, "searchParams");
+            Enforcer.ArgumentNotNull(searchParams, "searchParams");
 
-                var luceneParams = searchParams as LuceneSearchCriteria;
-                if (luceneParams == null)
-                    throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
+            var luceneParams = searchParams as LuceneSearchCriteria;
+            if (luceneParams == null)
+                throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
-                if (!LuceneIndexFolder.Exists)
-                    throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
+            if (!LuceneIndexFolder.Exists)
+                throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
 
-                var pagesResults = new SearchResults(luceneParams.query, luceneParams.sortFields, this);
-                return pagesResults;
-            }
-            finally
-            {
-                if (searcher != null)
-                {
-                    searcher.Close();
-                }
-            }
+            var pagesResults = new SearchResults(luceneParams.query, luceneParams.sortFields, Searcher);
+            return pagesResults;
         }
 
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <param name="type">The type of data in the index.</param>
+        /// <returns>A blank SearchCriteria</returns>
         public override ISearchCriteria CreateSearchCriteria(IndexType type)
         {
             return this.CreateSearchCriteria(type, BooleanOperation.And);
         }
 
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <param name="type">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
+        /// <returns>A blank SearchCriteria</returns>
         public override ISearchCriteria CreateSearchCriteria(IndexType type, BooleanOperation defaultOperation)
         {
             return new LuceneSearchCriteria(type, this.IndexingAnalyzer, this.GetSearchFields(), defaultOperation);
         }
 
-        #region Internal
-        internal IndexSearcher GetSearcher()
+        /// <summary>
+        /// Gets the searcher for this instance
+        /// </summary>
+        /// <returns></returns>
+        public IndexSearcher GetSearcher()
         {
-            var searcher = new IndexSearcher(new Lucene.Net.Store.SimpleFSDirectory(LuceneIndexFolder), true);
-            return searcher;
-        } 
-        #endregion
+            ValidateSearcher(false);
+            return Searcher;
+        }
 
         #region Private
 
         private string[] GetSearchFields()
         {
             var searcher = GetSearcher();
-            try
-            {
-                return GetSearchFields(searcher.GetIndexReader());
-            }
-            finally
-            {
-                searcher.Close();
-            }
+            return GetSearchFields(searcher.GetIndexReader());
         }
 
         private static string[] GetSearchFields(IndexReader reader)
@@ -178,6 +170,25 @@ namespace UmbracoExamine
                 .Where(x => x != LuceneExamineIndexer.IndexNodeIdFieldName && x != LuceneExamineIndexer.IndexTypeFieldName)
                 .ToArray();
             return searchFields;
+        }
+
+        internal void ValidateSearcher(bool forceReopen)
+        {
+            if (!forceReopen)
+            {
+                if (Searcher == null)
+                {
+                    Searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
+                }
+                else if (!Searcher.GetIndexReader().IsCurrent())
+                {
+                    Searcher.GetIndexReader().Reopen();
+                }
+            }
+            else
+            {
+                Searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
+            }
         }
 
         #endregion

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine.Config;
+using UmbracoExamine;
 
 namespace Examine.Test
 {
@@ -24,6 +25,7 @@ namespace Examine.Test
         {
             m_Init = new IndexInit();
             Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearch"];
+            ((LuceneExamineSearcher)Searcher).ValidateSearcher(true);
         }
 
         [ClassCleanup()]
