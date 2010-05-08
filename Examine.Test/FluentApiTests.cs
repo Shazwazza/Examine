@@ -69,5 +69,19 @@ namespace Examine.Test
                 Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
             }
         }
+
+        [TestMethod]
+        public void Skip_Results_Returns_Different_Results()
+        {
+            //Arrange
+            var sc = Searcher.CreateSearchCriteria(IndexType.Content);
+            sc = sc.Field("writerName", "administrator").Compile();
+            
+            //Act
+            var results = Searcher.Search(sc);
+
+            //Assert
+            Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
+        }
     }
 }
