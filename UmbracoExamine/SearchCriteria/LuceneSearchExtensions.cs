@@ -35,7 +35,7 @@ namespace UmbracoExamine.SearchCriteria
             return new ExamineValue(Examineness.Proximity, s, proximity);
         }
 
-        public static IExamineValue Excape(this string s)
+        public static IExamineValue Escape(this string s)
         {
             return new ExamineValue(Examineness.Escaped, "\"" + s + "\"");
         }
