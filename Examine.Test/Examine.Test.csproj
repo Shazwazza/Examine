@@ -64,9 +64,10 @@
     <Compile Include="DataServices\TestLogService.cs" />
     <Compile Include="DataServices\TestMediaService.cs" />
     <Compile Include="FluentApiTests.cs" />
-    <Compile Include="IndexInit.cs" />
+    <Compile Include="IndexInitializer.cs" />
     <Compile Include="IndexTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReIndexingTest.cs" />
     <Compile Include="SearchTest.cs" />
   </ItemGroup>
   <ItemGroup>
