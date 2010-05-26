@@ -16,14 +16,14 @@ namespace Examine.Test
     {
        
         [TestMethod]
-        public void TestSimpleSearch()
+        public void Search_SimpleSearch()
         {
             var result = m_Searcher.Search("sam", false);
             Assert.AreEqual(result.Count(), 4, "Results returned for 'sam' should be equal to 4 with the StandardAnalyzer");            
         }
 
         [TestMethod]
-        public void TestSimpleSearchWithWildcard()
+        public void Search_SimpleSearchWithWildcard()
         {
             var result = m_Searcher.Search("umb", true);
             Assert.AreEqual(result.Count(), 7, "Total results for 'umb' is 7 using wildcards");

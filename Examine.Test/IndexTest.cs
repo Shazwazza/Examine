@@ -17,7 +17,7 @@ namespace Examine.Test
     {
 
         [TestMethod]
-        public void TestRebuildIndex()
+        public void Index_RebuildIndex()
         {
             GetIndexer().RebuildIndex();
             
@@ -42,7 +42,7 @@ namespace Examine.Test
         /// We then call the Examine method to re-index Content and do some comparisons to ensure that it worked correctly.
         /// </summary>
         [TestMethod]
-        public void TestReindexContent()
+        public void Index_ReindexContent()
         {
             var searcher = GetSearcherProvider();
             Trace.WriteLine("Searcher folder is " + searcher.LuceneIndexFolder.FullName);
@@ -74,6 +74,7 @@ namespace Examine.Test
         }
 
         #region Private methods
+
         /// <summary>
         /// Helper method to return the index searcher for this index
         /// </summary>
@@ -91,6 +92,7 @@ namespace Examine.Test
         {
             return (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndex"];
         } 
+        
         #endregion
         
         #region Initialize and Cleanup

@@ -12,7 +12,7 @@ namespace Examine.Test
     {
        
         [TestMethod]
-        public void Sort_Result_By_Single_Field()
+        public void FluentApi_Sort_Result_By_Single_Field()
         {
             var sc = m_Searcher.CreateSearchCriteria(IndexType.Content);
             var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName").Compile();
@@ -27,7 +27,7 @@ namespace Examine.Test
         }
 
         [TestMethod]
-        public void Standard_Results_Sorted_By_Score()
+        public void FluentApi_Standard_Results_Sorted_By_Score()
         {
             //Arrange
             var sc = m_Searcher.CreateSearchCriteria(IndexType.Content, SearchCriteria.BooleanOperation.Or);
@@ -50,7 +50,7 @@ namespace Examine.Test
         }
 
         [TestMethod]
-        public void Skip_Results_Returns_Different_Results()
+        public void FluentApi_Skip_Results_Returns_Different_Results()
         {
             //Arrange
             var sc = m_Searcher.CreateSearchCriteria(IndexType.Content);

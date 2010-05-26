@@ -199,6 +199,11 @@ namespace UmbracoExamine
         /// </summary>
         private readonly object m_FolderLocker = new object();
 
+        /// <summary>
+        /// Used for double check locking during an index operation
+        /// </summary>
+        private static volatile bool m_IsIndexing = false;
+
         private System.Timers.Timer m_FileWatcher = null;
         private System.Timers.ElapsedEventHandler m_FileWatcher_ElapsedEventHandler;
 
@@ -507,38 +512,55 @@ namespace UmbracoExamine
             if (!ExecutiveIndex.IsExecutiveMachine)
                 return;
 
-            lock (m_IndexerLocker)
+            if (!m_IsIndexing)
             {
-                IndexWriter writer = null;
-                try
+                lock (m_IndexerLocker)
                 {
-                    VerifyFolder(LuceneIndexFolder);
-
-                    if (!IndexExists())
-                        return;
-
-                    //check if the index is ready to be written to.
-                    if (!IndexReady())
+                    //double check
+                    if (!m_IsIndexing)
                     {
-                        OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null));
-                        return;
+
+                        //set our volatile flag
+                        m_IsIndexing = true;
+
+                        IndexWriter writer = null;
+                        try
+                        {
+                            VerifyFolder(LuceneIndexFolder);
+
+                            if (!IndexExists())
+                                return;
+
+                            //check if the index is ready to be written to.
+                            if (!IndexReady())
+                            {
+                                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null));
+                                return;
+                            }
+
+                            writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, !IndexExists(), IndexWriter.MaxFieldLength.UNLIMITED);
+
+                            OnIndexOptimizing(new EventArgs());
+
+                            writer.Optimize();
+                        }
+                        catch (Exception ex)
+                        {
+                            OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
+                        }
+                        finally
+                        {
+                            CloseWriter(ref writer);
+
+                            //set our volatile flag
+                            m_IsIndexing = false;
+                        }
                     }
-
-                    writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, !IndexExists(), IndexWriter.MaxFieldLength.UNLIMITED);
-
-                    OnIndexOptimizing(new EventArgs());
-
-                    writer.Optimize();
-                }
-                catch (Exception ex)
-                {
-                    OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
-                }
-                finally
-                {
-                    CloseWriter(ref writer);
+                    
                 }
             }
+
+            
         }
 
         /// <summary>
@@ -786,73 +808,92 @@ namespace UmbracoExamine
                 return 0;
             }
 
-            lock (m_IndexerLocker)
+            if (!m_IsIndexing)
             {
-                IndexWriter writer = null;
-                IndexReader reader = null;
-
-                //track all of the nodes indexed
-                var indexedNodes = new List<IndexedNode>();
-
-                try
+                lock (m_IndexerLocker)
                 {
-
-                    //iterate through all files to add or delete to the index and index the content
-                    //and order by time created as to process them in order
-                    foreach (var x in IndexQueueItemFolder.GetFiles()
-                        .Where(x => x.Extension == ".del" || x.Extension == ".add")
-                        .OrderBy(x => x.CreationTime)
-                        .ToList())
+                    //double check
+                    if (!m_IsIndexing)
                     {
-                        if (x.Extension == ".del")
+                        //set our volatile flag
+                        m_IsIndexing = true;
+
+                        IndexWriter writer = null;
+                        IndexReader reader = null;
+
+                        //track all of the nodes indexed
+                        var indexedNodes = new List<IndexedNode>();
+
+                        try
                         {
-                            if (GetExclusiveIndexReader(ref reader, ref writer))
+
+                            //iterate through all files to add or delete to the index and index the content
+                            //and order by time created as to process them in order
+                            foreach (var x in IndexQueueItemFolder.GetFiles()
+                                .Where(x => x.Extension == ".del" || x.Extension == ".add")
+                                .OrderBy(x => x.CreationTime)
+                                .ThenByDescending(x => x.Extension) //we need to order by extension descending so that .del items are always processed before .add items
+                                .ToList())
                             {
-                                ProcessDeleteQueueItem(x, reader);
+                                if (x.Extension == ".del")
+                                {
+                                    if (GetExclusiveIndexReader(ref reader, ref writer))
+                                    {
+                                        ProcessDeleteQueueItem(x, reader);
+                                    }
+                                    else
+                                    {
+                                        OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null));
+                                        return indexedNodes.Count;
+                                    }
+                                }
+                                else if (x.Extension == ".add")
+                                {
+                                    if (GetExclusiveIndexWriter(ref writer, ref reader))
+                                    {
+                                        ProcessAddQueueItem(x, writer);
+                                    }
+                                    else
+                                    {
+                                        OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null));
+                                        return indexedNodes.Count;
+                                    }
+                                }
                             }
-                            else
-                            {
-                                OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null));
-                                return indexedNodes.Count;
-                            }
+
+                            //raise the completed event
+                            OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
+
                         }
-                        else if (x.Extension == ".add")
+                        catch (Exception ex)
                         {
-                            if (GetExclusiveIndexWriter(ref writer, ref reader))
-                            {
-                                ProcessAddQueueItem(x, writer);
-                            }
-                            else
-                            {
-                                OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null));
-                                return indexedNodes.Count;
-                            }
+                            OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
                         }
-                    }
+                        finally
+                        {
+                            CloseWriter(ref writer);
+                            CloseReader(ref reader);
+                        }
 
-                    //raise the completed event
-                    OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
+                        //if there are enough commits, the we'll run an optimization
+                        if (CommitCount >= OptimizationCommitThreshold)
+                        {
+                            OptimizeIndex();
+                            CommitCount = 0; //reset the counter
+                        }
 
-                }
-                catch (Exception ex)
-                {
-                    OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
-                }
-                finally
-                {
-                    CloseWriter(ref writer);
-                    CloseReader(ref reader);
-                }
+                        //set our volatile flag
+                        m_IsIndexing = false;
 
-                //if there are enough commits, the we'll run an optimization
-                if (CommitCount >= OptimizationCommitThreshold)
-                {
-                    OptimizeIndex();
-                    CommitCount = 0; //reset the counter
+                        return indexedNodes.Count;                       
+                    }                    
                 }
-
-                return indexedNodes.Count;
             }
+
+            //if we get to this point, it means that another thead was beaten to the indexing operation so this thread will skip
+            //this occurence.
+            OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, another indexing operation is currently in progress", -1, null));
+            return 0;
 
 
         }
@@ -1171,14 +1212,18 @@ namespace UmbracoExamine
         /// <param name="folder"></param>
         private void VerifyFolder(DirectoryInfo folder)
         {
-            lock (m_FolderLocker)
+            if (!System.IO.Directory.Exists(folder.FullName))
             {
-                if (!folder.Exists)
+                lock (m_FolderLocker)
                 {
-                    folder.Create();
-                    folder.Refresh();
+                    if (!System.IO.Directory.Exists(folder.FullName))
+                    {
+                        folder.Create();
+                        folder.Refresh();
+                    }
                 }
             }
+            
         }
 
         /// <summary>
