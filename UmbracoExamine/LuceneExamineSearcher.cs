@@ -71,17 +71,17 @@ namespace UmbracoExamine
         /// <summary>
         /// Directory where the Lucene.NET Index resides
         /// </summary>
-        public DirectoryInfo LuceneIndexFolder { get; set; }
+        public DirectoryInfo LuceneIndexFolder { get; protected internal set; }
 
         /// <summary>
         /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
         /// </summary>
-        public Analyzer IndexingAnalyzer { get; set; }
+        public Analyzer IndexingAnalyzer { get; protected internal set; }
 
         /// <summary>
         /// Name of the Lucene.NET index set
         /// </summary>
-        public string IndexSetName { get; protected set; }
+        public string IndexSetName { get; protected internal set; }
 
         /// <summary>
         /// Simple search method which defaults to searching content nodes
@@ -249,7 +249,7 @@ namespace UmbracoExamine
                                     // http://gist.github.com/173978 
 
                                     var oldReader = m_Searcher.GetIndexReader();
-                                    var newReader = oldReader.Reopen();
+                                    var newReader = oldReader.Reopen(true);
                                     if (newReader != oldReader)
                                     {
                                         m_Searcher.Close();

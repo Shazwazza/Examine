@@ -68,8 +68,8 @@ namespace Examine.Test
 
         #region Initialize and Cleanup        
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext testContext)
+         [TestInitialize()]       
+        public void Initialize()
         {
             m_Init = new IndexInitializer();
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearch"];

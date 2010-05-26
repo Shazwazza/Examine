@@ -209,39 +209,55 @@ namespace UmbracoExamine
         /// <summary>
         /// The data service used for retreiving and submitting data to the cms
         /// </summary>
-        public IDataService DataService { get; set; }        
+        public IDataService DataService { get; protected internal set; }        
 
         /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
         /// </summary>
-        public Analyzer IndexingAnalyzer { get; set; }
+        public Analyzer IndexingAnalyzer { get; protected internal set; }
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
         /// This is used to determine when index optimization needs to occur.
         /// </summary>
-        public int CommitCount { get; set; }
+        public int CommitCount { get; protected internal set; }
 
-        public bool RunAsync { get; set; }
+        /// <summary>
+        /// Indicates whether or this system will process the queue items asynchonously. Default is true.
+        /// </summary>
+        public bool RunAsync { get; protected internal set; }
 
-        public int IndexSecondsInterval { get; set; }
+        /// <summary>
+        /// The interval (in seconds) specified for the timer to process index queue items.
+        /// This is only relavent if <see cref="RunAsnc"/> is true.
+        /// </summary>
+        public int IndexSecondsInterval { get; protected internal set; }
 
-        public DirectoryInfo LuceneIndexFolder { get; protected set; }
+        /// <summary>
+        /// The folder that stores the Lucene Index files
+        /// </summary>
+        public DirectoryInfo LuceneIndexFolder { get; protected internal set; }
 
-        public DirectoryInfo IndexQueueItemFolder { get; protected set; }
+        /// <summary>
+        /// The folder that stores the index queue files
+        /// </summary>
+        public DirectoryInfo IndexQueueItemFolder { get; protected internal set; }
 
         /// <summary>
         /// The Executive to determine if this is the master indexer
         /// </summary>
-        protected IndexerExecutive ExecutiveIndex { get; private set; }
+        protected IndexerExecutive ExecutiveIndex { get; set; }
 
-        protected string IndexSetName { get; set; }
+        /// <summary>
+        /// The index set name which references an Examine <see cref="IndexSet"/>
+        /// </summary>
+        public string IndexSetName { get; protected internal set; }
 
         /// <summary>
         /// By default this is false, if set to true then the indexer will include indexing content that is flagged as publicly protected.
         /// This property is ignored if SupportUnpublishedContent is set to true.
         /// </summary>
-        public bool SupportProtectedContent { get; protected set; }
+        public bool SupportProtectedContent { get; protected internal set; }
 
 
         #endregion
@@ -545,6 +561,9 @@ namespace UmbracoExamine
                     return true;
 
                 int delCount = ir.DeleteDocuments(indexTerm);
+                
+                ir.Commit(); //commit the changes!
+                
                 if (delCount > 0)
                 {
                     OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text()), delCount));
@@ -695,6 +714,8 @@ namespace UmbracoExamine
             }
 
             writer.AddDocument(d);
+
+            writer.Commit(); //commit changes!
 
             OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
         }

@@ -8,6 +8,7 @@ using Lucene.Net.Search;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Store;
+using System.Diagnostics;
 
 namespace Examine.Test
 {
@@ -19,13 +20,12 @@ namespace Examine.Test
         public void TestRebuildIndex()
         {
             GetIndexer().RebuildIndex();
-
             
             //do validation...
 
             //get searcher and reader to get stats
-            var s = GetSearcher();
-            var r = s.GetIndexReader();
+            var s = GetSearcherProvider();
+            var r = s.GetSearcher().GetIndexReader();
 
             //there's 15 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -44,27 +44,31 @@ namespace Examine.Test
         [TestMethod]
         public void TestReindexContent()
         {
-            var s = GetSearcher();
+            var searcher = GetSearcherProvider();
+            Trace.WriteLine("Searcher folder is " + searcher.LuceneIndexFolder.FullName);
+            var s = searcher.GetSearcher();
 
-            //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API
-            var r = s.GetIndexReader();
-            r = r.Reopen(false); //open write
+            //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API, not examine!
+            var r = IndexReader.Open(s.GetIndexReader().Directory(), false);            
             var contentTerm = new Term(LuceneExamineIndexer.IndexTypeFieldName, IndexType.Content.ToString().ToLower());
             var delCount = r.DeleteDocuments(contentTerm);                        
             r.Commit();
+            r.Close();
 
-            //make sure the content is gone
-            s = GetSearcher();
+            //make sure the content is gone. This is done with lucene APIs, not examine!
             var collector = new AllHitsCollector(false, true);
-            var query = new TermQuery(contentTerm);            
+            var query = new TermQuery(contentTerm);
+            s = searcher.GetSearcher(); //make sure the searcher is up do date.
             s.Search(query, collector);
             Assert.AreEqual(0, collector.Count);
 
             //call our indexing methods
-            GetIndexer().IndexAll(IndexType.Content);
-
-            s = GetSearcher(); //re-get the searcher
+            var indexer =  GetIndexer();
+            Trace.WriteLine("Indexer folder is " + indexer.LuceneIndexFolder.FullName);
+            indexer.IndexAll(IndexType.Content);
+           
             collector = new AllHitsCollector(false, true);
+            s = searcher.GetSearcher(); //make sure the searcher is up do date.
             s.Search(query, collector);
             Assert.AreEqual(10, collector.Count);
         }
@@ -74,29 +78,27 @@ namespace Examine.Test
         /// Helper method to return the index searcher for this index
         /// </summary>
         /// <returns></returns>
-        private IndexSearcher GetSearcher()
+        private LuceneExamineSearcher GetSearcherProvider()
         {
-            var searcher = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSIndex"];
-            return searcher.GetSearcher();
+            return (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSIndex"];            
         }
 
         /// <summary>
         /// Helper method to return the indexer that we are testing
         /// </summary>
         /// <returns></returns>
-        private IIndexer GetIndexer()
+        private LuceneExamineIndexer GetIndexer()
         {
-            var indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndex"];
-            return indexer;
+            return (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndex"];
         } 
         #endregion
         
         #region Initialize and Cleanup
 
         private static IndexInitializer m_Init;
-
-        [ClassInitialize()]
-        public static void MyClassInitialize(TestContext testContext)
+        
+        [TestInitialize()]
+        public void Initialize()
         {
             m_Init = new IndexInitializer();
         }
