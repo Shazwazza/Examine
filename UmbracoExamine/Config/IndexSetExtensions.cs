@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Examine;
+using UmbracoExamine.DataServices;
 
 namespace UmbracoExamine.Config
 {
@@ -30,8 +31,14 @@ namespace UmbracoExamine.Config
         /// <summary>
         /// Returns a string array of all fields that are indexed including Umbraco fields
         /// </summary>
-        public static IEnumerable<IndexField> CombinedUmbracoFields(this IndexSet set)
+        public static IEnumerable<IndexField> CombinedUmbracoFields(this IndexSet set, IDataService svc)
         {
+            if (set.IndexUserFields.Count == 0)
+            {
+                //we need to add all user fields to the collection if it is empty (this is the default if none are specified)
+                //svc.ContentService.
+            }
+
             return set.IndexUserFields.ToList()
                 .Concat(set.IndexAttributeFields.ToList());
         }

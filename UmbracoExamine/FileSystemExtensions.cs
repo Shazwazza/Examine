@@ -17,6 +17,7 @@ namespace UmbracoExamine
         public static int ClearFiles(this DirectoryInfo di)
         {
             int count = 0;
+            di.Refresh();
             if (di.Exists)
             {
                 di.GetFiles().ToList()

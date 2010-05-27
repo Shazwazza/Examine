@@ -20,6 +20,11 @@ namespace UmbracoExamine.Config
         }
         #endregion
 
+        public void Add(IndexField field)
+        {
+            BaseAdd(field, true);
+        }
+
         /// <summary>
         /// Default property for accessing an IndexField definition
         /// </summary>
@@ -33,17 +38,5 @@ namespace UmbracoExamine.Config
             }
         }
 
-    }
-
-
-    public static class IndexFieldCollectionExtensions
-    {
-        public static List<IndexField> ToList(this IndexFieldCollection indexes)
-        {
-            List<IndexField> fields = new List<IndexField>();
-            foreach (IndexField field in indexes)
-                fields.Add(field);
-            return fields;
-        }
     }
 }

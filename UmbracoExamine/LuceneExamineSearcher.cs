@@ -20,6 +20,27 @@ namespace UmbracoExamine
     /// </summary>
     public class LuceneExamineSearcher : BaseSearchProvider
     {
+
+        #region Constructors
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public LuceneExamineSearcher(): base(){}
+        
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexPath"></param>
+        public LuceneExamineSearcher(DirectoryInfo indexPath)
+            : base()
+        {           
+            //set up our folder
+            LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Index"));
+        }
+
+        #endregion
+
         /// <summary>
         /// Used as a singleton instance
         /// </summary>
@@ -44,14 +65,46 @@ namespace UmbracoExamine
         {
             base.Initialize(name, config);
 
-            //need to check if the index set is specified
-            if (config["indexSet"] == null)
-                throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration and/or the IndexerData property has not been explicitly set");
+            //need to check if the index set is specified, if it's not, we'll see if we can find one by convension
+            //if the folder is not null and the index set is null, we'll assume that this has been created at runtime.
+            if (config["indexSet"] == null && LuceneIndexFolder == null)
+            {
+                //if we don't have either, then we'll try to set the index set by naming convensions
+                var found = false;
+                if (name.EndsWith("Searcher"))
+                {
+                    var setNameByConvension = name.Remove(name.LastIndexOf("Searcher")) + "IndexSet";
+                    //check if we can assign the index set by naming convension
+                    var set = ExamineLuceneIndexes.Instance.Sets.Cast<IndexSet>()
+                        .Where(x => x.SetName == setNameByConvension)
+                        .SingleOrDefault();
 
-            if (ExamineLuceneIndexes.Instance.Sets[config["indexSet"]] == null)
-                throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
+                    if (set != null)
+                    {
+                        //we've found an index set by naming convensions :)
+                        IndexSetName = set.SetName;
+                        found = true;
+                    }
+                }
 
-            IndexSetName = config["indexSet"];
+                if (!found)
+                    throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration");
+
+                //get the folder to index
+                LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+            }
+            else if (config["indexSet"] != null)
+            {
+                if (ExamineLuceneIndexes.Instance.Sets[config["indexSet"]] == null)
+                    throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
+
+                IndexSetName = config["indexSet"];
+
+                //get the folder to index
+                LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+            }            
+
+
 
             if (config["analyzer"] != null)
             {
@@ -63,15 +116,35 @@ namespace UmbracoExamine
             {
                 IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
             }
-
-            //get the folder to index
-            LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+            
         }
 
         /// <summary>
         /// Directory where the Lucene.NET Index resides
         /// </summary>
-        public DirectoryInfo LuceneIndexFolder { get; protected internal set; }
+        public DirectoryInfo LuceneIndexFolder
+        {
+            get
+            {
+                if (m_IndexFolder == null)
+                {
+                    return null;
+                }
+
+                //ensure's that it always up to date!
+                m_IndexFolder.Refresh();
+                return m_IndexFolder;
+            }
+            protected internal set
+            {
+                m_IndexFolder = value;
+            }
+        }
+        
+        /// <summary>
+        /// Do not access this object directly. The public property ensures that the folder state is always up to date
+        /// </summary>
+        private DirectoryInfo m_IndexFolder;
 
         /// <summary>
         /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer

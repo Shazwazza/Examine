@@ -12,19 +12,42 @@ using System.Diagnostics;
 
 namespace Examine.Test
 {
+
+    /// <summary>
+    /// Tests the standard indexing capabilities
+    /// </summary>
     [TestClass]
     public class IndexTest
     {
 
+        //TODO: This will fail because 
+
+        //[TestMethod]
+        //public void Index_Rebuild_Convension_Name_Index()
+        //{
+        //    var indexer = (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["ConvensionNamedIndexer"];
+        //    indexer.RebuildIndex();
+
+        //    //do validation... though I'm not sure how many there should be because this index set is empty so will index everything
+
+        //    //get searcher and reader to get stats
+        //    var s = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["ConvensionNamedSearcher"];
+        //    var r = s.GetSearcher().GetIndexReader();
+
+        //    //there's 15 fields in the index, but 3 sorted fields
+        //    var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
+        //}
+
         [TestMethod]
-        public void Index_RebuildIndex()
+        public void Index_Rebuild_Index()
         {
-            GetIndexer().RebuildIndex();
+            var indexer = (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"]; 
+            indexer.RebuildIndex();
             
             //do validation...
 
             //get searcher and reader to get stats
-            var s = GetSearcherProvider();
+            var s = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             var r = s.GetSearcher().GetIndexReader();
 
             //there's 15 fields in the index, but 3 sorted fields
@@ -42,9 +65,10 @@ namespace Examine.Test
         /// We then call the Examine method to re-index Content and do some comparisons to ensure that it worked correctly.
         /// </summary>
         [TestMethod]
-        public void Index_ReindexContent()
+        public void Index_Reindex_Content()
         {
-            var searcher = GetSearcherProvider();
+            var searcher = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+
             Trace.WriteLine("Searcher folder is " + searcher.LuceneIndexFolder.FullName);
             var s = searcher.GetSearcher();
 
@@ -63,7 +87,7 @@ namespace Examine.Test
             Assert.AreEqual(0, collector.Count);
 
             //call our indexing methods
-            var indexer =  GetIndexer();
+            var indexer = (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
             Trace.WriteLine("Indexer folder is " + indexer.LuceneIndexFolder.FullName);
             indexer.IndexAll(IndexType.Content);
            
@@ -75,23 +99,8 @@ namespace Examine.Test
 
         #region Private methods
 
-        /// <summary>
-        /// Helper method to return the index searcher for this index
-        /// </summary>
-        /// <returns></returns>
-        private LuceneExamineSearcher GetSearcherProvider()
-        {
-            return (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSIndex"];            
-        }
-
-        /// <summary>
-        /// Helper method to return the indexer that we are testing
-        /// </summary>
-        /// <returns></returns>
-        private LuceneExamineIndexer GetIndexer()
-        {
-            return (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndex"];
-        } 
+       
+       
         
         #endregion
         

@@ -15,6 +15,10 @@ namespace UmbracoExamine.Config
             {
                 return (string)this["Name"];
             }
+            set
+            {
+                this["Name"] = value;
+            }
         }
 
         [ConfigurationProperty("EnableSorting", IsRequired = false)]
@@ -24,6 +28,24 @@ namespace UmbracoExamine.Config
             {
                 return (bool)this["EnableSorting"];
             }
+            set
+            {
+                this["EnableSorting"] = value;
+            }
+        }
+
+        public override bool Equals(object compareTo)
+        {
+            if (compareTo is IndexField)
+            {
+                return this.Name.Equals(((IndexField)compareTo).Name);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Name.GetHashCode();
         }
     }
 }

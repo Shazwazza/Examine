@@ -8,6 +8,9 @@ using System.Xml;
 using umbraco.cms.businesslogic.web;
 using System.Collections;
 using System.Xml.XPath;
+using umbraco.DataLayer;
+using umbraco.BusinessLogic;
+using UmbracoExamine.Config;
 
 namespace UmbracoExamine.DataServices
 {
@@ -97,6 +100,25 @@ namespace UmbracoExamine.DataServices
                 }
             }
             return false;
+        }
+
+
+        public IEnumerable<string> GetAllUserPropertyNames()
+        {
+            //this is how umb codebase 4.0 does this... booo, should be in the data layer, will fix in 4.1
+
+            var aliases = new List<string>();
+            var fieldSql = "select distinct alias from cmsPropertyType order by alias";
+            using (var dr = Application.SqlHelper.ExecuteReader(fieldSql))
+            {
+                aliases.Add(dr.GetString("alias"));
+            }
+            return aliases;
+        }
+
+        public IEnumerable<string> GetAllSystemPropertyNames()
+        {
+            return UmbracoFieldPolicies.GetPolicies().Select(x => x.Key);
         }
 
     }

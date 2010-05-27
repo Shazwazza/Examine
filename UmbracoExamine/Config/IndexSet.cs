@@ -125,26 +125,100 @@ namespace UmbracoExamine.Config
         /// <summary>
         /// A collection of user defined umbraco fields to index
         /// </summary>
+        /// <remarks>
+        /// If this property is not specified, or if it's an empty collection, the default user fields will be all user fields defined in Umbraco
+        /// </remarks>
         [ConfigurationCollection(typeof(IndexFieldCollection))]
-        [ConfigurationProperty("IndexUserFields", IsDefaultCollection = false, IsRequired = true)]
+        [ConfigurationProperty("IndexUserFields", IsDefaultCollection = false, IsRequired = false)]
         public IndexFieldCollection IndexUserFields
         {
             get
             {
                 return (IndexFieldCollection)base["IndexUserFields"];
+
+                //var fields = base["IndexUserFields"] != null ? (IndexFieldCollection)base["IndexUserFields"] : new IndexFieldCollection();
+                //if (fields.Count == 0)
+                //{
+                //    //create the defaults
+
+                //    fields.Add(new IndexField() { Name = "id" });
+                //    fields.Add(new IndexField() { Name = "version" });
+                //    fields.Add(new IndexField() { Name = "parentID" });
+                //    fields.Add(new IndexField() { Name = "level" });
+                //    fields.Add(new IndexField() { Name = "writerID" });
+                //    fields.Add(new IndexField() { Name = "creatorID" });
+                //    fields.Add(new IndexField() { Name = "nodeType" });
+                //    fields.Add(new IndexField() { Name = "template" });
+                //    fields.Add(new IndexField() { Name = "sortOrder" });
+                //    fields.Add(new IndexField() { Name = "createDate" });
+                //    fields.Add(new IndexField() { Name = "updateDate" });
+                //    fields.Add(new IndexField() { Name = "nodeName" });
+                //    fields.Add(new IndexField() { Name = "urlName" });
+                //    fields.Add(new IndexField() { Name = "writerName" });
+                //    fields.Add(new IndexField() { Name = "creatorName" });
+                //    fields.Add(new IndexField() { Name = "nodeTypeAlias" });
+                //    fields.Add(new IndexField() { Name = "path" });
+                //}
+
+                //return fields;
             }
         }
 
         /// <summary>
         /// The fields umbraco values that will be indexed. i.e. id, nodeTypeAlias, writer, etc...
         /// </summary>
+        /// <remarks>
+        /// If this is not specified, or if it's an empty collection, the default optins will be specified:
+        /// - id
+        /// - version
+        /// - parentID
+        /// - level
+        /// - writerID
+        /// - creatorID
+        /// - nodeType
+        /// - template
+        /// - sortOrder
+        /// - createDate
+        /// - updateDate
+        /// - nodeName
+        /// - urlName
+        /// - writerName
+        /// - creatorName
+        /// - nodeTypeAlias
+        /// - path
+        /// </remarks>
         [ConfigurationCollection(typeof(IndexFieldCollection))]
-        [ConfigurationProperty("IndexAttributeFields", IsDefaultCollection = false, IsRequired = true)]
+        [ConfigurationProperty("IndexAttributeFields", IsDefaultCollection = false, IsRequired = false)]
         public IndexFieldCollection IndexAttributeFields
         {
             get
             {
                 return (IndexFieldCollection)base["IndexAttributeFields"];
+                //var fields = base["IndexAttributeFields"] != null ? (IndexFieldCollection)base["IndexAttributeFields"] : new IndexFieldCollection();
+                //if (fields.Count == 0)
+                //{
+                //    //create the defaults
+
+                //    fields.Add(new IndexField() { Name = "id" });
+                //    fields.Add(new IndexField() { Name = "version" });
+                //    fields.Add(new IndexField() { Name = "parentID" });
+                //    fields.Add(new IndexField() { Name = "level" });
+                //    fields.Add(new IndexField() { Name = "writerID" });
+                //    fields.Add(new IndexField() { Name = "creatorID" });
+                //    fields.Add(new IndexField() { Name = "nodeType" });
+                //    fields.Add(new IndexField() { Name = "template" });
+                //    fields.Add(new IndexField() { Name = "sortOrder" });
+                //    fields.Add(new IndexField() { Name = "createDate" });
+                //    fields.Add(new IndexField() { Name = "updateDate" });
+                //    fields.Add(new IndexField() { Name = "nodeName" });
+                //    fields.Add(new IndexField() { Name = "urlName" });
+                //    fields.Add(new IndexField() { Name = "writerName" });
+                //    fields.Add(new IndexField() { Name = "creatorName" });
+                //    fields.Add(new IndexField() { Name = "nodeTypeAlias" });
+                //    fields.Add(new IndexField() { Name = "path" });
+                //}
+
+                //return fields;
             }
         }
 

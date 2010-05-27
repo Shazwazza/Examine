@@ -38,7 +38,7 @@ namespace Examine.Test
         public void Initialize()
         {
             m_Init = new IndexInitializer();
-            m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearch"];
+            m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
         }
 
         //[ClassCleanup()]

@@ -105,6 +105,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\umbraco.dll</HintPath>
     </Reference>
+    <Reference Include="umbraco.DataLayer, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\umbraco.DataLayer.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Solution Items\SolutionInfo.cs">
@@ -113,6 +117,7 @@
     <Compile Include="AllHitsCollector.cs" />
     <Compile Include="Config\IndexField.cs" />
     <Compile Include="Config\IndexFieldCollection.cs" />
+    <Compile Include="Config\IndexFieldCollectionExtensions.cs" />
     <Compile Include="Config\IndexSet.cs" />
     <Compile Include="Config\IndexSetCollection.cs" />
     <Compile Include="Config\ExamineLuceneIndexes.cs" />

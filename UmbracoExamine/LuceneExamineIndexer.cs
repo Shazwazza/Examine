@@ -41,16 +41,33 @@ namespace UmbracoExamine
     {
         
         #region Constructors
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public LuceneExamineIndexer()
             : base()
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
         }
-        public LuceneExamineIndexer(IIndexCriteria indexerData)
+        
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="indexPath"></param>
+        public LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
             : base(indexerData)
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
+
+            VerifyFolder(indexPath);
+
+            //set up our folders based on the index path
+            LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Index"));
+            IndexQueueItemFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Queue"));
         }
+
         #endregion
 
         #region Initialize
@@ -68,7 +85,7 @@ namespace UmbracoExamine
             base.Initialize(name, config);
 
             if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
-            {
+             {
                 //this should be a fully qualified type
                 var serviceType = Type.GetType(config["dataService"]);
                 DataService = (IDataService)Activator.CreateInstance(serviceType);
@@ -80,27 +97,66 @@ namespace UmbracoExamine
                 DataService = new UmbracoDataService();
             }
 
-            //need to check if the index set is specified
+            //Need to check if the index set or IndexerData is specified...
+           
             if (config["indexSet"] == null && IndexerData == null)
-                throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration and/or the IndexerData property has not been explicitly set");
+            {
+                //if we don't have either, then we'll try to set the index set by naming convensions
+                var found = false;
+                if (name.EndsWith("Indexer"))
+                {
+                    var setNameByConvension = name.Remove(name.LastIndexOf("Indexer")) + "IndexSet";
+                    //check if we can assign the index set by naming convension
+                    var set = ExamineLuceneIndexes.Instance.Sets.Cast<IndexSet>()
+                        .Where(x => x.SetName == setNameByConvension)
+                        .SingleOrDefault();
 
-            if (ExamineLuceneIndexes.Instance.Sets[config["indexSet"]] == null)
-                throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
+                    if (set != null)
+                    {
+                        //we've found an index set by naming convensions :)
+                        IndexSetName = set.SetName;
 
-            IndexSetName = config["indexSet"];
+                        //get the index criteria and ensure folder
+                        IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria();
+                        VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
 
-            //get the index criteria
-            IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria();
+                        //now set the index folders
+                        LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+                        IndexQueueItemFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
 
-            //get the folder to index
-            LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-            IndexQueueItemFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
+                        found = true;
+                    }
+                }
 
+                if (!found)                    
+                    throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration and/or the IndexerData property has not been explicitly set");
+            
+            }
+            else if (config["indexSet"] != null)
+            {
+                //if an index set is specified, ensure it exists and initialize the indexer based on the set
+
+                if (ExamineLuceneIndexes.Instance.Sets[config["indexSet"]] == null)
+                {
+                    throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
+                }
+                else
+                {
+                    IndexSetName = config["indexSet"];
+                    
+                    //get the index criteria and ensure folder
+                    IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria();
+                    VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+                    
+                    //now set the index folders
+                    LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+                    IndexQueueItemFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
+                }
+            }
 
             try
             {
-                //ensure all of the folders are created at startup
-                VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+                //ensure all of the folders are created at startup                
                 VerifyFolder(LuceneIndexFolder);
                 VerifyFolder(IndexQueueItemFolder);
             }
@@ -690,7 +746,7 @@ namespace UmbracoExamine
                 return;
 
             Document d = new Document();
-            var indexSetFields = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName].CombinedUmbracoFields();
+            var indexSetFields = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName].CombinedUmbracoFields(this.DataService);
            //add all of our fields to the document index individually, don't include the special fields if they exists            
             fields
                 .Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName)

@@ -27,11 +27,15 @@ namespace Examine.Test
             
             RemoveWorkingIndex();
 
-            UpdateProviderPathsAndCreateIndexFromTemplate();
+            CreateIndexesFromTemplate();
         }
 
+        /// <summary>
+        /// return the folder containing the index template
+        /// </summary>
+        /// <returns></returns>
         private DirectoryInfo GetTemplateFolder() {
-            var template = GetWorkingFolder()
+            var template = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory
                 .GetDirectories("App_Data")
                 .Single()
                 .GetDirectories("TemplateIndex")
@@ -39,43 +43,34 @@ namespace Examine.Test
             return template;
         }
 
+        /// <summary>
+        /// Return the folder that we're going to run our test indexes in
+        /// </summary>
+        /// <returns></returns>
         private DirectoryInfo GetWorkingFolder()
         {
-            return new FileInfo(Assembly.GetExecutingAssembly().Location).Directory;
+            return new DirectoryInfo(Environment.CurrentDirectory);            
         }
 
-        public void RemoveWorkingIndex() 
-        {            
-            var searchTest = GetWorkingFolder().GetDirectories("App_Data").First().GetDirectories("SearchWorkingTest").FirstOrDefault();
-            RemoveIndex(searchTest, "CWSIndex");
+        public void RemoveWorkingIndex()
+        {           
 
-            var indexText = GetWorkingFolder().GetDirectories("App_Data").First().GetDirectories("IndexWorkingTest").FirstOrDefault();
-            RemoveIndex(indexText, "CWSSearch");
+            var appData = GetWorkingFolder().GetDirectories("App_Data");
+            if (appData.Count() > 0)
+            {
+                var folder = appData.First().GetDirectories("CWSIndexSetTest").First().GetDirectories("Index").First();
+                RemoveIndexForSearcher(folder, "CWSSearcher");
+
+                folder = appData.First().GetDirectories("ConvensionNamedTest").First().GetDirectories("Index").First();
+                RemoveIndexForSearcher(folder, "ConvensionNamedSearcher");
+            }
+           
         }
 
-        /// <summary>
-        /// This craziness will ensure that a folder containing an index will be deleted and remove all existing locks created
-        /// by other tests.
-        /// </summary>
-        /// <param name="di"></param>
-        /// <param name="indexName"></param>
-        private void RemoveIndex(DirectoryInfo di, string indexName)
+        private void RemoveIndex(DirectoryInfo di)
         {
             if (di != null)
             {
-                var cwsSearch = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection[indexName];
-
-                try
-                {
-                    var s = cwsSearch.GetSearcher();
-                    var r = s.GetIndexReader();
-                    s.Close();
-                    r.Close();
-                }
-                catch (ApplicationException) { }
-                catch (NoSuchDirectoryException) { }
-                catch (DirectoryNotFoundException) { }
-
                 SimpleFSDirectory searchFolder = new SimpleFSDirectory(di);
                 if (IndexWriter.IsLocked(searchFolder))
                 {
@@ -87,21 +82,45 @@ namespace Examine.Test
 
                 di.GetFiles().ToList().ForEach(x => x.Delete());
                 di.Delete(true);
+            }           
+        }
+
+        /// <summary>
+        /// This craziness will ensure that a folder containing an index will be deleted and remove all existing locks created
+        /// by other tests. 
+        /// </summary>
+        /// <param name="di"></param>
+        /// <param name="searcherName"></param>
+        private void RemoveIndexForSearcher(DirectoryInfo di, string searcherName)
+        {
+            if (di != null)
+            {
+                var searcher = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection[searcherName];
+
+                try
+                {
+                    var s = searcher.GetSearcher();
+                    var r = s.GetIndexReader();
+                    s.Close();
+                    r.Close();
+                }
+                catch (ApplicationException) { }
+                catch (NoSuchDirectoryException) { }
+                catch (DirectoryNotFoundException) { }
+
+                RemoveIndex(di);
             }         
         }
 
         /// <summary>
-        /// This will update our providers paths to be relavent for the machine the tests are being run on
+        /// This creates indexes for each index set based on the template
         /// </summary>
-        private void UpdateProviderPathsAndCreateIndexFromTemplate()
+        private void CreateIndexesFromTemplate()
         {
             var template = GetTemplateFolder();
             ExamineLuceneIndexes.Instance.Sets.Cast<IndexSet>().ToList()
                 .ForEach(x =>
-                {
-                    //updtae the index set paths
-                    x.IndexPath = Path.Combine(GetWorkingFolder().FullName, x.IndexPath);
-                    
+                {                    
                     var di = new DirectoryInfo(x.IndexPath);
                     if (!di.Exists)
                     {
@@ -110,25 +129,6 @@ namespace Examine.Test
 
                     var indexDir = di.CreateSubdirectory("Index");
                     template.GetFiles().ToList().ForEach(f => f.CopyTo(Path.Combine(indexDir.FullName, f.Name)));
-
-                    //set the searcher that goes with this index set
-                    var searcher = ExamineManager.Instance.SearchProviderCollection.Cast<LuceneExamineSearcher>()
-                        .Where(s => s.IndexSetName == x.SetName)
-                        .SingleOrDefault();
-                    if (searcher != null)
-                    {
-                        searcher.LuceneIndexFolder = indexDir;
-                    }
-                    
-
-                    //set the indexer that goes with this index set
-                    var indexer = ExamineManager.Instance.IndexProviderCollection.Cast<LuceneExamineIndexer>()
-                        .Where(s => s.IndexSetName == x.SetName)
-                        .SingleOrDefault();
-                    if (indexer != null)
-                    {
-                        indexer.LuceneIndexFolder = indexDir;
-                    }
                 });
         }
 

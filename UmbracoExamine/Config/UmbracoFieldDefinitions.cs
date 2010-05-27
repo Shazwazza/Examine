@@ -35,6 +35,11 @@ namespace UmbracoExamine.Config
                 { "path", Field.Index.NOT_ANALYZED}
             };
 
+        public static IEnumerable<KeyValuePair<string, Field.Index>> GetPolicies()
+        {
+            return m_Definitions;
+        }
+
         /// <summary>
         /// return the index policy for the field name passed in, if not found, return normal
         /// </summary>

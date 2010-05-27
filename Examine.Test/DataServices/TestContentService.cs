@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.XPath;
+using UmbracoExamine.Config;
 
 namespace Examine.Test.DataServices
 {
@@ -69,8 +70,29 @@ namespace Examine.Test.DataServices
             return false;
         }
 
+        public IEnumerable<string> GetAllUserPropertyNames()
+        {
+            return GetPublishedContentByXPath("//*[count(@id)>0]")
+                .Root
+                .Elements()
+                .Select(x => x.Name.LocalName)
+                .ToList();
+        }
+
+        public IEnumerable<string> GetAllSystemPropertyNames()
+        {
+            return UmbracoFieldPolicies.GetPolicies().Select(x => x.Key);
+        }
+
         #endregion
 
         private XDocument m_XDoc;
+
+        
+
+
+       
+
+      
     }
 }

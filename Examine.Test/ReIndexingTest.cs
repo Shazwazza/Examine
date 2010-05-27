@@ -62,7 +62,7 @@ namespace Examine.Test
         /// <returns></returns>
         private LuceneExamineSearcher GetSearcherProvider()
         {
-            return (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSIndex"];
+            return (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSIndexer"];
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Examine.Test
         /// <returns></returns>
         private LuceneExamineIndexer GetIndexer()
         {
-            return (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndex"];
+            return (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
         }
 
         #endregion

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UmbracoExamine.DataServices;
+using System.Diagnostics;
 
 namespace Examine.Test.DataServices
 {
@@ -12,12 +13,12 @@ namespace Examine.Test.DataServices
 
         public void AddErrorLog(int nodeId, string msg)
         {
-            //do nothing
+            Trace.WriteLine("ERROR: (" + nodeId.ToString() + ") " + msg);
         }
 
         public void AddInfoLog(int nodeId, string msg)
         {
-            //do nothing
+            Trace.WriteLine("INFO: (" + nodeId.ToString() + ") " + msg);
         }
 
         #endregion
