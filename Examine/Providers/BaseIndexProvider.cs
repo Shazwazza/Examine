@@ -72,7 +72,7 @@ namespace Examine.Providers
         /// Deletes a node from the index
         /// </summary>
         /// <param name="node">Node to delete</param>
-        public abstract void DeleteFromIndex(XElement node);
+        public abstract void DeleteFromIndex(string nodeId);
         /// <summary>
         /// Re-indexes all data for the index type specified
         /// </summary>

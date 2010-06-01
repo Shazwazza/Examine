@@ -57,15 +57,19 @@ namespace UmbracoExamine
         /// <param name="e"></param>
         void Document_AfterDelete(Document sender, DeleteEventArgs e)
         {
+            var nodeId = sender.Id.ToString();
+
             //ensure that only the providers that have unpublishing support enabled           
-            ExamineManager.Instance.DeleteFromIndex(sender.ToXDocument(false).Root,
+            ExamineManager.Instance.DeleteFromIndex(nodeId,
                 ExamineManager.Instance.IndexProviderCollection
                     .Where(x => x.SupportUnpublishedContent));               
         }
 
         void Media_AfterDelete(Media sender, DeleteEventArgs e)
         {
-            ExamineManager.Instance.DeleteFromIndex(sender.ToXDocument(false).Root);
+            var nodeId = sender.Id.ToString();
+
+            ExamineManager.Instance.DeleteFromIndex(nodeId);
         }
 
         void Media_AfterSave(Media sender, umbraco.cms.businesslogic.SaveEventArgs e)
@@ -93,8 +97,9 @@ namespace UmbracoExamine
         /// <param name="e"></param>
         void content_AfterClearDocumentCache(Document sender, DocumentCacheEventArgs e)
         {
+            var nodeId = sender.Id.ToString();
             //ensure that only the providers that DONT have unpublishing support enabled           
-            ExamineManager.Instance.DeleteFromIndex(sender.ToXDocument(false).Root,
+            ExamineManager.Instance.DeleteFromIndex(nodeId,
                 ExamineManager.Instance.IndexProviderCollection
                     .Where(x => !x.SupportUnpublishedContent));   
         }

@@ -111,9 +111,9 @@ namespace Examine
         /// </summary>
         /// <param name="node"></param>
         /// <param name="providers"></param>
-        public void DeleteFromIndex(XElement node, IEnumerable<BaseIndexProvider> providers)
+        public void DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
         {
-            _DeleteFromIndex(node, providers);
+            _DeleteFromIndex(nodeId, providers);
         }
 
         #region IIndexer Members
@@ -139,15 +139,15 @@ namespace Examine
         /// Deletes index for node for all providers
         /// </summary>
         /// <param name="node"></param>
-        public void DeleteFromIndex(XElement node)
+        public void DeleteFromIndex(string nodeId)
         {
-            _DeleteFromIndex(node, IndexProviderCollection);
+            _DeleteFromIndex(nodeId, IndexProviderCollection);
         }    
-        private void _DeleteFromIndex(XElement node, IEnumerable<BaseIndexProvider> providers)
+        private void _DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
         {
             foreach (var provider in providers)
             {
-                provider.DeleteFromIndex(node);
+                provider.DeleteFromIndex(nodeId);
             }
         }
 

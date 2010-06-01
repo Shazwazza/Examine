@@ -13,11 +13,12 @@ namespace Examine
         /// <param name="node">XML node to reindex</param>
         /// <param name="type">Type of index to use</param>
         void ReIndexNode(XElement node, IndexType type);
+        
         /// <summary>
         /// Deletes a node from the index
         /// </summary>
-        /// <param name="node">Node to delete</param>
-        void DeleteFromIndex(XElement node);
+        /// <param name="nodeId">Node to delete</param>
+        void DeleteFromIndex(string nodeId);
         
         /// <summary>
         /// Re-indexes all data for the index type specified

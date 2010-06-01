@@ -443,11 +443,10 @@ namespace UmbracoExamine
         /// Deletes a node from the index
         /// </summary>
         /// <param name="node"></param>
-        public override void DeleteFromIndex(XElement node)
+        public override void DeleteFromIndex(string nodeId)
         {
             //create the queue item to be deleted
-            var id = (string)node.Attribute("id");
-            SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, id));
+            SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
         }
 
         /// <summary>
