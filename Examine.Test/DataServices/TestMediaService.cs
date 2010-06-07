@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using UmbracoExamine.DataServices;
 using System.Xml.Linq;
+using System.IO;
+using System.Reflection;
+using System.Xml.XPath;
 
 namespace Examine.Test.DataServices
 {
@@ -12,32 +15,22 @@ namespace Examine.Test.DataServices
 
         public TestMediaService()
         {
-            //TODO: Create xml file for media test
-            m_Doc = new XDocument(
-                new XElement("root",
-                    new XElement("node",
-                        new XAttribute("id", 123),
-                        new XAttribute("level", 1),
-                        new XAttribute("nodeName", "test1"),
-                        new XElement("node",
-                            new XAttribute("id", 223),
-                            new XAttribute("level", 2),
-                            new XAttribute("nodeName", "test2")),
-                        new XElement("node",
-                            new XAttribute("id", 224),
-                            new XAttribute("level", 2),
-                            new XAttribute("nodeName", "test3")),
-                        new XElement("node",
-                            new XAttribute("id", 225),
-                            new XAttribute("level", 2),
-                            new XAttribute("nodeName", "test4")))));
+            var xmlFile = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("App_Data")
+                 .Single()
+                 .GetFiles("media.xml")
+                 .Single();
+
+            m_Doc = XDocument.Load(xmlFile.FullName);
         }
 
         #region IMediaService Members
 
         public System.Xml.Linq.XDocument GetLatestMediaByXpath(string xpath)
         {
-            return m_Doc;
+            var xdoc = XDocument.Parse("<media></media>");
+            xdoc.Root.Add(m_Doc.XPathSelectElements(xpath));
+
+            return xdoc;
         }
 
         #endregion

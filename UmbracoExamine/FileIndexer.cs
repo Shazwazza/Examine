@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using iTextSharp.text.pdf;
-using System.Web;
-using umbraco.presentation;
 using umbraco.BusinessLogic;
 
 namespace UmbracoExamine
@@ -28,7 +26,7 @@ namespace UmbracoExamine
             base.Initialize(name, config);
 
             if (string.IsNullOrEmpty(config["extensions"]))
-                SupportedExtensions = new[] { "pdf" };
+                SupportedExtensions = new[] { ".pdf" };
             else
                 SupportedExtensions = config["extensions"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -60,7 +58,7 @@ namespace UmbracoExamine
             });
             if (filePath != default(XElement) && !string.IsNullOrEmpty((string)filePath))
             {
-                var fullPath = HttpContext.Current.Server.MapPath((string)filePath);
+                var fullPath = this.DataService.HttpContext.Server.MapPath((string)filePath);
                 var fi = new FileInfo(fullPath);
                 if (fi.Exists)
                 {
@@ -70,13 +68,13 @@ namespace UmbracoExamine
                         {
                             switch (ext.ToUpper())
                             {
-                                case "PDF":
+                                case ".PDF":
                                     PdfTextExtractor pdfTextExtractor = new PdfTextExtractor();
                                     fields.Add(this.TextContentFieldName, pdfTextExtractor.ExtractText(fi.FullName));
                                     break;
 
                                 default:
-                                    Log.Add(LogTypes.Copy, (int)node.Attribute("id"), "UmbracoExamine.FileIndexer: Extension '" + ext + "' is not supported at this time");
+                                    DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: Extension '" + ext + "' is not supported at this time");
                                     break;
                             }
                         }
@@ -84,12 +82,12 @@ namespace UmbracoExamine
                 }
                 else
                 {
-                    Log.Add(LogTypes.Custom, (int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No file found at path " + filePath);
+                  DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No file found at path " + filePath);
                 }
             }
             else
             {
-                Log.Add(LogTypes.Custom, (int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No data found at data alias \"umbracoFile\"");
+                DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No data found at data alias \"umbracoFile\"");
             }
 
             return fields;

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Web;
 namespace UmbracoExamine.DataServices
 {
     public interface IDataService
@@ -6,5 +6,6 @@ namespace UmbracoExamine.DataServices
         IContentService ContentService { get; }
         ILogService LogService { get; }
         IMediaService MediaService { get; }
+        HttpContextBase HttpContext { get; }
     }
 }

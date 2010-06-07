@@ -47,6 +47,8 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
@@ -61,6 +63,7 @@
     </Compile>
     <Compile Include="DataServices\TestContentService.cs" />
     <Compile Include="DataServices\TestDataService.cs" />
+    <Compile Include="DataServices\TestHttpContext.cs" />
     <Compile Include="DataServices\TestLogService.cs" />
     <Compile Include="DataServices\TestMediaService.cs" />
     <Compile Include="FileIndexerTests.cs" />
@@ -86,7 +89,9 @@
     <None Include="App_Data\TemplateIndex\segments.gen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="App_Data\VS2010CSharp.pdf" />
+    <Content Include="App_Data\VS2010CSharp.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Examine\Examine.csproj">
@@ -99,7 +104,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\media.xml" />
+    <Content Include="App_Data\media.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

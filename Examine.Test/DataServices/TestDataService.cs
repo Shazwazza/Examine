@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Web;
 using UmbracoExamine.DataServices;
 
 namespace Examine.Test.DataServices
@@ -14,6 +11,7 @@ namespace Examine.Test.DataServices
             ContentService = new TestContentService();
             LogService = new TestLogService();
             MediaService = new TestMediaService();
+            HttpContext = new TestHttpContext();
         }
 
         #region IDataService Members
@@ -24,15 +22,12 @@ namespace Examine.Test.DataServices
 
         public IMediaService MediaService { get; private set; }
 
+        public HttpContextBase HttpContext
+        {
+            get;
+            private set;
+        }
+
         #endregion
-    
-    
     }
-    
-   
-    
-    
-
-    
-
 }

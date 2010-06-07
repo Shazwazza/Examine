@@ -43,7 +43,9 @@ namespace Examine.Test
         public void FileIndexerTests_Index_Pdf()
         {
             //Arrange
+            var indexer = GetIndexer();
 
+            indexer.IndexAll(IndexType.Media);
 
             //Act
 
