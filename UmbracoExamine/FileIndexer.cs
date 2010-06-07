@@ -11,10 +11,17 @@ using umbraco.BusinessLogic;
 
 namespace UmbracoExamine
 {
-    internal class FileIndexer : LuceneExamineIndexer
+    public class FileIndexer : LuceneExamineIndexer
     {
         public IEnumerable<string> SupportedExtensions { get; protected set; }
-        public string TextContentFieldName { get { return "FileTextContent"; } }
+        public string UmbracoFileProperty { get; protected set; }
+        public string TextContentFieldName
+        {
+            get
+            {
+                return "FileTextContent";
+            }
+        }
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
@@ -24,6 +31,12 @@ namespace UmbracoExamine
                 SupportedExtensions = new[] { "pdf" };
             else
                 SupportedExtensions = config["extensions"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+
+            if (string.IsNullOrEmpty(config["umbracoFileProperty"]))
+                UmbracoFileProperty = "umbracoFile";
+            else
+                UmbracoFileProperty = config["umbracoFileProperty"];
         }
 
         public override void IndexAll(Examine.IndexType type)
@@ -38,8 +51,13 @@ namespace UmbracoExamine
         {
             var fields = base.GetDataToIndex(node, type);
 
-            //TODO: Support new schema!
-            var filePath = node.Elements("data").FirstOrDefault(x => (string)x.Attribute("alias") == "umbracoFile");
+            var filePath = node.Elements().FirstOrDefault(x =>
+            {
+                if (x.Attribute("alias") != null)
+                    return (string)x.Attribute("alias") == this.UmbracoFileProperty;
+                else
+                    return x.Name == this.UmbracoFileProperty;
+            });
             if (filePath != default(XElement) && !string.IsNullOrEmpty((string)filePath))
             {
                 var fullPath = HttpContext.Current.Server.MapPath((string)filePath);
@@ -50,9 +68,16 @@ namespace UmbracoExamine
                     {
                         if (fi.Extension.ToUpper() == ext.ToUpper())
                         {
-                            if (ext.ToUpper() == "PDF")
+                            switch (ext.ToUpper())
                             {
-                                throw new NotImplementedException();
+                                case "PDF":
+                                    PdfTextExtractor pdfTextExtractor = new PdfTextExtractor();
+                                    fields.Add(this.TextContentFieldName, pdfTextExtractor.ExtractText(fi.FullName));
+                                    break;
+
+                                default:
+                                    Log.Add(LogTypes.Copy, (int)node.Attribute("id"), "UmbracoExamine.FileIndexer: Extension '" + ext + "' is not supported at this time");
+                                    break;
                             }
                         }
                     }
@@ -99,15 +124,14 @@ namespace UmbracoExamine
             /// <param name="inFileName">the full path to the pdf file.</param>
             /// <param name="outFileName">the output file name.</param>
             /// <returns>the extracted text</returns>
-            public bool ExtractText(string inFileName, string outFileName)
+            public string ExtractText(string inFileName)
             {
-                StreamWriter outFile = null;
+                StringWriter writer = null;
                 try
                 {
                     // Create a reader for the given PDF file
                     PdfReader reader = new PdfReader(inFileName);
-                    //outFile = File.CreateText(outFileName);
-                    outFile = new StreamWriter(outFileName, false, System.Text.Encoding.UTF8);
+                    writer = new StringWriter();
 
                     Console.Write("Processing: ");
 
@@ -118,7 +142,7 @@ namespace UmbracoExamine
 
                     for (int page = 1; page <= reader.NumberOfPages; page++)
                     {
-                        outFile.Write(ExtractTextFromPDFBytes(reader.GetPageContent(page)) + " ");
+                        writer.Write(ExtractTextFromPDFBytes(reader.GetPageContent(page)) + " ");
 
                         // Write the progress.
                         if (charUnit >= 1.0f)
@@ -152,15 +176,15 @@ namespace UmbracoExamine
                             Console.Write("#");
                         }
                     }
-                    return true;
+                    return writer.ToString();
                 }
                 catch
                 {
-                    return false;
+                    return string.Empty;
                 }
                 finally
                 {
-                    if (outFile != null) outFile.Close();
+                    if (writer != null) writer.Close();
                 }
             }
             #endregion

@@ -63,6 +63,7 @@
     <Compile Include="DataServices\TestDataService.cs" />
     <Compile Include="DataServices\TestLogService.cs" />
     <Compile Include="DataServices\TestMediaService.cs" />
+    <Compile Include="FileIndexerTests.cs" />
     <Compile Include="FluentApiTests.cs" />
     <Compile Include="IndexInitializer.cs" />
     <Compile Include="IndexTest.cs" />
@@ -80,10 +81,12 @@
     </None>
     <None Include="App_Data\umbraco.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
     <None Include="App_Data\TemplateIndex\segments.gen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="App_Data\VS2010CSharp.pdf" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Examine\Examine.csproj">
@@ -95,7 +98,9 @@
       <Name>UmbracoExamine</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="App_Data\media.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

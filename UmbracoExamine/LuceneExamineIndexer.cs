@@ -442,11 +442,15 @@ namespace UmbracoExamine
         /// <summary>
         /// Deletes a node from the index
         /// </summary>
-        /// <param name="node"></param>
+        /// <param name="nodeId">ID of the node to delete</param>
         public override void DeleteFromIndex(string nodeId)
         {
             //create the queue item to be deleted
             SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
+
+            //need to process the queue items, otherwise the delete files aren't processed until the next publish
+            if (RunAsync)
+                ForceProcessQueueItems();
         }
 
         /// <summary>
@@ -728,7 +732,7 @@ namespace UmbracoExamine
         }
 
         /// <summary>
-        /// Collects the data for the fields and adds the document.
+        /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
         /// <remarks>
         /// This will normalize (lowercase) all text before it goes in to the index.
