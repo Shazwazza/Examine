@@ -22,18 +22,5 @@ namespace Examine.Config
             get { return (ProviderSettingsCollection)base["providers"]; }
         }
 
-        /// <summary>
-        /// If true, the IndexingActionHandler will be run to keep the default index up to date.
-        /// </summary>
-        [ConfigurationProperty("enableDefaultEventHandler", IsRequired = true)]
-        public bool EnableDefaultEventHandler
-        {
-            get
-            {
-                return (bool)this["enableDefaultEventHandler"];
-            }
-        }
-
-
     }
 }

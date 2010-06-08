@@ -40,6 +40,14 @@ namespace Examine.Providers
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
+
+            EnableDefaultEventHandler = true; //set to true by default
+            bool enabled;
+            if (bool.TryParse(config["enableDefaultEventHandler"], out enabled))
+            {
+                EnableDefaultEventHandler = enabled;
+            }                           
+
             //if (config["enabled"] == null)
             //    throw new ArgumentNullException("enabled flag on index provider has not been set");
 
@@ -55,6 +63,11 @@ namespace Examine.Providers
         /// </summary>
         /// <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
         //public bool Enabled { get; set; }
+
+        /// <summary>
+        /// If true, the IndexingActionHandler will be run to keep the default index up to date.
+        /// </summary>
+        public bool EnableDefaultEventHandler { get; protected set; }
 
         #region IIndexer members
         /// <summary>
