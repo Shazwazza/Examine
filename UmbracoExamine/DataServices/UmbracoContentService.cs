@@ -102,7 +102,10 @@ namespace UmbracoExamine.DataServices
             return false;
         }
 
-
+        /// <summary>
+        /// Returns a list of all of the user defined property names in Umbraco
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> GetAllUserPropertyNames()
         {
             //this is how umb codebase 4.0 does this... booo, should be in the data layer, will fix in 4.1
@@ -111,11 +114,18 @@ namespace UmbracoExamine.DataServices
             var fieldSql = "select distinct alias from cmsPropertyType order by alias";
             using (var dr = Application.SqlHelper.ExecuteReader(fieldSql))
             {
-                aliases.Add(dr.GetString("alias"));
+                while (dr.Read())
+                {
+                    aliases.Add(dr.GetString("alias"));
+                }                
             }
             return aliases;
         }
 
+        /// <summary>
+        /// Returns a list of all system field names in Umbraco
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> GetAllSystemPropertyNames()
         {
             return UmbracoFieldPolicies.GetPolicies().Select(x => x.Key);

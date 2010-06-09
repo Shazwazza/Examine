@@ -39,7 +39,7 @@ namespace UmbracoExamine
     /// </remarks>
     public class LuceneExamineIndexer : BaseIndexProvider, IDisposable
     {
-        
+
         #region Constructors
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace UmbracoExamine
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
         }
-        
+
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
@@ -85,7 +85,7 @@ namespace UmbracoExamine
             base.Initialize(name, config);
 
             if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
-             {
+            {
                 //this should be a fully qualified type
                 var serviceType = Type.GetType(config["dataService"]);
                 DataService = (IDataService)Activator.CreateInstance(serviceType);
@@ -98,7 +98,7 @@ namespace UmbracoExamine
             }
 
             //Need to check if the index set or IndexerData is specified...
-           
+
             if (config["indexSet"] == null && IndexerData == null)
             {
                 //if we don't have either, then we'll try to set the index set by naming convensions
@@ -117,7 +117,7 @@ namespace UmbracoExamine
                         IndexSetName = set.SetName;
 
                         //get the index criteria and ensure folder
-                        IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria();
+                        IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria(DataService);
                         VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
 
                         //now set the index folders
@@ -128,9 +128,9 @@ namespace UmbracoExamine
                     }
                 }
 
-                if (!found)                    
+                if (!found)
                     throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration and/or the IndexerData property has not been explicitly set");
-            
+
             }
             else if (config["indexSet"] != null)
             {
@@ -143,11 +143,11 @@ namespace UmbracoExamine
                 else
                 {
                     IndexSetName = config["indexSet"];
-                    
+
                     //get the index criteria and ensure folder
-                    IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria();
+                    IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria(DataService);
                     VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
-                    
+
                     //now set the index folders
                     LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
                     IndexQueueItemFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
@@ -270,7 +270,7 @@ namespace UmbracoExamine
         /// <summary>
         /// The data service used for retreiving and submitting data to the cms
         /// </summary>
-        public IDataService DataService { get; protected internal set; }        
+        public IDataService DataService { get; protected internal set; }
 
         /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
@@ -331,7 +331,7 @@ namespace UmbracoExamine
         /// <summary>
         /// Occurs when [document writing].
         /// </summary>
-        public event EventHandler<DocumentWritingEventArgs> DocumentWriting; 
+        public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
         #endregion
 
         #region Event handlers
@@ -615,11 +615,11 @@ namespace UmbracoExamine
                             m_IsIndexing = false;
                         }
                     }
-                    
+
                 }
             }
 
-            
+
         }
 
         /// <summary>
@@ -642,9 +642,9 @@ namespace UmbracoExamine
                     return true;
 
                 int delCount = ir.DeleteDocuments(indexTerm);
-                
+
                 ir.Commit(); //commit the changes!
-                
+
                 if (delCount > 0)
                 {
                     OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text()), delCount));
@@ -750,7 +750,7 @@ namespace UmbracoExamine
 
             Document d = new Document();
             var indexSetFields = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName].CombinedUmbracoFields(this.DataService);
-           //add all of our fields to the document index individually, don't include the special fields if they exists            
+            //add all of our fields to the document index individually, don't include the special fields if they exists            
             fields
                 .Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName)
                 .ToList()
@@ -758,7 +758,7 @@ namespace UmbracoExamine
                 {
                     var policy = UmbracoFieldPolicies.GetPolicy(x.Key);
                     d.Add(
-                        new Field(x.Key, 
+                        new Field(x.Key,
                             GetFieldValue(x.Value),
                             Field.Store.YES,
                             policy,
@@ -944,8 +944,8 @@ namespace UmbracoExamine
                         //set our volatile flag
                         m_IsIndexing = false;
 
-                        return indexedNodes.Count;                       
-                    }                    
+                        return indexedNodes.Count;
+                    }
                 }
             }
 
@@ -965,7 +965,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         protected XDocument GetXDocument(string xPath, IndexType type)
         {
-            
+
             switch (type)
             {
                 case IndexType.Content:
@@ -979,7 +979,7 @@ namespace UmbracoExamine
                     }
                 case IndexType.Media:
                     return DataService.MediaService.GetLatestMediaByXpath(xPath);
-                                
+
             }
 
             return null;
@@ -1017,6 +1017,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="fields"></param>
         /// <param name="nodeId"></param>
+        /// <param name="type"></param>
         protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, IndexType type)
         {
             try
@@ -1091,12 +1092,14 @@ namespace UmbracoExamine
 
         }
 
+
         /// <summary>
         /// Checks the writer passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
         /// returns checks if the reader is not null and tries to close it. if it's still locked returns null, otherwise
         /// creates a new writer.
         /// </summary>
         /// <param name="writer"></param>
+        /// <param name="reader"></param>
         /// <returns></returns>
         private bool GetExclusiveIndexWriter(ref IndexWriter writer, ref IndexReader reader)
         {
@@ -1119,11 +1122,13 @@ namespace UmbracoExamine
             return true;
         }
 
+
         /// <summary>
         /// Checks the reader passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
         /// returns checks if the writer is not null and tries to close it. if it's still locked returns null, otherwise
         /// creates a new reader.
         /// </summary>
+        /// <param name="reader"></param>
         /// <param name="writer"></param>
         /// <returns></returns>
         private bool GetExclusiveIndexReader(ref IndexReader reader, ref IndexWriter writer)
@@ -1176,6 +1181,8 @@ namespace UmbracoExamine
         /// Reads the FileInfo passed in into a dictionary object and adds it to the index
         /// </summary>
         /// <param name="x"></param>
+        /// <param name="writer"></param>
+        /// <returns></returns>
         private IndexedNode ProcessAddQueueItem(FileInfo x, IndexWriter writer)
         {
             //get the dictionary object from the file data
@@ -1215,7 +1222,7 @@ namespace UmbracoExamine
                 return val.ToLower();
         }
 
-        
+
 
         private void CloseWriter(ref IndexWriter writer)
         {
@@ -1282,7 +1289,7 @@ namespace UmbracoExamine
                     }
                 }
             }
-            
+
         }
 
         /// <summary>

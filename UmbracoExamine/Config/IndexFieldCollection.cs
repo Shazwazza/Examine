@@ -18,8 +18,17 @@ namespace UmbracoExamine.Config
             IndexField field = (IndexField)element;
             return field.Name;
         }
+
+        public override bool IsReadOnly()
+        {
+            return false;
+        }
         #endregion
 
+        /// <summary>
+        /// Adds an index field to the collection
+        /// </summary>
+        /// <param name="field"></param>
         public void Add(IndexField field)
         {
             BaseAdd(field, true);

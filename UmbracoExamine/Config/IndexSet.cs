@@ -135,32 +135,6 @@ namespace UmbracoExamine.Config
             get
             {
                 return (IndexFieldCollection)base["IndexUserFields"];
-
-                //var fields = base["IndexUserFields"] != null ? (IndexFieldCollection)base["IndexUserFields"] : new IndexFieldCollection();
-                //if (fields.Count == 0)
-                //{
-                //    //create the defaults
-
-                //    fields.Add(new IndexField() { Name = "id" });
-                //    fields.Add(new IndexField() { Name = "version" });
-                //    fields.Add(new IndexField() { Name = "parentID" });
-                //    fields.Add(new IndexField() { Name = "level" });
-                //    fields.Add(new IndexField() { Name = "writerID" });
-                //    fields.Add(new IndexField() { Name = "creatorID" });
-                //    fields.Add(new IndexField() { Name = "nodeType" });
-                //    fields.Add(new IndexField() { Name = "template" });
-                //    fields.Add(new IndexField() { Name = "sortOrder" });
-                //    fields.Add(new IndexField() { Name = "createDate" });
-                //    fields.Add(new IndexField() { Name = "updateDate" });
-                //    fields.Add(new IndexField() { Name = "nodeName" });
-                //    fields.Add(new IndexField() { Name = "urlName" });
-                //    fields.Add(new IndexField() { Name = "writerName" });
-                //    fields.Add(new IndexField() { Name = "creatorName" });
-                //    fields.Add(new IndexField() { Name = "nodeTypeAlias" });
-                //    fields.Add(new IndexField() { Name = "path" });
-                //}
-
-                //return fields;
             }
         }
 
@@ -193,32 +167,7 @@ namespace UmbracoExamine.Config
         {
             get
             {
-                return (IndexFieldCollection)base["IndexAttributeFields"];
-                //var fields = base["IndexAttributeFields"] != null ? (IndexFieldCollection)base["IndexAttributeFields"] : new IndexFieldCollection();
-                //if (fields.Count == 0)
-                //{
-                //    //create the defaults
-
-                //    fields.Add(new IndexField() { Name = "id" });
-                //    fields.Add(new IndexField() { Name = "version" });
-                //    fields.Add(new IndexField() { Name = "parentID" });
-                //    fields.Add(new IndexField() { Name = "level" });
-                //    fields.Add(new IndexField() { Name = "writerID" });
-                //    fields.Add(new IndexField() { Name = "creatorID" });
-                //    fields.Add(new IndexField() { Name = "nodeType" });
-                //    fields.Add(new IndexField() { Name = "template" });
-                //    fields.Add(new IndexField() { Name = "sortOrder" });
-                //    fields.Add(new IndexField() { Name = "createDate" });
-                //    fields.Add(new IndexField() { Name = "updateDate" });
-                //    fields.Add(new IndexField() { Name = "nodeName" });
-                //    fields.Add(new IndexField() { Name = "urlName" });
-                //    fields.Add(new IndexField() { Name = "writerName" });
-                //    fields.Add(new IndexField() { Name = "creatorName" });
-                //    fields.Add(new IndexField() { Name = "nodeTypeAlias" });
-                //    fields.Add(new IndexField() { Name = "path" });
-                //}
-
-                //return fields;
+                return (IndexFieldCollection)base["IndexAttributeFields"];               
             }
         }
 

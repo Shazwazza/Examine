@@ -26,14 +26,16 @@ namespace UmbracoExamine
         }
 
         /// <summary>
-        /// Uses the default provider specified to search, returning an XPathNodeIterator
+        /// Uses the provider specified to search, returning an XPathNodeIterator
         /// </summary>
-        /// <param name="searchText">The search query</param>
-        /// <param name="useWildcards">Enable a wildcard search query</param>
-        /// <returns>A node-set of the search results</returns>
-        public static XPathNodeIterator Search(string searchText, bool useWildcards)
+        /// <param name="searchText"></param>
+        /// <param name="useWildcards"></param>
+        /// <param name="providerName"></param>
+        /// <returns></returns>
+        public static XPathNodeIterator Search(string searchText, bool useWildcards, string providerName)
         {
-            ISearchResults results = ExamineManager.Instance.Search(searchText, useWildcards);
+
+            ISearchResults results = ExamineManager.Instance.SearchProviderCollection[providerName].Search(searchText, useWildcards);
 
             // create the XDocument
             XDocument doc = new XDocument();
@@ -90,6 +92,18 @@ namespace UmbracoExamine
             }
 
             return doc.CreateNavigator().Select("/");
+            
+        }
+
+        /// <summary>
+        /// Uses the default provider specified to search, returning an XPathNodeIterator
+        /// </summary>
+        /// <param name="searchText">The search query</param>
+        /// <param name="useWildcards">Enable a wildcard search query</param>
+        /// <returns>A node-set of the search results</returns>
+        public static XPathNodeIterator Search(string searchText, bool useWildcards)
+        {
+            return Search(searchText, useWildcards, ExamineManager.Instance.DefaultSearchProvider.Name);
         }
 
     }
