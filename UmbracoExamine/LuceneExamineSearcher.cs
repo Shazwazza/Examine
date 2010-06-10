@@ -244,7 +244,9 @@ namespace UmbracoExamine
             var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
             var searchFields = fields
-                .Where(x => x != LuceneExamineIndexer.IndexNodeIdFieldName && x != LuceneExamineIndexer.IndexTypeFieldName)
+                .Where(x => x != LuceneExamineIndexer.IndexNodeIdFieldName 
+                    && x != LuceneExamineIndexer.IndexTypeFieldName
+                    && x != LuceneExamineIndexer.IndexPathFieldName)
                 .ToArray();
             return searchFields;
         }

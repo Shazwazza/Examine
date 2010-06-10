@@ -15,6 +15,10 @@ using Lucene.Net.Store;
 using umbraco.cms.businesslogic;
 using UmbracoExamine.Config;
 using UmbracoExamine.DataServices;
+using System.Collections.Specialized;
+using Lucene.Net.Search;
+using Lucene.Net.QueryParsers;
+using UmbracoExamine.SearchCriteria;
 
 namespace UmbracoExamine
 {
@@ -219,6 +223,14 @@ namespace UmbracoExamine
                     ExecutiveIndex.ServerCount));
             }
 
+            //create our internal searcher with a KeywordAnalyzer 
+            m_InternalSearcher = new LuceneExamineSearcher(this.LuceneIndexFolder);
+            var searcherConfig = new NameValueCollection();
+            searcherConfig.Add("indexSet", this.IndexSetName);
+            searcherConfig.Add("analyzer", new KeywordAnalyzer().GetType().AssemblyQualifiedName);
+            m_InternalSearcher.Initialize(Guid.NewGuid().ToString("N"), searcherConfig);
+
+
             CommitCount = 0;
 
             OptimizeIndex();
@@ -246,6 +258,11 @@ namespace UmbracoExamine
         public const string IndexNodeIdFieldName = "__NodeId";
 
         /// <summary>
+        /// Used to store the path of a content object
+        /// </summary>
+        public const string IndexPathFieldName = "__Path";
+
+        /// <summary>
         /// Used to perform thread locking
         /// </summary>
         private readonly object m_IndexerLocker = new object();
@@ -262,6 +279,12 @@ namespace UmbracoExamine
 
         private System.Timers.Timer m_FileWatcher = null;
         private System.Timers.ElapsedEventHandler m_FileWatcher_ElapsedEventHandler;
+
+        /// <summary>
+        /// We need an internal searcher used to search against our own index.
+        /// This is used for finding all descendant nodes of a current node when deleting indexes.
+        /// </summary>
+        private LuceneExamineSearcher m_InternalSearcher;
 
         #endregion
 
@@ -440,11 +463,36 @@ namespace UmbracoExamine
         }
 
         /// <summary>
-        /// Deletes a node from the index
+        /// Deletes a node from the index.                
         /// </summary>
+        /// <remarks>
+        /// When a content node is deleted, we also need to delete it's children from the index so we need to perform a 
+        /// custom Lucene search to find all decendents and create Delete item queues for them too.
+        /// </remarks>
         /// <param name="nodeId">ID of the node to delete</param>
         public override void DeleteFromIndex(string nodeId)
         {
+            var descendantPath = string.Format(@"\-1\,*{0}\,*", nodeId);
+            var rawQuery = string.Format("{0}:{1}", IndexPathFieldName, descendantPath);
+
+            //search content first, if nothing is found, then try media (we can't search both at the same time currently)
+            var c = m_InternalSearcher.CreateSearchCriteria(IndexType.Content);
+            var filtered = c.RawQuery(rawQuery);
+            var results = m_InternalSearcher.Search(filtered);
+            if (results.Count() == 0)
+            {
+                //we have no results, try media
+                c = m_InternalSearcher.CreateSearchCriteria(IndexType.Media);
+                filtered = c.RawQuery(rawQuery);
+                results = m_InternalSearcher.Search(filtered);
+            }
+            //need to create a delete queue item for each one found
+            foreach (var r in results)
+            {                
+                SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
+            }
+            
+
             //create the queue item to be deleted
             SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
 
@@ -524,6 +572,8 @@ namespace UmbracoExamine
 
         #region Protected
 
+        
+
         /// <summary>
         /// Adds single node to index. If the node already exists, a duplicate will probably be created,
         /// To re-index, use the ReIndexNode method.
@@ -536,6 +586,8 @@ namespace UmbracoExamine
             int.TryParse((string)node.Attribute("id"), out nodeId);
             if (nodeId <= 0)
                 return;
+
+            var path = node.Attribute("path").Value;
 
             //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
             //particular node
@@ -552,7 +604,7 @@ namespace UmbracoExamine
             }
 
             //save the index item to a queue file
-            SaveAddIndexQueueItem(GetDataToIndex(node, type), nodeId, type);
+            SaveAddIndexQueueItem(GetDataToIndex(node, type), nodeId, type, path);
 
             //run the indexer on all queued files
             SafelyProcessQueueItems();
@@ -741,7 +793,8 @@ namespace UmbracoExamine
         /// <param name="writer"></param>
         /// <param name="nodeId"></param>
         /// <param name="type"></param>
-        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type)
+        /// <param name="path">The path of the content node</param>
+        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type, string path)
         {
             var args = new IndexingNodeEventArgs(nodeId, fields, type);
             OnNodeIndexing(args);
@@ -752,7 +805,7 @@ namespace UmbracoExamine
             var indexSetFields = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName].CombinedUmbracoFields(this.DataService);
             //add all of our fields to the document index individually, don't include the special fields if they exists            
             fields
-                .Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName)
+                .Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName && x.Key != IndexPathFieldName)
                 .ToList()
                 .ForEach(x =>
                 {
@@ -786,6 +839,8 @@ namespace UmbracoExamine
             d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
             //add the index type first
             d.Add(new Field(IndexTypeFieldName, type.ToString().ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+            //add the path 
+            d.Add(new Field(IndexPathFieldName, path.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
 
             var docArgs = new DocumentWritingEventArgs(nodeId, d, fields);
             OnDocumentWriting(docArgs);
@@ -988,7 +1043,7 @@ namespace UmbracoExamine
         /// <summary>
         /// Saves a file indicating that the executive indexer should remove the from the index those that match
         /// the term saved in this file.
-        /// This will save a file prefixed with the current machine name with an extension of .dev
+        /// This will save a file prefixed with the current machine name with an extension of .del
         /// </summary>
         /// <param name="term"></param>
         protected void SaveDeleteIndexQueueItem(KeyValuePair<string, string> term)
@@ -1007,7 +1062,8 @@ namespace UmbracoExamine
             terms.Add(term.Key, term.Value);
             var fileName = Environment.MachineName + "-" + Guid.NewGuid().ToString("N");
             FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".del"));
-            terms.SaveToDisk(fi);
+            terms.SaveToDisk(fi);            
+            
         }
 
         /// <summary>
@@ -1018,7 +1074,8 @@ namespace UmbracoExamine
         /// <param name="fields"></param>
         /// <param name="nodeId"></param>
         /// <param name="type"></param>
-        protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, IndexType type)
+        /// <param name="path">The path of the content node</param>
+        protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, IndexType type, string path)
         {
             try
             {
@@ -1033,6 +1090,7 @@ namespace UmbracoExamine
             //ensure the special fields are added to the dictionary to be saved to file
             if (!fields.ContainsKey(IndexNodeIdFieldName)) fields.Add(IndexNodeIdFieldName, nodeId.ToString());
             if (!fields.ContainsKey(IndexTypeFieldName)) fields.Add(IndexTypeFieldName, type.ToString().ToLower());
+            if (!fields.ContainsKey(IndexPathFieldName)) fields.Add(IndexPathFieldName, path.ToLower());
 
             var fileName = Environment.MachineName + "-" + nodeId.ToString() + "-" + Guid.NewGuid().ToString("N");
             FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
@@ -1193,8 +1251,11 @@ namespace UmbracoExamine
             IndexType indexType = (IndexType)Enum.Parse(typeof(IndexType), sd[IndexTypeFieldName], true);
             //get the node id
             int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
+            //get the path
+            string path = sd[IndexPathFieldName];
+
             //now, add the index with our dictionary object
-            AddDocument(sd.ToDictionary(), writer, nodeId, indexType);
+            AddDocument(sd.ToDictionary(), writer, nodeId, indexType, path);
 
             //remove the file
             x.Delete();
@@ -1262,7 +1323,7 @@ namespace UmbracoExamine
                     if (ValidateDocument(node))
                     {
                         //save the index item to a queue file
-                        SaveAddIndexQueueItem(GetDataToIndex(node, type), int.Parse(node.Attribute("id").Value), type);
+                        SaveAddIndexQueueItem(GetDataToIndex(node, type), int.Parse(node.Attribute("id").Value), type, node.Attribute("path").Value);
                     }
 
                 }

@@ -79,7 +79,9 @@ namespace UmbracoExamine
             //ignore our internal fields though
             foreach (Field field in fields
                 .Cast<Field>()
-                .Where(x => x.Name() != LuceneExamineIndexer.IndexNodeIdFieldName && x.Name() != LuceneExamineIndexer.IndexTypeFieldName))
+                .Where(x => x.Name() != LuceneExamineIndexer.IndexNodeIdFieldName 
+                    && x.Name() != LuceneExamineIndexer.IndexTypeFieldName
+                    && x.Name() != LuceneExamineIndexer.IndexPathFieldName))
             {
                 sr.Fields.Add(field.Name(), doc.Get(field.Name()));
             }
