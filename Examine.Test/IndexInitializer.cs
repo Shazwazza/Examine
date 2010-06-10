@@ -52,6 +52,10 @@ namespace Examine.Test
             return new DirectoryInfo(Environment.CurrentDirectory);            
         }
 
+        /// <summary>
+        /// This removes the working indexes for each one specified in the config.
+        /// For each one added, we need to manually remove them here to safely delete the indexes before the next tests.
+        /// </summary>
         public void RemoveWorkingIndex()
         {           
 
@@ -63,6 +67,9 @@ namespace Examine.Test
 
                 folder = appData.First().GetDirectories("ConvensionNamedTest").First().GetDirectories("Index").First();
                 RemoveIndexForSearcher(folder, "ConvensionNamedSearcher");
+
+                folder = appData.First().GetDirectories("FileIndexSet").First().GetDirectories("Index").First();
+                RemoveIndexForSearcher(folder, "FileSearcher");
             }
            
         }

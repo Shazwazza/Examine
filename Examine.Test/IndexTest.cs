@@ -50,10 +50,10 @@ namespace Examine.Test
             var s = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             var r = s.GetSearcher().GetIndexReader();
 
-            //there's 15 fields in the index, but 3 sorted fields
+            //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
 
-            Assert.AreEqual(18, fields.Count());
+            Assert.AreEqual(19, fields.Count());
             //ensure there's 3 sorting fields
             Assert.AreEqual(3, fields.Where(x => x.StartsWith(LuceneExamineIndexer.SortedFieldNamePrefix)).Count());
             //there should be 10 documents

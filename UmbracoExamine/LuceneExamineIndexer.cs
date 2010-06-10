@@ -541,7 +541,7 @@ namespace UmbracoExamine
             }
 
             //create the xpath statement to match all children of the current node.
-            if (IndexerData.ParentNodeId.HasValue)
+            if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
             {
                 if (sb.Length > 0)
                     sb.Append(" and ");
@@ -728,7 +728,7 @@ namespace UmbracoExamine
                     return false;
 
             //check if this document is a descendent of the parent
-            if (IndexerData.ParentNodeId.HasValue)
+            if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
                 if (!((string)node.Attribute("path")).Contains("," + IndexerData.ParentNodeId.Value.ToString() + ","))
                     return false;
 
