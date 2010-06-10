@@ -449,7 +449,7 @@ namespace UmbracoExamine
             SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
 
             //need to process the queue items, otherwise the delete files aren't processed until the next publish
-            if (RunAsync)
+            if (!RunAsync)
                 ForceProcessQueueItems();
         }
 
@@ -836,7 +836,7 @@ namespace UmbracoExamine
         /// The number of queue items processed
         /// </returns>
         /// <remarks>
-        /// Inheritors should be very carefly using this method, SafelyProcessQueueItems will ensure
+        /// Inheritors should be very carefully using this method, SafelyProcessQueueItems will ensure
         /// that the correct machine processes the items into the index. SafelyQueueItems calls this method
         /// if it confirms that this machine is the one to process the queue.
         /// </remarks>
