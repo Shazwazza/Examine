@@ -49,6 +49,7 @@ namespace UmbracoExamine
 
             return new XDocument(xNode.ToXElement());
         }
+
         /// <summary>
         /// Converts an <see cref="System.Xml.XmlNode"/> to a <see cref="System.Xml.Linq.XElement"/>
         /// </summary>
@@ -70,19 +71,10 @@ namespace UmbracoExamine
         /// <returns>Document containing elements</returns>
         public static XDocument ToXDocument(this IEnumerable<XElement> elements)
         {
-            if (elements.Count() == 1)
-            {
-                //if ever the id is -1 then it's returned the whole tree which means its not found
-                //TODO: This is bug with older umbraco versions, i'm fairly sure it's fixed in new ones
-                //but just in case, we'll keep this here.
-                if (elements.First().Name.LocalName.StartsWith("<root"))
-                    return null;
-                return new XDocument(elements.First());
-            }
-            else if (elements.Count() > 1)
+            if (elements.Count() > 0)
             {
                 return new XDocument(new XElement("nodes", elements));
-            }
+            }            
             return null;
         }
 

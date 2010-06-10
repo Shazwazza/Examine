@@ -1314,7 +1314,7 @@ namespace UmbracoExamine
             XDocument xDoc = GetXDocument(xPath, type);
             if (xDoc != null)
             {
-                XElement rootNode = xDoc.Elements().First();
+                XElement rootNode = xDoc.Root;
 
                 IEnumerable<XElement> children = rootNode.Elements();
 

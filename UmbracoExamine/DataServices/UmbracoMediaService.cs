@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml.XPath;
 using System.Xml.Linq;
 using umbraco.cms.businesslogic.media;
+using System.Collections;
 
 namespace UmbracoExamine.DataServices
 {
@@ -31,8 +32,8 @@ namespace UmbracoExamine.DataServices
             {
                 xmlMedia.Root.Add(GetMediaItem(media.Id));
             }
-            var umbXml = (XPathNodeIterator)xmlMedia.CreateNavigator().Evaluate(xpath);
-            return umbXml.ToXDocument();
+            var result = ((IEnumerable)xmlMedia.XPathEvaluate(xpath)).Cast<XElement>();
+            return result.ToXDocument();
         }
 
         private XElement GetMediaItem(int nodeId)
