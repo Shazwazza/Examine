@@ -50,7 +50,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </returns>
         public override string ToString()
         {
-            return string.Format("{{ MaxResults: {0}, SearchIndexType: {1}, LuceneQuery: {2} }}", this.MaxResults, this.SearchIndexType, this.query.ToString());
+            return string.Format("{{ SearchIndexType: {0}, LuceneQuery: {1} }}", this.SearchIndexType, this.query.ToString());
         }
 
         private static void ValidateIExamineValue(IExamineValue v)
@@ -63,12 +63,6 @@ namespace UmbracoExamine.SearchCriteria
         }
 
         #region ISearchCriteria Members
-
-        public int MaxResults
-        {
-            get;
-            protected set;
-        }
 
         public IndexType SearchIndexType
         {

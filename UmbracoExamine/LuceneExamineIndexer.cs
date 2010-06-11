@@ -472,20 +472,13 @@ namespace UmbracoExamine
         /// <param name="nodeId">ID of the node to delete</param>
         public override void DeleteFromIndex(string nodeId)
         {
+            //find all descendants based on path
             var descendantPath = string.Format(@"\-1\,*{0}\,*", nodeId);
             var rawQuery = string.Format("{0}:{1}", IndexPathFieldName, descendantPath);
-
-            //search content first, if nothing is found, then try media (we can't search both at the same time currently)
-            var c = m_InternalSearcher.CreateSearchCriteria(IndexType.Content);
+            var c = m_InternalSearcher.CreateSearchCriteria();
             var filtered = c.RawQuery(rawQuery);
             var results = m_InternalSearcher.Search(filtered);
-            if (results.Count() == 0)
-            {
-                //we have no results, try media
-                c = m_InternalSearcher.CreateSearchCriteria(IndexType.Media);
-                filtered = c.RawQuery(rawQuery);
-                results = m_InternalSearcher.Search(filtered);
-            }
+            
             //need to create a delete queue item for each one found
             foreach (var r in results)
             {                

@@ -200,6 +200,11 @@ namespace UmbracoExamine
             return pagesResults;
         }
 
+        public override ISearchCriteria CreateSearchCriteria()
+        {
+            return this.CreateSearchCriteria(IndexType.Any, BooleanOperation.And);
+        }
+
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>

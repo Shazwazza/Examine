@@ -1,5 +1,6 @@
 ﻿using Examine.SearchCriteria;
 using Lucene.Net.Search;
+using Lucene.Net.QueryParsers;
 
 namespace UmbracoExamine.SearchCriteria
 {
@@ -37,7 +38,7 @@ namespace UmbracoExamine.SearchCriteria
 
         public static IExamineValue Escape(this string s)
         {
-            return new ExamineValue(Examineness.Escaped, "\"" + s + "\"");
+            return new ExamineValue(Examineness.Escaped, QueryParser.Escape(s));
         }
 
         public static string Then(this IExamineValue vv, string s)

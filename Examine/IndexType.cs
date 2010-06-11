@@ -8,6 +8,6 @@ namespace Examine
 {
     public enum IndexType
     {
-        Content, Media
+        Content, Media, Any
     }
 }

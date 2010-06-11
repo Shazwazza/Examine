@@ -30,6 +30,11 @@ namespace Examine.Providers
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
+        /// <returns></returns>
+        public abstract ISearchCriteria CreateSearchCriteria();
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
         /// <param name="maxResults">The max number of results.</param>
         /// <param name="type">The type of data in the index.</param>
         /// <returns>A blank SearchCriteria</returns>
