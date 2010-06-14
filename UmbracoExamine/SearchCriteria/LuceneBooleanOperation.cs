@@ -37,6 +37,11 @@ namespace UmbracoExamine.SearchCriteria
         {
             if (this.search.SearchIndexType != Examine.IndexType.Any)
             {
+                var query = this.search.query;
+
+                this.search.query = new BooleanQuery();
+                this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), BooleanClause.Occur.MUST);
+
                 this.search.FieldInternal(LuceneExamineIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this.search.SearchIndexType.ToString().ToLower()), BooleanClause.Occur.MUST);
             }
             
