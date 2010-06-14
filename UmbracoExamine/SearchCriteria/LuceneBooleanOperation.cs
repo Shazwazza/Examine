@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Examine.SearchCriteria;
+﻿using Examine.SearchCriteria;
 using Lucene.Net.Search;
 
 namespace UmbracoExamine.SearchCriteria
 {
+    /// <summary>
+    /// An implementation of the fluent API boolean operations
+    /// </summary>
     public class LuceneBooleanOperation : IBooleanOperation
     {
         private LuceneSearchCriteria search;
@@ -18,21 +17,37 @@ namespace UmbracoExamine.SearchCriteria
 
         #region IBooleanOperation Members
 
+        /// <summary>
+        /// Sets the next operation to be AND
+        /// </summary>
+        /// <returns></returns>
         public IQuery And()
         {
             return new LuceneQuery(this.search, BooleanClause.Occur.MUST);
         }
 
+        /// <summary>
+        /// Sets the next operation to be OR
+        /// </summary>
+        /// <returns></returns>
         public IQuery Or()
         {
             return new LuceneQuery(this.search, BooleanClause.Occur.SHOULD);
         }
 
+        /// <summary>
+        /// Sets the next operation to be NOT
+        /// </summary>
+        /// <returns></returns>
         public IQuery Not()
         {
             return new LuceneQuery(this.search, BooleanClause.Occur.MUST_NOT);
         }
 
+        /// <summary>
+        /// Compiles this instance for fluent API conclusion
+        /// </summary>
+        /// <returns></returns>
         public ISearchCriteria Compile()
         {
             if (this.search.SearchIndexType != Examine.IndexType.Any)

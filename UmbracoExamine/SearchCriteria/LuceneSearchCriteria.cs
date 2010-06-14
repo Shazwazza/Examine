@@ -104,12 +104,22 @@ namespace UmbracoExamine.SearchCriteria
             return new LuceneBooleanOperation(this);
         }
 
+        /// <summary>
+        /// Query on the NodeName
+        /// </summary>
+        /// <param name="nodeName">Name of the node.</param>
+        /// <returns></returns>
         public IBooleanOperation NodeName(string nodeName)
         {
             Enforcer.ArgumentNotNull(nodeName, "nodeName");
             return NodeName(new ExamineValue(Examineness.Explicit, nodeName));
         }
 
+        /// <summary>
+        /// Query on the NodeName
+        /// </summary>
+        /// <param name="nodeName">Name of the node.</param>
+        /// <returns></returns>
         public IBooleanOperation NodeName(IExamineValue nodeName)
         {
             Enforcer.ArgumentNotNull(nodeName, "nodeName");
@@ -121,12 +131,22 @@ namespace UmbracoExamine.SearchCriteria
             return this.FieldInternal("nodeName", examineValue, occurance);
         }
 
+        /// <summary>
+        /// Query on the NodeTypeAlias
+        /// </summary>
+        /// <param name="nodeTypeAlias">The node type alias.</param>
+        /// <returns></returns>
         public IBooleanOperation NodeTypeAlias(string nodeTypeAlias)
         {
             Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
             return this.NodeTypeAlias(new ExamineValue(Examineness.Explicit, nodeTypeAlias));
         }
 
+        /// <summary>
+        /// Query on the NodeTypeAlias
+        /// </summary>
+        /// <param name="nodeTypeAlias">The node type alias.</param>
+        /// <returns></returns>
         public IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias)
         {
             Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
@@ -138,6 +158,11 @@ namespace UmbracoExamine.SearchCriteria
             return this.FieldInternal("nodeTypeAlias", examineValue, occurance);
         }
 
+        /// <summary>
+        /// Query on the Parent ID
+        /// </summary>
+        /// <param name="id">The id of the parent.</param>
+        /// <returns></returns>
         public IBooleanOperation ParentId(int id)
         {
             return this.ParentIdInternal(id, occurance);
@@ -150,6 +175,12 @@ namespace UmbracoExamine.SearchCriteria
             return new LuceneBooleanOperation(this);
         }
 
+        /// <summary>
+        /// Query on the specified field
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="fieldValue">The field value.</param>
+        /// <returns></returns>
         public IBooleanOperation Field(string fieldName, string fieldValue)
         {
             Enforcer.ArgumentNotNull(fieldName, "fieldName");
@@ -157,6 +188,12 @@ namespace UmbracoExamine.SearchCriteria
             return this.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), occurance);
         }
 
+        /// <summary>
+        /// Query on the specified field
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="fieldValue">The field value.</param>
+        /// <returns></returns>
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
             Enforcer.ArgumentNotNull(fieldName, "fieldName");
