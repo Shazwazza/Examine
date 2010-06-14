@@ -98,6 +98,10 @@
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
     </ProjectReference>
+    <ProjectReference Include="..\UmbracoExamine.Extensions\UmbracoExamine.Extensions.csproj">
+      <Project>{EA291361-0B96-4E8E-81EE-8723DAEEC062}</Project>
+      <Name>UmbracoExamine.Extensions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\UmbracoExamine\UmbracoExamine.csproj">
       <Project>{07FBC26B-2927-4A22-8D96-D644C667FECC}</Project>
       <Name>UmbracoExamine</Name>

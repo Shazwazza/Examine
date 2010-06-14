@@ -15,9 +15,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine\Examine.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Extensions", "UmbracoExamine.Extensions\UmbracoExamine.Extensions.csproj", "{EA291361-0B96-4E8E-81EE-8723DAEEC062}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 4
+		SccNumberOfProjects = 5
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs05.codeplex.com/
 		SccLocalPath0 = .
@@ -30,6 +32,9 @@ Global
 		SccProjectUniqueName3 = Examine.Test\\Examine.Test.csproj
 		SccProjectName3 = Examine.Test
 		SccLocalPath3 = Examine.Test
+		SccProjectUniqueName4 = UmbracoExamine.Extensions\\UmbracoExamine.Extensions.csproj
+		SccProjectName4 = UmbracoExamine.Extensions
+		SccLocalPath4 = UmbracoExamine.Extensions
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
@@ -51,6 +56,10 @@ Global
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

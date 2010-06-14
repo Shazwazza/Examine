@@ -1,18 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using iTextSharp.text.pdf;
-using umbraco.BusinessLogic;
+using Examine;
 
-namespace UmbracoExamine
+namespace UmbracoExamine.Extensions
 {
-    public class FileIndexer : LuceneExamineIndexer
+    /// <summary>
+    /// An Umbraco Lucene.Net indexer which will index the text content of a file
+    /// </summary>
+    public sealed class FileIndexer : LuceneExamineIndexer
     {
+        /// <summary>
+        /// Gets or sets the supported extensions for files
+        /// </summary>
+        /// <value>The supported extensions.</value>
         public IEnumerable<string> SupportedExtensions { get; protected set; }
+        /// <summary>
+        /// Gets or sets the umbraco property alias (defaults to umbracoFile)
+        /// </summary>
+        /// <value>The umbraco file property.</value>
         public string UmbracoFileProperty { get; protected set; }
+        /// <summary>
+        /// Gets the name of the Lucene.Net field which the content is inserted into
+        /// </summary>
+        /// <value>The name of the text content field.</value>
         public string TextContentFieldName
         {
             get
@@ -21,7 +37,15 @@ namespace UmbracoExamine
             }
         }
 
-        public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
+        /// <summary>
+        /// Set up all properties for the indexer based on configuration information specified. This will ensure that
+        /// all of the folders required by the indexer are created and exist. This will also create an instruction
+        /// file declaring the computer name that is part taking in the indexing. This file will then be used to
+        /// determine the master indexer machine in a load balanced environment (if one exists).
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="config"></param>
+        public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
 
@@ -30,25 +54,37 @@ namespace UmbracoExamine
             else
                 SupportedExtensions = config["extensions"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-
+            //checks if a custom field alias is specified
             if (string.IsNullOrEmpty(config["umbracoFileProperty"]))
                 UmbracoFileProperty = "umbracoFile";
             else
                 UmbracoFileProperty = config["umbracoFileProperty"];
         }
 
-        public override void IndexAll(Examine.IndexType type)
+        /// <summary>
+        /// Re-indexes all data for the index type specified
+        /// </summary>
+        /// <param name="type"></param>
+        public override void IndexAll(IndexType type)
         {
-            if (type == Examine.IndexType.Content)
+            //ignore the content index types
+            if (type == IndexType.Content)
                 return;
 
             base.IndexAll(type);
         }
 
-        protected override Dictionary<string, string> GetDataToIndex(XElement node, Examine.IndexType type)
+        /// <summary>
+        /// Collects all of the data that needs to be indexed as defined in the index set.
+        /// </summary>
+        /// <param name="node">Media item XML being indexed</param>
+        /// <param name="type">Type of index (should only ever be media)</param>
+        /// <returns>Fields containing the data for the index</returns>
+        protected override Dictionary<string, string> GetDataToIndex(XElement node, IndexType type)
         {
             var fields = base.GetDataToIndex(node, type);
 
+            //find the field which contains the file
             var filePath = node.Elements().FirstOrDefault(x =>
             {
                 if (x.Attribute("alias") != null)
@@ -56,24 +92,29 @@ namespace UmbracoExamine
                 else
                     return x.Name == this.UmbracoFileProperty;
             });
+            //make sure the file exists
             if (filePath != default(XElement) && !string.IsNullOrEmpty((string)filePath))
             {
+                //get the file path from the data service
                 var fullPath = this.DataService.HttpContext.Server.MapPath((string)filePath);
                 var fi = new FileInfo(fullPath);
                 if (fi.Exists)
                 {
+                    //check if the extension of the file matches one we're supporting
                     foreach (var ext in SupportedExtensions)
                     {
                         if (fi.Extension.ToUpper() == ext.ToUpper())
                         {
                             switch (ext.ToUpper())
                             {
+                                    //extract the content from the PDF
                                 case ".PDF":
                                     PdfTextExtractor pdfTextExtractor = new PdfTextExtractor();
                                     fields.Add(this.TextContentFieldName, pdfTextExtractor.ExtractText(fi.FullName));
                                     break;
 
                                 default:
+                                    //log that we couldn't index the file found
                                     DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: Extension '" + ext + "' is not supported at this time");
                                     break;
                             }

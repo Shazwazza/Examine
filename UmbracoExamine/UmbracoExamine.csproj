@@ -84,9 +84,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\interfaces.dll</HintPath>
     </Reference>
-    <Reference Include="itextsharp">
-      <HintPath>..\DLLs\itextsharp.dll</HintPath>
-    </Reference>
     <Reference Include="Lucene.Net, Version=2.0.0.4, Culture=neutral">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\Lucene.Net.dll</HintPath>
@@ -132,7 +129,6 @@
     <Compile Include="DataServices\IMediaService.cs" />
     <Compile Include="DataServices\UmbracoMediaService.cs" />
     <Compile Include="DocumentWritingEventArgs.cs" />
-    <Compile Include="FileIndexer.cs" />
     <Compile Include="SearchResults.cs" />
     <Compile Include="FileSystemExtensions.cs" />
     <Compile Include="IndexerExecutive.cs" />
