@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using iTextSharp.text.pdf;
 using Examine;
+using iTextSharp.text.pdf;
 
-namespace UmbracoExamine.Extensions
+namespace UmbracoExamine.Contrib
 {
     /// <summary>
     /// An Umbraco Lucene.Net indexer which will index the text content of a file
@@ -96,7 +96,7 @@ namespace UmbracoExamine.Extensions
             if (filePath != default(XElement) && !string.IsNullOrEmpty((string)filePath))
             {
                 //get the file path from the data service
-                var fullPath = this.DataService.HttpContext.Server.MapPath((string)filePath);
+                var fullPath = this.DataService.MapPath((string)filePath);
                 var fi = new FileInfo(fullPath);
                 if (fi.Exists)
                 {

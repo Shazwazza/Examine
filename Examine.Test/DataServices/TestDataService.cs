@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using System.IO;
+using System.Reflection;
 using UmbracoExamine.DataServices;
 
 namespace Examine.Test.DataServices
@@ -11,7 +12,6 @@ namespace Examine.Test.DataServices
             ContentService = new TestContentService();
             LogService = new TestLogService();
             MediaService = new TestMediaService();
-            HttpContext = new TestHttpContext();
         }
 
         #region IDataService Members
@@ -22,10 +22,9 @@ namespace Examine.Test.DataServices
 
         public IMediaService MediaService { get; private set; }
 
-        public HttpContextBase HttpContext
+        public string MapPath(string virtualPath)
         {
-            get;
-            private set;
+            return new FileInfo(Assembly.GetExecutingAssembly().Location).Directory + "\\" + virtualPath.Replace("/", "\\");
         }
 
         #endregion

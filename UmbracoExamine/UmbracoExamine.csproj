@@ -145,7 +145,6 @@
     <Compile Include="SerializableDictionaryExtensions.cs" />
     <Compile Include="DataServices\UmbracoLogService.cs" />
     <Compile Include="UmbracoEventManager.cs" />
-    <Compile Include="XsltExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

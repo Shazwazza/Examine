@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Xml.Linq;
 using System.Xml.XPath;
 using Examine;
-using System.Xml.Linq;
 
-namespace UmbracoExamine
+namespace UmbracoExamine.Contrib
 {
     /// <summary>
     /// Methods to support Umbraco XSLT extensions
     /// </summary>
     public class XsltExtensions
     {
-       
-
         /// <summary>
         /// Uses the default provider specified to search, returning an XPathNodeIterator
         /// </summary>
@@ -34,7 +30,6 @@ namespace UmbracoExamine
         /// <returns></returns>
         public static XPathNodeIterator Search(string searchText, bool useWildcards, string providerName)
         {
-
             ISearchResults results = ExamineManager.Instance.SearchProviderCollection[providerName].Search(searchText, useWildcards);
 
             // create the XDocument

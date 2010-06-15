@@ -8,8 +8,8 @@
     <ProjectGuid>{EA291361-0B96-4E8E-81EE-8723DAEEC062}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UmbracoExamine.Extensions</RootNamespace>
-    <AssemblyName>UmbracoExamine.Extensions</AssemblyName>
+    <RootNamespace>UmbracoExamine.Contrib</RootNamespace>
+    <AssemblyName>UmbracoExamine.Contrib</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -49,8 +49,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Solution Items\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
     <Compile Include="FileIndexer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XsltExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Examine\Examine.csproj">

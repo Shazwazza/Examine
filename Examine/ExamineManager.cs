@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using Examine.Config;
 using Examine.Providers;
 using Examine.SearchCriteria;
+using System.Web;
 
 namespace Examine
 {

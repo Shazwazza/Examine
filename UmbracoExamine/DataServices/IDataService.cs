@@ -6,6 +6,7 @@ namespace UmbracoExamine.DataServices
         IContentService ContentService { get; }
         ILogService LogService { get; }
         IMediaService MediaService { get; }
-        HttpContextBase HttpContext { get; }
+
+        string MapPath(string virtualPath);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Web;
+using System.Web.Hosting;
 
 namespace UmbracoExamine.DataServices
 {
@@ -9,12 +10,15 @@ namespace UmbracoExamine.DataServices
             ContentService = new UmbracoContentService();
             MediaService = new UmbracoMediaService();
             LogService = new UmbracoLogService();
-            HttpContext = new HttpContextWrapper(System.Web.HttpContext.Current);
         }
 
         public IContentService ContentService { get; private set; }
         public IMediaService MediaService { get; private set; }
         public ILogService LogService { get; private set; }
-        public HttpContextBase HttpContext { get; private set; }
+
+        public string MapPath(string virtualPath)
+        {
+            return HostingEnvironment.MapPath(virtualPath);
+        }
     }
 }

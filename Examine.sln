@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine\Examine.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Extensions", "UmbracoExamine.Extensions\UmbracoExamine.Extensions.csproj", "{EA291361-0B96-4E8E-81EE-8723DAEEC062}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Contrib", "UmbracoExamine.Contrib\UmbracoExamine.Contrib.csproj", "{EA291361-0B96-4E8E-81EE-8723DAEEC062}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -32,9 +32,9 @@ Global
 		SccProjectUniqueName3 = Examine.Test\\Examine.Test.csproj
 		SccProjectName3 = Examine.Test
 		SccLocalPath3 = Examine.Test
-		SccProjectUniqueName4 = UmbracoExamine.Extensions\\UmbracoExamine.Extensions.csproj
-		SccProjectName4 = UmbracoExamine.Extensions
-		SccLocalPath4 = UmbracoExamine.Extensions
+		SccProjectUniqueName4 = UmbracoExamine.Contrib\\UmbracoExamine.Contrib.csproj
+		SccProjectName4 = UmbracoExamine.Contrib
+		SccLocalPath4 = UmbracoExamine.Contrib
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi

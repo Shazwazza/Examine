@@ -28,9 +28,7 @@ namespace UmbracoExamine
 
             //don't bind event handlers if we're not suppose to listen
             if (registeredProviders == 0)
-            {
                 return;
-            }
 
                    
 
