@@ -104,8 +104,6 @@ namespace UmbracoExamine
                 LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
             }            
 
-
-
             if (config["analyzer"] != null)
             {
                 //this should be a fully qualified type

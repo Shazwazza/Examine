@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,10 +16,6 @@ using Lucene.Net.Store;
 using umbraco.cms.businesslogic;
 using UmbracoExamine.Config;
 using UmbracoExamine.DataServices;
-using System.Collections.Specialized;
-using Lucene.Net.Search;
-using Lucene.Net.QueryParsers;
-using UmbracoExamine.SearchCriteria;
 
 namespace UmbracoExamine
 {
@@ -82,8 +79,17 @@ namespace UmbracoExamine
         /// file declaring the computer name that is part taking in the indexing. This file will then be used to
         /// determine the master indexer machine in a load balanced environment (if one exists).
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="config"></param>
+        /// <param name="name">The friendly name of the provider.</param>
+        /// <param name="config">A collection of the name/value pairs representing the provider-specific attributes specified in the configuration for this provider.</param>
+        /// <exception cref="T:System.ArgumentNullException">
+        /// The name of the provider is null.
+        /// </exception>
+        /// <exception cref="T:System.ArgumentException">
+        /// The name of the provider has a length of zero.
+        /// </exception>
+        /// <exception cref="T:System.InvalidOperationException">
+        /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
+        /// </exception>
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -105,19 +111,19 @@ namespace UmbracoExamine
 
             if (config["indexSet"] == null && IndexerData == null)
             {
-                //if we don't have either, then we'll try to set the index set by naming convensions
+                //if we don't have either, then we'll try to set the index set by naming conventions
                 var found = false;
                 if (name.EndsWith("Indexer"))
                 {
                     var setNameByConvension = name.Remove(name.LastIndexOf("Indexer")) + "IndexSet";
-                    //check if we can assign the index set by naming convension
+                    //check if we can assign the index set by naming convention
                     var set = ExamineLuceneIndexes.Instance.Sets.Cast<IndexSet>()
                         .Where(x => x.SetName == setNameByConvension)
                         .SingleOrDefault();
 
                     if (set != null)
                     {
-                        //we've found an index set by naming convensions :)
+                        //we've found an index set by naming conventions :)
                         IndexSetName = set.SetName;
 
                         //get the index criteria and ensure folder
@@ -1117,7 +1123,6 @@ namespace UmbracoExamine
             m_FileWatcher.Start();
         }
 
-
         /// <summary>
         /// Handles the file watcher timer poll elapsed event
         /// This will:
@@ -1142,7 +1147,6 @@ namespace UmbracoExamine
             m_FileWatcher.Start();
 
         }
-
 
         /// <summary>
         /// Checks the writer passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
@@ -1172,7 +1176,6 @@ namespace UmbracoExamine
             writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
             return true;
         }
-
 
         /// <summary>
         /// Checks the reader passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
@@ -1268,15 +1271,11 @@ namespace UmbracoExamine
         {
             DateTime date;
             if (DateTime.TryParse(val, out date))
-            {
                 //return it as UniversalSortable so it's easier to parse
                 return date.ToString("u");
-            }
             else
                 return val.ToLower();
         }
-
-
 
         private void CloseWriter(ref IndexWriter writer)
         {

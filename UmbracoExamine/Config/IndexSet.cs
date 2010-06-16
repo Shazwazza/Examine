@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Configuration;
+﻿using System.Configuration;
 using System.IO;
 using System.Web;
-using UmbracoExamine;
+using System.Web.Hosting;
 
 namespace UmbracoExamine.Config
 {
@@ -18,14 +14,15 @@ namespace UmbracoExamine.Config
             get
             {
                 return (string)this["SetName"];
-            }           
+            }
         }
 
         private string m_IndexPath = "";
-        
+
         /// <summary>
         /// The folder path of where the lucene index is stored
         /// </summary>
+        /// <value>The index path.</value>
         /// <remarks>
         /// This can be set at runtime but will not be persisted to the configuration file
         /// </remarks>
@@ -34,9 +31,9 @@ namespace UmbracoExamine.Config
         {
             get
             {
-                if (string.IsNullOrEmpty(m_IndexPath)) {
-                    m_IndexPath = (string)this["IndexPath"];   
-                }
+                if (string.IsNullOrEmpty(m_IndexPath))
+                    m_IndexPath = (string)this["IndexPath"];
+
                 return m_IndexPath;
             }
             set
@@ -46,38 +43,22 @@ namespace UmbracoExamine.Config
         }
 
         /// <summary>
-        /// Set this to configure the default maximum search results for an index set.
-        /// If not set, 200 is the default.
-        /// </summary>
-        //[ConfigurationProperty("MaxResults", IsRequired = false, IsKey = false)]
-        //public int MaxResults
-        //{
-        //    get
-        //    {
-        //        if (this["MaxResults"] == null)
-        //            return 200;
-
-        //        return (int)this["MaxResults"];
-        //    }            
-        //}
-
-        /// <summary>
         /// Returns the DirectoryInfo object for the index path.
         /// </summary>
+        /// <value>The index directory.</value>
         public DirectoryInfo IndexDirectory
         {
             get
             {
+                //TODO: Get this out of the index set. We need to use the Indexer's DataService to lookup the folder so it can be unit tested. Probably need DataServices on the searcher then too
+
                 //we need to de-couple the context
                 if (HttpContext.Current != null)
-                {
                     return new DirectoryInfo(HttpContext.Current.Server.MapPath(this.IndexPath));
-                }
+                else if (HostingEnvironment.ApplicationID != null)
+                    return new DirectoryInfo(HostingEnvironment.MapPath(this.IndexPath));
                 else
-                {
                     return new DirectoryInfo(this.IndexPath);
-                }
-                
             }
         }
 
@@ -167,14 +148,8 @@ namespace UmbracoExamine.Config
         {
             get
             {
-                return (IndexFieldCollection)base["IndexAttributeFields"];               
+                return (IndexFieldCollection)base["IndexAttributeFields"];
             }
         }
-
-
     }
-
-    
-
-
 }

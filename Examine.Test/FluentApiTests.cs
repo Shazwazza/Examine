@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
+using UmbracoExamine.SearchCriteria;
 
 namespace Examine.Test
 {
     [TestClass]
     public class FluentApiTests
     {
-       
+
         [TestMethod]
         public void FluentApi_Sort_Result_By_Single_Field()
         {
@@ -55,7 +56,7 @@ namespace Examine.Test
             //Arrange
             var sc = m_Searcher.CreateSearchCriteria(IndexType.Content);
             sc = sc.Field("writerName", "administrator").Compile();
-            
+
             //Act
             var results = m_Searcher.Search(sc);
 
@@ -63,12 +64,27 @@ namespace Examine.Test
             Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
         }
 
+        [TestMethod]
+        public void FluentApiTests_Escaping_Includes_All_Words()
+        {
+            //Arrange
+            var sc = m_Searcher.CreateSearchCriteria(IndexType.Content);
+            var op = sc.NodeName("codegarden 09".Escape());
+            sc = op.Compile();
+
+            //Act
+            var results = m_Searcher.Search(sc);
+
+            //Assert
+            Assert.IsTrue(results.TotalItemCount > 0);
+        }
+
         private static IndexInitializer m_Init;
         private static ISearcher m_Searcher;
 
-        #region Initialize and Cleanup        
+        #region Initialize and Cleanup
 
-         [TestInitialize()]       
+        [TestInitialize()]
         public void Initialize()
         {
             m_Init = new IndexInitializer();
@@ -78,7 +94,7 @@ namespace Examine.Test
         //[ClassCleanup()]
         //public static void Cleanup()
         //{
-            
+
         //}
 
         #endregion
