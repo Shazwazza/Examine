@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Examine.Config;
 using umbraco;
 using umbraco.BusinessLogic;
@@ -53,10 +54,44 @@ namespace UmbracoExamine
         {
             //ensure that only the providers that have unpublishing support enabled     
             //that are also flagged to listen
-            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexType.Content, 
-                ExamineManager.Instance.IndexProviderCollection
-                    .Where(x => x.SupportUnpublishedContent
-                        && x.EnableDefaultEventHandler));            
+
+            //there's a bug in 4.0.x that fires the Document saving event handler for media when media is moved,
+            //therefore, we need to try to figure out if this is media or content. Currently one way to do this
+            //is by checking the creator ID property as it will be null if it is media. We then need to try to 
+            //create the media object, see if it exists, and pass it to the media save event handler... yeah i know, 
+            //pretty horrible but has to be done.
+
+            try
+            {
+                var creator = sender.Creator;
+                if (creator != null)
+                {
+                    //it's def a Document
+                    ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexType.Content,
+                        ExamineManager.Instance.IndexProviderCollection
+                            .Where(x => x.SupportUnpublishedContent
+                                && x.EnableDefaultEventHandler));
+
+                    return; //exit, we've indexed the content
+                }                
+            }
+            catch (Exception)
+            {
+                //if we get this exception, it means it's most likely media, so well do our check next.   
+            }
+
+            //this is most likely media, not sure what kind of exception might get thrown in 4.0.x or 4.1 if accessing a null
+            //creator, so we catch everything.
+
+            var m = new Media(sender.Id);
+            if (!string.IsNullOrEmpty(m.Path))
+            {
+                //this is a media item, no exception occurred on access to path and it's not empty which means it was found
+                Media_AfterSave(m, e);
+                return;
+            }
+
+                    
         }
 
         /// <summary>

@@ -11,6 +11,19 @@ namespace UmbracoExamine.Contrib
     /// </summary>
     public class XsltExtensions
     {
+
+        ///// <summary>
+        ///// Searches media
+        ///// </summary>
+        ///// <param name="searchText"></param>
+        ///// <returns></returns>
+        //public static XPathNodeIterator Search(string searchText, bool useWildcards, string providerName)
+        //{
+        //    var sc = ExamineManager.Instance.SearchProviderCollection[providerName]
+        //        .CreateSearchCriteria(IndexType.Media);
+
+        //}
+
         /// <summary>
         /// Uses the default provider specified to search, returning an XPathNodeIterator
         /// </summary>
