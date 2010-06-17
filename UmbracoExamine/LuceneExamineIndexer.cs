@@ -755,13 +755,20 @@ namespace UmbracoExamine
             {
                 // Get the value of the data                
                 string value = node.UmbSelectDataValue(fieldName);
+                
                 //raise the event and assign the value to the returned data from the event
                 var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, fieldName, value, false, nodeId);
                 OnGatheringFieldData(indexingFieldDataArgs);
                 value = indexingFieldDataArgs.FieldValue;
 
-                if (!string.IsNullOrEmpty(value))
+                //don't add if the value is empty/null
+                if (!string.IsNullOrEmpty(value)) 
+                {
+                    if (!string.IsNullOrEmpty(value))
                     values.Add(fieldName, DataService.ContentService.StripHtml(value));
+                }
+
+                
             }
 
             // Add umbraco node properties 
@@ -771,7 +778,13 @@ namespace UmbracoExamine
                 var args = new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId);
                 OnGatheringFieldData(args);
                 val = args.FieldValue;
-                values.Add(fieldName, val);
+
+                //don't add if the value is empty/null                
+                if (!string.IsNullOrEmpty(val))
+                {                    
+                    values.Add(fieldName, val);
+                }
+                
             }
 
             //raise the event and assign the value to the returned data from the event
@@ -1274,7 +1287,11 @@ namespace UmbracoExamine
                 //return it as UniversalSortable so it's easier to parse
                 return date.ToString("u");
             else
-                return val.ToLower();
+            {
+                //error check... this is strange but it can actually be a real null value, not just empty
+                return !string.IsNullOrEmpty(val) ? val.ToLower() : string.Empty;
+            }
+                
         }
 
         private void CloseWriter(ref IndexWriter writer)

@@ -12,6 +12,11 @@ namespace Examine.Test
     public class FluentApiTests
     {
 
+        //public void FluentApi_Find_Only_Content()
+        //{
+            
+        //}
+
         [TestMethod]
         public void FluentApi_Sort_Result_By_Single_Field()
         {
