@@ -198,6 +198,10 @@ namespace UmbracoExamine
             return pagesResults;
         }
 
+        /// <summary>
+        /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
+        /// </summary>
+        /// <returns></returns>
         public override ISearchCriteria CreateSearchCriteria()
         {
             return this.CreateSearchCriteria(IndexType.Any, BooleanOperation.And);

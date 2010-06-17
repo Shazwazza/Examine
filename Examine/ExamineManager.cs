@@ -110,7 +110,7 @@ namespace Examine
         /// <summary>
         /// Deletes index for node for the specified providers
         /// </summary>
-        /// <param name="node"></param>
+        /// <param name="nodeId"></param>
         /// <param name="providers"></param>
         public void DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
         {
@@ -193,6 +193,14 @@ namespace Examine
 
         #region ISearcher Members
 
+        /// <summary>
+        /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
+        /// </summary>
+        /// <returns></returns>
+        public ISearchCriteria CreateSearchCriteria()
+        {
+            return this.CreateSearchCriteria(IndexType.Any, BooleanOperation.And);
+        }
 
         public ISearchCriteria CreateSearchCriteria(IndexType type)
         {
