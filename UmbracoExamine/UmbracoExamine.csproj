@@ -122,6 +122,8 @@
     <Compile Include="Config\IndexSetExtensions.cs" />
     <Compile Include="Config\UmbracoFieldDefinitions.cs" />
     <Compile Include="DataServices\IDataService.cs" />
+    <Compile Include="DataServices\INamedService.cs" />
+    <Compile Include="DataServices\NamedService.cs" />
     <Compile Include="DataServices\UmbracoDataService.cs" />
     <Compile Include="DataServices\IContentService.cs" />
     <Compile Include="DataServices\UmbracoContentService.cs" />

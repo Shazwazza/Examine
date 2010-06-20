@@ -1053,8 +1053,10 @@ namespace UmbracoExamine
             {
                 return DataService.MediaService.GetLatestMediaByXpath(xPath);
             }
-
-            return null;
+            else
+            {
+                return DataService.NamedService.GetAllData(type);
+            }
         }
 
         /// <summary>

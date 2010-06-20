@@ -7,6 +7,8 @@ namespace UmbracoExamine.DataServices
         ILogService LogService { get; }
         IMediaService MediaService { get; }
 
+        INamedService NamedService { get; }
+
         string MapPath(string virtualPath);
     }
 }
