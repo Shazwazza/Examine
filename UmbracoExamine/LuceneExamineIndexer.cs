@@ -484,13 +484,13 @@ namespace UmbracoExamine
             var c = m_InternalSearcher.CreateSearchCriteria();
             var filtered = c.RawQuery(rawQuery);
             var results = m_InternalSearcher.Search(filtered);
-            
+
             //need to create a delete queue item for each one found
             foreach (var r in results)
-            {                
+            {
                 SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }
-            
+
 
             //create the queue item to be deleted
             SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
@@ -571,7 +571,7 @@ namespace UmbracoExamine
 
         #region Protected
 
-        
+
 
         /// <summary>
         /// Adds single node to index. If the node already exists, a duplicate will probably be created,
@@ -755,20 +755,20 @@ namespace UmbracoExamine
             {
                 // Get the value of the data                
                 string value = node.UmbSelectDataValue(fieldName);
-                
+
                 //raise the event and assign the value to the returned data from the event
                 var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, fieldName, value, false, nodeId);
                 OnGatheringFieldData(indexingFieldDataArgs);
                 value = indexingFieldDataArgs.FieldValue;
 
                 //don't add if the value is empty/null
-                if (!string.IsNullOrEmpty(value)) 
+                if (!string.IsNullOrEmpty(value))
                 {
                     if (!string.IsNullOrEmpty(value))
-                    values.Add(fieldName, DataService.ContentService.StripHtml(value));
+                        values.Add(fieldName, DataService.ContentService.StripHtml(value));
                 }
 
-                
+
             }
 
             // Add umbraco node properties 
@@ -781,10 +781,10 @@ namespace UmbracoExamine
 
                 //don't add if the value is empty/null                
                 if (!string.IsNullOrEmpty(val))
-                {                    
+                {
                     values.Add(fieldName, val);
                 }
-                
+
             }
 
             //raise the event and assign the value to the returned data from the event
@@ -833,16 +833,21 @@ namespace UmbracoExamine
                     if (indexedFields.Count() > 0)
                     {
                         if (indexedFields.Count() > 1)
-                            throw new IndexOutOfRangeException("Field \"" + x.Key + "\" is listed multiple times in the index set \"" + this.IndexSetName + "\". Please ensure all names are unique");
-
-                        if (indexedFields.First().EnableSorting)
                         {
-                            d.Add(new Field(SortedFieldNamePrefix + x.Key,
-                                    GetFieldValue(x.Value),
-                                    Field.Store.YES,
-                                    Field.Index.NOT_ANALYZED,
-                                    Field.TermVector.NO
-                                   ));
+                            //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field
+                            this.DataService.LogService.AddInfoLog(nodeId, "Field \"" + x.Key + "\" is listed multiple times in the index set \"" + this.IndexSetName + "\". Please ensure all names are unique");
+                        }
+                        else
+                        {
+                            if (indexedFields.First().EnableSorting)
+                            {
+                                d.Add(new Field(SortedFieldNamePrefix + x.Key,
+                                        GetFieldValue(x.Value),
+                                        Field.Store.YES,
+                                        Field.Index.NOT_ANALYZED,
+                                        Field.TermVector.NO
+                                       ));
+                            }
                         }
                     }
                 });
@@ -1074,8 +1079,8 @@ namespace UmbracoExamine
             terms.Add(term.Key, term.Value);
             var fileName = Environment.MachineName + "-" + Guid.NewGuid().ToString("N");
             FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".del"));
-            terms.SaveToDisk(fi);            
-            
+            terms.SaveToDisk(fi);
+
         }
 
         /// <summary>
@@ -1291,7 +1296,7 @@ namespace UmbracoExamine
                 //error check... this is strange but it can actually be a real null value, not just empty
                 return !string.IsNullOrEmpty(val) ? val.ToLower() : string.Empty;
             }
-                
+
         }
 
         private void CloseWriter(ref IndexWriter writer)
