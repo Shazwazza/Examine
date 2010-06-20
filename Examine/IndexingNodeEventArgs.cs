@@ -5,7 +5,7 @@ namespace Examine
 {
     public class IndexingNodeEventArgs : CancelEventArgs, INodeEventArgs
     {
-        public IndexingNodeEventArgs(int nodeId, Dictionary<string, string> fields, IndexType indexType)
+        public IndexingNodeEventArgs(int nodeId, Dictionary<string, string> fields, string indexType)
         {
             NodeId = nodeId;
             Fields = fields;
@@ -14,6 +14,6 @@ namespace Examine
 
         public int NodeId { get; private set; }
         public Dictionary<string, string> Fields { get; private set; }
-        public IndexType IndexType { get; private set; }
+        public string IndexType { get; private set; }
     }
 }

@@ -102,7 +102,7 @@ namespace Examine
         /// <param name="node"></param>
         /// <param name="type"></param>
         /// <param name="providers"></param>
-        public void ReIndexNode(XElement node, IndexType type, IEnumerable<BaseIndexProvider> providers)
+        public void ReIndexNode(XElement node, string type, IEnumerable<BaseIndexProvider> providers)
         {
             _ReIndexNode(node, type, providers);
         }
@@ -124,11 +124,11 @@ namespace Examine
         /// </summary>
         /// <param name="node"></param>
         /// <param name="type"></param>
-        public void ReIndexNode(XElement node, IndexType type)
+        public void ReIndexNode(XElement node, string type)
         {
             _ReIndexNode(node, type, IndexProviderCollection);
-        }       
-        private void _ReIndexNode(XElement node, IndexType type, IEnumerable<BaseIndexProvider> providers)
+        }
+        private void _ReIndexNode(XElement node, string type, IEnumerable<BaseIndexProvider> providers)
         {
             foreach (var provider in providers)
             {
@@ -152,11 +152,11 @@ namespace Examine
             }
         }
 
-        public void IndexAll(IndexType type)
+        public void IndexAll(string type)
         {
             _IndexAll(type);
         }
-        private void _IndexAll(IndexType type)
+        private void _IndexAll(string type)
         {
             foreach (BaseIndexProvider provider in IndexProviderCollection)
             {
@@ -199,15 +199,15 @@ namespace Examine
         /// <returns></returns>
         public ISearchCriteria CreateSearchCriteria()
         {
-            return this.CreateSearchCriteria(IndexType.Any, BooleanOperation.And);
+            return this.CreateSearchCriteria(string.Empty, BooleanOperation.And);
         }
 
-        public ISearchCriteria CreateSearchCriteria(IndexType type)
+        public ISearchCriteria CreateSearchCriteria(string type)
         {
             return this.CreateSearchCriteria(type, BooleanOperation.And);
         }
 
-        public ISearchCriteria CreateSearchCriteria(IndexType type, BooleanOperation defaultOperation)
+        public ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             return this.DefaultSearchProvider.CreateSearchCriteria(type, defaultOperation);
         }

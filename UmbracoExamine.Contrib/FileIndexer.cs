@@ -65,10 +65,10 @@ namespace UmbracoExamine.Contrib
         /// Re-indexes all data for the index type specified
         /// </summary>
         /// <param name="type"></param>
-        public override void IndexAll(IndexType type)
+        public override void IndexAll(string type)
         {
             //ignore the content index types
-            if (type == IndexType.Content)
+            if (type == "Content")
                 return;
 
             base.IndexAll(type);
@@ -80,7 +80,7 @@ namespace UmbracoExamine.Contrib
         /// <param name="node">Media item XML being indexed</param>
         /// <param name="type">Type of index (should only ever be media)</param>
         /// <returns>Fields containing the data for the index</returns>
-        protected override Dictionary<string, string> GetDataToIndex(XElement node, IndexType type)
+        protected override Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
             var fields = base.GetDataToIndex(node, type);
 

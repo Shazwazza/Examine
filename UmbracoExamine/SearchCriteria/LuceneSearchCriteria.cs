@@ -21,7 +21,7 @@ namespace UmbracoExamine.SearchCriteria
         private readonly BooleanClause.Occur occurance;
         private readonly Lucene.Net.Util.Version luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
-        internal LuceneSearchCriteria(IndexType type, Analyzer analyzer, string[] fields, BooleanOperation occurance)
+        internal LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, BooleanOperation occurance)
         {
             Enforcer.ArgumentNotNull(fields, "fields");
 
@@ -64,7 +64,7 @@ namespace UmbracoExamine.SearchCriteria
 
         #region ISearchCriteria Members
 
-        public IndexType SearchIndexType
+        public string SearchIndexType
         {
             get;
             protected set;

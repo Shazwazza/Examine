@@ -20,10 +20,10 @@ namespace Examine.Test
         [TestMethod]
         public void FluentApi_Sort_Result_By_Single_Field()
         {
-            var sc = m_Searcher.CreateSearchCriteria(IndexType.Content);
+            var sc = m_Searcher.CreateSearchCriteria("Content");
             var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName").Compile();
 
-            sc = m_Searcher.CreateSearchCriteria(IndexType.Content);
+            sc = m_Searcher.CreateSearchCriteria("Content");
             var sc2 = sc.Field("writerName", "administrator").And().OrderByDescending("nodeName").Compile();
 
             var results1 = m_Searcher.Search(sc1);
@@ -36,7 +36,7 @@ namespace Examine.Test
         public void FluentApi_Standard_Results_Sorted_By_Score()
         {
             //Arrange
-            var sc = m_Searcher.CreateSearchCriteria(IndexType.Content, SearchCriteria.BooleanOperation.Or);
+            var sc = m_Searcher.CreateSearchCriteria("Content", SearchCriteria.BooleanOperation.Or);
             sc = sc.NodeName("umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco").Compile();
 
             //Act
@@ -59,7 +59,7 @@ namespace Examine.Test
         public void FluentApi_Skip_Results_Returns_Different_Results()
         {
             //Arrange
-            var sc = m_Searcher.CreateSearchCriteria(IndexType.Content);
+            var sc = m_Searcher.CreateSearchCriteria("Content");
             sc = sc.Field("writerName", "administrator").Compile();
 
             //Act
@@ -73,7 +73,7 @@ namespace Examine.Test
         public void FluentApiTests_Escaping_Includes_All_Words()
         {
             //Arrange
-            var sc = m_Searcher.CreateSearchCriteria(IndexType.Content);
+            var sc = m_Searcher.CreateSearchCriteria("Content");
             var op = sc.NodeName("codegarden 09".Escape());
             sc = op.Compile();
 

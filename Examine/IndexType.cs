@@ -6,8 +6,8 @@ using System.IO;
 
 namespace Examine
 {
-    public enum IndexType
-    {
-        Content, Media, Any
-    }
+    //public enum IndexType
+    //{
+    //    Content, Media
+    //}
 }

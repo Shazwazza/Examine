@@ -162,7 +162,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
-            var sc = this.CreateSearchCriteria(IndexType.Content);
+            var sc = this.CreateSearchCriteria("Content");
 
             if (useWildcards)
             {
@@ -204,26 +204,24 @@ namespace UmbracoExamine
         /// <returns></returns>
         public override ISearchCriteria CreateSearchCriteria()
         {
-            return this.CreateSearchCriteria(IndexType.Any, BooleanOperation.And);
-        }
+            return this.CreateSearchCriteria(string.Empty, BooleanOperation.And);
+        }     
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
-        /// <param name="type">The type of data in the index.</param>
-        /// <returns>A blank SearchCriteria</returns>
-        public override ISearchCriteria CreateSearchCriteria(IndexType type)
+        public override ISearchCriteria CreateSearchCriteria(string type)
         {
             return this.CreateSearchCriteria(type, BooleanOperation.And);
         }
-
+     
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
-        public override ISearchCriteria CreateSearchCriteria(IndexType type, BooleanOperation defaultOperation)
+        public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             return new LuceneSearchCriteria(type, this.IndexingAnalyzer, this.GetSearchFields(), defaultOperation);
         }

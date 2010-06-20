@@ -67,7 +67,7 @@ namespace UmbracoExamine
                 if (creator != null)
                 {
                     //it's def a Document
-                    ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexType.Content,
+                    ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, "Content",
                         ExamineManager.Instance.IndexProviderCollection
                             .Where(x => x.SupportUnpublishedContent
                                 && x.EnableDefaultEventHandler));
@@ -124,7 +124,7 @@ namespace UmbracoExamine
         void Media_AfterSave(Media sender, umbraco.cms.businesslogic.SaveEventArgs e)
         {
             //ensure that only the providers are flagged to listen execute
-            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, IndexType.Media,
+            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, "Media",
                 ExamineManager.Instance.IndexProviderCollection
                     .Where(x => x.EnableDefaultEventHandler)); 
         }
@@ -138,7 +138,7 @@ namespace UmbracoExamine
         {
             //ensure that only the providers that have DONT unpublishing support enabled       
             //that are also flagged to listen
-            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexType.Content,
+            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, "Content",
                 ExamineManager.Instance.IndexProviderCollection
                     .Where(x => !x.SupportUnpublishedContent
                         && x.EnableDefaultEventHandler));            

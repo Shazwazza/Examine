@@ -31,14 +31,16 @@ namespace Examine.Providers
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
         /// <returns></returns>
-        public abstract ISearchCriteria CreateSearchCriteria();
+        public abstract ISearchCriteria CreateSearchCriteria();           
+
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
         /// <param name="maxResults">The max number of results.</param>
         /// <param name="type">The type of data in the index.</param>
         /// <returns>A blank SearchCriteria</returns>
-        public abstract ISearchCriteria CreateSearchCriteria(IndexType type);
+        public abstract ISearchCriteria CreateSearchCriteria(string type);
+
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
@@ -46,7 +48,8 @@ namespace Examine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
-        public abstract ISearchCriteria CreateSearchCriteria(IndexType type, BooleanOperation defaultOperation);
+        public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
+
         #endregion
     }
 }

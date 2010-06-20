@@ -75,30 +75,36 @@ namespace Examine.Providers
         /// opposed to cache being updated.
         /// </summary>
         public abstract bool SupportUnpublishedContent { get; protected set; }
+        
         /// <summary>
         /// Forces a particular XML node to be reindexed
         /// </summary>
         /// <param name="node">XML node to reindex</param>
         /// <param name="type">Type of index to use</param>
-        public abstract void ReIndexNode(XElement node, IndexType type);
+        public abstract void ReIndexNode(XElement node, string type);
+
         /// <summary>
         /// Deletes a node from the index
         /// </summary>
         /// <param name="node">Node to delete</param>
         public abstract void DeleteFromIndex(string nodeId);
+
         /// <summary>
         /// Re-indexes all data for the index type specified
         /// </summary>
         /// <param name="type"></param>
-        public abstract void IndexAll(IndexType type);
+        public abstract void IndexAll(string type);
+
         /// <summary>
         /// Rebuilds the entire index from scratch for all index types
         /// </summary>
         public abstract void RebuildIndex();
+
         /// <summary>
         /// Gets/sets the index criteria to create the index with
         /// </summary>
         public IIndexCriteria IndexerData { get; set; }
+
         #endregion
 
         #region Events

@@ -13,6 +13,6 @@ namespace Examine
     public class IndexedNode
     {
         public int NodeId { get; set; }
-        public IndexType Type { get; set; }
+        public string Type { get; set; }
     }
 }

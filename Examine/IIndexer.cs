@@ -12,7 +12,7 @@ namespace Examine
         /// </summary>
         /// <param name="node">XML node to reindex</param>
         /// <param name="type">Type of index to use</param>
-        void ReIndexNode(XElement node, IndexType type);
+        void ReIndexNode(XElement node, string type);
         
         /// <summary>
         /// Deletes a node from the index
@@ -24,7 +24,7 @@ namespace Examine
         /// Re-indexes all data for the index type specified
         /// </summary>
         /// <param name="type"></param>
-        void IndexAll(IndexType type);
+        void IndexAll(string type);
 
         /// <summary>
         /// Rebuilds the entire index from scratch for all index types

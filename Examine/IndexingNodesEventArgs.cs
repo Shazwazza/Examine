@@ -6,7 +6,7 @@ namespace Examine
     public class IndexingNodesEventArgs : CancelEventArgs
     {
 
-        public IndexingNodesEventArgs(IIndexCriteria indexData, string xPath, IndexType type)
+        public IndexingNodesEventArgs(IIndexCriteria indexData, string xPath, string type)
         {
             this.IndexData = indexData;
             this.XPath = xPath;
@@ -15,7 +15,7 @@ namespace Examine
 
         public IIndexCriteria IndexData { get; private set; }
         public string XPath { get; private set; }
-        public IndexType Type {get; private set;}
+        public string Type {get; private set;}
 
     }
 }

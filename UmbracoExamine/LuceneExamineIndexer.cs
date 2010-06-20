@@ -413,14 +413,14 @@ namespace UmbracoExamine
         /// opposed to cache being updated.
         /// </summary>
         /// <value></value>
-        public override bool SupportUnpublishedContent { get; protected set; }
+        public override bool SupportUnpublishedContent { get; protected set; }   
 
         /// <summary>
         /// Forces a particular XML node to be reindexed
         /// </summary>
         /// <param name="node">XML node to reindex</param>
         /// <param name="type">Type of index to use</param>
-        public override void ReIndexNode(XElement node, IndexType type)
+        public override void ReIndexNode(XElement node, string type)
         {
             //first delete the index for the node
             var id = (string)node.Attribute("id");
@@ -464,8 +464,8 @@ namespace UmbracoExamine
                 CloseWriter(ref writer);
             }
 
-            IndexAll(IndexType.Content);
-            IndexAll(IndexType.Media);
+            IndexAll("Content");
+            IndexAll("Media");
         }
 
         /// <summary>
@@ -504,7 +504,7 @@ namespace UmbracoExamine
         /// Re-indexes all data for the index type specified
         /// </summary>
         /// <param name="type"></param>
-        public override void IndexAll(IndexType type)
+        public override void IndexAll(string type)
         {
             //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
             //particular node
@@ -579,7 +579,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="node">The node.</param>
         /// <param name="type">The type.</param>
-        protected void AddSingleNodeToIndex(XElement node, IndexType type)
+        protected void AddSingleNodeToIndex(XElement node, string type)
         {
             int nodeId = -1;
             int.TryParse((string)node.Attribute("id"), out nodeId);
@@ -739,7 +739,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        protected virtual Dictionary<string, string> GetDataToIndex(XElement node, IndexType type)
+        protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
             Dictionary<string, string> values = new Dictionary<string, string>();
 
@@ -806,7 +806,7 @@ namespace UmbracoExamine
         /// <param name="nodeId"></param>
         /// <param name="type"></param>
         /// <param name="path">The path of the content node</param>
-        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, IndexType type, string path)
+        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, string type, string path)
         {
             var args = new IndexingNodeEventArgs(nodeId, fields, type);
             OnNodeIndexing(args);
@@ -1035,23 +1035,23 @@ namespace UmbracoExamine
         /// <param name="xPath"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected XDocument GetXDocument(string xPath, IndexType type)
+        protected XDocument GetXDocument(string xPath, string type)
         {
 
-            switch (type)
+            if (type == "Content")
             {
-                case IndexType.Content:
-                    if (this.SupportUnpublishedContent)
-                    {
-                        return DataService.ContentService.GetLatestContentByXPath(xPath);
-                    }
-                    else
-                    {
-                        return DataService.ContentService.GetPublishedContentByXPath(xPath);
-                    }
-                case IndexType.Media:
-                    return DataService.MediaService.GetLatestMediaByXpath(xPath);
-
+                if (this.SupportUnpublishedContent)
+                {
+                    return DataService.ContentService.GetLatestContentByXPath(xPath);
+                }
+                else
+                {
+                    return DataService.ContentService.GetPublishedContentByXPath(xPath);
+                }
+            }
+            else if (type == "Media")
+            {
+                return DataService.MediaService.GetLatestMediaByXpath(xPath);
             }
 
             return null;
@@ -1092,7 +1092,7 @@ namespace UmbracoExamine
         /// <param name="nodeId"></param>
         /// <param name="type"></param>
         /// <param name="path">The path of the content node</param>
-        protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, IndexType type, string path)
+        protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type, string path)
         {
             try
             {
@@ -1260,23 +1260,21 @@ namespace UmbracoExamine
             //get the dictionary object from the file data
             SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
             sd.ReadFromDisk(x);
-
-            //get the index type
-            IndexType indexType = (IndexType)Enum.Parse(typeof(IndexType), sd[IndexTypeFieldName], true);
+            
             //get the node id
             int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
             //get the path
             string path = sd[IndexPathFieldName];
 
             //now, add the index with our dictionary object
-            AddDocument(sd.ToDictionary(), writer, nodeId, indexType, path);
+            AddDocument(sd.ToDictionary(), writer, nodeId, sd[IndexTypeFieldName], path);
 
             //remove the file
             x.Delete();
 
             CommitCount++;
 
-            return new IndexedNode() { NodeId = nodeId, Type = indexType };
+            return new IndexedNode() { NodeId = nodeId, Type = sd[IndexTypeFieldName] };
         }
 
         /// <summary>
@@ -1322,7 +1320,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="xPath">The x path.</param>
         /// <param name="type">The type.</param>
-        private void AddNodesToIndex(string xPath, IndexType type)
+        private void AddNodesToIndex(string xPath, string type)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
             XDocument xDoc = GetXDocument(xPath, type);

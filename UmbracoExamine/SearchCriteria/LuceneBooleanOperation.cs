@@ -50,7 +50,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <returns></returns>
         public ISearchCriteria Compile()
         {
-            if (this.search.SearchIndexType != Examine.IndexType.Any)
+            if (!string.IsNullOrEmpty(this.search.SearchIndexType))
             {
                 var query = this.search.query;
 

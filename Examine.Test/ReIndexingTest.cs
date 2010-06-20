@@ -45,7 +45,7 @@ namespace Examine.Test
                 .First();
 
             //this will do the reindex (deleting, then updating)
-            indexer.ReIndexNode(node, IndexType.Content);
+            indexer.ReIndexNode(node, "Content");
 
             Assert.IsTrue(isDeleted, "node was not deleted");
             Assert.IsTrue(isAdded, "node was not re-added");
