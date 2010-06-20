@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace UmbracoExamine.DataServices
 {
-    public interface IContentService
+    public interface IContentService 
     {
         XDocument GetLatestContentByXPath(string xpath);
         XDocument GetPublishedContentByXPath(string xpath);
-        
+
         /// <summary>
         /// Returns a list of ALL properties names for all nodes defined in the data source
         /// </summary>

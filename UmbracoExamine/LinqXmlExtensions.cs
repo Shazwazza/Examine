@@ -191,14 +191,16 @@ namespace UmbracoExamine
 
             XElement nodeData = null;
 
-            if (xml.Attribute("isDoc") == null)
+           
+            //if there is data children with attributes, we're on the old
+            if (xml.Elements("data").Where(x => x.HasAttributes).Count() > 0)
             {
                 nodeData = xml.Elements("data").SingleOrDefault(x => (string)x.Attribute("alias") == alias);
             }
             else
             {
                 nodeData = xml.Element(alias);
-            }
+            }           
             
             if (nodeData == null)
             {
