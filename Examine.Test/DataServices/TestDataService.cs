@@ -28,11 +28,5 @@ namespace Examine.Test.DataServices
         }
 
         #endregion
-
-
-        public INamedService NamedService
-        {
-            get { throw new System.NotImplementedException(); }
-        }
     }
 }

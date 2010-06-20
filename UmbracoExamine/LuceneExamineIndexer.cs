@@ -1035,7 +1035,7 @@ namespace UmbracoExamine
         /// <param name="xPath"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        protected XDocument GetXDocument(string xPath, string type)
+        protected virtual XDocument GetXDocument(string xPath, string type)
         {
 
             if (type == IndexTypes.Content)
@@ -1053,10 +1053,7 @@ namespace UmbracoExamine
             {
                 return DataService.MediaService.GetLatestMediaByXpath(xPath);
             }
-            else
-            {
-                return DataService.NamedService.GetAllData(type, xPath);
-            }
+            return null;
         }
 
         /// <summary>

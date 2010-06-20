@@ -55,7 +55,7 @@ namespace UmbracoExamine
         void Member_AfterSave(Member sender, SaveEventArgs e)
         {
             //ensure that only the providers are flagged to listen execute
-            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, "member",
+            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, IndexTypes.Member,
                 ExamineManager.Instance.IndexProviderCollection
                     .Where(x => x.EnableDefaultEventHandler));    
         }

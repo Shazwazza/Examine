@@ -10,6 +10,6 @@ namespace UmbracoExamine
 
         public const string Content = "Content";
         public const string Media = "Media";
-
+        public const string Member = "Member";
     }
 }
