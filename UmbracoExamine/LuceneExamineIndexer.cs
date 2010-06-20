@@ -1055,7 +1055,7 @@ namespace UmbracoExamine
             }
             else
             {
-                return DataService.NamedService.GetAllData(type);
+                return DataService.NamedService.GetAllData(type, xPath);
             }
         }
 

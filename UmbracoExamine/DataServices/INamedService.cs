@@ -5,6 +5,6 @@ namespace UmbracoExamine.DataServices
 {
     public interface INamedService
     {
-        XDocument GetAllData(string indexType);
+        XDocument GetAllData(string indexType, string xpath);
     }
 }

@@ -8,6 +8,7 @@ using umbraco.cms.businesslogic.media;
 using umbraco.cms.businesslogic.web;
 using Examine;
 using Examine.Providers;
+using umbraco.cms.businesslogic.member;
 
 namespace UmbracoExamine
 {
@@ -43,7 +44,33 @@ namespace UmbracoExamine
             //These should only fire for providers that have SupportUnpublishedContent set to true
             Document.AfterSave += new Document.SaveEventHandler(Document_AfterSave);
             Document.AfterDelete += new Document.DeleteEventHandler(Document_AfterDelete);
+
+
+            Member.AfterSave += new Member.SaveEventHandler(Member_AfterSave);
+            Member.AfterDelete += new Member.DeleteEventHandler(Member_AfterDelete);
         }
+
+
+
+        void Member_AfterSave(Member sender, SaveEventArgs e)
+        {
+            //ensure that only the providers are flagged to listen execute
+            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, "member",
+                ExamineManager.Instance.IndexProviderCollection
+                    .Where(x => x.EnableDefaultEventHandler));    
+        }
+
+        void Member_AfterDelete(Member sender, DeleteEventArgs e)
+        {
+            var nodeId = sender.Id.ToString();
+
+            //ensure that only the providers are flagged to listen execute
+            ExamineManager.Instance.DeleteFromIndex(nodeId,
+                ExamineManager.Instance.IndexProviderCollection
+                    .Where(x => x.EnableDefaultEventHandler)); 
+        }
+
+
 
         /// <summary>
         /// Only index using providers that SupportUnpublishedContent
@@ -159,9 +186,6 @@ namespace UmbracoExamine
                     .Where(x => !x.SupportUnpublishedContent
                         && x.EnableDefaultEventHandler));   
         }
-
-
-        
 
     }
 }
