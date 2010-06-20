@@ -74,7 +74,7 @@ namespace Examine.Test
 
             //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API, not examine!
             var r = IndexReader.Open(s.GetIndexReader().Directory(), false);            
-            var contentTerm = new Term(LuceneExamineIndexer.IndexTypeFieldName, "Content".ToLower());
+            var contentTerm = new Term(LuceneExamineIndexer.IndexTypeFieldName, IndexTypes.Content.ToLower());
             var delCount = r.DeleteDocuments(contentTerm);                        
             r.Commit();
             r.Close();
@@ -89,7 +89,7 @@ namespace Examine.Test
             //call our indexing methods
             var indexer = (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
             Trace.WriteLine("Indexer folder is " + indexer.LuceneIndexFolder.FullName);
-            indexer.IndexAll("Content");
+            indexer.IndexAll(IndexTypes.Content);
            
             collector = new AllHitsCollector(false, true);
             s = searcher.GetSearcher(); //make sure the searcher is up do date.

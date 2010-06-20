@@ -464,8 +464,8 @@ namespace UmbracoExamine
                 CloseWriter(ref writer);
             }
 
-            IndexAll("Content");
-            IndexAll("Media");
+            IndexAll(IndexTypes.Content);
+            IndexAll(IndexTypes.Media);
         }
 
         /// <summary>
@@ -1038,7 +1038,7 @@ namespace UmbracoExamine
         protected XDocument GetXDocument(string xPath, string type)
         {
 
-            if (type == "Content")
+            if (type == IndexTypes.Content)
             {
                 if (this.SupportUnpublishedContent)
                 {
@@ -1049,7 +1049,7 @@ namespace UmbracoExamine
                     return DataService.ContentService.GetPublishedContentByXPath(xPath);
                 }
             }
-            else if (type == "Media")
+            else if (type == IndexTypes.Media)
             {
                 return DataService.MediaService.GetLatestMediaByXpath(xPath);
             }

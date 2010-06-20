@@ -162,7 +162,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
-            var sc = this.CreateSearchCriteria("Content");
+            var sc = this.CreateSearchCriteria(IndexTypes.Content);
 
             if (useWildcards)
             {

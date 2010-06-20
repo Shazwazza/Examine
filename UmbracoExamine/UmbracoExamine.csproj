@@ -129,6 +129,7 @@
     <Compile Include="DataServices\IMediaService.cs" />
     <Compile Include="DataServices\UmbracoMediaService.cs" />
     <Compile Include="DocumentWritingEventArgs.cs" />
+    <Compile Include="IndexTypes.cs" />
     <Compile Include="SearchResults.cs" />
     <Compile Include="FileSystemExtensions.cs" />
     <Compile Include="IndexerExecutive.cs" />

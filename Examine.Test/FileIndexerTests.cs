@@ -45,7 +45,7 @@ namespace Examine.Test
             //Arrange
             var indexer = GetIndexer();
 
-            indexer.IndexAll("Media");
+            indexer.IndexAll(IndexTypes.Media);
 
             //Act
 

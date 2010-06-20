@@ -68,7 +68,7 @@ namespace UmbracoExamine.Contrib
         public override void IndexAll(string type)
         {
             //ignore the content index types
-            if (type == "Content")
+            if (type == IndexTypes.Content)
                 return;
 
             base.IndexAll(type);

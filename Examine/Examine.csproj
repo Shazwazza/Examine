@@ -101,7 +101,6 @@
     <Compile Include="IndexingNodeEventArgs.cs" />
     <Compile Include="IndexingNodesEventArgs.cs" />
     <Compile Include="IIndexer.cs" />
-    <Compile Include="IndexType.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />
