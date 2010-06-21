@@ -356,20 +356,20 @@ namespace UmbracoExamine
 
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
         {
-            DataService.LogService.AddInfoLog(docArgs.NodeId, string.Format("DocumentWriting event for node ({0})", LuceneIndexFolder.FullName));
+            //DataService.LogService.AddInfoLog(docArgs.NodeId, string.Format("DocumentWriting event for node ({0})", LuceneIndexFolder.FullName));
             if (DocumentWriting != null)
                 DocumentWriting(this, docArgs);
         }
 
         protected override void OnNodeIndexed(IndexedNodeEventArgs e)
         {
-            DataService.LogService.AddInfoLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName));
+            //DataService.LogService.AddInfoLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName));
             base.OnNodeIndexed(e);
         }
 
         protected override void OnIndexDeleted(DeleteIndexEventArgs e)
         {
-            DataService.LogService.AddInfoLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value));
+            //DataService.LogService.AddInfoLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value));
             base.OnIndexDeleted(e);
         }
 
