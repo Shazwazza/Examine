@@ -23,20 +23,20 @@ namespace UmbracoExamine
         public IndexerExecutive(DirectoryInfo d)
         {
             ExamineDirectory = d;
-            ExaFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + EXAExtension));
-            LckFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + LCKExtension));
+            m_ExaFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + EXAExtension));
+            m_LckFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + LCKExtension));
 
             //new 10 minute timer
-            TimestampTimer = new Timer(new TimeSpan(0, 10, 0).TotalMilliseconds);
-            TimestampTimer.AutoReset = true;
-            TimestampTimer.Elapsed += new ElapsedEventHandler(TimestampTimer_Elapsed);
+            m_TimestampTimer = new Timer(new TimeSpan(0, 10, 0).TotalMilliseconds);
+            m_TimestampTimer.AutoReset = true;
+            m_TimestampTimer.Elapsed += new ElapsedEventHandler(TimestampTimer_Elapsed);
         }
 
         public DirectoryInfo ExamineDirectory { get; private set; }
 
-        private FileInfo ExaFile;
-        private FileInfo LckFile;
-        private Timer TimestampTimer;
+        private FileInfo m_ExaFile;
+        private FileInfo m_LckFile;
+        private Timer m_TimestampTimer;
 
         private const string TimeStampFormat = "yyyy-MM-dd HH:mm:ss.fff";
         private const string LCKExtension = ".lck";
@@ -53,6 +53,27 @@ namespace UmbracoExamine
             Name, Created, Updated
         }
 
+        /// <summary>
+        /// Determines if the executive has been initialized. 
+        /// This is useful for checking if files have been deleted during website operations.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsInitialized()
+        {
+            if (m_ExaFile == null || m_LckFile == null)
+            {
+                return false;
+            }
+            m_ExaFile.Refresh();
+            m_LckFile.Refresh();
+            if (!m_ExaFile.Exists || !m_LckFile.Exists)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public void Initialize()
         {
             CreateEXAFile();
@@ -65,7 +86,7 @@ namespace UmbracoExamine
             RaceForMasterIndexer();
 
             //start the timestamp timer
-            TimestampTimer.Start();
+            m_TimestampTimer.Start();
         }
 
         /// <summary>
@@ -107,7 +128,8 @@ namespace UmbracoExamine
                 }
 
                 //if the lck file exists with this machine name, then it is executive.
-                return LckFile.Exists;
+                m_LckFile.Refresh();
+                return m_LckFile.Exists;
             }
         }
 
@@ -130,7 +152,8 @@ namespace UmbracoExamine
         {
             get
             {
-                if (LckFile.Exists)
+                m_LckFile.Refresh();
+                if (m_LckFile.Exists)
                 {
                     return GetLCK()[LCKFields.Name];
                 }
@@ -162,7 +185,7 @@ namespace UmbracoExamine
                 d.Add(EXAFields.Created, DateTime.Now.ToString(TimeStampFormat));
                 d.Add(EXAFields.Updated, DateTime.Now.ToString(TimeStampFormat));
                 d.Add(EXAFields.IsMaster, false.ToString());
-                d.SaveToDisk(ExaFile); 
+                d.SaveToDisk(m_ExaFile); 
             }
         }
 
@@ -262,11 +285,12 @@ namespace UmbracoExamine
         {
             lock (m_Lock)
             {
-                if (LckFile.Exists)
+                m_LckFile.Refresh();
+                if (m_LckFile.Exists)
                 {
                     var lck = GetLCK();
                     lck[LCKFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
-                    lck.SaveToDisk(LckFile);
+                    lck.SaveToDisk(m_LckFile);
                 }            
             } 
         }
@@ -280,7 +304,7 @@ namespace UmbracoExamine
             {
                 var exa = GetEXA();
                 exa[EXAFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
-                exa.SaveToDisk(ExaFile); 
+                exa.SaveToDisk(m_ExaFile); 
             }
         }
 
@@ -291,7 +315,7 @@ namespace UmbracoExamine
         private SerializableDictionary<EXAFields, string> GetEXA()
         {
             var dExa = new SerializableDictionary<EXAFields, string>();
-            dExa.ReadFromDisk(ExaFile);
+            dExa.ReadFromDisk(m_ExaFile);
             return dExa;
         }
 
@@ -302,7 +326,7 @@ namespace UmbracoExamine
         private SerializableDictionary<LCKFields, string> GetLCK()
         {
             var dLck = new SerializableDictionary<LCKFields, string>();
-            dLck.ReadFromDisk(LckFile);
+            dLck.ReadFromDisk(m_LckFile);
             return dLck;
         }
 
@@ -327,7 +351,7 @@ namespace UmbracoExamine
                     dExa[EXAFields.IsMaster] = false.ToString();
                 }
                 dExa[EXAFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
-                dExa.SaveToDisk(ExaFile); 
+                dExa.SaveToDisk(m_ExaFile); 
             }
 
         }
@@ -358,7 +382,7 @@ namespace UmbracoExamine
         {
             this.CheckDisposed();
             if (disposing)
-                this.TimestampTimer.Dispose();
+                this.m_TimestampTimer.Dispose();
         }
 
         #endregion

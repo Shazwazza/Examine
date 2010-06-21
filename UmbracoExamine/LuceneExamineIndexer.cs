@@ -62,11 +62,11 @@ namespace UmbracoExamine
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
 
-            VerifyFolder(indexPath);
-
             //set up our folders based on the index path
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Index"));
             IndexQueueItemFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Queue"));
+
+            ReInitialize();
         }
 
         #endregion
@@ -164,19 +164,6 @@ namespace UmbracoExamine
                 }
             }
 
-            try
-            {
-                //ensure all of the folders are created at startup                
-                VerifyFolder(LuceneIndexFolder);
-                VerifyFolder(IndexQueueItemFolder);
-            }
-            catch (Exception ex)
-            {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot initialize indexer, an error occurred verifying all index folders", -1, ex));
-                return;
-            }
-
-
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
             bool supportUnpublished;
@@ -217,18 +204,6 @@ namespace UmbracoExamine
                 IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
             }
 
-            ExecutiveIndex = new IndexerExecutive(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
-
-            ExecutiveIndex.Initialize();
-
-            //log some info if executive indexer
-            if (ExecutiveIndex.IsExecutiveMachine)
-            {
-                DataService.LogService.AddInfoLog(-1, string.Format("{0} machine is the Executive Indexer with {1} servers in the cluster",
-                    ExecutiveIndex.ExecutiveIndexerMachineName,
-                    ExecutiveIndex.ServerCount));
-            }
-
             //create our internal searcher with a KeywordAnalyzer 
             m_InternalSearcher = new LuceneExamineSearcher(this.LuceneIndexFolder);
             var searcherConfig = new NameValueCollection();
@@ -236,6 +211,7 @@ namespace UmbracoExamine
             searcherConfig.Add("analyzer", new KeywordAnalyzer().GetType().AssemblyQualifiedName);
             m_InternalSearcher.Initialize(Guid.NewGuid().ToString("N"), searcherConfig);
 
+            ReInitialize();
 
             CommitCount = 0;
 
@@ -439,7 +415,7 @@ namespace UmbracoExamine
             try
             {
                 //ensure the folder exists
-                VerifyFolder(LuceneIndexFolder);
+                ReInitialize();
 
                 //check if the index exists and it's locked
                 if (IndexExists() && !IndexReady())
@@ -686,7 +662,7 @@ namespace UmbracoExamine
 
             try
             {
-                VerifyFolder(LuceneIndexFolder);
+                ReInitialize();
 
                 //if the index doesn't exist, then no don't attempt to open it.
                 if (!IndexExists())
@@ -916,10 +892,9 @@ namespace UmbracoExamine
         {
             try
             {
-                VerifyFolder(LuceneIndexFolder);
-                VerifyFolder(IndexQueueItemFolder);
+                ReInitialize();
             }
-            catch (Exception ex)
+            catch (IOException ex)
             {
                 OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, an error occurred verifying index folders", -1, ex));
                 return 0;
@@ -1066,9 +1041,9 @@ namespace UmbracoExamine
         {
             try
             {
-                VerifyFolder(IndexQueueItemFolder);
+                ReInitialize();
             }
-            catch (Exception ex)
+            catch (IOException ex)
             {
                 OnIndexingError(new IndexingErrorEventArgs("Cannot save index queue item for deletion, an error occurred verifying queue folder", -1, ex));
                 return;
@@ -1095,9 +1070,9 @@ namespace UmbracoExamine
         {
             try
             {
-                VerifyFolder(IndexQueueItemFolder);
+                ReInitialize();
             }
-            catch (Exception ex)
+            catch (IOException ex)
             {
                 OnIndexingError(new IndexingErrorEventArgs("Cannot save index queue item, an error occurred verifying queue folder", nodeId, ex));
                 return;
@@ -1116,6 +1091,41 @@ namespace UmbracoExamine
         #endregion
 
         #region Private
+
+        /// <summary>
+        /// This makes sure that the folders exist, that the executive indexer is setup and that the index is optimized.
+        /// This is called at app startup when the providers are initialized but called again if folder are missing during a
+        /// an indexing operation.
+        /// </summary>
+        private void ReInitialize()
+        {
+
+            //ensure all of the folders are created at startup   
+            VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+            VerifyFolder(LuceneIndexFolder);
+            VerifyFolder(IndexQueueItemFolder);
+            
+
+            if (ExecutiveIndex == null)
+            {
+                ExecutiveIndex = new IndexerExecutive(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+            }
+
+            if (!ExecutiveIndex.IsInitialized())
+            {
+                ExecutiveIndex.Initialize();
+
+                //log some info if executive indexer
+                if (ExecutiveIndex.IsExecutiveMachine)
+                {
+                    DataService.LogService.AddInfoLog(-1, string.Format("{0} machine is the Executive Indexer with {1} servers in the cluster",
+                        ExecutiveIndex.ExecutiveIndexerMachineName,
+                        ExecutiveIndex.ServerCount));
+                }
+            }
+            
+            
+        }
 
         private void InitializeFileWatcherTimer()
         {

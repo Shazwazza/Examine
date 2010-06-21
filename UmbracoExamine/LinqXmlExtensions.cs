@@ -195,11 +195,12 @@ namespace UmbracoExamine
             //if there is data children with attributes, we're on the old
             if (xml.Elements("data").Where(x => x.HasAttributes).Count() > 0)
             {
-                nodeData = xml.Elements("data").SingleOrDefault(x => (string)x.Attribute("alias") == alias);
+                nodeData = xml.Elements("data").SingleOrDefault(x => ((string)x.Attribute("alias")).ToUpper() == alias.ToUpper());
             }
             else
             {
-                nodeData = xml.Element(alias);
+                //find the element with the uppercased name (umbraco camel cases things in xml even if the alias isn't)
+                nodeData = xml.Elements().Where(x => x.Name.ToString().ToUpper() == alias.ToUpper()).FirstOrDefault();
             }           
             
             if (nodeData == null)
