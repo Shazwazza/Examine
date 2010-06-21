@@ -25,6 +25,18 @@ namespace UmbracoExamine
             return null;
         }
 
+        protected override System.Collections.Generic.Dictionary<string, string> GetDataToIndex(XElement node, string type)
+        {
+            var data = base.GetDataToIndex(node, type);
+
+            if (data.ContainsKey("email"))
+            {
+                data.Add("__email",data["email"].Replace("."," ").Replace("@"," "));
+            }
+
+            return data;
+        }
+
         private XElement GetMemberItem(int nodeId)
         {
             var nodes = umbraco.library.GetMember(nodeId);

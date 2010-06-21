@@ -48,6 +48,11 @@ namespace UmbracoExamine
         private static readonly object m_Locker = new object();
 
         /// <summary>
+        /// Used to specify if leading wildcards are allowed. WARNING SLOWS PERFORMANCE WHEN ENABLED!
+        /// </summary>
+        public bool EnableLeadingWildcards { get; set; }
+
+        /// <summary>
         /// Initializes the provider.
         /// </summary>
         /// <param name="name">The friendly name of the provider.</param>
@@ -113,6 +118,11 @@ namespace UmbracoExamine
             else
             {
                 IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+            }
+
+            if (config["enableLeadingWildcard"] != null)
+            {
+                EnableLeadingWildcards = Boolean.Parse(config["enableLeadingWildcard"]);
             }
             
         }
@@ -223,7 +233,7 @@ namespace UmbracoExamine
         /// <returns>A blank SearchCriteria</returns>
         public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
-            return new LuceneSearchCriteria(type, this.IndexingAnalyzer, this.GetSearchFields(), defaultOperation);
+            return new LuceneSearchCriteria(type, this.IndexingAnalyzer, this.GetSearchFields(), this.EnableLeadingWildcards, defaultOperation);
         }
 
         /// <summary>

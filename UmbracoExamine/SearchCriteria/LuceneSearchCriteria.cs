@@ -21,7 +21,7 @@ namespace UmbracoExamine.SearchCriteria
         private readonly BooleanClause.Occur occurance;
         private readonly Lucene.Net.Util.Version luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
-        internal LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, BooleanOperation occurance)
+        internal LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurance)
         {
             Enforcer.ArgumentNotNull(fields, "fields");
 
@@ -29,6 +29,7 @@ namespace UmbracoExamine.SearchCriteria
             query = new BooleanQuery();
             this.BooleanOperation = occurance;
             this.queryParser = new MultiFieldQueryParser(luceneVersion, fields, analyzer);
+            this.queryParser.SetAllowLeadingWildcard(allowLeadingWildcards);
             this.occurance = occurance.ToLuceneOccurance();
         }
 
@@ -319,6 +320,7 @@ namespace UmbracoExamine.SearchCriteria
             //if there's only 1 query text we want to build up a string like this:
             //(field1:query field2:query field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
+
             if (query.Length > 1)
                 this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
             else
