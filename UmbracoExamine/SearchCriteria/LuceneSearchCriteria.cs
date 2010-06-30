@@ -7,6 +7,8 @@ using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Spans;
+using Lucene.Net.Index;
 
 namespace UmbracoExamine.SearchCriteria
 {
@@ -202,7 +204,13 @@ namespace UmbracoExamine.SearchCriteria
             return this.FieldInternal(fieldName, fieldValue, occurance);
         }
 
-        internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
+        /// <summary>
+        /// Returns the Lucene query object for a field given an IExamineValue
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldValue"></param>
+        /// <returns></returns>
+        internal protected Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue)
         {
             Query queryToAdd;
 
@@ -215,11 +223,38 @@ namespace UmbracoExamine.SearchCriteria
                 case Examineness.ComplexWildcard:
                     queryToAdd = this.queryParser.GetWildcardQuery(fieldName, fieldValue.Value);
                     break;
+                case Examineness.Boosted:
+                    queryToAdd = this.queryParser.GetFieldQuery(fieldName, fieldValue.Value);
+                    queryToAdd.SetBoost(fieldValue.Level);
+                    break;
+                case Examineness.Proximity:
+                    //This is how you are supposed to do this based on this doc here:
+                    //http://lucene.apache.org/java/2_4_1/api/org/apache/lucene/search/spans/package-summary.html#package_description
+                    //but i think that lucene.net has an issue with it's internal parser since it parses to a very strange query
+                    //we'll just manually make it instead below
+
+                    //var spans = new List<SpanQuery>();
+                    //foreach (var s in fieldValue.Value.Split(' '))
+                    //{
+                    //    spans.Add(new SpanTermQuery(new Term(fieldName, s)));
+                    //}
+                    //queryToAdd = new SpanNearQuery(spans.ToArray(), Convert.ToInt32(fieldValue.Level), true);
+
+                    var proxQuery = fieldName + ":\"" + fieldValue.Value + "\"~" + Convert.ToInt32(fieldValue.Level).ToString();
+                    queryToAdd = queryParser.Parse(proxQuery);
+
+                    break;
                 case Examineness.Explicit:
                 default:
                     queryToAdd = this.queryParser.GetFieldQuery(fieldName, fieldValue.Value);
                     break;
             }
+            return queryToAdd;
+        }
+
+        internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
+        {
+            Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue);            
 
             if (queryToAdd != null)
                 query.Add(queryToAdd, occurance);
@@ -282,22 +317,31 @@ namespace UmbracoExamine.SearchCriteria
         {
             Enforcer.ArgumentNotNull(fields, "fields");
             Enforcer.ArgumentNotNull(query, "query");
-            return this.GroupedAndInternal(fields.ToArray(), query, occurance);
+
+            var fieldVals = new List<IExamineValue>();
+            foreach (var f in query)
+            {
+                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
+            }
+            return this.GroupedAnd(fields.ToArray(), fieldVals.ToArray());
         }
 
-        protected internal IBooleanOperation GroupedAndInternal(string[] fields, string[] query, BooleanClause.Occur occurance)
+        public IBooleanOperation GroupedAnd(IEnumerable<string> fields, IExamineValue[] fieldVals)
         {
-            var flags = new BooleanClause.Occur[fields.Length];
-            for (int i = 0; i < flags.Length; i++)
-                flags[i] = BooleanClause.Occur.MUST;
+            Enforcer.ArgumentNotNull(fields, "fields");
+            Enforcer.ArgumentNotNull(query, "fieldVals");
+
+            return this.GroupedAndInternal(fields.ToArray(), fieldVals.ToArray(), occurance);
+        }
+
+        protected internal IBooleanOperation GroupedAndInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        {
 
             //if there's only 1 query text we want to build up a string like this:
             //(+field1:query +field2:query +field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
-            if (query.Length > 1)
-                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
-            else
-                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query[0], fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
+
+            query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.MUST), occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -307,24 +351,30 @@ namespace UmbracoExamine.SearchCriteria
             Enforcer.ArgumentNotNull(fields, "fields");
             Enforcer.ArgumentNotNull(query, "query");
 
-            return this.GroupedOrInternal(fields.ToArray(), query, occurance);
+            var fieldVals = new List<IExamineValue>();
+            foreach (var f in query)
+            {
+                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
+            }
+
+            return this.GroupedOr(fields.ToArray(), fieldVals.ToArray());
         }
 
-        protected internal IBooleanOperation GroupedOrInternal(string[] fields, string[] query, BooleanClause.Occur occurance)
+        public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] fieldVals)
         {
-            //need to have the same number of occurrence flags as fields
-            var flags = new BooleanClause.Occur[fields.Length];
-            for (int i = 0; i < flags.Length; i++)
-                flags[i] = BooleanClause.Occur.SHOULD;
+            Enforcer.ArgumentNotNull(fields, "fields");
+            Enforcer.ArgumentNotNull(query, "query");
 
+            return this.GroupedOrInternal(fields.ToArray(), fieldVals, occurance);
+        }
+
+        protected internal IBooleanOperation GroupedOrInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        {
             //if there's only 1 query text we want to build up a string like this:
             //(field1:query field2:query field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            if (query.Length > 1)
-                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
-            else
-                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query[0], fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
+            query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.SHOULD), occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -334,24 +384,65 @@ namespace UmbracoExamine.SearchCriteria
             Enforcer.ArgumentNotNull(fields, "fields");
             Enforcer.ArgumentNotNull(query, "query");
 
+            var fieldVals = new List<IExamineValue>();
+            foreach (var f in query)
+            {
+                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
+            }
+
+            return this.GroupedNot(fields.ToArray(), fieldVals.ToArray());
+        }
+
+        public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
+        {
+            Enforcer.ArgumentNotNull(fields, "fields");
+            Enforcer.ArgumentNotNull(query, "query");
+
             return this.GroupedNotInternal(fields.ToArray(), query, occurance);
         }
 
-        protected internal IBooleanOperation GroupedNotInternal(string[] fields, string[] query, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
         {
-            var flags = new BooleanClause.Occur[fields.Length];
-            for (int i = 0; i < flags.Length; i++)
-                flags[i] = BooleanClause.Occur.MUST_NOT;
-
             //if there's only 1 query text we want to build up a string like this:
             //(!field1:query !field2:query !field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
-            if (query.Length > 1)
-                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
-            else
-                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query[0], fields.ToArray(), flags, this.queryParser.GetAnalyzer()), occurance);
+            
+            query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.MUST_NOT), occurance);
 
             return new LuceneBooleanOperation(this);
+        }
+
+        /// <summary>
+        /// Creates our own style 'multi field query' used internal for the grouped operations
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="fieldVals"></param>
+        /// <param name="occurance"></param>
+        /// <returns></returns>
+        protected internal BooleanQuery GetMultiFieldQuery(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        {
+            //if there's only 1 query text we want to build up a string like this:
+            //(!field1:query !field2:query !field3:query)
+            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
+
+            var queryVals = new IExamineValue[fields.Length];
+            if (fieldVals.Length == 1)
+            {
+                for (int i = 0; i < queryVals.Length; i++)
+                    queryVals[i] = fieldVals[0];
+            }
+            else
+            {
+                queryVals = fieldVals;
+            }
+
+            var qry = new BooleanQuery();
+            for (int i = 0; i < fields.Length; i++)
+            {
+                qry.Add(this.GetFieldInternalQuery(fields[i], queryVals[i]), occurance);
+            }
+
+            return qry;
         }
 
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
@@ -360,22 +451,52 @@ namespace UmbracoExamine.SearchCriteria
             Enforcer.ArgumentNotNull(query, "query");
             Enforcer.ArgumentNotNull(operations, "operations");
 
-            return this.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, occurance);
+            var fieldVals = new List<IExamineValue>();
+            foreach (var f in query)
+            {
+                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
+            }
+
+            return this.GroupedFlexible(fields.ToArray(), operations.ToArray(), fieldVals.ToArray());
         }
 
-        protected internal IBooleanOperation GroupedFlexibleInternal(string[] fields, BooleanOperation[] operations, string[] query, BooleanClause.Occur occurance)
+        public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] fieldVals)
         {
+            Enforcer.ArgumentNotNull(fields, "fields");
+            Enforcer.ArgumentNotNull(query, "query");
+            Enforcer.ArgumentNotNull(operations, "operations");
+
+            return this.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), fieldVals, occurance);
+        }
+
+        protected internal IBooleanOperation GroupedFlexibleInternal(string[] fields, BooleanOperation[] operations, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        {
+            //if there's only 1 query text we want to build up a string like this:
+            //(field1:query field2:query field3:query)
+            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
+
             var flags = new BooleanClause.Occur[operations.Count()];
             for (int i = 0; i < flags.Length; i++)
                 flags[i] = operations.ElementAt(i).ToLuceneOccurance();
 
-            //if there's only 1 query text we want to build up a string like this:
-            //(field1:query field2:query field3:query)
-            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
-            if (query.Length > 1)
-                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query, fields, flags, this.queryParser.GetAnalyzer()), occurance);
+            var queryVals = new IExamineValue[fields.Length];
+            if (fieldVals.Length == 1)
+            {
+                for (int i = 0; i < queryVals.Length; i++)
+                    queryVals[i] = fieldVals[0];
+            }
             else
-                this.query.Add(MultiFieldQueryParser.Parse(luceneVersion, query[0], fields, flags, this.queryParser.GetAnalyzer()), occurance);
+            {
+                queryVals = fieldVals;
+            }
+
+            var qry = new BooleanQuery();
+            for (int i = 0; i < fields.Length; i++)
+            {
+                qry.Add(this.GetFieldInternalQuery(fields[i], queryVals[i]), flags[i]);
+            }
+
+            this.query.Add(qry, occurance);
 
             return new LuceneBooleanOperation(this);
         }

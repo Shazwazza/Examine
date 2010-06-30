@@ -41,6 +41,8 @@ namespace Examine.Providers
         /// <returns>A blank SearchCriteria</returns>
         public abstract ISearchCriteria CreateSearchCriteria(string type);
 
+        public abstract ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
+
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>

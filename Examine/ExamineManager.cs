@@ -207,6 +207,11 @@ namespace Examine
             return this.CreateSearchCriteria(type, BooleanOperation.And);
         }
 
+        public ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
+        {
+            return this.CreateSearchCriteria(string.Empty, defaultOperation);
+        }
+
         public ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             return this.DefaultSearchProvider.CreateSearchCriteria(type, defaultOperation);

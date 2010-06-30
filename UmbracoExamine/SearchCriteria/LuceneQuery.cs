@@ -202,7 +202,23 @@ namespace UmbracoExamine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
         {
-            return this.search.GroupedAndInternal(fields.ToArray(), query, this.occurance);
+            var fieldVals = new List<IExamineValue>();
+            foreach (var f in query)
+            {
+                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
+            }
+            return this.search.GroupedAndInternal(fields.ToArray(), fieldVals.ToArray(), this.occurance);
+        }
+
+        /// <summary>
+        /// Queries multiple fields with each being an And boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -212,6 +228,22 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="query">The query.</param>
         /// <returns></returns>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
+        {
+            var fieldVals = new List<IExamineValue>();
+            foreach (var f in query)
+            {
+                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
+            }
+            return this.search.GroupedOrInternal(fields.ToArray(), fieldVals.ToArray(), this.occurance);
+        }
+
+        /// <summary>
+        /// Queries multiple fields with each being an Or boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
         {
             return this.search.GroupedOrInternal(fields.ToArray(), query, this.occurance);
         }
@@ -224,6 +256,22 @@ namespace UmbracoExamine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
         {
+            var fieldVals = new List<IExamineValue>();
+            foreach (var f in query)
+            {
+                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
+            }
+            return this.search.GroupedNotInternal(fields.ToArray(), fieldVals.ToArray(), this.occurance);
+        }
+
+        /// <summary>
+        /// Queries multiple fields with each being an Not boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
+        {
             return this.search.GroupedNotInternal(fields.ToArray(), query, this.occurance);
         }
 
@@ -235,6 +283,23 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="query">The query.</param>
         /// <returns></returns>
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
+        {
+            var fieldVals = new List<IExamineValue>();
+            foreach (var f in query)
+            {
+                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
+            }
+            return this.search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), fieldVals.ToArray(), occurance);
+        }
+
+        /// <summary>
+        /// Queries on multiple fields with their inclusions customly defined
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="operations">The operations.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query)
         {
             return this.search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, occurance);
         }
@@ -260,5 +325,6 @@ namespace UmbracoExamine.SearchCriteria
         }
 
         #endregion
+
     }
 }

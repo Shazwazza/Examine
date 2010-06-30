@@ -44,7 +44,7 @@ namespace UmbracoExamine
         /// <summary>
         /// Used as a singleton instance
         /// </summary>
-        private static IndexSearcher m_Searcher;
+        private IndexSearcher m_Searcher;
         private static readonly object m_Locker = new object();
 
         /// <summary>
@@ -224,7 +224,12 @@ namespace UmbracoExamine
         {
             return this.CreateSearchCriteria(type, BooleanOperation.And);
         }
-     
+
+        public override ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
+        {
+            return this.CreateSearchCriteria(string.Empty, defaultOperation);
+        }
+
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>

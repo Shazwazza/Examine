@@ -165,7 +165,7 @@ namespace UmbracoExamine
         {
             //ensure that only the providers that have DONT unpublishing support enabled       
             //that are also flagged to listen
-            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexTypes.Content,
+            ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, IndexTypes.Content,
                 ExamineManager.Instance.IndexProviderCollection
                     .Where(x => !x.SupportUnpublishedContent
                         && x.EnableDefaultEventHandler));            

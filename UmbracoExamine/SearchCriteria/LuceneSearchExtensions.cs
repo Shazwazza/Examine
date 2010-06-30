@@ -86,11 +86,11 @@ namespace UmbracoExamine.SearchCriteria
         /// An IExamineValue for the required operation
         /// </returns>
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
-        public static IExamineValue Proximity(this string s, float proximity)
+        public static IExamineValue Proximity(this string s, int proximity)
         {
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
-            return new ExamineValue(Examineness.Proximity, s, proximity);
+            return new ExamineValue(Examineness.Proximity, s + "~", Convert.ToSingle(proximity));
         }
 
         /// <summary>

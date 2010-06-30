@@ -29,8 +29,7 @@ namespace Examine.Test.DataServices
         {
             var xdoc = XDocument.Parse("<media></media>");
             xdoc.Root.Add(m_Doc.XPathSelectElements(xpath));
-
-            return xdoc;
+            return xdoc;            
         }
 
         #endregion

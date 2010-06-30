@@ -117,6 +117,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns></returns>
         IBooleanOperation Range(string fieldName, string lower, string upper, bool includeLower, bool includeUpper);
+        
         /// <summary>
         /// Queries multiple fields with each being an And boolean operation
         /// </summary>
@@ -124,6 +125,15 @@ namespace Examine.SearchCriteria
         /// <param name="query">The query.</param>
         /// <returns></returns>
         IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query);
+
+        /// <summary>
+        /// Queries multiple fields with each being an And boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query);
+
         /// <summary>
         /// Queries multiple fields with each being an Or boolean operation
         /// </summary>
@@ -131,6 +141,15 @@ namespace Examine.SearchCriteria
         /// <param name="query">The query.</param>
         /// <returns></returns>
         IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query);
+
+        /// <summary>
+        /// Queries multiple fields with each being an Or boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query);
+        
         /// <summary>
         /// Queries multiple fields with each being an Not boolean operation
         /// </summary>
@@ -138,6 +157,15 @@ namespace Examine.SearchCriteria
         /// <param name="query">The query.</param>
         /// <returns></returns>
         IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query);
+
+        /// <summary>
+        /// Queries multiple fields with each being an Not boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query);
+
         /// <summary>
         /// Queries on multiple fields with their inclusions customly defined
         /// </summary>
@@ -146,12 +174,23 @@ namespace Examine.SearchCriteria
         /// <param name="operations">The operations.</param>
         /// <returns></returns>
         IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query);
+
+        /// <summary>
+        /// Queries on multiple fields with their inclusions customly defined
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <param name="operations">The operations.</param>
+        /// <returns></returns>
+        IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query);
+        
         /// <summary>
         /// Orders the results by the specified fields
         /// </summary>
         /// <param name="fieldNames">The field names.</param>
         /// <returns></returns>
         IBooleanOperation OrderBy(params string[] fieldNames);
+        
         /// <summary>
         /// Orders the results by the specified fields in a descending order
         /// </summary>

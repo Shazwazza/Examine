@@ -5,17 +5,46 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using UmbracoExamine.SearchCriteria;
+using Examine.SearchCriteria;
 
 namespace Examine.Test
 {
     [TestClass]
     public class FluentApiTests
     {
+        [TestMethod]
+        public void FluentApi_Find_Only_Media()
+        {
+            //unfortunately there's no media in our index currently so we will re-index with some first
+            m_Indexer.IndexAll(IndexTypes.Media);
 
-        //public void FluentApi_Find_Only_Content()
-        //{
-            
-        //}
+            var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Media);
+            var filter = criteria.NodeTypeAlias("Image").Compile();
+
+            var results = m_Searcher.Search(filter);
+
+            Assert.IsTrue(results.TotalItemCount > 0);
+
+        }
+
+        [TestMethod]
+        public void FluentApi_Find_Both_Media_And_Content()
+        {
+            //unfortunately there's no media in our index currently so we will re-index with some first
+            m_Indexer.IndexAll(IndexTypes.Media);
+
+            var criteria = m_Searcher.CreateSearchCriteria(BooleanOperation.Or);
+            var filter = criteria
+                .NodeTypeAlias("Image")
+                .Or()
+                .NodeTypeAlias("CWS".MultipleCharacterWildcard())
+                .Compile();
+
+            var results = m_Searcher.Search(filter);
+
+            Assert.IsTrue(results.TotalItemCount > 1);
+
+        }
 
         [TestMethod]
         public void FluentApi_Sort_Result_By_Single_Field()
@@ -84,8 +113,65 @@ namespace Examine.Test
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
+        [TestMethod]
+        public void FluentApiTests_Grouped_And_Examiness()
+        {
+            ////Arrange
+            var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
+
+            //get all node type aliases starting with CWS and all nodees starting with "A"
+            var filter = criteria.GroupedAnd(
+                new string[] { "nodeTypeAlias", "nodeName" },
+                new IExamineValue[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() })
+                .Compile();
+
+
+            ////Act
+            var results = m_Searcher.Search(filter);
+
+            ////Assert
+            Assert.IsTrue(results.TotalItemCount > 0);
+        }
+
+        [TestMethod]
+        public void FluentApiTests_Examiness_Proximity()
+        {
+            ////Arrange
+            var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
+
+            //get all nodes that contain the words warren and creative within 5 words of each other
+            var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5)).Compile();
+
+            ////Act
+            var results = m_Searcher.Search(filter);
+
+            ////Assert
+            Assert.IsTrue(results.TotalItemCount > 0);
+        }
+
+        [TestMethod]
+        public void FluentApiTests_Grouped_Or_Examiness()
+        {
+            ////Arrange
+            var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
+
+            //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
+            var filter = criteria.GroupedOr(
+                new string[] { "nodeTypeAlias", "nodeName" },
+                new IExamineValue[] { "CWS\\_Home".Boost(10), "About".MultipleCharacterWildcard() })
+                .Compile();
+
+
+            ////Act
+            var results = m_Searcher.Search(filter);
+
+            ////Assert
+            Assert.IsTrue(results.TotalItemCount > 0);
+        }
+
         private static IndexInitializer m_Init;
         private static ISearcher m_Searcher;
+        private static IIndexer m_Indexer;
 
         #region Initialize and Cleanup
 
@@ -94,6 +180,7 @@ namespace Examine.Test
         {
             m_Init = new IndexInitializer();
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+            m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
         }
 
         //[ClassCleanup()]
