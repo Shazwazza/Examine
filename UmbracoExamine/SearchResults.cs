@@ -1,17 +1,14 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Examine;
-using Lucene.Net.Search;
-using Lucene.Net.Store;
-using System.Collections;
 using Lucene.Net.Documents;
+using Lucene.Net.Search;
 
 namespace UmbracoExamine
 {
     /// <summary>
-    /// 
+    /// An implementation of the search results returned from Lucene.Net
     /// </summary>
     public class SearchResults : ISearchResults
     {
@@ -46,7 +43,7 @@ namespace UmbracoExamine
         /// <summary>
         /// Gets the total number of results for the search
         /// </summary>
-        /// <value>The total item count.</value>
+        /// <value>The total items from the search.</value>
         public int TotalItemCount { get; private set; }
 
         /// <summary>
@@ -95,8 +92,8 @@ namespace UmbracoExamine
         /// <remarks>
         /// This allows for lazy loading of the results paging. We don't go into Lucene until we have to.
         /// </remarks>
-        /// <param name="skip">The skip.</param>
-        /// <returns></returns>
+        /// <param name="skip">The number of items in the results to skip.</param>
+        /// <returns>A collection of the search results</returns>
         public IEnumerable<SearchResult> Skip(int skip)
         {
             for (int i = skip; i < this.TotalItemCount; i++)
@@ -121,9 +118,9 @@ namespace UmbracoExamine
         #region IEnumerable<SearchResult> Members
 
         /// <summary>
-        /// Gets the enumerator.
+        /// Gets the enumerator starting at position 0
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A collection of the search results</returns>
         public IEnumerator<SearchResult> GetEnumerator()
         {
             //if we're going to Enumerate from this itself we're not going to be skipping

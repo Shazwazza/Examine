@@ -21,7 +21,7 @@ namespace UmbracoExamine
 {
 
     /// <summary>
-    /// 
+    /// This is a Lucene.Net Examine indexer for Umbraco
     /// </summary>
     /// <remarks>
     /// <para>
@@ -33,7 +33,7 @@ namespace UmbracoExamine
     /// </para>
     /// <para>
     /// Based on the info here, it is best to only call optimize when there is no activity,
-    /// we only optimized after the queue has been processed and at startup:
+    /// we only optimized after the queue has been processed and at start up:
     /// http://www.gossamer-threads.com/lists/lucene/java-dev/47895
     /// http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
     /// </para>
@@ -222,6 +222,9 @@ namespace UmbracoExamine
 
         #region Constants & Fields
 
+        /// <summary>
+        /// The prefix added to a field when it is included in the index for sorting
+        /// </summary>
         public const string SortedFieldNamePrefix = "__Sort_";
 
         /// <summary>
@@ -295,7 +298,7 @@ namespace UmbracoExamine
 
         /// <summary>
         /// The interval (in seconds) specified for the timer to process index queue items.
-        /// This is only relavent if <see cref="RunAsnc"/> is true.
+        /// This is only relevant if <see cref="RunAsnc"/> is true.
         /// </summary>
         public int IndexSecondsInterval { get; protected internal set; }
 
@@ -553,8 +556,8 @@ namespace UmbracoExamine
         /// Adds single node to index. If the node already exists, a duplicate will probably be created,
         /// To re-index, use the ReIndexNode method.
         /// </summary>
-        /// <param name="node">The node.</param>
-        /// <param name="type">The type.</param>
+        /// <param name="node">The node to index.</param>
+        /// <param name="type">The type to store the node as.</param>
         protected void AddSingleNodeToIndex(XElement node, string type)
         {
             int nodeId = -1;
@@ -714,7 +717,7 @@ namespace UmbracoExamine
         /// Collects all of the data that needs to be indexed as defined in the index set.
         /// </summary>
         /// <param name="node"></param>
-        /// <returns></returns>
+        /// <returns>A dictionary representing the data which will be indexed</returns>
         protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
             Dictionary<string, string> values = new Dictionary<string, string>();
@@ -774,14 +777,14 @@ namespace UmbracoExamine
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
+        /// <param name="fields">The fields and their associated data.</param>
+        /// <param name="writer">The writer that will be used to update the Lucene index.</param>
+        /// <param name="nodeId">The node id.</param>
+        /// <param name="type">The type to index the node as.</param>
+        /// <param name="path">The path of the content node</param>
         /// <remarks>
         /// This will normalize (lowercase) all text before it goes in to the index.
         /// </remarks>
-        /// <param name="fields"></param>
-        /// <param name="writer"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="type"></param>
-        /// <param name="path">The path of the content node</param>
         protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, string type, string path)
         {
             var args = new IndexingNodeEventArgs(nodeId, fields, type);
@@ -1007,12 +1010,11 @@ namespace UmbracoExamine
         /// <summary>
         /// Returns an XDocument for the entire tree stored for the IndexType specified.
         /// </summary>
-        /// <param name="xPath"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="xPath">The xpath to the node.</param>
+        /// <param name="type">The type of data to request from the data service.</param>
+        /// <returns>Either the Content or Media xml. If the type is not of those specified null is returned</returns>
         protected virtual XDocument GetXDocument(string xPath, string type)
         {
-
             if (type == IndexTypes.Content)
             {
                 if (this.SupportUnpublishedContent)
@@ -1058,13 +1060,13 @@ namespace UmbracoExamine
         }
 
         /// <summary>
-        /// Writes the information for the fields to a file names with the computer's name that is running the index and 
+        /// Writes the information for the fields to a file names with the computer's name that is running the index and
         /// a GUID value. The indexer will then index the values stored in the files in another thread so that processing may continue.
         /// This will save a file prefixed with the current machine name with an extension of .add
         /// </summary>
-        /// <param name="fields"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="type"></param>
+        /// <param name="fields">The fields.</param>
+        /// <param name="nodeId">The node id.</param>
+        /// <param name="type">The type.</param>
         /// <param name="path">The path of the content node</param>
         protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type, string path)
         {
@@ -1123,8 +1125,6 @@ namespace UmbracoExamine
                         ExecutiveIndex.ServerCount));
                 }
             }
-            
-            
         }
 
         private void InitializeFileWatcherTimer()
@@ -1297,7 +1297,8 @@ namespace UmbracoExamine
             DateTime date;
             if (DateTime.TryParse(val, out date))
                 //return it as UniversalSortable so it's easier to parse
-                return date.ToString("u");
+                //return date.ToString("u");
+                return DateTools.DateToString(date, DateTools.Resolution.MILLISECOND);
             else
             {
                 //error check... this is strange but it can actually be a real null value, not just empty
@@ -1398,12 +1399,13 @@ namespace UmbracoExamine
 
         protected bool _disposed;
 
+        /// <summary>
+        /// Checks the disposal state of the objects
+        /// </summary>
         protected void CheckDisposed()
         {
             if (_disposed)
-            {
                 throw new ObjectDisposedException("UmbracoExamine.LuceneExamineIndexer");
-            }
         }
 
         /// <summary>
@@ -1417,6 +1419,10 @@ namespace UmbracoExamine
             this._disposed = true;
         }
 
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources
+        /// </summary>
+        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
             this.CheckDisposed();

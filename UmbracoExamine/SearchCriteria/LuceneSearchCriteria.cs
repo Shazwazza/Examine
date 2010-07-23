@@ -9,11 +9,12 @@ using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Spans;
 using Lucene.Net.Index;
+using Lucene.Net.Documents;
 
 namespace UmbracoExamine.SearchCriteria
 {
     /// <summary>
-    /// 
+    /// This class is used to query against Lucene.Net
     /// </summary>
     public class LuceneSearchCriteria : ISearchCriteria
     {
@@ -93,7 +94,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the id
         /// </summary>
         /// <param name="id">The id.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Id(int id)
         {
             return IdInternal(id, occurance);
@@ -111,7 +112,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the NodeName
         /// </summary>
         /// <param name="nodeName">Name of the node.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeName(string nodeName)
         {
             Enforcer.ArgumentNotNull(nodeName, "nodeName");
@@ -122,7 +123,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the NodeName
         /// </summary>
         /// <param name="nodeName">Name of the node.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeName(IExamineValue nodeName)
         {
             Enforcer.ArgumentNotNull(nodeName, "nodeName");
@@ -138,7 +139,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the NodeTypeAlias
         /// </summary>
         /// <param name="nodeTypeAlias">The node type alias.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeTypeAlias(string nodeTypeAlias)
         {
             Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
@@ -149,7 +150,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the NodeTypeAlias
         /// </summary>
         /// <param name="nodeTypeAlias">The node type alias.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias)
         {
             Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
@@ -165,7 +166,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the Parent ID
         /// </summary>
         /// <param name="id">The id of the parent.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation ParentId(int id)
         {
             return this.ParentIdInternal(id, occurance);
@@ -183,7 +184,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="fieldValue">The field value.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Field(string fieldName, string fieldValue)
         {
             Enforcer.ArgumentNotNull(fieldName, "fieldName");
@@ -196,7 +197,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="fieldValue">The field value.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
             Enforcer.ArgumentNotNull(fieldName, "fieldName");
@@ -209,7 +210,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="fieldValue"></param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         internal protected Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue)
         {
             Query queryToAdd;
@@ -270,7 +271,7 @@ namespace UmbracoExamine.SearchCriteria
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
         {
             //since lucene works on string's for all searching we need to flatten the date
-            return this.RangeInternal(fieldName, start.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture), end.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture), includeLower, includeUpper, occurance);
+            return this.RangeInternal(fieldName, DateTools.DateToString(start, DateTools.Resolution.MILLISECOND), DateTools.DateToString(end, DateTools.Resolution.MILLISECOND), includeLower, includeUpper, occurance);
         }
 
         public IBooleanOperation Range(string fieldName, int start, int end)
@@ -418,7 +419,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="fields"></param>
         /// <param name="fieldVals"></param>
         /// <param name="occurance"></param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         protected internal BooleanQuery GetMultiFieldQuery(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
         {
             //if there's only 1 query text we want to build up a string like this:
@@ -505,7 +506,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Passes a raw search query to the provider to handle
         /// </summary>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public ISearchCriteria RawQuery(string query)
         {
             this.query.Add(this.queryParser.Parse(query), this.occurance);
@@ -517,7 +518,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Orders the results by the specified fields
         /// </summary>
         /// <param name="fieldNames">The field names.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation OrderBy(params string[] fieldNames)
         {
             Enforcer.ArgumentNotNull(fieldNames, "fieldNames");
@@ -529,7 +530,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Orders the results by the specified fields in a descending order
         /// </summary>
         /// <param name="fieldNames">The field names.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation OrderByDescending(params string[] fieldNames)
         {
             Enforcer.ArgumentNotNull(fieldNames, "fieldNames");
@@ -542,7 +543,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="descending">if set to <c>true</c> [descending].</param>
         /// <param name="fieldNames">The field names.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         protected internal IBooleanOperation OrderByInternal(bool descending, params string[] fieldNames)
         {
             foreach (var fieldName in fieldNames)

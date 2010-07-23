@@ -38,7 +38,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the id
         /// </summary>
         /// <param name="id">The id.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Id(int id)
         {
             return this.search.IdInternal(id, this.occurance);
@@ -48,7 +48,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the NodeName
         /// </summary>
         /// <param name="nodeName">Name of the node.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeName(string nodeName)
         {
             return this.search.NodeNameInternal(new ExamineValue(Examineness.Explicit, nodeName), occurance);
@@ -58,7 +58,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the NodeTypeAlias
         /// </summary>
         /// <param name="nodeTypeAlias">The node type alias.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeTypeAlias(string nodeTypeAlias)
         {
             return this.search.NodeTypeAliasInternal(new ExamineValue(Examineness.Explicit, nodeTypeAlias), occurance);
@@ -68,7 +68,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the Parent ID
         /// </summary>
         /// <param name="id">The id of the parent.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation ParentId(int id)
         {
             return this.search.ParentIdInternal(id, occurance);
@@ -79,7 +79,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="fieldValue">The field value.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Field(string fieldName, string fieldValue)
         {
             return this.search.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), occurance);
@@ -91,7 +91,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="start">The start.</param>
         /// <param name="end">The end.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end)
         {
             return this.Range(fieldName, start, end, true, true);
@@ -105,7 +105,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="end">The end.</param>
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
         {
             return this.search.Range(fieldName, start, end, includeLower, includeUpper);
@@ -117,7 +117,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="start">The start.</param>
         /// <param name="end">The end.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Range(string fieldName, int start, int end)
         {
             return this.Range(fieldName, start, end, true, true);
@@ -131,7 +131,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="end">The end.</param>
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
         {
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
@@ -143,7 +143,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="start">The start.</param>
         /// <param name="end">The end.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Range(string fieldName, string start, string end)
         {
             return this.Range(fieldName, start, end, true, true);
@@ -157,7 +157,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="end">The end.</param>
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Range(string fieldName, string start, string end, bool includeLower, bool includeUpper)
         {
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
@@ -167,7 +167,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the NodeName
         /// </summary>
         /// <param name="nodeName">Name of the node.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeName(IExamineValue nodeName)
         {
             return this.search.NodeNameInternal(nodeName, occurance);
@@ -177,7 +177,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Query on the NodeTypeAlias
         /// </summary>
         /// <param name="nodeTypeAlias">The node type alias.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias)
         {
             return this.search.NodeTypeAliasInternal(nodeTypeAlias, occurance);
@@ -188,7 +188,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="fieldValue">The field value.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
             return this.search.FieldInternal(fieldName, fieldValue, occurance);
@@ -199,7 +199,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
         {
             var fieldVals = new List<IExamineValue>();
@@ -215,7 +215,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
         {
             throw new NotImplementedException();
@@ -226,7 +226,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
         {
             var fieldVals = new List<IExamineValue>();
@@ -242,7 +242,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
         {
             return this.search.GroupedOrInternal(fields.ToArray(), query, this.occurance);
@@ -253,7 +253,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
         {
             var fieldVals = new List<IExamineValue>();
@@ -269,7 +269,7 @@ namespace UmbracoExamine.SearchCriteria
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
             return this.search.GroupedNotInternal(fields.ToArray(), query, this.occurance);
@@ -281,7 +281,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="operations">The operations.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
         {
             var fieldVals = new List<IExamineValue>();
@@ -298,7 +298,7 @@ namespace UmbracoExamine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="operations">The operations.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query)
         {
             return this.search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, occurance);
@@ -308,7 +308,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Orders the results by the specified fields
         /// </summary>
         /// <param name="fieldNames">The field names.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation OrderBy(params string[] fieldNames)
         {
             return this.search.OrderBy(fieldNames);
@@ -318,7 +318,7 @@ namespace UmbracoExamine.SearchCriteria
         /// Orders the results by the specified fields in a descending order
         /// </summary>
         /// <param name="fieldNames">The field names.</param>
-        /// <returns></returns>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation OrderByDescending(params string[] fieldNames)
         {
             return this.search.OrderByDescending(fieldNames);
