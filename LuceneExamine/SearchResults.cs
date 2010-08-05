@@ -5,7 +5,7 @@ using Examine;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 
-namespace LuceneExamine
+namespace Examine.LuceneEngine
 {
     /// <summary>
     /// An implementation of the search results returned from Lucene.Net
@@ -62,7 +62,7 @@ namespace LuceneExamine
             string id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
             {
-				id = doc.Get(BaseLuceneExamineIndexer.IndexNodeIdFieldName);
+				id = doc.Get(LuceneExamineIndexer.IndexNodeIdFieldName);
             }
             var sr = new SearchResult()
             {
@@ -73,12 +73,9 @@ namespace LuceneExamine
             //we can use lucene to find out the fields which have been stored for this particular document
             //I'm not sure if it'll return fields that have null values though
             var fields = doc.GetFields();
+            
             //ignore our internal fields though
-            foreach (Field field in fields
-                .Cast<Field>()
-				.Where(x => x.Name() != BaseLuceneExamineIndexer.IndexNodeIdFieldName
-					&& x.Name() != BaseLuceneExamineIndexer.IndexTypeFieldName
-					&& x.Name() != BaseLuceneExamineIndexer.IndexPathFieldName))
+            foreach (Field field in fields.Cast<Field>())
             {
                 sr.Fields.Add(field.Name(), doc.Get(field.Name()));
             }

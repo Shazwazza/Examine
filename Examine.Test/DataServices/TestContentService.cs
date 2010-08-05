@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.XPath;
 using UmbracoExamine.Config;
+using UmbracoExamine;
 
 namespace Examine.Test.DataServices
 {
@@ -81,7 +82,7 @@ namespace Examine.Test.DataServices
 
         public IEnumerable<string> GetAllSystemPropertyNames()
         {
-            return UmbracoFieldPolicies.GetPolicies().Select(x => x.Key);
+            return UmbracoExamineIndexer.IndexFieldPolicies.Select(x => x.Key);
         }
 
         #endregion

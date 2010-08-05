@@ -53,16 +53,6 @@ namespace Examine.Providers
         /// <returns>A blank SearchCriteria</returns>
         public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="config"></param>
-		public virtual void Initialize(string name, NameValueCollection config)
-		{
-
-		}
-
         #endregion
     }
 }

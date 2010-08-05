@@ -10,27 +10,30 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
-using LuceneExamine;
-using LuceneExamine.Config;
-using LuceneExamine.SearchCriteria;
+using Examine.LuceneEngine;
+using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine.SearchCriteria;
 
 
-namespace LuceneExamine
+namespace Examine.LuceneEngine
 {
-	public abstract class BaseLuceneExamineSearcher : BaseSearchProvider
+	public class LuceneExamineSearcher : BaseSearchProvider
 	{
 		#region Constructors
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-		public BaseLuceneExamineSearcher(): base(){}
+        public LuceneExamineSearcher()
+            : base()
+        {
+        }
 		
 		/// <summary>
 		/// Constructor to allow for creating an indexer at runtime
 		/// </summary>
 		/// <param name="indexPath"></param>
-		public BaseLuceneExamineSearcher(DirectoryInfo indexPath)
+		public LuceneExamineSearcher(DirectoryInfo indexPath)
 			: base()
 		{           
 			//set up our folder
@@ -249,25 +252,24 @@ namespace LuceneExamine
 			return m_Searcher;
 		}
 
+        /// <summary>
+        /// Returns a list of fields to search on
+        /// </summary>
+        /// <returns></returns>
+        protected virtual string[] GetSearchFields()
+        {
+            var searcher = GetSearcher();
+            var reader = searcher.GetIndexReader();
+            var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
+            //exclude the special index fields
+            var searchFields = fields
+                .Where(x => x != LuceneExamineIndexer.IndexNodeIdFieldName
+                    && x != LuceneExamineIndexer.IndexTypeFieldName)
+                .ToArray();
+            return searchFields;
+        }		
+
 		#region Private
-
-		private string[] GetSearchFields()
-		{
-			var searcher = GetSearcher();
-			return GetSearchFields(searcher.GetIndexReader());
-		}
-
-		private static string[] GetSearchFields(IndexReader reader)
-		{
-			var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
-			//exclude the special index fields
-			var searchFields = fields
-				.Where(x => x != BaseLuceneExamineIndexer.IndexNodeIdFieldName
-					&& x != BaseLuceneExamineIndexer.IndexTypeFieldName
-					&& x != BaseLuceneExamineIndexer.IndexPathFieldName)
-				.ToArray();
-			return searchFields;
-		}
 
 		private enum ReaderStatus { Current, Closed, NotCurrent }
 

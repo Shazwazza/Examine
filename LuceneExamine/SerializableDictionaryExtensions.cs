@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 
-namespace LuceneExamine
+namespace Examine.LuceneEngine
 {
     public static class SerializableDictionaryExtensions
     {

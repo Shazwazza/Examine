@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
-using UmbracoExamine.SearchCriteria;
 using Examine.SearchCriteria;
+using Examine.LuceneEngine.SearchCriteria;
 
 namespace Examine.Test
 {

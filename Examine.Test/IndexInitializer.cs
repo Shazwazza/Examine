@@ -14,6 +14,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Analysis;
 using Examine.Providers;
 using System.Collections.Specialized;
+using Examine.LuceneEngine.Config;
 
 namespace Examine.Test
 {

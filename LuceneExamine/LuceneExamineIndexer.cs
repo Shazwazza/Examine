@@ -13,20 +13,18 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using LuceneExamine.Config;
-using LuceneExamine.DataServices;
+using Examine.LuceneEngine.Config;
 
-
-namespace LuceneExamine
+namespace Examine.LuceneEngine
 {
-	public abstract class BaseLuceneExamineIndexer : BaseIndexProvider
+	public abstract class LuceneExamineIndexer : BaseIndexProvider
 	{
 		#region Constructors
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BaseLuceneExamineIndexer()
+        protected LuceneExamineIndexer()
             : base()
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
@@ -37,7 +35,7 @@ namespace LuceneExamine
         /// </summary>
         /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
-		public BaseLuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
+        protected LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
             : base(indexerData)
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
@@ -74,19 +72,6 @@ namespace LuceneExamine
         {
             base.Initialize(name, config);
 
-            if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
-            {
-                //this should be a fully qualified type
-                var serviceType = Type.GetType(config["dataService"]);
-                DataService = (IDataService)Activator.CreateInstance(serviceType);
-            }
-            else
-            {
-                //By default, we will be using the UmbracoDataService
-                //generally this would only need to be set differently for unit testing
-                DataService = new UmbracoDataService();
-            }
-
             //Need to check if the index set or IndexerData is specified...
 
             if (config["indexSet"] == null && IndexerData == null)
@@ -107,7 +92,7 @@ namespace LuceneExamine
                         IndexSetName = set.SetName;
 
                         //get the index criteria and ensure folder
-                        IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria(DataService);
+                        IndexerData = GetIndexerData(ExamineLuceneIndexes.Instance.Sets[IndexSetName]);
                         VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
 
                         //now set the index folders
@@ -135,7 +120,7 @@ namespace LuceneExamine
                     IndexSetName = config["indexSet"];
 
                     //get the index criteria and ensure folder
-                    IndexerData = ExamineLuceneIndexes.Instance.Sets[IndexSetName].ToIndexCriteria(DataService);
+                    IndexerData = GetIndexerData(ExamineLuceneIndexes.Instance.Sets[IndexSetName]);
                     VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
 
                     //now set the index folders
@@ -144,22 +129,12 @@ namespace LuceneExamine
                 }
             }
 
-            //check if there's a flag specifying to support unpublished content,
-            //if not, set to false;
-            bool supportUnpublished;
-            if (config["supportUnpublished"] != null && bool.TryParse(config["supportUnpublished"], out supportUnpublished))
-                SupportUnpublishedContent = supportUnpublished;
-            else
-                SupportUnpublishedContent = false;
-
-
-            //check if there's a flag specifying to support protected content,
-            //if not, set to false;
-            bool supportProtected;
-            if (config["supportProtected"] != null && bool.TryParse(config["supportProtected"], out supportProtected))
-                SupportProtectedContent = supportProtected;
-            else
-                SupportProtectedContent = false;
+            //create our internal searcher with a KeywordAnalyzer, this is useful for inheritors to be able to search their own indexes inside of their indexer
+            InternalSearcher = new LuceneExamineSearcher(this.LuceneIndexFolder);
+            var searcherConfig = new NameValueCollection();
+            searcherConfig.Add("indexSet", this.IndexSetName);
+            searcherConfig.Add("analyzer", new KeywordAnalyzer().GetType().AssemblyQualifiedName);
+            InternalSearcher.Initialize(Guid.NewGuid().ToString("N"), searcherConfig);
 
             RunAsync = true;
             if (config["runAsync"] != null)
@@ -183,14 +158,7 @@ namespace LuceneExamine
             {
                 IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
             }
-
-            //create our internal searcher with a KeywordAnalyzer 
-            m_InternalSearcher = new UmbracoExamineSearcher(this.LuceneIndexFolder);
-            var searcherConfig = new NameValueCollection();
-            searcherConfig.Add("indexSet", this.IndexSetName);
-            searcherConfig.Add("analyzer", new KeywordAnalyzer().GetType().AssemblyQualifiedName);
-            m_InternalSearcher.Initialize(Guid.NewGuid().ToString("N"), searcherConfig);
-
+                       
             ReInitialize();
 
             CommitCount = 0;
@@ -201,6 +169,11 @@ namespace LuceneExamine
         #endregion
 
         #region Constants & Fields
+
+        /// <summary>
+        /// The prefix characters denoting a special field stored in the lucene index for use internally
+        /// </summary>
+        public const string SpecialFieldPrefix = "__";
 
         /// <summary>
         /// The prefix added to a field when it is included in the index for sorting
@@ -221,11 +194,6 @@ namespace LuceneExamine
         /// Used to store a non-tokenized type for the document
         /// </summary>
         public const string IndexNodeIdFieldName = "__NodeId";
-
-        /// <summary>
-        /// Used to store the path of a content object
-        /// </summary>
-        public const string IndexPathFieldName = "__Path";
 
         /// <summary>
         /// Used to perform thread locking
@@ -249,16 +217,11 @@ namespace LuceneExamine
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
         /// </summary>
-        private UmbracoExamineSearcher m_InternalSearcher;
+        protected BaseSearchProvider InternalSearcher;
 
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// The data service used for retreiving and submitting data to the cms
-        /// </summary>
-        public IDataService DataService { get; protected internal set; }
 
         /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
@@ -300,34 +263,39 @@ namespace LuceneExamine
         /// <summary>
         /// The index set name which references an Examine <see cref="IndexSet"/>
         /// </summary>
-        public string IndexSetName { get; protected internal set; }
-
-        /// <summary>
-        /// By default this is false, if set to true then the indexer will include indexing content that is flagged as publicly protected.
-        /// This property is ignored if SupportUnpublishedContent is set to true.
-        /// </summary>
-        public bool SupportProtectedContent { get; protected internal set; }
-
+        public string IndexSetName { get; protected internal set; }       
 
         #endregion
 
         #region Events
+
         /// <summary>
         /// Occurs when [index optimizing].
         /// </summary>
         public event EventHandler IndexOptimizing;
+
         /// <summary>
         /// Occurs when [document writing].
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
+
+        /// <summary>
+        /// An event that is triggered when this machine has been elected as the IndexerExecutive
+        /// </summary>
+        public event EventHandler<IndexerExecutiveAssignedEventArgs> IndexerExecutiveAssigned;
+        
         #endregion
 
         #region Event handlers
 
+        protected virtual void OnIndexerExecutiveAssigned(IndexerExecutiveAssignedEventArgs e)
+        {
+            if (IndexerExecutiveAssigned != null)
+                IndexerExecutiveAssigned(this, e);
+        }
+
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
-
-            DataService.LogService.AddErrorLog(e.NodeId, string.Format("{0},{1}", e.Message, e.InnerException != null ? e.InnerException.Message : ""));
             base.OnIndexingError(e);
 
             if (!RunAsync)
@@ -339,29 +307,24 @@ namespace LuceneExamine
 
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
         {
-            //DataService.LogService.AddInfoLog(docArgs.NodeId, string.Format("DocumentWriting event for node ({0})", LuceneIndexFolder.FullName));
             if (DocumentWriting != null)
                 DocumentWriting(this, docArgs);
-        }
-
-        protected override void OnNodeIndexed(IndexedNodeEventArgs e)
-        {
-            //DataService.LogService.AddInfoLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName));
-            base.OnNodeIndexed(e);
-        }
-
-        protected override void OnIndexDeleted(DeleteIndexEventArgs e)
-        {
-            //DataService.LogService.AddInfoLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value));
-            base.OnIndexDeleted(e);
-        }
+        }               
 
         protected virtual void OnIndexOptimizing(EventArgs e)
-        {
-            DataService.LogService.AddInfoLog(-1, "Index is being optimized");
+        {            
             if (IndexOptimizing != null)
                 IndexOptimizing(this, e);
         }
+
+        /// <summary>
+        /// This is here for inheritors to deal with if there's a duplicate entry in the fields dictionary when trying to index.
+        /// The system by default just ignores duplicates but this will give inheritors a chance to do something about it (i.e. logging, alerting...)
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="indexSetName"></param>
+        /// <param name="fieldName"></param>
+        protected virtual void OnDuplicateFieldWarning(int nodeId, string indexSetName, string fieldName) { }
 
         #endregion
 
@@ -423,8 +386,10 @@ namespace LuceneExamine
                 CloseWriter(ref writer);
             }
 
-            IndexAll(IndexTypes.Content);
-            IndexAll(IndexTypes.Media);
+            //call abstract method
+            PerformIndexRebuild();
+
+            
         }
 
         /// <summary>
@@ -464,59 +429,48 @@ namespace LuceneExamine
                 SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexTypeFieldName, type.ToString()));
             }
 
-            string xPath = "//*[(number(@id) > 0){0}]"; //we'll add more filters to this below if needed
-
-            StringBuilder sb = new StringBuilder();
-
-            //create the xpath statement to match node type aliases if specified
-            if (IndexerData.IncludeNodeTypes.Count() > 0)
-            {
-                sb.Append("(");
-                foreach (string field in IndexerData.IncludeNodeTypes)
-                {
-                    //this can be used across both schemas
-                    string nodeTypeAlias = "(@nodeTypeAlias='{0}' or (count(@nodeTypeAlias)=0 and name()='{0}'))";
-
-                    sb.Append(string.Format(nodeTypeAlias, field));
-                    sb.Append(" or ");
-                }
-                sb.Remove(sb.Length - 4, 4); //remove last " or "
-                sb.Append(")");
-            }
-
-            //create the xpath statement to match all children of the current node.
-            if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
-            {
-                if (sb.Length > 0)
-                    sb.Append(" and ");
-                sb.Append("(");
-                sb.Append("contains(@path, '," + IndexerData.ParentNodeId.Value.ToString() + ",')"); //if the path contains comma - id - comma then the nodes must be a child
-                sb.Append(")");
-            }
-
-            //create the full xpath statement to match the appropriate nodes. If there is a filter
-            //then apply it, otherwise just select all nodes.
-            var filter = sb.ToString();
-            xPath = string.Format(xPath, filter.Length > 0 ? " and " + filter : "");
-
-            //raise the event and set the xpath statement to the value returned
-            var args = new IndexingNodesEventArgs(IndexerData, xPath, type);
-            OnNodesIndexing(args);
-            if (args.Cancel)
-            {
-                return;
-            }
-
-            xPath = args.XPath;
-
-            AddNodesToIndex(xPath, type);
+            //now do the indexing...
+            PerformIndexAll(type);
         }
 
         #endregion
 
-        #region Protected
+        #region Protected     
 
+        /// <summary>
+        /// Called to perform the operation to do the actual indexing of an index type after the lucene index has been re-initialized.
+        /// </summary>
+        /// <param name="type"></param>
+        protected abstract void PerformIndexAll(string type);
 
+        /// <summary>
+        /// Returns IIndexCriteria object from the IndexSet
+        /// </summary>
+        /// <param name="indexSet"></param>
+        protected abstract IIndexCriteria GetIndexerData(IndexSet indexSet);
+        
+        /// <summary>
+        /// Called to perform the actual rebuild of the indexes once the lucene index has been re-initialized.
+        /// </summary>
+        protected abstract void PerformIndexRebuild();
+
+        /// <summary>
+        /// Checks if the index is ready to open/write to.
+        /// </summary>
+        /// <returns></returns>
+        protected bool IndexReady()
+        {
+            return (!IndexWriter.IsLocked(new SimpleFSDirectory(LuceneIndexFolder)));
+        }
+
+        /// <summary>
+        /// Check if there is an index in the index folder
+        /// </summary>
+        /// <returns></returns>
+        protected bool IndexExists()
+        {
+            return IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder));
+        }
 
         /// <summary>
         /// Adds single node to index. If the node already exists, a duplicate will probably be created,
@@ -524,15 +478,8 @@ namespace LuceneExamine
         /// </summary>
         /// <param name="node">The node to index.</param>
         /// <param name="type">The type to store the node as.</param>
-        protected void AddSingleNodeToIndex(XElement node, string type)
+        protected virtual void AddSingleNodeToIndex(XElement node, string type)
         {
-            int nodeId = -1;
-            int.TryParse((string)node.Attribute("id"), out nodeId);
-            if (nodeId <= 0)
-                return;
-
-            var path = node.Attribute("path").Value;
-
             //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
             //particular node
             if (!IndexExists())
@@ -541,6 +488,11 @@ namespace LuceneExamine
                 return;
             }
 
+            int nodeId = -1;
+            int.TryParse((string)node.Attribute("id"), out nodeId);
+            if (nodeId <= 0)
+                return;
+
             if (!ValidateDocument(node))
             {
                 OnIgnoringNode(new IndexingNodeDataEventArgs(node, nodeId, null, type));
@@ -548,7 +500,7 @@ namespace LuceneExamine
             }
 
             //save the index item to a queue file
-            SaveAddIndexQueueItem(GetDataToIndex(node, type), nodeId, type, path);
+            SaveAddIndexQueueItem(GetDataToIndex(node, type), nodeId, type);
 
             //run the indexer on all queued files
             SafelyProcessQueueItems();
@@ -715,6 +667,8 @@ namespace LuceneExamine
 			}
 		}
 
+    
+
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
@@ -726,7 +680,7 @@ namespace LuceneExamine
         /// <remarks>
         /// This will normalize (lowercase) all text before it goes in to the index.
         /// </remarks>
-        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, string type, string path)
+        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, string type)
         {
             var args = new IndexingNodeEventArgs(nodeId, fields, type);
             OnNodeIndexing(args);
@@ -734,10 +688,13 @@ namespace LuceneExamine
                 return;
 
             Document d = new Document();
-            var indexSetFields = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName].CombinedUmbracoFields(this.DataService);
+
+            //get all index set fields that are defined
+            var indexSet = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName];
+            var indexSetFields = indexSet.IndexUserFields.ToList().Concat(indexSet.IndexAttributeFields.ToList());
 
             //add all of our fields to the document index individually, don't include the special fields if they exists            
-			var validFields = fields.Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName && x.Key != IndexPathFieldName).ToList();
+			var validFields = fields.Where(x => !x.Key.StartsWith(SpecialFieldPrefix)).ToList();
 
             foreach (var x in validFields)
             {
@@ -751,13 +708,16 @@ namespace LuceneExamine
                         lucenePolicy,
                         lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES));
 
+
+                //checks if there's duplicates fields, if not check if the field needs to be sortable...
+
                 var indexedFields = indexSetFields.Where(o => o.Name == x.Key);
                 if (indexedFields.Count() > 0)
                 {
                     if (indexedFields.Count() > 1)
                     {
-                        //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field
-                        this.DataService.LogService.AddInfoLog(nodeId, "Field \"" + x.Key + "\" is listed multiple times in the index set \"" + this.IndexSetName + "\". Please ensure all names are unique");
+                        //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field                        
+                        OnDuplicateFieldWarning(nodeId, x.Key, IndexSetName);
                     }
                     else
                     {
@@ -774,12 +734,7 @@ namespace LuceneExamine
                 }
             }
 
-            //we want to store the nodeId separately as it's the index
-            d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
-            //add the index type first
-            d.Add(new Field(IndexTypeFieldName, type.ToString().ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
-            //add the path 
-            d.Add(new Field(IndexPathFieldName, path.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+            AddSpecialFieldsToDocument(d, fields);
 
             var docArgs = new DocumentWritingEventArgs(nodeId, d, fields);
             OnDocumentWriting(docArgs);
@@ -793,6 +748,29 @@ namespace LuceneExamine
             writer.Commit(); //commit changes!
 
             OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
+        }
+
+        
+
+        /// <summary>
+        /// Returns a dictionary of special key/value pairs to store in the lucene index which will be stored by:
+        /// - Field.Store.YES
+        /// - Field.Index.NOT_ANALYZED_NO_NORMS
+        /// - Field.TermVector.NO
+        /// </summary>
+        /// <param name="allValuesForIndexing">
+        /// The dictionary object containing all name/value pairs that are to be put into the index
+        /// </param>
+        /// <returns></returns>
+        protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
+        {
+            return new Dictionary<string, string>() 
+            {
+                //we want to store the nodeId separately as it's the index
+                {IndexNodeIdFieldName, allValuesForIndexing[IndexNodeIdFieldName]},
+                //add the index type first
+                {IndexTypeFieldName, allValuesForIndexing[IndexTypeFieldName].ToLower()}
+            };
         }
 
 
@@ -903,7 +881,7 @@ namespace LuceneExamine
                                 {
                                     if (GetExclusiveIndexWriter(ref writer, ref reader))
                                     {
-                                        ProcessAddQueueItem(x, writer);
+                                        indexedNodes.Add(ProcessAddQueueItem(x, writer));
                                     }
                                     else
                                     {
@@ -950,31 +928,7 @@ namespace LuceneExamine
 
         }
 
-        /// <summary>
-        /// Returns an XDocument for the entire tree stored for the IndexType specified.
-        /// </summary>
-        /// <param name="xPath">The xpath to the node.</param>
-        /// <param name="type">The type of data to request from the data service.</param>
-        /// <returns>Either the Content or Media xml. If the type is not of those specified null is returned</returns>
-        protected virtual XDocument GetXDocument(string xPath, string type)
-        {
-            if (type == IndexTypes.Content)
-            {
-                if (this.SupportUnpublishedContent)
-                {
-                    return DataService.ContentService.GetLatestContentByXPath(xPath);
-                }
-                else
-                {
-                    return DataService.ContentService.GetPublishedContentByXPath(xPath);
-                }
-            }
-            else if (type == IndexTypes.Media)
-            {
-                return DataService.MediaService.GetLatestMediaByXpath(xPath);
-            }
-            return null;
-        }
+       
 
         /// <summary>
         /// Saves a file indicating that the executive indexer should remove the from the index those that match
@@ -1010,8 +964,7 @@ namespace LuceneExamine
         /// <param name="fields">The fields.</param>
         /// <param name="nodeId">The node id.</param>
         /// <param name="type">The type.</param>
-        /// <param name="path">The path of the content node</param>
-        protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type, string path)
+        protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type)
         {
             try
             {
@@ -1026,7 +979,6 @@ namespace LuceneExamine
             //ensure the special fields are added to the dictionary to be saved to file
             if (!fields.ContainsKey(IndexNodeIdFieldName)) fields.Add(IndexNodeIdFieldName, nodeId.ToString());
             if (!fields.ContainsKey(IndexTypeFieldName)) fields.Add(IndexTypeFieldName, type.ToString().ToLower());
-            if (!fields.ContainsKey(IndexPathFieldName)) fields.Add(IndexPathFieldName, path.ToLower());
 
             var fileName = Environment.MachineName + "-" + nodeId.ToString() + "-" + Guid.NewGuid().ToString("N");
             FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
@@ -1036,6 +988,24 @@ namespace LuceneExamine
         #endregion
 
         #region Private
+
+        /// <summary>
+        /// Adds 'special' fields to the Lucene index for use internally.
+        /// By default this will add the __IndexType & __NodeId fields to the Lucene Index both specified by:
+        /// - Field.Store.YES
+        /// - Field.Index.NOT_ANALYZED_NO_NORMS
+        /// - Field.TermVector.NO
+        /// </summary>
+        /// <param name="d"></param>
+        private void AddSpecialFieldsToDocument(Document d, Dictionary<string, string> fields)
+        {
+            var specialFields = GetSpecialFieldsToIndex(fields);
+
+            foreach (var s in specialFields)
+            {
+                d.Add(new Field(s.Key, s.Value, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+            }
+        }
 
         /// <summary>
         /// This makes sure that the folders exist, that the executive indexer is setup and that the index is optimized.
@@ -1063,9 +1033,7 @@ namespace LuceneExamine
                 //log some info if executive indexer
                 if (ExecutiveIndex.IsExecutiveMachine)
                 {
-                    DataService.LogService.AddInfoLog(-1, string.Format("{0} machine is the Executive Indexer with {1} servers in the cluster",
-                        ExecutiveIndex.ExecutiveIndexerMachineName,
-                        ExecutiveIndex.ServerCount));
+                    OnIndexerExecutiveAssigned(new IndexerExecutiveAssignedEventArgs(ExecutiveIndex.ExecutiveIndexerMachineName, ExecutiveIndex.ServerCount));                    
                 }
             }
         }
@@ -1215,11 +1183,9 @@ namespace LuceneExamine
             
             //get the node id
             int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
-            //get the path
-            string path = sd[IndexPathFieldName];
-
+           
             //now, add the index with our dictionary object
-            AddDocument(sd.ToDictionary(), writer, nodeId, sd[IndexTypeFieldName], path);
+            AddDocument(sd.ToDictionary(), writer, nodeId, sd[IndexTypeFieldName]);
 
             //remove the file
             x.Delete();
@@ -1268,35 +1234,7 @@ namespace LuceneExamine
             }
         }
 
-        /// <summary>
-        /// Adds all nodes with the given xPath root.
-        /// </summary>
-        /// <param name="xPath">The x path.</param>
-        /// <param name="type">The type.</param>
-        private void AddNodesToIndex(string xPath, string type)
-        {
-            // Get all the nodes of nodeTypeAlias == nodeTypeAlias
-            XDocument xDoc = GetXDocument(xPath, type);
-            if (xDoc != null)
-            {
-                XElement rootNode = xDoc.Root;
-
-                IEnumerable<XElement> children = rootNode.Elements();
-
-                foreach (XElement node in children)
-                {
-                    if (ValidateDocument(node))
-                    {
-                        //save the index item to a queue file
-                        SaveAddIndexQueueItem(GetDataToIndex(node, type), int.Parse(node.Attribute("id").Value), type, node.Attribute("path").Value);
-                    }
-
-                }
-            }
-
-            //run the indexer on all queued files
-            SafelyProcessQueueItems();
-        }
+        
 
         /// <summary>
         /// Creates the folder if it does not exist.
@@ -1318,23 +1256,7 @@ namespace LuceneExamine
 
         }
 
-        /// <summary>
-        /// Checks if the index is ready to open/write to.
-        /// </summary>
-        /// <returns></returns>
-        private bool IndexReady()
-        {
-            return (!IndexWriter.IsLocked(new SimpleFSDirectory(LuceneIndexFolder)));
-        }
-
-        /// <summary>
-        /// Check if there is an index in the index folder
-        /// </summary>
-        /// <returns></returns>
-        private bool IndexExists()
-        {
-            return IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder));
-        }
+        
 
         #endregion
 

@@ -6,7 +6,7 @@ using System.ComponentModel;
 using Lucene.Net.Documents;
 using Examine;
 
-namespace LuceneExamine
+namespace Examine.LuceneEngine
 {
     /// <summary>
     /// Event arguments for a Document Writing event

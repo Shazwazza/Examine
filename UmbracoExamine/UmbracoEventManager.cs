@@ -10,7 +10,7 @@ using Examine;
 using Examine.Providers;
 using umbraco.cms.businesslogic.member;
 
-namespace LuceneExamine
+namespace UmbracoExamine
 {
     /// <summary>
     /// An <see cref="umbraco.BusinessLogic.ApplicationBase"/> instance for wiring up Examine to the Umbraco events system

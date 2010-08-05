@@ -108,9 +108,15 @@
     <Compile Include="..\Solution Items\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="Config\IndexSetExtensions.cs" />
+    <Compile Include="DataServices\IContentService.cs" />
+    <Compile Include="DataServices\IDataService.cs" />
+    <Compile Include="DataServices\ILogService.cs" />
+    <Compile Include="DataServices\IMediaService.cs" />
     <Compile Include="DataServices\UmbracoDataService.cs" />
     <Compile Include="DataServices\UmbracoContentService.cs" />
     <Compile Include="DataServices\UmbracoMediaService.cs" />
+    <Compile Include="IndexTypes.cs" />
     <Compile Include="MemberLuceneExamineIndexer.cs" />
     <Compile Include="LinqXmlExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -141,9 +147,9 @@
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LuceneExamine\LuceneExamine.csproj">
+    <ProjectReference Include="..\LuceneExamine\Examine.LuceneEngine.csproj">
       <Project>{28AC6695-9501-46EC-92E9-22ADBAD35F2B}</Project>
-      <Name>LuceneExamine</Name>
+      <Name>Examine.LuceneEngine</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

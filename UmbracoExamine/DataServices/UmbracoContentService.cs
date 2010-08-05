@@ -128,7 +128,7 @@ namespace UmbracoExamine.DataServices
         /// <returns></returns>
         public IEnumerable<string> GetAllSystemPropertyNames()
         {
-            return UmbracoFieldPolicies.GetPolicies().Select(x => x.Key);
+            return UmbracoExamineIndexer.IndexFieldPolicies.Select(x => x.Key);
         }
 
     }

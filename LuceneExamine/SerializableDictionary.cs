@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Runtime.Serialization;
 
-namespace LuceneExamine
+namespace Examine.LuceneEngine
 {
     [XmlRoot("dictionary")]
     [Serializable]

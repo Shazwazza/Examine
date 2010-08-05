@@ -9,6 +9,7 @@ using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Store;
 using System.Diagnostics;
+using Examine.LuceneEngine;
 
 namespace Examine.Test
 {
@@ -41,14 +42,21 @@ namespace Examine.Test
         [TestMethod]
         public void Index_Rebuild_Index()
         {
+            //get searcher and reader to get stats
+            var s = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+            var r = s.GetSearcher().GetIndexReader();
+
+            Trace.Write("Num docs = " + r.NumDocs().ToString());
+
+
             var indexer = (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"]; 
             indexer.RebuildIndex();
             
             //do validation...
 
             //get searcher and reader to get stats
-            var s = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
-            var r = s.GetSearcher().GetIndexReader();
+            s = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+            r = s.GetSearcher().GetIndexReader();
 
             //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -56,8 +64,8 @@ namespace Examine.Test
             Assert.AreEqual(19, fields.Count());
             //ensure there's 3 sorting fields
             Assert.AreEqual(3, fields.Where(x => x.StartsWith(UmbracoExamineIndexer.SortedFieldNamePrefix)).Count());
-            //there should be 10 documents
-            Assert.AreEqual(10, r.NumDocs());
+            //there should be 11 documents (10 content, 1 media)
+            Assert.AreEqual(11, r.NumDocs());
         }
 
         /// <summary>

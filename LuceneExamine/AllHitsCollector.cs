@@ -3,7 +3,7 @@ using System.Linq;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 
-namespace LuceneExamine
+namespace Examine.LuceneEngine
 {
     class AllHitsCollector : Collector
     {
