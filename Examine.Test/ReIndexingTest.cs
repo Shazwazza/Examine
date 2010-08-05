@@ -60,18 +60,18 @@ namespace Examine.Test
         /// Helper method to return the index searcher for this index
         /// </summary>
         /// <returns></returns>
-        private LuceneExamineSearcher GetSearcherProvider()
+        private UmbracoExamineSearcher GetSearcherProvider()
         {
-            return (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSIndexer"];
+            return (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSIndexer"];
         }
 
         /// <summary>
         /// Helper method to return the indexer that we are testing
         /// </summary>
         /// <returns></returns>
-        private LuceneExamineIndexer GetIndexer()
+        private UmbracoExamineIndexer GetIndexer()
         {
-            return (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
+            return (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
         }
 
         #endregion

@@ -5,7 +5,7 @@ using Examine;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 
-namespace UmbracoExamine
+namespace LuceneExamine
 {
     /// <summary>
     /// An implementation of the search results returned from Lucene.Net
@@ -62,7 +62,7 @@ namespace UmbracoExamine
             string id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
             {
-                id = doc.Get(LuceneExamineIndexer.IndexNodeIdFieldName);
+				id = doc.Get(BaseLuceneExamineIndexer.IndexNodeIdFieldName);
             }
             var sr = new SearchResult()
             {
@@ -76,9 +76,9 @@ namespace UmbracoExamine
             //ignore our internal fields though
             foreach (Field field in fields
                 .Cast<Field>()
-                .Where(x => x.Name() != LuceneExamineIndexer.IndexNodeIdFieldName 
-                    && x.Name() != LuceneExamineIndexer.IndexTypeFieldName
-                    && x.Name() != LuceneExamineIndexer.IndexPathFieldName))
+				.Where(x => x.Name() != BaseLuceneExamineIndexer.IndexNodeIdFieldName
+					&& x.Name() != BaseLuceneExamineIndexer.IndexTypeFieldName
+					&& x.Name() != BaseLuceneExamineIndexer.IndexPathFieldName))
             {
                 sr.Fields.Add(field.Name(), doc.Get(field.Name()));
             }

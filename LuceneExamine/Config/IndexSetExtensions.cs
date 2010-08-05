@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Examine;
-using UmbracoExamine.DataServices;
+using LuceneExamine.DataServices;
 
-namespace UmbracoExamine.Config
+namespace LuceneExamine.Config
 {
     /// <summary>
     /// Extension methods for IndexSet

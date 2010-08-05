@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -51,6 +52,16 @@ namespace Examine.Providers
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
         public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="config"></param>
+		public virtual void Initialize(string name, NameValueCollection config)
+		{
+
+		}
 
         #endregion
     }

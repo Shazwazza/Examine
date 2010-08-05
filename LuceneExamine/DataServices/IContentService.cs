@@ -3,7 +3,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Collections.Generic;
 
-namespace UmbracoExamine.DataServices
+namespace LuceneExamine.DataServices
 {
     public interface IContentService 
     {

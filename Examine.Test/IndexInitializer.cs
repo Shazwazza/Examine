@@ -102,7 +102,7 @@ namespace Examine.Test
         {
             if (di != null)
             {
-                var searcher = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection[searcherName];
+                var searcher = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection[searcherName];
 
                 try
                 {

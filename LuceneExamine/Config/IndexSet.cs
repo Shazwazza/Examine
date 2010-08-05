@@ -1,9 +1,7 @@
 ﻿using System.Configuration;
 using System.IO;
-using System.Web;
-using System.Web.Hosting;
 
-namespace UmbracoExamine.Config
+namespace LuceneExamine.Config
 {
     public sealed class IndexSet : ConfigurationElement
     {

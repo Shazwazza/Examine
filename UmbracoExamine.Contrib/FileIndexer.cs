@@ -13,7 +13,7 @@ namespace UmbracoExamine.Contrib
     /// <summary>
     /// An Umbraco Lucene.Net indexer which will index the text content of a file
     /// </summary>
-    public sealed class FileIndexer : LuceneExamineIndexer
+    public sealed class FileIndexer : UmbracoExamineIndexer
     {
         /// <summary>
         /// Gets or sets the supported extensions for files

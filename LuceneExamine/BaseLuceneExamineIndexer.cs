@@ -13,40 +13,20 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using umbraco.cms.businesslogic;
-using UmbracoExamine.Config;
-using UmbracoExamine.DataServices;
+using LuceneExamine.Config;
+using LuceneExamine.DataServices;
 
-namespace UmbracoExamine
+
+namespace LuceneExamine
 {
-
-    /// <summary>
-    /// This is a Lucene.Net Examine indexer for Umbraco
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Some links picked up along the way:
-    /// </para>
-    /// <para>
-    /// A matrix of concurrent lucene operations: 
-    /// http://www.jguru.com/faq/view.jsp?EID=913302.
-    /// </para>
-    /// <para>
-    /// Based on the info here, it is best to only call optimize when there is no activity,
-    /// we only optimized after the queue has been processed and at start up:
-    /// http://www.gossamer-threads.com/lists/lucene/java-dev/47895
-    /// http://lucene.apache.org/java/2_2_0/api/org/apache/lucene/index/IndexWriter.html
-    /// </para>
-    /// </remarks>
-    public class LuceneExamineIndexer : BaseIndexProvider, IDisposable
-    {
-
-        #region Constructors
+	public abstract class BaseLuceneExamineIndexer : BaseIndexProvider
+	{
+		#region Constructors
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public LuceneExamineIndexer()
+        public BaseLuceneExamineIndexer()
             : base()
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
@@ -57,7 +37,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
-        public LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
+		public BaseLuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
             : base(indexerData)
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
@@ -205,7 +185,7 @@ namespace UmbracoExamine
             }
 
             //create our internal searcher with a KeywordAnalyzer 
-            m_InternalSearcher = new LuceneExamineSearcher(this.LuceneIndexFolder);
+            m_InternalSearcher = new UmbracoExamineSearcher(this.LuceneIndexFolder);
             var searcherConfig = new NameValueCollection();
             searcherConfig.Add("indexSet", this.IndexSetName);
             searcherConfig.Add("analyzer", new KeywordAnalyzer().GetType().AssemblyQualifiedName);
@@ -269,7 +249,7 @@ namespace UmbracoExamine
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
         /// </summary>
-        private LuceneExamineSearcher m_InternalSearcher;
+        private UmbracoExamineSearcher m_InternalSearcher;
 
         #endregion
 
@@ -457,20 +437,6 @@ namespace UmbracoExamine
         /// <param name="nodeId">ID of the node to delete</param>
         public override void DeleteFromIndex(string nodeId)
         {
-            //find all descendants based on path
-            var descendantPath = string.Format(@"\-1\,*{0}\,*", nodeId);
-            var rawQuery = string.Format("{0}:{1}", IndexPathFieldName, descendantPath);
-            var c = m_InternalSearcher.CreateSearchCriteria();
-            var filtered = c.RawQuery(rawQuery);
-            var results = m_InternalSearcher.Search(filtered);
-
-            //need to create a delete queue item for each one found
-            foreach (var r in results)
-            {
-                SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
-            }
-
-
             //create the queue item to be deleted
             SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
 
@@ -695,16 +661,6 @@ namespace UmbracoExamine
         /// <returns></returns>
         protected virtual bool ValidateDocument(XElement node)
         {
-            //check if this document is of a correct type of node type alias
-            if (IndexerData.IncludeNodeTypes.Count() > 0)
-                if (!IndexerData.IncludeNodeTypes.Contains(node.UmbNodeTypeAlias()))
-                    return false;
-
-            //if this node type is part of our exclusion list, do not validate
-            if (IndexerData.ExcludeNodeTypes.Count() > 0)
-                if (IndexerData.ExcludeNodeTypes.Contains(node.UmbNodeTypeAlias()))
-                    return false;
-
             //check if this document is a descendent of the parent
             if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
                 if (!((string)node.Attribute("path")).Contains("," + IndexerData.ParentNodeId.Value.ToString() + ","))
@@ -718,61 +674,46 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="node"></param>
         /// <returns>A dictionary representing the data which will be indexed</returns>
-        protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
-        {
-            Dictionary<string, string> values = new Dictionary<string, string>();
+		protected abstract Dictionary<string, string> GetDataToIndex(XElement node, string type);
 
-            int nodeId = int.Parse(node.Attribute("id").Value);
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="fieldName"></param>
+		/// <returns></returns>
+		protected virtual FieldIndexTypes GetPolicy(string fieldName)
+		{
+			return FieldIndexTypes.ANALYZED;
+		}
 
-            // Test for access if we're only indexing published content
-            // return nothing if we're not supporting protected content and it is protected, and we're not supporting unpublished content
-            if (!SupportUnpublishedContent && (!SupportProtectedContent && DataService.ContentService.IsProtected(nodeId, node.Attribute("path").Value)))
-                return values;
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="fieldIndex"></param>
+		/// <returns></returns>
+		private Field.Index TranslateFieldIndexTypeToLuceneType(FieldIndexTypes fieldIndex)
+		{
+			switch (fieldIndex)
+			{
+				case FieldIndexTypes.ANALYZED:
+					return Field.Index.ANALYZED;
 
-            // Get all user data that we want to index and store into a dictionary 
-            foreach (string fieldName in IndexerData.UserFields)
-            {
-                // Get the value of the data                
-                string value = node.UmbSelectDataValue(fieldName);
+				case FieldIndexTypes.ANALYZED_NO_NORMS:
+					return Field.Index.ANALYZED_NO_NORMS;
 
-                //raise the event and assign the value to the returned data from the event
-                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, fieldName, value, false, nodeId);
-                OnGatheringFieldData(indexingFieldDataArgs);
-                value = indexingFieldDataArgs.FieldValue;
+				case FieldIndexTypes.NO:
+					return Field.Index.NO;
 
-                //don't add if the value is empty/null
-                if (!string.IsNullOrEmpty(value))
-                {
-                    if (!string.IsNullOrEmpty(value))
-                        values.Add(fieldName, DataService.ContentService.StripHtml(value));
-                }
+				case FieldIndexTypes.NOT_ANALYZED:
+					return Field.Index.NOT_ANALYZED;
 
+				case FieldIndexTypes.NOT_ANALYZED_NO_NORMS:
+					return Field.Index.NOT_ANALYZED_NO_NORMS;
 
-            }
-
-            // Add umbraco node properties 
-            foreach (string fieldName in IndexerData.StandardFields)
-            {
-                string val = node.UmbSelectPropertyValue(fieldName);
-                var args = new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId);
-                OnGatheringFieldData(args);
-                val = args.FieldValue;
-
-                //don't add if the value is empty/null                
-                if (!string.IsNullOrEmpty(val))
-                {
-                    values.Add(fieldName, val);
-                }
-
-            }
-
-            //raise the event and assign the value to the returned data from the event
-            var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
-            OnGatheringNodeData(indexingNodeDataArgs);
-            values = indexingNodeDataArgs.Fields;
-
-            return values;
-        }
+				default:
+					throw new Exception("Unknown field index type");
+			}
+		}
 
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
@@ -794,42 +735,44 @@ namespace UmbracoExamine
 
             Document d = new Document();
             var indexSetFields = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName].CombinedUmbracoFields(this.DataService);
-            //add all of our fields to the document index individually, don't include the special fields if they exists            
-            fields
-                .Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName && x.Key != IndexPathFieldName)
-                .ToList()
-                .ForEach(x =>
-                {
-                    var policy = UmbracoFieldPolicies.GetPolicy(x.Key);
-                    d.Add(
-                        new Field(x.Key,
-                            GetFieldValue(x.Value),
-                            Field.Store.YES,
-                            policy,
-                            policy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES));
 
-                    var indexedFields = indexSetFields.Where(o => o.Name == x.Key);
-                    if (indexedFields.Count() > 0)
+            //add all of our fields to the document index individually, don't include the special fields if they exists            
+			var validFields = fields.Where(x => x.Key != IndexNodeIdFieldName && x.Key != IndexTypeFieldName && x.Key != IndexPathFieldName).ToList();
+
+            foreach (var x in validFields)
+            {
+				var ourPolicyType = GetPolicy(x.Key);
+				var lucenePolicy = TranslateFieldIndexTypeToLuceneType(ourPolicyType);
+
+                d.Add(
+                    new Field(x.Key,
+                        GetFieldValue(x.Value),
+                        Field.Store.YES,
+                        lucenePolicy,
+                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES));
+
+                var indexedFields = indexSetFields.Where(o => o.Name == x.Key);
+                if (indexedFields.Count() > 0)
+                {
+                    if (indexedFields.Count() > 1)
                     {
-                        if (indexedFields.Count() > 1)
+                        //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field
+                        this.DataService.LogService.AddInfoLog(nodeId, "Field \"" + x.Key + "\" is listed multiple times in the index set \"" + this.IndexSetName + "\". Please ensure all names are unique");
+                    }
+                    else
+                    {
+                        if (indexedFields.First().EnableSorting)
                         {
-                            //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field
-                            this.DataService.LogService.AddInfoLog(nodeId, "Field \"" + x.Key + "\" is listed multiple times in the index set \"" + this.IndexSetName + "\". Please ensure all names are unique");
-                        }
-                        else
-                        {
-                            if (indexedFields.First().EnableSorting)
-                            {
-                                d.Add(new Field(SortedFieldNamePrefix + x.Key,
-                                        GetFieldValue(x.Value),
-                                        Field.Store.YES,
-                                        Field.Index.NOT_ANALYZED,
-                                        Field.TermVector.NO
-                                       ));
-                            }
+                            d.Add(new Field(SortedFieldNamePrefix + x.Key,
+                                    GetFieldValue(x.Value),
+                                    Field.Store.YES,
+                                    Field.Index.NOT_ANALYZED,
+                                    Field.TermVector.NO
+                                    ));
                         }
                     }
-                });
+                }
+            }
 
             //we want to store the nodeId separately as it's the index
             d.Add(new Field(IndexNodeIdFieldName, nodeId.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
@@ -1405,7 +1348,7 @@ namespace UmbracoExamine
         protected void CheckDisposed()
         {
             if (_disposed)
-                throw new ObjectDisposedException("UmbracoExamine.LuceneExamineIndexer");
+				throw new ObjectDisposedException("LuceneExamine.BaseLuceneExamineIndexer");
         }
 
         /// <summary>
@@ -1431,5 +1374,5 @@ namespace UmbracoExamine
         }
 
         #endregion
-    }
+	}
 }

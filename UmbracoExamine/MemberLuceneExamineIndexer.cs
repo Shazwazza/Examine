@@ -6,7 +6,7 @@ using umbraco.cms.businesslogic.member;
 
 namespace UmbracoExamine
 {
-    public class MemberLuceneExamineIndexer : LuceneExamineIndexer
+    public class MemberLuceneExamineIndexer : UmbracoExamineIndexer
     {
         protected override XDocument GetXDocument(string xPath, string type)
         {

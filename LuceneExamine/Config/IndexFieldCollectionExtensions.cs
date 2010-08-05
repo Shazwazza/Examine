@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Configuration;
 
-namespace UmbracoExamine.Config
+namespace LuceneExamine.Config
 {
     public static class IndexFieldCollectionExtensions
     {

@@ -1,5 +1,5 @@
 ﻿using System;
-namespace UmbracoExamine.DataServices
+namespace LuceneExamine.DataServices
 {
     public interface ILogService
     {

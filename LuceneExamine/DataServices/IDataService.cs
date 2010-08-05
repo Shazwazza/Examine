@@ -1,5 +1,7 @@
 ﻿using System.Web;
-namespace UmbracoExamine.DataServices
+
+
+namespace LuceneExamine.DataServices
 {
     public interface IDataService
     {

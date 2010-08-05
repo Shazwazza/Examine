@@ -16,18 +16,18 @@ namespace Examine.Test
         /// Helper method to return the index searcher for this index
         /// </summary>
         /// <returns></returns>
-        private LuceneExamineSearcher GetSearcherProvider()
+        private UmbracoExamineSearcher GetSearcherProvider()
         {
-            return (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["FileSearcher"];
+            return (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["FileSearcher"];
         }
 
         /// <summary>
         /// Helper method to return the indexer that we are testing
         /// </summary>
         /// <returns></returns>
-        private LuceneExamineIndexer GetIndexer()
+        private UmbracoExamineIndexer GetIndexer()
         {
-            return (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["FileIndexer"];
+            return (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["FileIndexer"];
         }
         #endregion
 

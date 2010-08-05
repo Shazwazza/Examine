@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Xml.Linq;
-namespace UmbracoExamine.DataServices
+namespace LuceneExamine.DataServices
 {
     public interface IMediaService 
     {

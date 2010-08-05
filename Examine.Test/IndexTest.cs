@@ -41,13 +41,13 @@ namespace Examine.Test
         [TestMethod]
         public void Index_Rebuild_Index()
         {
-            var indexer = (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"]; 
+            var indexer = (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"]; 
             indexer.RebuildIndex();
             
             //do validation...
 
             //get searcher and reader to get stats
-            var s = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+            var s = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             var r = s.GetSearcher().GetIndexReader();
 
             //there's 16 fields in the index, but 3 sorted fields
@@ -55,7 +55,7 @@ namespace Examine.Test
 
             Assert.AreEqual(19, fields.Count());
             //ensure there's 3 sorting fields
-            Assert.AreEqual(3, fields.Where(x => x.StartsWith(LuceneExamineIndexer.SortedFieldNamePrefix)).Count());
+            Assert.AreEqual(3, fields.Where(x => x.StartsWith(UmbracoExamineIndexer.SortedFieldNamePrefix)).Count());
             //there should be 10 documents
             Assert.AreEqual(10, r.NumDocs());
         }
@@ -67,14 +67,14 @@ namespace Examine.Test
         [TestMethod]
         public void Index_Reindex_Content()
         {
-            var searcher = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+            var searcher = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
 
             Trace.WriteLine("Searcher folder is " + searcher.LuceneIndexFolder.FullName);
             var s = searcher.GetSearcher();
 
             //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API, not examine!
             var r = IndexReader.Open(s.GetIndexReader().Directory(), false);            
-            var contentTerm = new Term(LuceneExamineIndexer.IndexTypeFieldName, IndexTypes.Content.ToLower());
+            var contentTerm = new Term(UmbracoExamineIndexer.IndexTypeFieldName, IndexTypes.Content.ToLower());
             var delCount = r.DeleteDocuments(contentTerm);                        
             r.Commit();
             r.Close();
@@ -87,7 +87,7 @@ namespace Examine.Test
             Assert.AreEqual(0, collector.Count);
 
             //call our indexing methods
-            var indexer = (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
+            var indexer = (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
             Trace.WriteLine("Indexer folder is " + indexer.LuceneIndexFolder.FullName);
             indexer.IndexAll(IndexTypes.Content);
            

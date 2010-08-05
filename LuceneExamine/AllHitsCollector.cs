@@ -3,7 +3,7 @@ using System.Linq;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 
-namespace UmbracoExamine
+namespace LuceneExamine
 {
     class AllHitsCollector : Collector
     {
