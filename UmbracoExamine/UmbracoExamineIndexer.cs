@@ -20,7 +20,7 @@ namespace UmbracoExamine
     /// <summary>
     /// 
     /// </summary>
-	public class UmbracoExamineIndexer : Examine.LuceneEngine.LuceneExamineIndexer, IDisposable
+	public class UmbracoExamineIndexer : Examine.LuceneEngine.LuceneExamineIndexer
     {
         #region Constructors
 

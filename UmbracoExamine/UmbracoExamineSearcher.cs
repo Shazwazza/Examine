@@ -14,7 +14,7 @@ namespace UmbracoExamine
     /// <summary>
     /// An Examine searcher which uses Lucene.Net as the 
     /// </summary>
-	public class UmbracoExamineSearcher : LuceneExamineSearcher
+	public class UmbracoExamineSearcher : Examine.LuceneEngine.LuceneExamineSearcher
     {
 
         #region Constructors

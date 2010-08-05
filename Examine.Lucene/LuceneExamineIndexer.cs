@@ -17,7 +17,7 @@ using Examine.LuceneEngine.Config;
 
 namespace Examine.LuceneEngine
 {
-	public abstract class LuceneExamineIndexer : BaseIndexProvider
+    public abstract class LuceneExamineIndexer : BaseIndexProvider, IDisposable
 	{
 		#region Constructors
 
