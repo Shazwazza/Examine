@@ -1,7 +1,9 @@
 ﻿using System.Configuration;
 using System.IO;
+using System.Web;
+using System.Web.Hosting;
 
-namespace LuceneExamine.Config
+namespace Examine.LuceneEngine.Config
 {
     public sealed class IndexSet : ConfigurationElement
     {

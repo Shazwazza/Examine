@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Configuration;
 
-namespace LuceneExamine.Config
+namespace Examine.LuceneEngine.Config
 {
     public sealed class IndexField : ConfigurationElement
     {

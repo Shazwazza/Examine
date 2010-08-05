@@ -14,5 +14,24 @@ namespace Examine
     {
         public int NodeId { get; set; }
         public string Type { get; set; }
+
+        /// <summary>
+        /// Overridden to base equality on NodeId
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            return ((IndexedNode)obj).NodeId == this.NodeId;
+        }
+
+        /// <summary>
+        /// Overridden to base equality on NodeId
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return this.NodeId.GetHashCode();
+        }
     }
 }

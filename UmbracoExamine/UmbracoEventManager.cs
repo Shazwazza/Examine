@@ -9,6 +9,7 @@ using umbraco.cms.businesslogic.web;
 using Examine;
 using Examine.Providers;
 using umbraco.cms.businesslogic.member;
+using Examine.LuceneEngine;
 
 namespace UmbracoExamine
 {

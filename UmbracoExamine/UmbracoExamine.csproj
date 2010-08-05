@@ -117,8 +117,9 @@
     <Compile Include="DataServices\UmbracoContentService.cs" />
     <Compile Include="DataServices\UmbracoMediaService.cs" />
     <Compile Include="IndexTypes.cs" />
+    <Compile Include="LegacyObjects.cs" />
     <Compile Include="MemberLuceneExamineIndexer.cs" />
-    <Compile Include="LinqXmlExtensions.cs" />
+    <Compile Include="ContentExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UmbracoExamineIndexer.cs" />
     <Compile Include="UmbracoExamineSearcher.cs" />

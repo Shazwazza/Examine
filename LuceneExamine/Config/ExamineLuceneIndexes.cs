@@ -6,24 +6,24 @@ using System.Configuration;
 using System.IO;
 using System.Web;
 
-namespace LuceneExamine.Config
+namespace Examine.LuceneEngine.Config
 {
     /// <summary>
     /// Defines XPath statements that map to specific umbraco nodes
     /// </summary>
-    public sealed class ExamineLuceneIndexes : ConfigurationSection
+    public class IndexSets : ConfigurationSection
     {
 
         #region Singleton definition
 
-        private static readonly ExamineLuceneIndexes m_IndexSets;
-        private ExamineLuceneIndexes() { }
-        static ExamineLuceneIndexes()
+        private static readonly IndexSets m_IndexSets;
+        protected IndexSets() { }
+        static IndexSets()
         {
-            m_IndexSets = ConfigurationManager.GetSection(SectionName) as ExamineLuceneIndexes;     
+            m_IndexSets = ConfigurationManager.GetSection(SectionName) as IndexSets;     
   
         }
-        public static ExamineLuceneIndexes Instance
+        public static IndexSets Instance
         {
             get { return m_IndexSets; }
         }

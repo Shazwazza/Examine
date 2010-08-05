@@ -4,7 +4,7 @@ using System.Linq;
 using Examine.SearchCriteria;
 using Lucene.Net.Search;
 
-namespace LuceneExamine.SearchCriteria
+namespace Examine.LuceneEngine.SearchCriteria
 {
     public class LuceneQuery : IQuery
     {

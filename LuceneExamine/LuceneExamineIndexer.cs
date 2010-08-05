@@ -82,7 +82,7 @@ namespace Examine.LuceneEngine
                 {
                     var setNameByConvension = name.Remove(name.LastIndexOf("Indexer")) + "IndexSet";
                     //check if we can assign the index set by naming convention
-                    var set = ExamineLuceneIndexes.Instance.Sets.Cast<IndexSet>()
+                    var set = IndexSets.Instance.Sets.Cast<IndexSet>()
                         .Where(x => x.SetName == setNameByConvension)
                         .SingleOrDefault();
 
@@ -92,12 +92,12 @@ namespace Examine.LuceneEngine
                         IndexSetName = set.SetName;
 
                         //get the index criteria and ensure folder
-                        IndexerData = GetIndexerData(ExamineLuceneIndexes.Instance.Sets[IndexSetName]);
-                        VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+                        IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
+                        VerifyFolder(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
 
                         //now set the index folders
-                        LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-                        IndexQueueItemFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
+                        LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+                        IndexQueueItemFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
 
                         found = true;
                     }
@@ -111,7 +111,7 @@ namespace Examine.LuceneEngine
             {
                 //if an index set is specified, ensure it exists and initialize the indexer based on the set
 
-                if (ExamineLuceneIndexes.Instance.Sets[config["indexSet"]] == null)
+                if (IndexSets.Instance.Sets[config["indexSet"]] == null)
                 {
                     throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
                 }
@@ -120,12 +120,12 @@ namespace Examine.LuceneEngine
                     IndexSetName = config["indexSet"];
 
                     //get the index criteria and ensure folder
-                    IndexerData = GetIndexerData(ExamineLuceneIndexes.Instance.Sets[IndexSetName]);
-                    VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+                    IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
+                    VerifyFolder(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
 
                     //now set the index folders
-                    LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-                    IndexQueueItemFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
+                    LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+                    IndexQueueItemFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
                 }
             }
 
@@ -444,16 +444,24 @@ namespace Examine.LuceneEngine
         protected abstract void PerformIndexAll(string type);
 
         /// <summary>
-        /// Returns IIndexCriteria object from the IndexSet
-        /// </summary>
-        /// <param name="indexSet"></param>
-        protected abstract IIndexCriteria GetIndexerData(IndexSet indexSet);
-        
-        /// <summary>
         /// Called to perform the actual rebuild of the indexes once the lucene index has been re-initialized.
         /// </summary>
         protected abstract void PerformIndexRebuild();
 
+        /// <summary>
+        /// Returns IIndexCriteria object from the IndexSet
+        /// </summary>
+        /// <param name="indexSet"></param>
+        protected virtual IIndexCriteria GetIndexerData(IndexSet indexSet)
+        {
+            return new IndexCriteria(
+                indexSet.IndexAttributeFields.ToList().Select(x => x.Name).ToArray(),
+                indexSet.IndexUserFields.ToList().Select(x => x.Name).ToArray(),
+                indexSet.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
+                indexSet.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
+                indexSet.IndexParentId);
+        }
+        
         /// <summary>
         /// Checks if the index is ready to open/write to.
         /// </summary>
@@ -621,12 +629,74 @@ namespace Examine.LuceneEngine
             return true;
         }
 
+
         /// <summary>
-        /// Collects all of the data that needs to be indexed as defined in the index set.
+        /// Translates the XElement structure into a dictionary object to be indexed.
+        /// This is used when re-indexing an individual node since this is the way the provider model works.
+        /// For this provider, it will use a very similar XML structure as umbraco 4.0.x:
+        /// <![CDATA[
+        /// <root>
+        ///     <node id="1234" nodeTypeAlias="yourIndexType">
+        ///         <data alias="fieldName1">Some data</data>
+        ///         <data alias="fieldName2">Some other data</data>
+        ///     </node>
+        ///     <node id="345" nodeTypeAlias="anotherIndexType">
+        ///         <data alias="fieldName3">More data</data>
+        ///     </node>
+        /// </root>
+        /// ]]>
         /// </summary>
         /// <param name="node"></param>
-        /// <returns>A dictionary representing the data which will be indexed</returns>
-		protected abstract Dictionary<string, string> GetDataToIndex(XElement node, string type);
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
+        {
+            Dictionary<string, string> values = new Dictionary<string, string>();
+
+            int nodeId = int.Parse(node.Attribute("id").Value);          
+
+            // Get all user data that we want to index and store into a dictionary 
+            foreach (string fieldName in IndexerData.UserFields)
+            {
+                // Get the value of the data                
+                string value = node.SelectExamineDataValue(fieldName);
+
+                //raise the event and assign the value to the returned data from the event
+                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, fieldName, value, false, nodeId);
+                OnGatheringFieldData(indexingFieldDataArgs);
+                value = indexingFieldDataArgs.FieldValue;
+
+                //don't add if the value is empty/null
+                if (!string.IsNullOrEmpty(value))
+                {
+                    if (!string.IsNullOrEmpty(value))
+                        values.Add(fieldName, value);
+                }
+            }
+
+            // Add umbraco node properties 
+            foreach (string fieldName in IndexerData.StandardFields)
+            {
+                string val = node.SelectExaminePropertyValue(fieldName);
+                var args = new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId);
+                OnGatheringFieldData(args);
+                val = args.FieldValue;
+
+                //don't add if the value is empty/null                
+                if (!string.IsNullOrEmpty(val))
+                {
+                    values.Add(fieldName, val);
+                }
+
+            }
+
+            //raise the event and assign the value to the returned data from the event
+            var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
+            OnGatheringNodeData(indexingNodeDataArgs);
+            values = indexingNodeDataArgs.Fields;
+
+            return values;
+        }
 
 		/// <summary>
 		/// 
@@ -690,7 +760,7 @@ namespace Examine.LuceneEngine
             Document d = new Document();
 
             //get all index set fields that are defined
-            var indexSet = ExamineLuceneIndexes.Instance.Sets[this.IndexSetName];
+            var indexSet = IndexSets.Instance.Sets[this.IndexSetName];
             var indexSetFields = indexSet.IndexUserFields.ToList().Concat(indexSet.IndexAttributeFields.ToList());
 
             //add all of our fields to the document index individually, don't include the special fields if they exists            
@@ -1016,14 +1086,14 @@ namespace Examine.LuceneEngine
         {
 
             //ensure all of the folders are created at startup   
-            VerifyFolder(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+            VerifyFolder(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
             VerifyFolder(LuceneIndexFolder);
             VerifyFolder(IndexQueueItemFolder);
             
 
             if (ExecutiveIndex == null)
             {
-                ExecutiveIndex = new IndexerExecutive(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory);
+                ExecutiveIndex = new IndexerExecutive(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
             }
 
             if (!ExecutiveIndex.IsInitialized())

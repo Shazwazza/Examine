@@ -3,9 +3,13 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using umbraco.cms.businesslogic.member;
+using Examine.LuceneEngine;
 
 namespace UmbracoExamine
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class MemberLuceneExamineIndexer : UmbracoExamineIndexer
     {
         protected override XDocument GetXDocument(string xPath, string type)

@@ -81,7 +81,7 @@ namespace Examine.LuceneEngine
 				{
 					var setNameByConvension = name.Remove(name.LastIndexOf("Searcher")) + "IndexSet";
 					//check if we can assign the index set by naming convension
-					var set = ExamineLuceneIndexes.Instance.Sets.Cast<IndexSet>()
+					var set = IndexSets.Instance.Sets.Cast<IndexSet>()
 						.Where(x => x.SetName == setNameByConvension)
 						.SingleOrDefault();
 
@@ -97,17 +97,17 @@ namespace Examine.LuceneEngine
 					throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration");
 
 				//get the folder to index
-				LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
 			}
 			else if (config["indexSet"] != null)
 			{
-				if (ExamineLuceneIndexes.Instance.Sets[config["indexSet"]] == null)
+				if (IndexSets.Instance.Sets[config["indexSet"]] == null)
 					throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
 
 				IndexSetName = config["indexSet"];
 
 				//get the folder to index
-				LuceneIndexFolder = new DirectoryInfo(Path.Combine(ExamineLuceneIndexes.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
 			}            
 
 			if (config["analyzer"] != null)
@@ -177,7 +177,8 @@ namespace Examine.LuceneEngine
 
 			if (useWildcards)
 			{
-				sc = sc.GroupedOr(GetSearchFields(), searchText.MultipleCharacterWildcard().Value).Compile();
+                var wildcardSearch = new ExamineValue(Examineness.ComplexWildcard, searchText.MultipleCharacterWildcard().Value);
+				sc = sc.GroupedOr(GetSearchFields(), wildcardSearch).Compile();
 			}
 			else
 			{

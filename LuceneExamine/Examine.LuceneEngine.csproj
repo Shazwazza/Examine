@@ -50,6 +50,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AllHitsCollector.cs" />
+    <Compile Include="ExamineXmlExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="LuceneExamineIndexer.cs" />
     <Compile Include="LuceneExamineSearcher.cs" />
     <Compile Include="Config\ExamineLuceneIndexes.cs" />
@@ -72,6 +75,9 @@
     <Compile Include="SearchResults.cs" />
     <Compile Include="SerializableDictionary.cs" />
     <Compile Include="SerializableDictionaryExtensions.cs" />
+    <Compile Include="SimpleDataIndexer.cs" />
+    <Compile Include="ISimpleDataService.cs" />
+    <Compile Include="SimpleDataSet.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Examine\Examine.csproj">

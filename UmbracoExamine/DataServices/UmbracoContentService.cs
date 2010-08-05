@@ -11,6 +11,7 @@ using System.Xml.XPath;
 using umbraco.DataLayer;
 using umbraco.BusinessLogic;
 using UmbracoExamine.Config;
+using Examine.LuceneEngine;
 
 namespace UmbracoExamine.DataServices
 {

@@ -1,6 +1,6 @@
 ﻿using Examine.SearchCriteria;
 
-namespace LuceneExamine.SearchCriteria
+namespace Examine.LuceneEngine.SearchCriteria
 {
     internal class ExamineValue : IExamineValue
     {

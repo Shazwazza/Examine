@@ -3,7 +3,7 @@ using Lucene.Net.Search;
 using Lucene.Net.QueryParsers;
 using System;
 
-namespace LuceneExamine.SearchCriteria
+namespace Examine.LuceneEngine.SearchCriteria
 {
     public static class LuceneSearchExtensions
     {

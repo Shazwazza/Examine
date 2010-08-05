@@ -6,6 +6,7 @@ using System.Xml.XPath;
 using System.Xml.Linq;
 using umbraco.cms.businesslogic.media;
 using System.Collections;
+using Examine.LuceneEngine;
 
 namespace UmbracoExamine.DataServices
 {

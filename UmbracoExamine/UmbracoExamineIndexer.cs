@@ -20,7 +20,7 @@ namespace UmbracoExamine
     /// <summary>
     /// 
     /// </summary>
-	public class UmbracoExamineIndexer : LuceneExamineIndexer, IDisposable
+	public class UmbracoExamineIndexer : Examine.LuceneEngine.LuceneExamineIndexer, IDisposable
     {
         #region Constructors
 
@@ -196,11 +196,6 @@ namespace UmbracoExamine
 
         #endregion
 
-        public static IEnumerable<KeyValuePair<string, FieldIndexTypes>> GetPolicies()
-        {
-            return IndexFieldPolicies;
-        }
-
         /// <summary>
         /// Deletes a node from the index.                
         /// </summary>
@@ -228,6 +223,37 @@ namespace UmbracoExamine
         }
 
         #region Protected
+
+        /// <summary>
+        /// Override this method to strip all html from all user fields before raising the event, then after the event 
+        /// ensure our special Path field is added to the collection
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnGatheringNodeData(IndexingNodeDataEventArgs e)
+        {
+            //strip html of all users fields
+            // Get all user data that we want to index and store into a dictionary 
+            foreach (string fieldName in IndexerData.UserFields)
+            {
+                if (e.Fields.ContainsKey(fieldName))
+                {
+                    e.Fields[fieldName] = DataService.ContentService.StripHtml(e.Fields[fieldName]);
+                }
+            }
+
+            base.OnGatheringNodeData(e);
+
+            //ensure the special path field is added to the dictionary to be saved to file
+            var path = e.Node.Attribute("path").Value;
+            if (!e.Fields.ContainsKey(IndexPathFieldName)) e.Fields.Add(IndexPathFieldName, path.ToLower());
+        }
+
+        /// <summary>
+        /// Called when a duplicate field is detected in the dictionary that is getting indexed.
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="indexSetName"></param>
+        /// <param name="fieldName"></param>
         protected override void OnDuplicateFieldWarning(int nodeId, string indexSetName, string fieldName)
         {
             base.OnDuplicateFieldWarning(nodeId, indexSetName, fieldName);
@@ -369,12 +395,12 @@ namespace UmbracoExamine
         {
             //check if this document is of a correct type of node type alias
             if (IndexerData.IncludeNodeTypes.Count() > 0)
-                if (!IndexerData.IncludeNodeTypes.Contains(node.UmbNodeTypeAlias()))
+                if (!IndexerData.IncludeNodeTypes.Contains(node.ExamineNodeTypeAlias()))
                     return false;
 
             //if this node type is part of our exclusion list, do not validate
             if (IndexerData.ExcludeNodeTypes.Count() > 0)
-                if (IndexerData.ExcludeNodeTypes.Contains(node.UmbNodeTypeAlias()))
+                if (IndexerData.ExcludeNodeTypes.Contains(node.ExamineNodeTypeAlias()))
                     return false;
 
             return base.ValidateDocument(node);
@@ -385,6 +411,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="node"></param>
         /// <returns>A dictionary representing the data which will be indexed</returns>
+        /// <param name="type"></param>
         protected override Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
             Dictionary<string, string> values = new Dictionary<string, string>();
@@ -396,49 +423,7 @@ namespace UmbracoExamine
             if (!SupportUnpublishedContent && (!SupportProtectedContent && DataService.ContentService.IsProtected(nodeId, node.Attribute("path").Value)))
                 return values;
 
-            // Get all user data that we want to index and store into a dictionary 
-            foreach (string fieldName in IndexerData.UserFields)
-            {
-                // Get the value of the data                
-                string value = node.UmbSelectDataValue(fieldName);
-
-                //raise the event and assign the value to the returned data from the event
-                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, fieldName, value, false, nodeId);
-                OnGatheringFieldData(indexingFieldDataArgs);
-                value = indexingFieldDataArgs.FieldValue;
-
-                //don't add if the value is empty/null
-                if (!string.IsNullOrEmpty(value))
-                {
-                    if (!string.IsNullOrEmpty(value))
-                        values.Add(fieldName, DataService.ContentService.StripHtml(value));
-                }
-            }
-
-            // Add umbraco node properties 
-            foreach (string fieldName in IndexerData.StandardFields)
-            {
-                string val = node.UmbSelectPropertyValue(fieldName);
-                var args = new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId);
-                OnGatheringFieldData(args);
-                val = args.FieldValue;
-
-                //don't add if the value is empty/null                
-                if (!string.IsNullOrEmpty(val))
-                {
-                    values.Add(fieldName, val);
-                }
-
-            }
-
-            //raise the event and assign the value to the returned data from the event
-            var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
-            OnGatheringNodeData(indexingNodeDataArgs);
-            values = indexingNodeDataArgs.Fields;
-
-            //ensure the special path field is added to the dictionary to be saved to file
-            var path = node.Attribute("path").Value;
-            if (!values.ContainsKey(IndexPathFieldName)) values.Add(IndexPathFieldName, path.ToLower());
+            return base.GetDataToIndex(node, type);
 
             return values;
         } 

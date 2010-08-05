@@ -11,7 +11,7 @@ using Lucene.Net.Search.Spans;
 using Lucene.Net.Index;
 using Lucene.Net.Documents;
 
-namespace LuceneExamine.SearchCriteria
+namespace Examine.LuceneEngine.SearchCriteria
 {
     /// <summary>
     /// This class is used to query against Lucene.Net
@@ -103,7 +103,7 @@ namespace LuceneExamine.SearchCriteria
         internal protected IBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            query.Add(this.queryParser.GetFieldQuery(UmbracoExamineIndexer.IndexNodeIdFieldName, id.ToString()), occurance);
+            query.Add(this.queryParser.GetFieldQuery(LuceneExamineIndexer.IndexNodeIdFieldName, id.ToString()), occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -548,7 +548,7 @@ namespace LuceneExamine.SearchCriteria
         {
             foreach (var fieldName in fieldNames)
             {
-                this.sortFields.Add(new SortField(UmbracoExamineIndexer.SortedFieldNamePrefix + fieldName, SortField.STRING, descending));
+                this.sortFields.Add(new SortField(LuceneExamineIndexer.SortedFieldNamePrefix + fieldName, SortField.STRING, descending));
             }
 
             return new LuceneBooleanOperation(this);

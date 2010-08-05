@@ -1,7 +1,7 @@
 ﻿using Examine.SearchCriteria;
 using Lucene.Net.Search;
 
-namespace LuceneExamine.SearchCriteria
+namespace Examine.LuceneEngine.SearchCriteria
 {
     /// <summary>
     /// An implementation of the fluent API boolean operations
@@ -59,7 +59,7 @@ namespace LuceneExamine.SearchCriteria
 
                 //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), BooleanClause.Occur.MUST);
 
-                this.search.FieldInternal(UmbracoExamineIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this.search.SearchIndexType.ToString().ToLower()), BooleanClause.Occur.MUST);
+                this.search.FieldInternal(LuceneExamineIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this.search.SearchIndexType.ToString().ToLower()), BooleanClause.Occur.MUST);
             }
             
             return this.search;
