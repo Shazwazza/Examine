@@ -64,5 +64,7 @@ namespace Examine.Test
             Assert.AreEqual(6, r.NumDocs());        
                         
         }
+
+
     }
 }

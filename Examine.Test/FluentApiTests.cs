@@ -35,10 +35,19 @@ namespace Examine.Test
 
             var criteria = m_Searcher.CreateSearchCriteria(BooleanOperation.Or);
             var filter = criteria
-                .NodeTypeAlias("Image")
+                .Field(UmbracoExamineIndexer.IndexTypeFieldName, "Media")
                 .Or()
-                .NodeTypeAlias("CWS".MultipleCharacterWildcard())
+                .Field(UmbracoExamineIndexer.IndexTypeFieldName, "Content")
                 .Compile();
+
+            //var criteria = m_Searcher.CreateSearchCriteria(BooleanOperation.Or);
+            //var filter = criteria
+            //    .NodeTypeAlias("Image")
+            //    .Or()
+            //    .NodeTypeAlias("CWS".MultipleCharacterWildcard())
+            //    .Compile();
+
+
 
             var results = m_Searcher.Search(filter);
 
@@ -179,6 +188,7 @@ namespace Examine.Test
         public void Initialize()
         {
             m_Init = new IndexInitializer();
+
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
         }
