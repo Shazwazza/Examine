@@ -7,12 +7,12 @@ using Examine;
 using Examine.LuceneEngine.Config;
 using System.Xml.Linq;
 
-namespace Examine.LuceneEngine
+namespace Examine.LuceneEngine.Providers
 {
     /// <summary>
     /// An index provider that can be used to index simple data structures such as those from a database, dictionary or array.
     /// </summary>
-    public class SimpleDataIndexer : LuceneExamineIndexer
+    public class SimpleDataIndexer : LuceneIndexer
     {
 
         /// <summary>
@@ -35,10 +35,14 @@ namespace Examine.LuceneEngine
             var data = DataService.GetAllData(type);
 
             //loop through the data and add it to the index
+            var nodes = new List<XElement>();
             foreach (var d in data)
             {
-                SaveAddIndexQueueItem(d.RowData, d.NodeDefinition.NodeId, d.NodeDefinition.Type);
+                nodes.Add(d.RowData.ToExamineXml(d.NodeDefinition.NodeId, d.NodeDefinition.Type));                
             }
+            
+            //now that we have XElement nodes of all of the data, process it as per normal
+            AddNodesToIndex(nodes, type);
         }              
 
         /// <summary>
@@ -60,6 +64,23 @@ namespace Examine.LuceneEngine
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
+
+            if (config["indexTypes"] == null || string.IsNullOrEmpty(config["indexTypes"]))
+            {
+                throw new ArgumentNullException("The indexTypes property must be specified for the SimpleDataIndexer provider");
+            }
+            IndexTypes = config["indexTypes"].Split(',');
+
+            if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
+            {
+                //this should be a fully qualified type
+                var serviceType = Type.GetType(config["dataService"]);
+                DataService = (ISimpleDataService)Activator.CreateInstance(serviceType);
+            }
+            else
+            {
+                throw new ArgumentNullException("The dataService property must be specified for the SimpleDataIndexer provider");
+            }
         }
 
     }

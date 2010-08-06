@@ -15,7 +15,24 @@ namespace Examine.LuceneEngine
         /// Translates a dictionary object, node id, and node type into the property xml structure used by the examine indexer
         /// </summary>
         /// <param name="?"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// returns an XElement with the default Examine XML structure
+        /// </returns>
+        /// <example>
+        /// <code>
+        /// <![CDATA[
+        /// <root>
+        ///     <node id="1234" nodeTypeAlias="yourIndexType">
+        ///         <data alias="fieldName1">Some data</data>
+        ///         <data alias="fieldName2">Some other data</data>
+        ///     </node>
+        ///     <node id="345" nodeTypeAlias="anotherIndexType">
+        ///         <data alias="fieldName3">More data</data>
+        ///     </node>
+        /// </root>
+        /// ]]>
+        /// </code>        
+        /// </example>
         public static XElement ToExamineXml(this Dictionary<string, string> data, int nodeId, string nodeType)
         {
             return new XElement("node",

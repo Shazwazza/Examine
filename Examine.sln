@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Contrib", "UmbracoExamine.Contrib\UmbracoExamine.Contrib.csproj", "{EA291361-0B96-4E8E-81EE-8723DAEEC062}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine", "LuceneExamine\Examine.LuceneEngine.csproj", "{28AC6695-9501-46EC-92E9-22ADBAD35F2B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine", "Examine.Lucene\Examine.LuceneEngine.csproj", "{28AC6695-9501-46EC-92E9-22ADBAD35F2B}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -37,9 +37,9 @@ Global
 		SccProjectUniqueName4 = UmbracoExamine.Contrib\\UmbracoExamine.Contrib.csproj
 		SccProjectName4 = UmbracoExamine.Contrib
 		SccLocalPath4 = UmbracoExamine.Contrib
-		SccProjectUniqueName5 = LuceneExamine\\Examine.LuceneEngine.csproj
-		SccProjectName5 = LuceneExamine
-		SccLocalPath5 = LuceneExamine
+		SccProjectUniqueName5 = Examine.Lucene\\Examine.LuceneEngine.csproj
+		SccProjectName5 = Examine.Lucene
+		SccLocalPath5 = Examine.Lucene
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi

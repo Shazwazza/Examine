@@ -53,8 +53,8 @@
     <Compile Include="ExamineXmlExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LuceneExamineIndexer.cs" />
-    <Compile Include="LuceneExamineSearcher.cs" />
+    <Compile Include="Providers\LuceneIndexer.cs" />
+    <Compile Include="Providers\LuceneSearcher.cs" />
     <Compile Include="Config\ExamineLuceneIndexes.cs" />
     <Compile Include="Config\IndexField.cs" />
     <Compile Include="Config\IndexFieldCollection.cs" />
@@ -75,7 +75,7 @@
     <Compile Include="SearchResults.cs" />
     <Compile Include="SerializableDictionary.cs" />
     <Compile Include="SerializableDictionaryExtensions.cs" />
-    <Compile Include="SimpleDataIndexer.cs" />
+    <Compile Include="Providers\SimpleDataIndexer.cs" />
     <Compile Include="ISimpleDataService.cs" />
     <Compile Include="SimpleDataSet.cs" />
   </ItemGroup>

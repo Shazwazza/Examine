@@ -4,6 +4,7 @@ using System.Linq;
 using Examine;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine
 {
@@ -62,7 +63,7 @@ namespace Examine.LuceneEngine
             string id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
             {
-				id = doc.Get(LuceneExamineIndexer.IndexNodeIdFieldName);
+				id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
             }
             var sr = new SearchResult()
             {

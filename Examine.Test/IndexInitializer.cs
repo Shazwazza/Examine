@@ -15,6 +15,8 @@ using Lucene.Net.Analysis;
 using Examine.Providers;
 using System.Collections.Specialized;
 using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.Test
 {
@@ -71,6 +73,9 @@ namespace Examine.Test
 
                 folder = appData.First().GetDirectories("FileIndexSet").First().GetDirectories("Index").First();
                 RemoveIndexForSearcher(folder, "FileSearcher");
+
+                folder = appData.First().GetDirectories("SimpleIndexSet").First().GetDirectories("Index").First();
+                RemoveIndexForSearcher(folder, "SimpleSearcher");
             }
            
         }
@@ -103,7 +108,7 @@ namespace Examine.Test
         {
             if (di != null)
             {
-                var searcher = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection[searcherName];
+                var searcher = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection[searcherName];
 
                 try
                 {

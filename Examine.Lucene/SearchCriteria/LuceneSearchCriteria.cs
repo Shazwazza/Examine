@@ -10,6 +10,7 @@ using Lucene.Net.Search;
 using Lucene.Net.Search.Spans;
 using Lucene.Net.Index;
 using Lucene.Net.Documents;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
@@ -103,7 +104,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal protected IBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            query.Add(this.queryParser.GetFieldQuery(LuceneExamineIndexer.IndexNodeIdFieldName, id.ToString()), occurance);
+            query.Add(this.queryParser.GetFieldQuery(LuceneIndexer.IndexNodeIdFieldName, id.ToString()), occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -548,7 +549,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             foreach (var fieldName in fieldNames)
             {
-                this.sortFields.Add(new SortField(LuceneExamineIndexer.SortedFieldNamePrefix + fieldName, SortField.STRING, descending));
+                this.sortFields.Add(new SortField(LuceneIndexer.SortedFieldNamePrefix + fieldName, SortField.STRING, descending));
             }
 
             return new LuceneBooleanOperation(this);

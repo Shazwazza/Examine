@@ -65,6 +65,7 @@
     <Compile Include="DataServices\TestDataService.cs" />
     <Compile Include="DataServices\TestLogService.cs" />
     <Compile Include="DataServices\TestMediaService.cs" />
+    <Compile Include="DataServices\TestSimpleDataProvider.cs" />
     <Compile Include="FileIndexerTests.cs" />
     <Compile Include="FluentApiTests.cs" />
     <Compile Include="IndexInitializer.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReIndexingTest.cs" />
     <Compile Include="SearchTest.cs" />
+    <Compile Include="SimpleDataProviderTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -93,13 +95,13 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Examine.Lucene\Examine.LuceneEngine.csproj">
+      <Project>{28AC6695-9501-46EC-92E9-22ADBAD35F2B}</Project>
+      <Name>Examine.LuceneEngine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LuceneExamine\Examine.LuceneEngine.csproj">
-      <Project>{28AC6695-9501-46EC-92E9-22ADBAD35F2B}</Project>
-      <Name>Examine.LuceneEngine</Name>
     </ProjectReference>
     <ProjectReference Include="..\UmbracoExamine.Contrib\UmbracoExamine.Contrib.csproj">
       <Project>{EA291361-0B96-4E8E-81EE-8723DAEEC062}</Project>

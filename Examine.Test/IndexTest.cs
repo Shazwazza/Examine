@@ -10,6 +10,7 @@ using Lucene.Net.QueryParsers;
 using Lucene.Net.Store;
 using System.Diagnostics;
 using Examine.LuceneEngine;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.Test
 {
@@ -66,6 +67,11 @@ namespace Examine.Test
             Assert.AreEqual(3, fields.Where(x => x.StartsWith(UmbracoExamineIndexer.SortedFieldNamePrefix)).Count());
             //there should be 11 documents (10 content, 1 media)
             Assert.AreEqual(11, r.NumDocs());
+
+            //test for the special fields to ensure they are there:
+            Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
+            Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
+            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.IndexPathFieldName).Count());
         }
 
         /// <summary>

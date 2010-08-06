@@ -15,16 +15,16 @@ using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.SearchCriteria;
 
 
-namespace Examine.LuceneEngine
+namespace Examine.LuceneEngine.Providers
 {
-	public class LuceneExamineSearcher : BaseSearchProvider
+	public class LuceneSearcher : BaseSearchProvider
 	{
 		#region Constructors
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
-        public LuceneExamineSearcher()
+        public LuceneSearcher()
             : base()
         {
         }
@@ -33,7 +33,7 @@ namespace Examine.LuceneEngine
 		/// Constructor to allow for creating an indexer at runtime
 		/// </summary>
 		/// <param name="indexPath"></param>
-		public LuceneExamineSearcher(DirectoryInfo indexPath)
+		public LuceneSearcher(DirectoryInfo indexPath)
 			: base()
 		{           
 			//set up our folder
@@ -264,8 +264,8 @@ namespace Examine.LuceneEngine
             var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
             var searchFields = fields
-                .Where(x => x != LuceneExamineIndexer.IndexNodeIdFieldName
-                    && x != LuceneExamineIndexer.IndexTypeFieldName)
+                .Where(x => x != LuceneIndexer.IndexNodeIdFieldName
+                    && x != LuceneIndexer.IndexTypeFieldName)
                 .ToArray();
             return searchFields;
         }		

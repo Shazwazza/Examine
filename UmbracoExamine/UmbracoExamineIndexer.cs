@@ -13,6 +13,7 @@ using UmbracoExamine.DataServices;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Config;
 using UmbracoExamine.Config;
+using Examine.LuceneEngine.Providers;
 
 
 namespace UmbracoExamine
@@ -20,7 +21,7 @@ namespace UmbracoExamine
     /// <summary>
     /// 
     /// </summary>
-	public class UmbracoExamineIndexer : Examine.LuceneEngine.LuceneExamineIndexer
+	public class UmbracoExamineIndexer : LuceneIndexer
     {
         #region Constructors
 
@@ -393,14 +394,9 @@ namespace UmbracoExamine
         /// <returns></returns>
         protected override bool ValidateDocument(XElement node)
         {
-            //check if this document is of a correct type of node type alias
-            if (IndexerData.IncludeNodeTypes.Count() > 0)
-                if (!IndexerData.IncludeNodeTypes.Contains(node.ExamineNodeTypeAlias()))
-                    return false;
-
-            //if this node type is part of our exclusion list, do not validate
-            if (IndexerData.ExcludeNodeTypes.Count() > 0)
-                if (IndexerData.ExcludeNodeTypes.Contains(node.ExamineNodeTypeAlias()))
+            //check if this document is a descendent of the parent
+            if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
+                if (!((string)node.Attribute("path")).Contains("," + IndexerData.ParentNodeId.Value.ToString() + ","))
                     return false;
 
             return base.ValidateDocument(node);
@@ -424,8 +420,6 @@ namespace UmbracoExamine
                 return values;
 
             return base.GetDataToIndex(node, type);
-
-            return values;
         } 
         #endregion
 
@@ -445,23 +439,9 @@ namespace UmbracoExamine
 
                 IEnumerable<XElement> children = rootNode.Elements();
 
-                foreach (XElement node in children)
-                {
-                    if (ValidateDocument(node))
-                    {
-                        //save the index item to a queue file
-                        var fields = GetDataToIndex(node, type);
-
-                        //make sure that 
-
-                        SaveAddIndexQueueItem(fields, int.Parse(node.Attribute("id").Value), type);
-                    }
-
-                }
+                AddNodesToIndex(children, type);
             }
-
-            //run the indexer on all queued files
-            SafelyProcessQueueItems();
+            
         } 
         #endregion
     }

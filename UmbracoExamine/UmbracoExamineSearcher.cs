@@ -7,6 +7,7 @@ using Examine.Providers;
 using Examine.SearchCriteria;
 using UmbracoExamine.Config;
 using Examine.LuceneEngine;
+using Examine.LuceneEngine.Providers;
 
 
 namespace UmbracoExamine
@@ -14,7 +15,7 @@ namespace UmbracoExamine
     /// <summary>
     /// An Examine searcher which uses Lucene.Net as the 
     /// </summary>
-	public class UmbracoExamineSearcher : Examine.LuceneEngine.LuceneExamineSearcher
+	public class UmbracoExamineSearcher : LuceneSearcher
     {
 
         #region Constructors

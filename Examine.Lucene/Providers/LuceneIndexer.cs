@@ -15,16 +15,16 @@ using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Examine.LuceneEngine.Config;
 
-namespace Examine.LuceneEngine
+namespace Examine.LuceneEngine.Providers
 {
-    public abstract class LuceneExamineIndexer : BaseIndexProvider, IDisposable
+    public abstract class LuceneIndexer : BaseIndexProvider, IDisposable
 	{
 		#region Constructors
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        protected LuceneExamineIndexer()
+        protected LuceneIndexer()
             : base()
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
-        protected LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
+        protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
             : base(indexerData)
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
@@ -130,7 +130,7 @@ namespace Examine.LuceneEngine
             }
 
             //create our internal searcher with a KeywordAnalyzer, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneExamineSearcher(this.LuceneIndexFolder);
+            InternalSearcher = new LuceneSearcher(this.LuceneIndexFolder);
             var searcherConfig = new NameValueCollection();
             searcherConfig.Add("indexSet", this.IndexSetName);
             searcherConfig.Add("analyzer", new KeywordAnalyzer().GetType().AssemblyQualifiedName);
@@ -438,6 +438,32 @@ namespace Examine.LuceneEngine
         #region Protected     
 
         /// <summary>
+        /// This will add all of the nodes defined to the index for the index type. WARNING: if the nodes already exists in the index, this will duplicate them
+        /// </summary>
+        /// <remarks>
+        /// This is used to ADD items to the index in bulk and assumes that these items don't already exist in the index. If they do, you will have duplicates.
+        /// </remarks>
+        /// <param name="nodes"></param>
+        /// <param name="type"></param>
+        protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
+        {
+            foreach (XElement node in nodes)
+            {
+                if (ValidateDocument(node))
+                {
+                    //save the index item to a queue file
+                    var fields = GetDataToIndex(node, type);
+
+                    SaveAddIndexQueueItem(fields, int.Parse(node.Attribute("id").Value), type);
+                }
+
+            }           
+
+            //run the indexer on all queued files
+            SafelyProcessQueueItems();
+        } 
+
+        /// <summary>
         /// Called to perform the operation to do the actual indexing of an index type after the lucene index has been re-initialized.
         /// </summary>
         /// <param name="type"></param>
@@ -621,9 +647,14 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         protected virtual bool ValidateDocument(XElement node)
         {
-            //check if this document is a descendent of the parent
-            if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
-                if (!((string)node.Attribute("path")).Contains("," + IndexerData.ParentNodeId.Value.ToString() + ","))
+            //check if this document is of a correct type of node type alias
+            if (IndexerData.IncludeNodeTypes.Count() > 0)
+                if (!IndexerData.IncludeNodeTypes.Contains(node.ExamineNodeTypeAlias()))
+                    return false;
+
+            //if this node type is part of our exclusion list, do not validate
+            if (IndexerData.ExcludeNodeTypes.Count() > 0)
+                if (IndexerData.ExcludeNodeTypes.Contains(node.ExamineNodeTypeAlias()))
                     return false;
 
             return true;
@@ -632,8 +663,13 @@ namespace Examine.LuceneEngine
 
         /// <summary>
         /// Translates the XElement structure into a dictionary object to be indexed.
+        /// </summary>
+        /// <remarks>
         /// This is used when re-indexing an individual node since this is the way the provider model works.
         /// For this provider, it will use a very similar XML structure as umbraco 4.0.x:
+        /// </remarks>
+        /// <example>
+        /// <code>
         /// <![CDATA[
         /// <root>
         ///     <node id="1234" nodeTypeAlias="yourIndexType">
@@ -645,7 +681,8 @@ namespace Examine.LuceneEngine
         ///     </node>
         /// </root>
         /// ]]>
-        /// </summary>
+        /// </code>        
+        /// </example>
         /// <param name="node"></param>
         /// <param name="type"></param>
         /// <returns></returns>

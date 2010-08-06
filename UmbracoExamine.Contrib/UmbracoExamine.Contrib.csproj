@@ -57,13 +57,13 @@
     <Compile Include="XsltExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Examine.Lucene\Examine.LuceneEngine.csproj">
+      <Project>{28AC6695-9501-46EC-92E9-22ADBAD35F2B}</Project>
+      <Name>Examine.LuceneEngine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LuceneExamine\Examine.LuceneEngine.csproj">
-      <Project>{28AC6695-9501-46EC-92E9-22ADBAD35F2B}</Project>
-      <Name>Examine.LuceneEngine</Name>
     </ProjectReference>
     <ProjectReference Include="..\UmbracoExamine\UmbracoExamine.csproj">
       <Project>{07FBC26B-2927-4A22-8D96-D644C667FECC}</Project>
