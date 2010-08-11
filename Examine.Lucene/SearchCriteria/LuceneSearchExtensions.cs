@@ -1,10 +1,13 @@
-﻿using Examine.SearchCriteria;
-using Lucene.Net.Search;
+﻿using System;
+using Examine.SearchCriteria;
 using Lucene.Net.QueryParsers;
-using System;
+using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
+    /// <summary>
+    /// A set of helpers for working with Lucene.Net in Examine
+    /// </summary>
     public static class LuceneSearchExtensions
     {
         /// <summary>
@@ -119,6 +122,16 @@ namespace Examine.LuceneEngine.SearchCriteria
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
             return examineValue.Value + s;
+        }
+
+        /// <summary>
+        /// Sets up an <see cref="IExamineValue"/> for an additional Examiness
+        /// </summary>
+        /// <param name="examineValue">The IExamineValue to continue working with.</param>
+        /// <returns>Combined strings</returns>
+        public static string Then(this IExamineValue examineValue)
+        {
+            return Then(examineValue, string.Empty);
         }
 
         /// <summary>
