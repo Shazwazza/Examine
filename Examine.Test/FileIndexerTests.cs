@@ -7,50 +7,50 @@ using UmbracoExamine;
 
 namespace Examine.Test
 {
-    [TestClass]
-    public class FileIndexerTests
-    {
-        #region Private methods
+    //[TestClass]
+    //public class FileIndexerTests
+    //{
+    //    #region Private methods
 
-        /// <summary>
-        /// Helper method to return the index searcher for this index
-        /// </summary>
-        /// <returns></returns>
-        private UmbracoExamineSearcher GetSearcherProvider()
-        {
-            return (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["FileSearcher"];
-        }
+    //    /// <summary>
+    //    /// Helper method to return the index searcher for this index
+    //    /// </summary>
+    //    /// <returns></returns>
+    //    private UmbracoExamineSearcher GetSearcherProvider()
+    //    {
+    //        return (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["FileSearcher"];
+    //    }
 
-        /// <summary>
-        /// Helper method to return the indexer that we are testing
-        /// </summary>
-        /// <returns></returns>
-        private UmbracoExamineIndexer GetIndexer()
-        {
-            return (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["FileIndexer"];
-        }
-        #endregion
+    //    /// <summary>
+    //    /// Helper method to return the indexer that we are testing
+    //    /// </summary>
+    //    /// <returns></returns>
+    //    private UmbracoExamineIndexer GetIndexer()
+    //    {
+    //        return (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["FileIndexer"];
+    //    }
+    //    #endregion
 
-        private static IndexInitializer m_Init;
+    //    private static IndexInitializer m_Init;
 
-        [TestInitialize()]
-        public void Initialize()
-        {
-            m_Init = new IndexInitializer();
-        }
+    //    [TestInitialize()]
+    //    public void Initialize()
+    //    {
+    //        m_Init = new IndexInitializer();
+    //    }
 
-        [TestMethod]
-        public void FileIndexerTests_Index_Pdf()
-        {
-            //Arrange
-            var indexer = GetIndexer();
+    //    [TestMethod]
+    //    public void FileIndexerTests_Index_Pdf()
+    //    {
+    //        //Arrange
+    //        var indexer = GetIndexer();
 
-            indexer.IndexAll(IndexTypes.Media);
+    //        indexer.IndexAll(IndexTypes.Media);
 
-            //Act
+    //        //Act
 
-            //Assert
+    //        //Assert
 
-        }
-    }
+    //    }
+    //}
 }

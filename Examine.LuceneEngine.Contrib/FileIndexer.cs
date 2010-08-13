@@ -7,25 +7,27 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Examine;
 using iTextSharp.text.pdf;
-using Examine.LuceneEngine.Providers;
+
 
 namespace Examine.LuceneEngine.Contrib
 {
     /// <summary>
     /// An Umbraco Lucene.Net indexer which will index the text content of a file
     /// </summary>
-    public sealed class FileIndexer : LuceneIndexer
+    public sealed class FileIndexer : Examine.LuceneEngine.Providers.LuceneIndexer
     {
         /// <summary>
         /// Gets or sets the supported extensions for files
         /// </summary>
         /// <value>The supported extensions.</value>
-        public IEnumerable<string> SupportedExtensions { get; protected set; }
-        /// <summary>
-        /// Gets or sets the umbraco property alias (defaults to umbracoFile)
-        /// </summary>
-        /// <value>The umbraco file property.</value>
-        public string UmbracoFileProperty { get; protected set; }
+        public IEnumerable<string> SupportedExtensions { get; private set; }
+        
+        ///// <summary>
+        ///// Gets or sets the umbraco property alias (defaults to umbracoFile)
+        ///// </summary>
+        ///// <value>The umbraco file property.</value>
+        //public string UmbracoFileProperty { get; private set; }
+        
         /// <summary>
         /// Gets the name of the Lucene.Net field which the content is inserted into
         /// </summary>
@@ -55,11 +57,11 @@ namespace Examine.LuceneEngine.Contrib
             else
                 SupportedExtensions = config["extensions"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-            //checks if a custom field alias is specified
-            if (string.IsNullOrEmpty(config["umbracoFileProperty"]))
-                UmbracoFileProperty = "umbracoFile";
-            else
-                UmbracoFileProperty = config["umbracoFileProperty"];
+            ////checks if a custom field alias is specified
+            //if (string.IsNullOrEmpty(config["umbracoFileProperty"]))
+            //    UmbracoFileProperty = "umbracoFile";
+            //else
+            //    UmbracoFileProperty = config["umbracoFileProperty"];
         }
 
         protected override void PerformIndexRebuild()
@@ -97,52 +99,52 @@ namespace Examine.LuceneEngine.Contrib
         {
             var fields = base.GetDataToIndex(node, type);
 
-            //find the field which contains the file
-            var filePath = node.Elements().FirstOrDefault(x =>
-            {
-                if (x.Attribute("alias") != null)
-                    return (string)x.Attribute("alias") == this.UmbracoFileProperty;
-                else
-                    return x.Name == this.UmbracoFileProperty;
-            });
-            //make sure the file exists
-            if (filePath != default(XElement) && !string.IsNullOrEmpty((string)filePath))
-            {
-                ////get the file path from the data service
-                //var fullPath = this.DataService.MapPath((string)filePath);
-                //var fi = new FileInfo(fullPath);
-                //if (fi.Exists)
-                //{
-                //    //check if the extension of the file matches one we're supporting
-                //    foreach (var ext in SupportedExtensions)
-                //    {
-                //        if (fi.Extension.ToUpper() == ext.ToUpper())
-                //        {
-                //            switch (ext.ToUpper())
-                //            {
-                //                    //extract the content from the PDF
-                //                case ".PDF":
-                //                    PdfTextExtractor pdfTextExtractor = new PdfTextExtractor();
-                //                    fields.Add(this.TextContentFieldName, pdfTextExtractor.ExtractText(fi.FullName));
-                //                    break;
+            ////find the field which contains the file
+            //var filePath = node.Elements().FirstOrDefault(x =>
+            //{
+            //    if (x.Attribute("alias") != null)
+            //        return (string)x.Attribute("alias") == this.UmbracoFileProperty;
+            //    else
+            //        return x.Name == this.UmbracoFileProperty;
+            //});
+            ////make sure the file exists
+            //if (filePath != default(XElement) && !string.IsNullOrEmpty((string)filePath))
+            //{
+            //    //get the file path from the data service
+            //    var fullPath = this.DataService.MapPath((string)filePath);
+            //    var fi = new FileInfo(fullPath);
+            //    if (fi.Exists)
+            //    {
+            //        //check if the extension of the file matches one we're supporting
+            //        foreach (var ext in SupportedExtensions)
+            //        {
+            //            if (fi.Extension.ToUpper() == ext.ToUpper())
+            //            {
+            //                switch (ext.ToUpper())
+            //                {
+            //                    //extract the content from the PDF
+            //                    case ".PDF":
+            //                        PdfTextExtractor pdfTextExtractor = new PdfTextExtractor();
+            //                        fields.Add(this.TextContentFieldName, pdfTextExtractor.ExtractText(fi.FullName));
+            //                        break;
 
-                //                default:
-                //                    //log that we couldn't index the file found
-                //                    DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: Extension '" + ext + "' is not supported at this time");
-                //                    break;
-                //            }
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //  DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No file found at path " + filePath);
-                //}
-            }
-            else
-            {
-                //DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No data found at data alias \"umbracoFile\"");
-            }
+            //                    default:
+            //                        //log that we couldn't index the file found
+            //                        DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: Extension '" + ext + "' is not supported at this time");
+            //                        break;
+            //                }
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No file found at path " + filePath);
+            //    }
+            //}
+            //else
+            //{
+            //    DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No data found at data alias \"umbracoFile\"");
+            //}
 
             return fields;
         }

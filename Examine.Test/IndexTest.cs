@@ -111,6 +111,29 @@ namespace Examine.Test
             Assert.AreEqual(10, collector.Count);
         }
 
+        /// <summary>
+        /// This will delete an item from the index and ensure that all children of the node are deleted too!
+        /// </summary>
+        [TestMethod]
+        public void Index_Delete_Index_Item_Ensure_Heirarchy_Removed()
+        {
+            //first, rebuild index to ensure everything is there.
+            Index_Rebuild_Index();
+
+            //now delete a node that has children
+            var indexer = (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
+            indexer.DeleteFromIndex(1140.ToString());
+            //this node had children: 1141 & 1142, let's ensure they are also removed
+
+            var searcher = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+            
+            var results = searcher.Search(searcher.CreateSearchCriteria().Id(1141).Compile());
+            Assert.IsTrue(results.Count() == 0);
+
+            results = searcher.Search(searcher.CreateSearchCriteria().Id(1142).Compile());
+            Assert.IsTrue(results.Count() == 0);
+        }
+
         #region Private methods
 
        

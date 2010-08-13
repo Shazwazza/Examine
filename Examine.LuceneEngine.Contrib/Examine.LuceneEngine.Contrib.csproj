@@ -56,7 +56,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine.Lucene\Examine.LuceneEngine.csproj">
+    <ProjectReference Include="..\Examine.LuceneEngine\Examine.LuceneEngine.csproj">
       <Project>{28AC6695-9501-46EC-92E9-22ADBAD35F2B}</Project>
       <Name>Examine.LuceneEngine</Name>
     </ProjectReference>
