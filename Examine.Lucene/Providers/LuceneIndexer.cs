@@ -130,11 +130,23 @@ namespace Examine.LuceneEngine.Providers
 				}
 			}
 
+			if (config["analyzer"] != null)
+			{
+				//this should be a fully qualified type
+				var analyzerType = Type.GetType(config["analyzer"]);
+				IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+			}
+			else
+			{
+				IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+			}
+
 			//create our internal searcher with a KeywordAnalyzer, this is useful for inheritors to be able to search their own indexes inside of their indexer
 			InternalSearcher = new LuceneSearcher(this.LuceneIndexFolder);
 			var searcherConfig = new NameValueCollection();
 			searcherConfig.Add("indexSet", this.IndexSetName);
-			searcherConfig.Add("analyzer", new KeywordAnalyzer().GetType().AssemblyQualifiedName);
+            //We should use the same analyzer for searching and indexing
+			searcherConfig.Add("analyzer", IndexingAnalyzer.GetType().AssemblyQualifiedName);
 			InternalSearcher.Initialize(Guid.NewGuid().ToString("N"), searcherConfig);
 
 			RunAsync = true;
@@ -147,17 +159,6 @@ namespace Examine.LuceneEngine.Providers
 			if (config["interval"] != null)
 			{
 				IndexSecondsInterval = int.Parse(config["interval"]);
-			}
-
-			if (config["analyzer"] != null)
-			{
-				//this should be a fully qualified type
-				var analyzerType = Type.GetType(config["analyzer"]);
-				IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
-			}
-			else
-			{
-				IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
 			}
 
 			ReInitialize();
