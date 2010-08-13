@@ -31,6 +31,17 @@ namespace Examine.Test
             RemoveWorkingIndex();
 
             CreateIndexesFromTemplate();
+
+            //wire up error handling
+            foreach (var p in ExamineManager.Instance.IndexProviderCollection.Cast<BaseIndexProvider>())
+            {
+                p.IndexingError += new EventHandler<IndexingErrorEventArgs>(p_IndexingError);
+            }
+        }
+
+        void p_IndexingError(object sender, IndexingErrorEventArgs e)
+        {
+            throw new ApplicationException(e.Message, e.InnerException);
         }
 
         /// <summary>
@@ -66,16 +77,16 @@ namespace Examine.Test
             if (appData.Count() > 0)
             {
                 var folder = appData.First().GetDirectories("CWSIndexSetTest").First().GetDirectories("Index").First();
-                RemoveIndexForSearcher(folder, "CWSSearcher");
+                RemoveIndexForSearcher(folder, "CWSSearcher", "CWSIndexer");
 
                 folder = appData.First().GetDirectories("ConvensionNamedTest").First().GetDirectories("Index").First();
-                RemoveIndexForSearcher(folder, "ConvensionNamedSearcher");
+                RemoveIndexForSearcher(folder, "ConvensionNamedSearcher", "ConvensionNamedIndexer");
 
-                folder = appData.First().GetDirectories("FileIndexSet").First().GetDirectories("Index").First();
-                RemoveIndexForSearcher(folder, "FileSearcher");
+                //folder = appData.First().GetDirectories("FileIndexSet").First().GetDirectories("Index").First();
+                //RemoveIndexForSearcher(folder, "FileSearcher");
 
                 folder = appData.First().GetDirectories("SimpleIndexSet").First().GetDirectories("Index").First();
-                RemoveIndexForSearcher(folder, "SimpleSearcher");
+                RemoveIndexForSearcher(folder, "SimpleSearcher", "SimpleIndexer");
             }
            
         }
@@ -104,12 +115,25 @@ namespace Examine.Test
         /// </summary>
         /// <param name="di"></param>
         /// <param name="searcherName"></param>
-        private void RemoveIndexForSearcher(DirectoryInfo di, string searcherName)
+        private void RemoveIndexForSearcher(DirectoryInfo di, string searcherName, string indexerName)
         {
             if (di != null)
             {
                 var searcher = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection[searcherName];
 
+                try
+                {
+                    var s = searcher.GetSearcher();
+                    var r = s.GetIndexReader();
+                    s.Close();
+                    r.Close();
+                }
+                catch (ApplicationException) { }
+                catch (NoSuchDirectoryException) { }
+                catch (DirectoryNotFoundException) { }
+
+                //closes all internal searchers of the indexers
+                searcher = (LuceneSearcher)((LuceneIndexer)ExamineManager.Instance.IndexProviderCollection[indexerName]).InternalSearcher;
                 try
                 {
                     var s = searcher.GetSearcher();

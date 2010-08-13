@@ -129,9 +129,6 @@ namespace UmbracoExamine
             else
                 SupportProtectedContent = false;
 
-            
-
-
 
             base.Initialize(name, config);
         }

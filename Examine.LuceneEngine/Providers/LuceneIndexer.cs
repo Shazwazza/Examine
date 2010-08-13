@@ -141,7 +141,7 @@ namespace Examine.LuceneEngine.Providers
 				IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
 			}
 
-			//create our internal searcher with a KeywordAnalyzer, this is useful for inheritors to be able to search their own indexes inside of their indexer
+			//create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
 			InternalSearcher = new LuceneSearcher(this.LuceneIndexFolder);
 			var searcherConfig = new NameValueCollection();
 			searcherConfig.Add("indexSet", this.IndexSetName);
@@ -219,7 +219,7 @@ namespace Examine.LuceneEngine.Providers
 		/// We need an internal searcher used to search against our own index.
 		/// This is used for finding all descendant nodes of a current node when deleting indexes.
 		/// </summary>
-		protected BaseSearchProvider InternalSearcher;
+		protected internal BaseSearchProvider InternalSearcher;
 
 		#endregion
 
@@ -408,8 +408,9 @@ namespace Examine.LuceneEngine.Providers
 			SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
 
 			//need to process the queue items, otherwise the delete files aren't processed until the next publish
-			if (!RunAsync)
-				ForceProcessQueueItems();
+            //if (!RunAsync)
+            //    ForceProcessQueueItems();
+            SafelyProcessQueueItems();
 		}
 
 		/// <summary>

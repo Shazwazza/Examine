@@ -11,6 +11,7 @@ using Lucene.Net.Store;
 using System.Diagnostics;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
+using System.Threading;
 
 namespace Examine.Test
 {
@@ -72,6 +73,7 @@ namespace Examine.Test
             Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
             Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
             Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.IndexPathFieldName).Count());
+
         }
 
         /// <summary>
@@ -111,27 +113,30 @@ namespace Examine.Test
             Assert.AreEqual(10, collector.Count);
         }
 
-        /// <summary>
+        ///// <summary>
         /// This will delete an item from the index and ensure that all children of the node are deleted too!
         /// </summary>
         [TestMethod]
         public void Index_Delete_Index_Item_Ensure_Heirarchy_Removed()
-        {
-            //first, rebuild index to ensure everything is there.
-            Index_Rebuild_Index();
+        {         
 
             //now delete a node that has children
             var indexer = (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
+
+            //first, rebuild index to ensure all data is there
+            indexer.RebuildIndex();
+
+            var searcher = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+
             indexer.DeleteFromIndex(1140.ToString());
             //this node had children: 1141 & 1142, let's ensure they are also removed
 
-            var searcher = (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
-            
             var results = searcher.Search(searcher.CreateSearchCriteria().Id(1141).Compile());
-            Assert.IsTrue(results.Count() == 0);
+            Assert.AreEqual<int>(0, results.Count());
 
             results = searcher.Search(searcher.CreateSearchCriteria().Id(1142).Compile());
-            Assert.IsTrue(results.Count() == 0);
+            Assert.AreEqual<int>(0, results.Count());
+
         }
 
         #region Private methods
