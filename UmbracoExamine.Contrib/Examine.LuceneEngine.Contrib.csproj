@@ -8,8 +8,8 @@
     <ProjectGuid>{EA291361-0B96-4E8E-81EE-8723DAEEC062}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UmbracoExamine.Contrib</RootNamespace>
-    <AssemblyName>UmbracoExamine.Contrib</AssemblyName>
+    <RootNamespace>Examine.LuceneEngine.Contrib</RootNamespace>
+    <AssemblyName>Examine.LuceneEngine.Contrib</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -54,7 +54,6 @@
     </Compile>
     <Compile Include="FileIndexer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="XsltExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Examine.Lucene\Examine.LuceneEngine.csproj">

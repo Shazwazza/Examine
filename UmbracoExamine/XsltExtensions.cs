@@ -4,7 +4,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using Examine;
 
-namespace UmbracoExamine.Contrib
+namespace UmbracoExamine
 {
     /// <summary>
     /// Methods to support Umbraco XSLT extensions

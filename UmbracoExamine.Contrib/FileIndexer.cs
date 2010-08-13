@@ -8,7 +8,7 @@ using System.Xml.Linq;
 using Examine;
 using iTextSharp.text.pdf;
 
-namespace UmbracoExamine.Contrib
+namespace Examine.LuceneEngine.Contrib
 {
     /// <summary>
     /// An Umbraco Lucene.Net indexer which will index the text content of a file

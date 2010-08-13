@@ -6,7 +6,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Examine.vsmdi = Examine.vsmdi
 		Local.testsettings = Local.testsettings
 		Solution Items\SolutionInfo.cs = Solution Items\SolutionInfo.cs
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine", "UmbracoExamine\UmbracoExamine.csproj", "{07FBC26B-2927-4A22-8D96-D644C667FECC}"
@@ -15,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine\Examine.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Contrib", "UmbracoExamine.Contrib\UmbracoExamine.Contrib.csproj", "{EA291361-0B96-4E8E-81EE-8723DAEEC062}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine.Contrib", "UmbracoExamine.Contrib\Examine.LuceneEngine.Contrib.csproj", "{EA291361-0B96-4E8E-81EE-8723DAEEC062}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine", "Examine.Lucene\Examine.LuceneEngine.csproj", "{28AC6695-9501-46EC-92E9-22ADBAD35F2B}"
 EndProject
@@ -34,12 +33,12 @@ Global
 		SccProjectUniqueName3 = Examine.Test\\Examine.Test.csproj
 		SccProjectName3 = Examine.Test
 		SccLocalPath3 = Examine.Test
-		SccProjectUniqueName4 = UmbracoExamine.Contrib\\UmbracoExamine.Contrib.csproj
-		SccProjectName4 = UmbracoExamine.Contrib
-		SccLocalPath4 = UmbracoExamine.Contrib
-		SccProjectUniqueName5 = Examine.Lucene\\Examine.LuceneEngine.csproj
-		SccProjectName5 = Examine.Lucene
-		SccLocalPath5 = Examine.Lucene
+		SccProjectUniqueName4 = Examine.Lucene\\Examine.LuceneEngine.csproj
+		SccProjectName4 = Examine.Lucene
+		SccLocalPath4 = Examine.Lucene
+		SccProjectUniqueName5 = UmbracoExamine.Contrib\\Examine.LuceneEngine.Contrib.csproj
+		SccProjectName5 = UmbracoExamine.Contrib
+		SccLocalPath5 = UmbracoExamine.Contrib
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
