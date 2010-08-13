@@ -7,13 +7,14 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Examine;
 using iTextSharp.text.pdf;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine.Contrib
 {
     /// <summary>
     /// An Umbraco Lucene.Net indexer which will index the text content of a file
     /// </summary>
-    public sealed class FileIndexer : UmbracoExamineIndexer
+    public sealed class FileIndexer : LuceneIndexer
     {
         /// <summary>
         /// Gets or sets the supported extensions for files
@@ -61,18 +62,30 @@ namespace Examine.LuceneEngine.Contrib
                 UmbracoFileProperty = config["umbracoFileProperty"];
         }
 
-        /// <summary>
-        /// Re-indexes all data for the index type specified
-        /// </summary>
-        /// <param name="type"></param>
-        public override void IndexAll(string type)
+        protected override void PerformIndexRebuild()
         {
-            //ignore the content index types
-            if (type == IndexTypes.Content)
-                return;
-
-            base.IndexAll(type);
+            //TODO: Make this work
+            throw new NotImplementedException();
         }
+
+        protected override void PerformIndexAll(string type)
+        {
+            //TODO: Make this work
+            throw new NotImplementedException();
+        }
+
+        ///// <summary>
+        ///// Re-indexes all data for the index type specified
+        ///// </summary>
+        ///// <param name="type"></param>
+        //public override void IndexAll(string type)
+        //{
+        //    ignore the content index types
+        //    if (type == IndexTypes.Content)
+        //        return;
+
+        //    base.IndexAll(type);
+        //}
 
         /// <summary>
         /// Collects all of the data that needs to be indexed as defined in the index set.
@@ -95,40 +108,40 @@ namespace Examine.LuceneEngine.Contrib
             //make sure the file exists
             if (filePath != default(XElement) && !string.IsNullOrEmpty((string)filePath))
             {
-                //get the file path from the data service
-                var fullPath = this.DataService.MapPath((string)filePath);
-                var fi = new FileInfo(fullPath);
-                if (fi.Exists)
-                {
-                    //check if the extension of the file matches one we're supporting
-                    foreach (var ext in SupportedExtensions)
-                    {
-                        if (fi.Extension.ToUpper() == ext.ToUpper())
-                        {
-                            switch (ext.ToUpper())
-                            {
-                                    //extract the content from the PDF
-                                case ".PDF":
-                                    PdfTextExtractor pdfTextExtractor = new PdfTextExtractor();
-                                    fields.Add(this.TextContentFieldName, pdfTextExtractor.ExtractText(fi.FullName));
-                                    break;
+                ////get the file path from the data service
+                //var fullPath = this.DataService.MapPath((string)filePath);
+                //var fi = new FileInfo(fullPath);
+                //if (fi.Exists)
+                //{
+                //    //check if the extension of the file matches one we're supporting
+                //    foreach (var ext in SupportedExtensions)
+                //    {
+                //        if (fi.Extension.ToUpper() == ext.ToUpper())
+                //        {
+                //            switch (ext.ToUpper())
+                //            {
+                //                    //extract the content from the PDF
+                //                case ".PDF":
+                //                    PdfTextExtractor pdfTextExtractor = new PdfTextExtractor();
+                //                    fields.Add(this.TextContentFieldName, pdfTextExtractor.ExtractText(fi.FullName));
+                //                    break;
 
-                                default:
-                                    //log that we couldn't index the file found
-                                    DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: Extension '" + ext + "' is not supported at this time");
-                                    break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                  DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No file found at path " + filePath);
-                }
+                //                default:
+                //                    //log that we couldn't index the file found
+                //                    DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: Extension '" + ext + "' is not supported at this time");
+                //                    break;
+                //            }
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //  DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No file found at path " + filePath);
+                //}
             }
             else
             {
-                DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No data found at data alias \"umbracoFile\"");
+                //DataService.LogService.AddInfoLog((int)node.Attribute("id"), "UmbracoExamine.FileIndexer: No data found at data alias \"umbracoFile\"");
             }
 
             return fields;

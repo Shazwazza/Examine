@@ -14,9 +14,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine\Examine.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine.Contrib", "UmbracoExamine.Contrib\Examine.LuceneEngine.Contrib.csproj", "{EA291361-0B96-4E8E-81EE-8723DAEEC062}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine", "Examine.LuceneEngine\Examine.LuceneEngine.csproj", "{28AC6695-9501-46EC-92E9-22ADBAD35F2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine", "Examine.Lucene\Examine.LuceneEngine.csproj", "{28AC6695-9501-46EC-92E9-22ADBAD35F2B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine.Contrib", "Examine.LuceneEngine.Contrib\Examine.LuceneEngine.Contrib.csproj", "{EA291361-0B96-4E8E-81EE-8723DAEEC062}"
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
@@ -33,12 +33,12 @@ Global
 		SccProjectUniqueName3 = Examine.Test\\Examine.Test.csproj
 		SccProjectName3 = Examine.Test
 		SccLocalPath3 = Examine.Test
-		SccProjectUniqueName4 = Examine.Lucene\\Examine.LuceneEngine.csproj
-		SccProjectName4 = Examine.Lucene
-		SccLocalPath4 = Examine.Lucene
-		SccProjectUniqueName5 = UmbracoExamine.Contrib\\Examine.LuceneEngine.Contrib.csproj
-		SccProjectName5 = UmbracoExamine.Contrib
-		SccLocalPath5 = UmbracoExamine.Contrib
+		SccProjectUniqueName4 = Examine.LuceneEngine\\Examine.LuceneEngine.csproj
+		SccProjectName4 = Examine.LuceneEngine
+		SccLocalPath4 = Examine.LuceneEngine
+		SccProjectUniqueName5 = Examine.LuceneEngine.Contrib\\Examine.LuceneEngine.Contrib.csproj
+		SccProjectName5 = Examine.LuceneEngine.Contrib
+		SccLocalPath5 = Examine.LuceneEngine.Contrib
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
@@ -60,14 +60,14 @@ Global
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Release|Any CPU.Build.0 = Release|Any CPU
 		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA291361-0B96-4E8E-81EE-8723DAEEC062}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
