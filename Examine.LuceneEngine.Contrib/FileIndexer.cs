@@ -14,7 +14,7 @@ namespace Examine.LuceneEngine.Contrib
     /// <summary>
     /// An Umbraco Lucene.Net indexer which will index the text content of a file
     /// </summary>
-    public sealed class FileIndexer : Examine.LuceneEngine.Providers.LuceneIndexer
+    public class FileIndexer : Examine.LuceneEngine.Providers.LuceneIndexer
     {
         /// <summary>
         /// Gets or sets the supported extensions for files
@@ -32,13 +32,7 @@ namespace Examine.LuceneEngine.Contrib
         /// Gets the name of the Lucene.Net field which the content is inserted into
         /// </summary>
         /// <value>The name of the text content field.</value>
-        public string TextContentFieldName
-        {
-            get
-            {
-                return "FileTextContent";
-            }
-        }
+        public const string TextContentFieldName = "FileTextContent";
 
         /// <summary>
         /// Set up all properties for the indexer based on configuration information specified. This will ensure that
