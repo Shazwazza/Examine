@@ -82,8 +82,8 @@ namespace Examine.Test
                 folder = appData.First().GetDirectories("ConvensionNamedTest").First().GetDirectories("Index").First();
                 RemoveIndexForSearcher(folder, "ConvensionNamedSearcher", "ConvensionNamedIndexer");
 
-                //folder = appData.First().GetDirectories("FileIndexSet").First().GetDirectories("Index").First();
-                //RemoveIndexForSearcher(folder, "FileSearcher");
+                folder = appData.First().GetDirectories("PDFIndexSet").First().GetDirectories("Index").First();
+                RemoveIndexForSearcher(folder, "PDFSearcher", "PDFIndexer");
 
                 folder = appData.First().GetDirectories("SimpleIndexSet").First().GetDirectories("Index").First();
                 RemoveIndexForSearcher(folder, "SimpleSearcher", "SimpleIndexer");

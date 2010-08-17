@@ -419,8 +419,7 @@ namespace Examine.LuceneEngine.Providers
 		/// <param name="type"></param>
 		public override void IndexAll(string type)
 		{
-			//check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
-			//particular node
+			//check if the index doesn't exist, and if so, create it and reindex everything
 			if (!IndexExists())
 			{
 				RebuildIndex();

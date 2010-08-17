@@ -21,7 +21,7 @@ namespace UmbracoExamine
     /// <summary>
     /// 
     /// </summary>
-	public class UmbracoExamineIndexer : LuceneIndexer
+    public class UmbracoExamineIndexer : BaseUmbracoIndexer
     {
         #region Constructors
 
@@ -99,19 +99,6 @@ namespace UmbracoExamine
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {            
 
-            if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
-            {
-                //this should be a fully qualified type
-                var serviceType = Type.GetType(config["dataService"]);
-                DataService = (IDataService)Activator.CreateInstance(serviceType);
-            }
-            else
-            {
-                //By default, we will be using the UmbracoDataService
-                //generally this would only need to be set differently for unit testing
-                DataService = new UmbracoDataService();
-            }
-
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
             bool supportUnpublished;
@@ -136,11 +123,6 @@ namespace UmbracoExamine
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// The data service used for retreiving and submitting data to the cms
-        /// </summary>
-        public IDataService DataService { get; protected internal set; }
 
         /// <summary>
         /// By default this is false, if set to true then the indexer will include indexing content that is flagged as publicly protected.
@@ -194,6 +176,7 @@ namespace UmbracoExamine
 
         #endregion
 
+        #region Public methods
         /// <summary>
         /// Deletes a node from the index.                
         /// </summary>
@@ -218,7 +201,8 @@ namespace UmbracoExamine
             }
 
             base.DeleteFromIndex(nodeId);
-        }
+        } 
+        #endregion
 
         #region Protected
 
@@ -272,61 +256,7 @@ namespace UmbracoExamine
             fields.Add(IndexPathFieldName, allValuesForIndexing[IndexPathFieldName].ToLower());
             return fields;
 
-        }
-
-        /// <summary>
-        /// Called to do the actual indexing of the data for the index type
-        /// </summary>
-        /// <param name="type"></param>
-        protected override void PerformIndexAll(string type)
-        {
-            string xPath = "//*[(number(@id) > 0){0}]"; //we'll add more filters to this below if needed
-
-            StringBuilder sb = new StringBuilder();
-
-            //create the xpath statement to match node type aliases if specified
-            if (IndexerData.IncludeNodeTypes.Count() > 0)
-            {
-                sb.Append("(");
-                foreach (string field in IndexerData.IncludeNodeTypes)
-                {
-                    //this can be used across both schemas
-                    string nodeTypeAlias = "(@nodeTypeAlias='{0}' or (count(@nodeTypeAlias)=0 and name()='{0}'))";
-
-                    sb.Append(string.Format(nodeTypeAlias, field));
-                    sb.Append(" or ");
-                }
-                sb.Remove(sb.Length - 4, 4); //remove last " or "
-                sb.Append(")");
-            }
-
-            //create the xpath statement to match all children of the current node.
-            if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
-            {
-                if (sb.Length > 0)
-                    sb.Append(" and ");
-                sb.Append("(");
-                sb.Append("contains(@path, '," + IndexerData.ParentNodeId.Value.ToString() + ",')"); //if the path contains comma - id - comma then the nodes must be a child
-                sb.Append(")");
-            }
-
-            //create the full xpath statement to match the appropriate nodes. If there is a filter
-            //then apply it, otherwise just select all nodes.
-            var filter = sb.ToString();
-            xPath = string.Format(xPath, filter.Length > 0 ? " and " + filter : "");
-
-            //raise the event and set the xpath statement to the value returned
-            var args = new IndexingNodesEventArgs(IndexerData, xPath, type);
-            OnNodesIndexing(args);
-            if (args.Cancel)
-            {
-                return;
-            }
-
-            xPath = args.XPath;
-
-            AddNodesToIndex(xPath, type);
-        }
+        }       
 
         /// <summary>
         /// Creates an IIndexCriteria object based on the indexSet passed in and our DataService
@@ -345,32 +275,6 @@ namespace UmbracoExamine
         {
             IndexAll(IndexTypes.Content);
             IndexAll(IndexTypes.Media);
-        }
-
-        /// <summary>
-        /// Returns an XDocument for the entire tree stored for the IndexType specified.
-        /// </summary>
-        /// <param name="xPath">The xpath to the node.</param>
-        /// <param name="type">The type of data to request from the data service.</param>
-        /// <returns>Either the Content or Media xml. If the type is not of those specified null is returned</returns>
-        protected virtual XDocument GetXDocument(string xPath, string type)
-        {
-            if (type == IndexTypes.Content)
-            {
-                if (this.SupportUnpublishedContent)
-                {
-                    return DataService.ContentService.GetLatestContentByXPath(xPath);
-                }
-                else
-                {
-                    return DataService.ContentService.GetPublishedContentByXPath(xPath);
-                }
-            }
-            else if (type == IndexTypes.Media)
-            {
-                return DataService.MediaService.GetLatestMediaByXpath(xPath);
-            }
-            return null;
         }
 
         /// <summary>
@@ -418,28 +322,7 @@ namespace UmbracoExamine
 
             return base.GetDataToIndex(node, type);
         } 
-        #endregion
-
-        #region Private
-        /// <summary>
-        /// Adds all nodes with the given xPath root.
-        /// </summary>
-        /// <param name="xPath">The x path.</param>
-        /// <param name="type">The type.</param>
-        private void AddNodesToIndex(string xPath, string type)
-        {
-            // Get all the nodes of nodeTypeAlias == nodeTypeAlias
-            XDocument xDoc = GetXDocument(xPath, type);
-            if (xDoc != null)
-            {
-                XElement rootNode = xDoc.Root;
-
-                IEnumerable<XElement> children = rootNode.Elements();
-
-                AddNodesToIndex(children, type);
-            }
-            
-        } 
-        #endregion
+        
+        #endregion       
     }
 }
