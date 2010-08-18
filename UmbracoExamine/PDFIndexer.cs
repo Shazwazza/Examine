@@ -156,6 +156,36 @@ namespace UmbracoExamine
         public class PDFParser
         {
 
+            static PDFParser()
+            {
+                lock (m_Locker)
+                {
+                    m_UnsupportedRange = new List<int>();
+                    m_UnsupportedRange.AddRange(Enumerable.Range(0x0000, 0x001F));
+                    m_UnsupportedRange.Add(0x1F);
+                    
+                }
+            }
+
+            private static readonly object m_Locker = new object();
+            
+            /// <summary>
+            /// Stores the unsupported range of character
+            /// </summary>
+            /// <remarks>
+            /// used as a reference:
+            /// http://www.tamasoft.co.jp/en/general-info/unicode.html
+            /// http://en.wikipedia.org/wiki/Summary_of_Unicode_character_assignments
+            /// http://en.wikipedia.org/wiki/Unicode
+            /// http://en.wikipedia.org/wiki/Basic_Multilingual_Plane
+            /// </remarks>
+            private static List<int> m_UnsupportedRange;
+
+            /// <summary>
+            /// Return only the valid string contents of the PDF
+            /// </summary>
+            /// <param name="sourcePDF"></param>
+            /// <returns></returns>
             public string ParsePdfText(string sourcePDF)
             {
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -178,81 +208,23 @@ namespace UmbracoExamine
                             tknValue = token.StringValue;
                             if ((tknType == PRTokeniser.TokType.STRING))
                             {
-
-                                //this check seems to work to exclude non-standard tokens/strings.
-                                //not sure if it's something to do with octal or something else i read, but oh well
-                                if (token.StringValue[0] >= 0 && token.StringValue[0] <= 9)
+                                foreach (var s in tknValue)
                                 {
-                                    //var x = -1;
-                                    //while (token.StringValue.Length - x > 3)
-                                    //{
-                                        //var first = ((int)token.StringValue[++x]).ToString();
-                                        //var second = ((int)token.StringValue[++x]).ToString();
-                                        //var third = ((int)token.StringValue[++x]).ToString();
-                                        //var octalCode = first +
-                                        //    second +
-                                        //    third;
-                                        //var c = (char)Convert.ToInt32(octalCode, 8);
-                                        //sb.Append(c);
-                                    //}
-                                    
+                                    //strip out unsupported characters, based on unicode tables.
+                                    if (!m_UnsupportedRange.Contains(s))
+                                    {
+                                        sb.Append(s);
+                                    }
                                 }
-                                else
-                                {
-                                    sb.Append(token.StringValue);
-                                }
-                                
-
-                            }
-                            // I need to add these additional tests to properly add whitespace to the output string
-                            //else if (((tknType == PRTokeniser.TokType.NUMBER) && (tknValue == "-600")))
-                            //{
-                            //    sb.Append(" ");
-                            //}
-                            //else if (((tknType == PRTokeniser.TokType.OTHER) && (tknValue == "TJ")))
-                            //{
-                            //    sb.Append(" ");
-                            //}
+                                                                
+                            }                           
                         }
                     }
                 }
                 
                 return sb.ToString();
             }
-
-            public static String ConvertToOctal(String input)
-            {
-                String resultString = "";
-                char c;
-                for (int i = 0; i < input.Length; i++)
-                {
-                    c = (char)input[i];
-                    if (c > 500)
-                    {
-                        resultString += @"\" + Convert.ToString(input[i], 8);
-                    }
-                    else
-                    {
-                        resultString += c;
-                    }
-                }
-                return resultString;
-            }
-
-            private string CleanupContent(string text)
-            {
-                string[] patterns = { @"\\\(", @"\\\)", @"\\226", @"\\222", @"\\223", @"\\224", @"\\340", @"\\342", @"\\344", @"\\300", @"\\302", @"\\304", @"\\351", @"\\350", @"\\352", @"\\353", @"\\311", @"\\310", @"\\312", @"\\313", @"\\362", @"\\364", @"\\366", @"\\322", @"\\324", @"\\326", @"\\354", @"\\356", @"\\357", @"\\314", @"\\316", @"\\317", @"\\347", @"\\307", @"\\371", @"\\373", @"\\374", @"\\331", @"\\333", @"\\334", @"\\256", @"\\231", @"\\253", @"\\273", @"\\251", @"\\221" };
-                string[] replace = { "(", ")", "-", "'", "\"", "\"", "à", "â", "ä", "À", "Â", "Ä", "é", "è", "ê", "ë", "É", "È", "Ê", "Ë", "ò", "ô", "ö", "Ò", "Ô", "Ö", "ì", "î", "ï", "Ì", "Î", "Ï", "ç", "Ç", "ù", "û", "ü", "Ù", "Û", "Ü", "®", "™", "«", "»", "©", "'" };
-
-                for (int i = 0; i < patterns.Length; i++)
-                {
-                    string regExPattern = patterns[i];
-                    Regex regex = new Regex(regExPattern, RegexOptions.IgnoreCase);
-                    text = regex.Replace(text, replace[i]);
-                }
-
-                return text;
-            }
+          
 
         }
 

@@ -63,12 +63,8 @@ namespace Examine.LuceneEngine
                 keySerializer.Serialize(writer, key);
                 writer.WriteEndElement();
                 writer.WriteStartElement("value");
-                //wrap in CDATA if it is a string... pretty hacky but oh well
-                //writer.WriteCData(
-
-                TValue value = this[key];
+                TValue value = this[key];               
                 valueSerializer.Serialize(writer, value);
-
                 writer.WriteEndElement();
                 writer.WriteEndElement();
             }

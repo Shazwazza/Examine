@@ -53,12 +53,21 @@ namespace Examine.Test
 
             Trace.Write("Num docs = " + r.NumDocs().ToString());
 
-            //there should be 3
-            Assert.AreEqual<int>(3, r.NumDocs());
+            Assert.AreEqual<int>(5, r.NumDocs());
 
             //search the pdf content to ensure it's there
-            Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1113).Compile()).Single().Fields[PDFIndexer.TextContentFieldName].Trim().Length > 0);
-            Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1114).Compile()).Single().Fields[PDFIndexer.TextContentFieldName].Trim().Length > 0);
+            Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1113).Compile()).Single()
+                .Fields[PDFIndexer.TextContentFieldName].Contains("EncapsulateField"));
+            Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1114).Compile()).Single()
+                .Fields[PDFIndexer.TextContentFieldName].Contains("metaphysical realism"));
+
+            //the contour PDF cannot be read properly, this is to due with the PDF encoding!
+            //Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1115).Compile()).Single()
+            //    .Fields[PDFIndexer.TextContentFieldName].Contains("Returns All records from the form with the id"));
+
+            Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1116).Compile()).Single()
+                .Fields[PDFIndexer.TextContentFieldName].Contains("What long-term preservation"));
+            
 
         }
     }

@@ -80,6 +80,9 @@
     <Content Include="App_Data\StringTheory.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="App_Data\PDFStandards.PDF">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="App_Data\TemplateIndex\segments_2">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -96,6 +99,9 @@
     <Content Include="App_Data\VS2010CSharp.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="App_Data\UmbracoContour.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Examine.LuceneEngine\Examine.LuceneEngine.csproj">

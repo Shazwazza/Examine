@@ -39,6 +39,11 @@ namespace UmbracoExamine
 
 		#endregion
 
+        /// <summary>
+        /// initializes the searcher
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="config"></param>
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
