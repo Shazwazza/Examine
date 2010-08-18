@@ -16,6 +16,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine", "Examine.LuceneEngine\Examine.LuceneEngine.csproj", "{28AC6695-9501-46EC-92E9-22ADBAD35F2B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RELEASES", "RELEASES", "{0B88F075-AD5A-40FE-9EA5-DCE1C8B4C89F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RC3", "v1.0 RC3", "{8EE50174-D7B6-4A1E-9995-54417B1DE77C}"
+	ProjectSection(SolutionItems) = preProject
+		RELEASES\v1.0 RC3\readme.txt = RELEASES\v1.0 RC3\readme.txt
+		RELEASES\v1.0 RC3\v1.0 RC3.zip = RELEASES\v1.0 RC3\v1.0 RC3.zip
+		RELEASES\v1.0 RC3\web.config = RELEASES\v1.0 RC3\web.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 5
@@ -62,5 +71,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8EE50174-D7B6-4A1E-9995-54417B1DE77C} = {0B88F075-AD5A-40FE-9EA5-DCE1C8B4C89F}
 	EndGlobalSection
 EndGlobal
