@@ -61,6 +61,7 @@
     <Compile Include="..\Solution Items\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="CriteriaSearchTest.cs" />
     <Compile Include="DataServices\TestContentService.cs" />
     <Compile Include="DataServices\TestDataService.cs" />
     <Compile Include="DataServices\TestLogService.cs" />
