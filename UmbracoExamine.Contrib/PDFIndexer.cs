@@ -10,7 +10,7 @@ using iTextSharp.text.pdf;
 using System.Text;
 
 
-namespace UmbracoExamine
+namespace UmbracoExamine.Contrib
 {
     /// <summary>
     /// An Umbraco Lucene.Net indexer which will index the text content of a file

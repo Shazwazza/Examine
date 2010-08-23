@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using System.Diagnostics;
+using UmbracoExamine.Contrib;
 
 namespace Examine.Test
 {

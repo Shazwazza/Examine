@@ -13,13 +13,13 @@ namespace Examine.Test
     public class FluentApiTests
     {
         [TestMethod]
-        public void FluentApi_Find_Only_Media()
+        public void FluentApi_Find_Only_Image_Media()
         {
             //unfortunately there's no media in our index currently so we will re-index with some first
             m_Indexer.IndexAll(IndexTypes.Media);
 
             var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Media);
-            var filter = criteria.NodeTypeAlias("Image").Compile();
+            var filter = criteria.NodeTypeAlias("image").Compile();
 
             var results = m_Searcher.Search(filter);
 
@@ -51,7 +51,7 @@ namespace Examine.Test
 
             var results = m_Searcher.Search(filter);
 
-            Assert.IsTrue(results.TotalItemCount > 1);
+            Assert.AreEqual<int>(11, results.Count());
 
         }
 
