@@ -120,7 +120,6 @@
     <Compile Include="DataServices\UmbracoDataService.cs" />
     <Compile Include="DataServices\UmbracoContentService.cs" />
     <Compile Include="DataServices\UmbracoMediaService.cs" />
-    <Compile Include="PDFIndexer.cs" />
     <Compile Include="IndexTypes.cs" />
     <Compile Include="LegacyObjects.cs" />
     <Compile Include="MemberLuceneExamineIndexer.cs" />

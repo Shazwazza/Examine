@@ -25,9 +25,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RC3", "v1.0 RC3", "{8E
 		RELEASES\v1.0 RC3\web.config = RELEASES\v1.0 RC3\web.config
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Contrib", "UmbracoExamine.Contrib\UmbracoExamine.Contrib.csproj", "{AA5B7BD1-8D3A-4249-9A4C-2972E87C5CB6}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 5
+		SccNumberOfProjects = 6
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs05
 		SccLocalPath0 = .
@@ -43,6 +45,9 @@ Global
 		SccProjectUniqueName4 = Examine.LuceneEngine\\Examine.LuceneEngine.csproj
 		SccProjectName4 = Examine.LuceneEngine
 		SccLocalPath4 = Examine.LuceneEngine
+		SccProjectUniqueName5 = UmbracoExamine.Contrib\\UmbracoExamine.Contrib.csproj
+		SccProjectName5 = UmbracoExamine.Contrib
+		SccLocalPath5 = UmbracoExamine.Contrib
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
@@ -68,6 +73,10 @@ Global
 		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA5B7BD1-8D3A-4249-9A4C-2972E87C5CB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA5B7BD1-8D3A-4249-9A4C-2972E87C5CB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA5B7BD1-8D3A-4249-9A4C-2972E87C5CB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA5B7BD1-8D3A-4249-9A4C-2972E87C5CB6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -153,7 +153,7 @@ namespace UmbracoExamine
         /// <summary>
         /// Parses a PDF file and extracts the text from it.
         /// </summary>
-        public class PDFParser
+        internal class PDFParser
         {
 
             static PDFParser()

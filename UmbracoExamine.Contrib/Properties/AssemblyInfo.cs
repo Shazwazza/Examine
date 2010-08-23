@@ -5,10 +5,10 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LuceneExamine")]
+[assembly: AssemblyTitle("UmbracoExamine.Contrib")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyProduct("LuceneExamine")]
+[assembly: AssemblyProduct("UmbracoExamine.Contrib")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -17,8 +17,6 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("cf92dda5-2c8d-4f4a-b674-92b0c874137a")]
+[assembly: Guid("ff21e9ce-4f9e-4701-bb3e-9daedb2076e2")]
 
 
-[assembly: InternalsVisibleTo("Examine.Test")]
-[assembly: InternalsVisibleTo("UmbracoExamine")]
