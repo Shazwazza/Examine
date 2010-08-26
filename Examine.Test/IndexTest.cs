@@ -63,7 +63,7 @@ namespace Examine.Test
             //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
 
-            Assert.AreEqual(19, fields.Count());
+            Assert.AreEqual(20, fields.Count());
             //ensure there's 3 sorting fields
             Assert.AreEqual(3, fields.Where(x => x.StartsWith(UmbracoExamineIndexer.SortedFieldNamePrefix)).Count());
             //there should be 11 documents (10 content, 1 media)
@@ -73,6 +73,7 @@ namespace Examine.Test
             Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
             Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
             Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.IndexPathFieldName).Count());
+            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.NodeTyepAliasFieldName).Count());
 
         }
 
@@ -90,7 +91,7 @@ namespace Examine.Test
 
             //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API, not examine!
             var r = IndexReader.Open(s.GetIndexReader().Directory(), false);            
-            var contentTerm = new Term(UmbracoExamineIndexer.IndexTypeFieldName, IndexTypes.Content.ToLower());
+            var contentTerm = new Term(UmbracoExamineIndexer.IndexTypeFieldName, IndexTypes.Content);
             var delCount = r.DeleteDocuments(contentTerm);                        
             r.Commit();
             r.Close();

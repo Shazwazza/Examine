@@ -19,18 +19,19 @@ namespace Examine.Test
         public void Search_SimpleSearch()
         {
             var result = m_Searcher.Search("sam", false);
-            Assert.AreEqual(result.Count(), 4, "Results returned for 'sam' should be equal to 4 with the StandardAnalyzer");            
+            Assert.AreEqual<int>(5, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
         }
 
         [TestMethod]
         public void Search_SimpleSearchWithWildcard()
         {
             var result = m_Searcher.Search("umb", true);
-            Assert.AreEqual(result.Count(), 7, "Total results for 'umb' is 7 using wildcards");
+            Assert.AreEqual<int>(8, result.Count(), "Total results for 'umb' is 8 using wildcards");
         }
 
         private static IndexInitializer m_Init;
         private static ISearcher m_Searcher;
+        private static IIndexer m_Indexer;
 
         #region Initialize and Cleanup
 
@@ -39,6 +40,10 @@ namespace Examine.Test
         {
             m_Init = new IndexInitializer();
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
+            m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
+
+            //ensure we're re-indexed before testing
+            m_Indexer.RebuildIndex();
         }
 
         //[ClassCleanup()]

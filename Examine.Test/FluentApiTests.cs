@@ -12,11 +12,21 @@ namespace Examine.Test
     [TestClass]
     public class FluentApiTests
     {
+
+        [TestMethod]
+        public void FluentApi_Find_By_NodeTypeAlias()
+        {
+            var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
+            var filter = criteria.NodeTypeAlias("CWS_Home").Compile();
+
+            var results = m_Searcher.Search(filter);
+
+            Assert.IsTrue(results.TotalItemCount > 0);
+        }
+
         [TestMethod]
         public void FluentApi_Find_Only_Image_Media()
         {
-            //unfortunately there's no media in our index currently so we will re-index with some first
-            m_Indexer.IndexAll(IndexTypes.Media);
 
             var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Media);
             var filter = criteria.NodeTypeAlias("image").Compile();
@@ -29,25 +39,13 @@ namespace Examine.Test
 
         [TestMethod]
         public void FluentApi_Find_Both_Media_And_Content()
-        {
-            //unfortunately there's no media in our index currently so we will re-index with some first
-            m_Indexer.IndexAll(IndexTypes.Media);
-
+        {          
             var criteria = m_Searcher.CreateSearchCriteria(BooleanOperation.Or);
             var filter = criteria
-                .Field(UmbracoExamineIndexer.IndexTypeFieldName, "Media")
+                .Field(UmbracoExamineIndexer.IndexTypeFieldName, IndexTypes.Media)
                 .Or()
-                .Field(UmbracoExamineIndexer.IndexTypeFieldName, "Content")
+                .Field(UmbracoExamineIndexer.IndexTypeFieldName, IndexTypes.Content)
                 .Compile();
-
-            //var criteria = m_Searcher.CreateSearchCriteria(BooleanOperation.Or);
-            //var filter = criteria
-            //    .NodeTypeAlias("Image")
-            //    .Or()
-            //    .NodeTypeAlias("CWS".MultipleCharacterWildcard())
-            //    .Compile();
-
-
 
             var results = m_Searcher.Search(filter);
 
@@ -191,6 +189,9 @@ namespace Examine.Test
 
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
+
+            //ensure everything is rebuilt before testing
+            m_Indexer.RebuildIndex();
         }
 
         //[ClassCleanup()]

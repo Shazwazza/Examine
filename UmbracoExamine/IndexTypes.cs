@@ -5,11 +5,34 @@ using System.Text;
 
 namespace UmbracoExamine
 {
+    /// <summary>
+    /// The index types stored in the Lucene Index
+    /// </summary>
     public static class IndexTypes
     {
 
-        public const string Content = "Content";
-        public const string Media = "Media";
-        public const string Member = "Member";
+        /// <summary>
+        /// The content index type        
+        /// </summary>
+        /// <remarks>
+        /// Is lower case because the Standard Analyzer requires lower case
+        /// </remarks>
+        public const string Content = "content";
+
+        /// <summary>
+        /// The media index type        
+        /// </summary>
+        /// <remarks>
+        /// Is lower case because the Standard Analyzer requires lower case
+        /// </remarks>
+        public const string Media = "media";
+
+        /// <summary>
+        /// The member index type        
+        /// </summary>
+        /// <remarks>
+        /// Is lower case because the Standard Analyzer requires lower case
+        /// </remarks>
+        public const string Member = "member";
     }
 }

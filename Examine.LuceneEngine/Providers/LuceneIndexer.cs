@@ -878,7 +878,7 @@ namespace Examine.LuceneEngine.Providers
 				//we want to store the nodeId separately as it's the index
 				{IndexNodeIdFieldName, allValuesForIndexing[IndexNodeIdFieldName]},
 				//add the index type first
-				{IndexTypeFieldName, allValuesForIndexing[IndexTypeFieldName].ToLower()}
+				{IndexTypeFieldName, allValuesForIndexing[IndexTypeFieldName]}
 			};
 		}
 
@@ -1086,8 +1086,10 @@ namespace Examine.LuceneEngine.Providers
 			}
 
 			//ensure the special fields are added to the dictionary to be saved to file
-			if (!fields.ContainsKey(IndexNodeIdFieldName)) fields.Add(IndexNodeIdFieldName, nodeId.ToString());
-			if (!fields.ContainsKey(IndexTypeFieldName)) fields.Add(IndexTypeFieldName, type.ToString().ToLower());
+            if (!fields.ContainsKey(IndexNodeIdFieldName))
+                fields.Add(IndexNodeIdFieldName, nodeId.ToString());
+			if (!fields.ContainsKey(IndexTypeFieldName)) 
+                fields.Add(IndexTypeFieldName, type.ToString());
 
 			var fileName = Environment.MachineName + "-" + nodeId.ToString() + "-" + Guid.NewGuid().ToString("N");
 			FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
@@ -1112,7 +1114,9 @@ namespace Examine.LuceneEngine.Providers
 
 			foreach (var s in specialFields)
 			{
-				d.Add(new Field(s.Key, s.Value, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+                //TODO: we're going to lower case the special fields, the Standard analyzer query parser always lower cases, so 
+                //we need to do that... there might be a nicer way ?
+				d.Add(new Field(s.Key, s.Value.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
 			}
 		}
 

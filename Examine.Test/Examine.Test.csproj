@@ -37,6 +37,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="itextsharp, Version=5.0.2.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL" />
     <Reference Include="Lucene.Net, Version=2.9.2.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\Lucene.Net.dll</HintPath>
@@ -47,6 +48,8 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Abstractions" />
     <Reference Include="System.XML" />
@@ -75,6 +78,7 @@
     <Compile Include="ReIndexingTest.cs" />
     <Compile Include="SearchTest.cs" />
     <Compile Include="SimpleDataProviderTest.cs" />
+    <Compile Include="XsltExtensionsTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -112,10 +116,6 @@
     <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\UmbracoExamine.Contrib\UmbracoExamine.Contrib.csproj">
-      <Project>{AA5B7BD1-8D3A-4249-9A4C-2972E87C5CB6}</Project>
-      <Name>UmbracoExamine.Contrib</Name>
     </ProjectReference>
     <ProjectReference Include="..\UmbracoExamine\UmbracoExamine.csproj">
       <Project>{07FBC26B-2927-4A22-8D96-D644C667FECC}</Project>

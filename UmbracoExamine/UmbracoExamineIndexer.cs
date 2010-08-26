@@ -47,6 +47,7 @@ namespace UmbracoExamine
         /// Used to store the path of a content object
         /// </summary>
         public const string IndexPathFieldName = "__Path";
+        public const string NodeTyepAliasFieldName = "__NodeTypeAlias";
 
         /// <summary>
         /// A type that defines the type of index for each Umbraco field (non user defined fields)
@@ -69,9 +70,9 @@ namespace UmbracoExamine
                 { "updateDate", FieldIndexTypes.NOT_ANALYZED_NO_NORMS},
                 { "nodeName", FieldIndexTypes.ANALYZED},
                 { "urlName", FieldIndexTypes.NOT_ANALYZED},
-                { "writerName", FieldIndexTypes.NOT_ANALYZED},
-                { "creatorName", FieldIndexTypes.NOT_ANALYZED},
-                { "nodeTypeAlias", FieldIndexTypes.NOT_ANALYZED},
+                { "writerName", FieldIndexTypes.ANALYZED},
+                { "creatorName", FieldIndexTypes.ANALYZED},
+                { "nodeTypeAlias", FieldIndexTypes.ANALYZED},
                 { "path", FieldIndexTypes.NOT_ANALYZED}
             };
 
@@ -225,9 +226,15 @@ namespace UmbracoExamine
 
             base.OnGatheringNodeData(e);
 
-            //ensure the special path field is added to the dictionary to be saved to file
+            //ensure the special path and node type alis fields is added to the dictionary to be saved to file
             var path = e.Node.Attribute("path").Value;
-            if (!e.Fields.ContainsKey(IndexPathFieldName)) e.Fields.Add(IndexPathFieldName, path.ToLower());
+            if (!e.Fields.ContainsKey(IndexPathFieldName)) 
+                e.Fields.Add(IndexPathFieldName, path);
+            
+            //this needs to support both schemas so get the nodeTypeAlias if it exists, otherwise the name
+            var nodeTypeAlias = e.Node.Attribute("nodeTypeAlias") == null ? e.Node.Name.LocalName : e.Node.Attribute("nodeTypeAlias").Value;
+            if (!e.Fields.ContainsKey(NodeTyepAliasFieldName)) 
+                e.Fields.Add(NodeTyepAliasFieldName, nodeTypeAlias);
         }
 
         /// <summary>
@@ -253,7 +260,11 @@ namespace UmbracoExamine
             var fields = base.GetSpecialFieldsToIndex(allValuesForIndexing);
 
             //adds the special path property to the index
-            fields.Add(IndexPathFieldName, allValuesForIndexing[IndexPathFieldName].ToLower());
+            fields.Add(IndexPathFieldName, allValuesForIndexing[IndexPathFieldName]);
+
+            //adds the special node type alias property to the index
+            fields.Add(NodeTyepAliasFieldName, allValuesForIndexing[NodeTyepAliasFieldName]);
+
             return fields;
 
         }       

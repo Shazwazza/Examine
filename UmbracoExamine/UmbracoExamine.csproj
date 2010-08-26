@@ -124,6 +124,7 @@
     <Compile Include="LegacyObjects.cs" />
     <Compile Include="MemberLuceneExamineIndexer.cs" />
     <Compile Include="ContentExtensions.cs" />
+    <Compile Include="PDFIndexer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UmbracoExamineIndexer.cs" />
     <Compile Include="UmbracoExamineSearcher.cs" />

@@ -25,6 +25,41 @@ namespace Examine.LuceneEngine.SearchCriteria
         private readonly BooleanClause.Occur occurance;
         private readonly Lucene.Net.Util.Version luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
+        #region Field Name properties
+        private string _NodeTypeAliasField = "nodeTypeAlias";
+
+        /// <summary>
+        /// Defines the field name to use for the node type alias query
+        /// </summary>
+        public string NodeTypeAliasField
+        {
+            get { return _NodeTypeAliasField; }
+            set { _NodeTypeAliasField = value; }
+        }
+
+        private string _NodeNameField = "nodeName";
+
+        /// <summary>
+        /// Defines the field name to use for the node name query
+        /// </summary>
+        public string NodeNameField
+        {
+            get { return _NodeNameField; }
+            set { _NodeNameField = value; }
+        }
+
+        private string _ParentIdField = "parentID";
+
+        /// <summary>
+        /// Defines the field name to use for the parent id query
+        /// </summary>
+        public string ParentIdField
+        {
+            get { return _ParentIdField; }
+            set { _ParentIdField = value; }
+        } 
+        #endregion
+
         internal LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurance)
         {
             Enforcer.ArgumentNotNull(fields, "fields");
@@ -133,7 +168,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         internal protected IBooleanOperation NodeNameInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
         {
-            return this.FieldInternal("nodeName", examineValue, occurance);
+            return this.FieldInternal(NodeNameField, examineValue, occurance);
         }
 
         /// <summary>
@@ -143,7 +178,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation NodeTypeAlias(string nodeTypeAlias)
         {
-            Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
+            Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");            
             return this.NodeTypeAlias(new ExamineValue(Examineness.Explicit, nodeTypeAlias));
         }
 
@@ -160,7 +195,10 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         internal protected IBooleanOperation NodeTypeAliasInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
         {
-            return this.FieldInternal("nodeTypeAlias", examineValue, occurance);
+            //force lower case
+            var eVal = new ExamineValue(examineValue.Examineness, examineValue.Value.ToLower(), examineValue.Level);
+            //don't use the query parser for this operation, it needs to match exact
+            return this.FieldInternal(NodeTypeAliasField, eVal, occurance, false);
         }
 
         /// <summary>
@@ -175,7 +213,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         internal protected IBooleanOperation ParentIdInternal(int id, BooleanClause.Occur occurance)
         {
-            query.Add(this.queryParser.GetFieldQuery("parentID", id.ToString()), occurance);
+            query.Add(this.queryParser.GetFieldQuery(ParentIdField, id.ToString()), occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -211,25 +249,55 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="fieldValue"></param>
+        /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        internal protected Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue)
+        internal protected Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
             Query queryToAdd;
 
             switch (fieldValue.Examineness)
             {
                 case Examineness.Fuzzy:
-                    queryToAdd = this.queryParser.GetFuzzyQuery(fieldName, fieldValue.Value, fieldValue.Level);
+                    if (useQueryParser)
+                    {
+                        queryToAdd = this.queryParser.GetFuzzyQuery(fieldName, fieldValue.Value, fieldValue.Level);
+                    }
+                    else
+                    {
+                        //REFERENCE: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Fuzzy%20Searches
+                        var proxQuery = fieldName + ":" + fieldValue.Value + "~" + Convert.ToInt32(fieldValue.Level).ToString();
+                        queryToAdd = ParseRawQuery(proxQuery);
+                    }
                     break;
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
-                    queryToAdd = this.queryParser.GetWildcardQuery(fieldName, fieldValue.Value);
+                    if (useQueryParser)
+                    {
+                        queryToAdd = this.queryParser.GetWildcardQuery(fieldName, fieldValue.Value);
+                    }
+                    else
+                    {
+                        //this will already have a * or a . suffixed based on the extension methods
+                        //REFERENCE: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Wildcard%20Searches
+                        var proxQuery = fieldName + ":" + fieldValue.Value;
+                        queryToAdd = ParseRawQuery(proxQuery);
+                    }
                     break;
                 case Examineness.Boosted:
-                    queryToAdd = this.queryParser.GetFieldQuery(fieldName, fieldValue.Value);
-                    queryToAdd.SetBoost(fieldValue.Level);
+                    if (useQueryParser)
+                    {
+                        queryToAdd = this.queryParser.GetFieldQuery(fieldName, fieldValue.Value);
+                        queryToAdd.SetBoost(fieldValue.Level);
+                    }
+                    else
+                    {
+                        //REFERENCE: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Boosting%20a%20Term
+                        var proxQuery = fieldName + ":\"" + fieldValue.Value + "\"^" + Convert.ToInt32(fieldValue.Level).ToString();
+                        queryToAdd = ParseRawQuery(proxQuery);
+                    }
                     break;
                 case Examineness.Proximity:
+
                     //This is how you are supposed to do this based on this doc here:
                     //http://lucene.apache.org/java/2_4_1/api/org/apache/lucene/search/spans/package-summary.html#package_description
                     //but i think that lucene.net has an issue with it's internal parser since it parses to a very strange query
@@ -242,21 +310,58 @@ namespace Examine.LuceneEngine.SearchCriteria
                     //}
                     //queryToAdd = new SpanNearQuery(spans.ToArray(), Convert.ToInt32(fieldValue.Level), true);
 
-                    var proxQuery = fieldName + ":\"" + fieldValue.Value + "\"~" + Convert.ToInt32(fieldValue.Level).ToString();
-                    queryToAdd = queryParser.Parse(proxQuery);
-
+                    var qry = fieldName + ":\"" + fieldValue.Value + "\"~" + Convert.ToInt32(fieldValue.Level).ToString();
+                    if (useQueryParser)
+                    {                        
+                        queryToAdd = queryParser.Parse(qry); 
+                    }
+                    else
+                    {
+                        queryToAdd = ParseRawQuery(qry); 
+                    }
                     break;
                 case Examineness.Explicit:
                 default:
-                    queryToAdd = this.queryParser.GetFieldQuery(fieldName, fieldValue.Value);
+                    if (useQueryParser)
+                    {
+                        queryToAdd = this.queryParser.GetFieldQuery(fieldName, fieldValue.Value); 
+                    }
+                    else
+                    {
+                        //standard query 
+                        var proxQuery = fieldName + ":" + fieldValue.Value;
+                        queryToAdd = ParseRawQuery(proxQuery);
+                    }
                     break;
             }
             return queryToAdd;
         }
 
+        /// <summary>
+        /// This parses a raw query into a non-tokenized query.
+        /// not analyzing/tokenizing the search string
+        /// </summary>
+        /// <remarks>
+        /// Currently this is done by just using the keyword analyzer which doesn't parse special chars, whitespace, etc..
+        /// however there may be a better way to acheive this, or could manually parse into a boolean query
+        /// using TermQueries.
+        /// </remarks>
+        /// <param name="rawQuery"></param>
+        /// <returns></returns>
+        internal protected Query ParseRawQuery(string rawQuery)
+        {
+            var qry = new QueryParser(Lucene.Net.Util.Version.LUCENE_29, "", new KeywordAnalyzer());
+            return qry.Parse(rawQuery);
+        }
+
         internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
         {
-            Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue);            
+            return FieldInternal(fieldName, fieldValue, occurance, true);
+        }
+
+        internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance, bool useQueryParser)
+        {
+            Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);            
 
             if (queryToAdd != null)
                 query.Add(queryToAdd, occurance);
@@ -441,7 +546,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             var qry = new BooleanQuery();
             for (int i = 0; i < fields.Length; i++)
             {
-                qry.Add(this.GetFieldInternalQuery(fields[i], queryVals[i]), occurance);
+                qry.Add(this.GetFieldInternalQuery(fields[i], queryVals[i], true), occurance);
             }
 
             return qry;
@@ -495,7 +600,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             var qry = new BooleanQuery();
             for (int i = 0; i < fields.Length; i++)
             {
-                qry.Add(this.GetFieldInternalQuery(fields[i], queryVals[i]), flags[i]);
+                qry.Add(this.GetFieldInternalQuery(fields[i], queryVals[i], true), flags[i]);
             }
 
             this.query.Add(qry, occurance);
@@ -510,8 +615,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public ISearchCriteria RawQuery(string query)
         {
-            this.query.Add(this.queryParser.Parse(query), this.occurance);
-
+            this.query.Add(this.queryParser.Parse(query), this.occurance);            
             return this;
         }
 

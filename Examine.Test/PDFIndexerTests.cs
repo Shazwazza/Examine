@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using System.Diagnostics;
-using UmbracoExamine.Contrib;
 
 namespace Examine.Test
 {
@@ -54,7 +53,7 @@ namespace Examine.Test
 
             Trace.Write("Num docs = " + r.NumDocs().ToString());
 
-            Assert.AreEqual<int>(5, r.NumDocs());
+            Assert.AreEqual<int>(7, r.NumDocs());
 
             //search the pdf content to ensure it's there
             Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1113).Compile()).Single()
