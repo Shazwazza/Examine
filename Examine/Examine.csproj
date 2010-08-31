@@ -104,6 +104,7 @@
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />
+    <Compile Include="SearchCriteria\DateResolution.cs" />
     <Compile Include="SearchCriteria\IBooleanOperation.cs" />
     <Compile Include="SearchCriteria\IQuery.cs" />
     <Compile Include="SearchCriteria\ISearchCriteria.cs" />

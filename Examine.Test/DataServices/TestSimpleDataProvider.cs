@@ -55,11 +55,12 @@ namespace Examine.Test.DataServices
                     {
                         NodeDefinition = new IndexedNode() { NodeId = (++m_CurrentId), Type = "Pictures" },
                         RowData = new Dictionary<string, string>() 
-                {
-                        { "Title", Guid.NewGuid().ToString()},
-                        { "Photographer", Guid.NewGuid().ToString()}
-                    }
-                    }; 
+                        {
+                            { "Title", Guid.NewGuid().ToString()},
+                            { "Photographer", Guid.NewGuid().ToString()},
+                            { "YearCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}
+                        }
+                    };
             }
         }
 
@@ -78,7 +79,9 @@ namespace Examine.Test.DataServices
                     RowData = new Dictionary<string, string>() 
                     {
                             { "Author", Guid.NewGuid().ToString()},
-                            { "DateCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}
+                            { "DateCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "YearCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "SomeNumber", new Random().Next(1, 100).ToString()}
                     }
                 };
             }

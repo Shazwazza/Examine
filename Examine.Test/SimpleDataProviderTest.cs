@@ -29,7 +29,7 @@ namespace Examine.Test
             //there's 7 fields in the index, but 1 sorted fields, 2 are special fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
 
-            Assert.AreEqual(7, fields.Count());
+            Assert.AreEqual(9, fields.Count());
             
             //there should be 5 documents (2 Documents, 3 Pictures)
             Assert.AreEqual(5, r.NumDocs());
@@ -65,6 +65,19 @@ namespace Examine.Test
                         
         }
 
+        [TestMethod]
+        public void SimpleDataProviderTest_Range_Search_On_Year()
+        {
+            //Arrange
+            SimpleData_RebuildIndex();
+            var s = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"];
 
+            //Act
+            var query = s.CreateSearchCriteria().Range("YearCreated", DateTime.Now.AddYears(-1), DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
+            var results = s.Search(query);
+
+            //Assert
+            Assert.AreEqual(5, results.TotalItemCount);
+        }
     }
 }

@@ -350,7 +350,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         internal protected Query ParseRawQuery(string rawQuery)
         {
-            var qry = new QueryParser(Lucene.Net.Util.Version.LUCENE_29, "", new KeywordAnalyzer());
+            var qry = new QueryParser(luceneVersion, "", new KeywordAnalyzer());
             return qry.Parse(rawQuery);
         }
 
@@ -369,15 +369,73 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneBooleanOperation(this);
         }
 
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <returns></returns>
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end)
         {
             return this.Range(fieldName, start, end, true, true);
         }
 
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <returns></returns>
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
         {
+            return this.Range(fieldName, start, end, true, true, DateResolution.Millisecond);
+        }
+
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <param name="resolution">The resolution.</param>
+        /// <returns></returns>
+        public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper, DateResolution resolution)
+        {
+            //By specifying the resolution we can do more accurate range searching on date fields
+            DateTools.Resolution luceneResolution;
+            switch (resolution)
+            {
+                case DateResolution.Year:
+                    luceneResolution = DateTools.Resolution.YEAR;
+                    break;
+                case DateResolution.Month:
+                    luceneResolution = DateTools.Resolution.MONTH;
+                    break;
+                case DateResolution.Day:
+                    luceneResolution = DateTools.Resolution.DAY;
+                    break;
+                case DateResolution.Hour:
+                    luceneResolution = DateTools.Resolution.HOUR;
+                    break;
+                case DateResolution.Minute:
+                    luceneResolution = DateTools.Resolution.MINUTE;
+                    break;
+                case DateResolution.Second:
+                    luceneResolution = DateTools.Resolution.SECOND;
+                    break;
+                case DateResolution.Millisecond:
+                default:
+                    luceneResolution = DateTools.Resolution.MILLISECOND;
+                    break;
+            }
             //since lucene works on string's for all searching we need to flatten the date
-            return this.RangeInternal(fieldName, DateTools.DateToString(start, DateTools.Resolution.MILLISECOND), DateTools.DateToString(end, DateTools.Resolution.MILLISECOND), includeLower, includeUpper, occurance);
+            return this.RangeInternal(fieldName, DateTools.DateToString(start, luceneResolution), DateTools.DateToString(end, luceneResolution), includeLower, includeUpper, occurance);
         }
 
         public IBooleanOperation Range(string fieldName, int start, int end)

@@ -72,7 +72,7 @@ namespace Examine.SearchCriteria
         /// <returns></returns>
         IBooleanOperation Range(string fieldName, DateTime lower, DateTime upper);
         /// <summary>
-        /// Query on a specified field using a date range
+        /// Query on a specified field using a date range using a default <see cref="DateResolution"/> of DateResolution.Millisecond
         /// </summary>
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="lower">The lower.</param>
@@ -81,6 +81,17 @@ namespace Examine.SearchCriteria
         /// <param name="includeUpper">if set to <c>true</c> the upper.</param>
         /// <returns></returns>
         IBooleanOperation Range(string fieldName, DateTime lower, DateTime upper, bool includeLower, bool includeUpper);
+        /// <summary>
+        /// Query on a specified field using a date range using the specified date resolution
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="lower">The lower.</param>
+        /// <param name="upper">The upper.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <param name="resolution">The resolution of the date field.</param>
+        /// <returns></returns>
+        IBooleanOperation Range(string fieldName, DateTime lower, DateTime upper, bool includeLower, bool includeUpper, DateResolution resolution);
         /// <summary>
         /// Query on a specified field using an int range
         /// </summary>

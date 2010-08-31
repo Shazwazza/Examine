@@ -105,8 +105,15 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="end">The end.</param>
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        /// <returns>
+        /// A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended
+        /// </returns>
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
+        {
+            return this.Range(fieldName, start, end, includeLower, includeUpper, DateResolution.Millisecond);
+        }
+
+        public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper, DateResolution resolution)
         {
             return this.search.Range(fieldName, start, end, includeLower, includeUpper);
         }

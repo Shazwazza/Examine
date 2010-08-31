@@ -34,6 +34,19 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
+        [ConfigurationProperty("Type", IsRequired = false, DefaultValue="String")]
+        public string Type
+        {
+            get
+            {
+                return (string)this["Type"];
+            }
+            set
+            {
+                this["Type"] = value;
+            }
+        }
+
         public override bool Equals(object compareTo)
         {
             if (compareTo is IndexField)
