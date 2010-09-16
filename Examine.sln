@@ -14,8 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine\Examine.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.LuceneEngine", "Examine.LuceneEngine\Examine.LuceneEngine.csproj", "{28AC6695-9501-46EC-92E9-22ADBAD35F2B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RELEASES", "RELEASES", "{0B88F075-AD5A-40FE-9EA5-DCE1C8B4C89F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RC3", "v1.0 RC3", "{8EE50174-D7B6-4A1E-9995-54417B1DE77C}"
@@ -27,7 +25,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RC3", "v1.0 RC3", "{8E
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 5
+		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs05
 		SccLocalPath0 = .
@@ -40,9 +38,6 @@ Global
 		SccProjectUniqueName3 = Examine.Test\\Examine.Test.csproj
 		SccProjectName3 = Examine.Test
 		SccLocalPath3 = Examine.Test
-		SccProjectUniqueName4 = Examine.LuceneEngine\\Examine.LuceneEngine.csproj
-		SccProjectName4 = Examine.LuceneEngine
-		SccLocalPath4 = Examine.LuceneEngine
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
@@ -64,10 +59,6 @@ Global
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.Build.0 = Release|Any CPU
-		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28AC6695-9501-46EC-92E9-22ADBAD35F2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

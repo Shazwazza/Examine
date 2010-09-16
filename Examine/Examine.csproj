@@ -71,6 +71,9 @@
     <AssemblyOriginatorKeyFile>..\Solution Items\TheFARM-Public.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Lucene.Net">
+      <HintPath>..\DLLs\Lucene.Net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -103,6 +106,32 @@
     <Compile Include="IIndexer.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
+    <Compile Include="LuceneEngine\AllHitsCollector.cs" />
+    <Compile Include="LuceneEngine\Config\ExamineLuceneIndexes.cs" />
+    <Compile Include="LuceneEngine\Config\IndexField.cs" />
+    <Compile Include="LuceneEngine\Config\IndexFieldCollection.cs" />
+    <Compile Include="LuceneEngine\Config\IndexFieldCollectionExtensions.cs" />
+    <Compile Include="LuceneEngine\Config\IndexSet.cs" />
+    <Compile Include="LuceneEngine\Config\IndexSetCollection.cs" />
+    <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
+    <Compile Include="LuceneEngine\ExamineXmlExtensions.cs" />
+    <Compile Include="LuceneEngine\FieldIndexTypes.cs" />
+    <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
+    <Compile Include="LuceneEngine\IndexerExecutive.cs" />
+    <Compile Include="LuceneEngine\IndexerExecutiveAssignedEventArgs.cs" />
+    <Compile Include="LuceneEngine\ISimpleDataService.cs" />
+    <Compile Include="LuceneEngine\Providers\LuceneIndexer.cs" />
+    <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
+    <Compile Include="LuceneEngine\Providers\SimpleDataIndexer.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LuceneBooleanOperation.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchExtensions.cs" />
+    <Compile Include="LuceneEngine\SearchResults.cs" />
+    <Compile Include="LuceneEngine\SerializableDictionary.cs" />
+    <Compile Include="LuceneEngine\SerializableDictionaryExtensions.cs" />
+    <Compile Include="LuceneEngine\SimpleDataSet.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />
     <Compile Include="SearchCriteria\DateResolution.cs" />
     <Compile Include="SearchCriteria\IBooleanOperation.cs" />
