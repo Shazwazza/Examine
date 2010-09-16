@@ -117,6 +117,10 @@
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
     </ProjectReference>
+    <ProjectReference Include="..\UmbracoExamine.PDF\UmbracoExamine.PDF.csproj">
+      <Project>{F30DDDB8-3994-4673-82AE-057123C6E1A8}</Project>
+      <Name>UmbracoExamine.PDF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\UmbracoExamine\UmbracoExamine.csproj">
       <Project>{07FBC26B-2927-4A22-8D96-D644C667FECC}</Project>
       <Name>UmbracoExamine</Name>
