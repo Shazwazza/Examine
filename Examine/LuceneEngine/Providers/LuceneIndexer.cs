@@ -789,7 +789,6 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
@@ -848,25 +847,37 @@ namespace Examine.LuceneEngine.Providers
                         //Currently we're just pretending it's a string
                         IndexField indexField = indexedFields.First();
                         Fieldable field = null;
+                        object parsedVal = null;
                         switch (indexField.Type.ToUpper())
                         {
                             case "NUMBER":
                             case "INT":
-                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(x.Value));
+                                if (!TryParse<int>(x.Value, out parsedVal))
+                                    break;
+                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue((int)parsedVal);
                                 break;
                             case "FLOAT":
-                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetFloatValue(float.Parse(x.Value));
+                                if (!TryParse<float>(x.Value, out parsedVal))
+                                    break;
+                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetFloatValue((float)parsedVal);
                                 break;
                             case "DOUBLE":
-                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetDoubleValue(double.Parse(x.Value));
+                                if (!TryParse<double>(x.Value, out parsedVal))
+                                    break;
+                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetDoubleValue((double)parsedVal);
                                 break;
                             case "LONG":
-                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue(long.Parse(x.Value));
+                                if (!TryParse<long>(x.Value, out parsedVal))
+                                    break;
+                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue((long)parsedVal);
                                 break;
                             case "DATE":
                             case "DATETIME":
                                 {
-                                    DateTime date = DateTime.Parse(x.Value);
+                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                        break;
+
+                                    DateTime date = (DateTime)parsedVal;
                                     string dateAsString = DateTools.DateToString(date, DateTools.Resolution.MILLISECOND);
                                     //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue(long.Parse(dateAsString));
                                     field =
@@ -881,7 +892,10 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.YEAR":
                                 {
-                                    DateTime date = DateTime.Parse(x.Value);
+                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                        break;
+
+                                    DateTime date = (DateTime)parsedVal;
                                     string dateAsString = DateTools.DateToString(date, DateTools.Resolution.YEAR);
                                     //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
                                     field =
@@ -896,7 +910,10 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.MONTH":
                                 {
-                                    DateTime date = DateTime.Parse(x.Value);
+                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                        break;
+
+                                    DateTime date = (DateTime)parsedVal;
                                     string dateAsString = DateTools.DateToString(date, DateTools.Resolution.MONTH);
                                     //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
                                     field =
@@ -911,7 +928,10 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.DAY":
                                 {
-                                    DateTime date = DateTime.Parse(x.Value);
+                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                        break;
+
+                                    DateTime date = (DateTime)parsedVal;
                                     string dateAsString = DateTools.DateToString(date, DateTools.Resolution.DAY);
                                     //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
                                     field =
@@ -925,7 +945,10 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.HOUR":
                                 {
-                                    DateTime date = DateTime.Parse(x.Value);
+                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                        break;
+
+                                    DateTime date = (DateTime)parsedVal;
                                     string dateAsString = DateTools.DateToString(date, DateTools.Resolution.HOUR);
                                     //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
                                     field =
@@ -939,7 +962,10 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.MINUTE":
                                 {
-                                    DateTime date = DateTime.Parse(x.Value);
+                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                        break;
+
+                                    DateTime date = (DateTime)parsedVal;
                                     string dateAsString = DateTools.DateToString(date, DateTools.Resolution.MINUTE);
                                     //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
                                     field =
@@ -961,17 +987,27 @@ namespace Examine.LuceneEngine.Providers
                                     );
                                 break;
                         }
-                        d.Add(field);
 
-                        if (indexField.EnableSorting)
+                        //if the parsed value is null, this means it couldn't parse and we should log this error
+                        if (field == null)
                         {
-                            d.Add(new Field(SortedFieldNamePrefix + x.Key,
-                                    x.Value,
-                                    Field.Store.YES,
-                                    Field.Index.NOT_ANALYZED,
-                                    Field.TermVector.NO
-                                    ));
+                            OnIndexingError(new IndexingErrorEventArgs("Could not parse value: " + x.Value + "into the type: " + indexField.Type, nodeId, null));
                         }
+                        else
+                        {
+                            d.Add(field);
+
+                            if (indexField.EnableSorting)
+                            {
+                                d.Add(new Field(SortedFieldNamePrefix + x.Key,
+                                        x.Value,
+                                        Field.Store.YES,
+                                        Field.Index.NOT_ANALYZED,
+                                        Field.TermVector.NO
+                                        ));
+                            }
+                        }
+                        
                     }
                 }
             }
@@ -1230,6 +1266,47 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Private
+
+        /// <summary>
+        /// Tries to parse a type using the Type's parse method
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="val"></param>
+        /// <param name="parsedVal"></param>
+        /// <returns></returns>
+        private bool TryParse<T>(string val, out object parsedVal)
+            where T : struct
+        {
+            var method = typeof(T).GetMethods()
+                .Where(x => x.Name == "Parse")
+                .Where(x =>
+                {
+                    var p = x.GetParameters();
+                    if (p.Count() != 1)
+                        return false;
+                    if (typeof(string).IsAssignableFrom(p.First().ParameterType))
+                        return true;
+                    return false;
+                }).Single();
+            if (method == null)
+            {
+                throw new InvalidOperationException("Cannot parse a string to a Type that doesn't support a Parse method");
+            }
+            var objType = Activator.CreateInstance<T>();
+
+            try
+            {
+                var value = method.Invoke(objType, new object[] { val });
+                parsedVal = (T)value;
+                return true;
+            }
+            catch (Exception)
+            {
+                parsedVal = null;
+                return false;
+            }
+
+        }
 
         /// <summary>
         /// Adds 'special' fields to the Lucene index for use internally.

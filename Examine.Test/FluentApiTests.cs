@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using Examine.SearchCriteria;
 using Examine.LuceneEngine.SearchCriteria;
+using System.Threading;
 
 namespace Examine.Test
 {
@@ -174,6 +175,123 @@ namespace Examine.Test
 
             ////Assert
             Assert.IsTrue(results.TotalItemCount > 0);
+        }
+
+        [TestMethod]
+        public void FluentApiTests_Cws_TextPage_OrderedByNodeName()
+        {
+            //re-index since the demo index is old
+            m_Indexer.RebuildIndex();
+
+            var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
+            IBooleanOperation query = criteria.NodeTypeAlias("cws_textpage");
+            query = query.And().OrderBy("nodeName");
+            var sCriteria = query.Compile();
+            Console.WriteLine(sCriteria.ToString());
+            var results = m_Searcher.Search(sCriteria);
+
+            criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
+            IBooleanOperation query2 = criteria.NodeTypeAlias("cws_textpage");
+            query2 = query2.And().OrderByDescending("nodeName");
+            var sCriteria2 = query2.Compile();
+            Console.WriteLine(sCriteria2.ToString());
+            var results2 = m_Searcher.Search(sCriteria2);
+
+            Assert.AreNotEqual(results.First().Id, results2.First().Id);
+
+        }
+
+        /// <summary>
+        /// Test range query with a DateTime structure
+        /// </summary>
+        [TestMethod]
+        public void FluentApiTests_Date_Range_SimpleIndexSet()
+        {
+            
+            ////Arrange
+            var searcher = ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"]; //use simple index 
+            var indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"]; //use simple index 
+            //rebuild now            
+            var now = DateTime.Now;
+            Thread.Sleep(1000);
+            indexer.RebuildIndex();
+            Thread.Sleep(5000);
+
+            //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
+            var criteria = m_Searcher.CreateSearchCriteria();
+            var filter = criteria.Range("DateCreated", now, DateTime.Now).Compile();
+
+            var criteriaNotFound = m_Searcher.CreateSearchCriteria();
+            var filterNotFound = criteriaNotFound.Range("DateCreated", now.AddDays(-1), now.AddSeconds(-1)).Compile();
+            
+            ////Act
+            var results = searcher.Search(filter);
+            var resultsNotFound = searcher.Search(filterNotFound);
+
+            ////Assert
+            Assert.IsTrue(results.TotalItemCount > 0);
+            Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
+        }
+
+        /// <summary>
+        /// test range query with a Date.Year structure
+        /// </summary>
+        [TestMethod]
+        public void FluentApiTests_Date_Range_Year_SimpleIndexSet()
+        {
+
+            ////Arrange
+            var searcher = ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"]; //use simple index 
+            var indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"]; //use simple index 
+            
+            //rebuild now            
+            var now = DateTime.Now;            
+            indexer.RebuildIndex();
+
+            //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
+            var criteria = m_Searcher.CreateSearchCriteria();
+            var filter = criteria.Range("YearCreated", now.Year, DateTime.Now.Year).Compile();
+
+            var criteriaNotFound = m_Searcher.CreateSearchCriteria();
+            var filterNotFound = criteriaNotFound.Range("YearCreated", 2008, 2009).Compile();
+
+            ////Act
+            var results = searcher.Search(filter);
+            var resultsNotFound = searcher.Search(filterNotFound);
+
+            ////Assert
+            Assert.IsTrue(results.TotalItemCount > 0);
+            Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
+        }
+
+        /// <summary>
+        /// test range query with a Date.Year structure
+        /// </summary>
+        [TestMethod]
+        public void FluentApiTests_Number_Range_SimpleIndexSet()
+        {
+
+            ////Arrange
+            var searcher = ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"]; //use simple index 
+            var indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"]; //use simple index 
+
+            //rebuild now            
+            indexer.RebuildIndex();
+
+            //all numbers should be between 0 and 100 based on the data source
+            var criteria = m_Searcher.CreateSearchCriteria();            
+            var filter = criteria.Range("SomeNumber", 0, 100).Compile();
+
+            var criteriaNotFound = m_Searcher.CreateSearchCriteria();
+            var filterNotFound = criteriaNotFound.Range("SomeNumber", 101, 200).Compile();
+
+            ////Act
+            var results = searcher.Search(filter);
+            var resultsNotFound = searcher.Search(filterNotFound);
+
+            ////Assert
+            Assert.IsTrue(results.TotalItemCount > 0);
+            Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
         }
 
         private static IndexInitializer m_Init;
