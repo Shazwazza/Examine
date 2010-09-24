@@ -58,7 +58,11 @@ namespace Examine.Test.DataServices
                         {
                             { "Title", Guid.NewGuid().ToString()},
                             { "Photographer", Guid.NewGuid().ToString()},
-                            { "YearCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}
+                            { "YearCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "MonthCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "DayCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "HourCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "MinuteCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
                         }
                     };
             }
@@ -81,7 +85,14 @@ namespace Examine.Test.DataServices
                             { "Author", Guid.NewGuid().ToString()},
                             { "DateCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
                             { "YearCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
-                            { "SomeNumber", new Random().Next(1, 100).ToString()}
+                            { "MonthCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "DayCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "HourCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "MinuteCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "SomeNumber", new Random().Next(1, 100).ToString()},
+                            { "SomeFloat", new Random().Next(1, 100).ToString()},
+                            { "SomeDouble", new Random().Next(1, 100).ToString()},
+                            { "SomeLong", new Random().Next(1, 100).ToString()},
                     }
                 };
             }

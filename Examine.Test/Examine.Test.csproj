@@ -71,6 +71,7 @@
     <Compile Include="DataServices\TestLogService.cs" />
     <Compile Include="DataServices\TestMediaService.cs" />
     <Compile Include="DataServices\TestSimpleDataProvider.cs" />
+    <Compile Include="DataTypeTests.cs" />
     <Compile Include="PDFIndexerTests.cs" />
     <Compile Include="FluentApiTests.cs" />
     <Compile Include="IndexInitializer.cs" />
