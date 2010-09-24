@@ -29,7 +29,7 @@ namespace Examine.Test
             //there's 7 fields in the index, but 1 sorted fields, 2 are special fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
 
-            Assert.AreEqual(9, fields.Count());
+            Assert.AreEqual(16, fields.Count());
             
             //there should be 5 documents (2 Documents, 3 Pictures)
             Assert.AreEqual(5, r.NumDocs());

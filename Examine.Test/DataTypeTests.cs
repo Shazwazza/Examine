@@ -14,20 +14,15 @@ namespace Examine.Test
         /// Test range query with a DateTime structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Date_Range_SimpleIndexSet()
+        public void DataTypesTests_Date_Range_SimpleIndexSet()
         {
             ////Arrange
-            //rebuild now            
-            var now = DateTime.Now;
-            Thread.Sleep(1000);
-            m_Indexer.RebuildIndex();
-            Thread.Sleep(5000);
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("DateCreated", now, DateTime.Now).Compile();
+            var filter = criteria.Range("DateCreated", m_ReIndexDateTime, DateTime.Now, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("DateCreated", now.AddDays(-1), now.AddSeconds(-1)).Compile();
+            var filterNotFound = criteriaNotFound.Range("DateCreated", m_ReIndexDateTime.AddDays(-1), m_ReIndexDateTime.AddSeconds(-1), true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -42,20 +37,15 @@ namespace Examine.Test
         /// test range query with a Date.Year structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Date_Range_Year_SimpleIndexSet()
+        public void DataTypesTests_Date_Range_Year_SimpleIndexSet()
         {
             ////Arrange
-            //rebuild now            
-            var now = DateTime.Now;
-            Thread.Sleep(1000);
-            m_Indexer.RebuildIndex();
-            Thread.Sleep(5000);
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("YearCreated", now.Year, DateTime.Now.Year).Compile();
+            var filter = criteria.Range("YearCreated", m_ReIndexDateTime.AddYears(-1), DateTime.Now, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("YearCreated", 2008, 2009).Compile();
+            var filterNotFound = criteriaNotFound.Range("YearCreated", DateTime.Now.AddYears(-2), DateTime.Now.AddYears(-1), true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -70,20 +60,15 @@ namespace Examine.Test
         /// test range query with a Date.Month structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Date_Range_Month_SimpleIndexSet()
+        public void DataTypesTests_Date_Range_Month_SimpleIndexSet()
         {
             ////Arrange
-            //rebuild now            
-            var now = DateTime.Now;
-            Thread.Sleep(1000);
-            m_Indexer.RebuildIndex();
-            Thread.Sleep(5000);
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("MonthCreated", now.Month, DateTime.Now.Month).Compile();
+            var filter = criteria.Range("MonthCreated", m_ReIndexDateTime.AddMonths(-1), DateTime.Now, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("MonthCreated", now.Month - 2, now.Month - 1).Compile();
+            var filterNotFound = criteriaNotFound.Range("MonthCreated", m_ReIndexDateTime.AddMonths(-2), m_ReIndexDateTime.AddMonths(-1), true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -98,20 +83,15 @@ namespace Examine.Test
         /// test range query with a Date.Day structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Date_Range_Day_SimpleIndexSet()
+        public void DataTypesTests_Date_Range_Day_SimpleIndexSet()
         {
             ////Arrange
-            //rebuild now            
-            var now = DateTime.Now;
-            Thread.Sleep(1000);
-            m_Indexer.RebuildIndex();
-            Thread.Sleep(5000);
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("DayCreated", now.Day, DateTime.Now.Day).Compile();
+            var filter = criteria.Range("DayCreated", m_ReIndexDateTime.AddDays(-1), DateTime.Now, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("DayCreated", now.Day - 2, now.Day - 1).Compile();
+            var filterNotFound = criteriaNotFound.Range("DayCreated", m_ReIndexDateTime.AddDays(-2), m_ReIndexDateTime.AddDays(-1), true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -126,20 +106,15 @@ namespace Examine.Test
         /// test range query with a Date.Hour structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Date_Range_Hour_SimpleIndexSet()
+        public void DataTypesTests_Date_Range_Hour_SimpleIndexSet()
         {
             ////Arrange
-            //rebuild now            
-            var now = DateTime.Now;
-            Thread.Sleep(1000);
-            m_Indexer.RebuildIndex();
-            Thread.Sleep(5000);
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("HourCreated", now.Hour, DateTime.Now.Hour).Compile();
+            var filter = criteria.Range("HourCreated", m_ReIndexDateTime.AddHours(-1), DateTime.Now, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("HourCreated", now.Hour - 2, now.Hour - 1).Compile();
+            var filterNotFound = criteriaNotFound.Range("HourCreated", m_ReIndexDateTime.AddHours(-2), m_ReIndexDateTime.AddHours(-1), true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -154,20 +129,15 @@ namespace Examine.Test
         /// test range query with a Date.Minute structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Date_Range_Minute_SimpleIndexSet()
+        public void DataTypesTests_Date_Range_Minute_SimpleIndexSet()
         {
             ////Arrange
-            //rebuild now            
-            var now = DateTime.Now;
-            Thread.Sleep(1000);
-            m_Indexer.RebuildIndex();
-            Thread.Sleep(5000);
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("MinuteCreated", now.Hour, DateTime.Now.Hour).Compile();
+            var filter = criteria.Range("MinuteCreated", m_ReIndexDateTime.AddMinutes(-1), DateTime.Now, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("MinuteCreated", now.Hour - 2, now.Hour - 1).Compile();
+            var filterNotFound = criteriaNotFound.Range("MinuteCreated", m_ReIndexDateTime.AddMinutes(-20), m_ReIndexDateTime.AddSeconds(-1), true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -183,19 +153,16 @@ namespace Examine.Test
         /// test range query with a Number structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Number_Range_SimpleIndexSet()
+        public void DataTypesTests_Number_Range_SimpleIndexSet()
         {
 
             ////Arrange
-            //rebuild now            
-            //m_Indexer.RebuildIndex();
-
             //all numbers should be between 0 and 100 based on the data source
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeNumber", 0, 100).Compile();
+            var filter = criteria.Range("SomeNumber", 0, 100, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeNumber", 101, 200).Compile();
+            var filterNotFound = criteriaNotFound.Range("SomeNumber", 101, 200, true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -210,18 +177,16 @@ namespace Examine.Test
         /// test range query with a Float structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Float_Range_SimpleIndexSet()
+        public void DataTypesTests_Float_Range_SimpleIndexSet()
         {
             ////Arrange            
-            //rebuild now            
-            //m_Indexer.RebuildIndex();
 
             //all numbers should be between 0 and 100 based on the data source
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeFloat", 0, 100).Compile();
+            var filter = criteria.Range("SomeFloat", 0, 100, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeFloat", 101, 200).Compile();
+            var filterNotFound = criteriaNotFound.Range("SomeFloat", 101, 200, true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -236,18 +201,16 @@ namespace Examine.Test
         /// test range query with a Double structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Double_Range_SimpleIndexSet()
+        public void DataTypesTests_Double_Range_SimpleIndexSet()
         {
             ////Arrange            
-            //rebuild now            
-            //m_Indexer.RebuildIndex();
 
             //all numbers should be between 0 and 100 based on the data source
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeDouble", 0, 100).Compile();
+            var filter = criteria.Range("SomeDouble", 0, 100, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeDouble", 101, 200).Compile();
+            var filterNotFound = criteriaNotFound.Range("SomeDouble", 101, 200, true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -262,18 +225,16 @@ namespace Examine.Test
         /// test range query with a Double structure
         /// </summary>
         [TestMethod]
-        public void FluentApiTests_Long_Range_SimpleIndexSet()
+        public void DataTypesTests_Long_Range_SimpleIndexSet()
         {
             ////Arrange            
-            //rebuild now            
-            //m_Indexer.RebuildIndex();
 
             //all numbers should be between 0 and 100 based on the data source
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeLong", 0, 100).Compile();
+            var filter = criteria.Range("SomeLong", 0, 100, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeLong", 101, 200).Compile();
+            var filterNotFound = criteriaNotFound.Range("SomeLong", 101, 200, true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -287,6 +248,7 @@ namespace Examine.Test
         private static IndexInitializer m_Init;
         private static ISearcher m_Searcher;
         private static IIndexer m_Indexer;
+        private static DateTime m_ReIndexDateTime;
 
         [TestInitialize()]
         public void Initialize()
@@ -297,7 +259,10 @@ namespace Examine.Test
             m_Indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"];
 
             //ensure everything is rebuilt before testing
+            m_ReIndexDateTime = DateTime.Now;
+            Thread.Sleep(1000);
             m_Indexer.RebuildIndex();
+            Thread.Sleep(1000);
         }
     }
 }
