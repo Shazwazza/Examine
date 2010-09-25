@@ -455,6 +455,54 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneBooleanOperation(this);
         }
 
+        public IBooleanOperation Range(string fieldName, double lower, double upper)
+        {
+            return this.Range(fieldName, lower, upper, true, true);
+        }
+
+        public IBooleanOperation Range(string fieldName, double lower, double upper, bool includeLower, bool includeUpper)
+        {
+            return this.RangeInternal(fieldName, lower, upper, includeLower, includeUpper, occurance);
+        }
+
+        protected internal IBooleanOperation RangeInternal(string fieldName, double lower, double upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        {
+            query.Add(NumericRangeQuery.NewDoubleRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
+            return new LuceneBooleanOperation(this);
+        }
+
+        public IBooleanOperation Range(string fieldName, float lower, float upper)
+        {
+            return this.Range(fieldName, lower, upper, true, true);
+        }
+
+        public IBooleanOperation Range(string fieldName, float lower, float upper, bool includeLower, bool includeUpper)
+        {
+            return this.RangeInternal(fieldName, lower, upper, includeLower, includeUpper, occurance);
+        }
+
+        protected internal IBooleanOperation RangeInternal(string fieldName, float lower, float upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        {
+            query.Add(NumericRangeQuery.NewFloatRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
+            return new LuceneBooleanOperation(this);
+        }
+
+        public IBooleanOperation Range(string fieldName, long lower, long upper)
+        {
+            return this.Range(fieldName, lower, upper, true, true);
+        }
+
+        public IBooleanOperation Range(string fieldName, long lower, long upper, bool includeLower, bool includeUpper)
+        {
+            return this.RangeInternal(fieldName, lower, upper, includeLower, includeUpper, occurance);
+        }
+
+        protected internal IBooleanOperation RangeInternal(string fieldName, long lower, long upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        {
+            query.Add(NumericRangeQuery.NewLongRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
+            return new LuceneBooleanOperation(this);
+        }
+
         public IBooleanOperation Range(string fieldName, string start, string end)
         {
             Enforcer.ArgumentNotNull(fieldName, "fieldName");

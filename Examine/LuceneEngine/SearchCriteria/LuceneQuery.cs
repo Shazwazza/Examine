@@ -113,6 +113,16 @@ namespace Examine.LuceneEngine.SearchCriteria
             return this.Range(fieldName, start, end, includeLower, includeUpper, DateResolution.Millisecond);
         }
 
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <param name="resolution">The resolution.</param>
+        /// <returns></returns>
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper, DateResolution resolution)
         {
             return this.search.Range(fieldName, start, end, includeLower, includeUpper);
@@ -140,6 +150,84 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
+        {
+            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
+        }
+
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation Range(string fieldName, double start, double end)
+        {
+            return this.Range(fieldName, start, end, true, true);
+        }
+
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation Range(string fieldName, double start, double end, bool includeLower, bool includeUpper)
+        {
+            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
+        }
+
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation Range(string fieldName, float start, float end)
+        {
+            return this.Range(fieldName, start, end, true, true);
+        }
+
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation Range(string fieldName, float start, float end, bool includeLower, bool includeUpper)
+        {
+            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
+        }
+
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation Range(string fieldName, long start, long end)
+        {
+            return this.Range(fieldName, start, end, true, true);
+        }
+
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="start">The start.</param>
+        /// <param name="end">The end.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation Range(string fieldName, long start, long end, bool includeLower, bool includeUpper)
         {
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
         }

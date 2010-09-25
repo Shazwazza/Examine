@@ -137,7 +137,7 @@ namespace Examine.Test
             var filter = criteria.Range("MinuteCreated", m_ReIndexDateTime.AddMinutes(-1), DateTime.Now, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("MinuteCreated", m_ReIndexDateTime.AddMinutes(-20), m_ReIndexDateTime.AddSeconds(-1), true, true).Compile();
+            var filterNotFound = criteriaNotFound.Range("MinuteCreated", m_ReIndexDateTime.AddMinutes(-20), m_ReIndexDateTime.AddMinutes(-1), true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -183,10 +183,10 @@ namespace Examine.Test
 
             //all numbers should be between 0 and 100 based on the data source
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeFloat", 0, 100, true, true).Compile();
+            var filter = criteria.Range("SomeFloat", 0f, 100f, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeFloat", 101, 200, true, true).Compile();
+            var filterNotFound = criteriaNotFound.Range("SomeFloat", 101f, 200f, true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -207,10 +207,10 @@ namespace Examine.Test
 
             //all numbers should be between 0 and 100 based on the data source
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeDouble", 0, 100, true, true).Compile();
+            var filter = criteria.Range("SomeDouble", 0d, 100d, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeDouble", 101, 200, true, true).Compile();
+            var filterNotFound = criteriaNotFound.Range("SomeDouble", 101d, 200d, true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);
@@ -231,10 +231,10 @@ namespace Examine.Test
 
             //all numbers should be between 0 and 100 based on the data source
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeLong", 0, 100, true, true).Compile();
+            var filter = criteria.Range("SomeLong", 0L, 100L, true, true).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeLong", 101, 200, true, true).Compile();
+            var filterNotFound = criteriaNotFound.Range("SomeLong", 101L, 200L, true, true).Compile();
 
             ////Act
             var results = m_Searcher.Search(filter);

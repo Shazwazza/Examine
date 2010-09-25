@@ -111,6 +111,60 @@ namespace Examine.SearchCriteria
         /// <returns></returns>
         IBooleanOperation Range(string fieldName, int lower, int upper, bool includeLower, bool includeUpper);
         /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="lower">The lower.</param>
+        /// <param name="upper">The upper.</param>
+        /// <returns></returns>
+        IBooleanOperation Range(string fieldName, double lower, double upper);
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="lower">The lower.</param>
+        /// <param name="upper">The upper.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <returns></returns>
+        IBooleanOperation Range(string fieldName, double lower, double upper, bool includeLower, bool includeUpper);
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="lower">The lower.</param>
+        /// <param name="upper">The upper.</param>
+        /// <returns></returns>
+        IBooleanOperation Range(string fieldName, float lower, float upper);
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="lower">The lower.</param>
+        /// <param name="upper">The upper.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <returns></returns>
+        IBooleanOperation Range(string fieldName, float lower, float upper, bool includeLower, bool includeUpper);
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="lower">The lower.</param>
+        /// <param name="upper">The upper.</param>
+        /// <returns></returns>
+        IBooleanOperation Range(string fieldName, long lower, long upper);
+        /// <summary>
+        /// Ranges the specified field name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="lower">The lower.</param>
+        /// <param name="upper">The upper.</param>
+        /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
+        /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
+        /// <returns></returns>
+        IBooleanOperation Range(string fieldName, long lower, long upper, bool includeLower, bool includeUpper);
+        /// <summary>
         /// Query on a specified field using a string range. Includes upper and lower bounds
         /// </summary>
         /// <param name="fieldName">Name of the field.</param>
