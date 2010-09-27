@@ -44,7 +44,7 @@ namespace Examine.Test
             var criteria = m_Searcher.CreateSearchCriteria();
             
             //Shouldn't there be results for searching the current year? 2010 -> 2010 ?
-            var filter = criteria.Range("YearCreated", m_ReIndexDateTime, DateTime.Now, true, true).Compile();
+            var filter = criteria.Range("YearCreated", m_ReIndexDateTime, DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
             var filterNotFound = criteriaNotFound.Range("YearCreated", DateTime.Now.AddYears(-2), DateTime.Now.AddYears(-1), true, true).Compile();
@@ -67,7 +67,7 @@ namespace Examine.Test
             ////Arrange
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("MonthCreated", m_ReIndexDateTime, DateTime.Now, true, true).Compile();
+            var filter = criteria.Range("MonthCreated", m_ReIndexDateTime, DateTime.Now, true, true, SearchCriteria.DateResolution.Month).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
             var filterNotFound = criteriaNotFound.Range("MonthCreated", m_ReIndexDateTime.AddMonths(-2), m_ReIndexDateTime.AddMonths(-1), true, true).Compile();
@@ -90,7 +90,7 @@ namespace Examine.Test
             ////Arrange
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("DayCreated", m_ReIndexDateTime, DateTime.Now, true, true).Compile();
+            var filter = criteria.Range("DayCreated", m_ReIndexDateTime, DateTime.Now, true, true, SearchCriteria.DateResolution.Day).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
             var filterNotFound = criteriaNotFound.Range("DayCreated", m_ReIndexDateTime.AddDays(-2), m_ReIndexDateTime.AddDays(-1), true, true).Compile();
@@ -113,7 +113,7 @@ namespace Examine.Test
             ////Arrange
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("HourCreated", m_ReIndexDateTime, DateTime.Now, true, true).Compile();
+            var filter = criteria.Range("HourCreated", m_ReIndexDateTime, DateTime.Now, true, true, SearchCriteria.DateResolution.Hour).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
             var filterNotFound = criteriaNotFound.Range("HourCreated", m_ReIndexDateTime.AddHours(-2), m_ReIndexDateTime.AddHours(-1), true, true).Compile();
@@ -136,7 +136,7 @@ namespace Examine.Test
             ////Arrange
 
             var criteria = m_Searcher.CreateSearchCriteria();
-            var filter = criteria.Range("MinuteCreated", m_ReIndexDateTime, DateTime.Now, true, true).Compile();
+            var filter = criteria.Range("MinuteCreated", m_ReIndexDateTime, DateTime.Now, true, true, SearchCriteria.DateResolution.Minute).Compile();
 
             var criteriaNotFound = m_Searcher.CreateSearchCriteria();
             var filterNotFound = criteriaNotFound.Range("MinuteCreated", m_ReIndexDateTime.AddMinutes(-20), m_ReIndexDateTime.AddMinutes(-1), true, true).Compile();
