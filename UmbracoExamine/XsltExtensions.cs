@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Examine;
-using UmbracoExamine.DataServices;
-using Examine.Providers;
-using System.Linq;
+using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
-using Examine.LuceneEngine.Providers;
+using Examine.Providers;
+using UmbracoExamine.DataServices;
 
 namespace UmbracoExamine
 {
@@ -21,13 +21,22 @@ namespace UmbracoExamine
     public class XsltExtensions
     {
         /// <summary>
-        /// Uses the default provider specified to search, returning an XPathNodeIterator
+        /// Uses the provider specified to search, returning an XPathNodeIterator
         /// </summary>
-        /// <param name="searchText">The search query</param>
-        /// <returns>A node-set of the search results</returns>
-        public static XPathNodeIterator Search(string searchText)
+        /// <param name="searchText">The search text.</param>
+        /// <param name="useWildcards">if set to <c>true</c> [use wildcards].</param>
+        /// <param name="providerName">Name of the provider.</param>
+        /// <param name="indexType">Type of the index.</param>
+        /// <returns></returns>
+        public static XPathNodeIterator Search(string searchText, bool useWildcards, string providerName, string indexType)
         {
-            return Search(searchText, true);
+            EnsureProvider(ExamineManager.Instance.SearchProviderCollection[providerName]);
+
+            var provider = ExamineManager.Instance.SearchProviderCollection[providerName] as LuceneSearcher;
+
+            var results = provider.Search(searchText, useWildcards, indexType);
+
+            return GetResultsAsXml(results);
         }
 
         /// <summary>
@@ -39,11 +48,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         public static XPathNodeIterator Search(string searchText, bool useWildcards, string providerName)
         {
-            EnsureProvider(ExamineManager.Instance.SearchProviderCollection[providerName]);
-
-            ISearchResults results = ExamineManager.Instance.SearchProviderCollection[providerName].Search(searchText, useWildcards);
-
-            return GetResultsAsXml(results);            
+            return Search(searchText, useWildcards, providerName, string.Empty);         
         }
 
         /// <summary>
@@ -58,6 +63,16 @@ namespace UmbracoExamine
         }
 
         /// <summary>
+        /// Uses the default provider specified to search, returning an XPathNodeIterator
+        /// </summary>
+        /// <param name="searchText">The search query</param>
+        /// <returns>A node-set of the search results</returns>
+        public static XPathNodeIterator Search(string searchText)
+        {
+            return Search(searchText, true);
+        }
+
+        /// <summary>
         /// Will perform a search against the media index type only
         /// </summary>
         /// <param name="searchText"></param>
@@ -66,13 +81,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         public static XPathNodeIterator SearchMediaOnly(string searchText, bool useWildcards, string providerName)
         {
-            EnsureProvider(ExamineManager.Instance.SearchProviderCollection[providerName]);
-
-            var provider = ExamineManager.Instance.SearchProviderCollection[providerName] as LuceneSearcher;
-
-            var results = provider.Search(searchText, useWildcards, IndexTypes.Media);
-
-            return GetResultsAsXml(results);
+            return Search(searchText, useWildcards, providerName, IndexTypes.Media);
         }
 
         /// <summary>
@@ -97,6 +106,39 @@ namespace UmbracoExamine
         }
 
         /// <summary>
+        /// Searches the member only.
+        /// </summary>
+        /// <param name="searchText">The search text.</param>
+        /// <param name="useWildcards">if set to <c>true</c> [use wildcards].</param>
+        /// <param name="providerName">Name of the provider.</param>
+        /// <returns></returns>
+        public static XPathNodeIterator SearchMemberOnly(string searchText, bool useWildcards, string providerName)
+        {
+            return Search(searchText, useWildcards, providerName, IndexTypes.Member);
+        }
+
+        /// <summary>
+        /// Searches the member only.
+        /// </summary>
+        /// <param name="searchText">The search text.</param>
+        /// <param name="useWildcards">if set to <c>true</c> [use wildcards].</param>
+        /// <returns></returns>
+        public static XPathNodeIterator SearchMemberOnly(string searchText, bool useWildcards)
+        {
+            return SearchMemberOnly(searchText, useWildcards, ExamineManager.Instance.DefaultSearchProvider.Name);
+        }
+
+        /// <summary>
+        /// Searches the member only.
+        /// </summary>
+        /// <param name="searchText">The search text.</param>
+        /// <returns></returns>
+        public static XPathNodeIterator SearchMemberOnly(string searchText)
+        {
+            return SearchMemberOnly(searchText, true);
+        }
+
+        /// <summary>
         /// Will perform a search against the content index type only
         /// </summary>
         /// <param name="searchText"></param>
@@ -105,13 +147,7 @@ namespace UmbracoExamine
         /// <returns></returns>
         public static XPathNodeIterator SearchContentOnly(string searchText, bool useWildcards, string providerName)
         {
-            EnsureProvider(ExamineManager.Instance.SearchProviderCollection[providerName]);
-
-            var provider = ExamineManager.Instance.SearchProviderCollection[providerName] as LuceneSearcher;
-
-            var results = provider.Search(searchText, useWildcards, IndexTypes.Content);
-
-            return GetResultsAsXml(results);
+            return Search(searchText, useWildcards, providerName, IndexTypes.Content);
         }
 
         /// <summary>
@@ -135,7 +171,10 @@ namespace UmbracoExamine
             return SearchContentOnly(searchText, true);
         }
 
-
+        /// <summary>
+        /// Ensures the provider.
+        /// </summary>
+        /// <param name="p">The provider.</param>
         private static void EnsureProvider(BaseSearchProvider p)
         {
             if (!(p is LuceneSearcher))
@@ -144,7 +183,11 @@ namespace UmbracoExamine
             }
         }
 
-
+        /// <summary>
+        /// Gets the results as XML.
+        /// </summary>
+        /// <param name="results">The results.</param>
+        /// <returns></returns>
         private static XPathNodeIterator GetResultsAsXml(ISearchResults results)
         {
             // create the XDocument
@@ -204,5 +247,4 @@ namespace UmbracoExamine
             return doc.CreateNavigator().Select("/");
         }
     }
-
 }

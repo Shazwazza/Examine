@@ -45,7 +45,7 @@ namespace Examine.Test
         {
             var result = XsltExtensions.Search("sam", false, "CWSSearcher");
             Assert.AreEqual<bool>(true, result.MoveNext());
-            Assert.AreEqual(result.Current.Select("//node").Count, 5, "Results returned for 'sam' should be equal to 4 with the StandardAnalyzer");            
+            Assert.AreEqual(5, result.Current.Select("//node").Count, "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
         }
 
         [TestMethod()]
@@ -88,6 +88,25 @@ namespace Examine.Test
             result = XsltExtensions.SearchMediaOnly("umb", false, "CWSSearcher");
             Assert.AreEqual<bool>(true, result.MoveNext());
             Assert.AreEqual<int>(0, result.Current.Select("//node").Count, "Total results for 'umb' is 0 without wildcards");
+        }
+
+        /// <summary>
+        ///A test for SearchMemberOnly
+        ///</summary>
+        [TestMethod()]
+        public void XSLTSearch_Member_Only_No_Wildcards()
+        {
+            var result = XsltExtensions.SearchMemberOnly("mem", false, "CWSSearcher");
+            Assert.AreEqual<bool>(true, result.MoveNext());
+            Assert.AreEqual<int>(0, result.Current.Select("//node").Count, "Total results for 'mem' is 0 using wildcards");
+        }
+
+        [TestMethod()]
+        public void XSLTSearch_Member_Only_With_Wildcards()
+        {
+            var result = XsltExtensions.SearchMemberOnly("mem", true, "CWSSearcher");
+            Assert.AreEqual<bool>(true, result.MoveNext());
+            Assert.AreEqual<int>(0, result.Current.Select("//node").Count, "Total results for 'mem' is 0 using wildcards");
         }
     }
 }
