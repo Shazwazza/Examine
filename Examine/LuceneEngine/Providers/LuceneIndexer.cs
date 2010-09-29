@@ -308,6 +308,26 @@ namespace Examine.LuceneEngine.Providers
                 IndexerExecutiveAssigned(this, e);
         }
 
+        /// <summary>
+        /// Called when an indexing error occurs
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="resetIndexingFlag">set to true if the IsIndexing flag should be reset (set to false) so future indexing operations can occur</param>
+        protected void OnIndexingError(IndexingErrorEventArgs e, bool resetIndexingFlag)
+        {
+            if (resetIndexingFlag)
+            {
+                //reset our volatile flag... something else funny is going on but we don't want this to prevent ALL future operations
+                m_IsIndexing = false;
+            }
+
+            OnIndexingError(e);
+        }
+
+        /// <summary>
+        /// Called when an indexing error occurs
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
             base.OnIndexingError(e);
@@ -589,7 +609,7 @@ namespace Examine.LuceneEngine.Providers
                             //check if the index is ready to be written to.
                             if (!IndexReady())
                             {
-                                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null));
+                                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null), true);
                                 return;
                             }
 
@@ -605,10 +625,10 @@ namespace Examine.LuceneEngine.Providers
                         }
                         finally
                         {
-                            CloseWriter(ref writer);
-
                             //set our volatile flag
                             m_IsIndexing = false;
+
+                            CloseWriter(ref writer);                            
                         }
                     }
 
@@ -1149,7 +1169,7 @@ namespace Examine.LuceneEngine.Providers
                                     }
                                     else
                                     {
-                                        OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null));
+                                        OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null), true);
                                         return indexedNodes.Count;
                                     }
                                 }
@@ -1161,7 +1181,7 @@ namespace Examine.LuceneEngine.Providers
                                     }
                                     else
                                     {
-                                        OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null));
+                                        OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null), true);
                                         return indexedNodes.Count;
                                     }
                                 }
@@ -1177,6 +1197,9 @@ namespace Examine.LuceneEngine.Providers
                         }
                         finally
                         {
+                            //set our volatile flag
+                            m_IsIndexing = false;
+
                             CloseWriter(ref writer);
                             CloseReader(ref reader);
                         }
@@ -1187,9 +1210,6 @@ namespace Examine.LuceneEngine.Providers
                             OptimizeIndex();
                             CommitCount = 0; //reset the counter
                         }
-
-                        //set our volatile flag
-                        m_IsIndexing = false;
 
                         return indexedNodes.Count;
                     }
