@@ -147,7 +147,7 @@ namespace UmbracoExamine
 
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
-            DataService.LogService.AddErrorLog(e.NodeId, string.Format("{0},{1}", e.Message, e.InnerException != null ? e.InnerException.Message : ""));
+            DataService.LogService.AddErrorLog(e.NodeId, string.Format("{0},{1}, IndexSet: {2}", e.Message, e.InnerException != null ? e.InnerException.Message : "", this.IndexSetName));
             base.OnIndexingError(e);
         }
 
