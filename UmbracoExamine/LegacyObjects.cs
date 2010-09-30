@@ -6,6 +6,12 @@ using System.IO;
 using Examine;
 using UmbracoExamine;
 using Lucene.Net.Analysis;
+using Examine.SearchCriteria;
+using Lucene.Net.Search;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using umbraco.cms.businesslogic;
+using System.Xml;
 
 namespace UmbracoExamine.Config
 {
@@ -52,10 +58,120 @@ namespace UmbracoExamine
             : base(indexerData, indexPath) { }
         #endregion
     }
+
+    //Was going to include this for backwards compatibility BUT this will cause too many other problems with people importing both
+    //namespaces
+
+    //[Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //public static class LinqXmlExtensions
+    //{
+    //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //    public static XDocument ToXDocument(this IEnumerable<XElement> elements)
+    //    {
+    //        return Examine.LuceneEngine.ExamineXmlExtensions.ToXDocument(elements);
+    //    }
+    //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //    public static XDocument ToXDocument(this XPathNodeIterator xml)
+    //    {
+    //        return Examine.LuceneEngine.ExamineXmlExtensions.ToXDocument(xml);
+    //    }
+    //    [Obsolete("Use the new UmbracoExamine.ContentExtensions")]
+    //    public static XDocument ToXDocument(this Content node, bool cacheOnly)
+    //    {
+    //        return ContentExtensions.ToXDocument(node, cacheOnly);
+    //    }
+    //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //    public static XElement ToXElement(this XmlNode node)
+    //    {
+    //        return Examine.LuceneEngine.ExamineXmlExtensions.ToXElement(node);
+    //    }
+    //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //    public static bool UmbIsElement(this XElement x)
+    //    {
+    //        return Examine.LuceneEngine.ExamineXmlExtensions.IsExamineElement(x);
+    //    }
+    //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //    public static bool UmbIsProperty(this XElement x, string alias)
+    //    {
+    //        return Examine.LuceneEngine.ExamineXmlExtensions.IsExamineProperty(x, alias);
+    //    }
+    //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //    public static string UmbNodeTypeAlias(this XElement x)
+    //    {
+    //        return Examine.LuceneEngine.ExamineXmlExtensions.ExamineNodeTypeAlias(x);
+    //    }
+    //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //    public static string UmbSelectDataValue(this XElement xml, string alias)
+    //    {
+    //        return Examine.LuceneEngine.ExamineXmlExtensions.SelectExamineDataValue(xml, alias);
+    //    }
+    //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
+    //    public static string UmbSelectPropertyValue(this XElement x, string alias)
+    //    {
+    //        return Examine.LuceneEngine.ExamineXmlExtensions.SelectExaminePropertyValue(x, alias);
+    //    }
+    //}
+
 }
 
 namespace UmbracoExamine.SearchCriteria
 {
+
+    [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+    public static class LuceneSearchExtensions
+    {
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static IExamineValue Boost(this string s, float boost)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Boost(s, boost);
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static IExamineValue Escape(this string s)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Escape(s);
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static IExamineValue Fuzzy(this string s)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Fuzzy(s);
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static IExamineValue Fuzzy(this string s, float fuzzieness)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Fuzzy(s, fuzzieness);
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static IExamineValue MultipleCharacterWildcard(this string s)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.MultipleCharacterWildcard(s);
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static IExamineValue Proximity(this string s, float proximity)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Proximity(s, Convert.ToInt32(proximity));
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static IExamineValue SingleCharacterWildcard(this string s)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.SingleCharacterWildcard(s);
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static string Then(this IExamineValue examineValue, string s)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Then(examineValue, s);
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.ToBooleanOperation(o);
+        }
+        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
+        {
+            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.ToLuceneOccurance(o);
+        }
+
+    }
 
     /// <summary>
     /// This exists purely to maintain backwards compatibility

@@ -13,7 +13,7 @@ namespace UmbracoExamine
     /// <summary>
     /// Static methods to help query umbraco xml
     /// </summary>
-    public static class LinqXmlExtensions
+    public static class ContentExtensions
     {
 
         /// <summary>

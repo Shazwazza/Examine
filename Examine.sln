@@ -25,6 +25,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RC3", "v1.0 RC3", "{8E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.PDF", "UmbracoExamine.PDF\UmbracoExamine.PDF.csproj", "{F30DDDB8-3994-4673-82AE-057123C6E1A8}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RTM", "v1.0 RTM", "{7F620729-E41A-41FF-86B1-15C6BE9D9106}"
+	ProjectSection(SolutionItems) = preProject
+		RELEASES\v1.0 RTM\ReleaseNotes.docx = RELEASES\v1.0 RTM\ReleaseNotes.docx
+		RELEASES\v1.0 RTM\ReleaseNotes.pdf = RELEASES\v1.0 RTM\ReleaseNotes.pdf
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 5
@@ -74,5 +80,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8EE50174-D7B6-4A1E-9995-54417B1DE77C} = {0B88F075-AD5A-40FE-9EA5-DCE1C8B4C89F}
+		{7F620729-E41A-41FF-86B1-15C6BE9D9106} = {0B88F075-AD5A-40FE-9EA5-DCE1C8B4C89F}
 	EndGlobalSection
 EndGlobal
