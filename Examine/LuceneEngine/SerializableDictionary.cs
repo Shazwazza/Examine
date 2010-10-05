@@ -2,9 +2,19 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Runtime.Serialization;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine
 {
+
+    /// <summary>
+    /// A Dictionary that is Xml serializable
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
+    /// <remarks>
+    /// Whenever a string is encountered for the value, it is put into a CDATA block.
+    /// </remarks>
     [XmlRoot("dictionary")]
     [Serializable]
     public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable
@@ -43,7 +53,18 @@ namespace Examine.LuceneEngine
                 TKey key = (TKey)keySerializer.Deserialize(reader);
                 reader.ReadEndElement();
                 reader.ReadStartElement("value");
-                TValue value = (TValue)valueSerializer.Deserialize(reader);
+
+                //if it's string, then get the CData
+                TValue value;
+                if (typeof(TValue).Equals(typeof(string)))
+                {
+                    value = (TValue)reader.ReadContentAsObject();
+                }
+                else 
+                {
+                    value = (TValue)valueSerializer.Deserialize(reader);
+                }              
+  
                 reader.ReadEndElement();
                 this.Add(key, value);
                 reader.ReadEndElement();
@@ -59,13 +80,25 @@ namespace Examine.LuceneEngine
             foreach (TKey key in this.Keys)
             {
                 writer.WriteStartElement("item");
+
                 writer.WriteStartElement("key");
                 keySerializer.Serialize(writer, key);
-                writer.WriteEndElement();
+                writer.WriteEndElement(); // end key
+                
+                TValue value = this[key];
+
+                //wrap in CData if string
                 writer.WriteStartElement("value");
-                TValue value = this[key];               
-                valueSerializer.Serialize(writer, value);
-                writer.WriteEndElement();
+                if (value is string)
+                {
+                    writer.WriteCData(Convert.ToString(value));
+                }
+                else
+                {                    
+                    valueSerializer.Serialize(writer, value);                    
+                }
+                writer.WriteEndElement(); //end value
+                
                 writer.WriteEndElement();
             }
         }

@@ -20,6 +20,25 @@ namespace Examine.LuceneEngine
             return sd;
         }
 
+        /// <summary>
+        /// Returns a Dictionary from a type with a specified value to a dictionary that has a different type for it's value
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TConvertVal"></typeparam>
+        /// <param name="sd"></param>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public static Dictionary<TKey, TConvertVal> ToDictionary<TKey, TValue, TConvertVal>(this SerializableDictionary<TKey, TValue> sd, Converter<TValue, TConvertVal> c)
+        {
+            Dictionary<TKey, TConvertVal> d = new Dictionary<TKey, TConvertVal>();
+            sd.ToList().ForEach(x =>
+            {
+                d.Add(x.Key, c.Invoke(x.Value));
+            });
+            return d;
+        }
+
         public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this SerializableDictionary<TKey, TValue> sd)
         {
             Dictionary<TKey, TValue> d = new Dictionary<TKey, TValue>();

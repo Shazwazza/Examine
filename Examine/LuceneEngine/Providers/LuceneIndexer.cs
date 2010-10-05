@@ -15,6 +15,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Examine.LuceneEngine.Config;
 using Lucene.Net.Util;
+using System.ComponentModel;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -628,7 +629,7 @@ namespace Examine.LuceneEngine.Providers
                             //set our volatile flag
                             m_IsIndexing = false;
 
-                            CloseWriter(ref writer);                            
+                            CloseWriter(ref writer);
                         }
                     }
 
@@ -1027,7 +1028,7 @@ namespace Examine.LuceneEngine.Providers
                                         ));
                             }
                         }
-                        
+
                     }
                 }
             }
@@ -1154,10 +1155,11 @@ namespace Examine.LuceneEngine.Providers
                         {
 
                             //iterate through all files to add or delete to the index and index the content
-                            //and order by time created as to process them in order
+                            //and order by file name since the file name is named with DateTime.Now.Ticks
+                            //also order by extension descending so that the 'del' is processed before the 'add'
                             foreach (var x in IndexQueueItemFolder.GetFiles()
                                 .Where(x => x.Extension == ".del" || x.Extension == ".add")
-                                .OrderBy(x => x.CreationTime)
+                                .OrderBy(x => x.Name)
                                 .ThenByDescending(x => x.Extension) //we need to order by extension descending so that .del items are always processed before .add items
                                 .ToList())
                             {
@@ -1246,8 +1248,10 @@ namespace Examine.LuceneEngine.Providers
 
             var terms = new Dictionary<string, string>();
             terms.Add(term.Key, term.Value);
-            var fileName = Environment.MachineName + "-" + Guid.NewGuid().ToString("N");
+            var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName;
             FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".del"));
+
+            //ok, everything is ready to go, but we'll conver the dictionary to a CData wrapped serialized version
             terms.SaveToDisk(fi);
 
         }
@@ -1272,14 +1276,16 @@ namespace Examine.LuceneEngine.Providers
                 return;
             }
 
-			//ensure the special fields are added to the dictionary to be saved to file
+            //ensure the special fields are added to the dictionary to be saved to file
             if (!fields.ContainsKey(IndexNodeIdFieldName))
                 fields.Add(IndexNodeIdFieldName, nodeId.ToString());
-			if (!fields.ContainsKey(IndexTypeFieldName)) 
+            if (!fields.ContainsKey(IndexTypeFieldName))
                 fields.Add(IndexTypeFieldName, type.ToString());
 
-            var fileName = Environment.MachineName + "-" + nodeId.ToString() + "-" + Guid.NewGuid().ToString("N");
+            var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName + "-" + nodeId.ToString();
             FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
+
+            //ok, everything is ready to go, but we'll conver the dictionary to a CData wrapped serialized version
             fields.SaveToDisk(fi);
         }
 
@@ -1288,7 +1294,7 @@ namespace Examine.LuceneEngine.Providers
         #region Private
 
         /// <summary>
-        /// Tries to parse a type using the Type's parse method
+        /// Tries to parse a type using the Type's type converter
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="val"></param>
@@ -1297,30 +1303,14 @@ namespace Examine.LuceneEngine.Providers
         private bool TryParse<T>(string val, out object parsedVal)
             where T : struct
         {
-            var method = typeof(T).GetMethods()
-                .Where(x => x.Name == "Parse")
-                .Where(x =>
-                {
-                    var p = x.GetParameters();
-                    if (p.Count() != 1)
-                        return false;
-                    if (typeof(string).IsAssignableFrom(p.First().ParameterType))
-                        return true;
-                    return false;
-                }).Single();
-            if (method == null)
-            {
-                throw new InvalidOperationException("Cannot parse a string to a Type that doesn't support a Parse method");
-            }
-            var objType = Activator.CreateInstance<T>();
-
             try
             {
-                var value = method.Invoke(objType, new object[] { val });
-                parsedVal = (T)value;
+                var t = typeof(T);
+                TypeConverter tc = TypeDescriptor.GetConverter(t);
+                parsedVal = (T)tc.ConvertFrom(val);
                 return true;
             }
-            catch (Exception)
+            catch (NotSupportedException)
             {
                 parsedVal = null;
                 return false;
@@ -1340,13 +1330,13 @@ namespace Examine.LuceneEngine.Providers
         {
             var specialFields = GetSpecialFieldsToIndex(fields);
 
-			foreach (var s in specialFields)
-			{
+            foreach (var s in specialFields)
+            {
                 //TODO: we're going to lower case the special fields, the Standard analyzer query parser always lower cases, so 
                 //we need to do that... there might be a nicer way ?
-				d.Add(new Field(s.Key, s.Value.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
-			}
-		}
+                d.Add(new Field(s.Key, s.Value.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+            }
+        }
 
         /// <summary>
         /// This makes sure that the folders exist, that the executive indexer is setup and that the index is optimized.
@@ -1489,6 +1479,7 @@ namespace Examine.LuceneEngine.Providers
         /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
         /// </summary>
         /// <param name="x"></param>
+        /// <param name="ir"></param>
         private void ProcessDeleteQueueItem(FileInfo x, IndexReader ir)
         {
             //get the dictionary object from the file data
@@ -1526,7 +1517,7 @@ namespace Examine.LuceneEngine.Providers
             int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
 
             //now, add the index with our dictionary object
-            AddDocument(sd.ToDictionary(), writer, nodeId, sd[IndexTypeFieldName]);
+            AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
 
             //remove the file
             x.Delete();
@@ -1535,40 +1526,6 @@ namespace Examine.LuceneEngine.Providers
 
             return new IndexedNode() { NodeId = nodeId, Type = sd[IndexTypeFieldName] };
         }
-
-        /// <summary>
-        /// All field data will be stored into Lucene as is except for dates, these can be stored as standard: yyyyMMdd
-        /// Any standard text will be put in lower case format.
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        //private string GetFieldValue(string val)
-        //{
-        //    DateTime date;
-        //    if (DateTime.TryParse(val, out date))
-        //    {
-        //        //return in a Lucene handled date
-        //        return DateTools.DateToString(date, DateTools.Resolution.MILLISECOND);
-        //    }
-        //    else
-        //    {
-        //        //might look into if there is a better/ "proper" way to handle numbers in the Lucene index
-        //        //int i;
-        //        //if (int.TryParse(val, out i))
-        //        //{
-        //        //    return NumericUtils.IntToPrefixCoded(i);
-        //        //}
-        //        //float f;
-        //        //if (float.TryParse(val, out f))
-        //        //{
-        //        //    return NumericUtils.FloatToPrefixCoded(f);
-        //        //}
-
-        //        //we don't want to lowercase the string or anything, that will be handled by the analyzer we are using
-        //        return val;
-        //    }
-
-        //}
 
         private void CloseWriter(ref IndexWriter writer)
         {
