@@ -47,7 +47,7 @@ namespace UmbracoExamine
         /// Used to store the path of a content object
         /// </summary>
         public const string IndexPathFieldName = "__Path";
-        public const string NodeTyepAliasFieldName = "__NodeTypeAlias";
+        public const string NodeTypeAliasFieldName = "__NodeTypeAlias";
 
         /// <summary>
         /// A type that defines the type of index for each Umbraco field (non user defined fields)
@@ -233,8 +233,8 @@ namespace UmbracoExamine
             
             //this needs to support both schemas so get the nodeTypeAlias if it exists, otherwise the name
             var nodeTypeAlias = e.Node.Attribute("nodeTypeAlias") == null ? e.Node.Name.LocalName : e.Node.Attribute("nodeTypeAlias").Value;
-            if (!e.Fields.ContainsKey(NodeTyepAliasFieldName)) 
-                e.Fields.Add(NodeTyepAliasFieldName, nodeTypeAlias);
+            if (!e.Fields.ContainsKey(NodeTypeAliasFieldName)) 
+                e.Fields.Add(NodeTypeAliasFieldName, nodeTypeAlias);
         }
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace UmbracoExamine
             fields.Add(IndexPathFieldName, allValuesForIndexing[IndexPathFieldName]);
 
             //adds the special node type alias property to the index
-            fields.Add(NodeTyepAliasFieldName, allValuesForIndexing[NodeTyepAliasFieldName]);
+            fields.Add(NodeTypeAliasFieldName, allValuesForIndexing[NodeTypeAliasFieldName]);
 
             return fields;
 

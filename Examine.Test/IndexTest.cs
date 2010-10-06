@@ -73,7 +73,7 @@ namespace Examine.Test
             Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
             Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
             Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.IndexPathFieldName).Count());
-            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.NodeTyepAliasFieldName).Count());
+            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.NodeTypeAliasFieldName).Count());
 
         }
 
