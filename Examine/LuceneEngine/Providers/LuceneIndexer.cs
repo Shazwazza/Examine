@@ -211,7 +211,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Used for double check locking during an index operation
         /// </summary>
-        private static volatile bool m_IsIndexing = false;
+        private bool m_IsIndexing = false;
 
         private System.Timers.Timer m_FileWatcher = null;
         private System.Timers.ElapsedEventHandler m_FileWatcher_ElapsedEventHandler;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UmbracoExamine.DataServices;
 using System.Diagnostics;
+using UmbracoExamine;
 
 namespace Examine.Test.DataServices
 {
@@ -20,6 +21,14 @@ namespace Examine.Test.DataServices
         {
             Trace.WriteLine("INFO: (" + nodeId.ToString() + ") " + msg);
         }
+
+        public void AddVerboseLog(int nodeId, string msg)
+        {
+            if (LogLevel == LoggingLevel.Verbose)
+                Trace.WriteLine("VERBOSE: (" + nodeId.ToString() + ") " + msg);
+        }
+
+        public LoggingLevel LogLevel { get; set; }
 
         #endregion
     }

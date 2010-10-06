@@ -122,6 +122,7 @@
     <Compile Include="DataServices\UmbracoMediaService.cs" />
     <Compile Include="IndexTypes.cs" />
     <Compile Include="LegacyObjects.cs" />
+    <Compile Include="LoggingLevel.cs" />
     <Compile Include="MemberLuceneExamineIndexer.cs" />
     <Compile Include="ContentExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

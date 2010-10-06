@@ -5,5 +5,7 @@ namespace UmbracoExamine.DataServices
     {
         void AddErrorLog(int nodeId, string msg);
         void AddInfoLog(int nodeId, string msg);
+        void AddVerboseLog(int nodeId, string msg);
+        LoggingLevel LogLevel { get; set; }
     }
 }

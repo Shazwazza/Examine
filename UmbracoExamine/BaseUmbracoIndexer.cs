@@ -23,7 +23,9 @@ namespace UmbracoExamine
         /// Default constructor
         /// </summary>
         protected BaseUmbracoIndexer()
-            : base() { }
+            : base()
+        {
+        }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -36,10 +38,17 @@ namespace UmbracoExamine
         #endregion
 
         #region Properties
+
         /// <summary>
         /// The data service used for retreiving and submitting data to the cms
         /// </summary>
         public IDataService DataService { get; protected internal set; }
+
+        /// <summary>
+        /// the supported indexable types
+        /// </summary>
+        protected abstract IEnumerable<string> SupportedTypes { get; }
+
         #endregion
 
         #region Initialize
@@ -66,12 +75,50 @@ namespace UmbracoExamine
                 DataService = new UmbracoDataService();
             }
 
+            DataService.LogService.LogLevel = LoggingLevel.Normal;
+
+            if (config["logLevel"] != null && !string.IsNullOrEmpty(config["logLevel"]))
+            {
+                try
+                {
+                    var logLevel = (LoggingLevel)Enum.Parse(typeof(LoggingLevel), config["logLevel"]);
+                    DataService.LogService.LogLevel = logLevel;
+                }
+                catch (ArgumentException)
+                {                    
+                    //FAILED
+                    DataService.LogService.LogLevel = LoggingLevel.Normal;
+                }
+            }
+
+            DataService.LogService.AddVerboseLog(-1, string.Format("{0} indexer initializing", name));
+
             base.Initialize(name, config);
         }
 
         #endregion
 
         #region Protected
+
+        /// <summary>
+        /// Reindexes all supported types
+        /// </summary>
+        protected override void PerformIndexRebuild()
+        {
+            foreach (var t in SupportedTypes)
+            {
+                IndexAll(t);
+            }
+        }
+
+        public override void ReIndexNode(XElement node, string type)
+        {
+            if (!SupportedTypes.Contains(type))
+                return;
+
+            base.ReIndexNode(node, type);
+        }
+
         /// <summary>
         /// Builds an xpath statement to query against Umbraco data for the index type specified, then
         /// initiates the re-indexing of the data matched.
@@ -79,6 +126,9 @@ namespace UmbracoExamine
         /// <param name="type"></param>
         protected override void PerformIndexAll(string type)
         {
+            if (!SupportedTypes.Contains(type))
+                return;
+
             string xPath = "//*[(number(@id) > 0){0}]"; //we'll add more filters to this below if needed
 
             StringBuilder sb = new StringBuilder();
@@ -123,6 +173,8 @@ namespace UmbracoExamine
             }
 
             xPath = args.XPath;
+
+            DataService.LogService.AddVerboseLog(-1, string.Format("({0}) PerformIndexAll with XPATH: {1}", this.Name, xPath));
 
             AddNodesToIndex(xPath, type);
         }

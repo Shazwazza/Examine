@@ -131,6 +131,13 @@ namespace UmbracoExamine
         /// </summary>
         public bool SupportProtectedContent { get; protected internal set; }
 
+        protected override IEnumerable<string> SupportedTypes
+        {
+            get
+            {
+                return new string[] { IndexTypes.Content, IndexTypes.Media };
+            }
+        }
 
         #endregion
 
@@ -151,33 +158,48 @@ namespace UmbracoExamine
             base.OnIndexingError(e);
         }
 
-        protected override void OnDocumentWriting(DocumentWritingEventArgs docArgs)
-        {
-            DataService.LogService.AddInfoLog(docArgs.NodeId, string.Format("DocumentWriting event for node ({0})", LuceneIndexFolder.FullName));
-            base.OnDocumentWriting(docArgs);
-        }
+        //protected override void OnDocumentWriting(DocumentWritingEventArgs docArgs)
+        //{
+        //    DataService.LogService.AddVerboseLog(docArgs.NodeId, string.Format("({0}) DocumentWriting event for node ({1})", this.Name, LuceneIndexFolder.FullName));
+        //    base.OnDocumentWriting(docArgs);
+        //}
 
         protected override void OnNodeIndexed(IndexedNodeEventArgs e)
         {
-            DataService.LogService.AddInfoLog(e.NodeId, string.Format("Index created for node. ({0})", LuceneIndexFolder.FullName));
+            DataService.LogService.AddVerboseLog(e.NodeId, string.Format("({0}) Index created for node", this.Name));
             base.OnNodeIndexed(e);
         }
 
         protected override void OnIndexDeleted(DeleteIndexEventArgs e)
         {
-            DataService.LogService.AddInfoLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value));
+            DataService.LogService.AddVerboseLog(-1, string.Format("({0}) Index deleted for term: {1} with value {2}", this.Name, e.DeletedTerm.Key, e.DeletedTerm.Value));
             base.OnIndexDeleted(e);
         }
 
         protected virtual void OnIndexOptimizing(EventArgs e)
         {
-            DataService.LogService.AddInfoLog(-1, "Index is being optimized");
+            DataService.LogService.AddInfoLog(-1, string.Format("({0}) Index is being optimized", this.Name));
             base.OnIndexOptimizing(e);
         }
 
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Overridden for logging
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="type"></param>
+        public override void ReIndexNode(XElement node, string type)
+        {
+           if (!SupportedTypes.Contains(type))
+                return;
+
+            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("({0}) ReIndexNode with type: {1}", this.Name, type));
+            base.ReIndexNode(node, type);
+        }
+
         /// <summary>
         /// Deletes a node from the index.                
         /// </summary>
@@ -195,6 +217,8 @@ namespace UmbracoExamine
             var filtered = c.RawQuery(rawQuery);
             var results = InternalSearcher.Search(filtered);
 
+            DataService.LogService.AddVerboseLog(int.Parse(nodeId), string.Format("({0}) DeleteFromIndex with query: {1} (found {2} results)", this.Name, rawQuery, results.Count()));
+
             //need to create a delete queue item for each one found
             foreach (var r in results)
             {
@@ -206,6 +230,17 @@ namespace UmbracoExamine
         #endregion
 
         #region Protected
+
+        /// <summary>
+        /// Overridden for logging.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="type"></param>
+        protected override void AddSingleNodeToIndex(XElement node, string type)
+        {
+            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("({0}) AddSingleNodeToIndex with type: {1}", this.Name, type));
+            base.AddSingleNodeToIndex(node, type);
+        }
 
         /// <summary>
         /// Override this method to strip all html from all user fields before raising the event, then after the event 
@@ -278,16 +313,7 @@ namespace UmbracoExamine
         {
             return indexSet.ToIndexCriteria(DataService);
         }
-
-        /// <summary>
-        /// Must override this to do the actual re-indexing operation
-        /// </summary>
-        protected override void PerformIndexRebuild()
-        {
-            IndexAll(IndexTypes.Content);
-            IndexAll(IndexTypes.Media);
-        }
-
+        
         /// <summary>
         /// return the index policy for the field name passed in, if not found, return normal
         /// </summary>

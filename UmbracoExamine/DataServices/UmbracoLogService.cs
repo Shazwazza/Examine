@@ -19,5 +19,13 @@ namespace UmbracoExamine.DataServices
             Log.Add(LogTypes.Error, nodeId, "[UmbracoExamine] " + msg);
         }
 
+        public void AddVerboseLog(int nodeId, string msg)
+        {
+            if (LogLevel == LoggingLevel.Verbose)
+                Log.Add(LogTypes.Custom, nodeId, "[UmbracoExamine] " + msg);
+        }
+
+        public LoggingLevel LogLevel { get; set; }
+
     }
 }

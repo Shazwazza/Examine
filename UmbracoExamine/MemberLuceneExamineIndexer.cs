@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using umbraco.cms.businesslogic.member;
 using Examine.LuceneEngine;
+using System.Collections.Generic;
 
 namespace UmbracoExamine
 {
@@ -12,6 +13,14 @@ namespace UmbracoExamine
     /// </summary>
     public class MemberLuceneExamineIndexer : UmbracoExamineIndexer
     {
+        protected override IEnumerable<string> SupportedTypes
+        {
+            get
+            {
+                return new string[] { IndexTypes.Member };
+            }
+        }
+
         protected override XDocument GetXDocument(string xPath, string type)
         {
             if (type == IndexTypes.Member)

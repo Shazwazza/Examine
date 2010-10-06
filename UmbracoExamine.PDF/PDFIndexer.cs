@@ -18,6 +18,7 @@ namespace UmbracoExamine.PDF
     public class PDFIndexer : BaseUmbracoIndexer
     {
 
+        #region Properties
         /// <summary>
         /// Gets or sets the supported extensions for files, currently the system will only
         /// process PDF files.
@@ -36,6 +37,16 @@ namespace UmbracoExamine.PDF
         /// </summary>
         /// <value>The name of the text content field.</value>
         public const string TextContentFieldName = "FileTextContent";
+
+        protected override IEnumerable<string> SupportedTypes
+        {
+            get
+            {
+                return new string[] { IndexTypes.Media };
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Set up all properties for the indexer based on configuration information specified. This will ensure that
@@ -59,31 +70,6 @@ namespace UmbracoExamine.PDF
                 UmbracoFileProperty = "umbracoFile";
             else
                 UmbracoFileProperty = config["umbracoFileProperty"];
-        }
-
-        /// <summary>
-        /// The PDF Indexer only supports indexing PDFs in the media application. 
-        /// This will rebuild the index for only the media items.
-        /// </summary>
-        protected override void PerformIndexRebuild()
-        {
-            IndexAll(IndexTypes.Media);
-        }
-
-        /// <summary>
-        /// Re-indexes media content, if a type other than IndexTypes.Media is
-        /// passed in, it will be ignored.
-        /// </summary>
-        /// <param name="type"></param>
-        protected override void PerformIndexAll(string type)
-        {
-
-            //ignore the content index types
-            if (type == IndexTypes.Media)
-            {
-                base.PerformIndexAll(type);
-            }
-
         }
 
         /// <summary>
@@ -149,6 +135,8 @@ namespace UmbracoExamine.PDF
 
             return fields;
         }
+        
+        #region Internal PDFParser Class
 
         /// <summary>
         /// Parses a PDF file and extracts the text from it.
@@ -163,12 +151,12 @@ namespace UmbracoExamine.PDF
                     m_UnsupportedRange = new List<int>();
                     m_UnsupportedRange.AddRange(Enumerable.Range(0x0000, 0x001F));
                     m_UnsupportedRange.Add(0x1F);
-                    
+
                 }
             }
 
             private static readonly object m_Locker = new object();
-            
+
             /// <summary>
             /// Stores the unsupported range of character
             /// </summary>
@@ -195,7 +183,7 @@ namespace UmbracoExamine.PDF
                 PRTokeniser token = null;
                 PRTokeniser.TokType tknType;
                 string tknValue = String.Empty;
-              
+
                 for (var i = 1; (i <= reader.NumberOfPages); i++)
                 {
                     pageBytes = reader.GetPageContent(i);
@@ -216,17 +204,18 @@ namespace UmbracoExamine.PDF
                                         sb.Append(s);
                                     }
                                 }
-                                                                
-                            }                           
+
+                            }
                         }
                     }
                 }
-                
+
                 return sb.ToString();
             }
-          
+
 
         }
-
+        
+        #endregion
     }
 }
