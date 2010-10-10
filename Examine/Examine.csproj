@@ -120,9 +120,11 @@
     <Compile Include="LuceneEngine\IndexerExecutive.cs" />
     <Compile Include="LuceneEngine\IndexerExecutiveAssignedEventArgs.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
+    <Compile Include="LuceneEngine\LuceneExtensions.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndexer.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\SimpleDataIndexer.cs" />
+    <Compile Include="LuceneEngine\ReaderStatus.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneBooleanOperation.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />

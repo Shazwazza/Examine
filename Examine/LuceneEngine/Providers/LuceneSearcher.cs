@@ -299,28 +299,6 @@ namespace Examine.LuceneEngine.Providers
 
 		#region Private
 
-		private enum ReaderStatus { Current, Closed, NotCurrent }
-
-		/// <summary>
-		/// Checks if the reader is current, closed or not up to date
-		/// </summary>
-		/// <returns>The reader status</returns>
-		/// <remarks>
-		/// Performs error checking as the reader may be closed
-		/// </remarks>
-		private ReaderStatus GetReaderStatus()
-		{
-			ReaderStatus status = ReaderStatus.NotCurrent;
-			try
-			{
-				status = m_Searcher.GetIndexReader().IsCurrent() ? ReaderStatus.Current : ReaderStatus.NotCurrent;
-			}
-			catch (AlreadyClosedException)
-			{
-				status = ReaderStatus.Closed;
-			}
-			return status;
-		}
 
 		/// <summary>
 		/// This checks if the singleton IndexSearcher is initialized and up to date.
@@ -351,12 +329,12 @@ namespace Examine.LuceneEngine.Providers
 				}
 				else
 				{
-					if (GetReaderStatus() != ReaderStatus.Current)
+                    if (m_Searcher.GetReaderStatus() != ReaderStatus.Current)
 					{
 						lock (m_Locker)
 						{
 							//double check, now, we need to find out if it's closed or just not current
-							switch (GetReaderStatus())
+                            switch (m_Searcher.GetReaderStatus())
 							{
 								case ReaderStatus.Current:
 									break;

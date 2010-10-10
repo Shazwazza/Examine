@@ -28,7 +28,17 @@ namespace Examine.Test.DataServices
                 Trace.WriteLine("VERBOSE: (" + nodeId.ToString() + ") " + msg);
         }
 
-        public LoggingLevel LogLevel { get; set; }
+        public LoggingLevel LogLevel
+        {
+            get
+            {
+                return LoggingLevel.Verbose;
+            }
+            set
+            {
+                //do nothing
+            }
+        }
 
         #endregion
     }

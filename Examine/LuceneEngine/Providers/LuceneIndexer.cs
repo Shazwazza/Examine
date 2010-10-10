@@ -29,7 +29,7 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer()
             : base()
         {
-            m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
+            m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
             : base(indexerData)
         {
-            m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(m_FileWatcher_Elapsed);
+            m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
 
             //set up our folders based on the index path
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Index"));
@@ -1162,7 +1162,8 @@ namespace Examine.LuceneEngine.Providers
                                 .OrderBy(x => x.Name)
                                 .ThenByDescending(x => x.Extension) //we need to order by extension descending so that .del items are always processed before .add items
                                 .ToList())
-                            {
+                            {                                
+
                                 if (x.Extension == ".del")
                                 {
                                     if (GetExclusiveIndexReader(ref reader, ref writer))
@@ -1401,7 +1402,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void m_FileWatcher_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        void FileWatcher_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
 
             //stop the event system
@@ -1427,9 +1428,11 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         private bool GetExclusiveIndexWriter(ref IndexWriter writer, ref IndexReader reader)
         {
+            //if the writer is already created, then we're ok
             if (writer != null)
                 return true;
 
+            //checks for locks and closes the reader if one is found
             if (!IndexReady())
             {
                 if (reader != null)
@@ -1442,6 +1445,8 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
+           
+
             writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
             return true;
         }
@@ -1453,12 +1458,12 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="writer"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// This also ensures that the reader is up to date, and if it is not, it re-opens the reader.
+        /// </returns>
         private bool GetExclusiveIndexReader(ref IndexReader reader, ref IndexWriter writer)
         {
-            if (reader != null)
-                return true;
-
+            //checks for locks and closes the writer if one is found
             if (!IndexReady())
             {
                 if (writer != null)
@@ -1471,8 +1476,44 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
+            if (reader != null)
+            {
+                //Turns out that each time we need to process one of these items, we'll need to refresh the reader since it won't be up
+                //to date if the .add files are processed
+                switch (reader.GetReaderStatus())
+                {
+                    case ReaderStatus.Current:
+                        //if it's current, then we're ok
+                        return true;
+                    case ReaderStatus.NotCurrent:
+                        //this will generally not be current each time an .add is processed and there's more deletes after the fact, we'll need to re-open
+
+                        //yes, this is actually the way the Lucene wants you to work...
+                        //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
+                        //here's references: 
+                        // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
+                        // http://gist.github.com/173978 
+                        var oldReader = reader;
+                        var newReader = oldReader.Reopen(false);
+                        if (newReader != oldReader)
+                        {
+                            oldReader.Close();
+                            reader = newReader;
+                        }
+                        //now that the reader is re-opened, we're good
+                        return true;
+                    case ReaderStatus.Closed:
+                        //if it's closed, then we'll allow it to be opened below...
+                        break;
+                    default:
+                        break;
+                }
+            }           
+     
+            //if we've made it this far, open a reader
             reader = IndexReader.Open(new SimpleFSDirectory(LuceneIndexFolder), false);
             return true;
+            
         }
 
         /// <summary>

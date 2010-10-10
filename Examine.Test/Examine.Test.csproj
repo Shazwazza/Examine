@@ -77,7 +77,6 @@
     <Compile Include="IndexInitializer.cs" />
     <Compile Include="IndexTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReIndexingTest.cs" />
     <Compile Include="SearchTest.cs" />
     <Compile Include="SimpleDataProviderTest.cs" />
     <Compile Include="XsltExtensionsTest.cs" />
