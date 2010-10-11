@@ -176,7 +176,7 @@ namespace UmbracoExamine
             base.OnIndexDeleted(e);
         }
 
-        protected virtual void OnIndexOptimizing(EventArgs e)
+        protected override void OnIndexOptimizing(EventArgs e)
         {
             DataService.LogService.AddInfoLog(-1, string.Format("({0}) Index is being optimized", this.Name));
             base.OnIndexOptimizing(e);
