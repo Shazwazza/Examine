@@ -37,7 +37,8 @@ namespace UmbracoExamine
 
             Media.AfterSave += new Media.SaveEventHandler(Media_AfterSave);
             Media.AfterDelete += new Media.DeleteEventHandler(Media_AfterDelete);
-
+            Media.AfterMove += new EventHandler<MoveEventArgs>(Media_AfterMove);
+            
             //These should only fire for providers that DONT have SupportUnpublishedContent set to true
             content.AfterUpdateDocumentCache += new content.DocumentCacheEventHandler(content_AfterUpdateDocumentCache);
             content.AfterClearDocumentCache += new content.DocumentCacheEventHandler(content_AfterClearDocumentCache);
@@ -50,7 +51,6 @@ namespace UmbracoExamine
             Member.AfterSave += new Member.SaveEventHandler(Member_AfterSave);
             Member.AfterDelete += new Member.DeleteEventHandler(Member_AfterDelete);
         }
-
 
 
         void Member_AfterSave(Member sender, SaveEventArgs e)
@@ -152,9 +152,20 @@ namespace UmbracoExamine
         void Media_AfterSave(Media sender, umbraco.cms.businesslogic.SaveEventArgs e)
         {
             //ensure that only the providers are flagged to listen execute
+            IndexMedia(sender);
+        }
+
+        private void IndexMedia(Media sender)
+        {
             ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, IndexTypes.Media,
-                ExamineManager.Instance.IndexProviderCollection
-                    .Where(x => x.EnableDefaultEventHandler)); 
+                                                ExamineManager.Instance.IndexProviderCollection
+                                                    .Where(x => x.EnableDefaultEventHandler));
+        }
+
+        void Media_AfterMove(object sender, MoveEventArgs e)
+        {
+            Media m = (Media) sender;
+            IndexMedia(m);
         }
 
         /// <summary>
