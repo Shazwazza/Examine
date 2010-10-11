@@ -70,8 +70,8 @@ namespace Examine.Test
             //set our internal monitoring flag
             m_IsIndexing = true;
 
-            //reindex the same node 100 times
-            for (var i = 0; i < 100; i++)
+            //reindex the same node 210 times
+            for (var i = 0; i < 210; i++)
             {
                 indexer.ReIndexNode(node, IndexTypes.Content);
             }
@@ -107,8 +107,8 @@ namespace Examine.Test
             //get the id for th node we're re-indexing.
             var id = (int)node.Attribute("id");
 
-            //reindex the same node 100 times
-            for (var i = 0; i < 100; i++)
+            //reindex the same node 210 times
+            for (var i = 0; i < 210; i++)
             {
                 indexer.ReIndexNode(node, IndexTypes.Content);
             }
@@ -195,7 +195,7 @@ namespace Examine.Test
             //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
 
-            Assert.AreEqual(20, fields.Count());
+            Assert.AreEqual(21, fields.Count());
             //ensure there's 3 sorting fields
             Assert.AreEqual(3, fields.Where(x => x.StartsWith(UmbracoExamineIndexer.SortedFieldNamePrefix)).Count());
             //there should be 11 documents (10 content, 1 media)

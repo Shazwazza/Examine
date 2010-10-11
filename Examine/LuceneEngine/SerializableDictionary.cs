@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using System.Runtime.Serialization;
 using Examine.LuceneEngine.Providers;
+using System.ComponentModel;
 
 namespace Examine.LuceneEngine
 {
@@ -34,6 +35,10 @@ namespace Examine.LuceneEngine
             return null;
         }
 
+        /// <summary>
+        /// Read the XML
+        /// </summary>
+        /// <param name="reader"></param>
         public void ReadXml(System.Xml.XmlReader reader)
         {
             XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
@@ -56,9 +61,10 @@ namespace Examine.LuceneEngine
 
                 //if it's string, then get the CData
                 TValue value;
-                if (typeof(TValue).Equals(typeof(string)))
-                {
-                    value = (TValue)reader.ReadContentAsObject();
+                if (reader.NodeType == System.Xml.XmlNodeType.CDATA)
+                {                   
+                    value = (TValue)(object)reader.Value;
+                    reader.Read();
                 }
                 else 
                 {
@@ -73,6 +79,10 @@ namespace Examine.LuceneEngine
             reader.ReadEndElement();
         }
 
+        /// <summary>
+        /// Write the XML
+        /// </summary>
+        /// <param name="writer"></param>
         public void WriteXml(System.Xml.XmlWriter writer)
         {
             XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));

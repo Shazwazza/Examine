@@ -873,29 +873,29 @@ namespace Examine.LuceneEngine.Providers
                         {
                             case "NUMBER":
                             case "INT":
-                                if (!TryParse<int>(x.Value, out parsedVal))
+                                if (!TryConvert<int>(x.Value, out parsedVal))
                                     break;
                                 field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue((int)parsedVal);
                                 break;
                             case "FLOAT":
-                                if (!TryParse<float>(x.Value, out parsedVal))
+                                if (!TryConvert<float>(x.Value, out parsedVal))
                                     break;
                                 field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetFloatValue((float)parsedVal);
                                 break;
                             case "DOUBLE":
-                                if (!TryParse<double>(x.Value, out parsedVal))
+                                if (!TryConvert<double>(x.Value, out parsedVal))
                                     break;
                                 field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetDoubleValue((double)parsedVal);
                                 break;
                             case "LONG":
-                                if (!TryParse<long>(x.Value, out parsedVal))
+                                if (!TryConvert<long>(x.Value, out parsedVal))
                                     break;
                                 field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue((long)parsedVal);
                                 break;
                             case "DATE":
                             case "DATETIME":
                                 {
-                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
                                         break;
 
                                     DateTime date = (DateTime)parsedVal;
@@ -913,7 +913,7 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.YEAR":
                                 {
-                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
                                         break;
 
                                     DateTime date = (DateTime)parsedVal;
@@ -931,7 +931,7 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.MONTH":
                                 {
-                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
                                         break;
 
                                     DateTime date = (DateTime)parsedVal;
@@ -949,7 +949,7 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.DAY":
                                 {
-                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
                                         break;
 
                                     DateTime date = (DateTime)parsedVal;
@@ -966,7 +966,7 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.HOUR":
                                 {
-                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
                                         break;
 
                                     DateTime date = (DateTime)parsedVal;
@@ -983,7 +983,7 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             case "DATE.MINUTE":
                                 {
-                                    if (!TryParse<DateTime>(x.Value, out parsedVal))
+                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
                                         break;
 
                                     DateTime date = (DateTime)parsedVal;
@@ -1301,7 +1301,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="val"></param>
         /// <param name="parsedVal"></param>
         /// <returns></returns>
-        private bool TryParse<T>(string val, out object parsedVal)
+        private bool TryConvert<T>(string val, out object parsedVal)
             where T : struct
         {
             try

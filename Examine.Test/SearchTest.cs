@@ -38,6 +38,12 @@ namespace Examine.Test
         [TestInitialize()]       
         public void Initialize()
         {
+
+            var combinedResults = 
+                ExamineManager.Instance.SearchProviderCollection["CWSSearcher"].Search("blah", true)
+                .Concat(
+                    ExamineManager.Instance.SearchProviderCollection["PDFSearcher"].Search("blah", true));
+
             m_Init = new IndexInitializer();
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
