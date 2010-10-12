@@ -20,13 +20,13 @@ namespace Examine
             ExcludeNodeTypes = excludeNodeTypes;
             ParentNodeId = parentNodeId;
         }
-        
-        public IEnumerable<string> StandardFields { get; private set; }
-        public IEnumerable<string> UserFields { get; private set; }
 
-        public IEnumerable<string> IncludeNodeTypes { get; private set; }
-        public IEnumerable<string> ExcludeNodeTypes { get; private set; }
-        public int? ParentNodeId { get; private set; }
+        public IEnumerable<string> StandardFields { get; internal set; }
+        public IEnumerable<string> UserFields { get; internal set; }
+
+        public IEnumerable<string> IncludeNodeTypes { get; internal set; }
+        public IEnumerable<string> ExcludeNodeTypes { get; internal set; }
+        public int? ParentNodeId { get; internal set; }
     }
 
     

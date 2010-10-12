@@ -39,14 +39,13 @@ namespace Examine.Test
         public void Initialize()
         {
             m_Init = new IndexInitializer();
+            GetIndexer().RebuildIndex();
         }
 
         [TestMethod]
         public void PDFIndexer_Reindex()
         {
             var indexer = GetIndexer();
-
-            indexer.RebuildIndex();
 
             //get searcher and reader to get stats
             var s = GetSearcherProvider();

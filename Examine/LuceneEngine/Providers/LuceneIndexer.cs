@@ -439,10 +439,7 @@ namespace Examine.LuceneEngine.Providers
         {
             //create the queue item to be deleted
             SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
-
-            //need to process the queue items, otherwise the delete files aren't processed until the next publish
-            //if (!RunAsync)
-            //    ForceProcessQueueItems();
+      
             SafelyProcessQueueItems();
         }
 
@@ -482,6 +479,15 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type"></param>
         protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
         {
+
+            //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
+            //particular node
+            if (!IndexExists())
+            {
+                RebuildIndex();
+                return;
+            }
+
             foreach (XElement node in nodes)
             {
                 if (ValidateDocument(node))
@@ -549,31 +555,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type to store the node as.</param>
         protected virtual void AddSingleNodeToIndex(XElement node, string type)
         {
-            //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
-            //particular node
-            if (!IndexExists())
-            {
-                RebuildIndex();
-                return;
-            }
-
-            int nodeId = -1;
-            int.TryParse((string)node.Attribute("id"), out nodeId);
-            if (nodeId <= 0)
-                return;
-
-            if (!ValidateDocument(node))
-            {
-                OnIgnoringNode(new IndexingNodeDataEventArgs(node, nodeId, null, type));
-                return;
-            }
-
-            //save the index item to a queue file
-            SaveAddIndexQueueItem(GetDataToIndex(node, type), nodeId, type);
-
-            //run the indexer on all queued files
-            SafelyProcessQueueItems();
-
+            AddNodesToIndex(new XElement[] { node }, type);
         }
 
         /// <summary>

@@ -184,10 +184,18 @@ namespace UmbracoExamine
                                                     .Where(x => x.EnableDefaultEventHandler));
         }
 
+        /// <summary>
+        /// When media is moved, re-index
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void Media_AfterMove(object sender, MoveEventArgs e)
         {
-            Media m = (Media) sender;
-            IndexMedia(m);
+            if (sender is Media)
+            {
+                Media m = (Media)sender;
+                IndexMedia(m);
+            }            
         }
 
         /// <summary>

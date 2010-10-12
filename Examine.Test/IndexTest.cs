@@ -23,24 +23,85 @@ namespace Examine.Test
     [TestClass]
     public class IndexTest
     {
+        [TestMethod]
+        public void Index_Move_Media_From_Non_Indexable_To_Indexable_ParentID()
+        {
+            var indexer = GetIndexer();
 
-        //TODO: This will fail because 
+            //change parent id to 1116
+            ((IndexCriteria)indexer.IndexerData).ParentNodeId = 1116;
 
-        //[TestMethod]
-        //public void Index_Rebuild_Convension_Name_Index()
-        //{
-        //    var indexer = (LuceneExamineIndexer)ExamineManager.Instance.IndexProviderCollection["ConvensionNamedIndexer"];
-        //    indexer.RebuildIndex();
+            //rebuild so it excludes children unless they are under 1116
+            indexer.RebuildIndex();
 
-        //    //do validation... though I'm not sure how many there should be because this index set is empty so will index everything
+            //ensure that node 2112 doesn't exist
+            var search = GetSearcherProvider();
+            var results = search.Search(search.CreateSearchCriteria().Id(2112).Compile());
+            Assert.AreEqual<int>(0, results.Count());
 
-        //    //get searcher and reader to get stats
-        //    var s = (LuceneExamineSearcher)ExamineManager.Instance.SearchProviderCollection["ConvensionNamedSearcher"];
-        //    var r = s.GetSearcher().GetIndexReader();
+            //get a node from the data repo (this one exists underneath 2222)
+            var node = m_MediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
+                .Root
+                .Elements()
+                .Where(x => (int)x.Attribute("id") == 2112)
+                .First();
 
-        //    //there's 15 fields in the index, but 3 sorted fields
-        //    var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
-        //}
+            var currPath = (string)node.Attribute("path"); //should be : -1,2222,2112
+            Assert.AreEqual("-1,2222,2112", currPath);
+
+            //now mimic moving 2112 to 1116
+            node.SetAttributeValue("path", currPath.Replace("2222", "1116"));
+            node.SetAttributeValue("parentID", "1116");
+
+            //now reindex the node, this should first delete it and then WILL add it because of the parent id constraint
+            indexer.ReIndexNode(node, IndexTypes.Media);
+
+            //RESET the parent id
+            ((IndexCriteria)indexer.IndexerData).ParentNodeId = null;
+
+            //now ensure it's deleted
+            var newResults = search.Search(search.CreateSearchCriteria().Id(2112).Compile());
+            Assert.AreEqual<int>(1, newResults.Count());
+
+        }
+
+        [TestMethod]
+        public void Index_Move_Media_To_Non_Indexable_ParentID()
+        {
+            var indexer = GetIndexer();
+
+            //get a node from the data repo (this one exists underneath 2222)
+            var node = m_MediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
+                .Root
+                .Elements()
+                .Where(x => (int)x.Attribute("id") == 2112)
+                .First();
+
+            var currPath = (string)node.Attribute("path"); //should be : -1,2222,2112
+            Assert.AreEqual("-1,2222,2112", currPath);
+            
+            //ensure it's indexed
+            indexer.ReIndexNode(node, IndexTypes.Media);
+
+            //change the parent node id to be the one it used to exist under
+            ((IndexCriteria)indexer.IndexerData).ParentNodeId = 2222;
+
+            //now mimic moving the node underneath 1116 instead of 2222
+            node.SetAttributeValue("path", currPath.Replace("2222", "1116"));
+            node.SetAttributeValue("parentID", "1116");
+
+            //now reindex the node, this should first delete it and then NOT add it because of the parent id constraint
+            indexer.ReIndexNode(node, IndexTypes.Media);
+
+            //RESET the parent id
+            ((IndexCriteria)indexer.IndexerData).ParentNodeId = null;
+
+            //now ensure it's deleted
+            var search = GetSearcherProvider();
+            var results = search.Search(search.CreateSearchCriteria().Id(2112).Compile());
+            Assert.AreEqual<int>(0, results.Count());
+
+        }
 
         /// <summary>
         /// This will create a new index queue item for the same ID multiple times to ensure that the 
@@ -59,7 +120,7 @@ namespace Examine.Test
             indexer.RunAsync = true;
 
             //get a node from the data repo
-            var node = m_DataService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = m_ContentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .First();
@@ -99,7 +160,7 @@ namespace Examine.Test
             var indexer = GetIndexer();
 
             //get a node from the data repo
-            var node = m_DataService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = m_ContentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .First();
@@ -146,22 +207,25 @@ namespace Examine.Test
             //first we need to wire up some events... we need to ensure that during an update process that the item is deleted before it's added
             var indexer = GetIndexer();
 
-            //add index deleted event handler
-            indexer.IndexDeleted += (sender, e) =>
+            EventHandler<DeleteIndexEventArgs> indexDeletedHandler = (sender, e) =>
             {
                 isDeleted = true;
                 Assert.IsFalse(isAdded, "node was added before it was deleted!");
             };
 
-            //add index added event handler
-            indexer.NodeIndexed += (sender, e) =>
+            //add index deleted event handler
+            indexer.IndexDeleted += indexDeletedHandler;
+
+            EventHandler<IndexedNodeEventArgs> nodeIndexedHandler = (sender, e) =>
             {
                 isAdded = true;
                 Assert.IsTrue(isDeleted, "node was not deleted first!");
             };
 
+            //add index added event handler
+            indexer.NodeIndexed += nodeIndexedHandler;
             //get a node from the data repo
-            var node = m_DataService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = m_ContentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .First();
@@ -169,23 +233,25 @@ namespace Examine.Test
             //this will do the reindex (deleting, then updating)
             indexer.ReIndexNode(node, IndexTypes.Content);
 
+            indexer.IndexDeleted -= indexDeletedHandler;
+            indexer.NodeIndexed -= nodeIndexedHandler;
+
             Assert.IsTrue(isDeleted, "node was not deleted");
             Assert.IsTrue(isAdded, "node was not re-added");
         }
+
+
+         
+
 
         [TestMethod]
         public void Index_Rebuild_Index()
         {
             //get searcher and reader to get stats
             var s = GetSearcherProvider();
-            var r = s.GetSearcher().GetIndexReader();
-
-            Trace.Write("Num docs = " + r.NumDocs().ToString());
-
-
+            var r = s.GetSearcher().GetIndexReader();            
             var indexer = GetIndexer();
-            indexer.RebuildIndex();
-            
+                        
             //do validation...
 
             //get searcher and reader to get stats
@@ -256,9 +322,6 @@ namespace Examine.Test
             //now delete a node that has children
             var indexer = GetIndexer();
 
-            //first, rebuild index to ensure all data is there
-            indexer.RebuildIndex();
-
             var searcher = GetSearcherProvider();
 
             indexer.DeleteFromIndex(1140.ToString());
@@ -274,7 +337,8 @@ namespace Examine.Test
 
         #region Private methods and properties
 
-        private TestContentService m_DataService = new TestContentService();
+        private TestContentService m_ContentService = new TestContentService();
+        private TestMediaService m_MediaService = new TestMediaService();
 
         /// <summary>
         /// Helper method to return the index searcher for this index
@@ -300,17 +364,17 @@ namespace Examine.Test
 
         private static IndexInitializer m_Init;
 
+        /// <summary>
+        /// Run before every test!
+        /// </summary>
         [TestInitialize()]
         public void Initialize()
         {
             m_Init = new IndexInitializer();
+
+            GetIndexer().RebuildIndex();
         }
 
-        //[ClassCleanup()]
-        //public static void MyClassCleanup()
-        //{
-
-        //}
 
         #endregion
     }

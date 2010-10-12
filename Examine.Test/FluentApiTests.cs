@@ -180,9 +180,6 @@ namespace Examine.Test
         [TestMethod]
         public void FluentApiTests_Cws_TextPage_OrderedByNodeName()
         {
-            //re-index since the demo index is old
-            m_Indexer.RebuildIndex();
-
             var criteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
             IBooleanOperation query = criteria.NodeTypeAlias("cws_textpage");
             query = query.And().OrderBy("nodeName");
@@ -206,6 +203,8 @@ namespace Examine.Test
         private static IIndexer m_Indexer;
 
         #region Initialize and Cleanup
+
+        
 
         [TestInitialize()]
         public void Initialize()

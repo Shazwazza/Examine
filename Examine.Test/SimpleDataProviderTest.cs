@@ -17,9 +17,7 @@ namespace Examine.Test
         public void SimpleData_RebuildIndex()
         {
             var indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"];            
-
-            indexer.RebuildIndex();
-            
+                        
             //now, we need to ensure the right data is in there....
             
             //get searcher and reader to get stats
@@ -43,9 +41,6 @@ namespace Examine.Test
         [TestMethod]
         public void SimpleData_Reindex_Node()
         {
-            //first, we'll rebuild test to make sure we have the correct data in there
-
-            SimpleData_RebuildIndex();
 
             //now we'll index one new node:
 
@@ -69,7 +64,6 @@ namespace Examine.Test
         public void SimpleDataProviderTest_Range_Search_On_Year()
         {
             //Arrange
-            SimpleData_RebuildIndex();
             var s = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"];
 
             //Act
@@ -78,6 +72,13 @@ namespace Examine.Test
 
             //Assert
             Assert.AreEqual(5, results.TotalItemCount);
+        }
+
+        [TestInitialize]
+        public void Initialize()
+        {
+            var indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"];
+            indexer.RebuildIndex();
         }
     }
 }
