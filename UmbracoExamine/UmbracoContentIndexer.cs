@@ -325,21 +325,7 @@ namespace UmbracoExamine
             return (def.Count() == 0 ? FieldIndexTypes.ANALYZED : def.Single().Value);
         }
 
-        /// <summary>
-        /// Ensures that the node being indexed is of a correct type and is a descendent of the parent id specified.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        protected override bool ValidateDocument(XElement node)
-        {
-            //check if this document is a descendent of the parent
-            if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
-                if (!((string)node.Attribute("path")).Contains("," + IndexerData.ParentNodeId.Value.ToString() + ","))
-                    return false;
-
-            return base.ValidateDocument(node);
-        }
-
+      
         /// <summary>
         /// Collects all of the data that needs to be indexed as defined in the index set.
         /// </summary>

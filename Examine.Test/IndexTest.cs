@@ -23,6 +23,9 @@ namespace Examine.Test
     [TestClass]
     public class IndexTest
     {
+
+
+
         [TestMethod]
         public void Index_Move_Media_From_Non_Indexable_To_Indexable_ParentID()
         {

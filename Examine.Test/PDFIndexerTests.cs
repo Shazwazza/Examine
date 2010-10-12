@@ -6,6 +6,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using System.Diagnostics;
 using UmbracoExamine.PDF;
+using System.Xml.Linq;
+using Examine.Test.DataServices;
 
 namespace Examine.Test
 {
@@ -34,12 +36,42 @@ namespace Examine.Test
         #endregion
 
         private static IndexInitializer m_Init;
+        private TestMediaService m_MediaService = new TestMediaService();
 
         [TestInitialize()]
         public void Initialize()
         {
             m_Init = new IndexInitializer();
             GetIndexer().RebuildIndex();
+        }
+
+        [TestMethod]
+        public void PDFIndexer_Ensure_ParentID_Honored()
+        {
+            var indexer = GetIndexer();
+            //change parent id to 1116
+            ((IndexCriteria)indexer.IndexerData).ParentNodeId = 1116;
+
+            //get the 2112 pdf node: 2112
+            var node = m_MediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
+                .Root
+                .Elements()
+                .Where(x => (int)x.Attribute("id") == 2112)
+                .First();
+
+            //create a copy of 2112 undneath 1111 which is 'not indexable'
+            var newpdf = XElement.Parse(node.ToString());
+            newpdf.SetAttributeValue("id", "999999");
+            newpdf.SetAttributeValue("path", "-1,1111,999999");
+            newpdf.SetAttributeValue("parentID", "1111");
+
+            //now reindex
+            indexer.ReIndexNode(newpdf, IndexTypes.Media);
+
+            //make sure it doesn't exist
+            var search = GetSearcherProvider();
+            var results = search.Search(search.CreateSearchCriteria().Id(999999).Compile());
+            Assert.AreEqual<int>(0, results.Count());
         }
 
         [TestMethod]

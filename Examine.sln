@@ -27,8 +27,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.PDF", "Umbra
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RTM", "v1.0 RTM", "{7F620729-E41A-41FF-86B1-15C6BE9D9106}"
 	ProjectSection(SolutionItems) = preProject
-		RELEASES\v1.0 RTM\ReleaseNotes.docx = RELEASES\v1.0 RTM\ReleaseNotes.docx
-		RELEASES\v1.0 RTM\ReleaseNotes.pdf = RELEASES\v1.0 RTM\ReleaseNotes.pdf
 		RELEASES\v1.0 RTM\web.config = RELEASES\v1.0 RTM\web.config
 	EndProjectSection
 EndProject
