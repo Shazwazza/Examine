@@ -46,8 +46,24 @@ namespace UmbracoExamine
     /// <summary>
     /// This class purely exists to maintain backwards compatibility
     /// </summary>
-    [Obsolete("Use the new UmbracoExamineIndexer instead")]
-    public class LuceneExamineIndexer : UmbracoExamineIndexer
+    [Obsolete("Use the new UmbracoMemberIndexer instead")]
+    public class MemberLuceneExamineIndexer : UmbracoMemberIndexer
+    {
+        #region Constructors
+        [Obsolete]
+        public MemberLuceneExamineIndexer()
+            : base() { }
+        [Obsolete]
+        public MemberLuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
+            : base(indexerData, indexPath) { }
+        #endregion
+    }
+
+    /// <summary>
+    /// This class purely exists to maintain backwards compatibility
+    /// </summary>
+    [Obsolete("Use the new UmbracoContentIndexer instead")]
+    public class LuceneExamineIndexer : UmbracoContentIndexer
     {
         #region Constructors
         [Obsolete]

@@ -43,9 +43,9 @@ namespace Examine.Test
         {          
             var criteria = m_Searcher.CreateSearchCriteria(BooleanOperation.Or);
             var filter = criteria
-                .Field(UmbracoExamineIndexer.IndexTypeFieldName, IndexTypes.Media)
+                .Field(UmbracoContentIndexer.IndexTypeFieldName, IndexTypes.Media)
                 .Or()
-                .Field(UmbracoExamineIndexer.IndexTypeFieldName, IndexTypes.Content)
+                .Field(UmbracoContentIndexer.IndexTypeFieldName, IndexTypes.Content)
                 .Compile();
 
             var results = m_Searcher.Search(filter);

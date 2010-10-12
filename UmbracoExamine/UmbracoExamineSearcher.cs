@@ -59,7 +59,7 @@ namespace UmbracoExamine
         public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             var criteria = base.CreateSearchCriteria(type, defaultOperation) as LuceneSearchCriteria;
-            criteria.NodeTypeAliasField = UmbracoExamineIndexer.NodeTypeAliasFieldName;
+            criteria.NodeTypeAliasField = UmbracoContentIndexer.NodeTypeAliasFieldName;
             return criteria;
         }
 
@@ -71,8 +71,8 @@ namespace UmbracoExamine
         {
             var fields = base.GetSearchFields();
             return fields
-                .Where(x => x != UmbracoExamineIndexer.IndexPathFieldName)
-                .Where(x => x != UmbracoExamineIndexer.NodeTypeAliasFieldName)
+                .Where(x => x != UmbracoContentIndexer.IndexPathFieldName)
+                .Where(x => x != UmbracoContentIndexer.NodeTypeAliasFieldName)
                 .ToArray();
         }		
     }

@@ -21,14 +21,14 @@ namespace UmbracoExamine
     /// <summary>
     /// 
     /// </summary>
-    public class UmbracoExamineIndexer : BaseUmbracoIndexer
+    public class UmbracoContentIndexer : BaseUmbracoIndexer
     {
         #region Constructors
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public UmbracoExamineIndexer()
+        public UmbracoContentIndexer()
             : base() { }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
-        public UmbracoExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
+        public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
             : base(indexerData, indexPath) { }
 
         #endregion

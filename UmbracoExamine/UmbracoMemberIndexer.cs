@@ -5,14 +5,34 @@ using System.Xml.XPath;
 using umbraco.cms.businesslogic.member;
 using Examine.LuceneEngine;
 using System.Collections.Generic;
+using Examine;
+using System.IO;
 
 namespace UmbracoExamine
 {
     /// <summary>
     /// 
     /// </summary>
-    public class MemberLuceneExamineIndexer : UmbracoExamineIndexer
+    public class UmbracoMemberIndexer : UmbracoContentIndexer
     {
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public UmbracoMemberIndexer()
+            : base() { }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="indexPath"></param>
+        public UmbracoMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
+            : base(indexerData, indexPath) { }
+
+        /// <summary>
+        /// The supported types for this indexer
+        /// </summary>
         protected override IEnumerable<string> SupportedTypes
         {
             get

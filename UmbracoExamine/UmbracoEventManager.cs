@@ -10,6 +10,9 @@ using Examine;
 using Examine.Providers;
 using umbraco.cms.businesslogic.member;
 using Examine.LuceneEngine;
+using Examine.LuceneEngine.Providers;
+using Lucene.Net.Index;
+using Lucene.Net.Store;
 
 namespace UmbracoExamine
 {
@@ -33,7 +36,7 @@ namespace UmbracoExamine
             if (registeredProviders == 0)
                 return;
 
-                   
+            EnsureIndexesExist();                   
 
             Media.AfterSave += new Media.SaveEventHandler(Media_AfterSave);
             Media.AfterDelete += new Media.DeleteEventHandler(Media_AfterDelete);
@@ -52,6 +55,25 @@ namespace UmbracoExamine
             Member.AfterDelete += new Member.DeleteEventHandler(Member_AfterDelete);
         }
 
+        /// <summary>
+        /// This makes sure the Lucene indexes themselves exist and rebuilds them on app startup if none are there.
+        /// </summary>
+        private void EnsureIndexesExist()
+        {
+            foreach (var i in ExamineManager.Instance.IndexProviderCollection)
+            {
+                if (i is LuceneIndexer)
+                {
+                    //check if the index exists
+                    var indexer = (LuceneIndexer)i;
+                    if (!IndexReader.IndexExists(new SimpleFSDirectory(indexer.LuceneIndexFolder)))
+                    {
+                        //rebuild it
+                        indexer.RebuildIndex();
+                    }
+                }
+            }
+        }
 
         void Member_AfterSave(Member sender, SaveEventArgs e)
         {

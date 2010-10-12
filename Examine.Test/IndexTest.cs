@@ -197,15 +197,15 @@ namespace Examine.Test
 
             Assert.AreEqual(21, fields.Count());
             //ensure there's 3 sorting fields
-            Assert.AreEqual(3, fields.Where(x => x.StartsWith(UmbracoExamineIndexer.SortedFieldNamePrefix)).Count());
+            Assert.AreEqual(3, fields.Where(x => x.StartsWith(UmbracoContentIndexer.SortedFieldNamePrefix)).Count());
             //there should be 11 documents (10 content, 1 media)
             Assert.AreEqual(11, r.NumDocs());
 
             //test for the special fields to ensure they are there:
             Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
             Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
-            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.IndexPathFieldName).Count());
-            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoExamineIndexer.NodeTypeAliasFieldName).Count());
+            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoContentIndexer.IndexPathFieldName).Count());
+            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoContentIndexer.NodeTypeAliasFieldName).Count());
 
         }
 
@@ -223,7 +223,7 @@ namespace Examine.Test
 
             //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API, not examine!
             var r = IndexReader.Open(s.GetIndexReader().Directory(), false);            
-            var contentTerm = new Term(UmbracoExamineIndexer.IndexTypeFieldName, IndexTypes.Content);
+            var contentTerm = new Term(UmbracoContentIndexer.IndexTypeFieldName, IndexTypes.Content);
             var delCount = r.DeleteDocuments(contentTerm);                        
             r.Commit();
             r.Close();
@@ -289,9 +289,9 @@ namespace Examine.Test
         /// Helper method to return the indexer that we are testing
         /// </summary>
         /// <returns></returns>
-        private UmbracoExamineIndexer GetIndexer()
+        private UmbracoContentIndexer GetIndexer()
         {
-            return (UmbracoExamineIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
+            return (UmbracoContentIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
         }
 
         #endregion
