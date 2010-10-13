@@ -542,7 +542,7 @@ namespace Examine.LuceneEngine.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-        protected bool IndexExists()
+        public virtual bool IndexExists()
         {
             return IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder));
         }
