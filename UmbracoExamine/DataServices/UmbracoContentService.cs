@@ -12,6 +12,8 @@ using umbraco.DataLayer;
 using umbraco.BusinessLogic;
 using UmbracoExamine.Config;
 using Examine.LuceneEngine;
+using System.Data.SqlClient;
+using System.Diagnostics;
 
 namespace UmbracoExamine.DataServices
 {
@@ -113,13 +115,33 @@ namespace UmbracoExamine.DataServices
 
             var aliases = new List<string>();
             var fieldSql = "select distinct alias from cmsPropertyType order by alias";
-            using (var dr = Application.SqlHelper.ExecuteReader(fieldSql))
+            try
             {
-                while (dr.Read())
+                using (var dr = Application.SqlHelper.ExecuteReader(fieldSql))
                 {
-                    aliases.Add(dr.GetString("alias"));
-                }                
+                    while (dr.Read())
+                    {
+                        aliases.Add(dr.GetString("alias"));
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                if (ex is SqlHelperException || ex is SqlException)
+                {
+                    //if this happens, it could be due to wrong connection string, or something else.
+                    //we don't want to crash the app because of this so we'll actually swallow this
+                    //exception... Unfortunately logging probably won't work in this situation either :(
+
+                    Debug.WriteLine("EXCEPTION OCCURRED reading GetAllUserPropertyNames: " + ex.Message, "Error");
+                    Trace.WriteLine("EXCEPTION OCCURRED reading GetAllUserPropertyNames: " + ex.Message, "Error");
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+
             return aliases;
         }
 
