@@ -78,6 +78,7 @@
     <Compile Include="IndexTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchTest.cs" />
+    <Compile Include="SerializableDictionaryTest.cs" />
     <Compile Include="SimpleDataProviderTest.cs" />
     <Compile Include="XsltExtensionsTest.cs" />
   </ItemGroup>

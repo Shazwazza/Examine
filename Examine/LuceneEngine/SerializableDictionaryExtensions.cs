@@ -10,9 +10,14 @@ namespace Examine.LuceneEngine
     public static class SerializableDictionaryExtensions
     {
 
+        ///<summary>
+        /// The encoding to use when saving the file
+        ///</summary>
+        internal static Encoding DefaultFileEncoding = Encoding.UTF8;
+
         public static SerializableDictionary<TKey, TValue> ToSerializableDictionary<TKey, TValue>(this Dictionary<TKey, TValue> d)
         {
-            SerializableDictionary<TKey, TValue> sd = new SerializableDictionary<TKey, TValue>();
+            var sd = new SerializableDictionary<TKey, TValue>();
             d.ToList().ForEach(x =>
             {
                 sd.Add(x.Key, x.Value);
@@ -31,7 +36,7 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public static Dictionary<TKey, TConvertVal> ToDictionary<TKey, TValue, TConvertVal>(this SerializableDictionary<TKey, TValue> sd, Converter<TValue, TConvertVal> c)
         {
-            Dictionary<TKey, TConvertVal> d = new Dictionary<TKey, TConvertVal>();
+            var d = new Dictionary<TKey, TConvertVal>();
             sd.ToList().ForEach(x =>
             {
                 d.Add(x.Key, c.Invoke(x.Value));
@@ -41,7 +46,7 @@ namespace Examine.LuceneEngine
 
         public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this SerializableDictionary<TKey, TValue> sd)
         {
-            Dictionary<TKey, TValue> d = new Dictionary<TKey, TValue>();
+            var d = new Dictionary<TKey, TValue>();
             sd.ToList().ForEach(x =>
             {
                 d.Add(x.Key, x.Value);
@@ -51,17 +56,22 @@ namespace Examine.LuceneEngine
 
         private static void SaveToDisk<TKey, TValue>(this SerializableDictionary<TKey, TValue> sd, FileInfo fi)
         {
-            XmlSerializer xs = new XmlSerializer(sd.GetType());
-            string output = "";
-            using (StringWriter sw = new StringWriter())
+            var xs = new XmlSerializer(sd.GetType());
+            var output = "";
+            using (var sw = new StringWriter())
             {
                 xs.Serialize(sw, sd);
                 output = sw.ToString();
             }
-            using (var fileWriter = fi.CreateText())
+
+            //write file using UTF8
+            using (var fs = new FileStream(fi.FullName, FileMode.Create))
             {
-                fileWriter.Write(output);
-            }
+                using (var w = new StreamWriter(fs, DefaultFileEncoding))
+                {
+                    w.Write(output);                    
+                }
+            }            
         }
 
         public static void SaveToDisk<TKey, TValue>(this Dictionary<TKey, TValue> d, FileInfo fi)
@@ -72,12 +82,17 @@ namespace Examine.LuceneEngine
         public static void ReadFromDisk<TKey, TValue>(this SerializableDictionary<TKey, TValue> sd, FileInfo fi)
         {
             //get the dictionary object from the file data
-            XmlSerializer xs = new XmlSerializer(typeof(SerializableDictionary<TKey, TValue>));
+            var xs = new XmlSerializer(typeof(SerializableDictionary<TKey, TValue>));
             var deserialized = new SerializableDictionary<TKey, TValue>();
-            using (var s = fi.OpenText())
+
+            using (var fs = new FileStream(fi.FullName, FileMode.Open))
             {
-                deserialized = xs.Deserialize(s) as SerializableDictionary<TKey, TValue>;
+                using (var r = new StreamReader(fs, DefaultFileEncoding))
+                {
+                    deserialized = xs.Deserialize(r) as SerializableDictionary<TKey, TValue>;
+                }
             }
+           
             sd.Clear();
             foreach (var x in deserialized)
             {

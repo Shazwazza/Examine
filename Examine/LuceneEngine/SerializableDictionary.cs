@@ -4,6 +4,7 @@ using System.Xml.Serialization;
 using System.Runtime.Serialization;
 using Examine.LuceneEngine.Providers;
 using System.ComponentModel;
+using System.Text;
 
 namespace Examine.LuceneEngine
 {
@@ -20,14 +21,8 @@ namespace Examine.LuceneEngine
     [Serializable]
     public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable
     {
-        public SerializableDictionary() : base()
-        {
 
-        }
-        protected SerializableDictionary(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
-
+        
         #region IXmlSerializable Members
 
         public System.Xml.Schema.XmlSchema GetSchema()
@@ -41,10 +36,10 @@ namespace Examine.LuceneEngine
         /// <param name="reader"></param>
         public void ReadXml(System.Xml.XmlReader reader)
         {
-            XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
-            XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
+            var keySerializer = new XmlSerializer(typeof(TKey));
+            var valueSerializer = new XmlSerializer(typeof(TValue));
 
-            bool wasEmpty = reader.IsEmptyElement;
+            var wasEmpty = reader.IsEmptyElement;
 
             reader.Read();
 
@@ -55,7 +50,7 @@ namespace Examine.LuceneEngine
             {
                 reader.ReadStartElement("item");
                 reader.ReadStartElement("key");
-                TKey key = (TKey)keySerializer.Deserialize(reader);
+                var key = (TKey)keySerializer.Deserialize(reader);
                 reader.ReadEndElement();
                 reader.ReadStartElement("value");
 
@@ -85,8 +80,8 @@ namespace Examine.LuceneEngine
         /// <param name="writer"></param>
         public void WriteXml(System.Xml.XmlWriter writer)
         {
-            XmlSerializer keySerializer = new XmlSerializer(typeof(TKey));
-            XmlSerializer valueSerializer = new XmlSerializer(typeof(TValue));
+            var keySerializer = new XmlSerializer(typeof(TKey));
+            var valueSerializer = new XmlSerializer(typeof(TValue));
             foreach (TKey key in this.Keys)
             {
                 writer.WriteStartElement("item");
