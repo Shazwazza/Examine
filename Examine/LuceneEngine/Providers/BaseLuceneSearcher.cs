@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.IO;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
 using Examine.SearchCriteria;
@@ -14,6 +15,26 @@ namespace Examine.LuceneEngine.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
+
+        #region Constructors
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		protected BaseLuceneSearcher()
+		{
+        }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="analyzer"></param>
+        protected BaseLuceneSearcher(Analyzer analyzer)
+		{           
+            IndexingAnalyzer = analyzer;
+		}
+
+		#endregion
 
         /// <summary>
         /// Used to specify if leading wildcards are allowed. WARNING SLOWS PERFORMANCE WHEN ENABLED!

@@ -14,6 +14,7 @@ using Examine.LuceneEngine;
 using Examine.LuceneEngine.Config;
 using UmbracoExamine.Config;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Analysis;
 
 
 namespace UmbracoExamine
@@ -36,8 +37,10 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
-        public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
-            : base(indexerData, indexPath) { }
+        /// <param name="dataService"></param>
+        /// <param name="analyzer"></param>
+        public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, indexPath, dataService, analyzer) { }
 
         #endregion
 
@@ -251,11 +254,11 @@ namespace UmbracoExamine
         {
             //strip html of all users fields
             // Get all user data that we want to index and store into a dictionary 
-            foreach (string fieldName in IndexerData.UserFields)
+            foreach (var field in IndexerData.UserFields)
             {
-                if (e.Fields.ContainsKey(fieldName))
+                if (e.Fields.ContainsKey(field.Name))
                 {
-                    e.Fields[fieldName] = DataService.ContentService.StripHtml(e.Fields[fieldName]);
+                    e.Fields[field.Name] = DataService.ContentService.StripHtml(e.Fields[field.Name]);
                 }
             }
 

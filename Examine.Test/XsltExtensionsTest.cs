@@ -1,4 +1,5 @@
-﻿using UmbracoExamine;
+﻿using System.IO;
+using UmbracoExamine;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Xml.XPath;
@@ -18,20 +19,18 @@ namespace Examine.Test
     public class XsltExtensionsTest
     {
 
-        private static ISearcher m_Searcher;
-        private static IIndexer m_Indexer;
+        private static ISearcher _searcher;
+        private static IIndexer _indexer;
 
         #region Initialize and Cleanup
 
         [TestInitialize()]
         public void Initialize()
         {
-            IndexInitializer.Initialize();
-            m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
-            m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
-
-            //ensure we're re-indexed before testing
-            m_Indexer.RebuildIndex();
+            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+            _indexer = IndexInitializer.GetCwsIndexer(newIndexFolder);
+            _indexer.RebuildIndex();
+            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);            
         }
 
         #endregion

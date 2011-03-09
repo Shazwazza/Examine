@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Examine.LuceneEngine;
 using Examine;
 using Examine.LuceneEngine.Config;
 using System.Xml.Linq;
+using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -14,6 +16,28 @@ namespace Examine.LuceneEngine.Providers
     /// </summary>
     public class SimpleDataIndexer : LuceneIndexer
     {
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public SimpleDataIndexer()
+        {
+        }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="workingFolder"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="dataService"></param>
+        /// <param name="indexTypes"></param>
+        public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes)
+            : base(indexerData, workingFolder, analyzer)
+        {
+            DataService = dataService;
+            IndexTypes = indexTypes;
+        }
 
         /// <summary>
         /// The data service used to retrieve all of the data for an index type

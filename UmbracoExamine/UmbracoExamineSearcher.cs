@@ -8,6 +8,7 @@ using UmbracoExamine.Config;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
+using Lucene.Net.Analysis;
 
 
 namespace UmbracoExamine
@@ -27,13 +28,14 @@ namespace UmbracoExamine
             : base()
         {
         }
-		
-		/// <summary>
-		/// Constructor to allow for creating an indexer at runtime
-		/// </summary>
-		/// <param name="indexPath"></param>
-        public UmbracoExamineSearcher(DirectoryInfo indexPath)
-            : base(indexPath)
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexPath"></param>
+        /// <param name="analyzer"></param>
+        public UmbracoExamineSearcher(DirectoryInfo indexPath, Analyzer analyzer)
+            : base(indexPath, analyzer)
         {
         }
 

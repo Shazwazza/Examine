@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Analysis;
 using UmbracoExamine.DataServices;
 using Examine;
 using System.IO;
@@ -23,7 +24,6 @@ namespace UmbracoExamine
         /// Default constructor
         /// </summary>
         protected BaseUmbracoIndexer()
-            : base()
         {
         }
 
@@ -32,8 +32,13 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
-        protected BaseUmbracoIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
-            : base(indexerData, indexPath) { }
+        /// <param name="dataService"></param>
+        /// <param name="analyzer"></param>
+        protected BaseUmbracoIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, indexPath, analyzer)
+        {
+            DataService = dataService;
+        }
 
         #endregion
 
@@ -144,18 +149,18 @@ namespace UmbracoExamine
             if (!SupportedTypes.Contains(type))
                 return;
 
-            string xPath = "//*[(number(@id) > 0){0}]"; //we'll add more filters to this below if needed
+            var xPath = "//*[(number(@id) > 0){0}]"; //we'll add more filters to this below if needed
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             //create the xpath statement to match node type aliases if specified
             if (IndexerData.IncludeNodeTypes.Count() > 0)
             {
                 sb.Append("(");
-                foreach (string field in IndexerData.IncludeNodeTypes)
+                foreach (var field in IndexerData.IncludeNodeTypes)
                 {
                     //this can be used across both schemas
-                    string nodeTypeAlias = "(@nodeTypeAlias='{0}' or (count(@nodeTypeAlias)=0 and name()='{0}'))";
+                    const string nodeTypeAlias = "(@nodeTypeAlias='{0}' or (count(@nodeTypeAlias)=0 and name()='{0}'))";
 
                     sb.Append(string.Format(nodeTypeAlias, field));
                     sb.Append(" or ");
@@ -170,7 +175,7 @@ namespace UmbracoExamine
                 if (sb.Length > 0)
                     sb.Append(" and ");
                 sb.Append("(");
-                sb.Append("contains(@path, '," + IndexerData.ParentNodeId.Value.ToString() + ",')"); //if the path contains comma - id - comma then the nodes must be a child
+                sb.Append("contains(@path, '," + IndexerData.ParentNodeId.Value + ",')"); //if the path contains comma - id - comma then the nodes must be a child
                 sb.Append(")");
             }
 

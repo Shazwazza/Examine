@@ -10,6 +10,7 @@ using Lucene.Net.Store;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.SearchCriteria;
+using Lucene.Net.Analysis;
 
 
 namespace Examine.LuceneEngine.Providers
@@ -27,12 +28,14 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher()
 		{
         }
-		
-		/// <summary>
-		/// Constructor to allow for creating an indexer at runtime
-		/// </summary>
-		/// <param name="indexPath"></param>
-		public LuceneSearcher(DirectoryInfo indexPath)
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexPath"></param>
+        /// <param name="analyzer"></param>
+        public LuceneSearcher(DirectoryInfo indexPath, Analyzer analyzer)
+            : base(analyzer)
 		{           
 			//set up our folder
 			LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Index"));
@@ -81,7 +84,7 @@ namespace Examine.LuceneEngine.Providers
 					if (set != null)
 					{
 						//we've found an index set by naming convensions :)
-						IndexSetName = set.SetName;
+						_indexSetName = set.SetName;
 						found = true;
 					}
 				}
@@ -90,17 +93,17 @@ namespace Examine.LuceneEngine.Providers
 					throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration");
 
 				//get the folder to index
-				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[_indexSetName].IndexDirectory.FullName, "Index"));
 			}
 			else if (config["indexSet"] != null)
 			{
 				if (IndexSets.Instance.Sets[config["indexSet"]] == null)
 					throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
 
-				IndexSetName = config["indexSet"];
+				_indexSetName = config["indexSet"];
 
 				//get the folder to index
-				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[_indexSetName].IndexDirectory.FullName, "Index"));
 			}            		
 		}
 
@@ -173,10 +176,10 @@ namespace Examine.LuceneEngine.Providers
             return base.Search(searchParams);
         }
 
-		/// <summary>
-		/// Name of the Lucene.NET index set
-		/// </summary>
-		public string IndexSetName { get; protected set; }
+        /// <summary>
+        /// Name of the Lucene.NET index set
+        /// </summary>
+        private string _indexSetName;
 
         /// <summary>
         /// Gets the searcher for this instance

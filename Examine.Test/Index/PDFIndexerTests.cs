@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
+using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
@@ -12,45 +15,28 @@ namespace Examine.Test.Index
     [TestClass]
     public class PDFIndexerTests
     {
-        #region Private methods
-
-        /// <summary>
-        /// Helper method to return the index searcher for this index
-        /// </summary>
-        /// <returns></returns>
-        private UmbracoExamineSearcher GetSearcherProvider()
-        {
-            return (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["PDFSearcher"];
-        }
-
-        /// <summary>
-        /// Helper method to return the indexer that we are testing
-        /// </summary>
-        /// <returns></returns>
-        private PDFIndexer GetIndexer()
-        {
-            return (PDFIndexer)ExamineManager.Instance.IndexProviderCollection["PDFIndexer"];
-        }
-        #endregion
-
-        private TestMediaService m_MediaService = new TestMediaService();
+       
+        private readonly TestMediaService _mediaService = new TestMediaService();
+        private PDFIndexer _indexer;
+        private UmbracoExamineSearcher _searcher;
 
         [TestInitialize()]
         public void Initialize()
         {
-            IndexInitializer.Initialize();
-            GetIndexer().RebuildIndex();
+            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
+            _indexer = IndexInitializer.GetPdfIndexer(newIndexFolder);
+            _indexer.RebuildIndex();
+            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
 
         [TestMethod]
         public void PDFIndexer_Ensure_ParentID_Honored()
         {
-            var indexer = GetIndexer();
             //change parent id to 1116
-            ((IndexCriteria)indexer.IndexerData).ParentNodeId = 1116;
+            ((IndexCriteria)_indexer.IndexerData).ParentNodeId = 1116;
 
             //get the 2112 pdf node: 2112
-            var node = m_MediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = _mediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .Where(x => (int)x.Attribute("id") == 2112)
@@ -63,38 +49,35 @@ namespace Examine.Test.Index
             newpdf.SetAttributeValue("parentID", "1111");
 
             //now reindex
-            indexer.ReIndexNode(newpdf, IndexTypes.Media);
+            _indexer.ReIndexNode(newpdf, IndexTypes.Media);
 
             //make sure it doesn't exist
-            var search = GetSearcherProvider();
-            var results = search.Search(search.CreateSearchCriteria().Id(999999).Compile());
-            Assert.AreEqual<int>(0, results.Count());
+
+            var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(999999).Compile());
+            Assert.AreEqual(0, results.Count());
         }
 
         [TestMethod]
         public void PDFIndexer_Reindex()
         {
-            var indexer = GetIndexer();
-
-            //get searcher and reader to get stats
-            var s = GetSearcherProvider();
-            var r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();
+            //get searcher and reader to get stats            
+            var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();
 
             Trace.Write("Num docs = " + r.NumDocs().ToString());
 
-            Assert.AreEqual<int>(7, r.NumDocs());
+            Assert.AreEqual(7, r.NumDocs());
 
             //search the pdf content to ensure it's there
-            Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1113).Compile()).Single()
+            Assert.IsTrue(_searcher.Search(_searcher.CreateSearchCriteria().Id(1113).Compile()).Single()
                 .Fields[PDFIndexer.TextContentFieldName].Contains("EncapsulateField"));
-            Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1114).Compile()).Single()
+            Assert.IsTrue(_searcher.Search(_searcher.CreateSearchCriteria().Id(1114).Compile()).Single()
                 .Fields[PDFIndexer.TextContentFieldName].Contains("metaphysical realism"));
 
             //the contour PDF cannot be read properly, this is to due with the PDF encoding!
             //Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1115).Compile()).Single()
             //    .Fields[PDFIndexer.TextContentFieldName].Contains("Returns All records from the form with the id"));
 
-            Assert.IsTrue(s.Search(s.CreateSearchCriteria().Id(1116).Compile()).Single()
+            Assert.IsTrue(_searcher.Search(_searcher.CreateSearchCriteria().Id(1116).Compile()).Single()
                 .Fields[PDFIndexer.TextContentFieldName].Contains("What long-term preservation"));
             
 

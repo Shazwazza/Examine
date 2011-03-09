@@ -8,6 +8,8 @@ using System.Xml.Linq;
 using Examine;
 using iTextSharp.text.pdf;
 using System.Text;
+using Lucene.Net.Analysis;
+using UmbracoExamine.DataServices;
 
 
 namespace UmbracoExamine.PDF
@@ -17,6 +19,34 @@ namespace UmbracoExamine.PDF
     /// </summary>
     public class PDFIndexer : BaseUmbracoIndexer
     {
+        #region Constructors
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public PDFIndexer()
+        {
+            SupportedExtensions = new[] { ".pdf" };
+            UmbracoFileProperty = "umbracoFile";
+        }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexPath"></param>
+        /// <param name="dataService"></param>
+        /// <param name="analyzer"></param>
+        public PDFIndexer(DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+            : base(
+                new IndexCriteria(Enumerable.Empty<IIndexField>(), Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null), 
+                indexPath, dataService, analyzer)
+        {
+            SupportedExtensions = new[] { ".pdf" };
+            UmbracoFileProperty = "umbracoFile";
+        }
+
+        #endregion
+
 
         #region Properties
         /// <summary>
@@ -24,13 +54,13 @@ namespace UmbracoExamine.PDF
         /// process PDF files.
         /// </summary>
         /// <value>The supported extensions.</value>
-        public IEnumerable<string> SupportedExtensions { get; private set; }
+        public IEnumerable<string> SupportedExtensions { get; set; }
 
         /// <summary>
         /// Gets or sets the umbraco property alias (defaults to umbracoFile)
         /// </summary>
         /// <value>The umbraco file property.</value>
-        public string UmbracoFileProperty { get; private set; }
+        public string UmbracoFileProperty { get; set; }
 
         /// <summary>
         /// Gets the name of the Lucene.Net field which the content is inserted into
@@ -60,15 +90,11 @@ namespace UmbracoExamine.PDF
         {
             base.Initialize(name, config);
 
-            if (string.IsNullOrEmpty(config["extensions"]))
-                SupportedExtensions = new[] { ".pdf" };
-            else
+            if (!string.IsNullOrEmpty(config["extensions"]))
                 SupportedExtensions = config["extensions"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             //checks if a custom field alias is specified
-            if (string.IsNullOrEmpty(config["umbracoFileProperty"]))
-                UmbracoFileProperty = "umbracoFile";
-            else
+            if (!string.IsNullOrEmpty(config["umbracoFileProperty"]))                
                 UmbracoFileProperty = config["umbracoFileProperty"];
         }
 

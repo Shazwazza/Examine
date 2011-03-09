@@ -7,6 +7,8 @@ using Examine.LuceneEngine;
 using System.Collections.Generic;
 using Examine;
 using System.IO;
+using UmbracoExamine.DataServices;
+using Lucene.Net.Analysis;
 
 namespace UmbracoExamine
 {
@@ -27,8 +29,10 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
-        public UmbracoMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
-            : base(indexerData, indexPath) { }
+        /// <param name="dataService"></param>
+        /// <param name="analyzer"></param>
+        public UmbracoMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, indexPath, dataService, analyzer) { }
 
         /// <summary>
         /// The supported types for this indexer

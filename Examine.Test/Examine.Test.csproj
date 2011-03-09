@@ -81,6 +81,7 @@
     <Compile Include="Search\SearchTest.cs" />
     <Compile Include="SerializableDictionaryTest.cs" />
     <Compile Include="SimpleDataProviderTest.cs" />
+    <Compile Include="TestIndexField.cs" />
     <Compile Include="XsltExtensionsTest.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -20,25 +20,27 @@ namespace Examine.Test.Search
         [TestMethod]
         public void MultiIndex_Field_Count()
         {
-            var result = ((MultiIndexSearcher) _searcher).GetSearchFields();
+            var result = _searcher.GetSearchFields();
             Assert.AreEqual(54, result.Count(), "The total number for fields between all of the indexes should be ");
         }
 
         #region Initialize and Cleanup
 
-        private static ISearcher _searcher;
+        private MultiIndexSearcher _searcher;
 
         [TestInitialize]
         public void Initialize()
         {
-            IndexInitializer.Initialize();
-            _searcher = ExamineManager.Instance.SearchProviderCollection["MultiIndexSearcher"];
 
-            //ensure we're re-indexed before testing
-            foreach(var i in ExamineManager.Instance.IndexProviderCollection.Cast<IIndexer>())
-            {
-                i.RebuildIndex();
-            }
+
+            //IndexInitializer.Initialize();
+            //_searcher = ExamineManager.Instance.SearchProviderCollection["MultiIndexSearcher"];
+
+            ////ensure we're re-indexed before testing
+            //foreach(var i in ExamineManager.Instance.IndexProviderCollection.Cast<IIndexer>())
+            //{
+            //    i.RebuildIndex();
+            //}
         }
         
         #endregion

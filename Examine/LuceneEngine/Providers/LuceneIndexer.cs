@@ -30,26 +30,33 @@ namespace Examine.LuceneEngine.Providers
         /// Default constructor
         /// </summary>
         protected LuceneIndexer()
-            : base()
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
+            IndexSecondsInterval = 5;
         }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="indexerData"></param>
-        /// <param name="indexPath"></param>
-        protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
+        /// <param name="workingFolder"></param>
+        /// <param name="analyzer"></param>
+        protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer)
             : base(indexerData)
         {
             m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
 
             //set up our folders based on the index path
-            LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Index"));
-            IndexQueueItemFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Queue"));
+            WorkingFolder = workingFolder;
+            LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
+            IndexQueueItemFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Queue"));
 
-            ReInitialize();
+            IndexingAnalyzer = analyzer;
+
+            //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
+            InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);
+
+            IndexSecondsInterval = 5;
         }
 
         #endregion
@@ -101,6 +108,7 @@ namespace Examine.LuceneEngine.Providers
                         VerifyFolder(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
 
                         //now set the index folders
+                        WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
                         LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
                         IndexQueueItemFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
 
@@ -129,6 +137,7 @@ namespace Examine.LuceneEngine.Providers
                     VerifyFolder(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
 
                     //now set the index folders
+                    WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
                     LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
                     IndexQueueItemFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
                 }
@@ -146,12 +155,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneSearcher(this.LuceneIndexFolder);
-            var searcherConfig = new NameValueCollection();
-            searcherConfig.Add("indexSet", this.IndexSetName);
-            //We should use the same analyzer for searching and indexing
-            searcherConfig.Add("analyzer", IndexingAnalyzer.GetType().AssemblyQualifiedName);
-            InternalSearcher.Initialize(Guid.NewGuid().ToString("N"), searcherConfig);
+            InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);           
 
             RunAsync = true;
             if (config["runAsync"] != null)
@@ -223,7 +227,7 @@ namespace Examine.LuceneEngine.Providers
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
         /// </summary>
-        protected internal BaseSearchProvider InternalSearcher;
+        protected BaseSearchProvider InternalSearcher { get; private set; }
 
         #endregion
 
@@ -232,7 +236,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
         /// </summary>
-        public Analyzer IndexingAnalyzer { get; protected internal set; }
+        public Analyzer IndexingAnalyzer { get; protected set; }
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
@@ -254,12 +258,17 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The folder that stores the Lucene Index files
         /// </summary>
-        public DirectoryInfo LuceneIndexFolder { get; protected internal set; }
+        public DirectoryInfo LuceneIndexFolder { get; private set; }
 
         /// <summary>
         /// The folder that stores the index queue files
         /// </summary>
-        public DirectoryInfo IndexQueueItemFolder { get; protected internal set; }
+        public DirectoryInfo IndexQueueItemFolder { get; private set; }
+
+        /// <summary>
+        /// The base folder that contains the queue and index folder and the indexer executive files
+        /// </summary>
+        public DirectoryInfo WorkingFolder { get; private set; }
 
         /// <summary>
         /// The Executive to determine if this is the master indexer
@@ -269,19 +278,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The index set name which references an Examine <see cref="IndexSet"/>
         /// </summary>
-        public string IndexSetName { get; protected internal set; }
-
-        /// <summary>
-        /// Gets the full IndexSet information for this provider
-        /// </summary>
-        /// <value>The index set.</value>
-        public IndexSet IndexSet
-        {
-            get
-            {
-                return IndexSets.Instance.Sets[this.IndexSetName];
-            }
-        }
+        public string IndexSetName { get; private set; }
 
         #endregion
 
@@ -525,8 +522,8 @@ namespace Examine.LuceneEngine.Providers
         protected virtual IIndexCriteria GetIndexerData(IndexSet indexSet)
         {
             return new IndexCriteria(
-                indexSet.IndexAttributeFields.ToList().Select(x => x.Name).ToArray(),
-                indexSet.IndexUserFields.ToList().Select(x => x.Name).ToArray(),
+                indexSet.IndexAttributeFields.Cast<IIndexField>().ToArray(),
+                indexSet.IndexUserFields.Cast<IIndexField>().ToArray(),
                 indexSet.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 indexSet.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 indexSet.IndexParentId);
@@ -708,18 +705,18 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
-            Dictionary<string, string> values = new Dictionary<string, string>();
+            var values = new Dictionary<string, string>();
 
             int nodeId = int.Parse(node.Attribute("id").Value);
 
             // Get all user data that we want to index and store into a dictionary 
-            foreach (string fieldName in IndexerData.UserFields)
+            foreach (var field in IndexerData.UserFields)
             {
                 // Get the value of the data                
-                string value = node.SelectExamineDataValue(fieldName);
+                string value = node.SelectExamineDataValue(field.Name);
 
                 //raise the event and assign the value to the returned data from the event
-                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, fieldName, value, false, nodeId);
+                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, field.Name, value, false, nodeId);
                 OnGatheringFieldData(indexingFieldDataArgs);
                 value = indexingFieldDataArgs.FieldValue;
 
@@ -727,22 +724,22 @@ namespace Examine.LuceneEngine.Providers
                 if (!string.IsNullOrEmpty(value))
                 {
                     if (!string.IsNullOrEmpty(value))
-                        values.Add(fieldName, value);
+                        values.Add(field.Name, value);
                 }
             }
 
             // Add umbraco node properties 
-            foreach (string fieldName in IndexerData.StandardFields)
+            foreach (var field in IndexerData.StandardFields)
             {
-                string val = node.SelectExaminePropertyValue(fieldName);
-                var args = new IndexingFieldDataEventArgs(node, fieldName, val, true, nodeId);
+                string val = node.SelectExaminePropertyValue(field.Name);
+                var args = new IndexingFieldDataEventArgs(node, field.Name, val, true, nodeId);
                 OnGatheringFieldData(args);
                 val = args.FieldValue;
 
                 //don't add if the value is empty/null                
                 if (!string.IsNullOrEmpty(val))
                 {
-                    values.Add(fieldName, val);
+                    values.Add(field.Name, val);
                 }
 
             }
@@ -802,7 +799,6 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
         /// <param name="nodeId">The node id.</param>
         /// <param name="type">The type to index the node as.</param>
-        /// <param name="path">The path of the content node</param>
         /// <remarks>
         /// This will normalize (lowercase) all text before it goes in to the index.
         /// </remarks>
@@ -813,10 +809,10 @@ namespace Examine.LuceneEngine.Providers
             if (args.Cancel)
                 return;
 
-            Document d = new Document();
+            var d = new Document();
 
             //get all index set fields that are defined
-            var indexSetFields = IndexSet.IndexUserFields.ToList().Concat(IndexSet.IndexAttributeFields.ToList());
+            var indexSetFields = IndexerData.UserFields.ToList().Concat(IndexerData.StandardFields.ToList());
 
             //add all of our fields to the document index individually, don't include the special fields if they exists            
             var validFields = fields.Where(x => !x.Key.StartsWith(SpecialFieldPrefix)).ToList();
@@ -849,11 +845,10 @@ namespace Examine.LuceneEngine.Providers
                     }
                     else
                     {
-                        //TODO: Work out how to do dates properly
-                        //Currently we're just pretending it's a string
-                        IndexField indexField = indexedFields.First();
+                        var indexField = indexedFields.First();
                         Fieldable field = null;
                         object parsedVal = null;
+                        if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
                         switch (indexField.Type.ToUpper())
                         {
                             case "NUMBER":
@@ -1333,14 +1328,14 @@ namespace Examine.LuceneEngine.Providers
         {
 
             //ensure all of the folders are created at startup   
-            VerifyFolder(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
+            VerifyFolder(WorkingFolder);
             VerifyFolder(LuceneIndexFolder);
             VerifyFolder(IndexQueueItemFolder);
 
 
             if (ExecutiveIndex == null)
             {
-                ExecutiveIndex = new IndexerExecutive(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
+                ExecutiveIndex = new IndexerExecutive(WorkingFolder);
             }
 
             if (!ExecutiveIndex.IsInitialized())

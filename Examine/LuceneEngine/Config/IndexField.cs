@@ -6,7 +6,10 @@ using System.Configuration;
 
 namespace Examine.LuceneEngine.Config
 {
-    public sealed class IndexField : ConfigurationElement
+    ///<summary>
+    /// A configuration item representing a field to index
+    ///</summary>
+    public sealed class IndexField : ConfigurationElement, IIndexField
     {
         [ConfigurationProperty("Name", IsRequired = true)]
         public string Name

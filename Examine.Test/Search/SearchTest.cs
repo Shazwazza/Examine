@@ -1,5 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
+using Examine.Test.DataServices;
+using Lucene.Net.Analysis.Standard;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using UmbracoExamine;
 
 namespace Examine.Test.Search
 {
@@ -13,39 +18,31 @@ namespace Examine.Test.Search
         [TestMethod]
         public void Search_SimpleSearch()
         {
-            var result = m_Searcher.Search("sam", false);
-            Assert.AreEqual<int>(5, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
+            var result = _searcher.Search("sam", false);
+            Assert.AreEqual(5, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
         }
 
         [TestMethod]
         public void Search_SimpleSearchWithWildcard()
         {
-            var result = m_Searcher.Search("umb", true);
-            Assert.AreEqual<int>(8, result.Count(), "Total results for 'umb' is 8 using wildcards");
+            var result = _searcher.Search("umb", true);
+            Assert.AreEqual(8, result.Count(), "Total results for 'umb' is 8 using wildcards");
         }
 
         
-        private static ISearcher m_Searcher;
-        private static IIndexer m_Indexer;
+        private static ISearcher _searcher;
+        private static IIndexer _indexer;
 
         #region Initialize and Cleanup
 
         [TestInitialize()]       
         public void Initialize()
         {
-            IndexInitializer.Initialize();
-            m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
-            m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
-
-            //ensure we're re-indexed before testing
-            m_Indexer.RebuildIndex();
+            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+            _indexer = IndexInitializer.GetCwsIndexer(newIndexFolder);
+            _indexer.RebuildIndex();
+            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
-
-        //[ClassCleanup()]
-        //public static void Cleanup()
-        //{
-            
-        //}
 
         #endregion
     }

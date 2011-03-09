@@ -38,6 +38,7 @@
     <Reference Include="itextsharp">
       <HintPath>..\DLLs\itextsharp.dll</HintPath>
     </Reference>
+    <Reference Include="Lucene.Net, Version=2.9.2.2, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />

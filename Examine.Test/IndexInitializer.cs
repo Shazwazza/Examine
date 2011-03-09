@@ -18,6 +18,7 @@ using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Search;
+using UmbracoExamine.PDF;
 
 namespace Examine.Test
 {
@@ -26,106 +27,160 @@ namespace Examine.Test
     /// </summary>
     internal static class IndexInitializer
     {
-        public static void Initialize()
+        public static UmbracoContentIndexer GetCwsIndexer(DirectoryInfo d)
         {
+            var i = new UmbracoContentIndexer(new IndexCriteria(
+                                                         new[]
+                                                             {
+                                                                 new TestIndexField { Name = "id", EnableSorting = true, Type = "Number" }, 
+                                                                 new TestIndexField { Name = "nodeName", EnableSorting = true },
+                                                                 new TestIndexField { Name = "updateDate", EnableSorting = true, Type = "DateTime" }, 
+                                                                 new TestIndexField { Name = "writerName" }, 
+                                                                 new TestIndexField { Name = "path" }, 
+                                                                 new TestIndexField { Name = "nodeTypeAlias" }, 
+                                                                 new TestIndexField { Name = "parentID" }
+                                                             },
+                                                         new[]
+                                                             {
+                                                                 new TestIndexField { Name = "headerText" }, 
+                                                                 new TestIndexField { Name = "bodyText" },
+                                                                 new TestIndexField { Name = "metaDescription" }, 
+                                                                 new TestIndexField { Name = "metaKeywords" }, 
+                                                                 new TestIndexField { Name = "bodyTextColOne" }, 
+                                                                 new TestIndexField { Name = "bodyTextColTwo" }, 
+                                                                 new TestIndexField { Name = "xmlStorageTest" }
+                                                             },
+                                                         new[]
+                                                             {
+                                                                 "CWS_Home", 
+                                                                 "CWS_Textpage",
+                                                                 "CWS_TextpageTwoCol", 
+                                                                 "CWS_NewsEventsList", 
+                                                                 "CWS_NewsItem", 
+                                                                 "CWS_Gallery", 
+                                                                 "CWS_EventItem", 
+                                                                 "Image", 
+                                                             },
+                                                         new string[] { },
+                                                         -1),
+                                                         d,
+                                                         new TestDataService(),
+                                                         new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
 
-            if (_initIndexFolders == null)
-            {
-                _initIndexFolders = new Dictionary<string, string>();
-                
-                //wire up error handling
-                foreach (var p in ExamineManager.Instance.IndexProviderCollection.Cast<BaseIndexProvider>())
-                {
-                    p.IndexingError += IndexingError;
-                }
-            }
+            i.IndexSecondsInterval = 1;
 
-            //RemoveWorkingIndex();
+            i.IndexingError += IndexingError;
 
-            CreateIndexesFromTemplate();
-            ResetSearchers();
-            ResetIndexers();
-
-           
+            return i;
+        } 
+        public static UmbracoExamineSearcher GetUmbracoSearcher(DirectoryInfo d)
+        {
+            return new UmbracoExamineSearcher(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
         }
+        public static SimpleDataIndexer GetSimpleIndexer(DirectoryInfo d)
+        {
+            var i = new SimpleDataIndexer(new IndexCriteria(
+                                                         new IIndexField[] { },
+                                                         new[]
+                                                             {
+                                                                 new TestIndexField { Name = "Author" }, 
+                                                                 new TestIndexField { Name = "DateCreated", EnableSorting = true, Type = "DateTime"  },
+                                                                 new TestIndexField { Name = "Title" }, 
+                                                                 new TestIndexField { Name = "Photographer" }, 
+                                                                 new TestIndexField { Name = "YearCreated", Type = "Date.Year" }, 
+                                                                 new TestIndexField { Name = "MonthCreated", Type = "Date.Month" }, 
+                                                                 new TestIndexField { Name = "DayCreated", Type = "Date.Day" },
+                                                                 new TestIndexField { Name = "HourCreated", Type = "Date.Hour" },
+                                                                 new TestIndexField { Name = "MinuteCreated", Type = "Date.Minute" },
+                                                                 new TestIndexField { Name = "SomeNumber", Type = "Number" },
+                                                                 new TestIndexField { Name = "SomeFloat", Type = "Float" },
+                                                                 new TestIndexField { Name = "SomeDouble", Type = "Double" },
+                                                                 new TestIndexField { Name = "SomeLong", Type = "Long" }
+                                                             },
+                                                         new string[] { },
+                                                         new string[] { },
+                                                         -1),
+                                                         d,
+                                                         new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
+                                                         new TestSimpleDataProvider(),
+                                                         new[] { "Documents", "Pictures" });
+            i.IndexingError += IndexingError;
 
-        /// <summary>
-        /// Stores reference to the initial index folders for each provider
-        /// </summary>
-        private static Dictionary<string, string> _initIndexFolders;
+            return i;
+        }
+        public static LuceneSearcher GetLuceneSearcher(DirectoryInfo d)
+        {
+            return new LuceneSearcher(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+        }
+        public static PDFIndexer GetPdfIndexer(DirectoryInfo d)
+        {
+            var i = new PDFIndexer(d,
+                                      new TestDataService(),
+                                      new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
 
+            i.IndexingError += IndexingError;
+
+            return i;
+        }
 
         static void IndexingError(object sender, IndexingErrorEventArgs e)
         {
             throw new ApplicationException(e.Message, e.InnerException);
         }
 
-        /// <summary>
-        /// return the folder containing the index template
-        /// </summary>
-        /// <returns></returns>
-        private static DirectoryInfo GetTemplateFolder() {
-            var template = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory
-                .GetDirectories("App_Data")
-                .Single()
-                .GetDirectories("TemplateIndex")
-                .Single();
-            return template;
-        }
+        /////// <summary>
+        ///// Stores reference to the initial index folders for each provider
+        ///// </summary>
+        //private static Dictionary<string, string> _initIndexFolders;
 
-        private static void ResetSearchers()
-        {
-            foreach(var s in ExamineManager.Instance.SearchProviderCollection.Cast<ISearcher>().OfType<LuceneSearcher>())
-            {
-                //reset the folder 
-                s.LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[s.IndexSetName].IndexPath, "Index"));
-            }            
-        }
+        ///// <summary>
+        ///// return the folder containing the index template
+        ///// </summary>
+        ///// <returns></returns>
+        //private static DirectoryInfo GetTemplateFolder() {
+        //    var template = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory
+        //        .GetDirectories("App_Data")
+        //        .Single()
+        //        .GetDirectories("TemplateIndex")
+        //        .Single();
+        //    return template;
+        //}
 
-        private static void ResetIndexers()
-        {
-            foreach (var i in ExamineManager.Instance.IndexProviderCollection.OfType<LuceneIndexer>())
-            {
-                i.LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[i.IndexSetName].IndexPath, "Index"));
-                i.IndexQueueItemFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[i.IndexSetName].IndexPath, "Queue"));
-            }
-        }
+        ///// <summary>
+        ///// This creates indexes for each index set based on the template
+        ///// </summary>
+        //private static void CreateIndexesFromTemplate()
+        //{
+        //    var template = GetTemplateFolder();
+        //    IndexSets.Instance.Sets.Cast<IndexSet>().ToList()
+        //        .ForEach(x =>
+        //        {
 
-        /// <summary>
-        /// This creates indexes for each index set based on the template
-        /// </summary>
-        private static void CreateIndexesFromTemplate()
-        {
-            var template = GetTemplateFolder();
-            IndexSets.Instance.Sets.Cast<IndexSet>().ToList()
-                .ForEach(x =>
-                {
+        //            DirectoryInfo di;
+        //            //create a new random path
+        //            if (_initIndexFolders.ContainsKey(x.SetName))
+        //            {
+        //                di = new DirectoryInfo(Path.Combine(_initIndexFolders[x.SetName], Guid.NewGuid().ToString()));
+        //            }
+        //            else
+        //            {                        
+        //                di = new DirectoryInfo(Path.Combine(x.IndexPath, Guid.NewGuid().ToString()));    
+        //                //add to the dictionary
+        //                _initIndexFolders.Add(x.SetName, x.IndexPath);
+        //            }
 
-                    DirectoryInfo di;
-                    //create a new random path
-                    if (_initIndexFolders.ContainsKey(x.SetName))
-                    {
-                        di = new DirectoryInfo(Path.Combine(_initIndexFolders[x.SetName], Guid.NewGuid().ToString()));
-                    }
-                    else
-                    {                        
-                        di = new DirectoryInfo(Path.Combine(x.IndexPath, Guid.NewGuid().ToString()));    
-                        //add to the dictionary
-                        _initIndexFolders.Add(x.SetName, x.IndexPath);
-                    }
+        //            if (!di.Exists)
+        //            {
+        //                di.Create();
+        //            }
 
-                    if (!di.Exists)
-                    {
-                        di.Create();
-                    }
+        //            //set this path back to the provider
+        //            x.IndexPath = di.FullName;
 
-                    //set this path back to the provider
-                    x.IndexPath = di.FullName;
-
-                    var indexDir = di.CreateSubdirectory("Index");
-                    template.GetFiles().ToList().ForEach(f => f.CopyTo(Path.Combine(indexDir.FullName, f.Name)));
-                });
-        }
+        //            var indexDir = di.CreateSubdirectory("Index");
+        //            template.GetFiles().ToList().ForEach(f => f.CopyTo(Path.Combine(indexDir.FullName, f.Name)));
+        //        });
+        //}
 
     }
 }

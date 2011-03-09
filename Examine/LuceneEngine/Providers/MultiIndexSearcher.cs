@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
+using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
@@ -18,17 +20,34 @@ namespace Examine.LuceneEngine.Providers
     public class MultiIndexSearcher : BaseLuceneSearcher
     {
 
-        ///<summary>
-        /// The index sets to search across
-        ///</summary>
-        public IEnumerable<IndexSet> SearchableIndexSets {get; protected internal set;}
+        #region Constructors
+
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+        public MultiIndexSearcher()
+		{
+        }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexPath"></param>
+        /// <param name="analyzer"></param>
+        public MultiIndexSearcher(IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
+            : base(analyzer)
+		{
+            Searchers = indexPath.Select(s => new LuceneSearcher(s, IndexingAnalyzer)).ToList();
+		}
+
+		#endregion
         
         ///<summary>
         /// The underlying LuceneSearchers that will be searched across
         ///</summary>
         public IEnumerable<LuceneSearcher> Searchers { get; private set; }
         
-        public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
+        public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
 
@@ -51,10 +70,8 @@ namespace Examine.LuceneEngine.Providers
                 toSearch.Add(s);
             }
 
-            SearchableIndexSets = toSearch;
-
             //create the searchers
-            Searchers = SearchableIndexSets.Select(s => new LuceneSearcher(s.IndexDirectory)).ToList();
+            Searchers = toSearch.Select(s => new LuceneSearcher(s.IndexDirectory, IndexingAnalyzer)).ToList();
         }
         
         /// <summary>

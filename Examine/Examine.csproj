@@ -95,6 +95,7 @@
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="IIndexCriteria.cs" />
+    <Compile Include="IIndexField.cs" />
     <Compile Include="IndexCriteria.cs" />
     <Compile Include="IndexedNode.cs" />
     <Compile Include="IndexedNodesEventArgs.cs" />

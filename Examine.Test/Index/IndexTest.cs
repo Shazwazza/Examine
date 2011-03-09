@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using Lucene.Net.Analysis.Standard;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using Lucene.Net.Search;
@@ -25,21 +27,18 @@ namespace Examine.Test.Index
         [TestMethod]
         public void Index_Move_Media_From_Non_Indexable_To_Indexable_ParentID()
         {
-            var indexer = GetIndexer();
-
             //change parent id to 1116
-            ((IndexCriteria)indexer.IndexerData).ParentNodeId = 1116;
+            ((IndexCriteria)_indexer.IndexerData).ParentNodeId = 1116;
 
             //rebuild so it excludes children unless they are under 1116
-            indexer.RebuildIndex();
+            _indexer.RebuildIndex();
 
             //ensure that node 2112 doesn't exist
-            var search = GetSearcherProvider();
-            var results = search.Search(search.CreateSearchCriteria().Id(2112).Compile());
+            var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(2112).Compile());
             Assert.AreEqual<int>(0, results.Count());
 
             //get a node from the data repo (this one exists underneath 2222)
-            var node = m_MediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = _mediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .Where(x => (int)x.Attribute("id") == 2112)
@@ -53,24 +52,22 @@ namespace Examine.Test.Index
             node.SetAttributeValue("parentID", "1116");
 
             //now reindex the node, this should first delete it and then WILL add it because of the parent id constraint
-            indexer.ReIndexNode(node, IndexTypes.Media);
+            _indexer.ReIndexNode(node, IndexTypes.Media);
 
             //RESET the parent id
-            ((IndexCriteria)indexer.IndexerData).ParentNodeId = null;
+            ((IndexCriteria)_indexer.IndexerData).ParentNodeId = null;
 
             //now ensure it's deleted
-            var newResults = search.Search(search.CreateSearchCriteria().Id(2112).Compile());
-            Assert.AreEqual<int>(1, newResults.Count());
+            var newResults = _searcher.Search(_searcher.CreateSearchCriteria().Id(2112).Compile());
+            Assert.AreEqual(1, newResults.Count());
 
         }
 
         [TestMethod]
         public void Index_Move_Media_To_Non_Indexable_ParentID()
         {
-            var indexer = GetIndexer();
-
             //get a node from the data repo (this one exists underneath 2222)
-            var node = m_MediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = _mediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .Where(x => (int)x.Attribute("id") == 2112)
@@ -80,25 +77,24 @@ namespace Examine.Test.Index
             Assert.AreEqual("-1,2222,2112", currPath);
             
             //ensure it's indexed
-            indexer.ReIndexNode(node, IndexTypes.Media);
+            _indexer.ReIndexNode(node, IndexTypes.Media);
 
             //change the parent node id to be the one it used to exist under
-            ((IndexCriteria)indexer.IndexerData).ParentNodeId = 2222;
+            ((IndexCriteria)_indexer.IndexerData).ParentNodeId = 2222;
 
             //now mimic moving the node underneath 1116 instead of 2222
             node.SetAttributeValue("path", currPath.Replace("2222", "1116"));
             node.SetAttributeValue("parentID", "1116");
 
             //now reindex the node, this should first delete it and then NOT add it because of the parent id constraint
-            indexer.ReIndexNode(node, IndexTypes.Media);
+            _indexer.ReIndexNode(node, IndexTypes.Media);
 
             //RESET the parent id
-            ((IndexCriteria)indexer.IndexerData).ParentNodeId = null;
+            ((IndexCriteria)_indexer.IndexerData).ParentNodeId = null;
 
             //now ensure it's deleted
-            var search = GetSearcherProvider();
-            var results = search.Search(search.CreateSearchCriteria().Id(2112).Compile());
-            Assert.AreEqual<int>(0, results.Count());
+            var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(2112).Compile());
+            Assert.AreEqual(0, results.Count());
 
         }
 
@@ -108,18 +104,16 @@ namespace Examine.Test.Index
         /// </summary>
         [TestMethod]
         public void Index_Ensure_No_Duplicates_In_Async()
-        {
-            var indexer = GetIndexer();
-
+        {           
             //add the handler
             var handler = new EventHandler<IndexedNodesEventArgs>(indexer_NodesIndexed);
-            indexer.NodesIndexed += handler;
+            _indexer.NodesIndexed += handler;
 
             //run in async mode
-            indexer.RunAsync = true;
+            _indexer.RunAsync = true;
 
             //get a node from the data repo
-            var node = m_ContentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .First();
@@ -128,38 +122,35 @@ namespace Examine.Test.Index
             var id = (int)node.Attribute("id");
 
             //set our internal monitoring flag
-            m_IsIndexing = true;
+            _isIndexing = true;
 
             //reindex the same node 210 times
             for (var i = 0; i < 210; i++)
             {
-                indexer.ReIndexNode(node, IndexTypes.Content);
+                _indexer.ReIndexNode(node, IndexTypes.Content);
             }
 
             //we need to check if the indexing is complete
-            while (m_IsIndexing)
+            while (_isIndexing)
             {
                 //wait until indexing is done
                 Thread.Sleep(1000);
             }
 
             //reset the async mode and remove event handler
-            indexer.RunAsync = false;
-            indexer.NodesIndexed -= handler;
+            _indexer.RunAsync = false;
+            _indexer.NodesIndexed -= handler;
 
             //ensure no duplicates
-            var search = GetSearcherProvider();
-            var results = search.Search(search.CreateSearchCriteria().Id(id).Compile());
-            Assert.AreEqual<int>(1, results.Count());
+            var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(id).Compile());
+            Assert.AreEqual(1, results.Count());
         }
 
         [TestMethod]
         public void Index_Ensure_No_Duplicates_In_Non_Async()
         {
-            var indexer = GetIndexer();
-
             //get a node from the data repo
-            var node = m_ContentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .First();
@@ -170,19 +161,18 @@ namespace Examine.Test.Index
             //reindex the same node 210 times
             for (var i = 0; i < 210; i++)
             {
-                indexer.ReIndexNode(node, IndexTypes.Content);
+                _indexer.ReIndexNode(node, IndexTypes.Content);
             }
            
             //ensure no duplicates
-            var search = GetSearcherProvider();
-            var results = search.Search(search.CreateSearchCriteria().Id(id).Compile());
-            Assert.AreEqual<int>(1, results.Count());
+            var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(id).Compile());
+            Assert.AreEqual(1, results.Count());
         }
 
         /// <summary>
         /// Used to monitor async operation
         /// </summary>
-        private bool m_IsIndexing = false;
+        private bool _isIndexing = false;
         
         /// <summary>
         /// Used to monitor an Async operation
@@ -191,7 +181,7 @@ namespace Examine.Test.Index
         /// <param name="e"></param>
         void indexer_NodesIndexed(object sender, IndexedNodesEventArgs e)
         {
-            m_IsIndexing = false;
+            _isIndexing = false;
         }
 
         /// <summary>
@@ -204,7 +194,6 @@ namespace Examine.Test.Index
             var isAdded = false;
 
             //first we need to wire up some events... we need to ensure that during an update process that the item is deleted before it's added
-            var indexer = GetIndexer();
 
             EventHandler<DeleteIndexEventArgs> indexDeletedHandler = (sender, e) =>
             {
@@ -213,7 +202,7 @@ namespace Examine.Test.Index
             };
 
             //add index deleted event handler
-            indexer.IndexDeleted += indexDeletedHandler;
+            _indexer.IndexDeleted += indexDeletedHandler;
 
             EventHandler<IndexedNodeEventArgs> nodeIndexedHandler = (sender, e) =>
             {
@@ -222,18 +211,18 @@ namespace Examine.Test.Index
             };
 
             //add index added event handler
-            indexer.NodeIndexed += nodeIndexedHandler;
+            _indexer.NodeIndexed += nodeIndexedHandler;
             //get a node from the data repo
-            var node = m_ContentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+            var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
                 .Elements()
                 .First();
 
             //this will do the reindex (deleting, then updating)
-            indexer.ReIndexNode(node, IndexTypes.Content);
+            _indexer.ReIndexNode(node, IndexTypes.Content);
 
-            indexer.IndexDeleted -= indexDeletedHandler;
-            indexer.NodeIndexed -= nodeIndexedHandler;
+            _indexer.IndexDeleted -= indexDeletedHandler;
+            _indexer.NodeIndexed -= nodeIndexedHandler;
 
             Assert.IsTrue(isDeleted, "node was not deleted");
             Assert.IsTrue(isAdded, "node was not re-added");
@@ -247,30 +236,22 @@ namespace Examine.Test.Index
         public void Index_Rebuild_Index()
         {
             //get searcher and reader to get stats
-            var s = GetSearcherProvider();
-            var r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();   
-            var indexer = GetIndexer();
-                        
-            //do validation...
-
-            //get searcher and reader to get stats
-            s = GetSearcherProvider();
-            r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();
-
+            var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();   
+                                    
             //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
 
             Assert.AreEqual(21, fields.Count());
             //ensure there's 3 sorting fields
-            Assert.AreEqual(3, fields.Where(x => x.StartsWith(UmbracoContentIndexer.SortedFieldNamePrefix)).Count());
+            Assert.AreEqual(3, fields.Where(x => x.StartsWith(LuceneIndexer.SortedFieldNamePrefix)).Count());
             //there should be 11 documents (10 content, 1 media)
             Assert.AreEqual(11, r.NumDocs());
 
             //test for the special fields to ensure they are there:
-            Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
-            Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
-            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoContentIndexer.IndexPathFieldName).Count());
-            Assert.AreEqual<int>(1, fields.Where(x => x == UmbracoContentIndexer.NodeTypeAliasFieldName).Count());
+            Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
+            Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
+            Assert.AreEqual(1, fields.Where(x => x == UmbracoContentIndexer.IndexPathFieldName).Count());
+            Assert.AreEqual(1, fields.Where(x => x == UmbracoContentIndexer.NodeTypeAliasFieldName).Count());
 
         }
 
@@ -281,10 +262,8 @@ namespace Examine.Test.Index
         [TestMethod]
         public void Index_Reindex_Content()
         {
-            var searcher = GetSearcherProvider();
-
-            Trace.WriteLine("Searcher folder is " + searcher.LuceneIndexFolder.FullName);
-            var s = (IndexSearcher)searcher.GetSearcher();
+            Trace.WriteLine("Searcher folder is " + _searcher.LuceneIndexFolder.FullName);
+            var s = (IndexSearcher)_searcher.GetSearcher();
 
             //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API, not examine!
             var r = IndexReader.Open(s.GetIndexReader().Directory(), false);            
@@ -296,17 +275,16 @@ namespace Examine.Test.Index
             //make sure the content is gone. This is done with lucene APIs, not examine!
             var collector = new AllHitsCollector(false, true);
             var query = new TermQuery(contentTerm);
-            s = (IndexSearcher)searcher.GetSearcher(); //make sure the searcher is up do date.
+            s = (IndexSearcher)_searcher.GetSearcher(); //make sure the searcher is up do date.
             s.Search(query, collector);
             Assert.AreEqual(0, collector.Count);
 
             //call our indexing methods
-            var indexer = GetIndexer();
-            Trace.WriteLine("Indexer folder is " + indexer.LuceneIndexFolder.FullName);
-            indexer.IndexAll(IndexTypes.Content);
+            Trace.WriteLine("Indexer folder is " + _indexer.LuceneIndexFolder.FullName);
+            _indexer.IndexAll(IndexTypes.Content);
            
             collector = new AllHitsCollector(false, true);
-            s = (IndexSearcher)searcher.GetSearcher(); //make sure the searcher is up do date.
+            s = (IndexSearcher)_searcher.GetSearcher(); //make sure the searcher is up do date.
             s.Search(query, collector);
             Assert.AreEqual(10, collector.Count);
         }
@@ -319,43 +297,25 @@ namespace Examine.Test.Index
         {         
 
             //now delete a node that has children
-            var indexer = GetIndexer();
 
-            var searcher = GetSearcherProvider();
-
-            indexer.DeleteFromIndex(1140.ToString());
+            _indexer.DeleteFromIndex(1140.ToString());
             //this node had children: 1141 & 1142, let's ensure they are also removed
 
-            var results = searcher.Search(searcher.CreateSearchCriteria().Id(1141).Compile());
-            Assert.AreEqual<int>(0, results.Count());
+            var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(1141).Compile());
+            Assert.AreEqual(0, results.Count());
 
-            results = searcher.Search(searcher.CreateSearchCriteria().Id(1142).Compile());
-            Assert.AreEqual<int>(0, results.Count());
+            results = _searcher.Search(_searcher.CreateSearchCriteria().Id(1142).Compile());
+            Assert.AreEqual(0, results.Count());
 
         }
 
         #region Private methods and properties
 
-        private TestContentService m_ContentService = new TestContentService();
-        private TestMediaService m_MediaService = new TestMediaService();
+        private readonly TestContentService _contentService = new TestContentService();
+        private readonly TestMediaService _mediaService = new TestMediaService();
 
-        /// <summary>
-        /// Helper method to return the index searcher for this index
-        /// </summary>
-        /// <returns></returns>
-        private UmbracoExamineSearcher GetSearcherProvider()
-        {
-            return (UmbracoExamineSearcher)ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
-        }
-
-        /// <summary>
-        /// Helper method to return the indexer that we are testing
-        /// </summary>
-        /// <returns></returns>
-        private UmbracoContentIndexer GetIndexer()
-        {
-            return (UmbracoContentIndexer)ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
-        }
+        private UmbracoExamineSearcher _searcher;
+        private UmbracoContentIndexer _indexer;
 
         #endregion
 
@@ -368,9 +328,10 @@ namespace Examine.Test.Index
         [TestInitialize()]
         public void Initialize()
         {
-            IndexInitializer.Initialize();
-
-            GetIndexer().RebuildIndex();
+            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+            _indexer = IndexInitializer.GetCwsIndexer(newIndexFolder);
+            _indexer.RebuildIndex();
+            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
 
 

@@ -14,7 +14,7 @@ namespace UmbracoExamine.Config
     public static class IndexSetExtensions
     {
 
-        private static readonly object m_Locker = new object();
+        private static readonly object Locker = new object();
 
         /// <summary>
         /// Convert the indexset to indexerdata.
@@ -22,12 +22,13 @@ namespace UmbracoExamine.Config
         /// up and update the in memory IndexSet.
         /// </summary>
         /// <param name="set"></param>
+        /// <param name="svc"></param>
         /// <returns></returns>
         public static IIndexCriteria ToIndexCriteria(this IndexSet set, IDataService svc)
         {
             if (set.IndexUserFields.Count == 0)
             {
-                lock (m_Locker)
+                lock (Locker)
                 {
                     //we need to add all user fields to the collection if it is empty (this is the default if none are specified)
                     var userFields = svc.ContentService.GetAllUserPropertyNames();
@@ -40,7 +41,7 @@ namespace UmbracoExamine.Config
 
             if (set.IndexAttributeFields.Count == 0)
             {
-                lock (m_Locker)
+                lock (Locker)
                 {
                     //we need to add all system fields to the collection if it is empty (this is the default if none are specified)
                     var sysFields = svc.ContentService.GetAllSystemPropertyNames();
@@ -52,8 +53,8 @@ namespace UmbracoExamine.Config
             }
 
             return new IndexCriteria(
-                set.IndexAttributeFields.ToList().Select(x => x.Name).ToArray(),
-                set.IndexUserFields.ToList().Select(x => x.Name).ToArray(),
+                set.IndexAttributeFields.Cast<IIndexField>().ToArray(),
+                set.IndexUserFields.Cast<IIndexField>().ToArray(),
                 set.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 set.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 set.IndexParentId);

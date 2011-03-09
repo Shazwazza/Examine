@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using umbraco.cms.businesslogic;
 using System.Xml;
+using UmbracoExamine.DataServices;
 
 namespace UmbracoExamine.Config
 {
@@ -38,8 +39,8 @@ namespace UmbracoExamine
         public LuceneExamineSearcher()
             : base() { }
         [Obsolete]
-        public LuceneExamineSearcher(DirectoryInfo indexPath)
-            : base(indexPath) { }
+        public LuceneExamineSearcher(DirectoryInfo indexPath, Analyzer analyzer)
+            : base(indexPath, analyzer) { }
 		#endregion
     }
 
@@ -54,8 +55,8 @@ namespace UmbracoExamine
         public MemberLuceneExamineIndexer()
             : base() { }
         [Obsolete]
-        public MemberLuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
-            : base(indexerData, indexPath) { }
+        public MemberLuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, indexPath, dataService, analyzer) { }
         #endregion
     }
 
@@ -70,8 +71,8 @@ namespace UmbracoExamine
         public LuceneExamineIndexer()
             : base() { }
         [Obsolete]
-        public LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath)
-            : base(indexerData, indexPath) { }
+        public LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, indexPath, dataService, analyzer) { }
         #endregion
     }
 
