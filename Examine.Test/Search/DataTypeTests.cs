@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 
-namespace Examine.Test
+namespace Examine.Test.Search
 {
     [TestClass]
     public class DataTypeTests
@@ -246,8 +243,7 @@ namespace Examine.Test
             Assert.IsTrue(results.TotalItemCount > 0);
             Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
         }
-
-        private static IndexInitializer m_Init;
+        
         private static ISearcher m_Searcher;
         private static IIndexer m_Indexer;
         private static DateTime m_ReIndexDateTime;
@@ -255,7 +251,7 @@ namespace Examine.Test
         [TestInitialize()]
         public void Initialize()
         {
-            m_Init = new IndexInitializer();
+            IndexInitializer.Initialize();
 
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"];
             m_Indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"];

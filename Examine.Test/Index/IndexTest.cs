@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Text;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using Lucene.Net.Search;
 using Lucene.Net.Index;
-using Lucene.Net.QueryParsers;
-using Lucene.Net.Store;
 using System.Diagnostics;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using System.Threading;
 using Examine.Test.DataServices;
 
-namespace Examine.Test
+namespace Examine.Test.Index
 {
 
     /// <summary>
@@ -252,14 +248,14 @@ namespace Examine.Test
         {
             //get searcher and reader to get stats
             var s = GetSearcherProvider();
-            var r = s.GetSearcher().GetIndexReader();            
+            var r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();   
             var indexer = GetIndexer();
                         
             //do validation...
 
             //get searcher and reader to get stats
             s = GetSearcherProvider();
-            r = s.GetSearcher().GetIndexReader();
+            r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();
 
             //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -288,7 +284,7 @@ namespace Examine.Test
             var searcher = GetSearcherProvider();
 
             Trace.WriteLine("Searcher folder is " + searcher.LuceneIndexFolder.FullName);
-            var s = searcher.GetSearcher();
+            var s = (IndexSearcher)searcher.GetSearcher();
 
             //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API, not examine!
             var r = IndexReader.Open(s.GetIndexReader().Directory(), false);            
@@ -300,7 +296,7 @@ namespace Examine.Test
             //make sure the content is gone. This is done with lucene APIs, not examine!
             var collector = new AllHitsCollector(false, true);
             var query = new TermQuery(contentTerm);
-            s = searcher.GetSearcher(); //make sure the searcher is up do date.
+            s = (IndexSearcher)searcher.GetSearcher(); //make sure the searcher is up do date.
             s.Search(query, collector);
             Assert.AreEqual(0, collector.Count);
 
@@ -310,12 +306,12 @@ namespace Examine.Test
             indexer.IndexAll(IndexTypes.Content);
            
             collector = new AllHitsCollector(false, true);
-            s = searcher.GetSearcher(); //make sure the searcher is up do date.
+            s = (IndexSearcher)searcher.GetSearcher(); //make sure the searcher is up do date.
             s.Search(query, collector);
             Assert.AreEqual(10, collector.Count);
         }
 
-        ///// <summary>
+        /// <summary>
         /// This will delete an item from the index and ensure that all children of the node are deleted too!
         /// </summary>
         [TestMethod]
@@ -364,8 +360,7 @@ namespace Examine.Test
         #endregion
 
         #region Initialize and Cleanup
-
-        private static IndexInitializer m_Init;
+        
 
         /// <summary>
         /// Run before every test!
@@ -373,7 +368,7 @@ namespace Examine.Test
         [TestInitialize()]
         public void Initialize()
         {
-            m_Init = new IndexInitializer();
+            IndexInitializer.Initialize();
 
             GetIndexer().RebuildIndex();
         }

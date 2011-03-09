@@ -2,6 +2,7 @@
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using Lucene.Net.Search;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
@@ -22,7 +23,7 @@ namespace Examine.Test
             
             //get searcher and reader to get stats
             var s = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"];
-            var r = s.GetSearcher().GetIndexReader();
+            var r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();
 
             //there's 7 fields in the index, but 1 sorted fields, 2 are special fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -53,7 +54,7 @@ namespace Examine.Test
 
             //get searcher and reader to get stats
             var s = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"];
-            var r = s.GetSearcher().GetIndexReader();            
+            var r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();      
 
             //there should be 6 documents now (3 Documents, 3 Pictures)
             Assert.AreEqual(6, r.NumDocs());        

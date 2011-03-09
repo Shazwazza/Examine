@@ -13,14 +13,16 @@ namespace Examine.LuceneEngine
     /// </summary>
     public class SearchResults : ISearchResults
     {
-        private IndexSearcher searcher;
-        private AllHitsCollector collector;
+        /// <summary>
+        /// Exposes the internal searcher
+        /// </summary>
+        internal Searcher Searcher { get; private set; }
 
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, IndexSearcher searcher)
+        private AllHitsCollector _collector;
+
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
         {
-            //searcher = new IndexSearcher(new SimpleFSDirectory(examineSearcher.LuceneIndexFolder), true);
-            this.searcher = searcher;
-            this.searcher.SetDefaultFieldSortScoring(true, true);
+            Searcher = searcher;
             DoSearch(query, sortField);
         }
 
@@ -28,17 +30,17 @@ namespace Examine.LuceneEngine
         {
             if (sortField.Count() == 0)
             {
-                var topDocs = searcher.Search(query, null, searcher.MaxDoc(), new Sort());
-                collector = new AllHitsCollector(topDocs.scoreDocs);
+                var topDocs = Searcher.Search(query, null, Searcher.MaxDoc(), new Sort());
+                _collector = new AllHitsCollector(topDocs.scoreDocs);
                 topDocs = null;
             }
             else
             {
-                var topDocs = searcher.Search(query, null, searcher.MaxDoc(), new Sort(sortField.ToArray()));
-                collector = new AllHitsCollector(topDocs.scoreDocs);
+                var topDocs = Searcher.Search(query, null, Searcher.MaxDoc(), new Sort(sortField.ToArray()));
+                _collector = new AllHitsCollector(topDocs.scoreDocs);
                 topDocs = null;
             }
-            this.TotalItemCount = collector.Count;
+            TotalItemCount = _collector.Count;
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Internal cache of search results
         /// </summary>
-        protected Dictionary<int, SearchResult> docs = new Dictionary<int, SearchResult>();
+        protected Dictionary<int, SearchResult> Docs = new Dictionary<int, SearchResult>();
 
         /// <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
@@ -97,19 +99,19 @@ namespace Examine.LuceneEngine
             for (int i = skip; i < this.TotalItemCount; i++)
             {
                 //first check our own cache to make sure it's not there
-                if (!docs.ContainsKey(i))
+                if (!Docs.ContainsKey(i))
                 {
-                    var docId = collector.GetDocId(i);
-                    var doc = searcher.Doc(docId);
-                    var score = collector.GetDocScore(i);
+                    var docId = _collector.GetDocId(i);
+                    var doc = Searcher.Doc(docId);
+                    var score = _collector.GetDocScore(i);
 
-                    docs.Add(i, CreateSearchResult(doc, score));
+                    Docs.Add(i, CreateSearchResult(doc, score));
                 }
                 //using yield return means if the user breaks out we wont keep going
                 //only load what we need to load!
                 //and we'll get it from our cache, this means you can go 
                 //forward/ backwards without degrading performance
-                yield return docs[i];
+                yield return Docs[i];
             }
         }
 

@@ -34,9 +34,13 @@ namespace UmbracoExamine
 
             var provider = ExamineManager.Instance.SearchProviderCollection[providerName] as LuceneSearcher;
 
-            var results = provider.Search(searchText, useWildcards, indexType);
+            if (provider != null)
+            {
+                var results = provider.Search(searchText, useWildcards, indexType);
 
-            return GetResultsAsXml(results);
+                return GetResultsAsXml(results);
+            }
+            throw new ArgumentException("The provider " + providerName + " specified does not exist");
         }
 
         /// <summary>

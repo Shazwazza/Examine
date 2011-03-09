@@ -1,7 +1,5 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
+using Lucene.Net.Search;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using System.Diagnostics;
@@ -9,7 +7,7 @@ using UmbracoExamine.PDF;
 using System.Xml.Linq;
 using Examine.Test.DataServices;
 
-namespace Examine.Test
+namespace Examine.Test.Index
 {
     [TestClass]
     public class PDFIndexerTests
@@ -35,13 +33,12 @@ namespace Examine.Test
         }
         #endregion
 
-        private static IndexInitializer m_Init;
         private TestMediaService m_MediaService = new TestMediaService();
 
         [TestInitialize()]
         public void Initialize()
         {
-            m_Init = new IndexInitializer();
+            IndexInitializer.Initialize();
             GetIndexer().RebuildIndex();
         }
 
@@ -81,7 +78,7 @@ namespace Examine.Test
 
             //get searcher and reader to get stats
             var s = GetSearcherProvider();
-            var r = s.GetSearcher().GetIndexReader();
+            var r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();
 
             Trace.Write("Num docs = " + r.NumDocs().ToString());
 

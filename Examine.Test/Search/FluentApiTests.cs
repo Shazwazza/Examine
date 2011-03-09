@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Text;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
 using Examine.SearchCriteria;
 using Examine.LuceneEngine.SearchCriteria;
-using System.Threading;
 
-namespace Examine.Test
+namespace Examine.Test.Search
 {
     [TestClass]
     public class FluentApiTests
@@ -231,7 +228,6 @@ namespace Examine.Test
 
         }
 
-        private static IndexInitializer m_Init;
         private static ISearcher m_Searcher;
         private static IIndexer m_Indexer;
 
@@ -242,7 +238,7 @@ namespace Examine.Test
         [TestInitialize()]
         public void Initialize()
         {
-            m_Init = new IndexInitializer();
+            IndexInitializer.Initialize();
 
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];

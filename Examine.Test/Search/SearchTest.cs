@@ -1,12 +1,7 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using UmbracoExamine.Config;
-using UmbracoExamine;
 
-namespace Examine.Test
+namespace Examine.Test.Search
 {
     /// <summary>
     /// Summary description for UnitTest1
@@ -29,7 +24,7 @@ namespace Examine.Test
             Assert.AreEqual<int>(8, result.Count(), "Total results for 'umb' is 8 using wildcards");
         }
 
-        private static IndexInitializer m_Init;
+        
         private static ISearcher m_Searcher;
         private static IIndexer m_Indexer;
 
@@ -38,7 +33,7 @@ namespace Examine.Test
         [TestInitialize()]       
         public void Initialize()
         {
-            m_Init = new IndexInitializer();
+            IndexInitializer.Initialize();
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
 

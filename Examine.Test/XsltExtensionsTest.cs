@@ -18,7 +18,6 @@ namespace Examine.Test
     public class XsltExtensionsTest
     {
 
-        private static IndexInitializer m_Init;
         private static ISearcher m_Searcher;
         private static IIndexer m_Indexer;
 
@@ -27,7 +26,7 @@ namespace Examine.Test
         [TestInitialize()]
         public void Initialize()
         {
-            m_Init = new IndexInitializer();
+            IndexInitializer.Initialize();
             m_Searcher = ExamineManager.Instance.SearchProviderCollection["CWSSearcher"];
             m_Indexer = ExamineManager.Instance.IndexProviderCollection["CWSIndexer"];
 

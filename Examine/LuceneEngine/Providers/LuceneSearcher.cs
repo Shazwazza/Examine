@@ -3,10 +3,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using Examine;
-using Examine.Providers;
 using Examine.SearchCriteria;
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
@@ -17,7 +14,10 @@ using Examine.LuceneEngine.SearchCriteria;
 
 namespace Examine.LuceneEngine.Providers
 {
-	public class LuceneSearcher : BaseSearchProvider
+    ///<summary>
+	/// Standard object used to search a Lucene index
+	///</summary>
+    public class LuceneSearcher : BaseLuceneSearcher
 	{
 		#region Constructors
 
@@ -25,8 +25,7 @@ namespace Examine.LuceneEngine.Providers
 		/// Default constructor
 		/// </summary>
         public LuceneSearcher()
-            : base()
-        {
+		{
         }
 		
 		/// <summary>
@@ -34,7 +33,6 @@ namespace Examine.LuceneEngine.Providers
 		/// </summary>
 		/// <param name="indexPath"></param>
 		public LuceneSearcher(DirectoryInfo indexPath)
-			: base()
 		{           
 			//set up our folder
 			LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Index"));
@@ -45,13 +43,8 @@ namespace Examine.LuceneEngine.Providers
 		/// <summary>
 		/// Used as a singleton instance
 		/// </summary>
-		private IndexSearcher m_Searcher;
-		private static readonly object m_Locker = new object();
-
-		/// <summary>
-		/// Used to specify if leading wildcards are allowed. WARNING SLOWS PERFORMANCE WHEN ENABLED!
-		/// </summary>
-		public bool EnableLeadingWildcards { get; set; }
+		private IndexSearcher _searcher;
+		private static readonly object Locker = new object();
 
 		/// <summary>
 		/// Initializes the provider.
@@ -108,24 +101,7 @@ namespace Examine.LuceneEngine.Providers
 
 				//get the folder to index
 				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-			}            
-
-			if (config["analyzer"] != null)
-			{
-				//this should be a fully qualified type
-				var analyzerType = Type.GetType(config["analyzer"]);
-				IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
-			}
-			else
-			{
-				IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
-			}
-
-			if (config["enableLeadingWildcard"] != null)
-			{
-				EnableLeadingWildcards = Boolean.Parse(config["enableLeadingWildcard"]);
-			}
-			
+			}            		
 		}
 
 		/// <summary>
@@ -135,59 +111,28 @@ namespace Examine.LuceneEngine.Providers
 		{
 			get
 			{
-				if (m_IndexFolder == null)
+				if (_indexFolder == null)
 				{
 					return null;
 				}
 
 				//ensure's that it always up to date!
-				m_IndexFolder.Refresh();
-				return m_IndexFolder;
+				_indexFolder.Refresh();
+				return _indexFolder;
 			}
 			protected internal set
 			{
-				m_IndexFolder = value;
+				_indexFolder = value;
+                //the path is changing, close the current searcher.
+			    ValidateSearcher(true);
 			}
 		}
 		
 		/// <summary>
 		/// Do not access this object directly. The public property ensures that the folder state is always up to date
 		/// </summary>
-		private DirectoryInfo m_IndexFolder;
-
-		/// <summary>
-		/// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
-		/// </summary>
-		public Analyzer IndexingAnalyzer { get; protected internal set; }
-
-		/// <summary>
-		/// Name of the Lucene.NET index set
-		/// </summary>
-		public string IndexSetName { get; protected internal set; }
-
-		/// <summary>
-		/// Simple search method which defaults to searching content nodes
-		/// </summary>
-		/// <param name="searchText"></param>
-		/// <param name="useWildcards"></param>
-		/// <returns></returns>
-		public override ISearchResults Search(string searchText, bool useWildcards)
-		{
-			var sc = this.CreateSearchCriteria();
-
-			if (useWildcards)
-			{
-                var wildcardSearch = new ExamineValue(Examineness.ComplexWildcard, searchText.MultipleCharacterWildcard().Value);
-				sc = sc.GroupedOr(GetSearchFields(), wildcardSearch).Compile();
-			}
-			else
-			{
-				sc = sc.GroupedOr(GetSearchFields(), searchText).Compile();
-			}
-
-			return Search(sc);
-		}
-
+		private DirectoryInfo _indexFolder;
+        
         /// <summary>
         /// A simple search mechanism to search all fields based on an index type.
         /// </summary>
@@ -200,7 +145,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         public ISearchResults Search(string searchText, bool useWildcards, string indexType)
         {
-            var sc = this.CreateSearchCriteria(indexType);
+            var sc = CreateSearchCriteria(indexType);
 
             if (useWildcards)
             {
@@ -215,79 +160,46 @@ namespace Examine.LuceneEngine.Providers
             return Search(sc);
         }
 
-		/// <summary>
-		/// Searches the data source using the Examine Fluent API
-		/// </summary>
-		/// <param name="searchParams">The fluent API search.</param>
-		/// <returns></returns>
-		public override ISearchResults Search(ISearchCriteria searchParams)
-		{
-			ValidateSearcher(false);
+        /// <summary>
+        /// Searches the data source using the Examine Fluent API
+        /// </summary>
+        /// <param name="searchParams">The fluent API search.</param>
+        /// <returns></returns>
+        public override ISearchResults Search(ISearchCriteria searchParams)
+        {
+            if (!LuceneIndexFolder.Exists)
+                throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
 
-			Enforcer.ArgumentNotNull(searchParams, "searchParams");
-
-			var luceneParams = searchParams as LuceneSearchCriteria;
-			if (luceneParams == null)
-				throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
-
-			if (!LuceneIndexFolder.Exists)
-				throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
-
-			var pagesResults = new SearchResults(luceneParams.query, luceneParams.sortFields, m_Searcher);
-			return pagesResults;
-		}
+            return base.Search(searchParams);
+        }
 
 		/// <summary>
-		/// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
+		/// Name of the Lucene.NET index set
 		/// </summary>
-		/// <returns></returns>
-		public override ISearchCriteria CreateSearchCriteria()
-		{
-			return this.CreateSearchCriteria(string.Empty, BooleanOperation.And);
-		}     
+		public string IndexSetName { get; protected set; }
 
-		/// <summary>
-		/// Creates an instance of SearchCriteria for the provider
-		/// </summary>
-		public override ISearchCriteria CreateSearchCriteria(string type)
-		{
-			return this.CreateSearchCriteria(type, BooleanOperation.And);
-		}
+        /// <summary>
+        /// Gets the searcher for this instance
+        /// </summary>
+        /// <returns></returns>
+        public override Searcher GetSearcher()
+        {
+            ValidateSearcher(false);
 
-		public override ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
-		{
-			return this.CreateSearchCriteria(string.Empty, defaultOperation);
-		}
-
-		/// <summary>
-		/// Creates an instance of SearchCriteria for the provider
-		/// </summary>
-		/// <param name="type">The type of data in the index.</param>
-		/// <param name="defaultOperation">The default operation.</param>
-		/// <returns>A blank SearchCriteria</returns>
-		public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
-		{
-			return new LuceneSearchCriteria(type, this.IndexingAnalyzer, this.GetSearchFields(), this.EnableLeadingWildcards, defaultOperation);
-		}
-
-		/// <summary>
-		/// Gets the searcher for this instance
-		/// </summary>
-		/// <returns></returns>
-		public IndexSearcher GetSearcher()
-		{
-			ValidateSearcher(false);
-			return m_Searcher;
-		}
-
+            //ensure scoring is turned on for sorting
+            _searcher.SetDefaultFieldSortScoring(true, true);
+            return _searcher;
+        }
+        
         /// <summary>
         /// Returns a list of fields to search on
         /// </summary>
         /// <returns></returns>
-        protected virtual string[] GetSearchFields()
+        protected override internal string[] GetSearchFields()
         {
-            var searcher = GetSearcher();
-            var reader = searcher.GetIndexReader();
+            ValidateSearcher(false);
+
+            var reader = _searcher.GetIndexReader();
             var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
             var searchFields = fields
@@ -295,108 +207,113 @@ namespace Examine.LuceneEngine.Providers
                     && x != LuceneIndexer.IndexTypeFieldName)
                 .ToArray();
             return searchFields;
-        }		
+        }
 
-		#region Private
+        /// <summary>
+        /// This checks if the singleton IndexSearcher is initialized and up to date.
+        /// </summary>
+        /// <param name="forceReopen"></param>
+        internal protected void ValidateSearcher(bool forceReopen)
+        {
+            if (!forceReopen)
+            {
+                if (_searcher == null)
+                {
+                    lock (Locker)
+                    {
+                        //double check
+                        if (_searcher == null)
+                        {
+
+                            try
+                            {
+                                _searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
+                            }
+                            catch (IOException ex)
+                            {
+                                throw new ApplicationException("There is no Lucene index in the folder: " + LuceneIndexFolder.FullName + " to create an IndexSearcher on", ex);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (_searcher.GetReaderStatus() != ReaderStatus.Current)
+                    {
+                        lock (Locker)
+                        {
+                            //double check, now, we need to find out if it's closed or just not current
+                            switch (_searcher.GetReaderStatus())
+                            {
+                                case ReaderStatus.Current:
+                                    break;
+                                case ReaderStatus.Closed:
+                                    _searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
+                                    break;
+                                case ReaderStatus.NotCurrent:
+
+                                    //yes, this is actually the way the Lucene wants you to work...
+                                    //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
+                                    //here's references: 
+                                    // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
+                                    // http://gist.github.com/173978 
+
+                                    var oldReader = _searcher.GetIndexReader();
+                                    var newReader = oldReader.Reopen(true);
+                                    if (newReader != oldReader)
+                                    {
+                                        _searcher.Close();
+                                        oldReader.Close();
+                                        _searcher = new IndexSearcher(newReader);
+                                    }
+
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                //need to close the searcher and force a re-open
+
+                if (_searcher != null)
+                {
+                    lock (Locker)
+                    {
+                        //double check
+                        if (_searcher != null)
+                        {
+                            try
+                            {
+                                _searcher.Close();
+                            }
+                            catch (IOException)
+                            {
+                                //this will happen if it's already closed ( i think )
+                            }
+                            finally
+                            {
+                                //set to null in case another call to this method has passed the first lock and is checking for null
+                                _searcher = null;
+                            }
 
 
-		/// <summary>
-		/// This checks if the singleton IndexSearcher is initialized and up to date.
-		/// </summary>
-		/// <param name="forceReopen"></param>
-		internal void ValidateSearcher(bool forceReopen)
-		{
-			if (!forceReopen)
-			{
-				if (m_Searcher == null)
-				{
-					lock (m_Locker)
-					{
-						//double check
-						if (m_Searcher == null)
-						{
+                            try
+                            {
+                                _searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
+                            }
+                            catch (IOException ex)
+                            {
+                                throw new ApplicationException("There is no Lucene index in the folder: " + LuceneIndexFolder.FullName + " to create an IndexSearcher on", ex);
+                            }
+                            
+                        }
+                    }
+                }
+            }
 
-							try
-							{
-								m_Searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
-							}
-							catch (IOException ex)
-							{
-								throw new ApplicationException("There is no Lucene index in the folder: " + LuceneIndexFolder.FullName + " to create an IndexSearcher on", ex);
-							}
-						}
-					}
-				}
-				else
-				{
-                    if (m_Searcher.GetReaderStatus() != ReaderStatus.Current)
-					{
-						lock (m_Locker)
-						{
-							//double check, now, we need to find out if it's closed or just not current
-                            switch (m_Searcher.GetReaderStatus())
-							{
-								case ReaderStatus.Current:
-									break;
-								case ReaderStatus.Closed:
-									m_Searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
-									break;
-								case ReaderStatus.NotCurrent:
+        }
 
-									//yes, this is actually the way the Lucene wants you to work...
-									//normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
-									//here's references: 
-									// http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
-									// http://gist.github.com/173978 
-
-									var oldReader = m_Searcher.GetIndexReader();
-									var newReader = oldReader.Reopen(true);
-									if (newReader != oldReader)
-									{
-										m_Searcher.Close();
-										oldReader.Close();
-										m_Searcher = new IndexSearcher(newReader);
-									}
-
-									break;
-							}                
-						}
-					}
-				}
-			}
-			else
-			{            
-				//need to close the searcher and force a re-open
-
-				if (m_Searcher != null)
-				{
-					lock (m_Locker)
-					{
-						//double check
-						if (m_Searcher != null)
-						{
-							try
-							{
-								m_Searcher.Close();
-							}
-							catch (IOException)
-							{
-								//this will happen if it's already closed ( i think )
-							}
-							finally
-							{
-								//set to null in case another call to this method has passed the first lock and is checking for null
-								m_Searcher = null;
-							}
-
-							m_Searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true); 
-						}
-					}
-				}
-			}
-			
-		}
-
-		#endregion
 	}
 }

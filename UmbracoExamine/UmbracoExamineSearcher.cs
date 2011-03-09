@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using Examine;
@@ -41,16 +40,6 @@ namespace UmbracoExamine
 		#endregion
 
         /// <summary>
-        /// initializes the searcher
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="config"></param>
-        public override void Initialize(string name, NameValueCollection config)
-        {
-            base.Initialize(name, config);
-        }
-
-        /// <summary>
         /// Override in order to set the nodeTypeAlias field name of the underlying SearchCriteria to __NodeTypeAlias
         /// </summary>
         /// <param name="type"></param>
@@ -67,7 +56,7 @@ namespace UmbracoExamine
         /// Returns a list of fields to search on, this will also exclude the IndexPathFieldName and node type alias
         /// </summary>
         /// <returns></returns>
-        protected override string[] GetSearchFields()
+        protected internal override string[] GetSearchFields()
         {
             var fields = base.GetSearchFields();
             return fields
