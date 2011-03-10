@@ -13,16 +13,26 @@ namespace Examine.LuceneEngine
     /// </summary>
     public class SearchResults : ISearchResults
     {
+
+
         /// <summary>
-        /// Exposes the internal searcher
+        /// Exposes the internal Lucene searcher
         /// </summary>
-        internal Searcher Searcher { get; private set; }
+        public Searcher LuceneSearcher { get; private set; }
+
+        /// <summary>
+        /// Exposes the internal lucene query to run the search
+        /// </summary>
+        public Query LuceneQuery { get; private set; }
+
 
         private AllHitsCollector _collector;
 
         internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
         {
-            Searcher = searcher;
+            LuceneQuery = query;
+
+            LuceneSearcher = searcher;
             DoSearch(query, sortField);
         }
 
@@ -30,13 +40,13 @@ namespace Examine.LuceneEngine
         {
             if (sortField.Count() == 0)
             {
-                var topDocs = Searcher.Search(query, null, Searcher.MaxDoc(), new Sort());
+                var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort());
                 _collector = new AllHitsCollector(topDocs.scoreDocs);
                 topDocs = null;
             }
             else
             {
-                var topDocs = Searcher.Search(query, null, Searcher.MaxDoc(), new Sort(sortField.ToArray()));
+                var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort(sortField.ToArray()));
                 _collector = new AllHitsCollector(topDocs.scoreDocs);
                 topDocs = null;
             }
@@ -102,7 +112,7 @@ namespace Examine.LuceneEngine
                 if (!Docs.ContainsKey(i))
                 {
                     var docId = _collector.GetDocId(i);
-                    var doc = Searcher.Doc(docId);
+                    var doc = LuceneSearcher.Doc(docId);
                     var score = _collector.GetDocScore(i);
 
                     Docs.Add(i, CreateSearchResult(doc, score));

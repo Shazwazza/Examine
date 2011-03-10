@@ -53,10 +53,10 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             if (!string.IsNullOrEmpty(this.search.SearchIndexType))
             {
-                var query = this.search.query;
+                var query = this.search.Query;
 
-                this.search.query = new BooleanQuery();
-                this.search.query.Add(query, BooleanClause.Occur.MUST);
+                this.search.Query = new BooleanQuery();
+                this.search.Query.Add(query, BooleanClause.Occur.MUST);
 
                 //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), BooleanClause.Occur.MUST);
 

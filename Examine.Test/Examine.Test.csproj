@@ -78,6 +78,7 @@
     <Compile Include="IndexInitializer.cs" />
     <Compile Include="Index\IndexTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Search\HighlightResultsTest.cs" />
     <Compile Include="Search\MultiIndexSearch.cs" />
     <Compile Include="Search\SearchTest.cs" />
     <Compile Include="SerializableDictionaryTest.cs" />
