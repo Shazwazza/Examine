@@ -22,7 +22,32 @@ namespace Examine.Test.Index
     public class IndexTest
     {
 
+        ///// <summary>
+        /// <summary>
+        /// Check that the node signalled as protected in the content service is not present in the index.
+        /// </summary>
+        [TestMethod]
+        public void Index_Protected_Content_Not_Indexed()
+        {
 
+            var protectedQuery = new BooleanQuery();
+            protectedQuery.Add(
+                new BooleanClause(
+                    new TermQuery(new Term(UmbracoContentIndexer.IndexTypeFieldName, IndexTypes.Content)), 
+                    BooleanClause.Occur.MUST));
+
+            protectedQuery.Add(
+                new BooleanClause(
+                    new TermQuery(new Term(UmbracoContentIndexer.IndexNodeIdFieldName, TestContentService.ProtectedNode.ToString())),
+                    BooleanClause.Occur.MUST));
+
+            var collector = new AllHitsCollector(false, true);
+            var s = _searcher.GetSearcher();
+            s.Search(protectedQuery, collector);
+
+            Assert.AreEqual(0, collector.Count, "Protected node should not be indexed");
+
+        }
 
         [TestMethod]
         public void Index_Move_Media_From_Non_Indexable_To_Indexable_ParentID()
@@ -246,11 +271,11 @@ namespace Examine.Test.Index
             //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
 
-            Assert.AreEqual(21, fields.Count());
+            Assert.AreEqual(18, fields.Count());
             //ensure there's 3 sorting fields
             Assert.AreEqual(3, fields.Where(x => x.StartsWith(LuceneIndexer.SortedFieldNamePrefix)).Count());
             //there should be 11 documents (10 content, 1 media)
-            Assert.AreEqual(11, r.NumDocs());
+            Assert.AreEqual(10, r.NumDocs());
 
             //test for the special fields to ensure they are there:
             Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
@@ -291,7 +316,7 @@ namespace Examine.Test.Index
             collector = new AllHitsCollector(false, true);
             s = (IndexSearcher)_searcher.GetSearcher(); //make sure the searcher is up do date.
             s.Search(query, collector);
-            Assert.AreEqual(10, collector.Count);
+            Assert.AreEqual(9, collector.Count);
         }
 
         /// <summary>

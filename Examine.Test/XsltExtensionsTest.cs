@@ -44,7 +44,7 @@ namespace Examine.Test
         {
             var result = XsltExtensions.Search("sam", false, _searcher, string.Empty);
             Assert.AreEqual<bool>(true, result.MoveNext());
-            Assert.AreEqual(5, result.Current.Select("//node").Count, "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
+            Assert.AreEqual(4, result.Current.Select("//node").Count, "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
         }
 
         [TestMethod()]
@@ -52,7 +52,7 @@ namespace Examine.Test
         {
             var result = XsltExtensions.Search("umb", true, _searcher, string.Empty);
             Assert.AreEqual<bool>(true, result.MoveNext());
-            Assert.AreEqual<int>(8, result.Current.Select("//node").Count, "Total results for 'umb' is 8 using wildcards");
+            Assert.AreEqual<int>(7, result.Current.Select("//node").Count, "Total results for 'umb' is 8 using wildcards");
         }  
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Examine.Test
         {
             var result = XsltExtensions.Search("sam", false, _searcher, IndexTypes.Content);
             Assert.AreEqual<bool>(true, result.MoveNext());
-            Assert.AreEqual<int>(4, result.Current.Select("//node").Count, "Total results for 'sam' is 4 using wildcards");
+            Assert.AreEqual<int>(3, result.Current.Select("//node").Count, "Total results for 'sam' is 4 using wildcards");
         }
 
         [TestMethod()]
@@ -71,7 +71,7 @@ namespace Examine.Test
         {
             var result = XsltExtensions.Search("umb", true, _searcher, IndexTypes.Content);
             Assert.AreEqual<bool>(true, result.MoveNext());
-            Assert.AreEqual<int>(7, result.Current.Select("//node").Count, "Total results for 'umb' is 7 using wildcards");
+            Assert.AreEqual<int>(6, result.Current.Select("//node").Count, "Total results for 'umb' is 7 using wildcards");
         }
 
         /// <summary>

@@ -24,15 +24,15 @@ namespace Examine.Test.Search
 
             //ensure there's more results than just the one index
             Assert.IsTrue(cwsResult.Count() < result.Count());
-            //there should be 10
-            Assert.AreEqual(10, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
+            //there should be 8
+            Assert.AreEqual(8, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
         }
 
         [TestMethod]
         public void MultiIndex_Field_Count()
         {
             var result = _searcher.GetSearchFields();
-            Assert.AreEqual(28, result.Count(), "The total number for fields between all of the indexes should be ");
+            Assert.AreEqual(25, result.Count(), "The total number for fields between all of the indexes should be ");
         }
 
         #region Initialize and Cleanup

@@ -70,8 +70,9 @@ namespace Examine
                         ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, SearchProviderCollection, typeof(BaseSearchProvider));
 
                         //set the default
-                        DefaultSearchProvider = SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider];
-                        
+                        if (!string.IsNullOrEmpty(ExamineSettings.Instance.SearchProviders.DefaultProvider))
+                             DefaultSearchProvider = SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider];
+
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
 

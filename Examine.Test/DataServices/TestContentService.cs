@@ -19,6 +19,8 @@ namespace Examine.Test.DataServices
     /// </summary>
     public class TestContentService : IContentService
     {
+        public const int ProtectedNode = 1142;
+
         public TestContentService()
         {
             var xmlFile = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("App_Data")
@@ -26,7 +28,7 @@ namespace Examine.Test.DataServices
                 .GetFiles("umbraco.config")
                 .Single();
 
-            m_XDoc = XDocument.Load(xmlFile.FullName);
+            _xDoc = XDocument.Load(xmlFile.FullName);
         }
 
         #region IContentService Members
@@ -42,7 +44,7 @@ namespace Examine.Test.DataServices
         public XDocument GetLatestContentByXPath(string xpath)
         {
             var xdoc = XDocument.Parse("<content></content>");
-            xdoc.Root.Add(m_XDoc.XPathSelectElements(xpath));
+            xdoc.Root.Add(_xDoc.XPathSelectElements(xpath));
 
             return xdoc;
         }
@@ -55,20 +57,22 @@ namespace Examine.Test.DataServices
         public XDocument GetPublishedContentByXPath(string xpath)
         {
             var xdoc = XDocument.Parse("<content></content>");
-            xdoc.Root.Add(m_XDoc.XPathSelectElements(xpath));
+            xdoc.Root.Add(_xDoc.XPathSelectElements(xpath));
 
             return xdoc;
         }
 
         public string StripHtml(string value)
         {
-            string pattern = @"<(.|\n)*?>";
+            const string pattern = @"<(.|\n)*?>";
             return Regex.Replace(value, pattern, string.Empty);
         }
 
         public bool IsProtected(int nodeId, string path)
         {
-            return false;
+            // single node is marked as protected for test indexer
+            // hierarchy is not important for this test
+            return nodeId == ProtectedNode;
         }
 
         public IEnumerable<string> GetAllUserPropertyNames()
@@ -87,13 +91,13 @@ namespace Examine.Test.DataServices
 
         #endregion
 
-        private XDocument m_XDoc;
-
-        
+        private readonly XDocument _xDoc;
 
 
-       
 
-      
+
+
+
+
     }
 }

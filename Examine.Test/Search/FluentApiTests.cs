@@ -89,7 +89,7 @@ namespace Examine.Test.Search
 
             var results = _searcher.Search(filter);
 
-            Assert.AreEqual<int>(11, results.Count());
+            Assert.AreEqual<int>(10, results.Count());
 
         }
 

@@ -45,7 +45,7 @@ namespace UmbracoExamine
         #endregion
 
         #region Constants & Fields
-        
+
         /// <summary>
         /// Used to store the path of a content object
         /// </summary>
@@ -101,7 +101,7 @@ namespace UmbracoExamine
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
-        {            
+        {
 
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
@@ -196,7 +196,7 @@ namespace UmbracoExamine
         /// <param name="type"></param>
         public override void ReIndexNode(XElement node, string type)
         {
-           if (!SupportedTypes.Contains(type))
+            if (!SupportedTypes.Contains(type))
                 return;
 
             DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("({0}) ReIndexNode with type: {1}", this.Name, type));
@@ -229,7 +229,7 @@ namespace UmbracoExamine
             }
 
             base.DeleteFromIndex(nodeId);
-        } 
+        }
         #endregion
 
         #region Protected
@@ -266,12 +266,12 @@ namespace UmbracoExamine
 
             //ensure the special path and node type alis fields is added to the dictionary to be saved to file
             var path = e.Node.Attribute("path").Value;
-            if (!e.Fields.ContainsKey(IndexPathFieldName)) 
+            if (!e.Fields.ContainsKey(IndexPathFieldName))
                 e.Fields.Add(IndexPathFieldName, path);
-            
+
             //this needs to support both schemas so get the nodeTypeAlias if it exists, otherwise the name
             var nodeTypeAlias = e.Node.Attribute("nodeTypeAlias") == null ? e.Node.Name.LocalName : e.Node.Attribute("nodeTypeAlias").Value;
-            if (!e.Fields.ContainsKey(NodeTypeAliasFieldName)) 
+            if (!e.Fields.ContainsKey(NodeTypeAliasFieldName))
                 e.Fields.Add(NodeTypeAliasFieldName, nodeTypeAlias);
         }
 
@@ -305,7 +305,7 @@ namespace UmbracoExamine
 
             return fields;
 
-        }       
+        }
 
         /// <summary>
         /// Creates an IIndexCriteria object based on the indexSet passed in and our DataService
@@ -316,7 +316,7 @@ namespace UmbracoExamine
         {
             return indexSet.ToIndexCriteria(DataService);
         }
-        
+
         /// <summary>
         /// return the index policy for the field name passed in, if not found, return normal
         /// </summary>
@@ -328,27 +328,26 @@ namespace UmbracoExamine
             return (def.Count() == 0 ? FieldIndexTypes.ANALYZED : def.Single().Value);
         }
 
-      
         /// <summary>
-        /// Collects all of the data that needs to be indexed as defined in the index set.
+        /// Ensure that the content of this node is available for indexing (i.e. don't allow protected
+        /// content to be indexed when this is disabled).
+        /// <returns></returns>
         /// </summary>
-        /// <param name="node"></param>
-        /// <returns>A dictionary representing the data which will be indexed</returns>
-        /// <param name="type"></param>
-        protected override Dictionary<string, string> GetDataToIndex(XElement node, string type)
+        protected override bool ValidateDocument(XElement node)
         {
-            Dictionary<string, string> values = new Dictionary<string, string>();
-
-            int nodeId = int.Parse(node.Attribute("id").Value);
-
+            var nodeId = int.Parse(node.Attribute("id").Value);
             // Test for access if we're only indexing published content
             // return nothing if we're not supporting protected content and it is protected, and we're not supporting unpublished content
-            if (!SupportUnpublishedContent && (!SupportProtectedContent && DataService.ContentService.IsProtected(nodeId, node.Attribute("path").Value)))
-                return values;
+            if (!SupportUnpublishedContent
+                && (!SupportProtectedContent
+                && DataService.ContentService.IsProtected(nodeId, node.Attribute("path").Value)))
+            {
+                return false;
+            }
 
-            return base.GetDataToIndex(node, type);
-        } 
-        
-        #endregion       
+            return base.ValidateDocument(node);
+        }
+
+        #endregion
     }
 }
