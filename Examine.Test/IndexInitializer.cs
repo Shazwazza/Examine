@@ -27,7 +27,7 @@ namespace Examine.Test
     /// </summary>
     internal static class IndexInitializer
     {
-        public static UmbracoContentIndexer GetCwsIndexer(DirectoryInfo d)
+        public static UmbracoContentIndexer GetUmbracoIndexer(DirectoryInfo d)
         {
             var i = new UmbracoContentIndexer(new IndexCriteria(
                                                          new[]
@@ -122,7 +122,13 @@ namespace Examine.Test
 
             return i;
         }
+        public static MultiIndexSearcher GetMultiSearcher(DirectoryInfo pdfDir, DirectoryInfo simpleDir, DirectoryInfo conventionDir, DirectoryInfo cwsDir)
+        {
+            var i = new MultiIndexSearcher(new[] { pdfDir, simpleDir, conventionDir, cwsDir }, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+            return i;
+        }
 
+        
         static void IndexingError(object sender, IndexingErrorEventArgs e)
         {
             throw new ApplicationException(e.Message, e.InnerException);

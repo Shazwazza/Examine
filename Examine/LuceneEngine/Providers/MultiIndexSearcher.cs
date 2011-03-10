@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.SearchCriteria;
+using Examine.Providers;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;

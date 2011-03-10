@@ -28,7 +28,7 @@ namespace Examine.Test
         public void Initialize()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetCwsIndexer(newIndexFolder);
+            _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
             _indexer.RebuildIndex();
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);            
         }

@@ -32,13 +32,12 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
-        /// <param name="indexPath"></param>
+        /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
-        public LuceneSearcher(DirectoryInfo indexPath, Analyzer analyzer)
+        public LuceneSearcher(DirectoryInfo workingFolder, Analyzer analyzer)
             : base(analyzer)
-		{           
-			//set up our folder
-			LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexPath.FullName, "Index"));
+		{
+            LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index")); 			
 		}
 
 		#endregion
@@ -123,7 +122,7 @@ namespace Examine.LuceneEngine.Providers
 				_indexFolder.Refresh();
 				return _indexFolder;
 			}
-			protected internal set
+			protected set
 			{
 				_indexFolder = value;
                 //the path is changing, close the current searcher.
@@ -206,8 +205,7 @@ namespace Examine.LuceneEngine.Providers
             var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
             var searchFields = fields
-                .Where(x => x != LuceneIndexer.IndexNodeIdFieldName
-                    && x != LuceneIndexer.IndexTypeFieldName)
+                .Where(x => !x.StartsWith(LuceneIndexer.SpecialFieldPrefix))
                 .ToArray();
             return searchFields;
         }
