@@ -511,6 +511,10 @@ namespace Examine.LuceneEngine.Providers
 
                     SaveAddIndexQueueItem(fields, int.Parse(node.Attribute("id").Value), type);
                 }
+                else
+                {
+                    OnIgnoringNode(new IndexingNodeDataEventArgs(node, int.Parse(node.Attribute("id").Value), null, type));
+                }
 
             }
 
