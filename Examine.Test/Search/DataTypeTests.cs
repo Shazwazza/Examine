@@ -253,8 +253,8 @@ namespace Examine.Test.Search
         private static IIndexer _indexer;
         private static DateTime _reIndexDateTime;
 
-        [TestInitialize()]
-        public void Initialize()
+        [ClassInitialize()]
+        public static void Initialize(TestContext context)
         {
 
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
@@ -267,5 +267,6 @@ namespace Examine.Test.Search
 
             _searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
         }
+
     }
 }

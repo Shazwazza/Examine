@@ -19,29 +19,33 @@ namespace Examine.LuceneEngine
     public sealed class IndexerExecutive : IDisposable
     {
 
+        ///<summary>
+        /// Constructor
+        ///</summary>
+        ///<param name="d"></param>
         public IndexerExecutive(DirectoryInfo d)
         {
             ExamineDirectory = d;
-            m_ExaFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + EXAExtension));
-            m_LckFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + LCKExtension));
+            _exaFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + ExaExtension));
+            _lckFile = new FileInfo(Path.Combine(ExamineDirectory.FullName, Environment.MachineName + LckExtension));
 
             //new 10 minute timer
-            m_TimestampTimer = new Timer(new TimeSpan(0, 10, 0).TotalMilliseconds);
-            m_TimestampTimer.AutoReset = true;
-            m_TimestampTimer.Elapsed += new ElapsedEventHandler(TimestampTimer_Elapsed);
+            _timestampTimer = new Timer(new TimeSpan(0, 10, 0).TotalMilliseconds);
+            _timestampTimer.AutoReset = true;
+            _timestampTimer.Elapsed += new ElapsedEventHandler(TimestampTimer_Elapsed);
         }
 
         public DirectoryInfo ExamineDirectory { get; private set; }
 
-        private FileInfo m_ExaFile;
-        private FileInfo m_LckFile;
-        private Timer m_TimestampTimer;
+        private readonly FileInfo _exaFile;
+        private readonly FileInfo _lckFile;
+        private readonly Timer _timestampTimer;
 
         private const string TimeStampFormat = "yyyy-MM-dd HH:mm:ss.fff";
-        private const string LCKExtension = ".lck";
-        private const string EXAExtension = ".exa";
+        private const string LckExtension = ".lck";
+        private const string ExaExtension = ".exa";
 
-        private static readonly object m_Lock = new object();
+        private static readonly object Lock = new object();
 
         public enum EXAFields
         {
@@ -59,13 +63,13 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public bool IsInitialized()
         {
-            if (m_ExaFile == null || m_LckFile == null)
+            if (_exaFile == null || _lckFile == null)
             {
                 return false;
             }
-            m_ExaFile.Refresh();
-            m_LckFile.Refresh();
-            if (!m_ExaFile.Exists || !m_LckFile.Exists)
+            _exaFile.Refresh();
+            _lckFile.Refresh();
+            if (!_exaFile.Exists || !_lckFile.Exists)
             {
                 return false;
             }
@@ -73,6 +77,9 @@ namespace Examine.LuceneEngine
             return true;
         }
 
+        ///<summary>
+        /// Runs initialization
+        ///</summary>
         public void Initialize()
         {
             CreateEXAFile();
@@ -85,7 +92,7 @@ namespace Examine.LuceneEngine
             RaceForMasterIndexer();
 
             //start the timestamp timer
-            m_TimestampTimer.Start();
+            _timestampTimer.Start();
         }
 
         /// <summary>
@@ -127,8 +134,8 @@ namespace Examine.LuceneEngine
                 }
 
                 //if the lck file exists with this machine name, then it is executive.
-                m_LckFile.Refresh();
-                return m_LckFile.Exists;
+                _lckFile.Refresh();
+                return _lckFile.Exists;
             }
         }
 
@@ -151,8 +158,8 @@ namespace Examine.LuceneEngine
         {
             get
             {
-                m_LckFile.Refresh();
-                if (m_LckFile.Exists)
+                _lckFile.Refresh();
+                if (_lckFile.Exists)
                 {
                     return GetLCK()[LCKFields.Name];
                 }
@@ -177,14 +184,14 @@ namespace Examine.LuceneEngine
         /// </summary>
         private void CreateEXAFile()
         {
-            lock (m_Lock)
+            lock (Lock)
             {
                 var d = new SerializableDictionary<EXAFields, string>();
                 d.Add(EXAFields.Name, Environment.MachineName);
                 d.Add(EXAFields.Created, DateTime.Now.ToString(TimeStampFormat));
                 d.Add(EXAFields.Updated, DateTime.Now.ToString(TimeStampFormat));
                 d.Add(EXAFields.IsMaster, false.ToString());
-                d.SaveToDisk(m_ExaFile); 
+                d.SaveToDisk(_exaFile); 
             }
         }
 
@@ -194,11 +201,11 @@ namespace Examine.LuceneEngine
         /// <returns>returns true if a lock file was successfully created for this machine.</returns>
         private bool CreateLCKFile()
         {
-            lock (m_Lock)
+            lock (Lock)
             {
                 if (GetOtherLCKFiles().Count == 0)
                 {
-                    var lckFileName = Environment.MachineName + LCKExtension;
+                    var lckFileName = Environment.MachineName + LckExtension;
                     var fLck = new FileInfo(Path.Combine(ExamineDirectory.FullName, lckFileName));
                     var dLck = new SerializableDictionary<LCKFields, string>();
                     dLck.Add(LCKFields.Name, Environment.MachineName);
@@ -223,10 +230,10 @@ namespace Examine.LuceneEngine
         /// <param name="cutoffTime"></param>
         private void ClearOldLCKFiles(DateTime cutoffTime)
         {
-            lock (m_Lock)
+            lock (Lock)
             {
                 ExamineDirectory
-                        .GetFiles(LCKExtension)
+                        .GetFiles(LckExtension)
                         .Where(x => x.CreationTime < cutoffTime)
                         .ToList()
                         .ForEach(x => x.Delete()); 
@@ -239,10 +246,10 @@ namespace Examine.LuceneEngine
         /// <param name="cutoffTime"></param>
         private void ClearOldEXAFiles(DateTime cutoffTime)
         {
-            lock (m_Lock)
+            lock (Lock)
             {
                 ExamineDirectory
-                        .GetFiles(EXAExtension)
+                        .GetFiles(ExaExtension)
                         .Where(x => x.CreationTime < cutoffTime)
                         .ToList()
                         .ForEach(x => x.Delete()); 
@@ -258,7 +265,7 @@ namespace Examine.LuceneEngine
         private List<FileInfo> GetOtherLCKFiles()
         {
             return ExamineDirectory
-                .GetFiles(LCKExtension)
+                .GetFiles(LckExtension)
                 .Where(x => !x.Name.StartsWith(Environment.MachineName))
                 .ToList();
         }
@@ -266,14 +273,14 @@ namespace Examine.LuceneEngine
         private int LCKFileCount()
         {
             return ExamineDirectory
-               .GetFiles("*" + LCKExtension)
+               .GetFiles("*" + LckExtension)
                .Count();
         }
 
         private int EXAFileCount()
         {
             return ExamineDirectory
-               .GetFiles("*" + EXAExtension)
+               .GetFiles("*" + ExaExtension)
                .Count();
         }
 
@@ -282,14 +289,14 @@ namespace Examine.LuceneEngine
         /// </summary>
         private void TimestampLck()
         {
-            lock (m_Lock)
+            lock (Lock)
             {
-                m_LckFile.Refresh();
-                if (m_LckFile.Exists)
+                _lckFile.Refresh();
+                if (_lckFile.Exists)
                 {
                     var lck = GetLCK();
                     lck[LCKFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
-                    lck.SaveToDisk(m_LckFile);
+                    lck.SaveToDisk(_lckFile);
                 }            
             } 
         }
@@ -299,11 +306,11 @@ namespace Examine.LuceneEngine
         /// </summary>
         private void TimestampEXA()
         {
-            lock (m_Lock)
+            lock (Lock)
             {
                 var exa = GetEXA();
                 exa[EXAFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
-                exa.SaveToDisk(m_ExaFile); 
+                exa.SaveToDisk(_exaFile); 
             }
         }
 
@@ -314,7 +321,7 @@ namespace Examine.LuceneEngine
         private SerializableDictionary<EXAFields, string> GetEXA()
         {
             var dExa = new SerializableDictionary<EXAFields, string>();
-            dExa.ReadFromDisk(m_ExaFile);
+            dExa.ReadFromDisk(_exaFile);
             return dExa;
         }
 
@@ -325,7 +332,7 @@ namespace Examine.LuceneEngine
         private SerializableDictionary<LCKFields, string> GetLCK()
         {
             var dLck = new SerializableDictionary<LCKFields, string>();
-            dLck.ReadFromDisk(m_LckFile);
+            dLck.ReadFromDisk(_lckFile);
             return dLck;
         }
 
@@ -336,7 +343,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         private void RaceForMasterIndexer()
         {
-            lock (m_Lock)
+            lock (Lock)
             {
                 //get this machine's exa file
                 var dExa = GetEXA();
@@ -350,7 +357,7 @@ namespace Examine.LuceneEngine
                     dExa[EXAFields.IsMaster] = false.ToString();
                 }
                 dExa[EXAFields.Updated] = DateTime.Now.ToString(TimeStampFormat);
-                dExa.SaveToDisk(m_ExaFile); 
+                dExa.SaveToDisk(_exaFile); 
             }
 
         }
@@ -381,7 +388,7 @@ namespace Examine.LuceneEngine
         {
             this.CheckDisposed();
             if (disposing)
-                this.m_TimestampTimer.Dispose();
+                this._timestampTimer.Dispose();
         }
 
         #endregion

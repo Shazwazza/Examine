@@ -31,8 +31,9 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         protected LuceneIndexer()
         {
-            m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
+            FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
             IndexSecondsInterval = 5;
+            OptimizationCommitThreshold = 100;
         }
 
         /// <summary>
@@ -41,10 +42,10 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexerData"></param>
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
-        protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer)
+        protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, bool async)
             : base(indexerData)
         {
-            m_FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
+            FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
 
             //set up our folders based on the index path
             WorkingFolder = workingFolder;
@@ -57,6 +58,8 @@ namespace Examine.LuceneEngine.Providers
             InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);
 
             IndexSecondsInterval = 5;
+            OptimizationCommitThreshold = 100;
+            RunAsync = async;
         }
 
         #endregion
@@ -193,7 +196,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Specifies how many index commits are performed before running an optimization
         /// </summary>
-        public const int OptimizationCommitThreshold = 100;
+        public int OptimizationCommitThreshold { get; internal set; }
 
         /// <summary>
         /// Used to store a non-tokenized key for the document
@@ -208,20 +211,20 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Used to perform thread locking
         /// </summary>
-        private readonly object m_IndexerLocker = new object();
+        private readonly object _indexerLocker = new object();
 
         /// <summary>
         /// used to thread lock calls for creating and verifying folders
         /// </summary>
-        private readonly object m_FolderLocker = new object();
+        private readonly object _folderLocker = new object();
 
         /// <summary>
         /// Used for double check locking during an index operation
         /// </summary>
-        private bool m_IsIndexing = false;
+        private bool _isIndexing = false;
 
-        private System.Timers.Timer m_FileWatcher = null;
-        private System.Timers.ElapsedEventHandler m_FileWatcher_ElapsedEventHandler;
+        private System.Timers.Timer _fileWatcher = null;
+        private System.Timers.ElapsedEventHandler FileWatcher_ElapsedEventHandler;
 
         /// <summary>
         /// We need an internal searcher used to search against our own index.
@@ -289,6 +292,11 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public event EventHandler IndexOptimizing;
 
+        ///<summary>
+        /// Occurs when the index is finished optmizing
+        ///</summary>
+        public event EventHandler IndexOptimized;
+
         /// <summary>
         /// Occurs when [document writing].
         /// </summary>
@@ -319,7 +327,7 @@ namespace Examine.LuceneEngine.Providers
             if (resetIndexingFlag)
             {
                 //reset our volatile flag... something else funny is going on but we don't want this to prevent ALL future operations
-                m_IsIndexing = false;
+                _isIndexing = false;
             }
 
             OnIndexingError(e);
@@ -350,6 +358,12 @@ namespace Examine.LuceneEngine.Providers
         {
             if (IndexOptimizing != null)
                 IndexOptimizing(this, e);
+        }
+
+        protected virtual void OnIndexOptimized(EventArgs e)
+        {
+            if (IndexOptimized != null)
+                IndexOptimized(this, e);
         }
 
         /// <summary>
@@ -570,16 +584,16 @@ namespace Examine.LuceneEngine.Providers
             if (!ExecutiveIndex.IsExecutiveMachine)
                 return;
 
-            if (!m_IsIndexing)
+            if (!_isIndexing)
             {
-                lock (m_IndexerLocker)
+                lock (_indexerLocker)
                 {
                     //double check
-                    if (!m_IsIndexing)
+                    if (!_isIndexing)
                     {
 
                         //set our volatile flag
-                        m_IsIndexing = true;
+                        _isIndexing = true;
 
                         IndexWriter writer = null;
                         try
@@ -600,7 +614,10 @@ namespace Examine.LuceneEngine.Providers
 
                             OnIndexOptimizing(new EventArgs());
 
-                            writer.Optimize();
+                            //wait for optimization to complete (true)
+                            writer.Optimize(true);
+
+                            OnIndexOptimized(new EventArgs());
                         }
                         catch (Exception ex)
                         {
@@ -609,9 +626,9 @@ namespace Examine.LuceneEngine.Providers
                         finally
                         {
                             //set our volatile flag
-                            m_IsIndexing = false;
+                            _isIndexing = false;
 
-                            CloseWriter(ref writer);
+                            CloseWriter(ref writer);                            
                         }
                     }
 
@@ -1115,15 +1132,15 @@ namespace Examine.LuceneEngine.Providers
                 return 0;
             }
 
-            if (!m_IsIndexing)
+            if (!_isIndexing)
             {
-                lock (m_IndexerLocker)
+                lock (_indexerLocker)
                 {
                     //double check
-                    if (!m_IsIndexing)
+                    if (!_isIndexing)
                     {
                         //set our volatile flag
-                        m_IsIndexing = true;
+                        _isIndexing = true;
 
                         IndexWriter writer = null;
                         IndexReader reader = null;
@@ -1181,7 +1198,7 @@ namespace Examine.LuceneEngine.Providers
                         finally
                         {
                             //set our volatile flag
-                            m_IsIndexing = false;
+                            _isIndexing = false;
 
                             CloseWriter(ref writer);
                             CloseReader(ref reader);
@@ -1281,7 +1298,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="val"></param>
         /// <param name="parsedVal"></param>
         /// <returns></returns>
-        private bool TryConvert<T>(string val, out object parsedVal)
+        private static bool TryConvert<T>(string val, out object parsedVal)
             where T : struct
         {
             try
@@ -1352,25 +1369,25 @@ namespace Examine.LuceneEngine.Providers
 
         private void InitializeFileWatcherTimer()
         {
-            if (m_FileWatcher != null)
+            if (_fileWatcher != null)
             {
                 //if this is not the master indexer anymore... perhaps another server has taken over somehow...
                 if (!ExecutiveIndex.IsExecutiveMachine)
                 {
                     //stop the timer, remove event handlers and close
-                    m_FileWatcher.Stop();
-                    m_FileWatcher.Elapsed -= m_FileWatcher_ElapsedEventHandler;
-                    m_FileWatcher.Dispose();
-                    m_FileWatcher = null;
+                    _fileWatcher.Stop();
+                    _fileWatcher.Elapsed -= FileWatcher_ElapsedEventHandler;
+                    _fileWatcher.Dispose();
+                    _fileWatcher = null;
                 }
 
                 return;
             }
 
-            m_FileWatcher = new System.Timers.Timer(new TimeSpan(0, 0, IndexSecondsInterval).TotalMilliseconds);
-            m_FileWatcher.Elapsed += m_FileWatcher_ElapsedEventHandler;
-            m_FileWatcher.AutoReset = false;
-            m_FileWatcher.Start();
+            _fileWatcher = new System.Timers.Timer(new TimeSpan(0, 0, IndexSecondsInterval).TotalMilliseconds);
+            _fileWatcher.Elapsed += FileWatcher_ElapsedEventHandler;
+            _fileWatcher.AutoReset = false;
+            _fileWatcher.Start();
         }
 
         /// <summary>
@@ -1386,7 +1403,7 @@ namespace Examine.LuceneEngine.Providers
         {
 
             //stop the event system
-            m_FileWatcher.Stop();
+            _fileWatcher.Stop();
             var numProcessedItems = 0;
             do
             {
@@ -1394,7 +1411,7 @@ namespace Examine.LuceneEngine.Providers
             } while (numProcessedItems > 0);
 
             //restart the timer.
-            m_FileWatcher.Start();
+            _fileWatcher.Start();
 
         }
 
@@ -1576,7 +1593,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (!System.IO.Directory.Exists(folder.FullName))
             {
-                lock (m_FolderLocker)
+                lock (_folderLocker)
                 {
                     if (!System.IO.Directory.Exists(folder.FullName))
                     {
@@ -1624,7 +1641,7 @@ namespace Examine.LuceneEngine.Providers
         {
             this.CheckDisposed();
             if (disposing)
-                this.m_FileWatcher.Dispose();
+                this._fileWatcher.Dispose();
         }
 
         #endregion

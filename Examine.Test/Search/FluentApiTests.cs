@@ -244,8 +244,8 @@ namespace Examine.Test.Search
 
         
 
-        [TestInitialize()]
-        public void Initialize()
+        [ClassInitialize()]
+        public static void Initialize(TestContext context)
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);

@@ -55,8 +55,8 @@ namespace UmbracoExamine
         public MemberLuceneExamineIndexer()
             : base() { }
         [Obsolete]
-        public MemberLuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
-            : base(indexerData, indexPath, dataService, analyzer) { }
+        public MemberLuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexerData, indexPath, dataService, analyzer, async) { }
         #endregion
     }
 
@@ -71,8 +71,8 @@ namespace UmbracoExamine
         public LuceneExamineIndexer()
             : base() { }
         [Obsolete]
-        public LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
-            : base(indexerData, indexPath, dataService, analyzer) { }
+        public LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexerData, indexPath, dataService, analyzer, async) { }
         #endregion
     }
 

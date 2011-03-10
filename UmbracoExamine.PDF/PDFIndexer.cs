@@ -36,10 +36,11 @@ namespace UmbracoExamine.PDF
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-        public PDFIndexer(DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+        /// <param name="async"></param>
+        public PDFIndexer(DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(
-                new IndexCriteria(Enumerable.Empty<IIndexField>(), Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null), 
-                indexPath, dataService, analyzer)
+                new IndexCriteria(Enumerable.Empty<IIndexField>(), Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null),
+                indexPath, dataService, analyzer, async)
         {
             SupportedExtensions = new[] { ".pdf" };
             UmbracoFileProperty = "umbracoFile";

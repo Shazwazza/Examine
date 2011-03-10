@@ -104,13 +104,25 @@ namespace Examine.Test.Index
         /// </summary>
         [TestMethod]
         public void Index_Ensure_No_Duplicates_In_Async()
-        {           
-            //add the handler
-            var handler = new EventHandler<IndexedNodesEventArgs>(indexer_NodesIndexed);
-            _indexer.NodesIndexed += handler;
+        {
+            var d = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+            var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
+            
+            var isIndexing = false;
+
+            EventHandler optimizedHandler = (sender, e) =>
+            {
+                isIndexing = false;
+            };
+
+            //set to 5 so optmization occurs frequently
+            customIndexer.OptimizationCommitThreshold = 5;
+
+            //add the handler for optimized since we know it will be optimized last based on the commit count
+            customIndexer.IndexOptimized += optimizedHandler;
 
             //run in async mode
-            _indexer.RunAsync = true;
+            customIndexer.RunAsync = true;
 
             //get a node from the data repo
             var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
@@ -122,33 +134,39 @@ namespace Examine.Test.Index
             var id = (int)node.Attribute("id");
 
             //set our internal monitoring flag
-            _isIndexing = true;
+            isIndexing = true;
 
-            //reindex the same node 210 times
-            for (var i = 0; i < 210; i++)
+            //reindex the same node a bunch of times
+            for (var i = 0; i < 29; i++)
             {
-                _indexer.ReIndexNode(node, IndexTypes.Content);
+                customIndexer.ReIndexNode(node, IndexTypes.Content);
             }
 
             //we need to check if the indexing is complete
-            while (_isIndexing)
+            while (isIndexing)
             {
                 //wait until indexing is done
                 Thread.Sleep(1000);
             }
 
             //reset the async mode and remove event handler
-            _indexer.RunAsync = false;
-            _indexer.NodesIndexed -= handler;
+            customIndexer.IndexOptimized -= optimizedHandler;
+            customIndexer.RunAsync = false;
+            
 
             //ensure no duplicates
-            var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(id).Compile());
-            Assert.AreEqual(1, results.Count());
+            Thread.Sleep(2000); //seems to take a while to get its shit together... this i'm not sure why since the optimization should have def finished (and i've stepped through that code!)
+            var customSearcher = IndexInitializer.GetLuceneSearcher(d);
+            var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Id(id).Compile());
+            Assert.AreEqual(1, results.Count());            
         }
 
         [TestMethod]
         public void Index_Ensure_No_Duplicates_In_Non_Async()
         {
+            //set to 5 so optmization occurs frequently
+            _indexer.OptimizationCommitThreshold = 5;
+
             //get a node from the data repo
             var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
@@ -158,8 +176,8 @@ namespace Examine.Test.Index
             //get the id for th node we're re-indexing.
             var id = (int)node.Attribute("id");
 
-            //reindex the same node 210 times
-            for (var i = 0; i < 210; i++)
+            //reindex the same node a bunch of times
+            for (var i = 0; i < 29; i++)
             {
                 _indexer.ReIndexNode(node, IndexTypes.Content);
             }
@@ -167,22 +185,7 @@ namespace Examine.Test.Index
             //ensure no duplicates
             var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(id).Compile());
             Assert.AreEqual(1, results.Count());
-        }
-
-        /// <summary>
-        /// Used to monitor async operation
-        /// </summary>
-        private bool _isIndexing = false;
-        
-        /// <summary>
-        /// Used to monitor an Async operation
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void indexer_NodesIndexed(object sender, IndexedNodesEventArgs e)
-        {
-            _isIndexing = false;
-        }
+        }     
 
         /// <summary>
         /// This test makes sure that .del files get processed before .add files
@@ -190,6 +193,8 @@ namespace Examine.Test.Index
         [TestMethod]
         public void Index_Ensure_Queue_File_Ordering()
         {
+            _indexer.RebuildIndex();
+
             var isDeleted = false;
             var isAdded = false;
 
@@ -314,19 +319,23 @@ namespace Examine.Test.Index
         private readonly TestContentService _contentService = new TestContentService();
         private readonly TestMediaService _mediaService = new TestMediaService();
 
-        private UmbracoExamineSearcher _searcher;
-        private UmbracoContentIndexer _indexer;
+        private static UmbracoExamineSearcher _searcher;
+        private static UmbracoContentIndexer _indexer;
 
         #endregion
 
         #region Initialize and Cleanup
         
 
-        /// <summary>
-        /// Run before every test!
-        /// </summary>
-        [TestInitialize()]
-        public void Initialize()
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            //set back to 100
+            _indexer.OptimizationCommitThreshold = 100;
+        }
+        
+        [ClassInitialize()]
+        public static void Initialize(TestContext context)
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);

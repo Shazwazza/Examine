@@ -65,7 +65,8 @@ namespace Examine.Test
                                                          -1),
                                                          d,
                                                          new TestDataService(),
-                                                         new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+                                                         new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
+                                                         false);
 
             i.IndexSecondsInterval = 1;
 
@@ -103,7 +104,8 @@ namespace Examine.Test
                                                          d,
                                                          new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
                                                          new TestSimpleDataProvider(),
-                                                         new[] { "Documents", "Pictures" });
+                                                         new[] { "Documents", "Pictures" }, 
+                                                         false);
             i.IndexingError += IndexingError;
 
             return i;
@@ -116,7 +118,8 @@ namespace Examine.Test
         {
             var i = new PDFIndexer(d,
                                       new TestDataService(),
-                                      new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+                                      new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
+                                      false);
 
             i.IndexingError += IndexingError;
 
@@ -134,59 +137,6 @@ namespace Examine.Test
             throw new ApplicationException(e.Message, e.InnerException);
         }
 
-        /////// <summary>
-        ///// Stores reference to the initial index folders for each provider
-        ///// </summary>
-        //private static Dictionary<string, string> _initIndexFolders;
-
-        ///// <summary>
-        ///// return the folder containing the index template
-        ///// </summary>
-        ///// <returns></returns>
-        //private static DirectoryInfo GetTemplateFolder() {
-        //    var template = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory
-        //        .GetDirectories("App_Data")
-        //        .Single()
-        //        .GetDirectories("TemplateIndex")
-        //        .Single();
-        //    return template;
-        //}
-
-        ///// <summary>
-        ///// This creates indexes for each index set based on the template
-        ///// </summary>
-        //private static void CreateIndexesFromTemplate()
-        //{
-        //    var template = GetTemplateFolder();
-        //    IndexSets.Instance.Sets.Cast<IndexSet>().ToList()
-        //        .ForEach(x =>
-        //        {
-
-        //            DirectoryInfo di;
-        //            //create a new random path
-        //            if (_initIndexFolders.ContainsKey(x.SetName))
-        //            {
-        //                di = new DirectoryInfo(Path.Combine(_initIndexFolders[x.SetName], Guid.NewGuid().ToString()));
-        //            }
-        //            else
-        //            {                        
-        //                di = new DirectoryInfo(Path.Combine(x.IndexPath, Guid.NewGuid().ToString()));    
-        //                //add to the dictionary
-        //                _initIndexFolders.Add(x.SetName, x.IndexPath);
-        //            }
-
-        //            if (!di.Exists)
-        //            {
-        //                di.Create();
-        //            }
-
-        //            //set this path back to the provider
-        //            x.IndexPath = di.FullName;
-
-        //            var indexDir = di.CreateSubdirectory("Index");
-        //            template.GetFiles().ToList().ForEach(f => f.CopyTo(Path.Combine(indexDir.FullName, f.Name)));
-        //        });
-        //}
-
+     
     }
 }

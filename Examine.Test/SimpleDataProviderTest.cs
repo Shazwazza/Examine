@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,14 +17,12 @@ namespace Examine.Test
     {
         [TestMethod]
         public void SimpleData_RebuildIndex()
-        {
-            var indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"];            
+        {    
                         
             //now, we need to ensure the right data is in there....
             
             //get searcher and reader to get stats
-            var s = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"];
-            var r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();
+            var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();
 
             //there's 7 fields in the index, but 1 sorted fields, 2 are special fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -45,16 +44,13 @@ namespace Examine.Test
 
             //now we'll index one new node:
 
-            var indexer = (SimpleDataIndexer)ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"];
-
-            var dataSet =  ((TestSimpleDataProvider)indexer.DataService).CreateNewDocument();
+            var dataSet =  ((TestSimpleDataProvider)_indexer.DataService).CreateNewDocument();
             var xml = dataSet.RowData.ToExamineXml(dataSet.NodeDefinition.NodeId, dataSet.NodeDefinition.Type);
 
-            indexer.ReIndexNode(xml, "Documents");
+            _indexer.ReIndexNode(xml, "Documents");
 
-            //get searcher and reader to get stats
-            var s = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"];
-            var r = ((IndexSearcher)s.GetSearcher()).GetIndexReader();      
+            //get searcher and reader to get stats            
+            var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();      
 
             //there should be 6 documents now (3 Documents, 3 Pictures)
             Assert.AreEqual(6, r.NumDocs());        
@@ -64,22 +60,24 @@ namespace Examine.Test
         [TestMethod]
         public void SimpleDataProviderTest_Range_Search_On_Year()
         {
-            //Arrange
-            var s = (LuceneSearcher)ExamineManager.Instance.SearchProviderCollection["SimpleSearcher"];
-
             //Act
-            var query = s.CreateSearchCriteria().Range("YearCreated", DateTime.Now.AddYears(-1), DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
-            var results = s.Search(query);
+            var query = _searcher.CreateSearchCriteria().Range("YearCreated", DateTime.Now.AddYears(-1), DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
+            var results = _searcher.Search(query);
 
             //Assert
             Assert.AreEqual(5, results.TotalItemCount);
         }
 
-        [TestInitialize]
-        public void Initialize()
+        private static SimpleDataIndexer _indexer;
+        private static LuceneSearcher _searcher;
+
+        [ClassInitialize]
+        public static void Initialize(TestContext context)
         {
-            var indexer = ExamineManager.Instance.IndexProviderCollection["SimpleIndexer"];
-            indexer.RebuildIndex();
+            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexTest", Guid.NewGuid().ToString()));
+            _indexer = IndexInitializer.GetSimpleIndexer(newIndexFolder);
+            _indexer.RebuildIndex();
+            _searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
         }
     }
 }

@@ -34,8 +34,8 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-        protected BaseUmbracoIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
-            : base(indexerData, indexPath, analyzer)
+        protected BaseUmbracoIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexerData, indexPath, analyzer, async)
         {
             DataService = dataService;
         }
@@ -149,7 +149,7 @@ namespace UmbracoExamine
             if (!SupportedTypes.Contains(type))
                 return;
 
-            var xPath = "//*[(number(@id) > 0){0}]"; //we'll add more filters to this below if needed
+            var xPath = "//*[(number(@id) > 0 and (@isDoc or @nodeTypeAlias)){0}]"; //we'll add more filters to this below if needed
 
             var sb = new StringBuilder();
 

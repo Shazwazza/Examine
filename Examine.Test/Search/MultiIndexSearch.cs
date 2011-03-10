@@ -37,10 +37,10 @@ namespace Examine.Test.Search
 
         #region Initialize and Cleanup
 
-        private MultiIndexSearcher _searcher;
+        private static MultiIndexSearcher _searcher;
 
-        [TestInitialize]
-        public void Initialize()
+        [ClassInitialize]
+        public static void Initialize(TestContext context)
         {
 
             var pdfDir = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));

@@ -20,6 +20,22 @@ namespace UmbracoExamine
     /// </remarks>
     public class XsltExtensions
     {
+        ///<summary>
+        /// Uses the provider specified to search, returning an XPathNodeIterator
+        ///</summary>
+        ///<param name="searchText"></param>
+        ///<param name="useWildcards"></param>
+        ///<param name="provider"></param>
+        ///<param name="indexType"></param>
+        ///<returns></returns>
+        internal static XPathNodeIterator Search(string searchText, bool useWildcards, LuceneSearcher provider, string indexType)
+        {
+            if (provider == null) throw new ArgumentNullException("provider");
+
+            var results = provider.Search(searchText, useWildcards, indexType);
+            return GetResultsAsXml(results);            
+        }
+
         /// <summary>
         /// Uses the provider specified to search, returning an XPathNodeIterator
         /// </summary>
@@ -34,13 +50,7 @@ namespace UmbracoExamine
 
             var provider = ExamineManager.Instance.SearchProviderCollection[providerName] as LuceneSearcher;
 
-            if (provider != null)
-            {
-                var results = provider.Search(searchText, useWildcards, indexType);
-
-                return GetResultsAsXml(results);
-            }
-            throw new ArgumentException("The provider " + providerName + " specified does not exist");
+            return Search(searchText, useWildcards, provider, indexType);
         }
 
         /// <summary>
@@ -153,6 +163,7 @@ namespace UmbracoExamine
         {
             return Search(searchText, useWildcards, providerName, IndexTypes.Content);
         }
+
 
         /// <summary>
         /// Will perform a search against the content index type only

@@ -17,11 +17,11 @@ namespace Examine.Test.Index
     {
        
         private readonly TestMediaService _mediaService = new TestMediaService();
-        private PDFIndexer _indexer;
-        private UmbracoExamineSearcher _searcher;
+        private static PDFIndexer _indexer;
+        private static UmbracoExamineSearcher _searcher;
 
-        [TestInitialize()]
-        public void Initialize()
+        [ClassInitialize()]
+        public static void Initialize(TestContext context)
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetPdfIndexer(newIndexFolder);

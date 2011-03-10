@@ -31,8 +31,8 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-        public UmbracoMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
-            : base(indexerData, indexPath, dataService, analyzer) { }
+        public UmbracoMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexerData, indexPath, dataService, analyzer, async) { }
 
         /// <summary>
         /// The supported types for this indexer

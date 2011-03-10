@@ -10,6 +10,9 @@ using System.Web;
 
 namespace Examine
 {
+    ///<summary>
+    /// Exposes searchers and indexers
+    ///</summary>
     public class ExamineManager : ISearcher, IIndexer
     {
 
@@ -25,24 +28,34 @@ namespace Examine
         {
             get
             {
-                return m_Manager;
+                return Manager;
             }
         }
 
-        private static readonly ExamineManager m_Manager = new ExamineManager();
+        private static readonly ExamineManager Manager = new ExamineManager();
 
-        private object m_Lock = new object();
+        private readonly object _lock = new object();
 
+        ///<summary>
+        /// Returns the default search provider
+        ///</summary>
         public BaseSearchProvider DefaultSearchProvider { get; private set; }
 
+        /// <summary>
+        /// Returns the collection of searchers
+        /// </summary>
         public SearchProviderCollection SearchProviderCollection { get; private set; }
+
+        /// <summary>
+        /// Return the colleciton of indexers
+        /// </summary>
         public IndexProviderCollection IndexProviderCollection { get; private set; }
 
         private void LoadProviders()
         {
             if (IndexProviderCollection == null)
             {
-                lock (m_Lock)
+                lock (_lock)
                 {
                     // Do this again to make sure _provider is still null
                     if (IndexProviderCollection == null)
