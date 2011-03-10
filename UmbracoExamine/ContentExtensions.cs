@@ -31,12 +31,26 @@ namespace UmbracoExamine
             if (cacheOnly && node.GetType().Equals(typeof(Document)))
             {
                 var umbXml = library.GetXmlNodeById(node.Id.ToString());
-                return umbXml.ToXDocument();
+                if (umbXml != null)
+                {
+                    return umbXml.ToXDocument();    
+                }
             }
 
-            //if it's not a using cache and it's not cacheOnly, then retrieve the Xml using the API
+            //this will also occur if umbraco hasn't cached content yet....
 
-            XmlDocument xDoc = new XmlDocument();
+            //if it's not a using cache and it's not cacheOnly, then retrieve the Xml using the API
+            return node.ToXDocument();
+        }
+
+        /// <summary>
+        /// Converts a content node to Xml
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        private static XDocument ToXDocument(this Content node)
+        {
+            var xDoc = new XmlDocument();
             var xNode = xDoc.CreateNode(XmlNodeType.Element, "node", "");
             node.XmlPopulate(xDoc, ref xNode, false);
 
