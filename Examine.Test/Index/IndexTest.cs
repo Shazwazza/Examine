@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Xml.Linq;
 using Lucene.Net.Analysis.Standard;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using UmbracoExamine;
@@ -21,6 +23,73 @@ namespace Examine.Test.Index
     [TestClass]
     public class IndexTest
     {
+
+        /// <summary>
+        /// Tests ingesting index content from files that have invalid character encoding issues.
+        /// when encoding is invalid from the source then the xml can't be deserialized, this used
+        /// to cause the queue to stop working, now it just renames queue files in error to be .error 
+        /// so they are not processed.
+        /// </summary>
+        [TestMethod]
+        public void Index_Files_With_Invalid_Encoding()
+        {
+            var d = new DirectoryInfo(Path.Combine("App_Data\\InvalidEncoding", Guid.NewGuid().ToString()));
+            var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
+
+            //ensure folders are built
+            customIndexer.IndexAll("content");
+            var batch = new DirectoryInfo(Path.Combine(customIndexer.IndexQueueItemFolder.FullName, "1"));
+
+            var nodeIndexCount = 0;
+            var errorCount = 0;
+
+         
+            EventHandler<IndexedNodeEventArgs> nodeIndexed = (sender, e) =>
+                                                                 {
+                                                                     nodeIndexCount++;
+                                                                 };         
+            EventHandler<IndexingErrorEventArgs> indexingError = (sender, e) =>
+                                                                     {
+                                                                         errorCount++;
+                                                                     };
+
+            //add the handler for optimized since we know it will be optimized last based on the commit count
+            customIndexer.NodeIndexed += nodeIndexed;
+            customIndexer.IndexingError += indexingError;
+
+            //remove the normal indexing error handler
+            customIndexer.IndexingError -= IndexInitializer.IndexingError;
+
+            //now, copy the invalid queue files to the index queue location to be processed
+            new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("App_Data")
+                .Single()
+                .GetFiles("*.add")
+                .ToList()
+                .ForEach(x => x.CopyTo(Path.Combine(batch.FullName, x.Name)));
+
+            Assert.AreEqual(3, batch.GetFiles("*.add").Count());
+
+            //run in async mode
+            customIndexer.RunAsync = true;
+            customIndexer.IndexSecondsInterval = 2;
+            customIndexer.SafelyProcessQueueItems();
+
+            //we need to check if the indexing is complete
+            while (nodeIndexCount < 3 && errorCount < 3)
+            {
+                //wait until indexing is done
+                Thread.Sleep(1000);
+            }
+
+            //reset the async mode and remove event handler
+            customIndexer.NodeIndexed -= nodeIndexed;
+            customIndexer.IndexingError -= indexingError;
+            customIndexer.IndexingError += IndexInitializer.IndexingError;
+            customIndexer.RunAsync = false;
+
+            Assert.IsTrue(errorCount == 3 || nodeIndexCount == 3);
+            Assert.AreEqual(0, customIndexer.IndexQueueItemFolder.GetFiles("*.add").Count());
+        }
 
         ///// <summary>
         /// <summary>
@@ -146,6 +215,9 @@ namespace Examine.Test.Index
             //add the handler for optimized since we know it will be optimized last based on the commit count
             customIndexer.IndexOptimized += optimizedHandler;
 
+            //remove the normal indexing error handler
+            customIndexer.IndexingError -= IndexInitializer.IndexingError;
+
             //run in async mode
             customIndexer.RunAsync = true;
 
@@ -176,6 +248,7 @@ namespace Examine.Test.Index
 
             //reset the async mode and remove event handler
             customIndexer.IndexOptimized -= optimizedHandler;
+            customIndexer.IndexingError += IndexInitializer.IndexingError;
             customIndexer.RunAsync = false;
             
 

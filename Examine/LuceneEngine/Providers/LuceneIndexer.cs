@@ -16,6 +16,7 @@ using Lucene.Net.Store;
 using Examine.LuceneEngine.Config;
 using Lucene.Net.Util;
 using System.ComponentModel;
+using System.Xml;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -158,7 +159,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);           
+            InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);
 
             RunAsync = true;
             if (config["runAsync"] != null)
@@ -453,7 +454,7 @@ namespace Examine.LuceneEngine.Providers
         {
             //create the queue item to be deleted
             SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
-      
+
             SafelyProcessQueueItems();
         }
 
@@ -632,7 +633,7 @@ namespace Examine.LuceneEngine.Providers
                             //set our volatile flag
                             _isIndexing = false;
 
-                            CloseWriter(ref writer);                            
+                            CloseWriter(ref writer);
                         }
                     }
 
@@ -1078,7 +1079,7 @@ namespace Examine.LuceneEngine.Providers
         ///     Not the executive = doesn't index, i
         ///     In async mode = use file watcher timer
         /// </summary>
-        protected void SafelyProcessQueueItems()
+        protected internal void SafelyProcessQueueItems()
         {
             //if this is not the master indexer, exit
             if (!ExecutiveIndex.IsExecutiveMachine)
@@ -1154,39 +1155,79 @@ namespace Examine.LuceneEngine.Providers
 
                         try
                         {
-
-                            //iterate through all files to add or delete to the index and index the content
-                            //and order by file name since the file name is named with DateTime.Now.Ticks
-                            //also order by extension descending so that the 'del' is processed before the 'add'
-                            foreach (var x in IndexQueueItemFolder.GetFiles()
-                                .Where(x => x.Extension == ".del" || x.Extension == ".add")
-                                .OrderBy(x => x.Name)
-                                .ThenByDescending(x => x.Extension) //we need to order by extension descending so that .del items are always processed before .add items
-                                .ToList())
-                            {                                
-
-                                if (x.Extension == ".del")
+                            var batchDirs = IndexQueueItemFolder.GetDirectories()
+                                .Where(x =>
+                                           {
+                                               //only return directories named as integers
+                                               int i;
+                                               return int.TryParse(x.Name, out i);
+                                           })
+                                .OrderByDescending(x => x.Name);
+                            foreach (var batch in batchDirs)
+                            {
+                                batch.Refresh();
+                                if (!batch.Exists)
                                 {
-                                    if (GetExclusiveIndexReader(ref reader, ref writer))
-                                    {
-                                        ProcessDeleteQueueItem(x, reader);
-                                    }
-                                    else
-                                    {
-                                        OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null), true);
-                                        return indexedNodes.Count;
-                                    }
+                                    continue;
                                 }
-                                else if (x.Extension == ".add")
+                                //iterate through all files to add or delete to the index and index the content
+                                //and order by file name since the file name is named with DateTime.Now.Ticks
+                                //also order by extension descending so that the 'del' is processed before the 'add'
+                                foreach (var x in batch.GetFiles()
+                                    .Where(x => x.Extension == ".del" || x.Extension == ".add")
+                                    .OrderBy(x => x.Name)
+                                    .ThenByDescending(x => x.Extension)) //we need to order by extension descending so that .del items are always processed before .add items
                                 {
-                                    if (GetExclusiveIndexWriter(ref writer, ref reader))
+
+                                    if (x.Extension == ".del")
                                     {
-                                        indexedNodes.Add(ProcessAddQueueItem(x, writer));
+                                        if (GetExclusiveIndexReader(ref reader, ref writer))
+                                        {
+                                            ProcessDeleteQueueItem(x, reader);
+                                        }
+                                        else
+                                        {
+                                            OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null), true);
+                                            return indexedNodes.Count;
+                                        }
                                     }
-                                    else
+                                    else if (x.Extension == ".add")
                                     {
-                                        OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null), true);
-                                        return indexedNodes.Count;
+                                        if (GetExclusiveIndexWriter(ref writer, ref reader))
+                                        {
+                                            try
+                                            {
+                                                indexedNodes.Add(ProcessAddQueueItem(x, writer));
+                                            }
+                                            catch (InvalidOperationException ex)
+                                            {
+                                                if (ex.InnerException != null && ex.InnerException is XmlException)
+                                                {
+                                                    OnIndexingError(new IndexingErrorEventArgs("Error reading index queue file, the XML is not properly formatted or contains invalid characters", -1, ex.InnerException));
+
+                                                    //this will happen if the XML in the file is invalid and so that we can continue processing, we'll rename this
+                                                    //file to have an extension of .error but move it to the main queue item folder
+                                                    x.CopyTo(Path.Combine(IndexQueueItemFolder.FullName,
+                                                                          string.Concat(x.Name.Substring(0, x.Name.Length - x.Extension.Length),
+                                                                                        ".error")));
+                                                    x.Delete();
+                                                }
+                                                else
+                                                {
+                                                    throw ex;
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null), true);
+                                            return indexedNodes.Count;
+                                        }
+                                    }
+                                    //cleanup the batch folder
+                                    if (batch.Name != "1" && !batch.GetFiles().Any())
+                                    {
+                                        batch.Delete();
                                     }
                                 }
                             }
@@ -1250,8 +1291,9 @@ namespace Examine.LuceneEngine.Providers
 
             var terms = new Dictionary<string, string>();
             terms.Add(term.Key, term.Value);
+            var batchDir = GetQueueBatchFolder();
             var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName;
-            FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".del"));
+            var fi = new FileInfo(Path.Combine(batchDir.FullName, fileName + ".del"));
 
             //ok, everything is ready to go, but we'll conver the dictionary to a CData wrapped serialized version
             terms.SaveToDisk(fi);
@@ -1285,7 +1327,9 @@ namespace Examine.LuceneEngine.Providers
                 fields.Add(IndexTypeFieldName, type.ToString());
 
             var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName + "-" + nodeId.ToString();
-            FileInfo fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
+
+            var batchDir = GetQueueBatchFolder();
+            var fi = new FileInfo(Path.Combine(batchDir.FullName, fileName + ".add"));
 
             //ok, everything is ready to go, but we'll conver the dictionary to a CData wrapped serialized version
             fields.SaveToDisk(fi);
@@ -1295,6 +1339,43 @@ namespace Examine.LuceneEngine.Providers
 
         #region Private
 
+        /// <summary>
+        /// We put the queue files into batches of 500 seperated into folders. 
+        /// This is to not fill up one folder with thousands of files for peformance reasons and windows file locks.
+        /// This method will return the next available batch folder based on the file count threshold.
+        /// </summary>
+        /// <returns></returns>
+        private DirectoryInfo GetQueueBatchFolder()
+        {
+            //we need to create sub folders for the queue as to not fill up an individual folder with thousands of files
+            const int maxFiles = 500;
+            DirectoryInfo batchDir;
+            var dirs = IndexQueueItemFolder.GetDirectories().OrderByDescending(x => x.Name);
+            if (dirs.Any())
+            {
+                //set the current batch to be executed in the highest named batch dir
+                batchDir = dirs.First();
+                //ensure its not already full
+                if (batchDir.GetFiles()
+                    .Where(x => x.Extension == ".del" || x.Extension == ".add")
+                    .Count() >= maxFiles)
+                {
+                    //create a new batch folder
+                    int i;
+                    if (int.TryParse(batchDir.Name, out i))
+                    {
+                        batchDir = IndexQueueItemFolder.CreateSubdirectory((i + 1).ToString());
+                    }
+                }
+            }
+            else
+            {
+                //create a batch folder
+                batchDir = IndexQueueItemFolder.CreateSubdirectory("1");
+            }
+            return batchDir;
+        }
+       
         /// <summary>
         /// Tries to parse a type using the Type's type converter
         /// </summary>
@@ -1446,8 +1527,6 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-           
-
             writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
             return true;
         }
@@ -1509,12 +1588,12 @@ namespace Examine.LuceneEngine.Providers
                     default:
                         break;
                 }
-            }           
-     
+            }
+
             //if we've made it this far, open a reader
             reader = IndexReader.Open(new SimpleFSDirectory(LuceneIndexFolder), false);
             return true;
-            
+
         }
 
         /// <summary>
@@ -1525,7 +1604,7 @@ namespace Examine.LuceneEngine.Providers
         private void ProcessDeleteQueueItem(FileInfo x, IndexReader ir)
         {
             //get the dictionary object from the file data
-            SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
+            var sd = new SerializableDictionary<string, string>();
             sd.ReadFromDisk(x);
 
             //we know that there's only ever one item saved to the dictionary for deletions
@@ -1552,11 +1631,11 @@ namespace Examine.LuceneEngine.Providers
         private IndexedNode ProcessAddQueueItem(FileInfo x, IndexWriter writer)
         {
             //get the dictionary object from the file data
-            SerializableDictionary<string, string> sd = new SerializableDictionary<string, string>();
+            var sd = new SerializableDictionary<string, string>();
             sd.ReadFromDisk(x);
 
             //get the node id
-            int nodeId = int.Parse(sd[IndexNodeIdFieldName]);
+            var nodeId = int.Parse(sd[IndexNodeIdFieldName]);
 
             //now, add the index with our dictionary object
             AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);

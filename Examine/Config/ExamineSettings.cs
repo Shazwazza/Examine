@@ -33,6 +33,24 @@ namespace Examine.Config
 
         #endregion
 
+        ///<summary>
+        /// Whether or not to rebuild non-existing indexes when the application starts
+        ///</summary>
+        [ConfigurationProperty("RebuildOnAppStart", DefaultValue = true)]
+        public bool RebuildOnAppStart
+        {
+            get { return (bool)base["RebuildOnAppStart"]; }
+        }
+
+        ///<summary>
+        /// The path for the async handler
+        ///</summary>
+        [ConfigurationProperty("WebHandlerPath", DefaultValue = "~/ExamineHandler.ashx")]
+        public string WebHandlerPath
+        {
+            get { return (string)base["WebHandlerPath"]; }
+        }
+
         /// <summary>
         /// Gets the search providers.
         /// </summary>

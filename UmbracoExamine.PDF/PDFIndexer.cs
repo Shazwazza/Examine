@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Examine;
+using iTextSharp.text.exceptions;
 using iTextSharp.text.pdf;
 using System.Text;
 using Lucene.Net.Analysis;
@@ -113,7 +114,9 @@ namespace UmbracoExamine.PDF
 
             var pdf = new PDFParser();
 
-            var txt = pdf.ParsePdfText(file.FullName);
+            Action<Exception> onError = (e) => OnIndexingError(new IndexingErrorEventArgs("Could not read PDF", -1, e));
+
+            var txt = pdf.ParsePdfText(file.FullName, onError);
             return txt;
 
         }
@@ -200,39 +203,45 @@ namespace UmbracoExamine.PDF
             /// Return only the valid string contents of the PDF
             /// </summary>
             /// <param name="sourcePDF"></param>
+            /// <param name="onError"></param>
             /// <returns></returns>
-            public string ParsePdfText(string sourcePDF)
+            public string ParsePdfText(string sourcePDF, Action<Exception> onError)
             {
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                var sb = new StringBuilder();
 
-                PdfReader reader = new PdfReader(sourcePDF);
-                byte[] pageBytes = null;
+                var reader = new PdfReader(sourcePDF);
                 PRTokeniser token = null;
-                PRTokeniser.TokType tknType;
-                string tknValue = String.Empty;
+                var tknValue = String.Empty;
 
                 for (var i = 1; (i <= reader.NumberOfPages); i++)
                 {
-                    pageBytes = reader.GetPageContent(i);
+                    var pageBytes = reader.GetPageContent(i);
                     if (pageBytes != null)
                     {
                         token = new PRTokeniser(pageBytes);
-                        while (token.NextToken())
+                        try
                         {
-                            tknType = token.TokenType;
-                            tknValue = token.StringValue;
-                            if ((tknType == PRTokeniser.TokType.STRING))
+                            while (token.NextToken())
                             {
-                                foreach (var s in tknValue)
+                                var tknType = token.TokenType;
+                                tknValue = token.StringValue;
+                                if ((tknType == PRTokeniser.TokType.STRING))
                                 {
-                                    //strip out unsupported characters, based on unicode tables.
-                                    if (!m_UnsupportedRange.Contains(s))
+                                    foreach (var s in tknValue)
                                     {
-                                        sb.Append(s);
+                                        //strip out unsupported characters, based on unicode tables.
+                                        if (!m_UnsupportedRange.Contains(s))
+                                        {
+                                            sb.Append(s);
+                                        }
                                     }
-                                }
 
-                            }
+                                }
+                            }   
+                        }
+                        catch (InvalidPdfException ex)
+                        {                            
+                            onError(ex);
                         }
                     }
                 }

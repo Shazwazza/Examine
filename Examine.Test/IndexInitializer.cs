@@ -132,7 +132,7 @@ namespace Examine.Test
         }
 
         
-        static void IndexingError(object sender, IndexingErrorEventArgs e)
+        internal static void IndexingError(object sender, IndexingErrorEventArgs e)
         {
             throw new ApplicationException(e.Message, e.InnerException);
         }

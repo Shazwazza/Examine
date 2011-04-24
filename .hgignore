@@ -1,0 +1,8 @@
+syntax: glob
+*.add
+_ReSharper*
+*.suo
+*/bin/*
+*/obj/*
+*ReSharper.user
+TestResults/*
