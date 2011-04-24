@@ -5,8 +5,10 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Web;
 using System.Xml.Linq;
 using Examine;
+using Examine.Config;
 using Examine.Providers;
 using umbraco.cms.businesslogic;
 using UmbracoExamine.DataServices;
@@ -15,6 +17,7 @@ using Examine.LuceneEngine.Config;
 using UmbracoExamine.Config;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
+using umbraco.BasePages;
 
 
 namespace UmbracoExamine
@@ -189,6 +192,20 @@ namespace UmbracoExamine
 
         #region Public methods
 
+        public override void RebuildIndex()
+        {
+            //we can make the indexing rebuilding operation happen asynchronously in a web context by calling an http handler.
+            //we should only do this when async='true', the current request is running in a web context and the current user is authenticated.
+            if (RunAsync && HttpContext.Current != null && UmbracoEnsuredPage.CurrentUser != null)
+            {
+
+            }
+            else
+            {
+                base.RebuildIndex();
+            }
+        }
+
         /// <summary>
         /// Overridden for logging
         /// </summary>
@@ -233,6 +250,7 @@ namespace UmbracoExamine
         #endregion
 
         #region Protected
+
 
         /// <summary>
         /// Overridden for logging.

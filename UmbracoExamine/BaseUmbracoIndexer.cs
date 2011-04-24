@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Threading;
+using System.Web;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
+using umbraco.BasePages;
+using umbraco.BusinessLogic;
 using UmbracoExamine.DataServices;
 using Examine;
 using System.IO;
@@ -54,6 +59,11 @@ namespace UmbracoExamine
         /// </summary>
         protected abstract IEnumerable<string> SupportedTypes { get; }
 
+        /// <summary>
+        /// The path to the http handler which is used for asynchronously rebuilding indexes
+        /// </summary>
+        public string ExamineHandlerPath { get; private set; }
+
         #endregion
 
         #region Initialize
@@ -66,6 +76,15 @@ namespace UmbracoExamine
         /// <param name="config"></param>
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
+
+            if (config["examineHandler"] != null && !string.IsNullOrEmpty(config["examineHandler"]))
+            {
+                ExamineHandlerPath = config["examineHandler"];
+            }
+            else
+            {
+                ExamineHandlerPath = "~/ExamineHandler.ashx";
+            }
 
             if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
             {
@@ -103,7 +122,59 @@ namespace UmbracoExamine
 
         #endregion
 
+        public override void RebuildIndex()
+        {
+            //we can make the indexing rebuilding operation happen asynchronously in a web context by calling an http handler.
+            //we should only do this when async='true', the current request is running in a web context and the current user is authenticated.
+            if (RunAsync && HttpContext.Current != null && UmbracoEnsuredPage.CurrentUser != null)
+            {
+                RebuildIndexAsync();
+            }
+            else
+            {
+                base.RebuildIndex();
+            }
+        }
+
         #region Protected
+
+        ///<summary>
+        /// Calls a web request in a worker thread to rebuild the indexes
+        ///</summary>
+        protected void RebuildIndexAsync()
+        {
+            if (HttpContext.Current != null && UmbracoEnsuredPage.CurrentUser != null)
+            {
+                var handler = VirtualPathUtility.ToAbsolute(ExamineHandlerPath);
+                var fullPath = HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + handler + "?index=" + Name;
+                var thread = new Thread(() =>
+                {
+                    var request = (HttpWebRequest)WebRequest.Create(fullPath);
+                    request.Timeout = Timeout.Infinite;
+                    request.UseDefaultCredentials = true;
+                    request.Method = "GET";
+                    request.Proxy = null;
+
+                    HttpWebResponse response;
+                    try
+                    {
+                        response = (HttpWebResponse)request.GetResponse();
+
+                        if (response.StatusCode != HttpStatusCode.OK)
+                        {
+                            Log.Add(LogTypes.Custom, -1, "[UmbracoExamine] ExamineHandler request ended with an error: " + response.StatusDescription);
+                        }
+                    }
+                    catch (WebException ex)
+                    {
+                        Log.Add(LogTypes.Custom, -1, "[UmbracoExamine] ExamineHandler request threw an exception: " + ex.Message);
+                    }
+
+                }) { IsBackground = true, Name = "ExamineAsyncHandler" };
+
+                thread.Start();
+            }
+        }
 
         /// <summary>
         /// Ensures that the node being indexed is of a correct type and is a descendent of the parent id specified.

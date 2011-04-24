@@ -83,48 +83,6 @@ namespace UmbracoExamine
         //This does work, however we need to lock down the httphandler and thats an issue... so i've removed thsi
         //if people don't want to rebuild on app startup then they can disable it and reindex manually.
 
-        /////<summary>
-        ///// Calls a web request in a worker thread to rebuild the indexes
-        /////</summary>
-        //public void RebuildIndexAsync()
-        //{
-        //    if (HttpContext.Current != null)
-        //    {
-        //        var handler = VirtualPathUtility.ToAbsolute(ExamineSettings.Instance.WebHandlerPath);
-        //        var fullPath = HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + handler;
-        //        var thread = new Thread(() =>
-        //                                 {
-        //                                     var request = (HttpWebRequest)WebRequest.Create(fullPath);
-        //                                     request.Timeout = Timeout.Infinite;
-        //                                     request.UseDefaultCredentials = true;
-        //                                     request.Method = "GET";
-        //                                     request.Proxy = null;
-
-        //                                     HttpWebResponse response;
-        //                                     try
-        //                                     {
-        //                                          response = (HttpWebResponse)request.GetResponse();
-
-        //                                          if (response.StatusCode != HttpStatusCode.OK)
-        //                                          {
-        //                                              Log.Add(LogTypes.Custom, -1, "[UmbracoExamine] ExamineHandler request ended with an error: " + response.StatusDescription);
-        //                                          }
-        //                                     }
-        //                                     catch (WebException ex)
-        //                                     {
-        //                                         Log.Add(LogTypes.Custom, -1, "[UmbracoExamine] ExamineHandler request threw an exception: " + ex.Message);
-        //                                     }
-
-        //                                 }) { IsBackground = true, Name = "ExamineAsyncHandler" };
-
-        //        thread.Start();
-
-                
-        //    }
-
-        //}
-
-
         void Member_AfterSave(Member sender, SaveEventArgs e)
         {
             //ensure that only the providers are flagged to listen execute

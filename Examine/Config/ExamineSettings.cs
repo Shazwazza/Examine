@@ -40,16 +40,7 @@ namespace Examine.Config
         public bool RebuildOnAppStart
         {
             get { return (bool)base["RebuildOnAppStart"]; }
-        }
-
-        ///<summary>
-        /// The path for the async handler
-        ///</summary>
-        [ConfigurationProperty("WebHandlerPath", DefaultValue = "~/ExamineHandler.ashx")]
-        public string WebHandlerPath
-        {
-            get { return (string)base["WebHandlerPath"]; }
-        }
+        }       
 
         /// <summary>
         /// Gets the search providers.
