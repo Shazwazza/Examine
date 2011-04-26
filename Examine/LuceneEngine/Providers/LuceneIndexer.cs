@@ -503,14 +503,15 @@ namespace Examine.LuceneEngine.Providers
                 return;
             }
 
+            var buffer = new List<Dictionary<string, string>>();
+
             foreach (XElement node in nodes)
             {
                 if (ValidateDocument(node))
                 {
                     //save the index item to a queue file
                     var fields = GetDataToIndex(node, type);
-
-                    SaveAddIndexQueueItem(fields, int.Parse(node.Attribute("id").Value), type);
+                    BufferAddIndexQueueItem(fields, int.Parse((string)node.Attribute("id")), type, buffer);
                 }
                 else
                 {
@@ -518,6 +519,9 @@ namespace Examine.LuceneEngine.Providers
                 }
 
             }
+
+            //now we need to save the buffer to disk
+            SaveBufferAddIndexQueueItem(buffer);
 
             //run the indexer on all queued files
             SafelyProcessQueueItems();
@@ -1197,7 +1201,15 @@ namespace Examine.LuceneEngine.Providers
                                         {
                                             try
                                             {
-                                                indexedNodes.Add(ProcessAddQueueItem(x, writer));
+                                                //check if it's a buffered file... we'll base this on the file name
+                                                if (x.Name.EndsWith("-buffered.add"))
+                                                {
+                                                    indexedNodes.AddRange(ProcessBufferedAddQueueItem(x, writer));
+                                                }
+                                                else
+                                                {
+                                                    indexedNodes.Add(ProcessAddQueueItem(x, writer));    
+                                                }
                                             }
                                             catch (InvalidOperationException ex)
                                             {
@@ -1301,6 +1313,35 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
+        /// Used for re-indexing many nodes at once, this updates the fields object and appends it to the buffered list of items which
+        /// will then get written to file in one bulk file.
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="type"></param>
+        /// <param name="buffer"></param>
+        protected void BufferAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type, List<Dictionary<string, string>> buffer)
+        {
+            //ensure the special fields are added to the dictionary to be saved to file
+            EnsureSpecialFields(fields, nodeId, type);
+            
+            //ok, everything is ready to go, add it to the buffer
+            buffer.Add(fields);
+        }
+
+        /// <summary>
+        /// Saves the buffered items to disk
+        /// </summary>
+        /// <param name="buffer"></param>
+        protected void SaveBufferAddIndexQueueItem(List<Dictionary<string, string>> buffer)
+        {
+            var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName + "-buffered";
+            var batchDir = GetQueueBatchFolder();
+            var fi = new FileInfo(Path.Combine(batchDir.FullName, fileName + ".add"));
+            buffer.SaveToDisk(fi);
+        }
+
+        /// <summary>
         /// Writes the information for the fields to a file names with the computer's name that is running the index and
         /// a GUID value. The indexer will then index the values stored in the files in another thread so that processing may continue.
         /// This will save a file prefixed with the current machine name with an extension of .add
@@ -1321,10 +1362,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //ensure the special fields are added to the dictionary to be saved to file
-            if (!fields.ContainsKey(IndexNodeIdFieldName))
-                fields.Add(IndexNodeIdFieldName, nodeId.ToString());
-            if (!fields.ContainsKey(IndexTypeFieldName))
-                fields.Add(IndexTypeFieldName, type.ToString());
+            EnsureSpecialFields(fields, nodeId, type);
 
             var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName + "-" + nodeId.ToString();
 
@@ -1338,6 +1376,15 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Private
+
+        private void EnsureSpecialFields(Dictionary<string, string> fields, int nodeId, string type)
+        {
+            //ensure the special fields are added to the dictionary to be saved to file
+            if (!fields.ContainsKey(IndexNodeIdFieldName))
+                fields.Add(IndexNodeIdFieldName, nodeId.ToString());
+            if (!fields.ContainsKey(IndexTypeFieldName))
+                fields.Add(IndexTypeFieldName, type.ToString());
+        }
 
         /// <summary>
         /// We put the queue files into batches of 500 seperated into folders. 
@@ -1622,6 +1669,32 @@ namespace Examine.LuceneEngine.Providers
             CommitCount++;
         }
 
+        private IEnumerable<IndexedNode> ProcessBufferedAddQueueItem(FileInfo x, IndexWriter writer)
+        {
+            var result = new List<IndexedNode>();
+
+            //get the dictionary object from the file data
+            var items = new List<Dictionary<string, string>>();
+            items.ReadFromDisk(x);
+            foreach(var sd in items)
+            {
+                //get the node id
+                var nodeId = int.Parse(sd[IndexNodeIdFieldName]);
+
+                //now, add the index with our dictionary object
+                AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
+
+                CommitCount++;
+
+                result.Add(new IndexedNode() { NodeId = nodeId, Type = sd[IndexTypeFieldName] });
+            }
+
+            //remove the file
+            x.Delete();
+
+            return result;
+        }
+
         /// <summary>
         /// Reads the FileInfo passed in into a dictionary object and adds it to the index
         /// </summary>
@@ -1640,10 +1713,10 @@ namespace Examine.LuceneEngine.Providers
             //now, add the index with our dictionary object
             AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
 
+            CommitCount++;
+                
             //remove the file
             x.Delete();
-
-            CommitCount++;
 
             return new IndexedNode() { NodeId = nodeId, Type = sd[IndexTypeFieldName] };
         }

@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Xml;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Examine.Test
 {
@@ -17,17 +18,59 @@ namespace Examine.Test
     public class SerializableDictionaryTest
     {
 
+        [TestMethod]
+        public void SerializableDictionaryTest_Save_Buffer_To_Disk_Read_From_Disk()
+        {
+            //arrange
 
+            var target = new List<Dictionary<string, string>>
+                             {
+                                 new Dictionary<string, string>
+                                     {
+                                         { "Name", "Shannon Deminick" },
+                                         { "Email", "blah@blah.com" }
+                                     },
+                                 new Dictionary<string, string>
+                                     {
+                                         { "Name", "Someone Else" },
+                                         { "Email", "person@somewhere.com" }
+                                     },
+                                new Dictionary<string, string>
+                                     {
+                                         { "Name", "Hello there" },
+                                         { "Email", "hi@you.com" }
+                                     },
+                             };
+
+            //act
+            var file = new FileInfo(Path.Combine(Environment.CurrentDirectory, "BufferedSerializedDictionary.txt"));
+            target.SaveToDisk(file);
+
+            //assert
+            file.Refresh();
+            Assert.IsTrue(file.Exists);
+            var result = new List<Dictionary<string, string>>();
+            result.ReadFromDisk(file);
+
+            Assert.AreEqual(target[0]["Name"], result[0]["Name"]);
+            Assert.AreEqual(target[0]["Email"], result[0]["Email"]);
+
+            Assert.AreEqual(target[1]["Name"], result[1]["Name"]);
+            Assert.AreEqual(target[1]["Email"], result[1]["Email"]);
+
+            Assert.AreEqual(target[2]["Name"], result[2]["Name"]);
+            Assert.AreEqual(target[2]["Email"], result[2]["Email"]);
+        }
         
         [TestMethod]
         public void SerializableDictionaryTest_Save_To_Disk_Read_From_Disk()
         {
             //arrange
 
-            var target = new SerializableDictionary<string, string>()
+            var target = new SerializableDictionary<string, string>
                              {
                                  { "Name", "Shannon Deminick" },
-                                 { "Email", "sdeminick@gmail.com" }
+                                 { "Email", "asdf@blah.com" }
                              };
 
             //act

@@ -192,20 +192,7 @@ namespace UmbracoExamine
 
         #region Public methods
 
-        public override void RebuildIndex()
-        {
-            //we can make the indexing rebuilding operation happen asynchronously in a web context by calling an http handler.
-            //we should only do this when async='true', the current request is running in a web context and the current user is authenticated.
-            if (RunAsync && HttpContext.Current != null && UmbracoEnsuredPage.CurrentUser != null)
-            {
-
-            }
-            else
-            {
-                base.RebuildIndex();
-            }
-        }
-
+       
         /// <summary>
         /// Overridden for logging
         /// </summary>
