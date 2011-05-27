@@ -85,13 +85,29 @@ namespace Examine.LuceneEngine
             }
 
             //write file using UTF8
-            using (var fs = new FileStream(fi.FullName, FileMode.Create))
+            if (fi.Exists)
             {
-                using (var w = new StreamWriter(fs, DefaultFileEncoding))
+                //truncate the bytes and re-write
+                using (var fs = new FileStream(fi.FullName, FileMode.Truncate))
                 {
-                    w.Write("<IndexItems>" + output + "</IndexItems>");
-                }
-            }            
+                    using (var w = new StreamWriter(fs, DefaultFileEncoding))
+                    {
+                        w.Write("<IndexItems>" + output + "</IndexItems>");
+                    }
+                }  
+            }
+            else
+            {
+                //create a new file (if for some reason its already there it is overwritten)
+                using (var fs = new FileStream(fi.FullName, FileMode.Create))
+                {
+                    using (var w = new StreamWriter(fs, DefaultFileEncoding))
+                    {
+                        w.Write("<IndexItems>" + output + "</IndexItems>");
+                    }
+                }  
+            }
+                      
         }
 
         ///<summary>
@@ -102,14 +118,28 @@ namespace Examine.LuceneEngine
         ///<typeparam name="TValue"></typeparam>
         public static void ReadFromDisk<TKey, TValue>(this List<Dictionary<TKey, TValue>> buffer, FileInfo fi)
         {
-            buffer.Clear();            
+            XDocument xDoc;
+            buffer.ReadFromDisk(fi, out xDoc);
+        }
+
+
+        ///<summary>
+        ///</summary>
+        ///<param name="buffer"></param>
+        ///<param name="fi"></param>
+        ///<param name="xDoc"></param>
+        ///<typeparam name="TKey"></typeparam>
+        ///<typeparam name="TValue"></typeparam>
+        public static void ReadFromDisk<TKey, TValue>(this List<Dictionary<TKey, TValue>> buffer, FileInfo fi, out XDocument xDoc)
+        {
+            buffer.Clear();
             using (var fs = new FileStream(fi.FullName, FileMode.Open))
             {
                 using (var r = new StreamReader(fs, DefaultFileEncoding))
                 {
-                    var xml = XDocument.Load(r);
-                    if (xml.Root != null)
-                        foreach (var element in xml.Root.Elements())
+                    xDoc = XDocument.Load(r);
+                    if (xDoc.Root != null)
+                        foreach (var element in xDoc.Root.Elements())
                         {
                             var xs = new XmlSerializer(typeof(SerializableDictionary<TKey, TValue>));
                             var deserialized = xs.Deserialize(element.CreateReader()) as SerializableDictionary<TKey, TValue>;

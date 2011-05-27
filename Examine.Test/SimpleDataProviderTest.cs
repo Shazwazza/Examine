@@ -60,6 +60,9 @@ namespace Examine.Test
         [TestMethod]
         public void SimpleDataProviderTest_Range_Search_On_Year()
         {
+            //requires re-index on start
+            Initialize(null);
+
             //Act
             var query = _searcher.CreateSearchCriteria().Range("YearCreated", DateTime.Now.AddYears(-1), DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
             var results = _searcher.Search(query);

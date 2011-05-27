@@ -1674,7 +1674,10 @@ namespace Examine.LuceneEngine.Providers
 
             //get the dictionary object from the file data
             var items = new List<Dictionary<string, string>>();
-            items.ReadFromDisk(x);
+            //the entire xml representing the items, we'll use this for faster file saving so we don't have to
+            //serialize/deserialize each time
+            XDocument xDoc;
+            items.ReadFromDisk(x, out xDoc);
             foreach(var sd in items)
             {
                 //get the node id
@@ -1682,6 +1685,10 @@ namespace Examine.LuceneEngine.Providers
 
                 //now, add the index with our dictionary object
                 AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
+
+                //update the file and remove the xml chunk we've just indexed
+                xDoc.Root.FirstNode.Remove();
+                xDoc.Save(x.FullName);
 
                 CommitCount++;
 

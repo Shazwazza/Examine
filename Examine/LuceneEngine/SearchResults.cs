@@ -72,6 +72,12 @@ namespace Examine.LuceneEngine
 
         private void DoSearch(Query query, IEnumerable<SortField> sortField)
         {
+            //This try catch is because analyzers strip out stop words and sometimes leave the query
+            //with null values. This simply tries to extract terms, if it fails with a null
+            //reference then its an invalid null query, NotSupporteException occurs when the query is
+            //valid but the type of query can't extract terms.
+            //This IS a work-around, theoretically Lucene itself should check for null query parameters
+            //before throwing exceptions.
             try
             {
                 var set = new Hashtable();
@@ -84,7 +90,10 @@ namespace Examine.LuceneEngine
                 TotalItemCount = 0;
                 return;
             }
-            
+            catch (NotSupportedException)
+            {
+                //swallow this exception, we should continue if this occurs.
+            }
 
             if (sortField.Count() == 0)
             {

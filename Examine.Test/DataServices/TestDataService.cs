@@ -24,7 +24,7 @@ namespace Examine.Test.DataServices
 
         public string MapPath(string virtualPath)
         {
-            return new FileInfo(Assembly.GetExecutingAssembly().Location).Directory + "\\" + virtualPath.Replace("/", "\\");
+            return new DirectoryInfo(TestHelper.AssemblyDirectory) + "\\" + virtualPath.Replace("/", "\\");
         }
 
         #endregion

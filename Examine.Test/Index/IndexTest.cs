@@ -61,7 +61,7 @@ namespace Examine.Test.Index
             customIndexer.IndexingError -= IndexInitializer.IndexingError;
 
             //now, copy the invalid queue files to the index queue location to be processed
-            new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("App_Data")
+            new DirectoryInfo(TestHelper.AssemblyDirectory).GetDirectories("App_Data")
                 .Single()
                 .GetFiles("*.add")
                 .ToList()
@@ -199,6 +199,9 @@ namespace Examine.Test.Index
         [TestMethod]
         public void Index_Ensure_No_Duplicates_In_Async()
         {
+            //requires re-index on start
+            Initialize(null);
+
             var d = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
             
@@ -253,7 +256,7 @@ namespace Examine.Test.Index
             
 
             //ensure no duplicates
-            Thread.Sleep(2000); //seems to take a while to get its shit together... this i'm not sure why since the optimization should have def finished (and i've stepped through that code!)
+            Thread.Sleep(10000); //seems to take a while to get its shit together... this i'm not sure why since the optimization should have def finished (and i've stepped through that code!)
             var customSearcher = IndexInitializer.GetLuceneSearcher(d);
             var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Id(id).Compile());
             Assert.AreEqual(1, results.Count());            
@@ -338,6 +341,9 @@ namespace Examine.Test.Index
         [TestMethod]
         public void Index_Rebuild_Index()
         {
+            //for this test, we need to re-init
+            Initialize(null);
+
             //get searcher and reader to get stats
             var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();   
                                     

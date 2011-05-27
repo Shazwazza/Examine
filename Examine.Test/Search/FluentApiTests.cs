@@ -21,6 +21,18 @@ namespace Examine.Test.Search
     {
 
         [TestMethod]
+        public void FluentApi_Search_With_Stop_Words()
+        {
+            var criteria = _searcher.CreateSearchCriteria();
+            var filter = criteria.Field("nodeName", "into")
+                .Or().Field("nodeTypeAlias", "into");
+
+            var results = _searcher.Search(filter.Compile());
+
+            Assert.AreEqual(0, results.TotalItemCount);
+        }
+
+        [TestMethod]
         public void FluentApi_Search_Raw_Query()
         {
             var criteria = _searcher.CreateSearchCriteria(IndexTypes.Content);
