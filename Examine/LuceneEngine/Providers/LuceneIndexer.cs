@@ -177,7 +177,6 @@ namespace Examine.LuceneEngine.Providers
 
             CommitCount = 0;
 
-            OptimizeIndex();
         }
 
         #endregion
