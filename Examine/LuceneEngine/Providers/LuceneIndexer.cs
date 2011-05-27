@@ -1396,7 +1396,11 @@ namespace Examine.LuceneEngine.Providers
             //we need to create sub folders for the queue as to not fill up an individual folder with thousands of files
             const int maxFiles = 500;
             DirectoryInfo batchDir;
-            var dirs = IndexQueueItemFolder.GetDirectories().OrderByDescending(x => x.Name);
+            var dirs = IndexQueueItemFolder.GetDirectories().OrderByDescending(x =>
+                                    {
+                                        int name;
+                                        return int.TryParse(x.Name, out name) ? name : 0;
+                                    });
             if (dirs.Any())
             {
                 //set the current batch to be executed in the highest named batch dir
