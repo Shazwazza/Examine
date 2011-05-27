@@ -14,7 +14,23 @@ namespace Examine.Test.Search
     [TestClass]
     public class SearchTest
     {
-       
+
+        
+
+        [TestMethod]
+        public void Search_On_Stop_Word()
+        {
+           
+            var result = _searcher.Search("into", false);
+            var result2 = _searcher.Search("into sam", false);
+
+            Assert.AreEqual(0, result.TotalItemCount);
+            Assert.AreEqual(0, result.Count());
+
+            Assert.IsTrue(result2.TotalItemCount > 0);
+            Assert.IsTrue(result2.Count() > 0);
+        }
+
         [TestMethod]
         public void Search_SimpleSearch()
         {

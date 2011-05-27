@@ -10,8 +10,6 @@ using System.Linq;
 
 namespace Examine.Test
 {
-    
-    
     /// <summary>
     ///This is a test class for XsltExtensionsTest and is intended
     ///to contain all XsltExtensionsTest Unit Tests

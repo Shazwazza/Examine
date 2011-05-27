@@ -23,10 +23,14 @@ namespace Examine.Test.DataServices
 
         public TestContentService()
         {
-            var xmlFile = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("App_Data")
+            var xmlFile = new DirectoryInfo(TestHelper.AssemblyDirectory).GetDirectories("App_Data")
                 .Single()
                 .GetFiles("umbraco.config")
                 .Single();
+            //var xmlFile = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("App_Data")
+            //    .Single()
+            //    .GetFiles("umbraco.config")
+            //    .Single();
 
             _xDoc = XDocument.Load(xmlFile.FullName);
         }

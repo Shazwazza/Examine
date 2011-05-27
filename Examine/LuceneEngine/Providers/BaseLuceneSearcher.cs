@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.IO;
+using System.Text;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
+using System.Linq;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -109,7 +111,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
-            var sc = this.CreateSearchCriteria();
+            var sc = this.CreateSearchCriteria();            
 
             if (useWildcards)
             {

@@ -153,6 +153,7 @@
     <Compile Include="Providers\BaseSearchProvider.cs" />
     <Compile Include="Providers\IndexProviderCollection.cs" />
     <Compile Include="Providers\SearchProviderCollection.cs" />
+    <Compile Include="StringExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

@@ -15,10 +15,15 @@ namespace Examine.Test.DataServices
 
         public TestMediaService()
         {
-            var xmlFile = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("App_Data")
-                 .Single()
-                 .GetFiles("media.xml")
-                 .Single();
+            var xmlFile = new DirectoryInfo(TestHelper.AssemblyDirectory).GetDirectories("App_Data")
+                .Single()
+                .GetFiles("umbraco.config")
+                .Single();
+
+            //var xmlFile = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.GetDirectories("App_Data")
+            //     .Single()
+            //     .GetFiles("media.xml")
+            //     .Single();
 
             m_Doc = XDocument.Load(xmlFile.FullName);
         }

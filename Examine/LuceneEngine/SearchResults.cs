@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine;
@@ -8,12 +9,45 @@ using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine
 {
+    internal class EmptySearchResults : ISearchResults
+    {
+        private List<ISearchResults>  _emptyResult = new List<ISearchResults>();
+
+        public IEnumerator<SearchResult> GetEnumerator()
+        {
+            return Enumerable.Empty<SearchResult>().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Enumerable.Empty<SearchResult>().GetEnumerator();
+        }
+
+        public int TotalItemCount
+        {
+            get { return 0; }
+        }
+
+        public IEnumerable<SearchResult> Skip(int skip)
+        {
+            return Enumerable.Empty<SearchResult>();
+        }
+    }
+
     /// <summary>
     /// An implementation of the search results returned from Lucene.Net
     /// </summary>
     public class SearchResults : ISearchResults
     {
 
+        ///<summary>
+        /// Returns an empty search result
+        ///</summary>
+        ///<returns></returns>
+        public static ISearchResults Empty()
+        {
+            return new EmptySearchResults();
+        }
 
         /// <summary>
         /// Exposes the internal Lucene searcher
@@ -38,6 +72,20 @@ namespace Examine.LuceneEngine
 
         private void DoSearch(Query query, IEnumerable<SortField> sortField)
         {
+            try
+            {
+                var set = new Hashtable();
+                query.ExtractTerms(set);
+            }
+            catch (NullReferenceException)
+            {
+                //this means that an analyzer has stipped out stop words and now there are 
+                //no words left to search on
+                TotalItemCount = 0;
+                return;
+            }
+            
+
             if (sortField.Count() == 0)
             {
                 var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort());
