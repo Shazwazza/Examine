@@ -1192,7 +1192,7 @@ namespace Examine.LuceneEngine.Providers
                         //set our volatile flag
                         _isIndexing = true;
 
-                        IndexWriter writer = null;
+                        IndexWriter writer = GetExclusiveIndexWriter();
 
                         //track all of the nodes indexed
                         var indexedNodes = new List<IndexedNode>();
@@ -1225,55 +1225,39 @@ namespace Examine.LuceneEngine.Providers
 
                                     if (x.Extension == ".del")
                                     {
-                                        if (GetExclusiveIndexWriter(ref writer))
-                                        {
-                                            ProcessDeleteQueueItem(x, writer);
-                                        }
-                                        else
-                                        {
-                                            OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive reader lock", -1, null), true);
-                                            return indexedNodes.Count;
-                                        }
+                                        ProcessDeleteQueueItem(x, writer);
                                     }
                                     else if (x.Extension == ".add")
                                     {
-                                        if (GetExclusiveIndexWriter(ref writer))
+                                        try
                                         {
-                                            try
+                                            //check if it's a buffered file... we'll base this on the file name
+                                            if (x.Name.EndsWith("-buffered.add"))
                                             {
-                                                //check if it's a buffered file... we'll base this on the file name
-                                                if (x.Name.EndsWith("-buffered.add"))
-                                                {
-                                                    indexedNodes.AddRange(ProcessBufferedAddQueueItem(x, writer));
-                                                }
-                                                else
-                                                {
-                                                    indexedNodes.Add(ProcessAddQueueItem(x, writer));    
-                                                }
+                                                indexedNodes.AddRange(ProcessBufferedAddQueueItem(x, writer));
                                             }
-                                            catch (InvalidOperationException ex)
+                                            else
                                             {
-                                                if (ex.InnerException != null && ex.InnerException is XmlException)
-                                                {
-                                                    OnIndexingError(new IndexingErrorEventArgs("Error reading index queue file, the XML is not properly formatted or contains invalid characters", -1, ex.InnerException));
-
-                                                    //this will happen if the XML in the file is invalid and so that we can continue processing, we'll rename this
-                                                    //file to have an extension of .error but move it to the main queue item folder
-                                                    x.CopyTo(Path.Combine(IndexQueueItemFolder.FullName,
-                                                                          string.Concat(x.Name.Substring(0, x.Name.Length - x.Extension.Length),
-                                                                                        ".error")));
-                                                    x.Delete();
-                                                }
-                                                else
-                                                {
-                                                    throw ex;
-                                                }
+                                                indexedNodes.Add(ProcessAddQueueItem(x, writer));
                                             }
                                         }
-                                        else
+                                        catch (InvalidOperationException ex)
                                         {
-                                            OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items, failed to obtain exclusive writer lock", -1, null), true);
-                                            return indexedNodes.Count;
+                                            if (ex.InnerException != null && ex.InnerException is XmlException)
+                                            {
+                                                OnIndexingError(new IndexingErrorEventArgs("Error reading index queue file, the XML is not properly formatted or contains invalid characters", -1, ex.InnerException));
+
+                                                //this will happen if the XML in the file is invalid and so that we can continue processing, we'll rename this
+                                                //file to have an extension of .error but move it to the main queue item folder
+                                                x.CopyTo(Path.Combine(IndexQueueItemFolder.FullName,
+                                                                      string.Concat(x.Name.Substring(0, x.Name.Length - x.Extension.Length),
+                                                                                    ".error")));
+                                                x.Delete();
+                                            }
+                                            else
+                                            {
+                                                throw ex;
+                                            }
                                         }
                                     }
                                     //cleanup the batch folder
@@ -1592,95 +1576,13 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Checks the writer passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
-        /// returns checks if the reader is not null and tries to close it. if it's still locked returns null, otherwise
-        /// creates a new writer.
+        /// Returns an index writer
         /// </summary>
-        /// <param name="writer"></param>
         /// <returns></returns>
-        private bool GetExclusiveIndexWriter(ref IndexWriter writer)
+        private IndexWriter GetExclusiveIndexWriter()
         {
-            //if the writer is already created, then we're ok
-            if (writer != null)
-                return true;
-
-            //checks for locks and closes the reader if one is found
-            if (!IndexReady())
-            {
-                if (!IndexReady())
-                {
-                    return false;
-                }
-            }
-
-            writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
-            return true;
+            return new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
         }
-
-        ///// <summary>
-        ///// Checks the reader passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
-        ///// returns checks if the writer is not null and tries to close it. if it's still locked returns null, otherwise
-        ///// creates a new reader.
-        ///// </summary>
-        ///// <param name="reader"></param>
-        ///// <param name="writer"></param>
-        ///// <returns>
-        ///// This also ensures that the reader is up to date, and if it is not, it re-opens the reader.
-        ///// </returns>
-        //private bool GetExclusiveIndexReader(ref IndexReader reader, ref IndexWriter writer)
-        //{
-        //    //checks for locks and closes the writer if one is found
-        //    if (!IndexReady())
-        //    {
-        //        if (writer != null)
-        //        {
-        //            CloseWriter(ref writer);
-        //            if (!IndexReady())
-        //            {
-        //                return false;
-        //            }
-        //        }
-        //    }
-
-        //    if (reader != null)
-        //    {
-        //        //Turns out that each time we need to process one of these items, we'll need to refresh the reader since it won't be up
-        //        //to date if the .add files are processed
-        //        switch (reader.GetReaderStatus())
-        //        {
-        //            case ReaderStatus.Current:
-        //                //if it's current, then we're ok
-        //                return true;
-        //            case ReaderStatus.NotCurrent:
-        //                //this will generally not be current each time an .add is processed and there's more deletes after the fact, we'll need to re-open
-
-        //                //yes, this is actually the way the Lucene wants you to work...
-        //                //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
-        //                //here's references: 
-        //                // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
-        //                // http://gist.github.com/173978 
-        //                var oldReader = reader;
-        //                var newReader = oldReader.Reopen(false);
-        //                if (newReader != oldReader)
-        //                {
-        //                    oldReader.Close();
-        //                    reader = newReader;
-        //                }
-        //                //now that the reader is re-opened, we're good
-        //                return true;
-        //            case ReaderStatus.Closed:
-        //                //if it's closed, then we'll allow it to be opened below...
-        //                break;
-        //            default:
-        //                break;
-        //        }
-        //    }
-
-        //    //if we've made it this far, open a reader
-        //    reader = IndexReader.Open(new SimpleFSDirectory(LuceneIndexFolder), false);
-        //    return true;
-
-        //}
 
         /// <summary>
         /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
@@ -1775,17 +1677,6 @@ namespace Examine.LuceneEngine.Providers
                 writer = null;
             }
         }
-
-        //private void CloseReader(ref IndexReader reader)
-        //{
-        //    if (reader != null)
-        //    {
-        //        reader.Close();
-        //        reader = null;
-        //    }
-        //}
-
-
 
         /// <summary>
         /// Creates the folder if it does not exist.
