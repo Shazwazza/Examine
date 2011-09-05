@@ -689,14 +689,14 @@ namespace Examine.LuceneEngine.Providers
             AddNodesToIndex(new XElement[] { node }, type);
         }
 
-        
 
         /// <summary>
         /// Removes the specified term from the index
         /// </summary>
         /// <param name="indexTerm"></param>
+        /// <param name="iw"></param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
-        protected bool DeleteFromIndex(Term indexTerm, IndexReader ir)
+        protected bool DeleteFromIndex(Term indexTerm, IndexWriter iw)
         {
             int nodeId = -1;
             if (indexTerm.Field() == "id")
@@ -710,14 +710,11 @@ namespace Examine.LuceneEngine.Providers
                 if (!IndexExists())
                     return true;
 
-                int delCount = ir.DeleteDocuments(indexTerm);
+                iw.DeleteDocuments(indexTerm);
 
-                ir.Commit(); //commit the changes!
+                iw.Commit(); //commit the changes!
 
-                if (delCount > 0)
-                {
-                    OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text()), delCount));
-                }
+                OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text())));
                 return true;
             }
             catch (Exception ee)
@@ -1196,7 +1193,6 @@ namespace Examine.LuceneEngine.Providers
                         _isIndexing = true;
 
                         IndexWriter writer = null;
-                        IndexReader reader = null;
 
                         //track all of the nodes indexed
                         var indexedNodes = new List<IndexedNode>();
@@ -1229,9 +1225,9 @@ namespace Examine.LuceneEngine.Providers
 
                                     if (x.Extension == ".del")
                                     {
-                                        if (GetExclusiveIndexReader(ref reader, ref writer))
+                                        if (GetExclusiveIndexWriter(ref writer))
                                         {
-                                            ProcessDeleteQueueItem(x, reader);
+                                            ProcessDeleteQueueItem(x, writer);
                                         }
                                         else
                                         {
@@ -1241,7 +1237,7 @@ namespace Examine.LuceneEngine.Providers
                                     }
                                     else if (x.Extension == ".add")
                                     {
-                                        if (GetExclusiveIndexWriter(ref writer, ref reader))
+                                        if (GetExclusiveIndexWriter(ref writer))
                                         {
                                             try
                                             {
@@ -1302,7 +1298,7 @@ namespace Examine.LuceneEngine.Providers
                             _isIndexing = false;
 
                             CloseWriter(ref writer);
-                            CloseReader(ref reader);
+                            //CloseReader(ref reader);
                         }
 
                         //if there are enough commits, the we'll run an optimization
@@ -1601,9 +1597,8 @@ namespace Examine.LuceneEngine.Providers
         /// creates a new writer.
         /// </summary>
         /// <param name="writer"></param>
-        /// <param name="reader"></param>
         /// <returns></returns>
-        private bool GetExclusiveIndexWriter(ref IndexWriter writer, ref IndexReader reader)
+        private bool GetExclusiveIndexWriter(ref IndexWriter writer)
         {
             //if the writer is already created, then we're ok
             if (writer != null)
@@ -1612,13 +1607,9 @@ namespace Examine.LuceneEngine.Providers
             //checks for locks and closes the reader if one is found
             if (!IndexReady())
             {
-                if (reader != null)
+                if (!IndexReady())
                 {
-                    CloseReader(ref reader);
-                    if (!IndexReady())
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -1626,77 +1617,77 @@ namespace Examine.LuceneEngine.Providers
             return true;
         }
 
-        /// <summary>
-        /// Checks the reader passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
-        /// returns checks if the writer is not null and tries to close it. if it's still locked returns null, otherwise
-        /// creates a new reader.
-        /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="writer"></param>
-        /// <returns>
-        /// This also ensures that the reader is up to date, and if it is not, it re-opens the reader.
-        /// </returns>
-        private bool GetExclusiveIndexReader(ref IndexReader reader, ref IndexWriter writer)
-        {
-            //checks for locks and closes the writer if one is found
-            if (!IndexReady())
-            {
-                if (writer != null)
-                {
-                    CloseWriter(ref writer);
-                    if (!IndexReady())
-                    {
-                        return false;
-                    }
-                }
-            }
+        ///// <summary>
+        ///// Checks the reader passed in to see if it is active, if not, checks if the index is locked. If it is locked, 
+        ///// returns checks if the writer is not null and tries to close it. if it's still locked returns null, otherwise
+        ///// creates a new reader.
+        ///// </summary>
+        ///// <param name="reader"></param>
+        ///// <param name="writer"></param>
+        ///// <returns>
+        ///// This also ensures that the reader is up to date, and if it is not, it re-opens the reader.
+        ///// </returns>
+        //private bool GetExclusiveIndexReader(ref IndexReader reader, ref IndexWriter writer)
+        //{
+        //    //checks for locks and closes the writer if one is found
+        //    if (!IndexReady())
+        //    {
+        //        if (writer != null)
+        //        {
+        //            CloseWriter(ref writer);
+        //            if (!IndexReady())
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //    }
 
-            if (reader != null)
-            {
-                //Turns out that each time we need to process one of these items, we'll need to refresh the reader since it won't be up
-                //to date if the .add files are processed
-                switch (reader.GetReaderStatus())
-                {
-                    case ReaderStatus.Current:
-                        //if it's current, then we're ok
-                        return true;
-                    case ReaderStatus.NotCurrent:
-                        //this will generally not be current each time an .add is processed and there's more deletes after the fact, we'll need to re-open
+        //    if (reader != null)
+        //    {
+        //        //Turns out that each time we need to process one of these items, we'll need to refresh the reader since it won't be up
+        //        //to date if the .add files are processed
+        //        switch (reader.GetReaderStatus())
+        //        {
+        //            case ReaderStatus.Current:
+        //                //if it's current, then we're ok
+        //                return true;
+        //            case ReaderStatus.NotCurrent:
+        //                //this will generally not be current each time an .add is processed and there's more deletes after the fact, we'll need to re-open
 
-                        //yes, this is actually the way the Lucene wants you to work...
-                        //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
-                        //here's references: 
-                        // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
-                        // http://gist.github.com/173978 
-                        var oldReader = reader;
-                        var newReader = oldReader.Reopen(false);
-                        if (newReader != oldReader)
-                        {
-                            oldReader.Close();
-                            reader = newReader;
-                        }
-                        //now that the reader is re-opened, we're good
-                        return true;
-                    case ReaderStatus.Closed:
-                        //if it's closed, then we'll allow it to be opened below...
-                        break;
-                    default:
-                        break;
-                }
-            }
+        //                //yes, this is actually the way the Lucene wants you to work...
+        //                //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
+        //                //here's references: 
+        //                // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
+        //                // http://gist.github.com/173978 
+        //                var oldReader = reader;
+        //                var newReader = oldReader.Reopen(false);
+        //                if (newReader != oldReader)
+        //                {
+        //                    oldReader.Close();
+        //                    reader = newReader;
+        //                }
+        //                //now that the reader is re-opened, we're good
+        //                return true;
+        //            case ReaderStatus.Closed:
+        //                //if it's closed, then we'll allow it to be opened below...
+        //                break;
+        //            default:
+        //                break;
+        //        }
+        //    }
 
-            //if we've made it this far, open a reader
-            reader = IndexReader.Open(new SimpleFSDirectory(LuceneIndexFolder), false);
-            return true;
+        //    //if we've made it this far, open a reader
+        //    reader = IndexReader.Open(new SimpleFSDirectory(LuceneIndexFolder), false);
+        //    return true;
 
-        }
+        //}
 
         /// <summary>
         /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
         /// </summary>
         /// <param name="x"></param>
-        /// <param name="ir"></param>
-        private void ProcessDeleteQueueItem(FileInfo x, IndexReader ir)
+        /// <param name="iw"></param>
+        private void ProcessDeleteQueueItem(FileInfo x, IndexWriter iw)
         {
             //get the dictionary object from the file data
             var sd = new SerializableDictionary<string, string>();
@@ -1709,7 +1700,7 @@ namespace Examine.LuceneEngine.Providers
                 return;
             }
             var term = sd.First();
-            DeleteFromIndex(new Term(term.Key, term.Value), ir);
+            DeleteFromIndex(new Term(term.Key, term.Value), iw);
 
             //remove the file
             x.Delete();
@@ -1785,14 +1776,14 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        private void CloseReader(ref IndexReader reader)
-        {
-            if (reader != null)
-            {
-                reader.Close();
-                reader = null;
-            }
-        }
+        //private void CloseReader(ref IndexReader reader)
+        //{
+        //    if (reader != null)
+        //    {
+        //        reader.Close();
+        //        reader = null;
+        //    }
+        //}
 
 
 

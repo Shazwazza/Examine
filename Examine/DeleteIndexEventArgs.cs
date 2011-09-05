@@ -8,14 +8,12 @@ namespace Examine
     public class DeleteIndexEventArgs : EventArgs
     {
 
-        public DeleteIndexEventArgs(KeyValuePair<string, string> term, int numDeleted)
+        public DeleteIndexEventArgs(KeyValuePair<string, string> term)
         {
             DeletedTerm = term;
-            DeletionCount = numDeleted;
         }
 
         public KeyValuePair<string, string> DeletedTerm { get; private set; }
-        public int DeletionCount { get; private set; }
 
     }
 }
