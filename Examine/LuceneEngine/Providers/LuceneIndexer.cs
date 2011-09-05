@@ -12,6 +12,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.QueryParsers;
 using Lucene.Net.Store;
 using Examine.LuceneEngine.Config;
 using Lucene.Net.Util;
@@ -35,6 +36,7 @@ namespace Examine.LuceneEngine.Providers
             FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
             IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
+            AutomaticallyOptimize = true;
         }
 
         /// <summary>
@@ -87,6 +89,41 @@ namespace Examine.LuceneEngine.Providers
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
+
+            if (config["autoOptimizeCommitThreshold"] == null)
+            {
+                OptimizationCommitThreshold = 100;
+            }
+            else
+            {
+                int autoCommitThreshold;
+                if (int.TryParse(config["autoOptimizeCommitThreshold"], out autoCommitThreshold))
+                {
+                    OptimizationCommitThreshold = autoCommitThreshold;
+                }
+                else
+                {
+                    throw new ParseException("Could not parse autoCommitThreshold value into an integer");
+                }
+            }
+
+            if (config["autoOptimize"] == null)
+            {
+                AutomaticallyOptimize = true;
+            }
+            else
+            {
+                bool autoOptimize;
+                if (bool.TryParse(config["autoOptimize"], out autoOptimize))
+                {
+                    AutomaticallyOptimize = autoOptimize;
+                }
+                else
+                {
+                    throw new ParseException("Could not parse autoOptimize value into a boolean");
+                }
+
+            }
 
             //Need to check if the index set or IndexerData is specified...
 
@@ -194,11 +231,6 @@ namespace Examine.LuceneEngine.Providers
         public const string SortedFieldNamePrefix = "__Sort_";
 
         /// <summary>
-        /// Specifies how many index commits are performed before running an optimization
-        /// </summary>
-        public int OptimizationCommitThreshold { get; internal set; }
-
-        /// <summary>
         /// Used to store a non-tokenized key for the document
         /// </summary>
         public const string IndexTypeFieldName = "__IndexType";
@@ -235,6 +267,17 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Properties
+
+
+        ///<summary>
+        /// This will automatically optimize the index every 'AutomaticCommitThreshold' commits
+        ///</summary>
+        public bool AutomaticallyOptimize { get; protected set; }
+
+        /// <summary>
+        /// The number of commits to wait for before optimizing the index if AutomaticallyOptimize = true
+        /// </summary>
+        public int OptimizationCommitThreshold { get; internal set; }
 
         /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
@@ -1261,7 +1304,7 @@ namespace Examine.LuceneEngine.Providers
                         }
 
                         //if there are enough commits, the we'll run an optimization
-                        if (CommitCount >= OptimizationCommitThreshold)
+                        if (AutomaticallyOptimize && CommitCount >= OptimizationCommitThreshold)
                         {
                             OptimizeIndex();
                             CommitCount = 0; //reset the counter
