@@ -4,5 +4,5 @@ using System.Reflection;
 [assembly: AssemblyTrademark("")]
 
 //Assembly version needs to some-how reflect the lucene.net version IMO
-[assembly: AssemblyVersion("0.10.0.292")]
-[assembly: AssemblyFileVersion("0.10.0.292")]
+[assembly: AssemblyVersion("0.2.11.292")]
+[assembly: AssemblyFileVersion("0.2.11.292")]
