@@ -43,26 +43,37 @@ namespace Examine.Test.Search
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
+        //[TestMethod]
+        //public void FluentApi_Split_Search_Term()
+        //{
+        //    var searchTerm = "Billy Bob";
+
+        //    var criteria = _searcher.CreateSearchCriteria();            
+        //    IQuery qry = qry = criteria.GroupedOr(new[] { "PageTitle", "PageContent", "nodeName" }, searchTerm).Or();
+        //    foreach (var t in searchTerm.Split(' '))
+        //    {
+
+        //        qry.GroupedOr(new[] { "PageTitle", "PageContent", "nodeName" }, t).Or();
+        //    }
+
+        //    //var contentCriteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
+
+        //    var sdaf = qry.Field(UmbracoContentIndexer.IndexTypeFieldName, IndexTypes.Content).Compile();
+
+        //    var results = _searcher.Search(sdaf);
+
+        //    //Assert.IsTrue(results.TotalItemCount > 0);
+        //}
+
         [TestMethod]
-        public void FluentApi_Split_Search_Term()
+        public void FluentApi_Find_By_ParentId()
         {
-            var searchTerm = "Billy Bob";
+            var criteria = _searcher.CreateSearchCriteria(IndexTypes.Content);
+            var filter = criteria.ParentId(1139);
 
-            var criteria = _searcher.CreateSearchCriteria();            
-            IQuery qry = qry = criteria.GroupedOr(new[] { "PageTitle", "PageContent", "nodeName" }, searchTerm).Or();
-            foreach (var t in searchTerm.Split(' '))
-            {
+            var results = _searcher.Search(filter.Compile());
 
-                qry.GroupedOr(new[] { "PageTitle", "PageContent", "nodeName" }, t).Or();
-            }
-
-            //var contentCriteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
-
-            var sdaf = qry.Field(UmbracoContentIndexer.IndexTypeFieldName, IndexTypes.Content).Compile();
-
-            var results = _searcher.Search(sdaf);
-
-            //Assert.IsTrue(results.TotalItemCount > 0);
+            Assert.AreEqual(2, results.TotalItemCount);
         }
 
         [TestMethod]
