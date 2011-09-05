@@ -29,6 +29,7 @@ namespace UmbracoExamine
         /// Default constructor
         /// </summary>
         protected BaseUmbracoIndexer()
+            : base()
         {
         }
 
