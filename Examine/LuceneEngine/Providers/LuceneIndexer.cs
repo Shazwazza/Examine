@@ -524,6 +524,72 @@ namespace Examine.LuceneEngine.Providers
 
         #endregion
 
+        /// <summary>
+        /// This wil optimize the index for searching, this gets executed when this class instance is instantiated.
+        /// </summary>
+        /// <remarks>
+        /// This can be an expensive operation and should only be called when there is no indexing activity
+        /// </remarks>
+        public void OptimizeIndex()
+        {
+            //check if this machine is the executive.
+            if (!ExecutiveIndex.IsExecutiveMachine)
+                return;
+
+            if (!_isIndexing)
+            {
+                lock (_indexerLocker)
+                {
+                    //double check
+                    if (!_isIndexing)
+                    {
+
+                        //set our volatile flag
+                        _isIndexing = true;
+
+                        IndexWriter writer = null;
+                        try
+                        {
+                            VerifyFolder(LuceneIndexFolder);
+
+                            if (!IndexExists())
+                                return;
+
+                            //check if the index is ready to be written to.
+                            if (!IndexReady())
+                            {
+                                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null), true);
+                                return;
+                            }
+
+                            writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, !IndexExists(), IndexWriter.MaxFieldLength.UNLIMITED);
+
+                            OnIndexOptimizing(new EventArgs());
+
+                            //wait for optimization to complete (true)
+                            writer.Optimize(true);
+
+                            OnIndexOptimized(new EventArgs());
+                        }
+                        catch (Exception ex)
+                        {
+                            OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
+                        }
+                        finally
+                        {
+                            //set our volatile flag
+                            _isIndexing = false;
+
+                            CloseWriter(ref writer);
+                        }
+                    }
+
+                }
+            }
+
+
+        }
+
         #region Protected
 
         /// <summary>
@@ -623,71 +689,7 @@ namespace Examine.LuceneEngine.Providers
             AddNodesToIndex(new XElement[] { node }, type);
         }
 
-        /// <summary>
-        /// This wil optimize the index for searching, this gets executed when this class instance is instantiated.
-        /// </summary>
-        /// <remarks>
-        /// This can be an expensive operation and should only be called when there is no indexing activity
-        /// </remarks>
-        protected void OptimizeIndex()
-        {
-            //check if this machine is the executive.
-            if (!ExecutiveIndex.IsExecutiveMachine)
-                return;
-
-            if (!_isIndexing)
-            {
-                lock (_indexerLocker)
-                {
-                    //double check
-                    if (!_isIndexing)
-                    {
-
-                        //set our volatile flag
-                        _isIndexing = true;
-
-                        IndexWriter writer = null;
-                        try
-                        {
-                            VerifyFolder(LuceneIndexFolder);
-
-                            if (!IndexExists())
-                                return;
-
-                            //check if the index is ready to be written to.
-                            if (!IndexReady())
-                            {
-                                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null), true);
-                                return;
-                            }
-
-                            writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, !IndexExists(), IndexWriter.MaxFieldLength.UNLIMITED);
-
-                            OnIndexOptimizing(new EventArgs());
-
-                            //wait for optimization to complete (true)
-                            writer.Optimize(true);
-
-                            OnIndexOptimized(new EventArgs());
-                        }
-                        catch (Exception ex)
-                        {
-                            OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
-                        }
-                        finally
-                        {
-                            //set our volatile flag
-                            _isIndexing = false;
-
-                            CloseWriter(ref writer);
-                        }
-                    }
-
-                }
-            }
-
-
-        }
+        
 
         /// <summary>
         /// Removes the specified term from the index
