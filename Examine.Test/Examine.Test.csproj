@@ -82,7 +82,9 @@
     <Compile Include="Search\MultiIndexSearch.cs" />
     <Compile Include="Search\SearchTest.cs" />
     <Compile Include="Search\StringTests.cs" />
-    <Compile Include="SerializableDictionaryTest.cs" />
+    <Compile Include="SerializableDictionaryTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SimpleDataProviderTest.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="TestIndexField.cs" />

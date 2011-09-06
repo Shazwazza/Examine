@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Xml.Linq;
 using Examine.LuceneEngine;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -50,7 +51,8 @@ namespace Examine.Test
             file.Refresh();
             Assert.IsTrue(file.Exists);
             var result = new List<Dictionary<string, string>>();
-            result.ReadFromDisk(file);
+            XDocument xml;
+            result.ReadFromDisk(file, out xml);
 
             Assert.AreEqual(target[0]["Name"], result[0]["Name"]);
             Assert.AreEqual(target[0]["Email"], result[0]["Email"]);
@@ -67,7 +69,7 @@ namespace Examine.Test
         {
             //arrange
 
-            var target = new SerializableDictionary<string, string>
+            var target = new Dictionary<string, string>
                              {
                                  { "Name", "Shannon Deminick" },
                                  { "Email", "asdf@blah.com" }
@@ -80,7 +82,7 @@ namespace Examine.Test
             //assert
             file.Refresh();
             Assert.IsTrue(file.Exists);
-            var result = new SerializableDictionary<string, string>();
+            var result = new Dictionary<string, string>();
             result.ReadFromDisk(file);
             Assert.AreEqual(target["Name"], result["Name"]);
             Assert.AreEqual(target["Email"], result["Email"]);
@@ -91,13 +93,13 @@ namespace Examine.Test
         {
             //arrange
 
-            var target = new SerializableDictionary<string, string>()
+            var target = new Dictionary<string, string>()
                              {
                                  { "Name", "☃ ☁ ☠" },
                                  { "Email", "☢ ☥ ☺" }
                              };
 
-            SerializableDictionaryExtensions.DefaultFileEncoding = Encoding.ASCII;
+            DictionaryExtensions.DefaultFileEncoding = Encoding.ASCII;
 
             //act
             var file = new FileInfo(Path.Combine(Environment.CurrentDirectory, "SerializedDictionary.txt"));
@@ -106,11 +108,11 @@ namespace Examine.Test
             //assert
             file.Refresh();
             Assert.IsTrue(file.Exists);
-            var result = new SerializableDictionary<string, string>();
+            var result = new Dictionary<string, string>();
             result.ReadFromDisk(file);
             
             //reset it
-            SerializableDictionaryExtensions.DefaultFileEncoding = Encoding.UTF8;
+            DictionaryExtensions.DefaultFileEncoding = Encoding.UTF8;
             
             //with the wrong encoding this will fail!
             Assert.AreNotEqual(target["Name"], result["Name"]);

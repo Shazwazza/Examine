@@ -20,6 +20,7 @@ namespace Examine.Test.Search
     public class FluentApiTests
     {
 
+
         [TestMethod]
         public void FluentApi_Search_With_Stop_Words()
         {
@@ -42,28 +43,6 @@ namespace Examine.Test.Search
 
             Assert.IsTrue(results.TotalItemCount > 0);
         }
-
-        //[TestMethod]
-        //public void FluentApi_Split_Search_Term()
-        //{
-        //    var searchTerm = "Billy Bob";
-
-        //    var criteria = _searcher.CreateSearchCriteria();            
-        //    IQuery qry = qry = criteria.GroupedOr(new[] { "PageTitle", "PageContent", "nodeName" }, searchTerm).Or();
-        //    foreach (var t in searchTerm.Split(' '))
-        //    {
-
-        //        qry.GroupedOr(new[] { "PageTitle", "PageContent", "nodeName" }, t).Or();
-        //    }
-
-        //    //var contentCriteria = m_Searcher.CreateSearchCriteria(IndexTypes.Content);
-
-        //    var sdaf = qry.Field(UmbracoContentIndexer.IndexTypeFieldName, IndexTypes.Content).Compile();
-
-        //    var results = _searcher.Search(sdaf);
-
-        //    //Assert.IsTrue(results.TotalItemCount > 0);
-        //}
 
         [TestMethod]
         public void FluentApi_Find_By_ParentId()

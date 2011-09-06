@@ -93,6 +93,7 @@
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
+    <Compile Include="DictionarySerializer.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IIndexField.cs" />
@@ -134,8 +135,6 @@
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchExtensions.cs" />
     <Compile Include="LuceneEngine\SearchResults.cs" />
-    <Compile Include="LuceneEngine\SerializableDictionary.cs" />
-    <Compile Include="LuceneEngine\SerializableDictionaryExtensions.cs" />
     <Compile Include="LuceneEngine\SimpleDataSet.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />
     <Compile Include="SearchCriteria\DateResolution.cs" />

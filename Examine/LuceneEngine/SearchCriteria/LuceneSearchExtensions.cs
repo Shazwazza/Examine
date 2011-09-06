@@ -109,30 +109,30 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new ExamineValue(Examineness.Escaped, QueryParser.Escape(s));
         }
 
-        /// <summary>
-        /// Sets up an <see cref="IExamineValue"/> for an additional Examiness
-        /// </summary>
-        /// <param name="examineValue">The IExamineValue to continue working with.</param>
-        /// <param name="s">The string to postfix.</param>
-        /// <returns>Combined strings</returns>
-        public static string Then(this IExamineValue examineValue, string s)
-        {
-            if (examineValue == null)
-                throw new ArgumentNullException("examineValue", "examineValue is null.");
-            if (String.IsNullOrEmpty(s))
-                throw new ArgumentException("Supplied string is null or empty.", "s");
-            return examineValue.Value + s;
-        }
+        ///// <summary>
+        ///// Sets up an <see cref="IExamineValue"/> for an additional Examiness
+        ///// </summary>
+        ///// <param name="examineValue">The IExamineValue to continue working with.</param>
+        ///// <param name="s">The string to postfix.</param>
+        ///// <returns>Combined strings</returns>
+        //public static string Then(this IExamineValue examineValue, string s)
+        //{
+        //    if (examineValue == null)
+        //        throw new ArgumentNullException("examineValue", "examineValue is null.");
+        //    if (String.IsNullOrEmpty(s))
+        //        throw new ArgumentException("Supplied string is null or empty.", "s");
+        //    return examineValue.Value + s;
+        //}
 
-        /// <summary>
-        /// Sets up an <see cref="IExamineValue"/> for an additional Examiness
-        /// </summary>
-        /// <param name="examineValue">The IExamineValue to continue working with.</param>
-        /// <returns>Combined strings</returns>
-        public static string Then(this IExamineValue examineValue)
-        {
-            return Then(examineValue, string.Empty);
-        }
+        ///// <summary>
+        ///// Sets up an <see cref="IExamineValue"/> for an additional Examiness
+        ///// </summary>
+        ///// <param name="examineValue">The IExamineValue to continue working with.</param>
+        ///// <returns>Combined strings</returns>
+        //public static string Then(this IExamineValue examineValue)
+        //{
+        //    return Then(examineValue, string.Empty);
+        //}
 
         /// <summary>
         /// Converts an Examine boolean operation to a Lucene representation

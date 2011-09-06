@@ -186,7 +186,7 @@ namespace Examine.LuceneEngine
         {
             lock (Lock)
             {
-                var d = new SerializableDictionary<EXAFields, string>();
+                var d = new Dictionary<EXAFields, string>();
                 d.Add(EXAFields.Name, Environment.MachineName);
                 d.Add(EXAFields.Created, DateTime.Now.ToString(TimeStampFormat));
                 d.Add(EXAFields.Updated, DateTime.Now.ToString(TimeStampFormat));
@@ -207,7 +207,7 @@ namespace Examine.LuceneEngine
                 {
                     var lckFileName = Environment.MachineName + LckExtension;
                     var fLck = new FileInfo(Path.Combine(ExamineDirectory.FullName, lckFileName));
-                    var dLck = new SerializableDictionary<LCKFields, string>();
+                    var dLck = new Dictionary<LCKFields, string>();
                     dLck.Add(LCKFields.Name, Environment.MachineName);
                     dLck.Add(LCKFields.Created, DateTime.Now.ToString(TimeStampFormat));
                     dLck.Add(LCKFields.Updated, DateTime.Now.ToString(TimeStampFormat));
@@ -318,22 +318,22 @@ namespace Examine.LuceneEngine
         /// Read the machines EXA file
         /// </summary>
         /// <returns></returns>
-        private SerializableDictionary<EXAFields, string> GetEXA()
+        private Dictionary<EXAFields, string> GetEXA()
         {
-            var dExa = new SerializableDictionary<EXAFields, string>();
+            var dExa = new Dictionary<string, string>();
             dExa.ReadFromDisk(_exaFile);
-            return dExa;
+            return dExa.ToDictionary(x => (EXAFields)Enum.Parse(typeof(EXAFields), x.Key), x => x.Value);
         }
 
         /// <summary>
         /// Read the machines LCK file
         /// </summary>
         /// <returns></returns>
-        private SerializableDictionary<LCKFields, string> GetLCK()
+        private Dictionary<LCKFields, string> GetLCK()
         {
-            var dLck = new SerializableDictionary<LCKFields, string>();
+            var dLck = new Dictionary<string, string>();
             dLck.ReadFromDisk(_lckFile);
-            return dLck;
+            return dLck.ToDictionary(x => (LCKFields)Enum.Parse(typeof(LCKFields), x.Key), x => x.Value);
         }
 
         /// <summary>

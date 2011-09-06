@@ -172,11 +172,11 @@ namespace UmbracoExamine.SearchCriteria
         {
             return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.SingleCharacterWildcard(s);
         }
-        [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
-        public static string Then(this IExamineValue examineValue, string s)
-        {
-            return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Then(examineValue, s);
-        }
+        //[Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
+        //public static string Then(this IExamineValue examineValue, string s)
+        //{
+        //    return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Then(examineValue, s);
+        //}
         [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
         public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
         {

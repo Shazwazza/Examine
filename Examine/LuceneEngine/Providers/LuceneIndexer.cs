@@ -773,7 +773,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
-            var values = new Dictionary<string, string>();
+            Dictionary<string, string> values = new Dictionary<string, string>();
 
             int nodeId = int.Parse(node.Attribute("id").Value);
 
@@ -1522,7 +1522,7 @@ namespace Examine.LuceneEngine.Providers
         private void ProcessDeleteQueueItem(FileInfo x, IndexWriter iw)
         {
             //get the dictionary object from the file data
-            var sd = new SerializableDictionary<string, string>();
+            var sd = new Dictionary<string, string>();
             sd.ReadFromDisk(x);
 
             //we know that there's only ever one item saved to the dictionary for deletions
