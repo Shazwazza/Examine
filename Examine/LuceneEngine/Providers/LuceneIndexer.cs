@@ -711,7 +711,6 @@ namespace Examine.LuceneEngine.Providers
                 if (!IndexExists())
                     return true;
 
-                Trace("Deleting from index: " + indexTerm.Field() + " - " + indexTerm.Text());
                 iw.DeleteDocuments(indexTerm);
 
                 iw.Commit(); //commit the changes!
@@ -1214,16 +1213,13 @@ namespace Examine.LuceneEngine.Providers
 
                                 if (x.Extension == ".del")
                                 {
-                                    Trace("Processsing delete file: " + x.Name);
                                     ProcessDeleteQueueItem(x, realWriter);
                                 }
                                 else if (x.Extension == ".add")
                                 {
                                     try
                                     {
-                                        Trace("Processsing add file: " + x.Name);
                                         var added = ProcessBufferedAddQueueItem(x, inMemoryWriter);
-                                        Trace("Documents added: " + added.Count());
                                         indexedNodes.AddRange(added);
                                     }
                                     catch (InvalidOperationException ex)
@@ -1245,10 +1241,8 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             }
 
-                            Trace("Committing");
                             inMemoryWriter.Commit(); //commit changes!
 
-                            Trace("Merging");
                             //merge the index into the 'real' one
                             realWriter.AddIndexesNoOptimize(new[] { inMemoryWriter.GetDirectory() });
 
@@ -1577,7 +1571,6 @@ namespace Examine.LuceneEngine.Providers
                 //get the node id
                 var nodeId = int.Parse(sd[IndexNodeIdFieldName]);
 
-                Trace("Adding doc: " + nodeId);
                 //now, add the index with our dictionary object
                 AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
 
@@ -1627,12 +1620,6 @@ namespace Examine.LuceneEngine.Providers
 
         }
 
-        private void Trace(string output)
-        {
-#if DEBUG
-            Console.WriteLine(output);
-#endif
-        }
 
         #endregion
 
