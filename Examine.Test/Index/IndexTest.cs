@@ -200,7 +200,7 @@ namespace Examine.Test.Index
         public void Index_Ensure_No_Duplicates_In_Async()
         {
             //requires re-index on start
-            Initialize(null);
+            //Initialize(null);
 
             var d = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
@@ -342,7 +342,7 @@ namespace Examine.Test.Index
         public void Index_Rebuild_Index()
         {
             //for this test, we need to re-init
-            Initialize(null);
+            //Initialize(null);
 
             //get searcher and reader to get stats
             var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();   
@@ -429,7 +429,8 @@ namespace Examine.Test.Index
         #endregion
 
         #region Initialize and Cleanup
-        
+
+        private static bool IsInitialized = false;
 
         [TestCleanup]
         public void TestCleanup()
@@ -438,13 +439,18 @@ namespace Examine.Test.Index
             _indexer.OptimizationCommitThreshold = 100;
         }
         
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [TestInitialize()]
+        public void Initialize()
         {
+            //if (IsInitialized)
+            //    return;
+
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
             _indexer.RebuildIndex();
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
+
+            //IsInitialized = true;
         }
 
 

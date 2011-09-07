@@ -711,6 +711,7 @@ namespace Examine.LuceneEngine.Providers
                 if (!IndexExists())
                     return true;
 
+                Trace("Deleting from index: " + indexTerm.Field() + " - " + indexTerm.Text());
                 iw.DeleteDocuments(indexTerm);
 
                 iw.Commit(); //commit the changes!
@@ -892,7 +893,7 @@ namespace Examine.LuceneEngine.Providers
 
                 var indexedFields = indexSetFields.Where(o => o.Name == x.Key);
 
-                if (indexedFields.Count() == 0)
+                if (!indexedFields.Any())
                 {
                     //TODO: Decide if we should support non-strings in here too
                     d.Add(
@@ -1063,7 +1064,7 @@ namespace Examine.LuceneEngine.Providers
                             OnIndexingError(new IndexingErrorEventArgs("Could not parse value: " + x.Value + "into the type: " + indexField.Type, nodeId, null));
                         }
                         else
-                        {
+                        {                            
                             d.Add(field);
 
                             if (indexField.EnableSorting)
@@ -1088,9 +1089,7 @@ namespace Examine.LuceneEngine.Providers
             if (docArgs.Cancel)
                 return;
 
-            writer.AddDocument(d);
-
-            writer.Commit(); //commit changes!
+            writer.UpdateDocument(new Term(IndexNodeIdFieldName, nodeId.ToString()), d);    
 
             OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
         }
@@ -1193,15 +1192,17 @@ namespace Examine.LuceneEngine.Providers
                         //set our volatile flag
                         _isIndexing = true;
 
-                        IndexWriter writer = null;
+                        IndexWriter inMemoryWriter = null;
+                        IndexWriter realWriter = null;
 
                         //track all of the nodes indexed
                         var indexedNodes = new List<IndexedNode>();
 
                         try
                         {
-                            writer = GetIndexWriter();
-                            
+                            inMemoryWriter = GetNewInMemoryWriter();
+                            realWriter = GetIndexWriter();
+
                             //iterate through all files to add or delete to the index and index the content
                             //and order by file name since the file name is named with DateTime.Now.Ticks
                             //also order by extension descending so that the 'del' is processed before the 'add'
@@ -1213,13 +1214,17 @@ namespace Examine.LuceneEngine.Providers
 
                                 if (x.Extension == ".del")
                                 {
-                                    ProcessDeleteQueueItem(x, writer);
+                                    Trace("Processsing delete file: " + x.Name);
+                                    ProcessDeleteQueueItem(x, realWriter);
                                 }
                                 else if (x.Extension == ".add")
                                 {
                                     try
                                     {
-                                        indexedNodes.AddRange(ProcessBufferedAddQueueItem(x, writer));
+                                        Trace("Processsing add file: " + x.Name);
+                                        var added = ProcessBufferedAddQueueItem(x, inMemoryWriter);
+                                        Trace("Documents added: " + added.Count());
+                                        indexedNodes.AddRange(added);
                                     }
                                     catch (InvalidOperationException ex)
                                     {
@@ -1240,6 +1245,13 @@ namespace Examine.LuceneEngine.Providers
                                 }
                             }
 
+                            Trace("Committing");
+                            inMemoryWriter.Commit(); //commit changes!
+
+                            Trace("Merging");
+                            //merge the index into the 'real' one
+                            realWriter.AddIndexesNoOptimize(new[] { inMemoryWriter.GetDirectory() });
+
                             //raise the completed event
                             OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
 
@@ -1253,8 +1265,8 @@ namespace Examine.LuceneEngine.Providers
                             //set our volatile flag
                             _isIndexing = false;
 
-                            CloseWriter(ref writer);
-                            //CloseReader(ref reader);
+                            CloseWriter(ref inMemoryWriter);
+                            CloseWriter(ref realWriter);
                         }
 
                         //if there are enough commits, the we'll run an optimization
@@ -1506,12 +1518,21 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Returns an index writer
+        /// Creates a new in-memory index with a writer for it
+        /// </summary>
+        /// <returns></returns>
+        private IndexWriter GetNewInMemoryWriter()
+        {
+            return new IndexWriter(new Lucene.Net.Store.RAMDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+        }
+
+        /// <summary>
+        /// Returns an index writer for the current directory
         /// </summary>
         /// <returns></returns>
         private IndexWriter GetIndexWriter()
         {
-            return new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            return new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);   
         }
 
         /// <summary>
@@ -1532,6 +1553,7 @@ namespace Examine.LuceneEngine.Providers
                 return;
             }
             var term = sd.First();
+            
             DeleteFromIndex(new Term(term.Key, term.Value), iw);
 
             //remove the file
@@ -1555,12 +1577,15 @@ namespace Examine.LuceneEngine.Providers
                 //get the node id
                 var nodeId = int.Parse(sd[IndexNodeIdFieldName]);
 
+                Trace("Adding doc: " + nodeId);
                 //now, add the index with our dictionary object
                 AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
 
-                //update the file and remove the xml chunk we've just indexed
+                //remove the xml chunk we've just indexed
                 xDoc.Root.FirstNode.Remove();
-                xDoc.Save(x.FullName);
+
+                //update the file in case app pool restarts
+                //xDoc.Save(x.FullName);
 
                 CommitCount++;
 
@@ -1572,32 +1597,6 @@ namespace Examine.LuceneEngine.Providers
 
             return result;
         }
-
-        ///// <summary>
-        ///// Reads the FileInfo passed in into a dictionary object and adds it to the index
-        ///// </summary>
-        ///// <param name="x"></param>
-        ///// <param name="writer"></param>
-        ///// <returns></returns>
-        //private IndexedNode ProcessAddQueueItem(FileInfo x, IndexWriter writer)
-        //{
-        //    //get the dictionary object from the file data
-        //    var sd = new SerializableDictionary<string, string>();
-        //    sd.ReadFromDisk(x);
-
-        //    //get the node id
-        //    var nodeId = int.Parse(sd[IndexNodeIdFieldName]);
-
-        //    //now, add the index with our dictionary object
-        //    AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
-
-        //    CommitCount++;
-
-        //    //remove the file
-        //    x.Delete();
-
-        //    return new IndexedNode() { NodeId = nodeId, Type = sd[IndexTypeFieldName] };
-        //}
 
         private void CloseWriter(ref IndexWriter writer)
         {
@@ -1628,7 +1627,12 @@ namespace Examine.LuceneEngine.Providers
 
         }
 
-
+        private void Trace(string output)
+        {
+#if DEBUG
+            Console.WriteLine(output);
+#endif
+        }
 
         #endregion
 
