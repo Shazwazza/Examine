@@ -4,7 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8F5756F2-7449-400C-BE52-A91F862967B0}"
 	ProjectSection(SolutionItems) = preProject
 		Local.testsettings = Local.testsettings
-		Solution Items\SolutionInfo.cs = Solution Items\SolutionInfo.cs
+		SolutionInfo.cs = SolutionInfo.cs
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine", "UmbracoExamine\UmbracoExamine.csproj", "{07FBC26B-2927-4A22-8D96-D644C667FECC}"
@@ -33,6 +33,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RTM", "v1.0 RTM", "{7F
 		RELEASES\v1.0 RTM\web.config = RELEASES\v1.0 RTM\web.config
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
@@ -58,6 +60,10 @@ Global
 		{F30DDDB8-3994-4673-82AE-057123C6E1A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F30DDDB8-3994-4673-82AE-057123C6E1A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F30DDDB8-3994-4673-82AE-057123C6E1A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

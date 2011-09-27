@@ -86,7 +86,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Solution Items\SolutionInfo.cs">
+    <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="Config\IndexProvidersSection.cs" />

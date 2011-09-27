@@ -109,7 +109,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Solution Items\SolutionInfo.cs">
+    <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="BaseUmbracoIndexer.cs" />
