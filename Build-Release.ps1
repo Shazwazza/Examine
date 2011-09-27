@@ -53,10 +53,12 @@ if (-not $?)
 $CoreExamineFolder = Join-Path -Path $ReleaseFolder -ChildPath "Examine";
 $UmbExamineFolder = Join-Path -Path $ReleaseFolder -ChildPath "UmbracoExamine";
 $UmbExaminePDFFolder = Join-Path -Path $ReleaseFolder -ChildPath "UmbracoExaminePDF";
+$WebExamineFolder = Join-Path -Path $ReleaseFolder -ChildPath "ExamineWebDemo";
 
 New-Item $CoreExamineFolder -Type directory
 New-Item $UmbExamineFolder -Type directory
 New-Item $UmbExaminePDFFolder -Type directory
+New-Item $WebExamineFolder -Type directory
 
 $include = @('*Examine*.dll','*Lucene*.dll')
 $CoreExamineBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Examine\bin\Release";
@@ -67,10 +69,15 @@ Copy-Item "$UmbExamineBinFolder\*.dll" -Destination $UmbExamineFolder -Include $
 
 $include = @('UmbracoExamine.PDF.dll','itextsharp.dll')
 $UmbExaminePDFBinFolder = Join-Path -Path $SolutionRoot -ChildPath "UmbracoExamine.PDF\bin\Release";
-Copy-Item "$UmbExamineBinFolder\*Examine*.dll" -Destination $UmbExaminePDFFolder -Include $include
+Copy-Item "$UmbExaminePDFBinFolder\*.dll" -Destination $UmbExaminePDFFolder -Include $include
+
+$ExamineWebDemoFolder = Join-Path -Path $SolutionRoot -ChildPath "Examine.Web.Demo";
+Copy-Item "$ExamineWebDemoFolder\*" -Destination $WebExamineFolder -Recurse
+$IndexSet = Join-Path $WebExamineFolder -ChildPath "App_Data\SimpleIndexSet2";
+$include = @('*.sdf','SimpleIndexSet2*')
+Remove-Item $IndexSet -Recurse
+$SqlCeDb = Join-Path $WebExamineFolder -ChildPath "App_Data\Database1.sdf";
+Remove-Item $SqlCeDb 
 
 ""
 "Build $ReleaseVersionNumber is done!"
-"NuGet packages also created, so if you want to push them just run:"
-"  nuget push $CoreNuSpec"
-"  nuget push $MvcNuSpec"
