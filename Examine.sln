@@ -3,7 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8F5756F2-7449-400C-BE52-A91F862967B0}"
 	ProjectSection(SolutionItems) = preProject
-		Examine.vsmdi = Examine.vsmdi
 		Local.testsettings = Local.testsettings
 		Solution Items\SolutionInfo.cs = Solution Items\SolutionInfo.cs
 	EndProjectSection
@@ -35,24 +34,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "v1.0 RTM", "v1.0 RTM", "{7F
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 5
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs05
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = UmbracoExamine\\UmbracoExamine.csproj
-		SccProjectName1 = UmbracoExamine
-		SccLocalPath1 = UmbracoExamine
-		SccProjectUniqueName2 = Examine\\Examine.csproj
-		SccProjectName2 = Examine
-		SccLocalPath2 = Examine
-		SccProjectUniqueName3 = Examine.Test\\Examine.Test.csproj
-		SccProjectName3 = Examine.Test
-		SccLocalPath3 = Examine.Test
-		SccProjectUniqueName4 = UmbracoExamine.PDF\\UmbracoExamine.PDF.csproj
-		SccProjectName4 = UmbracoExamine.PDF
-		SccLocalPath4 = UmbracoExamine.PDF
-	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
 	EndGlobalSection
