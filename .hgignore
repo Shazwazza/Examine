@@ -6,3 +6,5 @@ _ReSharper*
 */obj/*
 *ReSharper.user
 TestResults/*
+Examine.Web.Demo/App_Data/*
+*.user
