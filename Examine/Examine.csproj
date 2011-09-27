@@ -93,7 +93,7 @@
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
-    <Compile Include="DictionarySerializer.cs" />
+    <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IIndexField.cs" />
