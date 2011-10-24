@@ -97,15 +97,6 @@
     <Content Include="App_Data\StringTheory.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="App_Data\634358726427131398-SHANDEMVAIO-6093.add">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="App_Data\634358726477264266-SHANDEMVAIO-6924.add">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="App_Data\634358726506655947-SHANDEMVAIO-7392.add">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="App_Data\PDFStandards.PDF">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
