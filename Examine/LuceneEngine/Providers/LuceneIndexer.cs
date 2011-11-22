@@ -318,11 +318,6 @@ namespace Examine.LuceneEngine.Providers
         public DirectoryInfo WorkingFolder { get; private set; }
 
         /// <summary>
-        /// The Executive to determine if this is the master indexer
-        /// </summary>
-        protected IndexerExecutive ExecutiveIndex { get; set; }
-
-        /// <summary>
         /// The index set name which references an Examine <see cref="IndexSet"/>
         /// </summary>
         public string IndexSetName { get; private set; }
@@ -345,22 +340,11 @@ namespace Examine.LuceneEngine.Providers
         /// Occurs when [document writing].
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
-
-        /// <summary>
-        /// An event that is triggered when this machine has been elected as the IndexerExecutive
-        /// </summary>
-        public event EventHandler<IndexerExecutiveAssignedEventArgs> IndexerExecutiveAssigned;
-
+        
         #endregion
 
         #region Event handlers
-
-        protected virtual void OnIndexerExecutiveAssigned(IndexerExecutiveAssignedEventArgs e)
-        {
-            if (IndexerExecutiveAssigned != null)
-                IndexerExecutiveAssigned(this, e);
-        }
-
+        
         /// <summary>
         /// Called when an indexing error occurs
         /// </summary>
@@ -533,10 +517,6 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         public void OptimizeIndex()
         {
-            //check if this machine is the executive.
-            if (!ExecutiveIndex.IsExecutiveMachine)
-                return;
-
             if (!_isIndexing)
             {
                 lock (_indexerLocker)
@@ -1125,10 +1105,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         protected internal void SafelyProcessQueueItems()
         {
-            //if this is not the master indexer, exit
-            if (!ExecutiveIndex.IsExecutiveMachine)
-                return;
-
             //if in async mode, then process the queue using the timer            
             if (RunAsync)
             {
@@ -1444,39 +1420,13 @@ namespace Examine.LuceneEngine.Providers
             VerifyFolder(WorkingFolder);
             VerifyFolder(LuceneIndexFolder);
             VerifyFolder(IndexQueueItemFolder);
-
-
-            if (ExecutiveIndex == null)
-            {
-                ExecutiveIndex = new IndexerExecutive(WorkingFolder);
-            }
-
-            if (!ExecutiveIndex.IsInitialized())
-            {
-                ExecutiveIndex.Initialize();
-
-                //log some info if executive indexer
-                if (ExecutiveIndex.IsExecutiveMachine)
-                {
-                    OnIndexerExecutiveAssigned(new IndexerExecutiveAssignedEventArgs(ExecutiveIndex.ExecutiveIndexerMachineName, ExecutiveIndex.ServerCount));
-                }
-            }
+            
         }
 
         private void InitializeFileWatcherTimer()
         {
             if (_fileWatcher != null)
             {
-                //if this is not the master indexer anymore... perhaps another server has taken over somehow...
-                if (!ExecutiveIndex.IsExecutiveMachine)
-                {
-                    //stop the timer, remove event handlers and close
-                    _fileWatcher.Stop();
-                    _fileWatcher.Elapsed -= FileWatcher_ElapsedEventHandler;
-                    _fileWatcher.Dispose();
-                    _fileWatcher = null;
-                }
-
                 return;
             }
 

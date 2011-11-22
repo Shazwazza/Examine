@@ -149,15 +149,6 @@ namespace UmbracoExamine
 
         #region Event handlers
 
-        protected override void OnIndexerExecutiveAssigned(IndexerExecutiveAssignedEventArgs e)
-        {
-            DataService.LogService.AddInfoLog(-1, string.Format("{0} machine is the Executive Indexer with {1} servers in the cluster",
-                        e.MachineName,
-                        e.ClusterNodeCount));
-
-            base.OnIndexerExecutiveAssigned(e);
-        }
-
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
             DataService.LogService.AddErrorLog(e.NodeId, string.Format("{0},{1}, IndexSet: {2}", e.Message, e.InnerException != null ? e.InnerException.Message : "", this.IndexSetName));
