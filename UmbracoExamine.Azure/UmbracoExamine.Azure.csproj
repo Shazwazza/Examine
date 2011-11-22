@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="AzureContentIndexer.cs" />
     <Compile Include="AzureMemberIndexer.cs" />
+    <Compile Include="AzureSearcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

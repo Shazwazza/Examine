@@ -83,7 +83,7 @@ namespace Examine.LuceneEngine.Providers
 					if (set != null)
 					{
 						//we've found an index set by naming convensions :)
-						_indexSetName = set.SetName;
+						IndexSetName = set.SetName;
 						found = true;
 					}
 				}
@@ -92,17 +92,17 @@ namespace Examine.LuceneEngine.Providers
 					throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration");
 
 				//get the folder to index
-				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[_indexSetName].IndexDirectory.FullName, "Index"));
+				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
 			}
 			else if (config["indexSet"] != null)
 			{
 				if (IndexSets.Instance.Sets[config["indexSet"]] == null)
 					throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
 
-				_indexSetName = config["indexSet"];
+				IndexSetName = config["indexSet"];
 
 				//get the folder to index
-				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[_indexSetName].IndexDirectory.FullName, "Index"));
+				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
 			}            		
 		}
 
@@ -178,7 +178,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Name of the Lucene.NET index set
         /// </summary>
-        private string _indexSetName;
+        protected string IndexSetName { get; private set; }
 
         /// <summary>
         /// Gets the searcher for this instance
@@ -210,6 +210,18 @@ namespace Examine.LuceneEngine.Providers
             return searchFields;
         }
 
+        protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
+        {
+            return new SimpleFSDirectory(LuceneIndexFolder);
+        }
+
+        //TODO: the real searcher should use RAM directory, will be way faster
+        // but need to figure out a way to check if the real directory has been updated.
+        //protected virtual Lucene.Net.Store.Directory GetInMemoryLuceneDirectory()
+        //{
+        //    return new RAMDirectory(GetLuceneDirectory());
+        //}
+
         /// <summary>
         /// This checks if the singleton IndexSearcher is initialized and up to date.
         /// </summary>
@@ -228,7 +240,7 @@ namespace Examine.LuceneEngine.Providers
 
                             try
                             {
-                                _searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
+                                _searcher = new IndexSearcher(GetLuceneDirectory(), true);
                             }
                             catch (IOException ex)
                             {
@@ -249,7 +261,7 @@ namespace Examine.LuceneEngine.Providers
                                 case ReaderStatus.Current:
                                     break;
                                 case ReaderStatus.Closed:
-                                    _searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
+                                    _searcher = new IndexSearcher(GetLuceneDirectory(), true);
                                     break;
                                 case ReaderStatus.NotCurrent:
 
@@ -302,7 +314,7 @@ namespace Examine.LuceneEngine.Providers
 
                             try
                             {
-                                _searcher = new IndexSearcher(new SimpleFSDirectory(LuceneIndexFolder), true);
+                                _searcher = new IndexSearcher(GetLuceneDirectory(), true);
                             }
                             catch (IOException ex)
                             {
