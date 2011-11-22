@@ -220,7 +220,12 @@ namespace UmbracoExamine
             //need to create a delete queue item for each one found
             foreach (var r in results)
             {
-                SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
+                EnqueueIndexOperation(new IndexOperation()
+                    {
+                        Operation = IndexOperationType.Delete,
+                        Item = new IndexItem(null, "", r.Id.ToString())
+                    });
+                //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }
 
             base.DeleteFromIndex(nodeId);

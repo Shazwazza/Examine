@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Examine;
 using Examine.Providers;
@@ -21,6 +24,74 @@ using System.Xml;
 
 namespace Examine.LuceneEngine.Providers
 {
+    /// <summary>
+    /// The type of index operation
+    /// </summary>
+    public enum IndexOperationType
+    {
+        Add,
+        Delete
+    }
+
+    /// <summary>
+    /// Represents an item going into the index
+    /// </summary>
+    public class IndexItem
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexItem"/> class.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        /// <param name="type">The type.</param>
+        /// <param name="id">The id.</param>
+        public IndexItem(XElement data, string type, string id)
+        {
+            DataToIndex = data;
+            IndexType = type;
+            Id = id;
+        }
+
+        /// <summary>
+        /// Gets or sets the data.
+        /// </summary>
+        /// <value>
+        /// The data.
+        /// </value>
+        public XElement DataToIndex { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the type of the index.
+        /// </summary>
+        /// <value>
+        /// The type of the index.
+        /// </value>
+        public string IndexType { get; private set; }
+
+        /// <summary>
+        /// Gets the id.
+        /// </summary>
+        public string Id { get; private set; }
+    }
+
+    /// <summary>
+    /// Represents an indexing operation (either add/remove)
+    /// </summary>
+    public class IndexOperation
+    {
+        /// <summary>
+        /// Gets the Index item
+        /// </summary>
+        public IndexItem Item { get; set; }
+
+        /// <summary>
+        /// Gets or sets the operation.
+        /// </summary>
+        /// <value>
+        /// The operation.
+        /// </value>
+        public IndexOperationType Operation { get; set; }
+    }
+
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
@@ -33,7 +104,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         protected LuceneIndexer()
         {
-            FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
+            //FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
             IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = true;
@@ -45,10 +116,11 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexerData"></param>
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
+        /// <param name="async"></param>
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, bool async)
             : base(indexerData)
         {
-            FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
+            //FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
 
             //set up our folders based on the index path
             WorkingFolder = workingFolder;
@@ -211,7 +283,10 @@ namespace Examine.LuceneEngine.Providers
                 IndexSecondsInterval = int.Parse(config["interval"]);
             }
 
-            ReInitialize();
+            //ensure all of the folders are created at startup   
+            VerifyFolder(WorkingFolder);
+            VerifyFolder(LuceneIndexFolder);
+            VerifyFolder(IndexQueueItemFolder);
 
             CommitCount = 0;
 
@@ -254,16 +329,136 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Used for double check locking during an index operation
         /// </summary>
-        private bool _isIndexing = false;
+        private volatile bool _isIndexing = false;
 
-        private System.Timers.Timer _fileWatcher = null;
-        private System.Timers.ElapsedEventHandler FileWatcher_ElapsedEventHandler;
+        //private System.Timers.Timer _fileWatcher = null;
+        //private System.Timers.ElapsedEventHandler FileWatcher_ElapsedEventHandler;
 
         /// <summary>
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
         /// </summary>
         protected BaseSearchProvider InternalSearcher { get; private set; }
+
+        /// <summary>
+        /// This is our threadsafe queue of items which can be read by our background worker to process the queue
+        /// </summary>
+        private readonly ConcurrentQueue<IndexOperation> _indexQueue = new ConcurrentQueue<IndexOperation>();
+
+        /// <summary>
+        /// The async task that runs during an async indexing operation
+        /// </summary>
+        private Task _asyncTask;
+
+        /// <summary>
+        /// Used to cancel the async operation
+        /// </summary>
+        private volatile bool _isCancelling = false;
+
+        #endregion
+
+        #region Static Helpers
+
+        /// <summary>
+        /// Converts a DateTime to total number of milliseconds for storage in a numeric field
+        /// </summary>
+        /// <param name="t">The t.</param>
+        /// <returns></returns>
+        public static long DateTimeToTicks(DateTime t)
+        {
+            return t.Ticks;
+        }
+
+        /// <summary>
+        /// Converts a DateTime to total number of seconds for storage in a numeric field
+        /// </summary>
+        /// <param name="t">The t.</param>
+        /// <returns></returns>
+        public static double DateTimeToSeconds(DateTime t)
+        {
+            return (t - DateTime.MinValue).TotalSeconds;
+        }
+
+        /// <summary>
+        /// Converts a DateTime to total number of minutes for storage in a numeric field
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static double DateTimeToMinutes(DateTime t)
+        {
+            return (t - DateTime.MinValue).TotalMinutes;
+        }
+
+        /// <summary>
+        /// Converts a DateTime to total number of hours for storage in a numeric field
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static double DateTimeToHours(DateTime t)
+        {
+            return (t - DateTime.MinValue).TotalHours;
+        }
+
+        /// <summary>
+        /// Converts a DateTime to total number of days for storage in a numeric field
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static double DateTimeToDays(DateTime t)
+        {
+            return (t - DateTime.MinValue).TotalDays;
+        }
+
+        /// <summary>
+        /// Converts a number of milliseconds to a DateTime from DateTime.MinValue
+        /// </summary>
+        /// <param name="ticks"></param>
+        /// <returns></returns>
+        public static DateTime DateTimeFromTicks(long ticks)
+        {
+            return new DateTime(ticks);
+        }
+
+        /// <summary>
+        /// Converts a number of seconds to a DateTime from DateTime.MinValue
+        /// </summary>
+        /// <param name="seconds"></param>
+        /// <returns></returns>
+        public static DateTime DateTimeFromSeconds(double seconds)
+        {
+            return DateTime.MinValue.AddSeconds(seconds);
+        }
+
+        /// <summary>
+        /// Converts a number of minutes to a DateTime from DateTime.MinValue
+        /// </summary>
+        /// <param name="minutes"></param>
+        /// <returns></returns>
+        public static DateTime DateTimeFromMinutes(double minutes)
+        {
+            return DateTime.MinValue.AddMinutes(minutes);
+        }
+
+        /// <summary>
+        /// Converts a number of hours to a DateTime from DateTime.MinValue
+        /// </summary>
+        /// <param name="hours"></param>
+        /// <returns></returns>
+        public static DateTime DateTimeFromHours(double hours)
+        {
+            return DateTime.MinValue.AddHours(hours);
+        }
+
+        /// <summary>
+        /// Converts a number of days to a DateTime from DateTime.MinValue
+        /// </summary>
+        /// <param name="days"></param>
+        /// <returns></returns>
+        public static DateTime DateTimeFromDays(double days)
+        {
+            return DateTime.MinValue.AddDays(days);
+        }
+
 
         #endregion
 
@@ -423,7 +618,12 @@ namespace Examine.LuceneEngine.Providers
         {
             //first delete the index for the node
             var id = (string)node.Attribute("id");
-            SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, id));
+            EnqueueIndexOperation(new IndexOperation()
+                {
+                    Operation = IndexOperationType.Delete,
+                    Item = new IndexItem(null, "", id)
+                });
+            
             //now index the single node
             AddSingleNodeToIndex(node, type);
         }
@@ -437,9 +637,6 @@ namespace Examine.LuceneEngine.Providers
             IndexWriter writer = null;
             try
             {
-                //ensure the folder exists
-                ReInitialize();
-
                 //check if the index exists and it's locked
                 if (IndexExists() && !IndexReady())
                 {
@@ -479,9 +676,14 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="nodeId">ID of the node to delete</param>
         public override void DeleteFromIndex(string nodeId)
         {
-            //create the queue item to be deleted
-            SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
+            ////create the queue item to be deleted
+            //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, nodeId));
 
+            EnqueueIndexOperation(new IndexOperation()
+                {
+                    Operation = IndexOperationType.Delete,
+                    Item = new IndexItem(null, "", nodeId)
+                });
             SafelyProcessQueueItems();
         }
 
@@ -499,8 +701,15 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                //create a deletion queue item to remove all items of the specified index type
-                SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexTypeFieldName, type.ToString()));
+                var op = new IndexOperation()
+                    {
+                        Operation = IndexOperationType.Delete,
+                        Item = new IndexItem(null, type, string.Empty)
+                    };
+                EnqueueIndexOperation(op);
+                
+                ////create a deletion queue item to remove all items of the specified index type
+                //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexTypeFieldName, type.ToString()));
             }
 
             //now do the indexing...
@@ -592,15 +801,21 @@ namespace Examine.LuceneEngine.Providers
                 return;
             }
 
-            var buffer = new List<Dictionary<string, string>>();
+            //var buffer = new List<Dictionary<string, string>>();
 
             foreach (XElement node in nodes)
             {
                 if (ValidateDocument(node))
                 {
-                    //save the index item to a queue file
-                    var fields = GetDataToIndex(node, type);
-                    BufferAddIndexQueueItem(fields, int.Parse((string)node.Attribute("id")), type, buffer);
+                    EnqueueIndexOperation(new IndexOperation()
+                        {
+                            Operation = IndexOperationType.Add,
+                            Item = new IndexItem(node, type, (string) node.Attribute("id"))
+                        });
+
+                    ////save the index item to a queue file
+                    //var fields = GetDataToIndex(node, type);
+                    //BufferAddIndexQueueItem(fields, int.Parse((string)node.Attribute("id")), type, buffer);
                 }
                 else
                 {
@@ -609,8 +824,8 @@ namespace Examine.LuceneEngine.Providers
 
             }
 
-            //now we need to save the buffer to disk
-            SaveBufferAddIndexQueueItem(buffer);
+            ////now we need to save the buffer to disk
+            //SaveBufferAddIndexQueueItem(buffer);
 
             //run the indexer on all queued files
             SafelyProcessQueueItems();
@@ -666,7 +881,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="node">The node to index.</param>
         /// <param name="type">The type to store the node as.</param>
         protected virtual void AddSingleNodeToIndex(XElement node, string type)
-        {
+        {   
             AddNodesToIndex(new XElement[] { node }, type);
         }
 
@@ -685,8 +900,6 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                ReInitialize();
-
                 //if the index doesn't exist, then no don't attempt to open it.
                 if (!IndexExists())
                     return true;
@@ -1097,25 +1310,92 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
+        ///// <summary>
+        ///// Process all of the queue items. This checks if this machine is the Executive and if it's in a load balanced
+        ///// environments. If then acts accordingly: 
+        /////     Not the executive = doesn't index, i
+        /////     In async mode = use file watcher timer
+        ///// </summary>
+        //protected internal void SafelyProcessQueueItems()
+        //{
+        //    //if in async mode, then process the queue using the timer            
+        //    if (RunAsync)
+        //    {
+        //        InitializeFileWatcherTimer();
+        //    }
+        //    else
+        //    {
+        //        ForceProcessQueueItems();
+        //    }
+        //}
+
         /// <summary>
-        /// Process all of the queue items. This checks if this machine is the Executive and if it's in a load balanced
-        /// environments. If then acts accordingly: 
-        ///     Not the executive = doesn't index, i
-        ///     In async mode = use file watcher timer
+        /// Process all of the queue items
         /// </summary>
         protected internal void SafelyProcessQueueItems()
-        {
-            //if in async mode, then process the queue using the timer            
-            if (RunAsync)
+        {           
+            if (!RunAsync)
             {
-                InitializeFileWatcherTimer();
+                StartIndexing();
             }
             else
             {
-                ForceProcessQueueItems();
+                if (!_isIndexing)
+                {
+                    //don't run the worker if it's currently running since it will just pick up the rest of the queue during its normal operation                    
+                    lock (_indexerLocker)
+                    {
+                        if (!_isIndexing && (_asyncTask == null || _asyncTask.IsCompleted))
+                        {
+                            //Debug.WriteLine("Examine: Launching task");
+                            _asyncTask = Task.Factory.StartNew(StartIndexing, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                        }
+                    }
+                }
             }
 
+        }
 
+        /// <summary>
+        /// Processes the queue and checks if optimization needs to occur at the end
+        /// </summary>
+        void StartIndexing()
+        {
+            if (!_isIndexing)
+            {
+                lock (_indexerLocker)
+                {
+                    if (!_isIndexing)
+                    {
+                        //Debug.WriteLine("Examine: Start indexing (thread id: " + Thread.CurrentThread.ManagedThreadId + ")");
+                        //Debug.Flush();
+
+                        _isIndexing = true;
+
+                        //keep processing until it is complete
+                        var numProcessedItems = 0;
+                        do
+                        {
+                            numProcessedItems = ForceProcessQueueItems();
+                        } while (!_isCancelling && numProcessedItems > 0);
+
+                        //if there are enough commits, then we'll run an optimization
+                        if (CommitCount >= OptimizationCommitThreshold)
+                        {
+                            OptimizeIndex();
+                            CommitCount = 0; //reset the counter
+                        }
+
+                        //reset the flag
+                        _isIndexing = false;
+                    }
+                }
+            }
+
+            ////if we get to this point, it means that another thead was beaten to the indexing operation so this thread will skip
+            ////this occurence.
+            //OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, another indexing operation is currently in progress", string.Empty, null));
+            //return;
         }
 
         /// <summary>
@@ -1133,16 +1413,6 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         protected int ForceProcessQueueItems()
         {
-            try
-            {
-                ReInitialize();
-            }
-            catch (IOException ex)
-            {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, an error occurred verifying index folders", -1, ex));
-                return 0;
-            }
-
             if (!IndexExists())
             {
                 //this shouldn't happen!
@@ -1157,209 +1427,171 @@ namespace Examine.LuceneEngine.Providers
                 return 0;
             }
 
-            if (!_isIndexing)
+            IndexWriter inMemoryWriter = null;
+            IndexWriter realWriter = null;
+
+            //track all of the nodes indexed
+            var indexedNodes = new ConcurrentBag<IndexedNode>();
+
+            try
             {
-                lock (_indexerLocker)
+                inMemoryWriter = GetNewInMemoryWriter();
+                realWriter = GetIndexWriter();
+
+
+                IndexOperation item;
+                while (_indexQueue.TryDequeue(out item))
                 {
-                    //double check
-                    if (!_isIndexing)
+                    //Debug.WriteLine("Examine: Indexing : " + item.Item.Id + " op = " + item.Operation.ToString());
+
+                    switch (item.Operation)
                     {
-                        //set our volatile flag
-                        _isIndexing = true;
-
-                        IndexWriter inMemoryWriter = null;
-                        IndexWriter realWriter = null;
-
-                        //track all of the nodes indexed
-                        var indexedNodes = new List<IndexedNode>();
-
-                        try
-                        {
-                            inMemoryWriter = GetNewInMemoryWriter();
-                            realWriter = GetIndexWriter();
-
-                            //iterate through all files to add or delete to the index and index the content
-                            //and order by file name since the file name is named with DateTime.Now.Ticks
-                            //also order by extension descending so that the 'del' is processed before the 'add'
-                            foreach (var x in IndexQueueItemFolder.GetFiles()
-                                .Where(x => x.Extension == ".del" || x.Extension == ".add")
-                                .OrderBy(x => x.Name)
-                                .ThenByDescending(x => x.Extension)) //we need to order by extension descending so that .del items are always processed before .add items
+                        case IndexOperationType.Add:
+                            //check if it is already in our index
+                            var idResult = InternalSearcher.Search(InternalSearcher.CreateSearchCriteria().Id(int.Parse(item.Item.Id)).Compile());
+                            //if one is found, then delete it from the main index before the fast index is merged in
+                            if (idResult.Any())
                             {
-
-                                if (x.Extension == ".del")
-                                {
-                                    ProcessDeleteQueueItem(x, realWriter);
-                                }
-                                else if (x.Extension == ".add")
-                                {
-                                    try
-                                    {
-                                        var added = ProcessBufferedAddQueueItem(x, inMemoryWriter);
-                                        indexedNodes.AddRange(added);
-                                    }
-                                    catch (InvalidOperationException ex)
-                                    {
-                                        if (ex.InnerException != null && ex.InnerException is XmlException)
-                                        {
-                                            OnIndexingError(new IndexingErrorEventArgs("Error reading index queue file, the XML is not properly formatted or contains invalid characters", -1, ex.InnerException));
-
-                                            //this will happen if the XML in the file is invalid and so that we can continue processing, we'll rename this
-                                            //file to have an extension of .error but move it to the main queue item folder
-                                            x.CopyTo(Path.Combine(IndexQueueItemFolder.FullName, string.Concat(x.Name.Substring(0, x.Name.Length - x.Extension.Length), ".error")));
-                                            x.Delete();
-                                        }
-                                        else
-                                        {
-                                            throw ex;
-                                        }
-                                    }
-                                }
-                            }
-
-                            inMemoryWriter.Commit(); //commit changes!
-
-                            //merge the index into the 'real' one
-                            realWriter.AddIndexesNoOptimize(new[] { inMemoryWriter.GetDirectory() });
-
-                            //raise the completed event
-                            OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
-
-                        }
-                        catch (Exception ex)
-                        {
-                            OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
-                        }
-                        finally
-                        {
-                            //set our volatile flag
-                            _isIndexing = false;
-
-                            CloseWriter(ref inMemoryWriter);
-                            CloseWriter(ref realWriter);
-                        }
-
-                        //if there are enough commits, the we'll run an optimization
-                        if (AutomaticallyOptimize && CommitCount >= OptimizationCommitThreshold)
-                        {
-                            OptimizeIndex();
-                            CommitCount = 0; //reset the counter
-                        }
-
-                        return indexedNodes.Count;
+                                ProcessDeleteQueueItem(item, realWriter);
+                            }                             
+                            //var added = ProcessBufferedAddQueueItem(x, inMemoryWriter);
+                            var added = ProcessIndexQueueItem(item, inMemoryWriter);
+                            indexedNodes.Add(added);
+                            break;
+                        case IndexOperationType.Delete:
+                            ProcessDeleteQueueItem(item, realWriter);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
+
+                inMemoryWriter.Commit(); //commit changes!
+                realWriter.Commit(); //commit the changes (this will process the deletes)
+
+                //merge the index into the 'real' one
+                realWriter.AddIndexesNoOptimize(new[] { inMemoryWriter.GetDirectory() });
+
+                //this is required to ensure the index is written to during the same thread execution
+                if (!RunAsync)
+                {
+                    realWriter.WaitForMerges();
+                }
+
+                //raise the completed event
+                OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
+
             }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
+            }
+            finally
+            {
+                //set our volatile flag
+                _isIndexing = false;
 
-            //if we get to this point, it means that another thead was beaten to the indexing operation so this thread will skip
-            //this occurence.
-            OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, another indexing operation is currently in progress", -1, null));
-            return 0;
-
-
+                CloseWriter(ref inMemoryWriter);
+                CloseWriter(ref realWriter);
+            }         
+            return indexedNodes.Count;
+                   
         }
 
+        protected void EnqueueIndexOperation(IndexOperation op)
+        {            
+            _indexQueue.Enqueue(op);
+        }
 
+        ///// <summary>
+        ///// Saves a file indicating that the executive indexer should remove the from the index those that match
+        ///// the term saved in this file.
+        ///// This will save a file prefixed with the current machine name with an extension of .del
+        ///// </summary>
+        ///// <param name="term"></param>
+        //protected void SaveDeleteIndexQueueItem(KeyValuePair<string, string> term)
+        //{
+        //    try
+        //    {
+        //        ReInitialize();
+        //    }
+        //    catch (IOException ex)
+        //    {
+        //        OnIndexingError(new IndexingErrorEventArgs("Cannot save index queue item for deletion, an error occurred verifying queue folder", -1, ex));
+        //        return;
+        //    }
 
-        /// <summary>
-        /// Saves a file indicating that the executive indexer should remove the from the index those that match
-        /// the term saved in this file.
-        /// This will save a file prefixed with the current machine name with an extension of .del
-        /// </summary>
-        /// <param name="term"></param>
-        protected void SaveDeleteIndexQueueItem(KeyValuePair<string, string> term)
-        {
-            try
-            {
-                ReInitialize();
-            }
-            catch (IOException ex)
-            {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot save index queue item for deletion, an error occurred verifying queue folder", -1, ex));
-                return;
-            }
-
-            var terms = new Dictionary<string, string>();
-            terms.Add(term.Key, term.Value);
+        //    var terms = new Dictionary<string, string>();
+        //    terms.Add(term.Key, term.Value);
             
-            var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName;
-            var fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".del"));
+        //    var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName;
+        //    var fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".del"));
 
-            //ok, everything is ready to go, but we'll conver the dictionary to a CData wrapped serialized version
-            terms.SaveToDisk(fi);
+        //    //ok, everything is ready to go, but we'll conver the dictionary to a CData wrapped serialized version
+        //    terms.SaveToDisk(fi);
 
-        }
+        //}
 
-        /// <summary>
-        /// Used for re-indexing many nodes at once, this updates the fields object and appends it to the buffered list of items which
-        /// will then get written to file in one bulk file.
-        /// </summary>
-        /// <param name="fields"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="type"></param>
-        /// <param name="buffer"></param>
-        protected void BufferAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type, List<Dictionary<string, string>> buffer)
-        {
-            //ensure the special fields are added to the dictionary to be saved to file
-            EnsureSpecialFields(fields, nodeId, type);
+        ///// <summary>
+        ///// Used for re-indexing many nodes at once, this updates the fields object and appends it to the buffered list of items which
+        ///// will then get written to file in one bulk file.
+        ///// </summary>
+        ///// <param name="fields"></param>
+        ///// <param name="nodeId"></param>
+        ///// <param name="type"></param>
+        ///// <param name="buffer"></param>
+        //protected void BufferAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type, List<Dictionary<string, string>> buffer)
+        //{
+        //    //ensure the special fields are added to the dictionary to be saved to file
+        //    EnsureSpecialFields(fields, nodeId, type);
 
-            //ok, everything is ready to go, add it to the buffer
-            buffer.Add(fields);
-        }
+        //    //ok, everything is ready to go, add it to the buffer
+        //    buffer.Add(fields);
+        //}
 
-        /// <summary>
-        /// Saves the buffered items to disk
-        /// </summary>
-        /// <param name="buffer"></param>
-        protected void SaveBufferAddIndexQueueItem(List<Dictionary<string, string>> buffer)
-        {
-            var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName + "-buffered";
-            var fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
-            buffer.SaveToDisk(fi);
-        }
+        ///// <summary>
+        ///// Saves the buffered items to disk
+        ///// </summary>
+        ///// <param name="buffer"></param>
+        //protected void SaveBufferAddIndexQueueItem(List<Dictionary<string, string>> buffer)
+        //{
+        //    var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName + "-buffered";
+        //    var fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
+        //    buffer.SaveToDisk(fi);
+        //}
 
-        /// <summary>
-        /// Writes the information for the fields to a file names with the computer's name that is running the index and
-        /// a GUID value. The indexer will then index the values stored in the files in another thread so that processing may continue.
-        /// This will save a file prefixed with the current machine name with an extension of .add
-        /// </summary>
-        /// <param name="fields">The fields.</param>
-        /// <param name="nodeId">The node id.</param>
-        /// <param name="type">The type.</param>
-        protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type)
-        {
-            try
-            {
-                ReInitialize();
-            }
-            catch (IOException ex)
-            {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot save index queue item, an error occurred verifying queue folder", nodeId, ex));
-                return;
-            }
+        ///// <summary>
+        ///// Writes the information for the fields to a file names with the computer's name that is running the index and
+        ///// a GUID value. The indexer will then index the values stored in the files in another thread so that processing may continue.
+        ///// This will save a file prefixed with the current machine name with an extension of .add
+        ///// </summary>
+        ///// <param name="fields">The fields.</param>
+        ///// <param name="nodeId">The node id.</param>
+        ///// <param name="type">The type.</param>
+        //protected void SaveAddIndexQueueItem(Dictionary<string, string> fields, int nodeId, string type)
+        //{
+        //    //ensure the special fields are added to the dictionary to be saved to file
+        //    EnsureSpecialFields(fields, nodeId, type);
 
-            //ensure the special fields are added to the dictionary to be saved to file
-            EnsureSpecialFields(fields, nodeId, type);
+        //    var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName + "-" + nodeId.ToString();
 
-            var fileName = DateTime.Now.Ticks + "-" + Environment.MachineName + "-" + nodeId.ToString();
+        //    var fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
 
-            var fi = new FileInfo(Path.Combine(IndexQueueItemFolder.FullName, fileName + ".add"));
-
-            //ok, everything is ready to go, but we'll conver the dictionary to a CData wrapped serialized version
-            fields.SaveToDisk(fi);
-        }
+        //    //ok, everything is ready to go, but we'll conver the dictionary to a CData wrapped serialized version
+        //    fields.SaveToDisk(fi);
+        //}
 
         #endregion
 
         #region Private
 
-        private void EnsureSpecialFields(Dictionary<string, string> fields, int nodeId, string type)
+        private void EnsureSpecialFields(Dictionary<string, string> fields, string nodeId, string type)
         {
             //ensure the special fields are added to the dictionary to be saved to file
             if (!fields.ContainsKey(IndexNodeIdFieldName))
-                fields.Add(IndexNodeIdFieldName, nodeId.ToString());
+                fields.Add(IndexNodeIdFieldName, nodeId);
             if (!fields.ContainsKey(IndexTypeFieldName))
-                fields.Add(IndexTypeFieldName, type.ToString());
+                fields.Add(IndexTypeFieldName, type);
         }
 
      
@@ -1408,58 +1640,58 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        /// <summary>
-        /// This makes sure that the folders exist, that the executive indexer is setup and that the index is optimized.
-        /// This is called at app startup when the providers are initialized but called again if folder are missing during a
-        /// an indexing operation.
-        /// </summary>
-        private void ReInitialize()
-        {
+        ///// <summary>
+        ///// This makes sure that the folders exist, that the executive indexer is setup and that the index is optimized.
+        ///// This is called at app startup when the providers are initialized but called again if folder are missing during a
+        ///// an indexing operation.
+        ///// </summary>
+        //private void ReInitialize()
+        //{
 
-            //ensure all of the folders are created at startup   
-            VerifyFolder(WorkingFolder);
-            VerifyFolder(LuceneIndexFolder);
-            VerifyFolder(IndexQueueItemFolder);
+        //    //ensure all of the folders are created at startup   
+        //    VerifyFolder(WorkingFolder);
+        //    VerifyFolder(LuceneIndexFolder);
+        //    VerifyFolder(IndexQueueItemFolder);
             
-        }
+        //}
 
-        private void InitializeFileWatcherTimer()
-        {
-            if (_fileWatcher != null)
-            {
-                return;
-            }
+        //private void InitializeFileWatcherTimer()
+        //{
+        //    if (_fileWatcher != null)
+        //    {
+        //        return;
+        //    }
 
-            _fileWatcher = new System.Timers.Timer(new TimeSpan(0, 0, IndexSecondsInterval).TotalMilliseconds);
-            _fileWatcher.Elapsed += FileWatcher_ElapsedEventHandler;
-            _fileWatcher.AutoReset = false;
-            _fileWatcher.Start();
-        }
+        //    _fileWatcher = new System.Timers.Timer(new TimeSpan(0, 0, IndexSecondsInterval).TotalMilliseconds);
+        //    _fileWatcher.Elapsed += FileWatcher_ElapsedEventHandler;
+        //    _fileWatcher.AutoReset = false;
+        //    _fileWatcher.Start();
+        //}
 
-        /// <summary>
-        /// Handles the file watcher timer poll elapsed event
-        /// This will:
-        /// - Disable the FileSystemWatcher        
-        /// - Recursively process all queue items in the folder and check after processing if any more files have been added
-        /// - Once there's no more files to be processed, re-enables the watcher
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void FileWatcher_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
+        ///// <summary>
+        ///// Handles the file watcher timer poll elapsed event
+        ///// This will:
+        ///// - Disable the FileSystemWatcher        
+        ///// - Recursively process all queue items in the folder and check after processing if any more files have been added
+        ///// - Once there's no more files to be processed, re-enables the watcher
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //void FileWatcher_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        //{
 
-            //stop the event system
-            _fileWatcher.Stop();
-            var numProcessedItems = 0;
-            do
-            {
-                numProcessedItems = ForceProcessQueueItems();
-            } while (numProcessedItems > 0);
+        //    //stop the event system
+        //    _fileWatcher.Stop();
+        //    var numProcessedItems = 0;
+        //    do
+        //    {
+        //        numProcessedItems = ForceProcessQueueItems();
+        //    } while (numProcessedItems > 0);
 
-            //restart the timer.
-            _fileWatcher.Start();
+        //    //restart the timer.
+        //    _fileWatcher.Start();
 
-        }
+        //}
 
         /// <summary>
         /// Creates a new in-memory index with a writer for it
@@ -1482,64 +1714,94 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
         /// </summary>
-        /// <param name="x"></param>
+        /// <param name="op"></param>
         /// <param name="iw"></param>
-        private void ProcessDeleteQueueItem(FileInfo x, IndexWriter iw)
+        private void ProcessDeleteQueueItem(IndexOperation op, IndexWriter iw)
         {
-            //get the dictionary object from the file data
-            var sd = new Dictionary<string, string>();
-            sd.ReadFromDisk(x);
+            ////get the dictionary object from the file data
+            //var sd = new Dictionary<string, string>();
+            //sd.ReadFromDisk(x);
 
-            //we know that there's only ever one item saved to the dictionary for deletions
-            if (sd.Count != 1)
+            ////we know that there's only ever one item saved to the dictionary for deletions
+            //if (sd.Count != 1)
+            //{
+            //    OnIndexingError(new IndexingErrorEventArgs("Could not remove queue item from index, the file is not properly formatted", -1, null));
+            //    return;
+            //}
+            //var term = sd.First();
+
+            //if the id is empty then remove the whole type
+            if (string.IsNullOrEmpty(op.Item.Id))
             {
-                OnIndexingError(new IndexingErrorEventArgs("Could not remove queue item from index, the file is not properly formatted", -1, null));
-                return;
+                DeleteFromIndex(new Term(IndexTypeFieldName, op.Item.IndexType), iw);
             }
-            var term = sd.First();
-            
-            DeleteFromIndex(new Term(term.Key, term.Value), iw);
+            else
+            {
+                DeleteFromIndex(new Term(IndexNodeIdFieldName, op.Item.Id), iw);    
+            }
 
-            //remove the file
-            x.Delete();
+            ////remove the file
+            //x.Delete();
 
             CommitCount++;
         }
 
-        private IEnumerable<IndexedNode> ProcessBufferedAddQueueItem(FileInfo x, IndexWriter writer)
+        private IndexedNode ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
         {
-            var result = new List<IndexedNode>();
+            //get the node id
+            var nodeId = int.Parse(op.Item.Id);
 
-            //get the dictionary object from the file data
-            var items = new List<Dictionary<string, string>>();
-            //the entire xml representing the items, we'll use this for faster file saving so we don't have to
-            //serialize/deserialize each time
-            XDocument xDoc;
-            items.ReadFromDisk(x, out xDoc);
-            foreach (var sd in items)
-            {
-                //get the node id
-                var nodeId = int.Parse(sd[IndexNodeIdFieldName]);
+            //now, add the index with our dictionary object
+            var fields = GetDataToIndex(op.Item.DataToIndex, op.Item.IndexType);
+            EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexType);
 
-                //now, add the index with our dictionary object
-                AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
+            AddDocument(fields, writer, nodeId, op.Item.IndexType);
 
-                //remove the xml chunk we've just indexed
-                xDoc.Root.FirstNode.Remove();
+            ////remove the xml chunk we've just indexed
+            //xDoc.Root.FirstNode.Remove();
 
-                //update the file in case app pool restarts
-                //xDoc.Save(x.FullName);
+            //update the file in case app pool restarts
+            //xDoc.Save(x.FullName);
 
-                CommitCount++;
+            CommitCount++;
 
-                result.Add(new IndexedNode() { NodeId = nodeId, Type = sd[IndexTypeFieldName] });
-            }
-
-            //remove the file
-            x.Delete();
-
-            return result;
+            return new IndexedNode() {NodeId = nodeId, Type = op.Item.IndexType};
         }
+
+        //private IEnumerable<IndexedNode> ProcessBufferedAddQueueItem(FileInfo x, IndexWriter writer)
+        //{
+        //    var result = new List<IndexedNode>();
+
+        //    //get the dictionary object from the file data
+        //    var items = new List<Dictionary<string, string>>();
+        //    //the entire xml representing the items, we'll use this for faster file saving so we don't have to
+        //    //serialize/deserialize each time
+        //    XDocument xDoc;
+        //    items.ReadFromDisk(x, out xDoc);
+        //    foreach (var sd in items)
+        //    {
+        //        //get the node id
+        //        var nodeId = int.Parse(sd[IndexNodeIdFieldName]);
+
+        //        //now, add the index with our dictionary object
+        //        AddDocument(sd, writer, nodeId, sd[IndexTypeFieldName]);
+
+        //        //remove the xml chunk we've just indexed
+        //        xDoc.Root.FirstNode.Remove();
+
+        //        //update the file in case app pool restarts
+        //        //xDoc.Save(x.FullName);
+
+        //        CommitCount++;
+
+        //        result.Add(new IndexedNode() { NodeId = nodeId, Type = sd[IndexTypeFieldName] });
+        //    }
+
+        //    //remove the file
+        //    x.Delete();
+
+        //    return result;
+        //}
 
         private void CloseWriter(ref IndexWriter writer)
         {
@@ -1605,7 +1867,11 @@ namespace Examine.LuceneEngine.Providers
         {
             this.CheckDisposed();
             if (disposing)
-                this._fileWatcher.Dispose();
+            {
+                _isCancelling = true;
+                //this._fileWatcher.Dispose();
+            }
+                
         }
 
         #endregion

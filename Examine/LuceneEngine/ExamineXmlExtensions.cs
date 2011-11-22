@@ -139,7 +139,20 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public static bool IsExamineElement(this XElement x)
         {
-            return ((string)x.Attribute("id") != "" && int.Parse((string)x.Attribute("id")) > 0);
+            var id = (string) x.Attribute("id");
+            if (string.IsNullOrEmpty(id))
+            {
+                return false;
+            }
+            int parsedId;
+            if (int.TryParse(id, out parsedId))
+            {
+                if (parsedId > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
