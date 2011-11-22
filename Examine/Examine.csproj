@@ -123,6 +123,9 @@
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
+    <Compile Include="IndexItem.cs" />
+    <Compile Include="IndexOperation.cs" />
+    <Compile Include="IndexOperationType.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndexer.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />

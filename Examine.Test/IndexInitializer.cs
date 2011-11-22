@@ -68,7 +68,7 @@ namespace Examine.Test
                                                          new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
                                                          false);
 
-            i.IndexSecondsInterval = 1;
+            //i.IndexSecondsInterval = 1;
 
             i.IndexingError += IndexingError;
 

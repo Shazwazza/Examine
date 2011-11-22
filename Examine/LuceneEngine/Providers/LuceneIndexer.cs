@@ -24,74 +24,6 @@ using System.Xml;
 
 namespace Examine.LuceneEngine.Providers
 {
-    /// <summary>
-    /// The type of index operation
-    /// </summary>
-    public enum IndexOperationType
-    {
-        Add,
-        Delete
-    }
-
-    /// <summary>
-    /// Represents an item going into the index
-    /// </summary>
-    public class IndexItem
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IndexItem"/> class.
-        /// </summary>
-        /// <param name="data">The data.</param>
-        /// <param name="type">The type.</param>
-        /// <param name="id">The id.</param>
-        public IndexItem(XElement data, string type, string id)
-        {
-            DataToIndex = data;
-            IndexType = type;
-            Id = id;
-        }
-
-        /// <summary>
-        /// Gets or sets the data.
-        /// </summary>
-        /// <value>
-        /// The data.
-        /// </value>
-        public XElement DataToIndex { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the type of the index.
-        /// </summary>
-        /// <value>
-        /// The type of the index.
-        /// </value>
-        public string IndexType { get; private set; }
-
-        /// <summary>
-        /// Gets the id.
-        /// </summary>
-        public string Id { get; private set; }
-    }
-
-    /// <summary>
-    /// Represents an indexing operation (either add/remove)
-    /// </summary>
-    public class IndexOperation
-    {
-        /// <summary>
-        /// Gets the Index item
-        /// </summary>
-        public IndexItem Item { get; set; }
-
-        /// <summary>
-        /// Gets or sets the operation.
-        /// </summary>
-        /// <value>
-        /// The operation.
-        /// </value>
-        public IndexOperationType Operation { get; set; }
-    }
-
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
@@ -105,7 +37,7 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer()
         {
             //FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
-            IndexSecondsInterval = 5;
+            //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = true;
         }
@@ -132,7 +64,7 @@ namespace Examine.LuceneEngine.Providers
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
             InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);
 
-            IndexSecondsInterval = 5;
+            //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = true;
             RunAsync = async;
@@ -277,11 +209,11 @@ namespace Examine.LuceneEngine.Providers
                 RunAsync = bool.Parse(config["runAsync"]);
             }
 
-            IndexSecondsInterval = 30;
-            if (config["interval"] != null)
-            {
-                IndexSecondsInterval = int.Parse(config["interval"]);
-            }
+            //IndexSecondsInterval = 30;
+            //if (config["interval"] != null)
+            //{
+            //    IndexSecondsInterval = int.Parse(config["interval"]);
+            //}
 
             //ensure all of the folders are created at startup   
             VerifyFolder(WorkingFolder);
@@ -473,7 +405,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The number of commits to wait for before optimizing the index if AutomaticallyOptimize = true
         /// </summary>
-        public int OptimizationCommitThreshold { get; internal set; }
+        public int OptimizationCommitThreshold { get; protected internal set; }
 
         /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
@@ -491,11 +423,11 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public bool RunAsync { get; protected internal set; }
 
-        /// <summary>
-        /// The interval (in seconds) specified for the timer to process index queue items.
-        /// This is only relevant if <see cref="RunAsnc"/> is true.
-        /// </summary>
-        public int IndexSecondsInterval { get; protected internal set; }
+        ///// <summary>
+        ///// The interval (in seconds) specified for the timer to process index queue items.
+        ///// This is only relevant if <see cref="RunAsnc"/> is true.
+        ///// </summary>
+        //public int IndexSecondsInterval { get; protected internal set; }
 
         /// <summary>
         /// The folder that stores the Lucene Index files
@@ -645,7 +577,7 @@ namespace Examine.LuceneEngine.Providers
                 }
 
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
 
                 //need to remove the queue as we're rebuilding from scratch
                 IndexQueueItemFolder.ClearFiles();
@@ -862,7 +794,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected bool IndexReady()
         {
-            return (!IndexWriter.IsLocked(new SimpleFSDirectory(LuceneIndexFolder)));
+            return (!IndexWriter.IsLocked(GetLuceneDirectory()));
         }
 
         /// <summary>
@@ -871,7 +803,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         public virtual bool IndexExists()
         {
-            return IndexReader.IndexExists(new SimpleFSDirectory(LuceneIndexFolder));
+            return IndexReader.IndexExists(GetLuceneDirectory());
         }
 
         /// <summary>
@@ -1503,6 +1435,24 @@ namespace Examine.LuceneEngine.Providers
             _indexQueue.Enqueue(op);
         }
 
+        /// <summary>
+        /// Returns the Lucene Directory used to store the index
+        /// </summary>
+        /// <returns></returns>
+        protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
+        {
+            return new SimpleFSDirectory(LuceneIndexFolder);
+        }
+
+        /// <summary>
+        /// Returns an index writer for the current directory
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IndexWriter GetIndexWriter()
+        {
+            return new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+        }
+
         ///// <summary>
         ///// Saves a file indicating that the executive indexer should remove the from the index those that match
         ///// the term saved in this file.
@@ -1700,15 +1650,6 @@ namespace Examine.LuceneEngine.Providers
         private IndexWriter GetNewInMemoryWriter()
         {
             return new IndexWriter(new Lucene.Net.Store.RAMDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-        }
-
-        /// <summary>
-        /// Returns an index writer for the current directory
-        /// </summary>
-        /// <returns></returns>
-        private IndexWriter GetIndexWriter()
-        {
-            return new IndexWriter(new SimpleFSDirectory(LuceneIndexFolder), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);   
         }
 
         /// <summary>

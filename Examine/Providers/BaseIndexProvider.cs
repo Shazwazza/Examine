@@ -13,12 +13,12 @@ namespace Examine.Providers
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
         /// </summary>
-        public BaseIndexProvider() { }
+        protected BaseIndexProvider() { }
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
         /// </summary>
         /// <param name="indexerData">The indexer data.</param>
-        public BaseIndexProvider(IIndexCriteria indexerData)
+        protected BaseIndexProvider(IIndexCriteria indexerData)
         {
             IndexerData = indexerData;
         }
