@@ -15,10 +15,22 @@
             Populate</button>
     </p>
 }
-@using (Html.BeginForm("TableDirectReader", "Home"))
+@using (Html.BeginForm("RebuildIndex", "Home"))
 {    
     <p>
-        Click to index the 27000 rows into Examine
+        Click to rebuild the index with 27000 rows into Examine
+        <br />
+        <button id="index" name="index">
+            Index Data</button>
+    </p>
+}
+@using (Html.BeginForm("ReIndexEachItemIndividually", "Home"))
+{    
+    <p>
+        Click to re-index the 27000 rows individually into Examine. This will take a VERY long time because when processing one node
+        at a time, it commits the changes to the index on each iteration, then after 100 iterations it will re-optimize the index and by default
+        Lucene will have the merge count reasonably low so about every 20 iterations the files will be merged to one. Each of these operations is
+        an expensive operation so it is advised to never bulk re-index many nodes at a time individually. 
         <br />
         <button id="index" name="index">
             Index Data</button>

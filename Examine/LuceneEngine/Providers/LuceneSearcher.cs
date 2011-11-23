@@ -191,19 +191,6 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Searches the data source using the Examine Fluent API
-        /// </summary>
-        /// <param name="searchParams">The fluent API search.</param>
-        /// <returns></returns>
-        public override ISearchResults Search(ISearchCriteria searchParams)
-        {
-            if (!LuceneIndexFolder.Exists)
-                throw new DirectoryNotFoundException("No index found at the location specified. Ensure that an index has been created");
-
-            return base.Search(searchParams);
-        }
-
-        /// <summary>
         /// Name of the Lucene.NET index set
         /// </summary>
         protected string IndexSetName { get; private set; }

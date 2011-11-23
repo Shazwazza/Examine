@@ -4,6 +4,7 @@ using System.Data.SqlServerCe;
 using System.Diagnostics;
 using System.Linq;
 using System.Web.Mvc;
+using Examine.LuceneEngine;
 using Examine.Web.Demo.Models;
 
 namespace Examine.Web.Demo.Controllers
@@ -72,13 +73,37 @@ namespace Examine.Web.Demo.Controllers
         }
 
         [HttpPost]
-        public ActionResult TableDirectReader()
+        public ActionResult RebuildIndex()
         {
             try
             {
                 var timer = new Stopwatch();
                 timer.Start();
                 ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"].RebuildIndex();
+                timer.Stop();
+
+                return View(timer.Elapsed.TotalSeconds);
+            }
+            catch (Exception ex)
+            {
+                this.ModelState.AddModelError("DataError", ex.Message);
+                return View(0);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult ReIndexEachItemIndividually()
+        {
+            try
+            {
+                var timer = new Stopwatch();
+                timer.Start();
+                var ds = new TableDirectReaderDataService();
+                foreach (var i in ds.GetAllData("TestType"))
+                {                    
+                    ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"]
+                        .ReIndexNode(i.RowData.ToExamineXml(i.NodeDefinition.NodeId, i.NodeDefinition.Type), "TestType");  
+                }                
                 timer.Stop();
 
                 return View(timer.Elapsed.TotalSeconds);

@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace Examine
 {
@@ -7,6 +8,14 @@ namespace Examine
     /// </summary>
     public interface IIndexer
     {
+        //NOTE: this would be a better approach like in v2 but would be quite a breaking change.
+        ///// <summary>
+        ///// Reindexes many nodes at once
+        ///// </summary>
+        ///// <param name="nodes"></param>
+        ///// <param name="type"></param>
+        //void ReIndexNodes(IEnumerable<XElement> nodes, string type);
+
         /// <summary>
         /// Forces a particular XML node to be reindexed
         /// </summary>

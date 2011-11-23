@@ -86,7 +86,7 @@ namespace Examine.Providers
         /// <summary>
         /// Deletes a node from the index
         /// </summary>
-        /// <param name="node">Node to delete</param>
+        /// <param name="nodeId">Node to delete</param>
         public abstract void DeleteFromIndex(string nodeId);
 
         /// <summary>
