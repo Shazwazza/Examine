@@ -1,23 +1,23 @@
-using System;
+﻿using System;
 using System.IO;
-using Examine;
-using Examine.Azure;
+using System.Linq;
+using System.Text;
 using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using UmbracoExamine.DataServices;
 
-namespace UmbracoExamine.Azure
+namespace Examine.Azure
 {
-    public class AzureMemberIndexer : UmbracoMemberIndexer, IAzureCatalogue
+    public abstract class AzureLuceneIndexer : LuceneIndexer, IAzureCatalogue
     {
         /// <summary>
         /// static constructor run to initialize azure settings
         /// </summary>
-        static AzureMemberIndexer()
+        static AzureLuceneIndexer()
         {
             AzureSetupExtensions.EnsureAzureConfig();
         }
@@ -25,7 +25,7 @@ namespace UmbracoExamine.Azure
         /// <summary>
         /// Default constructor
         /// </summary>
-        public AzureMemberIndexer()
+        protected AzureLuceneIndexer()
             : base() { }
 
         /// <summary>
@@ -33,16 +33,13 @@ namespace UmbracoExamine.Azure
         /// </summary>
         /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
-        /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
         /// <param name="async"></param>
-        public AzureMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
-            : base(indexerData, indexPath, dataService, analyzer, async)
+        protected AzureLuceneIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, Analyzer analyzer, bool async)
+            : base(indexerData, indexPath, analyzer, async)
         {
 
         }
-
-        public string Catalogue { get; private set; }
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
@@ -51,8 +48,12 @@ namespace UmbracoExamine.Azure
             this.SetOptimizationThresholdOnInit(config);
             var indexSet = IndexSets.Instance.Sets[IndexSetName];
             Catalogue = indexSet.IndexPath;
-
         }
+
+        /// <summary>
+        /// The blob storage catalogue name to store the index in
+        /// </summary>
+        public string Catalogue { get; private set; }
 
         public override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
@@ -63,5 +64,6 @@ namespace UmbracoExamine.Azure
         {
             return this.GetAzureIndexWriter();
         }
+
     }
 }

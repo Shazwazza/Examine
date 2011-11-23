@@ -32,6 +32,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="analyzer"></param>
         /// <param name="dataService"></param>
         /// <param name="indexTypes"></param>
+        /// <param name="async"></param>
         public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
             : base(indexerData, workingFolder, analyzer, async)
         {

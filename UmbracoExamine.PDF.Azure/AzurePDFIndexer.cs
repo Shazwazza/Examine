@@ -1,5 +1,8 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using Examine;
 using Examine.Azure;
 using Examine.LuceneEngine.Config;
@@ -10,14 +13,14 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using UmbracoExamine.DataServices;
 
-namespace UmbracoExamine.Azure
+namespace UmbracoExamine.PDF.Azure
 {
-    public class AzureMemberIndexer : UmbracoMemberIndexer, IAzureCatalogue
+    public class AzurePDFIndexer : PDFIndexer, IAzureCatalogue
     {
         /// <summary>
         /// static constructor run to initialize azure settings
         /// </summary>
-        static AzureMemberIndexer()
+        static AzurePDFIndexer()
         {
             AzureSetupExtensions.EnsureAzureConfig();
         }
@@ -25,24 +28,24 @@ namespace UmbracoExamine.Azure
         /// <summary>
         /// Default constructor
         /// </summary>
-        public AzureMemberIndexer()
-            : base() { }
+        public AzurePDFIndexer()
+        {
+            SupportedExtensions = new[] { ".pdf" };
+            UmbracoFileProperty = "umbracoFile";
+        }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
-        /// <param name="indexerData"></param>
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
         /// <param name="async"></param>
-        public AzureMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
-            : base(indexerData, indexPath, dataService, analyzer, async)
+        public AzurePDFIndexer(DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexPath, dataService, analyzer, async)
         {
-
         }
 
-        public string Catalogue { get; private set; }
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
@@ -51,8 +54,12 @@ namespace UmbracoExamine.Azure
             this.SetOptimizationThresholdOnInit(config);
             var indexSet = IndexSets.Instance.Sets[IndexSetName];
             Catalogue = indexSet.IndexPath;
-
         }
+
+        /// <summary>
+        /// The blob storage catalogue name to store the index in
+        /// </summary>
+        public string Catalogue { get; private set; }
 
         public override Lucene.Net.Store.Directory GetLuceneDirectory()
         {

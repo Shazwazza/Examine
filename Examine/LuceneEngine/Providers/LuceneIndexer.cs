@@ -111,7 +111,7 @@ namespace Examine.LuceneEngine.Providers
                 }
                 else
                 {
-                    throw new ParseException("Could not parse autoCommitThreshold value into an integer");
+                    throw new FormatException("Could not parse autoCommitThreshold value into an integer");
                 }
             }
 
@@ -128,7 +128,7 @@ namespace Examine.LuceneEngine.Providers
                 }
                 else
                 {
-                    throw new ParseException("Could not parse autoOptimize value into a boolean");
+                    throw new FormatException("Could not parse autoOptimize value into a boolean");
                 }
 
             }
@@ -1456,7 +1456,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-        protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
+        public virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             return new SimpleFSDirectory(LuceneIndexFolder);
         }
@@ -1465,7 +1465,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns an index writer for the current directory
         /// </summary>
         /// <returns></returns>
-        protected virtual IndexWriter GetIndexWriter()
+        public virtual IndexWriter GetIndexWriter()
         {
             return new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
         }

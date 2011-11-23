@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Examine;
+using Examine.Azure;
 using Examine.LuceneEngine.Config;
 using Lucene.Net.Analysis;
 using Lucene.Net.QueryParsers;
@@ -14,26 +15,14 @@ using UmbracoExamine.DataServices;
 
 namespace UmbracoExamine.Azure
 {
-    public class AzureContentIndexer : UmbracoContentIndexer
+    public class AzureContentIndexer : UmbracoContentIndexer, IAzureCatalogue
     {
         /// <summary>
         /// static constructor run to initialize azure settings
         /// </summary>
         static AzureContentIndexer()
         {
-            // get settings from azure settings or app.config
-            CloudStorageAccount.SetConfigurationSettingPublisher((configName, configSetter) =>
-            {
-                try
-                {
-                    configSetter(RoleEnvironment.GetConfigurationSettingValue(configName));
-                }
-                catch (Exception)
-                {
-                    // for a console app, reading from App.config
-                    configSetter(System.Configuration.ConfigurationManager.AppSettings[configName]);
-                }
-            });
+            AzureSetupExtensions.EnsureAzureConfig();
         }
 
         /// <summary>
@@ -56,48 +45,25 @@ namespace UmbracoExamine.Azure
 
         }
 
-        protected string Catalogue { get; private set; }
+        public string Catalogue { get; private set; }
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {            
             base.Initialize(name, config);
 
-            if (config["autoOptimizeCommitThreshold"] == null)
-            {
-                //by default we need a higher threshold according to lucene azure docs
-                OptimizationCommitThreshold = 1000;
-            }
-            else
-            {
-                int autoCommitThreshold;
-                if (int.TryParse(config["autoOptimizeCommitThreshold"], out autoCommitThreshold))
-                {
-                    OptimizationCommitThreshold = autoCommitThreshold;
-                }
-                else
-                {
-                    throw new ParseException("Could not parse autoCommitThreshold value into an integer");
-                }
-            }
-
+            this.SetOptimizationThresholdOnInit(config);
             var indexSet = IndexSets.Instance.Sets[IndexSetName];
             Catalogue = indexSet.IndexPath;
         }
 
-        protected override Lucene.Net.Store.Directory GetLuceneDirectory()
+        public override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
-            var azureDirectory = new AzureDirectory(CloudStorageAccount.FromConfigurationSetting("blobStorage"), Catalogue);
-            return azureDirectory;
+            return this.GetAzureDirectory();
         }
 
-        protected override Lucene.Net.Index.IndexWriter GetIndexWriter()
+        public override Lucene.Net.Index.IndexWriter GetIndexWriter()
         {
-            var writer = base.GetIndexWriter();
-            writer.SetRAMBufferSizeMB(10.0);
-            writer.SetUseCompoundFile(false);
-            writer.SetMaxMergeDocs(10000);
-            writer.SetMergeFactor(100);
-            return writer;
+            return this.GetAzureIndexWriter();
         }
 
     }

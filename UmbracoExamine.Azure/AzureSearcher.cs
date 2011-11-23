@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Examine.Azure;
 using Examine.LuceneEngine.Config;
 using Lucene.Net.Analysis;
 using Lucene.Net.Store.Azure;
@@ -8,26 +9,16 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace UmbracoExamine.Azure
 {
-    public class AzureSearcher : UmbracoExamineSearcher
+
+
+    public class AzureSearcher : UmbracoExamineSearcher, IAzureCatalogue
     {
         /// <summary>
         /// static constructor run to initialize azure settings
         /// </summary>
         static AzureSearcher()
         {
-            // get settings from azure settings or app.config
-            CloudStorageAccount.SetConfigurationSettingPublisher((configName, configSetter) =>
-            {
-                try
-                {
-                    configSetter(RoleEnvironment.GetConfigurationSettingValue(configName));
-                }
-                catch (Exception)
-                {
-                    // for a console app, reading from App.config
-                    configSetter(System.Configuration.ConfigurationManager.AppSettings[configName]);
-                }
-            });
+            AzureSetupExtensions.EnsureAzureConfig();
         }
 
         /// <summary>
@@ -48,7 +39,7 @@ namespace UmbracoExamine.Azure
         }
 
 
-        protected string Catalogue { get; private set; }
+        public string Catalogue { get; private set; }
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
@@ -59,8 +50,7 @@ namespace UmbracoExamine.Azure
 
         protected override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
-            var azureDirectory = new AzureDirectory(CloudStorageAccount.FromConfigurationSetting("blobStorage"), Catalogue);
-            return azureDirectory;
+            return this.GetAzureDirectory();
         }
     }
 }

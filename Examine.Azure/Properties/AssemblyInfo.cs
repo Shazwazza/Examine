@@ -1,15 +1,15 @@
 ﻿using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Examine")]
-[assembly: AssemblyDescription("A provider-based indexer & searcher model")]
+[assembly: AssemblyTitle("Examine.Azure")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyProduct("Examine")]
-
+[assembly: AssemblyProduct("Examine.Azure")]
+[assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -17,8 +17,4 @@ using System.Runtime.CompilerServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("427aeb03-603e-4fbb-9ab0-6b764521e92a")]
-
-[assembly: InternalsVisibleTo("UmbracoExamine")]
-[assembly: InternalsVisibleTo("Examine.Azure")]
-[assembly: InternalsVisibleTo("Examine.Test")]
+[assembly: Guid("43df02f3-5e97-4a9e-8838-dbc8514ab3fc")]

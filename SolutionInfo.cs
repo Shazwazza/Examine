@@ -4,5 +4,5 @@
 [assembly: AssemblyTrademark("")]
 
 //Assembly version needs to some-how reflect the lucene.net version IMO
-[assembly: AssemblyVersion("0.1.3.2922")]
-[assembly: AssemblyFileVersion("0.1.3.2922")]
+[assembly: AssemblyVersion("0.1.4.2922")]
+[assembly: AssemblyFileVersion("0.1.4.2922")]

@@ -39,6 +39,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Examine
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Azure", "UmbracoExamine.Azure\UmbracoExamine.Azure.csproj", "{73529637-28F5-419C-A6BB-D094E39DE614}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Azure", "Examine.Azure\Examine.Azure.csproj", "{B5833B82-4211-459A-8B0C-AA8F68438250}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.PDF.Azure", "UmbracoExamine.PDF.Azure\UmbracoExamine.PDF.Azure.csproj", "{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
@@ -72,6 +76,14 @@ Global
 		{73529637-28F5-419C-A6BB-D094E39DE614}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73529637-28F5-419C-A6BB-D094E39DE614}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73529637-28F5-419C-A6BB-D094E39DE614}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5833B82-4211-459A-8B0C-AA8F68438250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5833B82-4211-459A-8B0C-AA8F68438250}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5833B82-4211-459A-8B0C-AA8F68438250}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5833B82-4211-459A-8B0C-AA8F68438250}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
