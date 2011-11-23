@@ -36,8 +36,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         protected LuceneIndexer()
         {
-            //FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
-            //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = true;
         }
@@ -52,12 +50,9 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, bool async)
             : base(indexerData)
         {
-            //FileWatcher_ElapsedEventHandler = new System.Timers.ElapsedEventHandler(FileWatcher_Elapsed);
-
             //set up our folders based on the index path
             WorkingFolder = workingFolder;
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
-            IndexQueueItemFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Queue"));
 
             IndexingAnalyzer = analyzer;
 
@@ -159,7 +154,6 @@ namespace Examine.LuceneEngine.Providers
                         //now set the index folders
                         WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
                         LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-                        IndexQueueItemFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
 
                         found = true;
                     }
@@ -188,7 +182,6 @@ namespace Examine.LuceneEngine.Providers
                     //now set the index folders
                     WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
                     LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-                    IndexQueueItemFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Queue"));
                 }
             }
 
@@ -211,17 +204,6 @@ namespace Examine.LuceneEngine.Providers
             {
                 RunAsync = bool.Parse(config["runAsync"]);
             }
-
-            //IndexSecondsInterval = 30;
-            //if (config["interval"] != null)
-            //{
-            //    IndexSecondsInterval = int.Parse(config["interval"]);
-            //}
-
-            //ensure all of the folders are created at startup   
-            VerifyFolder(WorkingFolder);
-            VerifyFolder(LuceneIndexFolder);
-            VerifyFolder(IndexQueueItemFolder);
 
             //ensure an index exists
             CreateIndex(false);
@@ -429,21 +411,10 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public bool RunAsync { get; protected internal set; }
 
-        ///// <summary>
-        ///// The interval (in seconds) specified for the timer to process index queue items.
-        ///// This is only relevant if <see cref="RunAsnc"/> is true.
-        ///// </summary>
-        //public int IndexSecondsInterval { get; protected internal set; }
-
         /// <summary>
         /// The folder that stores the Lucene Index files
         /// </summary>
         public DirectoryInfo LuceneIndexFolder { get; private set; }
-
-        /// <summary>
-        /// The folder that stores the index queue files
-        /// </summary>
-        public DirectoryInfo IndexQueueItemFolder { get; private set; }
 
         /// <summary>
         /// The base folder that contains the queue and index folder and the indexer executive files
@@ -1419,13 +1390,21 @@ namespace Examine.LuceneEngine.Providers
             _indexQueue.Enqueue(op);
         }
 
+        private Lucene.Net.Store.Directory _directory;
         /// <summary>
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
         public virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
-            return new SimpleFSDirectory(LuceneIndexFolder);
+            if (_directory == null)
+            {
+                //ensure all of the folders are created at startup   
+                VerifyFolder(WorkingFolder);
+                VerifyFolder(LuceneIndexFolder);
+                _directory = new SimpleFSDirectory(LuceneIndexFolder);
+            }
+            return _directory;
         }
 
         /// <summary>

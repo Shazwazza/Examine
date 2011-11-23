@@ -56,9 +56,10 @@ namespace UmbracoExamine.Azure
             Catalogue = indexSet.IndexPath;
         }
 
+        private Lucene.Net.Store.Directory _directory;
         public override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
-            return this.GetAzureDirectory();
+            return _directory ?? (_directory = this.GetAzureDirectory());
         }
 
         public override Lucene.Net.Index.IndexWriter GetIndexWriter()
