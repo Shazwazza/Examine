@@ -37,7 +37,8 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher(DirectoryInfo workingFolder, Analyzer analyzer)
             : base(analyzer)
 		{
-            LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index")); 			
+            LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
+            EnsureIndex();
 		}
 
 		#endregion
@@ -103,7 +104,9 @@ namespace Examine.LuceneEngine.Providers
 
 				//get the folder to index
 				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-			}            		
+			}
+
+		    EnsureIndex();
 		}
 
 		/// <summary>
@@ -134,7 +137,32 @@ namespace Examine.LuceneEngine.Providers
 		/// Do not access this object directly. The public property ensures that the folder state is always up to date
 		/// </summary>
 		private DirectoryInfo _indexFolder;
-        
+
+        /// <summary>
+        /// Ensures the index exists at the location
+        /// </summary>
+        public void EnsureIndex()
+        {
+            IndexWriter writer = null;
+            try
+            {
+                if (!IndexReader.IndexExists(GetLuceneDirectory()))
+                {
+                    //create the writer (this will overwrite old index files)
+                    writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                }
+            }            
+            finally
+            {
+                if (writer != null)
+                {
+                    writer.Close();
+                    writer = null;
+                }
+            }
+
+        }
+
         /// <summary>
         /// A simple search mechanism to search all fields based on an index type.
         /// </summary>

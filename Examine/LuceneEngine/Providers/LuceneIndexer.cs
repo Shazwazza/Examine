@@ -68,6 +68,9 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = true;
             RunAsync = async;
+
+            //ensure it exists
+            CreateIndex(false);
         }
 
         #endregion
@@ -219,6 +222,9 @@ namespace Examine.LuceneEngine.Providers
             VerifyFolder(WorkingFolder);
             VerifyFolder(LuceneIndexFolder);
             VerifyFolder(IndexQueueItemFolder);
+
+            //ensure an index exists
+            CreateIndex(false);
 
             CommitCount = 0;
 
@@ -498,7 +504,10 @@ namespace Examine.LuceneEngine.Providers
 
             if (!RunAsync)
             {
-                throw new Exception("Indexing Error Occurred: " + e.Message, e.InnerException);
+                var msg = "Indexing Error Occurred: " + e.Message;
+                if (e.InnerException != null)
+                    msg += ". ERROR: " + e.InnerException.Message;
+                throw new Exception(msg, e.InnerException);
             }
 
         }
@@ -561,30 +570,30 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Rebuilds the entire index from scratch for all index types
+        /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
-        /// <remarks>This will completely delete the index and recreate it</remarks>
-        public override void RebuildIndex()
+        public void CreateIndex(bool forceOverwrite)
         {
             IndexWriter writer = null;
             try
             {
+
                 //check if the index exists and it's locked
-                if (IndexExists() && !IndexReady())
+                if (IndexExists() && forceOverwrite && !IndexReady())
                 {
-                    OnIndexingError(new IndexingErrorEventArgs("Cannot rebuild index, the index is currently locked", -1, null));
+                    OnIndexingError(new IndexingErrorEventArgs("Cannot create index, the index is currently locked", -1, null));
                     return;
                 }
 
-                //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-
-                //need to remove the queue as we're rebuilding from scratch
-                IndexQueueItemFolder.ClearFiles();
+                if (!IndexExists() || forceOverwrite)
+                {
+                    //create the writer (this will overwrite old index files)
+                    writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                }
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs("An error occurred recreating the index set", -1, ex));
+                OnIndexingError(new IndexingErrorEventArgs("An error occurred creating the index", -1, ex));
                 return;
             }
             finally
@@ -592,10 +601,18 @@ namespace Examine.LuceneEngine.Providers
                 CloseWriter(ref writer);
             }
 
+        }
+
+        /// <summary>
+        /// Rebuilds the entire index from scratch for all index types
+        /// </summary>
+        /// <remarks>This will completely delete the index and recreate it</remarks>
+        public override void RebuildIndex()
+        {
+            CreateIndex(true);
+
             //call abstract method
             PerformIndexRebuild();
-
-
         }
 
         /// <summary>

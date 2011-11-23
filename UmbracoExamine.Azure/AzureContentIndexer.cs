@@ -1,21 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using Examine;
 using Examine.LuceneEngine.Config;
+using Lucene.Net.Analysis;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using UmbracoExamine.DataServices;
 
 namespace UmbracoExamine.Azure
 {
     public class AzureContentIndexer : UmbracoContentIndexer
     {
+        /// <summary>
+        /// static constructor run to initialize azure settings
+        /// </summary>
+        static AzureContentIndexer()
+        {
+            // get settings from azure settings or app.config
+            CloudStorageAccount.SetConfigurationSettingPublisher((configName, configSetter) =>
+            {
+                try
+                {
+                    configSetter(RoleEnvironment.GetConfigurationSettingValue(configName));
+                }
+                catch (Exception)
+                {
+                    // for a console app, reading from App.config
+                    configSetter(System.Configuration.ConfigurationManager.AppSettings[configName]);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public AzureContentIndexer()
+            : base() { }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="indexPath"></param>
+        /// <param name="dataService"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="async"></param>
+        public AzureContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexerData, indexPath, dataService, analyzer, async)
+        {
+
+        }
+
         protected string Catalogue { get; private set; }
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
-        {
+        {            
             base.Initialize(name, config);
 
             if (config["autoOptimizeCommitThreshold"] == null)
@@ -35,20 +79,6 @@ namespace UmbracoExamine.Azure
                     throw new ParseException("Could not parse autoCommitThreshold value into an integer");
                 }
             }
-
-            // get settings from azure settings or app.config
-            CloudStorageAccount.SetConfigurationSettingPublisher((configName, configSetter) =>
-            {
-                try
-                {
-                    configSetter(RoleEnvironment.GetConfigurationSettingValue(configName));
-                }
-                catch (Exception)
-                {
-                    // for a console app, reading from App.config
-                    configSetter(System.Configuration.ConfigurationManager.AppSettings[configName]);
-                }
-            });
 
             var indexSet = IndexSets.Instance.Sets[IndexSetName];
             Catalogue = indexSet.IndexPath;
