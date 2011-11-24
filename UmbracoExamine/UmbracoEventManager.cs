@@ -29,7 +29,7 @@ namespace UmbracoExamine
         /// </summary>
         public UmbracoEventManager()
         {
-            var registeredProviders = ExamineManager.Instance.IndexProviderCollection
+            var registeredProviders = ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
                 .Where(x => x.EnableDefaultEventHandler)
                 .Count();
 
@@ -87,7 +87,8 @@ namespace UmbracoExamine
         {
             //ensure that only the providers are flagged to listen execute
             var xml = sender.ToXml(new System.Xml.XmlDocument(), false).ToXElement();
-            var providers = ExamineManager.Instance.IndexProviderCollection.Where(x => x.EnableDefaultEventHandler);
+            var providers = ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
+                .Where(x => x.EnableDefaultEventHandler);
             ExamineManager.Instance.ReIndexNode(xml, IndexTypes.Member, providers);
         }
 
@@ -97,7 +98,7 @@ namespace UmbracoExamine
 
             //ensure that only the providers are flagged to listen execute
             ExamineManager.Instance.DeleteFromIndex(nodeId,
-                ExamineManager.Instance.IndexProviderCollection
+                ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
                     .Where(x => x.EnableDefaultEventHandler));
         }
 
@@ -126,7 +127,7 @@ namespace UmbracoExamine
                 {
                     //it's def a Document
                     ExamineManager.Instance.ReIndexNode(sender.ToXDocument(false).Root, IndexTypes.Content,
-                        ExamineManager.Instance.IndexProviderCollection
+                        ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
                             .Where(x => x.SupportUnpublishedContent
                                 && x.EnableDefaultEventHandler));
 
@@ -164,7 +165,7 @@ namespace UmbracoExamine
             //ensure that only the providers that have unpublishing support enabled      
             //that are also flagged to listen
             ExamineManager.Instance.DeleteFromIndex(nodeId,
-                ExamineManager.Instance.IndexProviderCollection
+                ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
                     .Where(x => x.SupportUnpublishedContent
                         && x.EnableDefaultEventHandler));
         }
@@ -175,7 +176,7 @@ namespace UmbracoExamine
 
             //ensure that only the providers are flagged to listen execute
             ExamineManager.Instance.DeleteFromIndex(nodeId,
-                ExamineManager.Instance.IndexProviderCollection
+                ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
                     .Where(x => x.EnableDefaultEventHandler));
         }
 
@@ -188,7 +189,7 @@ namespace UmbracoExamine
         private void IndexMedia(Media sender)
         {
             ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, IndexTypes.Media,
-                                                ExamineManager.Instance.IndexProviderCollection
+                                                ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
                                                     .Where(x => x.EnableDefaultEventHandler));
         }
 
@@ -216,7 +217,7 @@ namespace UmbracoExamine
             //ensure that only the providers that have DONT unpublishing support enabled       
             //that are also flagged to listen
             ExamineManager.Instance.ReIndexNode(sender.ToXDocument(true).Root, IndexTypes.Content,
-                ExamineManager.Instance.IndexProviderCollection
+                ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
                     .Where(x => !x.SupportUnpublishedContent
                         && x.EnableDefaultEventHandler));
         }
@@ -232,7 +233,7 @@ namespace UmbracoExamine
             //ensure that only the providers that DONT have unpublishing support enabled           
             //that are also flagged to listen
             ExamineManager.Instance.DeleteFromIndex(nodeId,
-                ExamineManager.Instance.IndexProviderCollection
+                ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
                     .Where(x => !x.SupportUnpublishedContent
                         && x.EnableDefaultEventHandler));
         }

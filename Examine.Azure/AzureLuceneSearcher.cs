@@ -16,7 +16,7 @@ namespace Examine.Azure
         /// </summary>
         static AzureLuceneSearcher()
         {
-            AzureSetupExtensions.EnsureAzureConfig();
+            AzureExtensions.EnsureAzureConfig();
         }
 
         /// <summary>

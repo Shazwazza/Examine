@@ -51,6 +51,17 @@ namespace UmbracoExamine
         #region Properties
 
         /// <summary>
+        /// If true, the IndexingActionHandler will be run to keep the default index up to date.
+        /// </summary>
+        public bool EnableDefaultEventHandler { get; protected set; }
+
+        /// <summary>
+        /// Determines if the manager will call the indexing methods when content is saved or deleted as
+        /// opposed to cache being updated.
+        /// </summary>
+        public bool SupportUnpublishedContent { get; protected set; }
+
+        /// <summary>
         /// The data service used for retreiving and submitting data to the cms
         /// </summary>
         public IDataService DataService { get; protected internal set; }
@@ -59,11 +70,6 @@ namespace UmbracoExamine
         /// the supported indexable types
         /// </summary>
         protected abstract IEnumerable<string> SupportedTypes { get; }
-
-        /// <summary>
-        /// The path to the http handler which is used for asynchronously rebuilding indexes
-        /// </summary>
-        public string ExamineHandlerPath { get; private set; }
 
         #endregion
 
@@ -77,23 +83,13 @@ namespace UmbracoExamine
         /// <param name="config"></param>
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
-
-            if (config["examineHandler"] != null && !string.IsNullOrEmpty(config["examineHandler"]))
-            {
-                ExamineHandlerPath = config["examineHandler"];
-            }
-            else
-            {
-                ExamineHandlerPath = "~/ExamineHandler.ashx";
-            }
-
             if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
             {
                 //this should be a fully qualified type
                 var serviceType = Type.GetType(config["dataService"]);
                 DataService = (IDataService)Activator.CreateInstance(serviceType);
             }
-            else
+            else if (DataService == null)
             {
                 //By default, we will be using the UmbracoDataService
                 //generally this would only need to be set differently for unit testing
@@ -116,8 +112,17 @@ namespace UmbracoExamine
                 }
             }
 
-            DataService.LogService.AddVerboseLog(-1, string.Format("{0} indexer initializing", name));
+            DataService.LogService.ProviderName = name;
 
+            EnableDefaultEventHandler = true; //set to true by default
+            bool enabled;
+            if (bool.TryParse(config["enableDefaultEventHandler"], out enabled))
+            {
+                EnableDefaultEventHandler = enabled;
+            }         
+
+            DataService.LogService.AddVerboseLog(-1, string.Format("{0} indexer initializing", name));
+            
             base.Initialize(name, config);
         }
 

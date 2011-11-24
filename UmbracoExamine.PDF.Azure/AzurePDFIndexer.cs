@@ -22,7 +22,7 @@ namespace UmbracoExamine.PDF.Azure
         /// </summary>
         static AzurePDFIndexer()
         {
-            AzureSetupExtensions.EnsureAzureConfig();
+            AzureExtensions.EnsureAzureConfig();
         }
 
         /// <summary>
@@ -70,6 +70,12 @@ namespace UmbracoExamine.PDF.Azure
         public override Lucene.Net.Index.IndexWriter GetIndexWriter()
         {
             return this.GetAzureIndexWriter();
+        }
+
+        protected override void OnIndexingError(IndexingErrorEventArgs e)
+        {
+            AzureExtensions.LogExceptionFile(Name, e);
+            base.OnIndexingError(e);
         }
     }
 }

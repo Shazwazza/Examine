@@ -12,6 +12,8 @@ namespace Examine.Test.DataServices
     {
         #region ILogService Members
 
+        public string ProviderName { get; set; }
+
         public void AddErrorLog(int nodeId, string msg)
         {
             Trace.WriteLine("ERROR: (" + nodeId.ToString() + ") " + msg);

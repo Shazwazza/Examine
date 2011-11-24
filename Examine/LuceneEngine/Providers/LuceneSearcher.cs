@@ -37,8 +37,7 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher(DirectoryInfo workingFolder, Analyzer analyzer)
             : base(analyzer)
 		{
-            LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
-            EnsureIndex();
+            LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));            
 		}
 
 		#endregion
@@ -46,7 +45,7 @@ namespace Examine.LuceneEngine.Providers
 		/// <summary>
 		/// Used as a singleton instance
 		/// </summary>
-		private IndexSearcher _searcher;
+		private volatile IndexSearcher _searcher;
 		private static readonly object Locker = new object();
 
 		/// <summary>
@@ -104,9 +103,7 @@ namespace Examine.LuceneEngine.Providers
 
 				//get the folder to index
 				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-			}
-
-		    EnsureIndex();
+			}		    
 		}
 
 		/// <summary>
@@ -125,11 +122,9 @@ namespace Examine.LuceneEngine.Providers
 				_indexFolder.Refresh();
 				return _indexFolder;
 			}
-			protected set
+			private set
 			{
 				_indexFolder = value;
-                //the path is changing, close the current searcher.
-			    ValidateSearcher(true);
 			}
 		}
 		
@@ -138,18 +133,28 @@ namespace Examine.LuceneEngine.Providers
 		/// </summary>
 		private DirectoryInfo _indexFolder;
 
+        private bool _hasIndex = false;
+
         /// <summary>
-        /// Ensures the index exists at the location
+        /// Ensures the index exists exists
         /// </summary>
-        public void EnsureIndex()
+        public virtual void EnsureIndex()
         {
+            if (_hasIndex) return;
+
             IndexWriter writer = null;
             try
             {
                 if (!IndexReader.IndexExists(GetLuceneDirectory()))
                 {
-                    //create the writer (this will overwrite old index files)
-                    writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                    lock(Locker)
+                    {
+                        if (!IndexReader.IndexExists(GetLuceneDirectory()))
+                        {
+                            //create the writer (this will overwrite old index files)
+                            writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);        
+                        }
+                    }
                 }
             }            
             finally
@@ -159,6 +164,7 @@ namespace Examine.LuceneEngine.Providers
                     writer.Close();
                     writer = null;
                 }
+                _hasIndex = true;
             }
 
         }
@@ -196,7 +202,7 @@ namespace Examine.LuceneEngine.Providers
         protected string IndexSetName { get; private set; }
 
         /// <summary>
-        /// Gets the searcher for this instance
+        /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
         /// <returns></returns>
         public override Searcher GetSearcher()
@@ -215,7 +221,7 @@ namespace Examine.LuceneEngine.Providers
         protected override internal string[] GetSearchFields()
         {
             ValidateSearcher(false);
-
+            
             var reader = _searcher.GetIndexReader();
             var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
@@ -241,8 +247,10 @@ namespace Examine.LuceneEngine.Providers
         /// This checks if the singleton IndexSearcher is initialized and up to date.
         /// </summary>
         /// <param name="forceReopen"></param>
-        internal protected void ValidateSearcher(bool forceReopen)
+        private void ValidateSearcher(bool forceReopen)
         {
+            EnsureIndex();
+
             if (!forceReopen)
             {
                 if (_searcher == null)

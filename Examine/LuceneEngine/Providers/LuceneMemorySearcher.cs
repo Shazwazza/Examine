@@ -1,5 +1,6 @@
 using System.IO;
 using Lucene.Net.Analysis;
+using Lucene.Net.Search;
 using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine.Providers
@@ -29,6 +30,23 @@ namespace Examine.LuceneEngine.Providers
         protected override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             return new RAMDirectory(new SimpleFSDirectory(LuceneIndexFolder));
+        }
+
+        private IndexSearcher _searcher;
+
+        /// <summary>
+        /// Gets the searcher for this instance
+        /// </summary>
+        /// <returns></returns>
+        public override Searcher GetSearcher()
+        {
+            if (_searcher == null)
+            {
+                 _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+            }
+            //ensure scoring is turned on for sorting
+            _searcher.SetDefaultFieldSortScoring(true, true);
+            return _searcher;
         }
     }
 }

@@ -40,41 +40,12 @@ namespace Examine.Providers
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
-
-            EnableDefaultEventHandler = true; //set to true by default
-            bool enabled;
-            if (bool.TryParse(config["enableDefaultEventHandler"], out enabled))
-            {
-                EnableDefaultEventHandler = enabled;
-            }                           
-
-            //if (config["enabled"] == null)
-            //    throw new ArgumentNullException("enabled flag on index provider has not been set");
-
-            //bool enabled;
-            //if (!bool.TryParse(config["enabled"], out enabled))
-            //    throw new ArgumentNullException("enabled flag on index provider has not been set");
-
-            //Enabled = enabled;
+            
         }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="BaseIndexProvider"/> is enabled.
-        /// </summary>
-        /// <value><c>true</c> if enabled; otherwise, <c>false</c>.</value>
-        //public bool Enabled { get; set; }
-
-        /// <summary>
-        /// If true, the IndexingActionHandler will be run to keep the default index up to date.
-        /// </summary>
-        public bool EnableDefaultEventHandler { get; protected set; }
-
+        
         #region IIndexer members
-        /// <summary>
-        /// Determines if the manager will call the indexing methods when content is saved or deleted as
-        /// opposed to cache being updated.
-        /// </summary>
-        public abstract bool SupportUnpublishedContent { get; protected set; }
+        
         
         /// <summary>
         /// Forces a particular XML node to be reindexed

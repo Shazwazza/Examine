@@ -9,16 +9,36 @@ using Lucene.Net.QueryParsers;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using Microsoft.WindowsAzure.StorageClient;
 
 namespace Examine.Azure
 {
-    public interface IAzureCatalogue
+    public static class AzureExtensions
     {
-        string Catalogue { get; }
-    }
 
-    public static class AzureSetupExtensions
-    {
+        public static void LogMessageFile(string msg)
+        {
+            // log all exceptions to blobs
+            var errors = CloudStorageAccount.Parse(
+                RoleEnvironment.GetConfigurationSettingValue("DataConnectionString"))
+                .CreateCloudBlobClient().GetContainerReference("errors");
+            errors.CreateIfNotExist();
+            var error = errors.GetBlobReference((DateTime.MaxValue - DateTime.UtcNow).Ticks.ToString("d19") + ".txt");
+            error.Properties.ContentType = "text/plain";
+            error.UploadText(msg);
+        }
+
+        public static void LogExceptionFile(string providerName, IndexingErrorEventArgs e)
+        {
+            // log all exceptions to blobs
+            var errors = CloudStorageAccount.Parse(
+                RoleEnvironment.GetConfigurationSettingValue("DataConnectionString"))
+                .CreateCloudBlobClient().GetContainerReference("errors");
+            errors.CreateIfNotExist();
+            var error = errors.GetBlobReference((DateTime.MaxValue - DateTime.UtcNow).Ticks.ToString("d19") + ".txt");
+            error.Properties.ContentType = "text/plain";
+            error.UploadText("[UmbracoExamine] (" + providerName + ")" + e.Message + ". NodeId: " + e.NodeId + (e.InnerException == null ? "" : "Exception:" + e.ToString()));
+        }
 
         public static void EnsureAzureConfig()
         {

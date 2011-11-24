@@ -56,7 +56,8 @@
     </Compile>
     <Compile Include="AzureLuceneIndexer.cs" />
     <Compile Include="AzureLuceneSearcher.cs" />
-    <Compile Include="AzureSetupExtensions.cs" />
+    <Compile Include="AzureExtensions.cs" />
+    <Compile Include="IAzureCatalogue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleAzureLuceneIndexer.cs" />
   </ItemGroup>

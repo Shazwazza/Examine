@@ -95,12 +95,6 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         public override Searcher GetSearcher()
         {
-            //validate all internal searchers
-            foreach (var s in Searchers)
-            {
-                s.ValidateSearcher(false);
-            }
-
             return new MultiSearcher(Searchers.Select(x => x.GetSearcher()).ToArray());
         }
 

@@ -64,8 +64,6 @@ namespace Examine.LuceneEngine.Providers
             AutomaticallyOptimize = true;
             RunAsync = async;
 
-            //ensure it exists
-            CreateIndex(false);
         }
 
         #endregion
@@ -149,7 +147,6 @@ namespace Examine.LuceneEngine.Providers
 
                         //get the index criteria and ensure folder
                         IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
-                        VerifyFolder(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
 
                         //now set the index folders
                         WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
@@ -177,7 +174,6 @@ namespace Examine.LuceneEngine.Providers
 
                     //get the index criteria and ensure folder
                     IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
-                    VerifyFolder(IndexSets.Instance.Sets[IndexSetName].IndexDirectory);
 
                     //now set the index folders
                     WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
@@ -204,9 +200,6 @@ namespace Examine.LuceneEngine.Providers
             {
                 RunAsync = bool.Parse(config["runAsync"]);
             }
-
-            //ensure an index exists
-            CreateIndex(false);
 
             CommitCount = 0;
 
@@ -274,6 +267,8 @@ namespace Examine.LuceneEngine.Providers
         /// Used to cancel the async operation
         /// </summary>
         private volatile bool _isCancelling = false;
+
+        private bool _hasIndex = false;
 
         #endregion
 
@@ -513,13 +508,7 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Provider implementation
-
-        /// <summary>
-        /// Determines if the manager will call the indexing methods when content is saved or deleted as
-        /// opposed to cache being updated.
-        /// </summary>
-        /// <value></value>
-        public override bool SupportUnpublishedContent { get; protected set; }
+        
 
         /// <summary>
         /// Forces a particular XML node to be reindexed
@@ -543,8 +532,10 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
-        public void CreateIndex(bool forceOverwrite)
+        public void EnsureIndex(bool forceOverwrite)
         {
+            if (!forceOverwrite && _hasIndex) return;
+
             IndexWriter writer = null;
             try
             {
@@ -570,6 +561,7 @@ namespace Examine.LuceneEngine.Providers
             finally
             {
                 CloseWriter(ref writer);
+                _hasIndex = true;
             }
 
         }
@@ -580,7 +572,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>This will completely delete the index and recreate it</remarks>
         public override void RebuildIndex()
         {
-            CreateIndex(true);
+            EnsureIndex(true);
 
             //call abstract method
             PerformIndexRebuild();
@@ -655,8 +647,6 @@ namespace Examine.LuceneEngine.Providers
                         IndexWriter writer = null;
                         try
                         {
-                            VerifyFolder(LuceneIndexFolder);
-
                             if (!IndexExists())
                                 return;
 
@@ -764,7 +754,7 @@ namespace Examine.LuceneEngine.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-        public virtual bool IndexExists()
+        public bool IndexExists()
         {
             return IndexReader.IndexExists(GetLuceneDirectory());
         }
@@ -1209,11 +1199,18 @@ namespace Examine.LuceneEngine.Providers
 			};
         }
 
+        protected virtual void OnSafelyProcessQueueItems(ConcurrentQueue<IndexOperation> queueItems, bool isIndexing)
+        {
+            
+        }
+
         /// <summary>
         /// Process all of the queue items
         /// </summary>
         protected internal void SafelyProcessQueueItems()
-        {           
+        {
+            OnSafelyProcessQueueItems(_indexQueue, _isIndexing);
+
             if (!RunAsync)
             {
                 StartIndexing();
@@ -1413,6 +1410,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         public virtual IndexWriter GetIndexWriter()
         {
+            EnsureIndex(false);
             return new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
         }
 

@@ -18,7 +18,7 @@ namespace UmbracoExamine.Azure
         /// </summary>
         static AzureSearcher()
         {
-            AzureSetupExtensions.EnsureAzureConfig();
+            AzureExtensions.EnsureAzureConfig();
         }
 
         /// <summary>
@@ -52,5 +52,6 @@ namespace UmbracoExamine.Azure
         {
             return this.GetAzureDirectory();
         }
+
     }
 }

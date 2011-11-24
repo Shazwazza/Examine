@@ -15,6 +15,38 @@ using UmbracoExamine.DataServices;
 
 namespace UmbracoExamine.Azure
 {
+    public class UmbracoAzureDataService : UmbracoDataService
+    {
+        public UmbracoAzureDataService()
+        {
+            //overwrite the log service
+            LogService = new UmbracoAzureLogService();
+        }
+    }
+
+    public class UmbracoAzureLogService : ILogService
+    {
+        public string ProviderName { get; set; }
+
+        public void AddErrorLog(int nodeId, string msg)
+        {
+            AzureExtensions.LogExceptionFile(ProviderName, new IndexingErrorEventArgs(msg, nodeId, null));
+        }
+
+        public void AddInfoLog(int nodeId, string msg)
+        {
+            AzureExtensions.LogMessageFile("[UmbracoExamine] (" + ProviderName + ")" + msg + ". " + nodeId);
+        }
+
+        public void AddVerboseLog(int nodeId, string msg)
+        {
+            if (LogLevel == LoggingLevel.Verbose)
+                AzureExtensions.LogMessageFile("[UmbracoExamine] (" + ProviderName + ")" + msg + ". " + nodeId);
+        }
+
+        public LoggingLevel LogLevel { get; set; }
+    }
+
     public class AzureContentIndexer : UmbracoContentIndexer, IAzureCatalogue
     {
         /// <summary>
@@ -22,7 +54,7 @@ namespace UmbracoExamine.Azure
         /// </summary>
         static AzureContentIndexer()
         {
-            AzureSetupExtensions.EnsureAzureConfig();
+            AzureExtensions.EnsureAzureConfig();
         }
 
         /// <summary>
@@ -42,18 +74,32 @@ namespace UmbracoExamine.Azure
         public AzureContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, dataService, analyzer, async)
         {
-
+            
         }
 
         public string Catalogue { get; private set; }
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
-        {            
+        {
+            if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
+            {
+                //this should be a fully qualified type
+                var serviceType = Type.GetType(config["dataService"]);
+                DataService = (IDataService)Activator.CreateInstance(serviceType);
+            }
+            else if (DataService == null)
+            {
+                //By default, we will be using the UmbracoAzureDataService
+                DataService = new UmbracoAzureDataService();
+            }
+
             base.Initialize(name, config);
 
             this.SetOptimizationThresholdOnInit(config);
             var indexSet = IndexSets.Instance.Sets[IndexSetName];
             Catalogue = indexSet.IndexPath;
+
+            AzureExtensions.LogMessageFile(string.Format("Azure Indexer {0} initialized with cataloge {1}", name, Catalogue));
         }
 
         private Lucene.Net.Store.Directory _directory;
@@ -65,6 +111,12 @@ namespace UmbracoExamine.Azure
         public override Lucene.Net.Index.IndexWriter GetIndexWriter()
         {
             return this.GetAzureIndexWriter();
+        }
+
+        protected override void OnIndexingError(IndexingErrorEventArgs e)
+        {
+            AzureExtensions.LogExceptionFile(Name, e);
+            base.OnIndexingError(e);
         }
 
     }

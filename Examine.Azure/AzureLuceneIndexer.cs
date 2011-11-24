@@ -19,7 +19,7 @@ namespace Examine.Azure
         /// </summary>
         static AzureLuceneIndexer()
         {
-            AzureSetupExtensions.EnsureAzureConfig();
+            AzureExtensions.EnsureAzureConfig();
         }
 
         /// <summary>
@@ -44,7 +44,6 @@ namespace Examine.Azure
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
-
             this.SetOptimizationThresholdOnInit(config);
             var indexSet = IndexSets.Instance.Sets[IndexSetName];
             Catalogue = indexSet.IndexPath;
@@ -64,6 +63,12 @@ namespace Examine.Azure
         public override Lucene.Net.Index.IndexWriter GetIndexWriter()
         {
             return this.GetAzureIndexWriter();
+        }
+
+        protected override void OnIndexingError(IndexingErrorEventArgs e)
+        {
+            AzureExtensions.LogExceptionFile(Name, e);
+            base.OnIndexingError(e);
         }
 
     }

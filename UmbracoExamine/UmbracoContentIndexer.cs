@@ -247,6 +247,23 @@ namespace UmbracoExamine
         }
 
         /// <summary>
+        /// Overridden for logging.
+        /// </summary>
+        /// <param name="queueItems"></param>
+        /// <param name="isIndexing"></param>
+        protected override void OnSafelyProcessQueueItems(System.Collections.Concurrent.ConcurrentQueue<IndexOperation> queueItems, bool isIndexing)
+        {
+            DataService.LogService.AddVerboseLog(-1, "OnSafelyProcessQueueItems. items = " + queueItems.Count + ", isIndexing = " + isIndexing);
+            base.OnSafelyProcessQueueItems(queueItems, isIndexing);
+        }
+      
+        public override void RebuildIndex()
+        {
+            DataService.LogService.AddVerboseLog(-1, "Rebuilding index");
+            base.RebuildIndex();
+        }
+
+        /// <summary>
         /// Override this method to strip all html from all user fields before raising the event, then after the event 
         /// ensure our special Path field is added to the collection
         /// </summary>

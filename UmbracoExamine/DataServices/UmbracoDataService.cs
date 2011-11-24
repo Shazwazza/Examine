@@ -10,11 +10,11 @@ namespace UmbracoExamine.DataServices
             ContentService = new UmbracoContentService();
             MediaService = new UmbracoMediaService();
             LogService = new UmbracoLogService();
-        }
+        }        
 
-        public IContentService ContentService { get; private set; }
-        public IMediaService MediaService { get; private set; }
-        public ILogService LogService { get; private set; }
+        public IContentService ContentService { get; protected set; }
+        public IMediaService MediaService { get; protected set; }
+        public ILogService LogService { get; protected set; }
 
         public string MapPath(string virtualPath)
         {

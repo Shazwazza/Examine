@@ -19,7 +19,7 @@ namespace Examine.Azure
         /// </summary>
         static SimpleAzureLuceneIndexer()
         {
-            AzureSetupExtensions.EnsureAzureConfig();
+            AzureExtensions.EnsureAzureConfig();
         }
 
         /// <summary>
