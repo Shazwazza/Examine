@@ -76,6 +76,8 @@ namespace Examine.Providers
         /// </summary>
         public IIndexCriteria IndexerData { get; set; }
 
+        public abstract bool IndexExists();
+
         #endregion
 
         #region Events

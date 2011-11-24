@@ -71,7 +71,6 @@ namespace UmbracoExamine.Azure
             var indexSet = IndexSets.Instance.Sets[IndexSetName];
             Catalogue = indexSet.IndexPath;
 
-            AzureExtensions.LogMessageFile(string.Format("Azure Indexer {0} initialized with cataloge {1}", name, Catalogue));
         }
 
         private Lucene.Net.Store.Directory _directory;

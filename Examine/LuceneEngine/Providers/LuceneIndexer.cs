@@ -754,7 +754,7 @@ namespace Examine.LuceneEngine.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-        public bool IndexExists()
+        public override bool IndexExists()
         {
             return IndexReader.IndexExists(GetLuceneDirectory());
         }
@@ -1307,7 +1307,7 @@ namespace Examine.LuceneEngine.Providers
 
                 //create an in memory snapshot of the index now so we can use that to internally search to see if we 
                 //need to delete from the master index.
-                inMemorySearcher = new LuceneMemorySearcher(WorkingFolder, IndexingAnalyzer);
+                inMemorySearcher = new LuceneMemorySearcher(GetLuceneDirectory(), IndexingAnalyzer);
 
                 IndexOperation item;
                 while (_indexQueue.TryDequeue(out item))

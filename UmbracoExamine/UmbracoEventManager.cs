@@ -39,8 +39,6 @@ namespace UmbracoExamine
             if (registeredProviders == 0)
                 return;
 
-            EnsureIndexesExist();
-
             Media.AfterSave += Media_AfterSave;
             Media.AfterDelete += Media_AfterDelete;
             CMSNode.AfterMove += Media_AfterMove;
@@ -56,29 +54,6 @@ namespace UmbracoExamine
             Member.AfterSave += Member_AfterSave;
             Member.AfterDelete += Member_AfterDelete;
         }
-
-        /// <summary>
-        /// This makes sure the Lucene indexes themselves exist and rebuilds them on app startup if none are there.
-        /// </summary>
-        private void EnsureIndexesExist()
-        {
-            if (!ExamineSettings.Instance.RebuildOnAppStart)
-                return;
-
-            foreach(var indexSet in ExamineManager.Instance.IndexProviderCollection)
-            {
-                if (indexSet is LuceneIndexer)
-                {
-                    var indexer = (LuceneIndexer)indexSet;
-                    if (!IndexReader.IndexExists(new SimpleFSDirectory(indexer.LuceneIndexFolder)))
-                    {
-                        indexer.RebuildIndex();
-                        return;
-                    }
-                }
-            }
-        }
-
 
         //This does work, however we need to lock down the httphandler and thats an issue... so i've removed thsi
         //if people don't want to rebuild on app startup then they can disable it and reindex manually.

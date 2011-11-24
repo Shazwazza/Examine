@@ -2,6 +2,7 @@ using System.IO;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -10,6 +11,8 @@ namespace Examine.LuceneEngine.Providers
     /// </summary>
     public class LuceneMemorySearcher : LuceneSearcher
     {
+        private readonly Directory _luceneDirectory;
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -20,16 +23,17 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
-        /// <param name="workingFolder"></param>
+        /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
-        public LuceneMemorySearcher(DirectoryInfo workingFolder, Analyzer analyzer)
-            : base(workingFolder, analyzer)
+        public LuceneMemorySearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
         {
+            _luceneDirectory = new RAMDirectory(luceneDirectory);;
+            IndexingAnalyzer = analyzer;
         }
 
         protected override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
-            return new RAMDirectory(new SimpleFSDirectory(LuceneIndexFolder));
+            return _luceneDirectory;
         }
 
         private IndexSearcher _searcher;

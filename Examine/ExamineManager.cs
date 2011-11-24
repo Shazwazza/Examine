@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration.Provider;
+using System.Linq;
 using System.Web.Configuration;
 using System.Xml.Linq;
 using Examine.Config;
+using Examine.LuceneEngine.Providers;
 using Examine.Providers;
 using Examine.SearchCriteria;
 using System.Web;
+using Lucene.Net.Index;
+using Lucene.Net.Store;
 
 namespace Examine
 {
@@ -51,16 +55,17 @@ namespace Examine
         /// </summary>
         public IndexProviderCollection IndexProviderCollection { get; private set; }
 
+        private volatile bool _providersInit = false;
+
         private void LoadProviders()
         {
-            if (IndexProviderCollection == null)
+            if (!_providersInit)
             {
                 lock (_lock)
                 {
                     // Do this again to make sure _provider is still null
-                    if (IndexProviderCollection == null)
+                    if (!_providersInit)
                     {
-
                         // Load registered providers and point _provider to the default provider	
 
                         IndexProviderCollection = new IndexProviderCollection();
@@ -75,6 +80,21 @@ namespace Examine
 
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
+
+                        _providersInit = true;
+
+
+                        //check if we need to rebuild on startup
+                        if (ExamineSettings.Instance.RebuildOnAppStart)
+                        {
+                            foreach (var index in IndexProviderCollection.Cast<IIndexer>())
+                            {
+                                if (!index.IndexExists())
+                                {
+                                    index.RebuildIndex();
+                                }
+                            }    
+                        }
 
                     }
                 }
@@ -153,7 +173,7 @@ namespace Examine
         /// <summary>
         /// Deletes index for node for all providers
         /// </summary>
-        /// <param name="node"></param>
+        /// <param name="nodeId"></param>
         public void DeleteFromIndex(string nodeId)
         {
             _DeleteFromIndex(nodeId, IndexProviderCollection);
@@ -200,6 +220,11 @@ namespace Examine
             {
                 throw new NotImplementedException();
             }
+        }
+
+        public bool IndexExists()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

@@ -46,5 +46,10 @@ namespace Examine
         /// <value>The indexer data.</value>
         IIndexCriteria IndexerData { get; set; }
 
+        /// <summary>
+        /// determines whether the index exsists or not
+        /// </summary>
+        bool IndexExists();
+
     }
 }
