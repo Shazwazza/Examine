@@ -26,7 +26,11 @@ namespace UmbracoExamine.Azure
         /// Default constructor
         /// </summary>
         public AzureMemberIndexer()
-            : base() { }
+            : base()
+        {
+            //By default, we will be using the UmbracoAzureDataService
+            DataService = new UmbracoAzureDataService();
+        }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -46,6 +50,18 @@ namespace UmbracoExamine.Azure
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
+            if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
+            {
+                //this should be a fully qualified type
+                var serviceType = Type.GetType(config["dataService"]);
+                DataService = (IDataService)Activator.CreateInstance(serviceType);
+            }
+            else if (DataService == null)
+            {
+                //By default, we will be using the UmbracoAzureDataService
+                DataService = new UmbracoAzureDataService();
+            }
+
             base.Initialize(name, config);
 
             this.SetOptimizationThresholdOnInit(config);

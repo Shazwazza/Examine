@@ -1199,17 +1199,11 @@ namespace Examine.LuceneEngine.Providers
 			};
         }
 
-        protected virtual void OnSafelyProcessQueueItems(ConcurrentQueue<IndexOperation> queueItems, bool isIndexing)
-        {
-            
-        }
-
         /// <summary>
         /// Process all of the queue items
         /// </summary>
         protected internal void SafelyProcessQueueItems()
         {
-            OnSafelyProcessQueueItems(_indexQueue, _isIndexing);
 
             if (!RunAsync)
             {
@@ -1307,8 +1301,10 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
+
                 inMemoryWriter = GetNewInMemoryWriter();
                 realWriter = GetIndexWriter();
+
                 //create an in memory snapshot of the index now so we can use that to internally search to see if we 
                 //need to delete from the master index.
                 inMemorySearcher = new LuceneMemorySearcher(WorkingFolder, IndexingAnalyzer);
@@ -1316,7 +1312,6 @@ namespace Examine.LuceneEngine.Providers
                 IndexOperation item;
                 while (_indexQueue.TryDequeue(out item))
                 {
-                    //Debug.WriteLine("Examine: Indexing : " + item.Item.Id + " op = " + item.Operation.ToString());
 
                     switch (item.Operation)
                     {
@@ -1347,8 +1342,10 @@ namespace Examine.LuceneEngine.Providers
                     }
                 }
 
+
                 inMemoryWriter.Commit(); //commit changes!
                 realWriter.Commit(); //commit the changes (this will process the deletes)
+
 
                 //merge the index into the 'real' one
                 realWriter.AddIndexesNoOptimize(new[] { inMemoryWriter.GetDirectory() });

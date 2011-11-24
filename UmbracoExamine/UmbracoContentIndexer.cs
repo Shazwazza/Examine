@@ -163,19 +163,19 @@ namespace UmbracoExamine
 
         protected override void OnNodeIndexed(IndexedNodeEventArgs e)
         {
-            DataService.LogService.AddVerboseLog(e.NodeId, string.Format("({0}) Index created for node", this.Name));
+            DataService.LogService.AddVerboseLog(e.NodeId, string.Format("Index created for node"));
             base.OnNodeIndexed(e);
         }
 
         protected override void OnIndexDeleted(DeleteIndexEventArgs e)
         {
-            DataService.LogService.AddVerboseLog(-1, string.Format("({0}) Index deleted for term: {1} with value {2}", this.Name, e.DeletedTerm.Key, e.DeletedTerm.Value));
+            DataService.LogService.AddVerboseLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value));
             base.OnIndexDeleted(e);
         }
 
         protected override void OnIndexOptimizing(EventArgs e)
         {
-            DataService.LogService.AddInfoLog(-1, string.Format("({0}) Index is being optimized", this.Name));
+            DataService.LogService.AddInfoLog(-1, string.Format("Index is being optimized"));
             base.OnIndexOptimizing(e);
         }
 
@@ -194,7 +194,7 @@ namespace UmbracoExamine
             if (!SupportedTypes.Contains(type))
                 return;
 
-            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("({0}) ReIndexNode with type: {1}", this.Name, type));
+            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("ReIndexNode with type: {0}", type));
             base.ReIndexNode(node, type);
         }
 
@@ -215,7 +215,7 @@ namespace UmbracoExamine
             var filtered = c.RawQuery(rawQuery);
             var results = InternalSearcher.Search(filtered);
 
-            DataService.LogService.AddVerboseLog(int.Parse(nodeId), string.Format("({0}) DeleteFromIndex with query: {1} (found {2} results)", this.Name, rawQuery, results.Count()));
+            DataService.LogService.AddVerboseLog(int.Parse(nodeId), string.Format("DeleteFromIndex with query: {0} (found {1} results)", rawQuery, results.Count()));
 
             //need to create a delete queue item for each one found
             foreach (var r in results)
@@ -235,6 +235,7 @@ namespace UmbracoExamine
         #region Protected
 
 
+
         /// <summary>
         /// Overridden for logging.
         /// </summary>
@@ -242,21 +243,10 @@ namespace UmbracoExamine
         /// <param name="type"></param>
         protected override void AddSingleNodeToIndex(XElement node, string type)
         {
-            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("({0}) AddSingleNodeToIndex with type: {1}", this.Name, type));
+            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("AddSingleNodeToIndex with type: {0}", type));
             base.AddSingleNodeToIndex(node, type);
         }
 
-        /// <summary>
-        /// Overridden for logging.
-        /// </summary>
-        /// <param name="queueItems"></param>
-        /// <param name="isIndexing"></param>
-        protected override void OnSafelyProcessQueueItems(System.Collections.Concurrent.ConcurrentQueue<IndexOperation> queueItems, bool isIndexing)
-        {
-            DataService.LogService.AddVerboseLog(-1, "OnSafelyProcessQueueItems. items = " + queueItems.Count + ", isIndexing = " + isIndexing);
-            base.OnSafelyProcessQueueItems(queueItems, isIndexing);
-        }
-      
         public override void RebuildIndex()
         {
             DataService.LogService.AddVerboseLog(-1, "Rebuilding index");

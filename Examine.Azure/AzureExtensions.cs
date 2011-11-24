@@ -37,7 +37,7 @@ namespace Examine.Azure
             errors.CreateIfNotExist();
             var error = errors.GetBlobReference((DateTime.MaxValue - DateTime.UtcNow).Ticks.ToString("d19") + ".txt");
             error.Properties.ContentType = "text/plain";
-            error.UploadText("[UmbracoExamine] (" + providerName + ")" + e.Message + ". NodeId: " + e.NodeId + (e.InnerException == null ? "" : "Exception:" + e.ToString()));
+            error.UploadText("[UmbracoExamine] (" + providerName + ")" + e.Message + ". NodeId: " + e.NodeId + (e.InnerException == null ? "" : "Exception:" + e.Message));
         }
 
         public static void EnsureAzureConfig()
@@ -65,7 +65,9 @@ namespace Examine.Azure
 
         public static IndexWriter GetAzureIndexWriter(this LuceneIndexer indexer)
         {
-            var writer = indexer.GetIndexWriter();
+            indexer.EnsureIndex(false);
+            var writer = new IndexWriter(indexer.GetLuceneDirectory(), indexer.IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+
             writer.SetRAMBufferSizeMB(10.0);
             writer.SetUseCompoundFile(false);
             writer.SetMaxMergeDocs(10000);

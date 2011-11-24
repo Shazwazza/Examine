@@ -15,38 +15,6 @@ using UmbracoExamine.DataServices;
 
 namespace UmbracoExamine.Azure
 {
-    public class UmbracoAzureDataService : UmbracoDataService
-    {
-        public UmbracoAzureDataService()
-        {
-            //overwrite the log service
-            LogService = new UmbracoAzureLogService();
-        }
-    }
-
-    public class UmbracoAzureLogService : ILogService
-    {
-        public string ProviderName { get; set; }
-
-        public void AddErrorLog(int nodeId, string msg)
-        {
-            AzureExtensions.LogExceptionFile(ProviderName, new IndexingErrorEventArgs(msg, nodeId, null));
-        }
-
-        public void AddInfoLog(int nodeId, string msg)
-        {
-            AzureExtensions.LogMessageFile("[UmbracoExamine] (" + ProviderName + ")" + msg + ". " + nodeId);
-        }
-
-        public void AddVerboseLog(int nodeId, string msg)
-        {
-            if (LogLevel == LoggingLevel.Verbose)
-                AzureExtensions.LogMessageFile("[UmbracoExamine] (" + ProviderName + ")" + msg + ". " + nodeId);
-        }
-
-        public LoggingLevel LogLevel { get; set; }
-    }
-
     public class AzureContentIndexer : UmbracoContentIndexer, IAzureCatalogue
     {
         /// <summary>
@@ -61,7 +29,11 @@ namespace UmbracoExamine.Azure
         /// Default constructor
         /// </summary>
         public AzureContentIndexer()
-            : base() { }
+            : base()
+        {
+            //By default, we will be using the UmbracoAzureDataService
+            DataService = new UmbracoAzureDataService();
+        }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
