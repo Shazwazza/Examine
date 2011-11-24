@@ -11,6 +11,7 @@ using Lucene.Net.QueryParsers;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using UmbracoExamine.Azure;
 using UmbracoExamine.DataServices;
 
 namespace UmbracoExamine.PDF.Azure
@@ -32,6 +33,8 @@ namespace UmbracoExamine.PDF.Azure
         {
             SupportedExtensions = new[] { ".pdf" };
             UmbracoFileProperty = "umbracoFile";
+            //By default, we will be using the UmbracoAzureDataService
+            DataService = new UmbracoAzureDataService();
         }
 
         /// <summary>

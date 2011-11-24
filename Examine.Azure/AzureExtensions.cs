@@ -37,7 +37,7 @@ namespace Examine.Azure
             errors.CreateIfNotExist();
             var error = errors.GetBlobReference((DateTime.MaxValue - DateTime.UtcNow).Ticks.ToString("d19") + ".txt");
             error.Properties.ContentType = "text/plain";
-            error.UploadText("[UmbracoExamine] (" + providerName + ")" + e.Message + ". NodeId: " + e.NodeId + (e.InnerException == null ? "" : "Exception:" + e.Message));
+            error.UploadText("[UmbracoExamine] (" + providerName + ")" + e.Message + ". NodeId: " + e.NodeId + (e.InnerException == null ? "" : "Exception:" + e.InnerException.ToString()));
         }
 
         public static void EnsureAzureConfig()
