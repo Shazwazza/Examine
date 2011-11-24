@@ -207,16 +207,13 @@ namespace Examine.Test.Index
             
             var isIndexing = false;
 
-            EventHandler optimizedHandler = (sender, e) =>
+            EventHandler operationComplete = (sender, e) =>
             {
                 isIndexing = false;
             };
 
-            //set to 5 so optmization occurs frequently
-            customIndexer.OptimizationCommitThreshold = 5;
-
             //add the handler for optimized since we know it will be optimized last based on the commit count
-            customIndexer.IndexOptimized += optimizedHandler;
+            customIndexer.IndexOperationComplete += operationComplete;
 
             //remove the normal indexing error handler
             customIndexer.IndexingError -= IndexInitializer.IndexingError;
@@ -250,7 +247,7 @@ namespace Examine.Test.Index
             }
 
             //reset the async mode and remove event handler
-            customIndexer.IndexOptimized -= optimizedHandler;
+            customIndexer.IndexOptimized -= operationComplete;
             customIndexer.IndexingError += IndexInitializer.IndexingError;
             customIndexer.RunAsync = false;
             

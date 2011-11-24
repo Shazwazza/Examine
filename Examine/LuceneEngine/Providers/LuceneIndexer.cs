@@ -436,6 +436,11 @@ namespace Examine.LuceneEngine.Providers
         public event EventHandler IndexOptimized;
 
         /// <summary>
+        /// Fires once an index operation is completed
+        /// </summary>
+        public event EventHandler IndexOperationComplete;
+
+        /// <summary>
         /// Occurs when [document writing].
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
@@ -496,6 +501,12 @@ namespace Examine.LuceneEngine.Providers
                 IndexOptimized(this, e);
         }
 
+        protected virtual void OnIndexOperationComplete(EventArgs e)
+        {
+            if (IndexOperationComplete != null)
+                IndexOperationComplete(this, e);
+        }
+
         /// <summary>
         /// This is here for inheritors to deal with if there's a duplicate entry in the fields dictionary when trying to index.
         /// The system by default just ignores duplicates but this will give inheritors a chance to do something about it (i.e. logging, alerting...)
@@ -516,15 +527,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="node">XML node to reindex</param>
         /// <param name="type">Type of index to use</param>
         public override void ReIndexNode(XElement node, string type)
-        {
-            ////first delete the index for the node
-            //var id = (string)node.Attribute("id");
-            //EnqueueIndexOperation(new IndexOperation()
-            //    {
-            //        Operation = IndexOperationType.Delete,
-            //        Item = new IndexItem(null, "", id)
-            //    });
-            
+        {   
             //now index the single node
             AddSingleNodeToIndex(node, type);
         }
@@ -631,57 +634,39 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// This can be an expensive operation and should only be called when there is no indexing activity
         /// </remarks>
-        public void OptimizeIndex()
+        protected void OptimizeIndex()
         {
-            if (!_isIndexing)
+            IndexWriter writer = null;
+            try
             {
-                lock (_indexerLocker)
+                if (!IndexExists())
+                    return;
+
+                //check if the index is ready to be written to.
+                if (!IndexReady())
                 {
-                    //double check
-                    if (!_isIndexing)
-                    {
-
-                        //set our volatile flag
-                        _isIndexing = true;
-
-                        IndexWriter writer = null;
-                        try
-                        {
-                            if (!IndexExists())
-                                return;
-
-                            //check if the index is ready to be written to.
-                            if (!IndexReady())
-                            {
-                                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null), true);
-                                return;
-                            }
-
-                            writer = GetIndexWriter();
-
-                            OnIndexOptimizing(new EventArgs());
-
-                            //wait for optimization to complete (true)
-                            writer.Optimize(true);
-
-                            OnIndexOptimized(new EventArgs());
-                        }
-                        catch (Exception ex)
-                        {
-                            OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
-                        }
-                        finally
-                        {
-                            //set our volatile flag
-                            _isIndexing = false;
-
-                            CloseWriter(ref writer);
-                        }
-                    }
-
+                    OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null), true);
+                    return;
                 }
-            }
 
+                OnIndexOptimizing(new EventArgs());
+
+                //open the writer for optization
+                writer = GetIndexWriter();
+
+                //wait for optimization to complete (true)
+                writer.Optimize(true);
+
+                OnIndexOptimized(new EventArgs());
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
+            }
+            finally
+            {
+                CloseWriter(ref writer);
+            }
 
         }
 
@@ -1257,6 +1242,8 @@ namespace Examine.LuceneEngine.Providers
 
                         //reset the flag
                         _isIndexing = false;
+
+                        OnIndexOperationComplete(new EventArgs());
                     }
                 }
             }
@@ -1366,8 +1353,7 @@ namespace Examine.LuceneEngine.Providers
             }
             finally
             {
-                //set our volatile flag
-                _isIndexing = false;
+                
                 if (inMemorySearcher != null)
                 {
                     inMemorySearcher.GetSearcher().Close();
