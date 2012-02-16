@@ -46,9 +46,12 @@ namespace Examine.Azure
             Catalogue = indexSet.IndexPath;
         }
 
+        private Lucene.Net.Store.Directory _directory;
+
         protected override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
-            return this.GetAzureDirectory();
+            //always return one instance.
+            return _directory ?? (_directory = this.GetAzureDirectory());
         }
     }
 }

@@ -55,8 +55,10 @@ namespace Examine.Azure
         public string Catalogue { get; private set; }
 
         private Lucene.Net.Store.Directory _directory;
+
         public override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
+            //always return one instance.
             return _directory ?? (_directory = this.GetAzureDirectory());
         }
 
