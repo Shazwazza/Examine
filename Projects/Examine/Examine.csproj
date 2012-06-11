@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Examine</RootNamespace>
+    <AssemblyName>Examine</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Debug\Examine.xml</DocumentationFile>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <DocumentationFile>bin\Release\Examine.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DelaySign>true</DelaySign>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\Solution Items\TheFARM-Public.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net, Version=2.9.4.1, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Lucene.Net.2.9.4.1\lib\net40\Lucene.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
+    <Compile Include="Config\IndexProvidersSection.cs" />
+    <Compile Include="Config\SearchProvidersSection.cs" />
+    <Compile Include="Config\ExamineSettings.cs" />
+    <Compile Include="DeleteIndexEventArgs.cs" />
+    <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="Enforcer.cs" />
+    <Compile Include="IIndexCriteria.cs" />
+    <Compile Include="IIndexField.cs" />
+    <Compile Include="IndexCriteria.cs" />
+    <Compile Include="IndexedNode.cs" />
+    <Compile Include="IndexedNodesEventArgs.cs" />
+    <Compile Include="IndexingErrorEventArgs.cs" />
+    <Compile Include="IndexingFieldDataEventArgs.cs" />
+    <Compile Include="IndexingNodeDataEventArgs.cs" />
+    <Compile Include="IndexingNodeEventArgs.cs" />
+    <Compile Include="IndexingNodesEventArgs.cs" />
+    <Compile Include="IIndexer.cs" />
+    <Compile Include="INodeEventArgs.cs" />
+    <Compile Include="ISearchResults.cs" />
+    <Compile Include="LuceneEngine\AllHitsCollector.cs" />
+    <Compile Include="LuceneEngine\Config\ExamineLuceneIndexes.cs" />
+    <Compile Include="LuceneEngine\Config\IndexField.cs" />
+    <Compile Include="LuceneEngine\Config\IndexFieldCollection.cs" />
+    <Compile Include="LuceneEngine\Config\IndexFieldCollectionExtensions.cs" />
+    <Compile Include="LuceneEngine\Config\IndexSet.cs" />
+    <Compile Include="LuceneEngine\Config\IndexSetCollection.cs" />
+    <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
+    <Compile Include="LuceneEngine\ExamineXmlExtensions.cs" />
+    <Compile Include="LuceneEngine\FieldIndexTypes.cs" />
+    <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
+    <Compile Include="LuceneEngine\ISimpleDataService.cs" />
+    <Compile Include="LuceneEngine\LuceneExtensions.cs" />
+    <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
+    <Compile Include="IndexItem.cs" />
+    <Compile Include="IndexOperation.cs" />
+    <Compile Include="IndexOperationType.cs" />
+    <Compile Include="LuceneEngine\Providers\LuceneIndexer.cs" />
+    <Compile Include="LuceneEngine\Providers\LuceneMemorySearcher.cs" />
+    <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
+    <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />
+    <Compile Include="LuceneEngine\Providers\SimpleDataIndexer.cs" />
+    <Compile Include="LuceneEngine\ReaderStatus.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LuceneBooleanOperation.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchExtensions.cs" />
+    <Compile Include="LuceneEngine\SearchResults.cs" />
+    <Compile Include="LuceneEngine\SimpleDataSet.cs" />
+    <Compile Include="SearchCriteria\BooleanOperation.cs" />
+    <Compile Include="SearchCriteria\DateResolution.cs" />
+    <Compile Include="SearchCriteria\IBooleanOperation.cs" />
+    <Compile Include="SearchCriteria\IQuery.cs" />
+    <Compile Include="SearchCriteria\ISearchCriteria.cs" />
+    <Compile Include="ISearcher.cs" />
+    <Compile Include="ExamineManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IndexedNodeEventArgs.cs" />
+    <Compile Include="SearchCriteria\IExamineValue.cs" />
+    <Compile Include="SearchCriteria\Examineness.cs" />
+    <Compile Include="SearchResult.cs" />
+    <Compile Include="Providers\BaseIndexProvider.cs" />
+    <Compile Include="Providers\BaseSearchProvider.cs" />
+    <Compile Include="Providers\IndexProviderCollection.cs" />
+    <Compile Include="Providers\SearchProviderCollection.cs" />
+    <Compile Include="StringExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="README.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
