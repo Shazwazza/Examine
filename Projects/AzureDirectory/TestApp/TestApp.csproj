@@ -105,12 +105,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AzureDirectory\AzureDirectory.csproj">
-      <Project>{6D8758A7-F910-4BA0-B382-D535CA1FF958}</Project>
-      <Name>AzureDirectory %28AzureDirectory\AzureDirectory%29</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
