@@ -96,6 +96,7 @@
     <Compile Include="SimpleDataProviderTest.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="TestIndexField.cs" />
+    <Compile Include="XmlExtensionsTest.cs" />
     <Compile Include="XsltExtensionsTest.cs" />
   </ItemGroup>
   <ItemGroup>

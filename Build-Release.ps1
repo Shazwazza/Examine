@@ -67,30 +67,30 @@ New-Item $ExamineAzureFolder -Type directory
 New-Item $UmbracoExamineAzureFolder -Type directory
 New-Item $UmbracoExaminePDFAzureFolder -Type directory
 
-$include = @('*Examine*.dll','*Lucene*.dll')
-$CoreExamineBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Examine\bin\Release";
+$include = @('*Examine*.dll','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
+$CoreExamineBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine\bin\Release";
 Copy-Item "$CoreExamineBinFolder\*.dll" -Destination $CoreExamineFolder -Include $include
 
-$UmbExamineBinFolder = Join-Path -Path $SolutionRoot -ChildPath "UmbracoExamine\bin\Release";
+$UmbExamineBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\UmbracoExamine\bin\Release";
 Copy-Item "$UmbExamineBinFolder\*.dll" -Destination $UmbExamineFolder -Include $include
 
 $include = @('UmbracoExamine.PDF.dll','itextsharp.dll')
-$UmbExaminePDFBinFolder = Join-Path -Path $SolutionRoot -ChildPath "UmbracoExamine.PDF\bin\Release";
+$UmbExaminePDFBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\UmbracoExamine.PDF\bin\Release";
 Copy-Item "$UmbExaminePDFBinFolder\*.dll" -Destination $UmbExaminePDFFolder -Include $include
 
-$include = @('*Examine*.dll','*Lucene*.dll', '*Azure*.dll')
-$ExamineAzureBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Examine.Azure\bin\Release";
+$include = @('*Examine*.dll','*Lucene*.dll', '*Azure*.dll','ICSharpCode.SharpZipLib.dll')
+$ExamineAzureBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine.Azure\bin\Release";
 Copy-Item "$ExamineAzureBinFolder\*.dll" -Destination $ExamineAzureFolder -Include $include
 
-$UmbracoExamineAzureBinFolder = Join-Path -Path $SolutionRoot -ChildPath "UmbracoExamine.Azure\bin\Release";
+$UmbracoExamineAzureBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\UmbracoExamine.Azure\bin\Release";
 Copy-Item "$UmbracoExamineAzureBinFolder\*.dll" -Destination $UmbracoExamineAzureFolder -Include $include
 
 $include = @('UmbracoExamine.PDF.Azure.dll','UmbracoExamine.PDF.dll','itextsharp.dll')
-$UmbExaminePDFAzureBinFolder = Join-Path -Path $SolutionRoot -ChildPath "UmbracoExamine.PDF.Azure\bin\Release";
+$UmbExaminePDFAzureBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\UmbracoExamine.PDF.Azure\bin\Release";
 Copy-Item "$UmbExaminePDFAzureBinFolder\*.dll" -Destination $UmbracoExaminePDFAzureFolder -Include $include
 
 
-$ExamineWebDemoFolder = Join-Path -Path $SolutionRoot -ChildPath "Examine.Web.Demo";
+$ExamineWebDemoFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine.Web.Demo";
 Copy-Item "$ExamineWebDemoFolder\*" -Destination $WebExamineFolder -Recurse
 $IndexSet = Join-Path $WebExamineFolder -ChildPath "App_Data\SimpleIndexSet2";
 $include = @('*.sdf','SimpleIndexSet2*')

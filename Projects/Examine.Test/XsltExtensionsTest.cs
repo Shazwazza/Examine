@@ -1,12 +1,11 @@
 ﻿using System.IO;
 using Examine.LuceneEngine.Providers;
-using UmbracoExamine;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Xml.XPath;
 using System.Xml;
-using System.Xml.Linq;
 using System.Linq;
+using UmbracoExamine;
 
 namespace Examine.Test
 {

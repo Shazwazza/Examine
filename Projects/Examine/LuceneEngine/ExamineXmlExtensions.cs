@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
@@ -67,7 +68,7 @@ namespace Examine.LuceneEngine
         /// <returns>Document containing elements</returns>
         public static XDocument ToXDocument(this IEnumerable<XElement> elements)
         {
-            if (elements.Count() > 0)
+            if (elements.Any())
             {
                 return new XDocument(new XElement("nodes", elements));
             }            
@@ -89,8 +90,12 @@ namespace Examine.LuceneEngine
                     //if ever the id is -1 then it's returned the whole tree which means its not found
                     //TODO: This is bug with older umbraco versions, i'm fairly sure it's fixed in new ones
                     //but just in case, we'll keep this here.
-                    if (xml.Current.InnerXml.StartsWith("<root"))
-                        return null;
+                    var tempNav = xml.Current.CreateNavigator();
+                    if (tempNav.MoveToFirstChild())
+                    {
+                        if (tempNav.LocalName == "root")
+                            return null;
+                    }
 
                     return XDocument.Load(xml.Current.ReadSubtree());
                 }

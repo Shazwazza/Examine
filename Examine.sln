@@ -33,6 +33,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureDirectory", "Projects\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "Projects\AzureDirectory\TestApp\TestApp.csproj", "{E18C9E98-AF7F-4D7C-8222-C55DD009C46B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768-6ECD-40EF-84BD-5594670EA7A8}"
+	ProjectSection(SolutionItems) = preProject
+		Build-Release.ps1 = Build-Release.ps1
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
