@@ -55,10 +55,10 @@ namespace UmbracoExamine
             Member.AfterDelete += Member_AfterDelete;
         }
 
-        //This does work, however we need to lock down the httphandler and thats an issue... so i've removed thsi
+        //This does work, however we need to lock down the httphandler and thats an issue... so i've removed this
         //if people don't want to rebuild on app startup then they can disable it and reindex manually.
 
-        void Member_AfterSave(Member sender, SaveEventArgs e)
+        private void Member_AfterSave(Member sender, SaveEventArgs e)
         {
             //ensure that only the providers are flagged to listen execute
             var xml = sender.ToXml(new System.Xml.XmlDocument(), false).ToXElement();
@@ -67,7 +67,7 @@ namespace UmbracoExamine
             ExamineManager.Instance.ReIndexNode(xml, IndexTypes.Member, providers);
         }
 
-        void Member_AfterDelete(Member sender, DeleteEventArgs e)
+        private void Member_AfterDelete(Member sender, DeleteEventArgs e)
         {
             var nodeId = sender.Id.ToString();
 
@@ -77,14 +77,12 @@ namespace UmbracoExamine
                     .Where(x => x.EnableDefaultEventHandler));
         }
 
-
-
         /// <summary>
         /// Only index using providers that SupportUnpublishedContent
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Document_AfterSave(Document sender, SaveEventArgs e)
+        private void Document_AfterSave(Document sender, SaveEventArgs e)
         {
             //ensure that only the providers that have unpublishing support enabled     
             //that are also flagged to listen
@@ -133,7 +131,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Document_AfterDelete(Document sender, DeleteEventArgs e)
+        private void Document_AfterDelete(Document sender, DeleteEventArgs e)
         {
             var nodeId = sender.Id.ToString();
 
@@ -145,7 +143,7 @@ namespace UmbracoExamine
                         && x.EnableDefaultEventHandler));
         }
 
-        void Media_AfterDelete(Media sender, DeleteEventArgs e)
+        private void Media_AfterDelete(Media sender, DeleteEventArgs e)
         {
             var nodeId = sender.Id.ToString();
 
@@ -155,7 +153,7 @@ namespace UmbracoExamine
                     .Where(x => x.EnableDefaultEventHandler));
         }
 
-        void Media_AfterSave(Media sender, umbraco.cms.businesslogic.SaveEventArgs e)
+        private void Media_AfterSave(Media sender, umbraco.cms.businesslogic.SaveEventArgs e)
         {
             //ensure that only the providers are flagged to listen execute
             IndexMedia(sender);
@@ -173,7 +171,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Media_AfterMove(object sender, MoveEventArgs e)
+        private void Media_AfterMove(object sender, MoveEventArgs e)
         {
             if (sender is Media)
             {
@@ -187,7 +185,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void content_AfterUpdateDocumentCache(Document sender, umbraco.cms.businesslogic.DocumentCacheEventArgs e)
+        private void content_AfterUpdateDocumentCache(Document sender, umbraco.cms.businesslogic.DocumentCacheEventArgs e)
         {
             //ensure that only the providers that have DONT unpublishing support enabled       
             //that are also flagged to listen
@@ -202,7 +200,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void content_AfterClearDocumentCache(Document sender, DocumentCacheEventArgs e)
+        private void content_AfterClearDocumentCache(Document sender, DocumentCacheEventArgs e)
         {
             var nodeId = sender.Id.ToString();
             //ensure that only the providers that DONT have unpublishing support enabled           
