@@ -7,7 +7,7 @@ namespace Examine.LuceneEngine
 {
     public class AllHitsCollector : Collector
     {
-        class AllHit
+        public class AllHit
         {
             public AllHit(int docId, float score)
             {
