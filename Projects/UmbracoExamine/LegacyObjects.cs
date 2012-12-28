@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.IO;
 using Examine;
@@ -38,7 +39,9 @@ namespace UmbracoExamine
         [Obsolete]
         public LuceneExamineSearcher()
             : base() { }
-        [Obsolete]
+
+		[SecuritySafeCritical]		
+		[Obsolete]
         public LuceneExamineSearcher(DirectoryInfo indexPath, Analyzer analyzer)
             : base(indexPath, analyzer) { }
 		#endregion
@@ -54,7 +57,9 @@ namespace UmbracoExamine
         [Obsolete]
         public MemberLuceneExamineIndexer()
             : base() { }
-        [Obsolete]
+
+		[SecuritySafeCritical]		
+		[Obsolete]
         public MemberLuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, dataService, analyzer, async) { }
         #endregion
@@ -70,7 +75,9 @@ namespace UmbracoExamine
         [Obsolete]
         public LuceneExamineIndexer()
             : base() { }
-        [Obsolete]
+
+		[SecuritySafeCritical]        
+		[Obsolete]
         public LuceneExamineIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, dataService, analyzer, async) { }
         #endregion
@@ -178,12 +185,14 @@ namespace UmbracoExamine.SearchCriteria
         //    return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Then(examineValue, s);
         //}
         [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
-        public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
+		[SecuritySafeCritical]
+		public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
         {
             return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.ToBooleanOperation(o);
         }
         [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
-        public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
+		[SecuritySafeCritical]
+		public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
         {
             return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.ToLuceneOccurance(o);
         }
@@ -197,7 +206,8 @@ namespace UmbracoExamine.SearchCriteria
     public class LuceneSearchCriteria : Examine.LuceneEngine.SearchCriteria.LuceneSearchCriteria
     {
         [Obsolete]
-        public LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, Examine.SearchCriteria.BooleanOperation occurance)
+		[SecuritySafeCritical]
+		public LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, Examine.SearchCriteria.BooleanOperation occurance)
             : base(type, analyzer, fields, allowLeadingWildcards, occurance) { }
     }
 
@@ -218,7 +228,8 @@ namespace UmbracoExamine.SearchCriteria
     public class LuceneQuery : Examine.LuceneEngine.SearchCriteria.LuceneQuery
     {
         [Obsolete]
-        public LuceneQuery(LuceneSearchCriteria search, Lucene.Net.Search.BooleanClause.Occur occurance)
+		[SecuritySafeCritical]
+		public LuceneQuery(LuceneSearchCriteria search, Lucene.Net.Search.BooleanClause.Occur occurance)
             : base(search, occurance) { }
     }
 }

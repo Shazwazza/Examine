@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Providers;
@@ -15,7 +16,6 @@ namespace Examine.Azure
 {
     public static class AzureExtensions
     {
-
         public static void LogMessageFile(string msg)
         {
             // log all exceptions to blobs

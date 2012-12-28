@@ -9,6 +9,3 @@ using System.Security;
 
 [assembly: AssemblyVersion("0.1.42.2941")]
 [assembly: AssemblyFileVersion("0.1.42.2941")]
-
-[assembly: AllowPartiallyTrustedCallers]
-//[assembly: SecurityRules(SecurityRuleSet.Level1)]

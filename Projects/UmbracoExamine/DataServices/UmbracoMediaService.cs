@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Xml.XPath;
 using System.Xml.Linq;
@@ -24,7 +25,8 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="xpath"></param>
         /// <returns></returns>
-        public XDocument GetLatestMediaByXpath(string xpath)
+		[SecuritySafeCritical]
+		public XDocument GetLatestMediaByXpath(string xpath)
         {
 
             Media[] rootMedia = Media.GetRootMedias();
@@ -37,6 +39,7 @@ namespace UmbracoExamine.DataServices
             return result.ToXDocument();
         }
 
+		[SecuritySafeCritical]
         private XElement GetMediaItem(int nodeId)
         {
             var nodes = umbraco.library.GetMedia(nodeId, true);

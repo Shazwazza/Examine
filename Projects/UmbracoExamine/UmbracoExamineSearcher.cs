@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Security;
 using Examine;
 using Examine.Providers;
 using Examine.SearchCriteria;
@@ -34,7 +35,8 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexPath"></param>
         /// <param name="analyzer"></param>
-        public UmbracoExamineSearcher(DirectoryInfo indexPath, Analyzer analyzer)
+		[SecuritySafeCritical]
+		public UmbracoExamineSearcher(DirectoryInfo indexPath, Analyzer analyzer)
             : base(indexPath, analyzer)
         {
         }

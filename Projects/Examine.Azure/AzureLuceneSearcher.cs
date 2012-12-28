@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
@@ -48,6 +49,7 @@ namespace Examine.Azure
 
         private Lucene.Net.Store.Directory _directory;
 
+		[SecuritySafeCritical]
         protected override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             //always return one instance.

@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System.Security;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -19,3 +20,5 @@ using System.Runtime.CompilerServices;
 [assembly: Guid("31c5b048-cfa8-49b4-8983-bdba0f99eef5")]
 
 [assembly: InternalsVisibleTo("Examine.Test")]
+
+[assembly: AllowPartiallyTrustedCallers]

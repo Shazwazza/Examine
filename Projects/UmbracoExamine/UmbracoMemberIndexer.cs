@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Linq;
+using System.Security;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using umbraco.cms.businesslogic.member;
@@ -31,7 +32,8 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-        public UmbracoMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+		[SecuritySafeCritical]
+		public UmbracoMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, dataService, analyzer, async) { }
 
         /// <summary>
@@ -45,6 +47,7 @@ namespace UmbracoExamine
             }
         }
 
+		[SecuritySafeCritical]
         protected override XDocument GetXDocument(string xPath, string type)
         {
             if (type == IndexTypes.Member)
@@ -74,6 +77,7 @@ namespace UmbracoExamine
             return data;
         }
 
+		[SecuritySafeCritical]
         private XElement GetMemberItem(int nodeId)
         {
             var nodes = umbraco.library.GetMember(nodeId);
