@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Examine;
@@ -38,7 +39,8 @@ namespace UmbracoExamine.PDF
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
         /// <param name="async"></param>
-        public PDFIndexer(DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+		[SecuritySafeCritical]
+		public PDFIndexer(DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(
                 new IndexCriteria(Enumerable.Empty<IIndexField>(), Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null),
                 indexPath, dataService, analyzer, async)
@@ -205,7 +207,8 @@ namespace UmbracoExamine.PDF
             /// <param name="sourcePDF"></param>
             /// <param name="onError"></param>
             /// <returns></returns>
-            public string ParsePdfText(string sourcePDF, Action<Exception> onError)
+			[SecuritySafeCritical]
+			public string ParsePdfText(string sourcePDF, Action<Exception> onError)
             {
                 var sb = new StringBuilder();
 
