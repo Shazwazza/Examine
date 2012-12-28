@@ -108,7 +108,8 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
-        public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
+		[SecuritySafeCritical]
+		public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             return new LuceneSearchCriteria(type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
         }
@@ -160,6 +161,7 @@ namespace Examine.LuceneEngine.Providers
         /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
         /// </summary>
         /// <returns></returns>
+        [SecuritySafeCritical]
         public override ISearchCriteria CreateSearchCriteria()
         {
             return CreateSearchCriteria(string.Empty, BooleanOperation.And);
@@ -173,6 +175,7 @@ namespace Examine.LuceneEngine.Providers
             return CreateSearchCriteria(type, BooleanOperation.And);
         }
 
+		[SecuritySafeCritical]
         public override ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
         {
             return CreateSearchCriteria(string.Empty, defaultOperation);

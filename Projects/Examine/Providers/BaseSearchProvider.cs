@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Configuration.Provider;
 using Examine;
@@ -48,7 +49,8 @@ namespace Examine.Providers
         ///</summary>
         ///<param name="defaultOperation"></param>
         ///<returns></returns>
-        public abstract ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
+		[SecuritySafeCritical]
+		public abstract ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
@@ -56,7 +58,8 @@ namespace Examine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
-        public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
+		[SecuritySafeCritical]
+		public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
 
         #endregion
     }
