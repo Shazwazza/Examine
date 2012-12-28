@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.SearchCriteria;
@@ -35,7 +36,8 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="indexPath"></param>
         /// <param name="analyzer"></param>
-        public MultiIndexSearcher(IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
+		[SecuritySafeCritical]
+		public MultiIndexSearcher(IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
             : base(analyzer)
 		{
             Searchers = indexPath.Select(s => new LuceneSearcher(s, IndexingAnalyzer)).ToList();
@@ -43,10 +45,16 @@ namespace Examine.LuceneEngine.Providers
 
 		#endregion
         
-        ///<summary>
-        /// The underlying LuceneSearchers that will be searched across
-        ///</summary>
-        public IEnumerable<LuceneSearcher> Searchers { get; private set; }
+	    ///<summary>
+	    /// The underlying LuceneSearchers that will be searched across
+	    ///</summary>
+	    public IEnumerable<LuceneSearcher> Searchers
+		{
+			[SecuritySafeCritical]
+		    get;
+			[SecuritySafeCritical]
+			private set;
+	    }
         
         public override void Initialize(string name, NameValueCollection config)
         {
@@ -93,9 +101,16 @@ namespace Examine.LuceneEngine.Providers
         /// Gets the searcher for this instance
         /// </summary>
         /// <returns></returns>
+		[SecuritySafeCritical]
         public override Searcher GetSearcher()
         {
-            return new MultiSearcher(Searchers.Select(x => x.GetSearcher()).ToArray());
+	        var searchables = new List<Searchable>();
+			//NOTE: Do not convert this to Linq as it will fail the Code Analysis because Linq screws with it.
+			foreach(var s in Searchers)
+			{
+				searchables.Add(s.GetSearcher());
+			}
+			return new MultiSearcher(searchables.ToArray());
         }
 
      

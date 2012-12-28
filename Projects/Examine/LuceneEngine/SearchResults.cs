@@ -10,32 +10,7 @@ using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine
 {
-    internal class EmptySearchResults : ISearchResults
-    {
-        private List<ISearchResults>  _emptyResult = new List<ISearchResults>();
-
-        public IEnumerator<SearchResult> GetEnumerator()
-        {
-            return Enumerable.Empty<SearchResult>().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return Enumerable.Empty<SearchResult>().GetEnumerator();
-        }
-
-        public int TotalItemCount
-        {
-            get { return 0; }
-        }
-
-        public IEnumerable<SearchResult> Skip(int skip)
-        {
-            return Enumerable.Empty<SearchResult>();
-        }
-    }
-
-    /// <summary>
+	/// <summary>
     /// An implementation of the search results returned from Lucene.Net
     /// </summary>
     public class SearchResults : ISearchResults
@@ -50,19 +25,32 @@ namespace Examine.LuceneEngine
             return new EmptySearchResults();
         }
 
-        /// <summary>
-        /// Exposes the internal Lucene searcher
-        /// </summary>
-        public Searcher LuceneSearcher { get; private set; }
+	    /// <summary>
+	    /// Exposes the internal Lucene searcher
+	    /// </summary>
+	    public Searcher LuceneSearcher
+	    {
+			[SecuritySafeCritical]
+			get;
+			[SecuritySafeCritical]
+			private set;
+	    }
 
-        /// <summary>
-        /// Exposes the internal lucene query to run the search
-        /// </summary>
-        public Query LuceneQuery { get; private set; }
+	    /// <summary>
+	    /// Exposes the internal lucene query to run the search
+	    /// </summary>
+	    public Query LuceneQuery
+	    {
+			[SecuritySafeCritical]
+			get;
+			[SecuritySafeCritical]
+			private set;
+	    }
 
 
         private AllHitsCollector _collector;
 
+		[SecuritySafeCritical]
         internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
         {
             LuceneQuery = query;
@@ -71,6 +59,7 @@ namespace Examine.LuceneEngine
             DoSearch(query, sortField);
         }
 
+		[SecuritySafeCritical]
         private void DoSearch(Query query, IEnumerable<SortField> sortField)
         {
             //This try catch is because analyzers strip out stop words and sometimes leave the query
@@ -155,6 +144,18 @@ namespace Examine.LuceneEngine
             return sr;
         }
 
+		//NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
+		// at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
+		[SecuritySafeCritical]
+		private SearchResult CreateFromDocumentItem(int i)
+		{
+			var docId = _collector.GetDocId(i);
+			var doc = LuceneSearcher.Doc(docId);
+			var score = _collector.GetDocScore(i);
+			var result = CreateSearchResult(doc, score);
+			return result;
+		}
+
         /// <summary>
         /// Skips to a particular point in the search results.
         /// </summary>
@@ -163,24 +164,23 @@ namespace Examine.LuceneEngine
         /// </remarks>
         /// <param name="skip">The number of items in the results to skip.</param>
         /// <returns>A collection of the search results</returns>
-        public IEnumerable<SearchResult> Skip(int skip)
+		[SecuritySafeCritical]
+		public IEnumerable<SearchResult> Skip(int skip)
         {
             for (int i = skip; i < this.TotalItemCount; i++)
             {
                 //first check our own cache to make sure it's not there
                 if (!Docs.ContainsKey(i))
                 {
-                    var docId = _collector.GetDocId(i);
-                    var doc = LuceneSearcher.Doc(docId);
-                    var score = _collector.GetDocScore(i);
-
-                    Docs.Add(i, CreateSearchResult(doc, score));
+	                var r = CreateFromDocumentItem(i);                    
+                    Docs.Add(i, r);
                 }
                 //using yield return means if the user breaks out we wont keep going
                 //only load what we need to load!
                 //and we'll get it from our cache, this means you can go 
                 //forward/ backwards without degrading performance
-                yield return Docs[i];
+	            var result = Docs[i];
+                yield return result;
             }
         }
 

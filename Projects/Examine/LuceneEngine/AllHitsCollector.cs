@@ -6,6 +6,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine
 {
+	[SecurityCritical]
     public class AllHitsCollector : Collector
     {
         public class AllHit
@@ -45,11 +46,13 @@ namespace Examine.LuceneEngine
             }
         }
 
+		[SecurityCritical]
         public override bool AcceptsDocsOutOfOrder()
         {
             return this.outOfOrder;
         }
 
+		[SecurityCritical]
         public override void Collect(int doc)
         {
             //this will be called for each document that is matched in the query
@@ -62,11 +65,13 @@ namespace Examine.LuceneEngine
             hits.Add(new AllHit(doc, score));
         }
 
+		[SecurityCritical]
         public override void SetNextReader(IndexReader reader, int docBase)
         {
             this.docBase = docBase;
         }
 
+		[SecurityCritical]
         public override void SetScorer(Scorer scorer)
         {
             this.scorer = scorer;

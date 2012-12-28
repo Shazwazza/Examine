@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security;
 using Examine.SearchCriteria;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
@@ -102,7 +103,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="s">The string to wildcard.</param>
         /// <returns>An IExamineValue for the required operation</returns>
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
-        public static IExamineValue Escape(this string s)
+		[SecuritySafeCritical]
+		public static IExamineValue Escape(this string s)
         {
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
@@ -139,7 +141,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The operation.</param>
         /// <returns>The translated Boolean operation</returns>
-        public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
+		[SecuritySafeCritical]
+		public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
         {
             switch (o)
             {
@@ -158,7 +161,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The occurrence to translate.</param>
         /// <returns>The translated boolean occurrence</returns>
-        public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
+		[SecuritySafeCritical]
+		public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
         {
             if (o == BooleanClause.Occur.MUST)
             {

@@ -11,4 +11,4 @@ using System.Security;
 [assembly: AssemblyFileVersion("0.1.42.2941")]
 
 [assembly: AllowPartiallyTrustedCallers]
-[assembly: SecurityRules(SecurityRuleSet.Level1)]
+//[assembly: SecurityRules(SecurityRuleSet.Level1)]

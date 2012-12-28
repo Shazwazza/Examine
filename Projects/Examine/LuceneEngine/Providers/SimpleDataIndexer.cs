@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using Examine.LuceneEngine;
 using Examine;
@@ -33,7 +34,8 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="dataService"></param>
         /// <param name="indexTypes"></param>
         /// <param name="async"></param>
-        public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
+		[SecuritySafeCritical]
+		public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
             : base(indexerData, workingFolder, analyzer, async)
         {
             DataService = dataService;

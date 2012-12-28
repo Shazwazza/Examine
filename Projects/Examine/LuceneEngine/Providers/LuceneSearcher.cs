@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Security;
 using Examine;
 using Examine.SearchCriteria;
 using Lucene.Net.Index;
@@ -34,6 +35,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
+		[SecuritySafeCritical]
         public LuceneSearcher(DirectoryInfo workingFolder, Analyzer analyzer)
             : base(analyzer)
 		{
@@ -138,6 +140,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Ensures the index exists exists
         /// </summary>
+		[SecuritySafeCritical]
         public virtual void EnsureIndex()
         {
             if (_hasIndex) return;
@@ -205,6 +208,7 @@ namespace Examine.LuceneEngine.Providers
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
         /// <returns></returns>
+		[SecuritySafeCritical]
         public override Searcher GetSearcher()
         {
             ValidateSearcher(false);
@@ -218,6 +222,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns a list of fields to search on
         /// </summary>
         /// <returns></returns>
+		[SecuritySafeCritical]
         protected override internal string[] GetSearchFields()
         {
             ValidateSearcher(false);
@@ -231,6 +236,7 @@ namespace Examine.LuceneEngine.Providers
             return searchFields;
         }
 
+		[SecuritySafeCritical]
         protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             return new SimpleFSDirectory(LuceneIndexFolder);
@@ -247,6 +253,7 @@ namespace Examine.LuceneEngine.Providers
         /// This checks if the singleton IndexSearcher is initialized and up to date.
         /// </summary>
         /// <param name="forceReopen"></param>
+		[SecuritySafeCritical]
         private void ValidateSearcher(bool forceReopen)
         {
             EnsureIndex();

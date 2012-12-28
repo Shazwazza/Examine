@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
@@ -13,12 +14,13 @@ namespace Examine.LuceneEngine
     /// </summary>
     public static class LuceneExtensions
     {
-
+		[SecuritySafeCritical]
         public static ReaderStatus GetReaderStatus(this IndexSearcher searcher)
         {
             return searcher.GetIndexReader().GetReaderStatus();
         }        
 
+		[SecuritySafeCritical]
         public static ReaderStatus GetReaderStatus(this IndexReader reader)
         {
             ReaderStatus status = ReaderStatus.NotCurrent;

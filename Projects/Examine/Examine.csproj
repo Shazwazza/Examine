@@ -50,7 +50,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SecurityRules.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\Examine.xml</DocumentationFile>
     <RunCodeAnalysis>true</RunCodeAnalysis>
@@ -125,6 +125,7 @@
     <Compile Include="LuceneEngine\Config\IndexSet.cs" />
     <Compile Include="LuceneEngine\Config\IndexSetCollection.cs" />
     <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
+    <Compile Include="LuceneEngine\EmptySearchResults.cs" />
     <Compile Include="LuceneEngine\ExamineXmlExtensions.cs" />
     <Compile Include="LuceneEngine\FieldIndexTypes.cs" />
     <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
