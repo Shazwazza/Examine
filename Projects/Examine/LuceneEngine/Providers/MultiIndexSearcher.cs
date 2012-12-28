@@ -39,9 +39,15 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
 		public MultiIndexSearcher(IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
             : base(analyzer)
-		{
-            Searchers = indexPath.Select(s => new LuceneSearcher(s, IndexingAnalyzer)).ToList();
-		}
+        {
+	        var searchers = new List<LuceneSearcher>();
+			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
+			foreach (var ip in indexPath)
+			{
+				searchers.Add(new LuceneSearcher(ip, IndexingAnalyzer));
+			}
+	        Searchers = searchers;
+        }
 
 		#endregion
         
