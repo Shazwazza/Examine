@@ -6,9 +6,9 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine
 {
-    class AllHitsCollector : Collector
+    public class AllHitsCollector : Collector
     {
-        class AllHit
+        public class AllHit
         {
             public AllHit(int docId, float score)
             {
