@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 

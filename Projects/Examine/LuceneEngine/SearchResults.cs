@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using Examine;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
@@ -127,6 +128,7 @@ namespace Examine.LuceneEngine
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
+		[SecuritySafeCritical]
         protected SearchResult CreateSearchResult(Document doc, float score)
         {
             string id = doc.Get("id");

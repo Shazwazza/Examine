@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.IO;
+using System.Security;
 using System.Text;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
@@ -31,6 +32,7 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="analyzer"></param>
+		[SecuritySafeCritical]
         protected BaseLuceneSearcher(Analyzer analyzer)
 		{           
             IndexingAnalyzer = analyzer;
@@ -43,10 +45,16 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public bool EnableLeadingWildcards { get; set; }
 
-        /// <summary>
-        /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
-        /// </summary>
-        public Analyzer IndexingAnalyzer { get; protected internal set; }
+	    /// <summary>
+	    /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
+	    /// </summary>
+	    public Analyzer IndexingAnalyzer
+	    {
+			[SecuritySafeCritical]
+		    get;
+			[SecuritySafeCritical]
+			protected internal set;
+	    }
 
         /// <summary>
         /// Initializes the provider.
@@ -62,6 +70,7 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
+		[SecuritySafeCritical]
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -90,6 +99,7 @@ namespace Examine.LuceneEngine.Providers
         /// returns the underlying Lucene searcher
         ///</summary>
         ///<returns></returns>
+		[SecuritySafeCritical]
         public abstract Searcher GetSearcher();
 
         /// <summary>
@@ -131,6 +141,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="searchParams"></param>
         /// <returns></returns>
+        [SecuritySafeCritical]
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
             var searcher = GetSearcher();
