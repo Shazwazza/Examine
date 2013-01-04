@@ -83,6 +83,15 @@
     <Compile Include="DataServices\TestMediaService.cs" />
     <Compile Include="DataServices\TestSimpleDataProvider.cs" />
     <Compile Include="Index\EventsTest.cs" />
+    <Compile Include="PartialTrust\AbstractPartialTrustFixture.cs" />
+    <Compile Include="PartialTrust\ExpressionHelper.cs" />
+    <Compile Include="PartialTrust\IPartialTrustFixture.cs" />
+    <Compile Include="PartialTrust\LambdaExpressionCacheKey.cs" />
+    <Compile Include="PartialTrust\PartialTrustFixtureFixture.cs" />
+    <Compile Include="PartialTrust\PartialTrustHelper.cs" />
+    <Compile Include="PartialTrust\PartialTrustHelperFixture.cs" />
+    <Compile Include="PartialTrust\PartialTrustTestException.cs" />
+    <Compile Include="PartialTrust\TestOnlyInFullTrustAttribute.cs" />
     <Compile Include="Search\DataTypeTests.cs" />
     <Compile Include="Index\PDFIndexerTests.cs" />
     <Compile Include="Search\FluentApiTests.cs" />

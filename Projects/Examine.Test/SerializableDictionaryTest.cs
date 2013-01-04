@@ -5,6 +5,7 @@ using System;
 using System.Xml;
 using System.Text;
 using System.Collections.Generic;
+using Examine.Test.PartialTrust;
 using NUnit.Framework;
 
 namespace Examine.Test
@@ -16,7 +17,7 @@ namespace Examine.Test
     ///to contain all SerializableDictionaryTest Unit Tests
     ///</summary>
     [TestFixture]
-    public class SerializableDictionaryTest
+    public class SerializableDictionaryTest : AbstractPartialTrustFixture<SerializableDictionaryTest>
     {
 
         [Test]
@@ -119,6 +120,13 @@ namespace Examine.Test
             Assert.AreNotEqual(target["Email"], result["Email"]);
         }
 
-      
+
+	    public override void TestSetup()
+	    {
+	    }
+
+	    public override void TestTearDown()
+	    {
+	    }
     }
 }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
+using Examine.Test.PartialTrust;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 using UmbracoExamine;
@@ -21,7 +22,7 @@ namespace Examine.Test.Index
     /// Tests the standard indexing capabilities
     /// </summary>
     [TestFixture]
-    public class IndexTest
+	public class IndexTest : AbstractPartialTrustFixture<IndexTest>
     {
 
         ///// <summary>
@@ -423,10 +424,7 @@ namespace Examine.Test.Index
 
         #region Initialize and Cleanup
 
-        private static bool IsInitialized = false;
-
-        [TearDown]
-        public void TestCleanup()
+	    public override void TestTearDown()
         {
             //set back to 100
             _indexer.OptimizationCommitThreshold = 100;
@@ -434,9 +432,8 @@ namespace Examine.Test.Index
 			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
 			TestHelper.CleanupFolder(newIndexFolder.Parent);
         }
-        
-        [SetUp]
-        public void Initialize()
+
+		public override void TestSetup()
         {
             //if (IsInitialized)
             //    return;

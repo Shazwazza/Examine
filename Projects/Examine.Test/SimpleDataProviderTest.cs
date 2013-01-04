@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Test.PartialTrust;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
@@ -13,7 +14,7 @@ using NUnit.Framework;
 namespace Examine.Test
 {
     [TestFixture]
-    public class SimpleDataProviderTest
+	public class SimpleDataProviderTest : AbstractPartialTrustFixture<SimpleDataProviderTest>
     {
         [Test]
         public void SimpleData_RebuildIndex()
@@ -71,17 +72,15 @@ namespace Examine.Test
         private static SimpleDataIndexer _indexer;
         private static LuceneSearcher _searcher;
 
-        [SetUp]
-        public void Initialize()
-        {
-            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexTest", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetSimpleIndexer(newIndexFolder);
-            _indexer.RebuildIndex();
-            _searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
-        }
+		public override void TestSetup()
+		{
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexTest", Guid.NewGuid().ToString()));
+			_indexer = IndexInitializer.GetSimpleIndexer(newIndexFolder);
+			_indexer.RebuildIndex();
+			_searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
+		}
 
-		[TearDown]
-		public void TearDown()
+		public override void TestTearDown()
 		{
 			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexTest", Guid.NewGuid().ToString()));
 			TestHelper.CleanupFolder(newIndexFolder.Parent);

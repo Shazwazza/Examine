@@ -8,6 +8,8 @@ using NUnit.Framework;
 
 namespace Examine.Test.Search
 {
+	//TODO: Convert to use partial trust helpers but itextsharp is the culprit here
+
     [TestFixture]
     public class MultiIndexSearch
     {

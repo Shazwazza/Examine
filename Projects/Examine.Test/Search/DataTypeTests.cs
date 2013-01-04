@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using Examine.LuceneEngine.Providers;
 using Examine.Test.DataServices;
+using Examine.Test.PartialTrust;
 using Lucene.Net.Analysis.Standard;
 using System.Threading;
 using NUnit.Framework;
@@ -11,7 +12,7 @@ using UmbracoExamine;
 namespace Examine.Test.Search
 {
     [TestFixture]
-    public class DataTypeTests
+	public class DataTypeTests : AbstractPartialTrustFixture<DataTypeTests>
     {
         /// <summary>
         /// Test range query with a DateTime structure
@@ -254,8 +255,7 @@ namespace Examine.Test.Search
         private static IIndexer _indexer;
         private static DateTime _reIndexDateTime;
 
-        [SetUp]
-        public void Initialize()
+		public override void TestSetup()
         {
 
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
@@ -269,8 +269,7 @@ namespace Examine.Test.Search
             _searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
         }
 
-		[TearDown]
-		public void TearDown()
+		public override void TestTearDown()
 		{
 			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
 			TestHelper.CleanupFolder(newIndexFolder.Parent);

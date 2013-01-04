@@ -3,6 +3,7 @@ using Examine.LuceneEngine.Providers;
 using System;
 using System.Xml;
 using System.Linq;
+using Examine.Test.PartialTrust;
 using NUnit.Framework;
 using UmbracoExamine;
 
@@ -13,16 +14,15 @@ namespace Examine.Test
     ///to contain all XsltExtensionsTest Unit Tests
     ///</summary>
     [TestFixture]
-    public class XsltExtensionsTest
+	public class XsltExtensionsTest : AbstractPartialTrustFixture<XsltExtensionsTest>
     {
         
         private static LuceneSearcher _searcher;
         private static IIndexer _indexer;
 
         #region Initialize and Cleanup
-
-        [SetUp]
-        public void Initialize()
+        
+		public override void TestSetup()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
@@ -30,12 +30,12 @@ namespace Examine.Test
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
 
-		[TearDown]
-		public void TearDown()
+		public override void TestTearDown()
 		{
 			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
 			TestHelper.CleanupFolder(newIndexFolder.Parent);
 		}
+
 
         #endregion
 
@@ -110,5 +110,7 @@ namespace Examine.Test
             Assert.AreEqual(true, result.MoveNext());
             Assert.AreEqual(0, result.Current.Select("//node").Count, "Total results for 'mem' is 0 using wildcards");
         }
+
+	    
     }
 }

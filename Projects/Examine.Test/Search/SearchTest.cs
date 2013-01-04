@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Examine.Test.DataServices;
+using Examine.Test.PartialTrust;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 using UmbracoExamine;
@@ -12,7 +13,7 @@ namespace Examine.Test.Search
     /// Summary description for UnitTest1
     /// </summary>
     [TestFixture]
-    public class SearchTest
+	public class SearchTest : AbstractPartialTrustFixture<SearchTest>
     {
 
         
@@ -51,8 +52,7 @@ namespace Examine.Test.Search
 
         #region Initialize and Cleanup
 
-        [SetUp]       
-        public void Initialize()
+		public override void TestSetup()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
@@ -60,8 +60,7 @@ namespace Examine.Test.Search
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
 
-		[TearDown]
-		public void TearDown()
+		public override void TestTearDown()
 		{
 			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
 			TestHelper.CleanupFolder(newIndexFolder.Parent);			

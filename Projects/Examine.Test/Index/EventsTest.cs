@@ -5,13 +5,15 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Test.DataServices;
+using Examine.Test.PartialTrust;
+using Examine.Test.Search;
 using NUnit.Framework;
 using UmbracoExamine;
 
 namespace Examine.Test.Index
 {
     [TestFixture]
-    public class EventsTest
+	public class EventsTest : AbstractPartialTrustFixture<EventsTest>
     {
         [Test]
         public void Events_Ignoring_Node()
@@ -45,8 +47,7 @@ namespace Examine.Test.Index
         private static UmbracoExamineSearcher _searcher;
         private static UmbracoContentIndexer _indexer;
 
-        [SetUp]
-        public void Initialize()
+		public override void TestSetup()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\EventsTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
@@ -54,8 +55,7 @@ namespace Examine.Test.Index
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
 
-		[TearDown]
-		public void Teardown()
+		public override void TestTearDown()
 		{
 			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\EventsTest", Guid.NewGuid().ToString()));
 			TestHelper.CleanupFolder(newIndexFolder.Parent);

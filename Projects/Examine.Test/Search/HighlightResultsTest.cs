@@ -4,13 +4,14 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine;
+using Examine.Test.PartialTrust;
 using Lucene.Net.Search;
 using NUnit.Framework;
 
 namespace Examine.Test.Search
 {
     [TestFixture]
-    public class HighlightResultsTest
+	public class HighlightResultsTest : AbstractPartialTrustFixture<HighlightResultsTest>
     {
         [Test]
         public void HighlightResults_Do_Highlight()
@@ -35,8 +36,7 @@ namespace Examine.Test.Search
         private static ISearcher _searcher;
         private static IIndexer _indexer;
 
-        [SetUp]
-        public void Initialize()
+		public override void TestSetup()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
@@ -44,8 +44,7 @@ namespace Examine.Test.Search
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
 
-		[TearDown]
-		public void TearDown()
+		public override void TestTearDown()
 		{
 			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
 			TestHelper.CleanupFolder(newIndexFolder.Parent);
