@@ -1,18 +1,19 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Test.DataServices;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using UmbracoExamine;
 
 namespace Examine.Test.Index
 {
-    [TestClass]
+    [TestFixture]
     public class EventsTest
     {
-        [TestMethod]
+        [Test]
         public void Events_Ignoring_Node()
         {
             //change the parent id so that they are all ignored
@@ -44,13 +45,20 @@ namespace Examine.Test.Index
         private static UmbracoExamineSearcher _searcher;
         private static UmbracoContentIndexer _indexer;
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [SetUp]
+        public void Initialize()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\EventsTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
             _indexer.RebuildIndex();
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
+
+		[TearDown]
+		public void Teardown()
+		{
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\EventsTest", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(newIndexFolder.Parent);
+		}
     }
 }

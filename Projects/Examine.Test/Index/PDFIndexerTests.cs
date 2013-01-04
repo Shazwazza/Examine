@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using UmbracoExamine;
 using System.Diagnostics;
 using UmbracoExamine.PDF;
@@ -12,7 +12,7 @@ using Examine.Test.DataServices;
 
 namespace Examine.Test.Index
 {
-    [TestClass]
+    [TestFixture]
     public class PDFIndexerTests
     {
        
@@ -20,8 +20,8 @@ namespace Examine.Test.Index
         private static PDFIndexer _indexer;
         private static UmbracoExamineSearcher _searcher;
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [SetUp]
+        public void Initialize()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetPdfIndexer(newIndexFolder);
@@ -29,7 +29,14 @@ namespace Examine.Test.Index
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
 
-        [TestMethod]
+		[TearDown]
+		public void TearDown()
+		{
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(newIndexFolder.Parent);
+		}
+
+        [Test]
         public void PDFIndexer_Ensure_ParentID_Honored()
         {
             //change parent id to 1116
@@ -57,7 +64,7 @@ namespace Examine.Test.Index
             Assert.AreEqual(0, results.Count());
         }
 
-        [TestMethod]
+        [Test]
         public void PDFIndexer_Reindex()
         {
             //get searcher and reader to get stats            

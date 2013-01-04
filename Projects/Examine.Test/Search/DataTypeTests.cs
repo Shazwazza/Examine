@@ -1,21 +1,22 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using Examine.LuceneEngine.Providers;
 using Examine.Test.DataServices;
 using Lucene.Net.Analysis.Standard;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
+using NUnit.Framework;
 using UmbracoExamine;
 
 namespace Examine.Test.Search
 {
-    [TestClass]
+    [TestFixture]
     public class DataTypeTests
     {
         /// <summary>
         /// Test range query with a DateTime structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Date_Range_SimpleIndexSet()
         {
             ////Arrange
@@ -38,7 +39,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Date.Year structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Date_Range_Year_SimpleIndexSet()
         {
             ////Arrange
@@ -63,7 +64,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Date.Month structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Date_Range_Month_SimpleIndexSet()
         {
             ////Arrange
@@ -86,7 +87,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Date.Day structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Date_Range_Day_SimpleIndexSet()
         {
             ////Arrange
@@ -109,7 +110,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Date.Hour structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Date_Range_Hour_SimpleIndexSet()
         {
             ////Arrange
@@ -132,7 +133,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Date.Minute structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Date_Range_Minute_SimpleIndexSet()
         {
             ////Arrange
@@ -156,7 +157,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Number structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Number_Range_SimpleIndexSet()
         {
 
@@ -180,7 +181,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Float structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Float_Range_SimpleIndexSet()
         {
             ////Arrange            
@@ -204,7 +205,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Double structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Double_Range_SimpleIndexSet()
         {
             ////Arrange            
@@ -228,7 +229,7 @@ namespace Examine.Test.Search
         /// <summary>
         /// test range query with a Double structure
         /// </summary>
-        [TestMethod]
+        [Test]
         public void DataTypesTests_Long_Range_SimpleIndexSet()
         {
             ////Arrange            
@@ -253,8 +254,8 @@ namespace Examine.Test.Search
         private static IIndexer _indexer;
         private static DateTime _reIndexDateTime;
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [SetUp]
+        public void Initialize()
         {
 
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
@@ -267,6 +268,13 @@ namespace Examine.Test.Search
 
             _searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
         }
+
+		[TearDown]
+		public void TearDown()
+		{
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(newIndexFolder.Parent);
+		}
 
     }
 }

@@ -4,15 +4,15 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Lucene.Net.Search;
+using NUnit.Framework;
 
 namespace Examine.Test.Search
 {
-    [TestClass]
+    [TestFixture]
     public class HighlightResultsTest
     {
-        [TestMethod]
+        [Test]
         public void HighlightResults_Do_Highlight()
         {
             //TODO: Get highlighter lib
@@ -35,13 +35,20 @@ namespace Examine.Test.Search
         private static ISearcher _searcher;
         private static IIndexer _indexer;
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [SetUp]
+        public void Initialize()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
             _indexer.RebuildIndex();
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
+
+		[TearDown]
+		public void TearDown()
+		{
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(newIndexFolder.Parent);
+		}
     }
 }

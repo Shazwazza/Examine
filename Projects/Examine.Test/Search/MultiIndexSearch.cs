@@ -3,15 +3,15 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Providers;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using NUnit.Framework;
 
 namespace Examine.Test.Search
 {
-    [TestClass]
+    [TestFixture]
     public class MultiIndexSearch
     {
-        [TestMethod]
+        [Test]
         public void MultiIndex_Simple_Search()
         {
             var di = new DirectoryInfo(Path.Combine("App_Data\\TempIndex", Guid.NewGuid().ToString()));
@@ -28,7 +28,7 @@ namespace Examine.Test.Search
             Assert.AreEqual(8, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
         }
 
-        [TestMethod]
+        [Test]
         public void MultiIndex_Field_Count()
         {
             var result = _searcher.GetSearchFields();
@@ -39,8 +39,8 @@ namespace Examine.Test.Search
 
         private static MultiIndexSearcher _searcher;
 
-        [ClassInitialize]
-        public static void Initialize(TestContext context)
+        [SetUp]
+        public void Initialize()
         {
 
             var pdfDir = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
@@ -64,7 +64,20 @@ namespace Examine.Test.Search
             //now get the multi index searcher for all indexes
             _searcher = IndexInitializer.GetMultiSearcher(pdfDir, simpleDir, conventionDir, cwsDir);
         }
-        
+
+		[TearDown]
+		public void TearDown()
+		{
+			var pdfDir = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
+			var simpleDir = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
+			var conventionDir = new DirectoryInfo(Path.Combine("App_Data\\ConvensionNamedTest", Guid.NewGuid().ToString()));
+			var cwsDir = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(pdfDir.Parent);
+			TestHelper.CleanupFolder(simpleDir.Parent);
+			TestHelper.CleanupFolder(conventionDir.Parent);
+			TestHelper.CleanupFolder(cwsDir.Parent);
+		}
+
         #endregion
     }
 }

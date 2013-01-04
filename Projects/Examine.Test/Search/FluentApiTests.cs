@@ -4,7 +4,7 @@ using System.Linq;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis.Standard;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using UmbracoExamine;
 using Lucene.Net.Search;
 using Lucene.Net.Index;
@@ -16,12 +16,12 @@ using Examine.Test.DataServices;
 
 namespace Examine.Test.Search
 {
-    [TestClass]
+    [TestFixture]
     public class FluentApiTests
     {
 
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Search_With_Stop_Words()
         {
             var criteria = _searcher.CreateSearchCriteria();
@@ -33,7 +33,7 @@ namespace Examine.Test.Search
             Assert.AreEqual(0, results.TotalItemCount);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Search_Raw_Query()
         {
             var criteria = _searcher.CreateSearchCriteria(IndexTypes.Content);
@@ -44,7 +44,7 @@ namespace Examine.Test.Search
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Find_By_ParentId()
         {
             var criteria = _searcher.CreateSearchCriteria(IndexTypes.Content);
@@ -55,7 +55,7 @@ namespace Examine.Test.Search
             Assert.AreEqual(2, results.TotalItemCount);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Find_By_NodeTypeAlias()
         {
             var criteria = _searcher.CreateSearchCriteria(IndexTypes.Content);
@@ -66,7 +66,7 @@ namespace Examine.Test.Search
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Find_Only_Image_Media()
         {
 
@@ -79,7 +79,7 @@ namespace Examine.Test.Search
 
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Find_Both_Media_And_Content()
         {          
             var criteria = _searcher.CreateSearchCriteria(BooleanOperation.Or);
@@ -91,11 +91,11 @@ namespace Examine.Test.Search
 
             var results = _searcher.Search(filter);
 
-            Assert.AreEqual<int>(10, results.Count());
+            Assert.AreEqual(10, results.Count());
 
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Sort_Result_By_Single_Field()
         {
             var sc = _searcher.CreateSearchCriteria(IndexTypes.Content);
@@ -110,7 +110,7 @@ namespace Examine.Test.Search
             Assert.AreNotEqual(results1.First().Id, results2.First().Id);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Standard_Results_Sorted_By_Score()
         {
             //Arrange
@@ -133,7 +133,7 @@ namespace Examine.Test.Search
             }
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApi_Skip_Results_Returns_Different_Results()
         {
             //Arrange
@@ -147,7 +147,7 @@ namespace Examine.Test.Search
             Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApiTests_Escaping_Includes_All_Words()
         {
             //Arrange
@@ -162,7 +162,7 @@ namespace Examine.Test.Search
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApiTests_Grouped_And_Examiness()
         {
             ////Arrange
@@ -182,7 +182,7 @@ namespace Examine.Test.Search
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApiTests_Examiness_Proximity()
         {
             ////Arrange
@@ -198,7 +198,7 @@ namespace Examine.Test.Search
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApiTests_Grouped_Or_Examiness()
         {
             ////Arrange
@@ -218,7 +218,7 @@ namespace Examine.Test.Search
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
-        [TestMethod]
+        [Test]
         public void FluentApiTests_Cws_TextPage_OrderedByNodeName()
         {
             var criteria = _searcher.CreateSearchCriteria(IndexTypes.Content);
@@ -246,8 +246,8 @@ namespace Examine.Test.Search
 
         
 
-        [ClassInitialize()]
-        public static void Initialize(TestContext context)
+        [SetUp]
+        public void Initialize()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
@@ -255,7 +255,13 @@ namespace Examine.Test.Search
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
 
-        
+
+		[TearDown]
+		public void TearDown()
+		{
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(newIndexFolder.Parent);
+		}
 
         #endregion
     }

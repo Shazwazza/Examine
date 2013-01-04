@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 using Lucene.Net.Analysis.Standard;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using UmbracoExamine;
 using Lucene.Net.Search;
 using Lucene.Net.Index;
@@ -20,7 +20,7 @@ namespace Examine.Test.Index
     /// <summary>
     /// Tests the standard indexing capabilities
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class IndexTest
     {
 
@@ -30,7 +30,7 @@ namespace Examine.Test.Index
         ///// to cause the queue to stop working, now it just renames queue files in error to be .error 
         ///// so they are not processed.
         ///// </summary>
-        //[TestMethod]
+        //[Test]
         //public void Index_Files_With_Invalid_Encoding()
         //{
         //    var d = new DirectoryInfo(Path.Combine("App_Data\\InvalidEncoding", Guid.NewGuid().ToString()));
@@ -95,7 +95,7 @@ namespace Examine.Test.Index
         /// <summary>
         /// Check that the node signalled as protected in the content service is not present in the index.
         /// </summary>
-        [TestMethod]
+        [Test]
         public void Index_Protected_Content_Not_Indexed()
         {
 
@@ -118,7 +118,7 @@ namespace Examine.Test.Index
 
         }
 
-        [TestMethod]
+        [Test]
         public void Index_Move_Media_From_Non_Indexable_To_Indexable_ParentID()
         {
             //change parent id to 1116
@@ -129,7 +129,7 @@ namespace Examine.Test.Index
 
             //ensure that node 2112 doesn't exist
             var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(2112).Compile());
-            Assert.AreEqual<int>(0, results.Count());
+            Assert.AreEqual(0, results.Count());
 
             //get a node from the data repo (this one exists underneath 2222)
             var node = _mediaService.GetLatestMediaByXpath("//*[string-length(@id)>0 and number(@id)>0]")
@@ -157,7 +157,7 @@ namespace Examine.Test.Index
 
         }
 
-        [TestMethod]
+        [Test]
         public void Index_Move_Media_To_Non_Indexable_ParentID()
         {
             //get a node from the data repo (this one exists underneath 2222)
@@ -196,11 +196,9 @@ namespace Examine.Test.Index
         /// This will create a new index queue item for the same ID multiple times to ensure that the 
         /// index does not end up with duplicate entries.
         /// </summary>
-        [TestMethod]
+        [Test]
         public void Index_Ensure_No_Duplicates_In_Async()
         {
-            //requires re-index on start
-            //Initialize(null);
 
             var d = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
@@ -259,7 +257,7 @@ namespace Examine.Test.Index
             Assert.AreEqual(1, results.Count());            
         }
 
-        [TestMethod]
+        [Test]
         public void Index_Ensure_No_Duplicates_In_Non_Async()
         {
             //set to 5 so optmization occurs frequently
@@ -288,7 +286,7 @@ namespace Examine.Test.Index
         /// <summary>
         /// This test makes sure that .del files get processed before .add files
         /// </summary>
-        [TestMethod]
+        [Test]
         public void Index_Ensure_Queue_File_Ordering()
         {
             _indexer.RebuildIndex();
@@ -335,11 +333,9 @@ namespace Examine.Test.Index
          
 
 
-        [TestMethod]
+        [Test]
         public void Index_Rebuild_Index()
         {
-            //for this test, we need to re-init
-            //Initialize(null);
 
             //get searcher and reader to get stats
             var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();   
@@ -349,7 +345,7 @@ namespace Examine.Test.Index
 
             Assert.AreEqual(18, fields.Count());
             //ensure there's 3 sorting fields
-            Assert.AreEqual(3, fields.Where(x => x.StartsWith(LuceneIndexer.SortedFieldNamePrefix)).Count());
+            Assert.AreEqual(3, fields.Count(x => x.StartsWith(LuceneIndexer.SortedFieldNamePrefix)));
             //there should be 11 documents (10 content, 1 media)
             Assert.AreEqual(10, r.NumDocs());
 
@@ -365,7 +361,7 @@ namespace Examine.Test.Index
         /// This will ensure that all 'Content' (not media) is cleared from the index using the Lucene API directly.
         /// We then call the Examine method to re-index Content and do some comparisons to ensure that it worked correctly.
         /// </summary>
-        [TestMethod]
+        [Test]
         public void Index_Reindex_Content()
         {
             Trace.WriteLine("Searcher folder is " + _searcher.LuceneIndexFolder.FullName);
@@ -398,7 +394,7 @@ namespace Examine.Test.Index
         /// <summary>
         /// This will delete an item from the index and ensure that all children of the node are deleted too!
         /// </summary>
-        [TestMethod]
+        [Test]
         public void Index_Delete_Index_Item_Ensure_Heirarchy_Removed()
         {         
 
@@ -429,14 +425,17 @@ namespace Examine.Test.Index
 
         private static bool IsInitialized = false;
 
-        [TestCleanup]
+        [TearDown]
         public void TestCleanup()
         {
             //set back to 100
             _indexer.OptimizationCommitThreshold = 100;
+
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(newIndexFolder.Parent);
         }
         
-        [TestInitialize()]
+        [SetUp]
         public void Initialize()
         {
             //if (IsInitialized)

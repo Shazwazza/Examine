@@ -1,14 +1,14 @@
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Examine.LuceneEngine;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace Examine.Test
 {
-    [TestClass()]
+    [TestFixture]
     public class XmlExtensionsTest
     {
-        [TestMethod()]
+        [Test]
         public void ToXDocument_With_Root_Node_Check()
         {
             var xml = "<root><blah></blah></root>";

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Examine.Test.DataServices;
 using Lucene.Net.Analysis.Standard;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using UmbracoExamine;
 
 namespace Examine.Test.Search
@@ -11,13 +11,13 @@ namespace Examine.Test.Search
     /// <summary>
     /// Summary description for UnitTest1
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class SearchTest
     {
 
         
 
-        [TestMethod]
+        [Test]
         public void Search_On_Stop_Word()
         {
            
@@ -31,14 +31,14 @@ namespace Examine.Test.Search
             Assert.IsTrue(result2.Count() > 0);
         }
 
-        [TestMethod]
+        [Test]
         public void Search_SimpleSearch()
         {
             var result = _searcher.Search("sam", false);
             Assert.AreEqual(4, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
         }
 
-        [TestMethod]
+        [Test]
         public void Search_SimpleSearchWithWildcard()
         {
             var result = _searcher.Search("umb", true);
@@ -51,14 +51,21 @@ namespace Examine.Test.Search
 
         #region Initialize and Cleanup
 
-        [ClassInitialize()]       
-        public static void Initialize(TestContext context)
+        [SetUp]       
+        public void Initialize()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
             _indexer.RebuildIndex();
             _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
         }
+
+		[TearDown]
+		public void TearDown()
+		{
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(newIndexFolder.Parent);			
+		}
 
         #endregion
     }

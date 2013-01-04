@@ -1,11 +1,11 @@
 ﻿using System.IO;
 using System.Xml.Linq;
 using Examine.LuceneEngine;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Xml;
 using System.Text;
 using System.Collections.Generic;
+using NUnit.Framework;
 
 namespace Examine.Test
 {
@@ -15,11 +15,11 @@ namespace Examine.Test
     ///This is a test class for SerializableDictionaryTest and is intended
     ///to contain all SerializableDictionaryTest Unit Tests
     ///</summary>
-    [TestClass()]
+    [TestFixture]
     public class SerializableDictionaryTest
     {
 
-        [TestMethod]
+        [Test]
         public void SerializableDictionaryTest_Save_Buffer_To_Disk_Read_From_Disk()
         {
             //arrange
@@ -64,7 +64,7 @@ namespace Examine.Test
             Assert.AreEqual(target[2]["Email"], result[2]["Email"]);
         }
         
-        [TestMethod]
+        [Test]
         public void SerializableDictionaryTest_Save_To_Disk_Read_From_Disk()
         {
             //arrange
@@ -88,7 +88,7 @@ namespace Examine.Test
             Assert.AreEqual(target["Email"], result["Email"]);
         }
 
-        [TestMethod]
+        [Test]
         public void SerializableDictionaryTest_Invalid_Encoding()
         {
             //arrange

@@ -1,11 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using NUnit.Framework;
 
 namespace Examine.Test.Search
 {
-    [TestClass]
+    [TestFixture]
     public class StringTests
     {
-        [TestMethod]
+        [Test]
         public void Search_Remove_Stop_Words()
         {
 

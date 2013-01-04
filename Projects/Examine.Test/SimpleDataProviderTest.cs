@@ -4,18 +4,18 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Lucene.Net.Search;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
 using Examine.Test.DataServices;
 using Examine.LuceneEngine;
+using NUnit.Framework;
 
 namespace Examine.Test
 {
-    [TestClass]
+    [TestFixture]
     public class SimpleDataProviderTest
     {
-        [TestMethod]
+        [Test]
         public void SimpleData_RebuildIndex()
         {    
                         
@@ -33,12 +33,12 @@ namespace Examine.Test
             Assert.AreEqual(5, r.NumDocs());
 
             //test for the special fields to ensure they are there:
-            Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
-            Assert.AreEqual<int>(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
+            Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
+            Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
 
         }
 
-        [TestMethod]
+        [Test]
         public void SimpleData_Reindex_Node()
         {
 
@@ -57,12 +57,9 @@ namespace Examine.Test
                         
         }
 
-        [TestMethod]
+        [Test]
         public void SimpleDataProviderTest_Range_Search_On_Year()
         {
-            //requires re-index on start
-            Initialize(null);
-
             //Act
             var query = _searcher.CreateSearchCriteria().Range("YearCreated", DateTime.Now.AddYears(-1), DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
             var results = _searcher.Search(query);
@@ -74,13 +71,20 @@ namespace Examine.Test
         private static SimpleDataIndexer _indexer;
         private static LuceneSearcher _searcher;
 
-        [ClassInitialize]
-        public static void Initialize(TestContext context)
+        [SetUp]
+        public void Initialize()
         {
             var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexTest", Guid.NewGuid().ToString()));
             _indexer = IndexInitializer.GetSimpleIndexer(newIndexFolder);
             _indexer.RebuildIndex();
             _searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
         }
+
+		[TearDown]
+		public void TearDown()
+		{
+			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexTest", Guid.NewGuid().ToString()));
+			TestHelper.CleanupFolder(newIndexFolder.Parent);
+		}
     }
 }
