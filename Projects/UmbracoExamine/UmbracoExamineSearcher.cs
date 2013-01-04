@@ -41,6 +41,17 @@ namespace UmbracoExamine
         {
         }
 
+		/// <summary>
+		/// Constructor to allow for creating an indexer at runtime
+		/// </summary>
+		/// <param name="luceneDirectory"></param>
+		/// <param name="analyzer"></param>
+		[SecuritySafeCritical]
+		public UmbracoExamineSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
+			: base(luceneDirectory, analyzer)
+		{
+		}
+
 		#endregion
 
         /// <summary>

@@ -5,6 +5,7 @@ using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
 using Examine.Test.PartialTrust;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
 using Lucene.Net.Search;
@@ -242,6 +243,7 @@ namespace Examine.Test.Search
 
         private static ISearcher _searcher;
         private static IIndexer _indexer;
+		private Lucene.Net.Store.Directory _luceneDir;
 
         #region Initialize and Cleanup
 
@@ -249,17 +251,16 @@ namespace Examine.Test.Search
 
 		public override void TestSetup()
         {
-            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
+			_luceneDir = new RAMDirectory();
+			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
-            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
+			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
 
 		public override void TestTearDown()
 		{
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(newIndexFolder.Parent);
+			_luceneDir.Dispose();	
 		}
 
         #endregion

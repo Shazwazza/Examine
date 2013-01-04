@@ -42,6 +42,19 @@ namespace Examine.LuceneEngine.Providers
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));            
 		}
 
+		/// <summary>
+		/// Constructor to allow creating an indexer at runtime with the specified lucene directory
+		/// </summary>
+		/// <param name="luceneDirectory"></param>
+		/// <param name="analyzer"></param>
+		[SecuritySafeCritical]
+		public LuceneSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
+			: base(analyzer)
+		{
+			LuceneIndexFolder = null;
+			_luceneDirectory = luceneDirectory;
+		}
+
 		#endregion
 
 		/// <summary>
@@ -49,6 +62,7 @@ namespace Examine.LuceneEngine.Providers
 		/// </summary>
 		private volatile IndexSearcher _searcher;
 		private static readonly object Locker = new object();
+	    private Lucene.Net.Store.Directory _luceneDirectory;
 
 		/// <summary>
 		/// Initializes the provider.
@@ -64,13 +78,15 @@ namespace Examine.LuceneEngine.Providers
 		/// <exception cref="T:System.InvalidOperationException">
 		/// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
 		/// </exception>
+		[SecuritySafeCritical]
 		public override void Initialize(string name, NameValueCollection config)
 		{
 			base.Initialize(name, config);
 
 			//need to check if the index set is specified, if it's not, we'll see if we can find one by convension
 			//if the folder is not null and the index set is null, we'll assume that this has been created at runtime.
-			if (config["indexSet"] == null && LuceneIndexFolder == null)
+			//NOTE: Don't proceed if the _luceneDirectory is set since we already know where to look.
+			if (config["indexSet"] == null && (LuceneIndexFolder == null && _luceneDirectory == null)) 
 			{
 				//if we don't have either, then we'll try to set the index set by naming convensions
 				var found = false;
@@ -96,7 +112,7 @@ namespace Examine.LuceneEngine.Providers
 				//get the folder to index
 				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
 			}
-			else if (config["indexSet"] != null)
+			else if (config["indexSet"] != null && _luceneDirectory == null)
 			{
 				if (IndexSets.Instance.Sets[config["indexSet"]] == null)
 					throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
@@ -239,7 +255,11 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
         protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
-            return new SimpleFSDirectory(LuceneIndexFolder);
+			if (_luceneDirectory == null)
+			{
+				_luceneDirectory = new SimpleFSDirectory(LuceneIndexFolder);
+			}
+			return _luceneDirectory;
         }
 
         //TODO: the real searcher should use RAM directory, will be way faster
@@ -274,7 +294,7 @@ namespace Examine.LuceneEngine.Providers
                             }
                             catch (IOException ex)
                             {
-                                throw new ApplicationException("There is no Lucene index in the folder: " + LuceneIndexFolder.FullName + " to create an IndexSearcher on", ex);
+                                throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
                             }
                         }
                     }
@@ -348,7 +368,7 @@ namespace Examine.LuceneEngine.Providers
                             }
                             catch (IOException ex)
                             {
-                                throw new ApplicationException("There is no Lucene index in the folder: " + LuceneIndexFolder.FullName + " to create an IndexSearcher on", ex);
+								throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
                             }
                             
                         }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
+using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
 using System.Diagnostics;
@@ -19,21 +20,21 @@ namespace Examine.Test.Index
         private readonly TestMediaService _mediaService = new TestMediaService();
         private static PDFIndexer _indexer;
         private static UmbracoExamineSearcher _searcher;
+		private Lucene.Net.Store.Directory _luceneDir;
 
         [SetUp]
         public void Initialize()
         {
-            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetPdfIndexer(newIndexFolder);
+			_luceneDir = new RAMDirectory();
+			_indexer = IndexInitializer.GetPdfIndexer(_luceneDir);
             _indexer.RebuildIndex();
-            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
+			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
 		[TearDown]
 		public void TearDown()
 		{
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(newIndexFolder.Parent);
+			_luceneDir.Dispose();
 		}
 
         [Test]

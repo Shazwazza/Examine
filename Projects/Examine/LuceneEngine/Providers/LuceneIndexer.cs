@@ -68,6 +68,26 @@ namespace Examine.LuceneEngine.Providers
 
         }
 
+		[SecuritySafeCritical]
+		protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
+			: base(indexerData)
+		{			
+			WorkingFolder = null;
+			LuceneIndexFolder = null;
+			_directory = luceneDirectory;
+
+			IndexingAnalyzer = analyzer;
+
+			//create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
+			InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
+
+			//IndexSecondsInterval = 5;
+			OptimizationCommitThreshold = 100;
+			AutomaticallyOptimize = true;
+			RunAsync = async;
+
+		}
+
         #endregion
 
         #region Initialize
@@ -1388,6 +1408,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         private Lucene.Net.Store.Directory _directory;
+
         /// <summary>
         /// Returns the Lucene Directory used to store the index
         /// </summary>

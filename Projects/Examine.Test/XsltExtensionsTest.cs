@@ -4,6 +4,7 @@ using System;
 using System.Xml;
 using System.Linq;
 using Examine.Test.PartialTrust;
+using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
 
@@ -19,21 +20,21 @@ namespace Examine.Test
         
         private static LuceneSearcher _searcher;
         private static IIndexer _indexer;
+		private Lucene.Net.Store.Directory _luceneDir;
 
         #region Initialize and Cleanup
         
 		public override void TestSetup()
         {
-            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
+			_luceneDir = new RAMDirectory();
+            _indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
-            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
+			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
 		public override void TestTearDown()
 		{
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(newIndexFolder.Parent);
+			_luceneDir.Dispose();
 		}
 
 

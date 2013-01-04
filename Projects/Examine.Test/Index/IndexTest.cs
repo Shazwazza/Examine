@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Xml.Linq;
 using Examine.Test.PartialTrust;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
 using Lucene.Net.Search;
@@ -21,7 +22,7 @@ namespace Examine.Test.Index
     /// <summary>
     /// Tests the standard indexing capabilities
     /// </summary>
-    [TestFixture]
+    [TestFixture, RequiresSTA]
 	public class IndexTest : AbstractPartialTrustFixture<IndexTest>
     {
 
@@ -201,61 +202,63 @@ namespace Examine.Test.Index
         public void Index_Ensure_No_Duplicates_In_Async()
         {
 
-            var d = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-            var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
-            
-            var isIndexing = false;
+	        using (var d = new RAMDirectory())
+	        {
+				var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
 
-            EventHandler operationComplete = (sender, e) =>
-            {
-                isIndexing = false;
-            };
+				var isIndexing = false;
 
-            //add the handler for optimized since we know it will be optimized last based on the commit count
-            customIndexer.IndexOperationComplete += operationComplete;
+				EventHandler operationComplete = (sender, e) =>
+				{
+					isIndexing = false;
+				};
 
-            //remove the normal indexing error handler
-            customIndexer.IndexingError -= IndexInitializer.IndexingError;
+				//add the handler for optimized since we know it will be optimized last based on the commit count
+				customIndexer.IndexOperationComplete += operationComplete;
 
-            //run in async mode
-            customIndexer.RunAsync = true;
+				//remove the normal indexing error handler
+				customIndexer.IndexingError -= IndexInitializer.IndexingError;
 
-            //get a node from the data repo
-            var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
-                .Root
-                .Elements()
-                .First();
+				//run in async mode
+				customIndexer.RunAsync = true;
 
-            //get the id for th node we're re-indexing.
-            var id = (int)node.Attribute("id");
+				//get a node from the data repo
+				var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+					.Root
+					.Elements()
+					.First();
 
-            //set our internal monitoring flag
-            isIndexing = true;
+				//get the id for th node we're re-indexing.
+				var id = (int)node.Attribute("id");
 
-            //reindex the same node a bunch of times
-            for (var i = 0; i < 29; i++)
-            {
-                customIndexer.ReIndexNode(node, IndexTypes.Content);
-            }
+				//set our internal monitoring flag
+				isIndexing = true;
 
-            //we need to check if the indexing is complete
-            while (isIndexing)
-            {
-                //wait until indexing is done
-                Thread.Sleep(1000);
-            }
+				//reindex the same node a bunch of times
+				for (var i = 0; i < 29; i++)
+				{
+					customIndexer.ReIndexNode(node, IndexTypes.Content);
+				}
 
-            //reset the async mode and remove event handler
-            customIndexer.IndexOptimized -= operationComplete;
-            customIndexer.IndexingError += IndexInitializer.IndexingError;
-            customIndexer.RunAsync = false;
-            
+				//we need to check if the indexing is complete
+				while (isIndexing)
+				{
+					//wait until indexing is done
+					Thread.Sleep(1000);
+				}
 
-            //ensure no duplicates
-            Thread.Sleep(10000); //seems to take a while to get its shit together... this i'm not sure why since the optimization should have def finished (and i've stepped through that code!)
-            var customSearcher = IndexInitializer.GetLuceneSearcher(d);
-            var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Id(id).Compile());
-            Assert.AreEqual(1, results.Count());            
+				//reset the async mode and remove event handler
+				customIndexer.IndexOptimized -= operationComplete;
+				customIndexer.IndexingError += IndexInitializer.IndexingError;
+				customIndexer.RunAsync = false;
+
+
+				//ensure no duplicates
+				Thread.Sleep(10000); //seems to take a while to get its shit together... this i'm not sure why since the optimization should have def finished (and i've stepped through that code!)
+				var customSearcher = IndexInitializer.GetLuceneSearcher(d);
+				var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Id(id).Compile());
+				Assert.AreEqual(1, results.Count());                
+	        }            
         }
 
         [Test]
@@ -365,12 +368,11 @@ namespace Examine.Test.Index
         [Test]
         public void Index_Reindex_Content()
         {
-            Trace.WriteLine("Searcher folder is " + _searcher.LuceneIndexFolder.FullName);
             var s = (IndexSearcher)_searcher.GetSearcher();
 
             //first delete all 'Content' (not media). This is done by directly manipulating the index with the Lucene API, not examine!
             var r = IndexReader.Open(s.GetIndexReader().Directory(), false);            
-            var contentTerm = new Term(UmbracoContentIndexer.IndexTypeFieldName, IndexTypes.Content);
+            var contentTerm = new Term(LuceneIndexer.IndexTypeFieldName, IndexTypes.Content);
             var delCount = r.DeleteDocuments(contentTerm);                        
             r.Commit();
             r.Close();
@@ -383,7 +385,6 @@ namespace Examine.Test.Index
             Assert.AreEqual(0, collector.Count);
 
             //call our indexing methods
-            Trace.WriteLine("Indexer folder is " + _indexer.LuceneIndexFolder.FullName);
             _indexer.IndexAll(IndexTypes.Content);
            
             collector = new AllHitsCollector(false, true);
@@ -424,26 +425,21 @@ namespace Examine.Test.Index
 
         #region Initialize and Cleanup
 
+	    private Lucene.Net.Store.Directory _luceneDir;
+
 	    public override void TestTearDown()
         {
             //set back to 100
             _indexer.OptimizationCommitThreshold = 100;
-
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(newIndexFolder.Parent);
+			_luceneDir.Dispose();
         }
 
 		public override void TestSetup()
         {
-            //if (IsInitialized)
-            //    return;
-
-            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
+			_luceneDir = new RAMDirectory();
+			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
-            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
-
-            //IsInitialized = true;
+			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
 

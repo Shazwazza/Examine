@@ -6,6 +6,7 @@ using System.Linq;
 using Examine.LuceneEngine;
 using Examine.Test.PartialTrust;
 using Lucene.Net.Search;
+using Lucene.Net.Store;
 using NUnit.Framework;
 
 namespace Examine.Test.Search
@@ -35,19 +36,19 @@ namespace Examine.Test.Search
 
         private static ISearcher _searcher;
         private static IIndexer _indexer;
+		private Lucene.Net.Store.Directory _luceneDir;
 
 		public override void TestSetup()
         {
-            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
+			_luceneDir = new RAMDirectory();
+			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
-            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
+			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
 		public override void TestTearDown()
 		{
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(newIndexFolder.Parent);
+			_luceneDir.Dispose();
 		}
     }
 }

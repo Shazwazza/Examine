@@ -7,6 +7,7 @@ using System.Linq;
 using Examine.Test.DataServices;
 using Examine.Test.PartialTrust;
 using Examine.Test.Search;
+using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
 
@@ -46,19 +47,19 @@ namespace Examine.Test.Index
         private readonly TestContentService _contentService = new TestContentService();
         private static UmbracoExamineSearcher _searcher;
         private static UmbracoContentIndexer _indexer;
+		private Lucene.Net.Store.Directory _luceneDir;
 
 		public override void TestSetup()
         {
-            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\EventsTest", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetUmbracoIndexer(newIndexFolder);
+			_luceneDir = new RAMDirectory();
+			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
-            _searcher = IndexInitializer.GetUmbracoSearcher(newIndexFolder);
+			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
 		public override void TestTearDown()
 		{
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\EventsTest", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(newIndexFolder.Parent);
+			_luceneDir.Dispose();
 		}
     }
 }

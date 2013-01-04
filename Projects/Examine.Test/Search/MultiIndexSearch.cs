@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Providers;
 using System.IO;
+using Lucene.Net.Store;
 using NUnit.Framework;
 
 namespace Examine.Test.Search
@@ -16,10 +17,9 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Simple_Search()
         {
-            var di = new DirectoryInfo(Path.Combine("App_Data\\TempIndex", Guid.NewGuid().ToString()));
-            var cwsIndexer = IndexInitializer.GetUmbracoIndexer(di);
+			var cwsIndexer = IndexInitializer.GetUmbracoIndexer(_cwsDir);
             cwsIndexer.RebuildIndex();
-            var cwsSearcher = IndexInitializer.GetUmbracoSearcher(di);
+			var cwsSearcher = IndexInitializer.GetUmbracoSearcher(_cwsDir);
             
             var cwsResult = cwsSearcher.Search("sam", false);
             var result = _searcher.Search("sam", false);
@@ -40,23 +40,26 @@ namespace Examine.Test.Search
         #region Initialize and Cleanup
 
         private static MultiIndexSearcher _searcher;
+	    private Lucene.Net.Store.Directory _cwsDir;
+		private Lucene.Net.Store.Directory _pdfDir;
+		private Lucene.Net.Store.Directory _simpleDir;
+	    private Lucene.Net.Store.Directory _conventionDir;
 
         [SetUp]
         public void Initialize()
         {
-
-            var pdfDir = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
-            var simpleDir = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
-            var conventionDir = new DirectoryInfo(Path.Combine("App_Data\\ConvensionNamedTest", Guid.NewGuid().ToString()));
-            var cwsDir = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-
+			_cwsDir = new RAMDirectory();
+			_pdfDir = new RAMDirectory();
+			_simpleDir = new RAMDirectory();
+			_conventionDir = new RAMDirectory();
+            
             //get all of the indexers and rebuild them all first
             var indexers = new IIndexer[]
                                {
-                                   IndexInitializer.GetUmbracoIndexer(cwsDir),
-                                   IndexInitializer.GetPdfIndexer(pdfDir),
-                                   IndexInitializer.GetSimpleIndexer(simpleDir),
-                                   IndexInitializer.GetUmbracoIndexer(conventionDir)
+                                   IndexInitializer.GetUmbracoIndexer(_cwsDir),
+                                   IndexInitializer.GetPdfIndexer(_pdfDir),
+                                   IndexInitializer.GetSimpleIndexer(_simpleDir),
+                                   IndexInitializer.GetUmbracoIndexer(_conventionDir)
                                };            
             foreach (var i in indexers)
             {
@@ -64,20 +67,16 @@ namespace Examine.Test.Search
             }
 
             //now get the multi index searcher for all indexes
-            _searcher = IndexInitializer.GetMultiSearcher(pdfDir, simpleDir, conventionDir, cwsDir);
+            _searcher = IndexInitializer.GetMultiSearcher(_pdfDir, _simpleDir, _conventionDir, _cwsDir);
         }
 
 		[TearDown]
 		public void TearDown()
 		{
-			var pdfDir = new DirectoryInfo(Path.Combine("App_Data\\PDFIndexSet", Guid.NewGuid().ToString()));
-			var simpleDir = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
-			var conventionDir = new DirectoryInfo(Path.Combine("App_Data\\ConvensionNamedTest", Guid.NewGuid().ToString()));
-			var cwsDir = new DirectoryInfo(Path.Combine("App_Data\\CWSIndexSetTest", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(pdfDir.Parent);
-			TestHelper.CleanupFolder(simpleDir.Parent);
-			TestHelper.CleanupFolder(conventionDir.Parent);
-			TestHelper.CleanupFolder(cwsDir.Parent);
+			_cwsDir.Dispose();
+			_pdfDir.Dispose();
+			_simpleDir.Dispose();
+			_conventionDir.Dispose();
 		}
 
         #endregion

@@ -42,6 +42,23 @@ namespace Examine.LuceneEngine.Providers
             IndexTypes = indexTypes;
         }
 
+		/// <summary>
+		/// Constructor to allow for creating an indexer at runtime
+		/// </summary>
+		/// <param name="indexerData"></param>
+		/// <param name="luceneDirectory"></param>
+		/// <param name="analyzer"></param>
+		/// <param name="dataService"></param>
+		/// <param name="indexTypes"></param>
+		/// <param name="async"></param>
+		[SecuritySafeCritical]
+		public SimpleDataIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
+			: base(indexerData, luceneDirectory, analyzer, async)
+		{
+			DataService = dataService;
+			IndexTypes = indexTypes;
+		}
+
         /// <summary>
         /// The data service used to retrieve all of the data for an index type
         /// </summary>

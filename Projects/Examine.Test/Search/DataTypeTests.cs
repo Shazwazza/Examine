@@ -6,6 +6,7 @@ using Examine.Test.DataServices;
 using Examine.Test.PartialTrust;
 using Lucene.Net.Analysis.Standard;
 using System.Threading;
+using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
 
@@ -254,25 +255,25 @@ namespace Examine.Test.Search
         private static ISearcher _searcher;
         private static IIndexer _indexer;
         private static DateTime _reIndexDateTime;
+		private Lucene.Net.Store.Directory _luceneDir;
 
 		public override void TestSetup()
         {
 
-            var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
-            _indexer = IndexInitializer.GetSimpleIndexer(newIndexFolder);
+			_luceneDir = new RAMDirectory();
+			_indexer = IndexInitializer.GetSimpleIndexer(_luceneDir);
             
             _reIndexDateTime = DateTime.Now;
             Thread.Sleep(1000);
 
             _indexer.RebuildIndex();
 
-            _searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
+			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
         }
 
 		public override void TestTearDown()
 		{
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexSet", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(newIndexFolder.Parent);
+			_luceneDir.Dispose();
 		}
 
     }

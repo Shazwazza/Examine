@@ -49,6 +49,24 @@ namespace Examine.LuceneEngine.Providers
 	        Searchers = searchers;
         }
 
+		/// <summary>
+		/// Constructor to allow for creating an indexer at runtime
+		/// </summary>
+		/// <param name="luceneDirs"></param>
+		/// <param name="analyzer"></param>
+		[SecuritySafeCritical]
+		public MultiIndexSearcher(IEnumerable<Lucene.Net.Store.Directory> luceneDirs, Analyzer analyzer)
+			: base(analyzer)
+		{
+			var searchers = new List<LuceneSearcher>();
+			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
+			foreach (var luceneDirectory in luceneDirs)
+			{
+				searchers.Add(new LuceneSearcher(luceneDirectory, IndexingAnalyzer));
+			}
+			Searchers = searchers;
+		}
+
 		#endregion
         
 	    ///<summary>

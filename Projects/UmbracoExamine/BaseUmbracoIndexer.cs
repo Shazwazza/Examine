@@ -48,6 +48,13 @@ namespace UmbracoExamine
             DataService = dataService;
         }
 
+		[SecuritySafeCritical]
+		protected BaseUmbracoIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
+			: base(indexerData, luceneDirectory, analyzer, async)
+		{
+			DataService = dataService;
+		}
+
         #endregion
 
         #region Properties

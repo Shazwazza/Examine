@@ -49,6 +49,23 @@ namespace UmbracoExamine.PDF
             UmbracoFileProperty = "umbracoFile";
         }
 
+		/// <summary>
+		/// Constructor to allow for creating an indexer at runtime
+		/// </summary>
+		/// <param name="luceneDirectory"></param>
+		/// <param name="dataService"></param>
+		/// <param name="analyzer"></param>
+		/// <param name="async"></param>
+		[SecuritySafeCritical]
+		public PDFIndexer(Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
+			: base(
+				new IndexCriteria(Enumerable.Empty<IIndexField>(), Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null),
+				luceneDirectory, dataService, analyzer, async)
+		{
+			SupportedExtensions = new[] { ".pdf" };
+			UmbracoFileProperty = "umbracoFile";
+		}
+
         #endregion
 
 

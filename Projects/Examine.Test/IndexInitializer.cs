@@ -27,8 +27,9 @@ namespace Examine.Test
     /// </summary>
     internal static class IndexInitializer
     {
-        public static UmbracoContentIndexer GetUmbracoIndexer(DirectoryInfo d)
+		public static UmbracoContentIndexer GetUmbracoIndexer(Lucene.Net.Store.Directory luceneDir)
         {
+	        
             var i = new UmbracoContentIndexer(new IndexCriteria(
                                                          new[]
                                                              {
@@ -63,7 +64,7 @@ namespace Examine.Test
                                                              },
                                                          new string[] { },
                                                          -1),
-                                                         d,
+														 luceneDir, //custom lucene directory
                                                          new TestDataService(),
                                                          new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
                                                          false);
@@ -73,12 +74,13 @@ namespace Examine.Test
             i.IndexingError += IndexingError;
 
             return i;
-        } 
-        public static UmbracoExamineSearcher GetUmbracoSearcher(DirectoryInfo d)
-        {
-            return new UmbracoExamineSearcher(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
         }
-        public static SimpleDataIndexer GetSimpleIndexer(DirectoryInfo d)
+		public static UmbracoExamineSearcher GetUmbracoSearcher(Lucene.Net.Store.Directory luceneDir)
+        {
+
+			return new UmbracoExamineSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+        }
+		public static SimpleDataIndexer GetSimpleIndexer(Lucene.Net.Store.Directory luceneDir)
         {
             var i = new SimpleDataIndexer(new IndexCriteria(
                                                          new IIndexField[] { },
@@ -101,7 +103,7 @@ namespace Examine.Test
                                                          new string[] { },
                                                          new string[] { },
                                                          -1),
-                                                         d,
+														 luceneDir,
                                                          new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
                                                          new TestSimpleDataProvider(),
                                                          new[] { "Documents", "Pictures" }, 
@@ -110,13 +112,13 @@ namespace Examine.Test
 
             return i;
         }
-        public static LuceneSearcher GetLuceneSearcher(DirectoryInfo d)
+		public static LuceneSearcher GetLuceneSearcher(Lucene.Net.Store.Directory luceneDir)
         {
-            return new LuceneSearcher(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+			return new LuceneSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
         }
-        public static PDFIndexer GetPdfIndexer(DirectoryInfo d)
+		public static PDFIndexer GetPdfIndexer(Lucene.Net.Store.Directory luceneDir)
         {
-            var i = new PDFIndexer(d,
+			var i = new PDFIndexer(luceneDir,
                                       new TestDataService(),
                                       new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
                                       false);
@@ -125,7 +127,7 @@ namespace Examine.Test
 
             return i;
         }
-        public static MultiIndexSearcher GetMultiSearcher(DirectoryInfo pdfDir, DirectoryInfo simpleDir, DirectoryInfo conventionDir, DirectoryInfo cwsDir)
+		public static MultiIndexSearcher GetMultiSearcher(Lucene.Net.Store.Directory pdfDir, Lucene.Net.Store.Directory simpleDir, Lucene.Net.Store.Directory conventionDir, Lucene.Net.Store.Directory cwsDir)
         {
             var i = new MultiIndexSearcher(new[] { pdfDir, simpleDir, conventionDir, cwsDir }, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
             return i;

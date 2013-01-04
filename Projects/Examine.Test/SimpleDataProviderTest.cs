@@ -9,6 +9,7 @@ using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
 using Examine.Test.DataServices;
 using Examine.LuceneEngine;
+using Lucene.Net.Store;
 using NUnit.Framework;
 
 namespace Examine.Test
@@ -71,19 +72,19 @@ namespace Examine.Test
 
         private static SimpleDataIndexer _indexer;
         private static LuceneSearcher _searcher;
+		private Lucene.Net.Store.Directory _luceneDir;
 
 		public override void TestSetup()
 		{
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexTest", Guid.NewGuid().ToString()));
-			_indexer = IndexInitializer.GetSimpleIndexer(newIndexFolder);
+			_luceneDir = new RAMDirectory();
+			_indexer = IndexInitializer.GetSimpleIndexer(_luceneDir);
 			_indexer.RebuildIndex();
-			_searcher = IndexInitializer.GetLuceneSearcher(newIndexFolder);
+			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
 		}
 
 		public override void TestTearDown()
 		{
-			var newIndexFolder = new DirectoryInfo(Path.Combine("App_Data\\SimpleIndexTest", Guid.NewGuid().ToString()));
-			TestHelper.CleanupFolder(newIndexFolder.Parent);
+			_luceneDir.Dispose();
 		}
     }
 }

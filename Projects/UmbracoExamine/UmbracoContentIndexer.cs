@@ -47,6 +47,18 @@ namespace UmbracoExamine
 		public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, dataService, analyzer, async) { }
 
+		/// <summary>
+		/// Constructor to allow for creating an indexer at runtime
+		/// </summary>
+		/// <param name="indexerData"></param>
+		/// <param name="luceneDirectory"></param>
+		/// <param name="dataService"></param>
+		/// <param name="analyzer"></param>
+		/// <param name="async"></param>
+		[SecuritySafeCritical]
+		public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
+			: base(indexerData, luceneDirectory, dataService, analyzer, async) { }
+
         #endregion
 
         #region Constants & Fields
