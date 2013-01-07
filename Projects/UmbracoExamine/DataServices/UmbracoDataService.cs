@@ -3,7 +3,7 @@ using System.Web.Hosting;
 
 namespace UmbracoExamine.DataServices
 {
-    public class UmbracoDataService : IDataService
+    internal class UmbracoDataService : IDataService
     {
         public UmbracoDataService()
         {

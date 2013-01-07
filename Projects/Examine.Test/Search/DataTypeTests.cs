@@ -8,7 +8,6 @@ using Lucene.Net.Analysis.Standard;
 using System.Threading;
 using Lucene.Net.Store;
 using NUnit.Framework;
-using UmbracoExamine;
 
 namespace Examine.Test.Search
 {

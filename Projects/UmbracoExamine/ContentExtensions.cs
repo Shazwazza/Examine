@@ -14,7 +14,7 @@ namespace UmbracoExamine
     /// <summary>
     /// Static methods to help query umbraco xml
     /// </summary>
-    public static class ContentExtensions
+    internal static class ContentExtensions
     {
 
         /// <summary>

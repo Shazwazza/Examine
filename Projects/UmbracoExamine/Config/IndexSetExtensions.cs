@@ -11,7 +11,7 @@ namespace UmbracoExamine.Config
     /// <summary>
     /// Extension methods for IndexSet
     /// </summary>
-    public static class IndexSetExtensions
+    internal static class IndexSetExtensions
     {
 
         private static readonly object Locker = new object();

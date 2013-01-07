@@ -18,7 +18,7 @@ using System.Diagnostics;
 
 namespace UmbracoExamine.DataServices
 {
-    public class UmbracoContentService : UmbracoExamine.DataServices.IContentService
+    internal class UmbracoContentService : UmbracoExamine.DataServices.IContentService
     {
 
         /// <summary>

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>AnglicanGeek.WindowsAzure.ServiceRuntime</id>
+    <version>1.6</version>
+    <title>AnglicanGeek's Unofficial Windows Azure Service Runtime</title>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <licenseUrl>http://go.microsoft.com/fwlink/?LinkId=235170</licenseUrl>
+    <iconUrl>http://www.gravatar.com/avatar/c24270713c524575b0308e05c7e9ff61?s=128</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>This is not an official Microsoft distribution. Use at your own risk. This package might be removed from the feed at any time.</description>
+    <releaseNotes>http://go.microsoft.com/fwlink/?LinkId=235169</releaseNotes>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="System.Data" targetFramework="" />
+      <frameworkAssembly assemblyName="System.Data.Services.Client" targetFramework="" />
+      <frameworkAssembly assemblyName="System.Xml" targetFramework="" />
+      <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework="" />
+    </frameworkAssemblies>
+    <references>
+      <reference file="Microsoft.WindowsAzure.ServiceRuntime.dll" />
+    </references>
+  </metadata>
+</package>

@@ -18,7 +18,7 @@ namespace UmbracoExamine
     /// <remarks>
     /// XSLT extensions will ONLY work for provider that have a base class of BaseUmbracoIndexer
     /// </remarks>
-    public class XsltExtensions
+    internal class XsltExtensions
     {
         ///<summary>
         /// Uses the provider specified to search, returning an XPathNodeIterator

@@ -7,7 +7,7 @@ using umbraco.BusinessLogic;
 
 namespace UmbracoExamine.DataServices
 {
-    public class UmbracoLogService : UmbracoExamine.DataServices.ILogService
+    internal class UmbracoLogService : UmbracoExamine.DataServices.ILogService
     {
         public string ProviderName { get; set; }
 

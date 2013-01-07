@@ -8,7 +8,7 @@ namespace UmbracoExamine
     /// <summary>
     /// The index types stored in the Lucene Index
     /// </summary>
-    public static class IndexTypes
+    internal static class IndexTypes
     {
 
         /// <summary>

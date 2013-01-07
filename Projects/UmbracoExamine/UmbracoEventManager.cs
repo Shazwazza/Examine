@@ -23,7 +23,7 @@ namespace UmbracoExamine
     /// <summary>
     /// An <see cref="umbraco.BusinessLogic.ApplicationBase"/> instance for wiring up Examine to the Umbraco events system
     /// </summary>
-    public class UmbracoEventManager : ApplicationBase
+    internal class UmbracoEventManager : ApplicationBase
     {
         /// <summary>
         /// Creates a new instance of the class

@@ -15,7 +15,7 @@ namespace UmbracoExamine.DataServices
     /// <summary>
     /// Data service used to query for media
     /// </summary>
-    public class UmbracoMediaService : UmbracoExamine.DataServices.IMediaService
+    internal class UmbracoMediaService : UmbracoExamine.DataServices.IMediaService
     {
 
         /// <summary>

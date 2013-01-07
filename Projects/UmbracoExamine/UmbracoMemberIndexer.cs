@@ -16,7 +16,7 @@ namespace UmbracoExamine
     /// <summary>
     /// 
     /// </summary>
-    public class UmbracoMemberIndexer : UmbracoContentIndexer
+    internal class UmbracoMemberIndexer : UmbracoContentIndexer
     {
 
         /// <summary>

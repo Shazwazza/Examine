@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.Azure", "Examine.Azure", "{F5BA4CD4-DAFE-4F97-B342-4DF10E1F76DB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AzureDirectory", "AzureDirectory", "{711566F1-9742-4E0D-9954-7182776B5273}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768-6ECD-40EF-84BD-5594670EA7A8}"
 	ProjectSection(SolutionItems) = preProject
 		Build-Release.ps1 = Build-Release.ps1
@@ -24,19 +22,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Projects\Examine
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Projects\Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.PDF", "Projects\UmbracoExamine.PDF\UmbracoExamine.PDF.csproj", "{F30DDDB8-3994-4673-82AE-057123C6E1A8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Projects\Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.Azure", "Projects\UmbracoExamine.Azure\UmbracoExamine.Azure.csproj", "{73529637-28F5-419C-A6BB-D094E39DE614}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Azure", "Projects\Examine.Azure\Examine.Azure.csproj", "{B5833B82-4211-459A-8B0C-AA8F68438250}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine.PDF.Azure", "Projects\UmbracoExamine.PDF.Azure\UmbracoExamine.PDF.Azure.csproj", "{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureDirectory", "Projects\AzureDirectory\AzureDirectory\AzureDirectory.csproj", "{6D8758A7-F910-4BA0-B382-D535CA1FF958}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "Projects\AzureDirectory\TestApp\TestApp.csproj", "{E18C9E98-AF7F-4D7C-8222-C55DD009C46B}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
@@ -59,43 +47,19 @@ Global
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F30DDDB8-3994-4673-82AE-057123C6E1A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F30DDDB8-3994-4673-82AE-057123C6E1A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F30DDDB8-3994-4673-82AE-057123C6E1A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F30DDDB8-3994-4673-82AE-057123C6E1A8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.Build.0 = Release|Any CPU
-		{73529637-28F5-419C-A6BB-D094E39DE614}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{73529637-28F5-419C-A6BB-D094E39DE614}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{73529637-28F5-419C-A6BB-D094E39DE614}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{73529637-28F5-419C-A6BB-D094E39DE614}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B5833B82-4211-459A-8B0C-AA8F68438250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B5833B82-4211-459A-8B0C-AA8F68438250}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5833B82-4211-459A-8B0C-AA8F68438250}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5833B82-4211-459A-8B0C-AA8F68438250}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6D8758A7-F910-4BA0-B382-D535CA1FF958}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6D8758A7-F910-4BA0-B382-D535CA1FF958}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6D8758A7-F910-4BA0-B382-D535CA1FF958}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6D8758A7-F910-4BA0-B382-D535CA1FF958}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E18C9E98-AF7F-4D7C-8222-C55DD009C46B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E18C9E98-AF7F-4D7C-8222-C55DD009C46B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E18C9E98-AF7F-4D7C-8222-C55DD009C46B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E18C9E98-AF7F-4D7C-8222-C55DD009C46B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{73529637-28F5-419C-A6BB-D094E39DE614} = {F5BA4CD4-DAFE-4F97-B342-4DF10E1F76DB}
 		{B5833B82-4211-459A-8B0C-AA8F68438250} = {F5BA4CD4-DAFE-4F97-B342-4DF10E1F76DB}
-		{B555AAE6-0F56-442F-AC9F-EF497DB38DE7} = {F5BA4CD4-DAFE-4F97-B342-4DF10E1F76DB}
-		{6D8758A7-F910-4BA0-B382-D535CA1FF958} = {711566F1-9742-4E0D-9954-7182776B5273}
-		{E18C9E98-AF7F-4D7C-8222-C55DD009C46B} = {711566F1-9742-4E0D-9954-7182776B5273}
 	EndGlobalSection
 EndGlobal

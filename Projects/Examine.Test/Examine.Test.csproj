@@ -82,7 +82,6 @@
     <Compile Include="DataServices\TestLogService.cs" />
     <Compile Include="DataServices\TestMediaService.cs" />
     <Compile Include="DataServices\TestSimpleDataProvider.cs" />
-    <Compile Include="Index\EventsTest.cs" />
     <Compile Include="PartialTrust\AbstractPartialTrustFixture.cs" />
     <Compile Include="PartialTrust\ExpressionHelper.cs" />
     <Compile Include="PartialTrust\IPartialTrustFixture.cs" />
@@ -93,7 +92,6 @@
     <Compile Include="PartialTrust\PartialTrustTestException.cs" />
     <Compile Include="PartialTrust\TestOnlyInFullTrustAttribute.cs" />
     <Compile Include="Search\DataTypeTests.cs" />
-    <Compile Include="Index\PDFIndexerTests.cs" />
     <Compile Include="Search\FluentApiTests.cs" />
     <Compile Include="IndexInitializer.cs" />
     <Compile Include="Index\IndexTest.cs" />
@@ -147,10 +145,6 @@
     <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\UmbracoExamine.PDF\UmbracoExamine.PDF.csproj">
-      <Project>{F30DDDB8-3994-4673-82AE-057123C6E1A8}</Project>
-      <Name>UmbracoExamine.PDF</Name>
     </ProjectReference>
     <ProjectReference Include="..\UmbracoExamine\UmbracoExamine.csproj">
       <Project>{07FBC26B-2927-4A22-8D96-D644C667FECC}</Project>

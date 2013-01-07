@@ -21,7 +21,7 @@ namespace UmbracoExamine.Config
     /// This class is defined purely to maintain backwards compatibility
     /// </summary>
     [Obsolete("Use the new Examine.LuceneEngine.Config.IndexSets")]
-    public class ExamineLuceneIndexes : Examine.LuceneEngine.Config.IndexSets
+    internal class ExamineLuceneIndexes : Examine.LuceneEngine.Config.IndexSets
     {
     }
 
@@ -33,7 +33,7 @@ namespace UmbracoExamine
     /// This class purely exists to maintain backwards compatibility
     /// </summary>
     [Obsolete("Use the new UmbracoExamineSearcher instead")]
-    public class LuceneExamineSearcher : UmbracoExamineSearcher
+    internal class LuceneExamineSearcher : UmbracoExamineSearcher
     {
         #region Constructors
         [Obsolete]
@@ -51,7 +51,7 @@ namespace UmbracoExamine
     /// This class purely exists to maintain backwards compatibility
     /// </summary>
     [Obsolete("Use the new UmbracoMemberIndexer instead")]
-    public class MemberLuceneExamineIndexer : UmbracoMemberIndexer
+    internal class MemberLuceneExamineIndexer : UmbracoMemberIndexer
     {
         #region Constructors
         [Obsolete]
@@ -69,7 +69,7 @@ namespace UmbracoExamine
     /// This class purely exists to maintain backwards compatibility
     /// </summary>
     [Obsolete("Use the new UmbracoContentIndexer instead")]
-    public class LuceneExamineIndexer : UmbracoContentIndexer
+    internal class LuceneExamineIndexer : UmbracoContentIndexer
     {
         #region Constructors
         [Obsolete]
@@ -87,7 +87,7 @@ namespace UmbracoExamine
     //namespaces
 
     //[Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
-    //public static class LinqXmlExtensions
+    //internal static class LinqXmlExtensions
     //{
     //    [Obsolete("Use the new Examine.LuceneEngine.ExamineXmlExtensions")]
     //    public static XDocument ToXDocument(this IEnumerable<XElement> elements)
@@ -142,7 +142,7 @@ namespace UmbracoExamine.SearchCriteria
 {
 
     [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
-    public static class LuceneSearchExtensions
+    internal static class LuceneSearchExtensions
     {
         [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
         public static IExamineValue Boost(this string s, float boost)
@@ -203,7 +203,7 @@ namespace UmbracoExamine.SearchCriteria
     /// This exists purely to maintain backwards compatibility
     /// </summary>
     [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchCriteria")]
-    public class LuceneSearchCriteria : Examine.LuceneEngine.SearchCriteria.LuceneSearchCriteria
+    internal class LuceneSearchCriteria : Examine.LuceneEngine.SearchCriteria.LuceneSearchCriteria
     {
         [Obsolete]
 		[SecuritySafeCritical]
@@ -215,7 +215,7 @@ namespace UmbracoExamine.SearchCriteria
     /// This exists purely to maintain backwards compatibility
     /// </summary>
     [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneBooleanOperation instead")]
-    public class LuceneBooleanOperation : Examine.LuceneEngine.SearchCriteria.LuceneBooleanOperation
+    internal class LuceneBooleanOperation : Examine.LuceneEngine.SearchCriteria.LuceneBooleanOperation
     {
         [Obsolete]
         public LuceneBooleanOperation(LuceneSearchCriteria search) : base(search) { }
@@ -225,7 +225,7 @@ namespace UmbracoExamine.SearchCriteria
     /// This exists purely to maintain backwards compatibility
     /// </summary>
     [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneQuery instead")]
-    public class LuceneQuery : Examine.LuceneEngine.SearchCriteria.LuceneQuery
+    internal class LuceneQuery : Examine.LuceneEngine.SearchCriteria.LuceneQuery
     {
         [Obsolete]
 		[SecuritySafeCritical]

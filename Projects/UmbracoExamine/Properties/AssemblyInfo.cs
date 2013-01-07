@@ -20,5 +20,8 @@ using System.Security;
 [assembly: Guid("31c5b048-cfa8-49b4-8983-bdba0f99eef5")]
 
 [assembly: InternalsVisibleTo("Examine.Test")]
+[assembly: InternalsVisibleTo("UmbracoExamine.Azure")]
+[assembly: InternalsVisibleTo("Examine.Test")]
+[assembly: InternalsVisibleTo("Examine.Test")]
 
 [assembly: AllowPartiallyTrustedCallers]

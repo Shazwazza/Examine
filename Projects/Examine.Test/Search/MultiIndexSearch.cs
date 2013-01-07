@@ -56,8 +56,7 @@ namespace Examine.Test.Search
             //get all of the indexers and rebuild them all first
             var indexers = new IIndexer[]
                                {
-                                   IndexInitializer.GetUmbracoIndexer(_cwsDir),
-                                   IndexInitializer.GetPdfIndexer(_pdfDir),
+                                   IndexInitializer.GetUmbracoIndexer(_cwsDir),                                   
                                    IndexInitializer.GetSimpleIndexer(_simpleDir),
                                    IndexInitializer.GetUmbracoIndexer(_conventionDir)
                                };            
