@@ -78,7 +78,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
-            return new ExamineValue(Examineness.Boosted, s + "^", boost);
+            return new ExamineValue(Examineness.Boosted, s, boost);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
-            return new ExamineValue(Examineness.Proximity, s + "~", Convert.ToSingle(proximity));
+            return new ExamineValue(Examineness.Proximity, s, Convert.ToSingle(proximity));
         }
 
         /// <summary>
@@ -103,8 +103,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="s">The string to wildcard.</param>
         /// <returns>An IExamineValue for the required operation</returns>
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
-		[SecuritySafeCritical]
-		public static IExamineValue Escape(this string s)
+        [SecuritySafeCritical]
+        public static IExamineValue Escape(this string s)
         {
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
@@ -141,8 +141,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The operation.</param>
         /// <returns>The translated Boolean operation</returns>
-		[SecuritySafeCritical]
-		public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
+        [SecuritySafeCritical]
+        public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
         {
             switch (o)
             {
@@ -161,8 +161,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The occurrence to translate.</param>
         /// <returns>The translated boolean occurrence</returns>
-		[SecuritySafeCritical]
-		public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
+        [SecuritySafeCritical]
+        public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
         {
             if (o == BooleanClause.Occur.MUST)
             {
