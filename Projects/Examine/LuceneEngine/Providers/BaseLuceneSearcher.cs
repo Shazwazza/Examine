@@ -120,18 +120,25 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="searchText"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
+        /// in a wild card search too.
+        /// </remarks>
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
-            var sc = this.CreateSearchCriteria();            
+            var sc = this.CreateSearchCriteria();
+            var splitSearch = searchText.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (useWildcards)
-            {
-                var wildcardSearch = new ExamineValue(Examineness.ComplexWildcard, searchText.MultipleCharacterWildcard().Value);
-                sc = sc.GroupedOr(GetSearchFields(), wildcardSearch).Compile();
+            {                        
+                sc = sc.GroupedOr(GetSearchFields(),
+                    splitSearch.Select(x => 
+                        new ExamineValue(Examineness.ComplexWildcard, x.MultipleCharacterWildcard().Value)).Cast<IExamineValue>().ToArray()
+                    ).Compile();
             }
             else
             {
-                sc = sc.GroupedOr(GetSearchFields(), searchText).Compile();
+                sc = sc.GroupedOr(GetSearchFields(), splitSearch).Compile();
             }
 
             return Search(sc);

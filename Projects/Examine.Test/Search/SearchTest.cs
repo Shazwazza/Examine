@@ -17,7 +17,6 @@ namespace Examine.Test.Search
 	public class SearchTest : AbstractPartialTrustFixture<SearchTest>
     {
 
-        
 
         [Test]
         public void Search_On_Stop_Word()

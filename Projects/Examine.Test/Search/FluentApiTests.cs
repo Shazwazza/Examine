@@ -13,6 +13,26 @@ namespace Examine.Test.Search
     [TestFixture]
 	public class FluentApiTests : AbstractPartialTrustFixture<FluentApiTests>
     {
+        //[Test]
+        //public void FluentApiTests_Grouped_Or_Examiness()
+        //{
+        //    ////Arrange
+        //    var criteria = _searcher.CreateSearchCriteria("content");
+
+        //    //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
+        //    var filter = criteria.GroupedOr(
+        //        new[] { "nodeTypeAlias", "nodeName" },
+        //        new[] { "CWS\\_Home".Boost(10), "About".MultipleCharacterWildcard() })
+        //        .Compile();
+
+
+        //    ////Act
+        //    var results = _searcher.Search(filter);
+
+        //    ////Assert
+        //    Assert.IsTrue(results.TotalItemCount > 0);
+        //}
+
 		[Test]
 		public void FluentApi_Find_By_ParentId()
 		{

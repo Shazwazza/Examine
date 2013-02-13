@@ -379,7 +379,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance, bool useQueryParser)
         {
             Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);            
-
+            
             if (queryToAdd != null)
                 Query.Add(queryToAdd, occurance);
 
@@ -619,7 +619,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             //(field1:query field2:query field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.SHOULD), occurance);
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.SHOULD, true), occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -665,29 +665,77 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fields"></param>
         /// <param name="fieldVals"></param>
         /// <param name="occurance"></param>
+        /// <param name="matchAllCombinations">If true will match all combinations, if not will only match the values corresponding with fields</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
-		protected internal BooleanQuery GetMultiFieldQuery(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        /// <remarks>
+        /// 
+        /// if matchAllCombinations == false then...
+        /// this will create a query that matches the field index to the value index
+        /// For example if we have these fields:
+        /// bodyText, pageTitle
+        /// and these values:
+        /// "hello", "world"
+        /// 
+        /// then the query output will be:
+        /// 
+        /// bodyText: "hello" pageTitle: "world"
+        /// 
+        /// if matchAllCombinations == true then...
+        /// This will create a query for all combinations of fields and values. 
+        /// For example if we have these fields:
+        /// bodyText, pageTitle
+        /// and these values:
+        /// "hello", "world"
+        /// 
+        /// then the query output will be:
+        /// 
+        /// bodyText: "hello" bodyText: "world" pageTitle: "hello" pageTitle: "world"
+        /// 
+        /// </remarks>
+        [SecuritySafeCritical]
+		protected internal BooleanQuery GetMultiFieldQuery(
+            string[] fields, 
+            IExamineValue[] fieldVals, 
+            BooleanClause.Occur occurance,
+            bool matchAllCombinations = false)
         {
-            //if there's only 1 query text we want to build up a string like this:
-            //(!field1:query !field2:query !field3:query)
-            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            var queryVals = new IExamineValue[fields.Length];
-            if (fieldVals.Length == 1)
+            var qry = new BooleanQuery();
+            if (matchAllCombinations)
             {
-                for (int i = 0; i < queryVals.Length; i++)
-                    queryVals[i] = fieldVals[0];
+                foreach (var f in fields)
+                {
+                    foreach (var val in fieldVals)
+                    {
+                        var q = GetFieldInternalQuery(f, val, true);
+                        if (q != null)
+                        {
+                            qry.Add(q, occurance);
+                        }
+                    }
+                }
             }
             else
             {
-                queryVals = fieldVals;
-            }
-
-            var qry = new BooleanQuery();
-            for (int i = 0; i < fields.Length; i++)
-            {
-                qry.Add(this.GetFieldInternalQuery(fields[i], queryVals[i], true), occurance);
+                var queryVals = new IExamineValue[fields.Length];
+                if (fieldVals.Length == 1)
+                {
+                    for (int i = 0; i < queryVals.Length; i++)
+                        queryVals[i] = fieldVals[0];
+                }
+                else
+                {
+                    queryVals = fieldVals;
+                }
+                
+                for (int i = 0; i < fields.Length; i++)
+                {
+                    var q = GetFieldInternalQuery(fields[i], queryVals[i], true);
+                    if (q != null)
+                    {
+                        qry.Add(q, occurance);
+                    }                   
+                }
             }
 
             return qry;
@@ -743,7 +791,11 @@ namespace Examine.LuceneEngine.SearchCriteria
             var qry = new BooleanQuery();
             for (int i = 0; i < fields.Length; i++)
             {
-                qry.Add(this.GetFieldInternalQuery(fields[i], queryVals[i], true), flags[i]);
+                var q = GetFieldInternalQuery(fields[i], queryVals[i], true);
+                if (q != null)
+                {
+                    qry.Add(q, flags[i]);
+                }                
             }
 
             this.Query.Add(qry, occurance);
