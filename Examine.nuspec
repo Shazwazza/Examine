@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Examine</id>
+        <version>0.1.44.2941</version>
+        <title />
+        <authors>Shannon Deminick</authors>
+        <owners>Shannon Deminick</owners>
+        <projectUrl>http://examine.codeplex.com</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Examine</description>
+        <dependencies>
+            <dependency id="Lucene.Net" version="2.9.4.1" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="lib\Examine.dll" target="lib\Examine.dll" />
+    </files>
+</package>
