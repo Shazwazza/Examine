@@ -999,17 +999,19 @@ namespace Examine.LuceneEngine.Providers
             var d = new Document();
 
             //get all index set fields that are defined
-            var indexSetFields = IndexerData.UserFields.ToList().Concat(IndexerData.StandardFields.ToList());
+            var indexSetFields = IndexerData.UserFields.Concat(IndexerData.StandardFields.ToList()).ToArray();
 
             //add all of our fields to the document index individually, don't include the special fields if they exists            
-            var validFields = fields.Where(x => !x.Key.StartsWith(SpecialFieldPrefix)).ToList();
+            var validFields = fields.Where(x => !x.Key.StartsWith(SpecialFieldPrefix)).ToArray();
 
             foreach (var x in validFields)
             {
                 var ourPolicyType = GetPolicy(x.Key);
                 var lucenePolicy = TranslateFieldIndexTypeToLuceneType(ourPolicyType);
 
-                var indexedFields = indexSetFields.Where(o => o.Name == x.Key);
+                //copy local
+                var x1 = x;
+                var indexedFields = indexSetFields.Where(o => o.Name == x1.Key).ToArray();
 
                 if (!indexedFields.Any())
                 {
