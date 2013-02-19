@@ -879,6 +879,29 @@ namespace Examine.LuceneEngine.Providers
 
             var nodeId = int.Parse(node.Attribute("id").Value);
 
+            // Add umbraco node properties 
+            foreach (var field in IndexerData.StandardFields)
+            {
+                string val = node.SelectExaminePropertyValue(field.Name);
+                var args = new IndexingFieldDataEventArgs(node, field.Name, val, true, nodeId);
+                OnGatheringFieldData(args);
+                val = args.FieldValue;
+
+                //don't add if the value is empty/null                
+                if (!string.IsNullOrEmpty(val))
+                {
+                    if (values.ContainsKey(field.Name))
+                    {
+                        OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
+                    }
+                    else
+                    {
+                        values.Add(field.Name, val);    
+                    }                    
+                }
+
+            }
+
             // Get all user data that we want to index and store into a dictionary 
             foreach (var field in IndexerData.UserFields)
             {
@@ -893,26 +916,18 @@ namespace Examine.LuceneEngine.Providers
                 //don't add if the value is empty/null
                 if (!string.IsNullOrEmpty(value))
                 {
-                    if (!string.IsNullOrEmpty(value))
+                    if (values.ContainsKey(field.Name))
+                    {
+                        OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
+                    }
+                    else
+                    {
                         values.Add(field.Name, value);
+                    }    
                 }
             }
 
-            // Add umbraco node properties 
-            foreach (var field in IndexerData.StandardFields)
-            {
-                string val = node.SelectExaminePropertyValue(field.Name);
-                var args = new IndexingFieldDataEventArgs(node, field.Name, val, true, nodeId);
-                OnGatheringFieldData(args);
-                val = args.FieldValue;
-
-                //don't add if the value is empty/null                
-                if (!string.IsNullOrEmpty(val))
-                {
-                    values.Add(field.Name, val);
-                }
-
-            }
+            
 
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
