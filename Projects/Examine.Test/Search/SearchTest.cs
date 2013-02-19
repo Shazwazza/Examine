@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using Examine.LuceneEngine.SearchCriteria;
 using Examine.Test.DataServices;
 using Examine.Test.PartialTrust;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
@@ -17,6 +20,18 @@ namespace Examine.Test.Search
 	public class SearchTest : AbstractPartialTrustFixture<SearchTest>
     {
 
+        [Test]
+        public void Match_Search_Field_Sort_Syntax()
+        {
+            var val = "myFieldName[Type=INT]";
+            var match = LuceneSearchCriteria.SortMatchExpression.Match(val);
+
+            Assert.IsTrue(match.Success);
+            var type = match.Groups["type"];
+            Assert.IsNotNull(type);
+            Assert.AreEqual("INT", type.Value);
+            Assert.AreEqual("myFieldName", val.Substring(0, match.Index));
+        }
 
         [Test]
         public void Search_On_Stop_Word()

@@ -3,6 +3,7 @@ using System.Security;
 using Examine.SearchCriteria;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
+using System.Linq;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
@@ -11,6 +12,30 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// </summary>
     public static class LuceneSearchExtensions
     {
+        /// <summary>
+        /// Used to order results by the specified fields 
+        /// </summary>
+        /// <param name="qry"></param>
+        /// <param name="fields">The fields to sort by and the type to sort them on</param>
+        /// <returns></returns>
+        public static IBooleanOperation OrderBy(this IQuery qry, params SortableField[] fields)
+        {
+            return qry.OrderBy(
+                fields.Select(x => x.FieldName + "[Type=" + x.SortType.ToString().ToUpper() + "]").ToArray());
+        }
+
+        /// <summary>
+        /// Used to order results by the specified fields 
+        /// </summary>
+        /// <param name="qry"></param>
+        /// <param name="fields">The fields to sort by and the type to sort them on</param>
+        /// <returns></returns>
+        public static IBooleanOperation OrderByDescending(this IQuery qry, params SortableField[] fields)
+        {
+            return qry.OrderByDescending(
+                fields.Select(x => x.FieldName + "[Type=" + x.SortType.ToString().ToUpper() + "]").ToArray());
+        }
+
         /// <summary>
         /// Adds a single character wildcard to the string for Lucene wildcard matching
         /// </summary>

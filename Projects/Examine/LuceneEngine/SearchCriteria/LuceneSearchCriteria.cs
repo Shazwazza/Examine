@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Security;
+using System.Text.RegularExpressions;
 using Examine;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
@@ -18,8 +20,10 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// <summary>
     /// This class is used to query against Lucene.Net
     /// </summary>
+    [DebuggerDisplay("SearchIndexType: {SearchIndexType}, LuceneQuery: {Query}")]
     public class LuceneSearchCriteria : ISearchCriteria
     {
+        internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
         internal MultiFieldQueryParser QueryParser;
         internal BooleanQuery Query;
         internal List<SortField> SortFields = new List<SortField>();
@@ -333,6 +337,15 @@ namespace Examine.LuceneEngine.SearchCriteria
                     {
                         queryToAdd = ParseRawQuery(qry); 
                     }
+                    break;
+                case Examineness.Escaped:
+                    //when an item is escaped it should be an exact match
+                    // http://examine.codeplex.com/workitem/10359
+
+                    //standard query ... no query parser
+                    var stdQuery = fieldName + ":" + fieldValue.Value;
+                    queryToAdd = ParseRawQuery(stdQuery);
+
                     break;
                 case Examineness.Explicit:
                 default:
@@ -845,16 +858,78 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="descending">if set to <c>true</c> [descending].</param>
         /// <param name="fieldNames">The field names.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        /// <remarks>
+        /// 
+        /// In order to support sorting based on a real lucene type we have to 'hack' some new syntax in for the field names. 
+        /// Ideally we'd have a new method but changing the interface will break things. So instead we're going to detect if each field
+        /// name contains a Sort definition. The syntax will be:
+        /// 
+        /// myFieldName[Type=INT]
+        /// 
+        /// We then detect if the field name contains [Type=xxx] using regex, if it does then we'll parse out the type and see if it
+        /// matches a real lucene type.
+        /// 
+        /// </remarks>
 		[SecuritySafeCritical]
 		protected internal IBooleanOperation OrderByInternal(bool descending, params string[] fieldNames)
         {
-            foreach (var fieldName in fieldNames)
+            foreach (var f in fieldNames)
             {
-                this.SortFields.Add(new SortField(LuceneIndexer.SortedFieldNamePrefix + fieldName, SortField.STRING, descending));
+                var fieldName = f;
+                var defaultSort = SortField.STRING;
+                var match = SortMatchExpression.Match(fieldName);
+                if (match.Success && match.Groups["type"] != null)
+                {
+                    switch (match.Groups["type"].Value.ToUpper())
+                    {
+                        case "SCORE":
+                            defaultSort = SortField.SCORE;
+                            break;
+                        case "DOC":
+                            defaultSort = SortField.DOC;
+                            break;
+                        case "AUTO":
+                            defaultSort = SortField.AUTO;
+                            break;
+                        case "STRING":
+                            defaultSort = SortField.STRING;
+                            break;
+                        case "INT":
+                            defaultSort = SortField.INT;
+                            break;
+                        case "FLOAT":
+                            defaultSort = SortField.FLOAT;
+                            break;
+                        case "LONG":
+                            defaultSort = SortField.LONG;
+                            break;
+                        case "DOUBLE":
+                            defaultSort = SortField.DOUBLE;
+                            break;
+                        case "SHORT":
+                            defaultSort = SortField.SHORT;
+                            break;
+                        case "CUSTOM":
+                            defaultSort = SortField.CUSTOM;
+                            break;
+                        case "BYTE":
+                            defaultSort = SortField.BYTE;
+                            break;
+                        case "STRING_VAL":
+                            defaultSort = SortField.STRING_VAL;
+                            break;
+                    }    
+                    //now strip the type from the string
+                    fieldName = fieldName.Substring(0, match.Index);
+                }
+                
+                this.SortFields.Add(new SortField(LuceneIndexer.SortedFieldNamePrefix + fieldName, defaultSort, descending));
             }
 
             return new LuceneBooleanOperation(this);
         }
+
+
 
         #endregion
     }

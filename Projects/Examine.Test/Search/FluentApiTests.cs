@@ -6,6 +6,7 @@ using Examine.SearchCriteria;
 using Examine.Test.PartialTrust;
 using Lucene.Net.Store;
 using NUnit.Framework;
+using UmbracoExamine;
 
 
 namespace Examine.Test.Search
@@ -33,7 +34,24 @@ namespace Examine.Test.Search
         //    Assert.IsTrue(results.TotalItemCount > 0);
         //}
 
-		[Test]
+
+        [Test]
+        public void FluentApi_Exact_Match_By_Escaped_Path()
+        {
+            //paths contain punctuation, we'll escape it and ensure an exact match
+            var criteria = _searcher.CreateSearchCriteria("content");
+            var filter = criteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148");
+            var results = _searcher.Search(filter.Compile());
+            Assert.AreEqual(0, results.TotalItemCount);
+
+            //now escape it
+            var exactcriteria = _searcher.CreateSearchCriteria("content");
+            var exactfilter = exactcriteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148".Escape());
+            results = _searcher.Search(exactfilter.Compile());
+            Assert.AreEqual(1, results.TotalItemCount);
+        }
+
+        [Test]
 		public void FluentApi_Find_By_ParentId()
 		{
 			var criteria = _searcher.CreateSearchCriteria("content");

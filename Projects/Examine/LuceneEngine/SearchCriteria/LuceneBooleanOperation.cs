@@ -1,4 +1,5 @@
-﻿using System.Security;
+﻿using System.Diagnostics;
+using System.Security;
 using Examine.SearchCriteria;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
@@ -8,13 +9,15 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// <summary>
     /// An implementation of the fluent API boolean operations
     /// </summary>
+    [DebuggerDisplay("{_search}")]
     public class LuceneBooleanOperation : IBooleanOperation
     {
-        private LuceneSearchCriteria search;
+        private readonly LuceneSearchCriteria _search;
+        private bool _hasCompiled = false;
 
         internal LuceneBooleanOperation(LuceneSearchCriteria search)
         {
-            this.search = search;
+            this._search = search;
         }
 
         #region IBooleanOperation Members
@@ -26,7 +29,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         [SecuritySafeCritical]
         public IQuery And()
         {
-            return new LuceneQuery(this.search, BooleanClause.Occur.MUST);
+            return new LuceneQuery(this._search, BooleanClause.Occur.MUST);
         }
 
         /// <summary>
@@ -36,7 +39,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		[SecuritySafeCritical]
         public IQuery Or()
         {
-            return new LuceneQuery(this.search, BooleanClause.Occur.SHOULD);
+            return new LuceneQuery(this._search, BooleanClause.Occur.SHOULD);
         }
 
         /// <summary>
@@ -46,7 +49,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		[SecuritySafeCritical]
         public IQuery Not()
         {
-            return new LuceneQuery(this.search, BooleanClause.Occur.MUST_NOT);
+            return new LuceneQuery(this._search, BooleanClause.Occur.MUST_NOT);
         }
 
         /// <summary>
@@ -56,19 +59,22 @@ namespace Examine.LuceneEngine.SearchCriteria
 		[SecuritySafeCritical]
         public ISearchCriteria Compile()
         {
-            if (!string.IsNullOrEmpty(this.search.SearchIndexType))
+            if (!_hasCompiled && !string.IsNullOrEmpty(this._search.SearchIndexType))
             {
-                var query = this.search.Query;
+                var query = this._search.Query;
 
-                this.search.Query = new BooleanQuery();
-                this.search.Query.Add(query, BooleanClause.Occur.MUST);
+                this._search.Query = new BooleanQuery();
+                this._search.Query.Add(query, BooleanClause.Occur.MUST);
 
                 //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), BooleanClause.Occur.MUST);
 
-                this.search.FieldInternal(LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this.search.SearchIndexType.ToString()), BooleanClause.Occur.MUST);
+                this._search.FieldInternal(LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType.ToString()), BooleanClause.Occur.MUST);
+                
+                //ensure we don't compile twice!
+                _hasCompiled = true;
             }
             
-            return this.search;
+            return this._search;
         }
 
         #endregion

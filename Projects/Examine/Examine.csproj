@@ -146,6 +146,8 @@
     <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchExtensions.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\SortField.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\SortType.cs" />
     <Compile Include="LuceneEngine\SearchResults.cs" />
     <Compile Include="LuceneEngine\SimpleDataSet.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />

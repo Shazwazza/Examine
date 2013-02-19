@@ -1,5 +1,7 @@
 ﻿namespace Examine
 {
+    
+
     /// <summary>
     /// Represents a field to index
     /// </summary>
