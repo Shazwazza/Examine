@@ -64,10 +64,10 @@ $SqlCeDb = Join-Path $WebExamineFolder -ChildPath "App_Data\Database1.sdf";
 Remove-Item $SqlCeDb 
 
 $CoreNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Examine.nuspec";
-Copy-Item $CoreNuSpecSource -Destination $ReleaseFolder
+Copy-Item $CoreNuSpecSource -Destination $CoreExamineFolder
 # Copy-Item "$BuildFolder\nuget-transforms\Core\web.config.transform" -Destination (New-Item (Join-Path -Path $ReleaseFolder -ChildPath "nuget-transforms") -Type directory);
 
-$CoreNuSpec = Join-Path -Path $ReleaseFolder -ChildPath "Examine.nuspec";
+$CoreNuSpec = Join-Path -Path $CoreExamineFolder -ChildPath "Examine.nuspec";
 
 $NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
 & $NuGet pack $CoreNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
