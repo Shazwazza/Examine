@@ -9,3 +9,4 @@ TestResults/*
 Examine.Web.Demo/App_Data/*
 *.user
 build/Releases/*
+packages/*
