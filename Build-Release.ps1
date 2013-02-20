@@ -63,5 +63,16 @@ Remove-Item $IndexSet -Recurse
 $SqlCeDb = Join-Path $WebExamineFolder -ChildPath "App_Data\Database1.sdf";
 Remove-Item $SqlCeDb 
 
+$CoreNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Examine.nuspec";
+Copy-Item $CoreNuSpecSource -Destination $ReleaseFolder
+# Copy-Item "$BuildFolder\nuget-transforms\Core\web.config.transform" -Destination (New-Item (Join-Path -Path $ReleaseFolder -ChildPath "nuget-transforms") -Type directory);
+
+$CoreNuSpec = Join-Path -Path $ReleaseFolder -ChildPath "Examine.nuspec";
+
+$NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
+& $NuGet pack $CoreNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
+
 ""
 "Build $ReleaseVersionNumber is done!"
+"NuGet packages also created, so if you want to push them just run:"
+"  nuget push $CoreNuSpec"
