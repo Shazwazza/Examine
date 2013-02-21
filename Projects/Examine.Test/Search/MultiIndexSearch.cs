@@ -34,7 +34,7 @@ namespace Examine.Test.Search
         public void MultiIndex_Field_Count()
         {
             var result = _searcher.GetSearchFields();
-            Assert.AreEqual(25, result.Count(), "The total number for fields between all of the indexes should be ");
+            Assert.AreEqual(24, result.Count(), "The total number for fields between all of the indexes should be ");
         }
 
         #region Initialize and Cleanup

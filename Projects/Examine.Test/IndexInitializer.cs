@@ -38,7 +38,8 @@ namespace Examine.Test
                                                                  new TestIndexField { Name = "writerName" }, 
                                                                  new TestIndexField { Name = "path" }, 
                                                                  new TestIndexField { Name = "nodeTypeAlias" }, 
-                                                                 new TestIndexField { Name = "parentID" }
+                                                                 new TestIndexField { Name = "parentID" },
+                                                                 new TestIndexField { Name = "sortOrder", EnableSorting = true, Type = "Number"},
                                                              },
                                                          new[]
                                                              {

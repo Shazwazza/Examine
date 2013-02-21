@@ -1036,6 +1036,7 @@ namespace Examine.LuceneEngine.Providers
                     {
                         var indexField = indexedFields.First();
                         Fieldable field = null;
+                        Fieldable sortedField = null;
                         object parsedVal = null;
                         if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
                         switch (indexField.Type.ToUpper())
@@ -1045,126 +1046,55 @@ namespace Examine.LuceneEngine.Providers
                                 if (!TryConvert<int>(x.Value, out parsedVal))
                                     break;
                                 field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue((int)parsedVal);
+                                sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetIntValue((int)parsedVal);
                                 break;
                             case "FLOAT":
                                 if (!TryConvert<float>(x.Value, out parsedVal))
                                     break;
                                 field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetFloatValue((float)parsedVal);
+                                sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetFloatValue((float)parsedVal);
                                 break;
                             case "DOUBLE":
                                 if (!TryConvert<double>(x.Value, out parsedVal))
                                     break;
                                 field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetDoubleValue((double)parsedVal);
+                                sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetDoubleValue((double)parsedVal);
                                 break;
                             case "LONG":
                                 if (!TryConvert<long>(x.Value, out parsedVal))
                                     break;
                                 field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue((long)parsedVal);
+                                sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetLongValue((long)parsedVal);
                                 break;
                             case "DATE":
                             case "DATETIME":
                                 {
-                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
-                                        break;
-
-                                    DateTime date = (DateTime)parsedVal;
-                                    string dateAsString = DateTools.DateToString(date, DateTools.Resolution.MILLISECOND);
-                                    //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue(long.Parse(dateAsString));
-                                    field =
-                                    new Field(x.Key,
-                                        dateAsString,
-                                        Field.Store.YES,
-                                        lucenePolicy,
-                                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
-                                    );
-
+                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MILLISECOND, lucenePolicy, ref field, ref sortedField);
                                     break;
                                 }
                             case "DATE.YEAR":
                                 {
-                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
-                                        break;
-
-                                    DateTime date = (DateTime)parsedVal;
-                                    string dateAsString = DateTools.DateToString(date, DateTools.Resolution.YEAR);
-                                    //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
-                                    field =
-                                    new Field(x.Key,
-                                        dateAsString,
-                                        Field.Store.YES,
-                                        lucenePolicy,
-                                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
-                                    );
-
+                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.YEAR, lucenePolicy, ref field, ref sortedField);
                                     break;
                                 }
                             case "DATE.MONTH":
                                 {
-                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
-                                        break;
-
-                                    DateTime date = (DateTime)parsedVal;
-                                    string dateAsString = DateTools.DateToString(date, DateTools.Resolution.MONTH);
-                                    //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
-                                    field =
-                                    new Field(x.Key,
-                                        dateAsString,
-                                        Field.Store.YES,
-                                        lucenePolicy,
-                                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
-                                    );
-
+                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MONTH, lucenePolicy, ref field, ref sortedField);
                                     break;
                                 }
                             case "DATE.DAY":
                                 {
-                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
-                                        break;
-
-                                    DateTime date = (DateTime)parsedVal;
-                                    string dateAsString = DateTools.DateToString(date, DateTools.Resolution.DAY);
-                                    //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
-                                    field =
-                                    new Field(x.Key,
-                                        dateAsString,
-                                        Field.Store.YES,
-                                        lucenePolicy,
-                                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
-                                    );
+                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.DAY, lucenePolicy, ref field, ref sortedField);
                                     break;
                                 }
                             case "DATE.HOUR":
                                 {
-                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
-                                        break;
-
-                                    DateTime date = (DateTime)parsedVal;
-                                    string dateAsString = DateTools.DateToString(date, DateTools.Resolution.HOUR);
-                                    //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
-                                    field =
-                                    new Field(x.Key,
-                                        dateAsString,
-                                        Field.Store.YES,
-                                        lucenePolicy,
-                                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
-                                    );
+                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.HOUR, lucenePolicy, ref field, ref sortedField);
                                     break;
                                 }
                             case "DATE.MINUTE":
                                 {
-                                    if (!TryConvert<DateTime>(x.Value, out parsedVal))
-                                        break;
-
-                                    DateTime date = (DateTime)parsedVal;
-                                    string dateAsString = DateTools.DateToString(date, DateTools.Resolution.MINUTE);
-                                    //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
-                                    field =
-                                    new Field(x.Key,
-                                        dateAsString,
-                                        Field.Store.YES,
-                                        lucenePolicy,
-                                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
-                                    );
+                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MINUTE, lucenePolicy, ref field, ref sortedField);                                    
                                     break;
                                 }
                             default:
@@ -1174,6 +1104,12 @@ namespace Examine.LuceneEngine.Providers
                                         Field.Store.YES,
                                         lucenePolicy,
                                         lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
+                                    );
+                                sortedField = new Field(SortedFieldNamePrefix + x.Key,
+                                                        x.Value,
+                                                        Field.Store.NO, //we don't want to store the field because we're only using it to sort, not return data
+                                                        Field.Index.NOT_ANALYZED,
+                                                        Field.TermVector.NO
                                     );
                                 break;
                         }
@@ -1186,15 +1122,11 @@ namespace Examine.LuceneEngine.Providers
                         else
                         {                            
                             d.Add(field);
-
+                            
+                            //add the special sorted field if sorting is enabled
                             if (indexField.EnableSorting)
                             {
-                                d.Add(new Field(SortedFieldNamePrefix + x.Key,
-                                        x.Value,
-                                        Field.Store.YES,
-                                        Field.Index.NOT_ANALYZED,
-                                        Field.TermVector.NO
-                                        ));
+                                d.Add(sortedField);
                             }
                         }
 
@@ -1214,6 +1146,32 @@ namespace Examine.LuceneEngine.Providers
             OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
         }
 
+        [SecuritySafeCritical]
+        private void SetDateTimeField(string fieldName, string valueToParse, DateTools.Resolution resolution, Field.Index lucenePolicy,
+            ref Fieldable field, ref Fieldable sortedField)
+        {
+            object parsedVal;
+            if (!TryConvert<DateTime>(valueToParse, out parsedVal))
+                return;
+            var date = (DateTime)parsedVal;
+            string dateAsString = DateTools.DateToString(date, resolution);
+
+            field =
+                new Field(fieldName,
+                          dateAsString,
+                          Field.Store.YES,
+                          lucenePolicy,
+                          lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
+                    );
+
+            sortedField =
+                new Field(SortedFieldNamePrefix + fieldName,
+                          dateAsString,
+                          Field.Store.NO, //do not store, we're not going to return this value only use it for sorting
+                          Field.Index.NOT_ANALYZED,
+                          Field.TermVector.NO
+                    );
+        }
 
 
         /// <summary>

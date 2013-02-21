@@ -128,6 +128,38 @@ namespace Examine.Test.Search
         }
 
         [Test]
+        public void FluentApi_Sort_Result_By_Number_Field()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.ParentId(1143).And().OrderBy(new SortableField("sortOrder", SortType.Int)).Compile();
+
+            var results1 = _searcher.Search(sc1).ToArray();
+
+            var currSort = 0;
+            for (var i = 0; i < results1.Count(); i++)
+            {
+                Assert.GreaterOrEqual(int.Parse(results1[i].Fields["sortOrder"]), currSort);
+                currSort = int.Parse(results1[i].Fields["sortOrder"]);
+            }
+        }
+
+        [Test]
+        public void FluentApi_Sort_Result_By_Date_Field()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.ParentId(1143).And().OrderBy(new SortableField("updateDate", SortType.Double)).Compile();
+
+            var results1 = _searcher.Search(sc1).ToArray();
+
+            double currSort = 0;
+            for (var i = 0; i < results1.Count(); i++)
+            {
+                Assert.GreaterOrEqual(double.Parse(results1[i].Fields["updateDate"]), currSort);
+                currSort = double.Parse(results1[i].Fields["updateDate"]);
+            }
+        }
+
+        [Test]
         public void FluentApi_Sort_Result_By_Single_Field()
         {
             var sc = _searcher.CreateSearchCriteria("content");
