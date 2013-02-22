@@ -47,11 +47,11 @@ New-Item $CoreExamineFolder -Type directory
 New-Item $WebExamineFolder -Type directory
 New-Item $ExamineAzureFolder -Type directory
 
-$include = @('*Examine*.dll','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
+$include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
 $CoreExamineBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine\bin\Release";
-Copy-Item "$CoreExamineBinFolder\*.dll" -Destination $CoreExamineFolder -Include $include
+Copy-Item "$CoreExamineBinFolder\*.*" -Destination $CoreExamineFolder -Include $include
 
-$include = @('*Examine*.dll','*Lucene*.dll', '*Azure*.dll','ICSharpCode.SharpZipLib.dll')
+$include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll', '*Azure*.dll','ICSharpCode.SharpZipLib.dll')
 $ExamineAzureBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine.Azure\bin\Release";
 Copy-Item "$ExamineAzureBinFolder\*.dll" -Destination $ExamineAzureFolder -Include $include
 
