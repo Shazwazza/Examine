@@ -193,6 +193,10 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <remarks>
         /// This can be used to do a simple search against an index type instead of the entire index.
+        /// 
+        /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
+        /// in a wild card search too.
+        /// 
         /// </remarks>
         /// <param name="searchText"></param>
         /// <param name="useWildcards"></param>
@@ -201,18 +205,7 @@ namespace Examine.LuceneEngine.Providers
         public ISearchResults Search(string searchText, bool useWildcards, string indexType)
         {
             var sc = CreateSearchCriteria(indexType);
-
-            if (useWildcards)
-            {
-                var wildcardSearch = new ExamineValue(Examineness.ComplexWildcard, searchText.MultipleCharacterWildcard().Value);
-                sc = sc.GroupedOr(GetSearchFields(), wildcardSearch).Compile();
-            }
-            else
-            {
-                sc = sc.GroupedOr(GetSearchFields(), searchText).Compile();
-            }
-
-            return Search(sc);
+            return TextSearchAllFields(searchText, useWildcards, sc);
         }
 
         /// <summary>

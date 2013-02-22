@@ -127,12 +127,17 @@ namespace Examine.LuceneEngine.Providers
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
             var sc = this.CreateSearchCriteria();
+            return TextSearchAllFields(searchText, useWildcards, sc);
+        }
+
+        internal ISearchResults TextSearchAllFields(string searchText, bool useWildcards, ISearchCriteria sc)
+        {
             var splitSearch = searchText.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (useWildcards)
-            {                        
+            {
                 sc = sc.GroupedOr(GetSearchFields(),
-                    splitSearch.Select(x => 
+                    splitSearch.Select(x =>
                         new ExamineValue(Examineness.ComplexWildcard, x.MultipleCharacterWildcard().Value)).Cast<IExamineValue>().ToArray()
                     ).Compile();
             }
