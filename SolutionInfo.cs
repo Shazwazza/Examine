@@ -7,5 +7,5 @@ using System.Security;
 [assembly: AssemblyCulture("")]
 
 
-[assembly: AssemblyVersion("0.1.47.2941")]
-[assembly: AssemblyFileVersion("0.1.47.2941")]
+[assembly: AssemblyVersion("0.1.48.2941")]
+[assembly: AssemblyFileVersion("0.1.48.2941")]
