@@ -1030,106 +1030,105 @@ namespace Examine.LuceneEngine.Providers
                     if (indexedFields.Count() > 1)
                     {
                         //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field                        
-                        OnDuplicateFieldWarning(nodeId, x.Key, IndexSetName);
+                        OnDuplicateFieldWarning(nodeId, IndexSetName, x.Key);
+                    }
+
+                    //take the first one and continue!
+                    var indexField = indexedFields.First();
+
+                    Fieldable field = null;
+                    Fieldable sortedField = null;
+                    object parsedVal = null;
+                    if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
+                    switch (indexField.Type.ToUpper())
+                    {
+                        case "NUMBER":
+                        case "INT":
+                            if (!TryConvert<int>(x.Value, out parsedVal))
+                                break;
+                            field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue((int)parsedVal);
+                            sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetIntValue((int)parsedVal);
+                            break;
+                        case "FLOAT":
+                            if (!TryConvert<float>(x.Value, out parsedVal))
+                                break;
+                            field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetFloatValue((float)parsedVal);
+                            sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetFloatValue((float)parsedVal);
+                            break;
+                        case "DOUBLE":
+                            if (!TryConvert<double>(x.Value, out parsedVal))
+                                break;
+                            field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetDoubleValue((double)parsedVal);
+                            sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetDoubleValue((double)parsedVal);
+                            break;
+                        case "LONG":
+                            if (!TryConvert<long>(x.Value, out parsedVal))
+                                break;
+                            field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue((long)parsedVal);
+                            sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetLongValue((long)parsedVal);
+                            break;
+                        case "DATE":
+                        case "DATETIME":
+                            {
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MILLISECOND, lucenePolicy, ref field, ref sortedField);
+                                break;
+                            }
+                        case "DATE.YEAR":
+                            {
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.YEAR, lucenePolicy, ref field, ref sortedField);
+                                break;
+                            }
+                        case "DATE.MONTH":
+                            {
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MONTH, lucenePolicy, ref field, ref sortedField);
+                                break;
+                            }
+                        case "DATE.DAY":
+                            {
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.DAY, lucenePolicy, ref field, ref sortedField);
+                                break;
+                            }
+                        case "DATE.HOUR":
+                            {
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.HOUR, lucenePolicy, ref field, ref sortedField);
+                                break;
+                            }
+                        case "DATE.MINUTE":
+                            {
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MINUTE, lucenePolicy, ref field, ref sortedField);
+                                break;
+                            }
+                        default:
+                            field =
+                                new Field(x.Key,
+                                    x.Value,
+                                    Field.Store.YES,
+                                    lucenePolicy,
+                                    lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
+                                );
+                            sortedField = new Field(SortedFieldNamePrefix + x.Key,
+                                                    x.Value,
+                                                    Field.Store.NO, //we don't want to store the field because we're only using it to sort, not return data
+                                                    Field.Index.NOT_ANALYZED,
+                                                    Field.TermVector.NO
+                                );
+                            break;
+                    }
+
+                    //if the parsed value is null, this means it couldn't parse and we should log this error
+                    if (field == null)
+                    {
+                        OnIndexingError(new IndexingErrorEventArgs("Could not parse value: " + x.Value + "into the type: " + indexField.Type, nodeId, null));
                     }
                     else
                     {
-                        var indexField = indexedFields.First();
-                        Fieldable field = null;
-                        Fieldable sortedField = null;
-                        object parsedVal = null;
-                        if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
-                        switch (indexField.Type.ToUpper())
-                        {
-                            case "NUMBER":
-                            case "INT":
-                                if (!TryConvert<int>(x.Value, out parsedVal))
-                                    break;
-                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue((int)parsedVal);
-                                sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetIntValue((int)parsedVal);
-                                break;
-                            case "FLOAT":
-                                if (!TryConvert<float>(x.Value, out parsedVal))
-                                    break;
-                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetFloatValue((float)parsedVal);
-                                sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetFloatValue((float)parsedVal);
-                                break;
-                            case "DOUBLE":
-                                if (!TryConvert<double>(x.Value, out parsedVal))
-                                    break;
-                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetDoubleValue((double)parsedVal);
-                                sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetDoubleValue((double)parsedVal);
-                                break;
-                            case "LONG":
-                                if (!TryConvert<long>(x.Value, out parsedVal))
-                                    break;
-                                field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue((long)parsedVal);
-                                sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetLongValue((long)parsedVal);
-                                break;
-                            case "DATE":
-                            case "DATETIME":
-                                {
-                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MILLISECOND, lucenePolicy, ref field, ref sortedField);
-                                    break;
-                                }
-                            case "DATE.YEAR":
-                                {
-                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.YEAR, lucenePolicy, ref field, ref sortedField);
-                                    break;
-                                }
-                            case "DATE.MONTH":
-                                {
-                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MONTH, lucenePolicy, ref field, ref sortedField);
-                                    break;
-                                }
-                            case "DATE.DAY":
-                                {
-                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.DAY, lucenePolicy, ref field, ref sortedField);
-                                    break;
-                                }
-                            case "DATE.HOUR":
-                                {
-                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.HOUR, lucenePolicy, ref field, ref sortedField);
-                                    break;
-                                }
-                            case "DATE.MINUTE":
-                                {
-                                    SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MINUTE, lucenePolicy, ref field, ref sortedField);                                    
-                                    break;
-                                }
-                            default:
-                                field =
-                                    new Field(x.Key,
-                                        x.Value,
-                                        Field.Store.YES,
-                                        lucenePolicy,
-                                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
-                                    );
-                                sortedField = new Field(SortedFieldNamePrefix + x.Key,
-                                                        x.Value,
-                                                        Field.Store.NO, //we don't want to store the field because we're only using it to sort, not return data
-                                                        Field.Index.NOT_ANALYZED,
-                                                        Field.TermVector.NO
-                                    );
-                                break;
-                        }
+                        d.Add(field);
 
-                        //if the parsed value is null, this means it couldn't parse and we should log this error
-                        if (field == null)
+                        //add the special sorted field if sorting is enabled
+                        if (indexField.EnableSorting)
                         {
-                            OnIndexingError(new IndexingErrorEventArgs("Could not parse value: " + x.Value + "into the type: " + indexField.Type, nodeId, null));
+                            d.Add(sortedField);
                         }
-                        else
-                        {                            
-                            d.Add(field);
-                            
-                            //add the special sorted field if sorting is enabled
-                            if (indexField.EnableSorting)
-                            {
-                                d.Add(sortedField);
-                            }
-                        }
-
                     }
                 }
             }
