@@ -65,9 +65,7 @@ namespace Examine.LuceneEngine.Faceting
                 foreach (var kv in facetFilters)
                 {
                     FacetFilters[kv.Key] = kv.Value.GetDocSet();
-                }
-
-                FacetFilters = new Dictionary<int, DocIdSet>();
+                }                
             }
 
         }

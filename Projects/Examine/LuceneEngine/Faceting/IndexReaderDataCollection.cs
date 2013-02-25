@@ -32,7 +32,8 @@ namespace Examine.LuceneEngine.Faceting
         void AugmentReader(IndexReader reader, IndexReaderDataCollection oldData)
         {
             var subReaders = reader.GetSequentialSubReaders();
-            if (subReaders != null)
+            if (subReaders != null
+                && subReaders.All(sr => sr != reader)) // <- Why/why not? If a reader for some reason should return it self this check avoids infinite recursion.
             {
                 //Data is added for each segment reader. Normal an IndexReader consists of one or more segment readers.
                 //Those are the readers collectors etc. will meet.                
@@ -43,7 +44,7 @@ namespace Examine.LuceneEngine.Faceting
                 return;
             }
 
-            //If we got here, the reader doesn't have any sequential sub readers. Treat it as one reader.
+            //If we got here, the reader doesn't have any/is a sequential sub readers. Treat it as one reader.
 
             IndexReaderData data;
             if (oldData == null || (data = oldData[reader]) == null)

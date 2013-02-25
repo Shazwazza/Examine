@@ -442,6 +442,17 @@ namespace Examine.LuceneEngine.SearchCriteria
             return this.search.OrderByDescending(fieldNames);
         }
 
+
+        public IBooleanOperation All()
+        {
+            return search.All();
+        }
+
+        public ISearchResults Execute()
+        {
+            return search.Execute();
+        }
+
         #endregion
 
     }

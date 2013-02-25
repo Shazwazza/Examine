@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Security;
 using Examine.SearchCriteria;
 using Lucene.Net.Search;
@@ -32,6 +33,15 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneQuery(this._search, BooleanClause.Occur.MUST);
         }
 
+        public IBooleanOperation And(Func<IQuery, IBooleanOperation> inner)
+        {
+            var innerCriteria = _search.CloneForInnerQuery();
+            inner(innerCriteria);
+            _search.LuceneQuery(innerCriteria.Query, BooleanOperation.And);
+
+            return this;
+        }
+
         /// <summary>
         /// Sets the next operation to be OR
         /// </summary>
@@ -40,6 +50,15 @@ namespace Examine.LuceneEngine.SearchCriteria
         public IQuery Or()
         {
             return new LuceneQuery(this._search, BooleanClause.Occur.SHOULD);
+        }
+
+        public IBooleanOperation Or(Func<IQuery, IBooleanOperation> inner)
+        {
+            var innerCriteria = _search.CloneForInnerQuery();
+            inner(innerCriteria);
+            _search.LuceneQuery(innerCriteria.Query, BooleanOperation.Or);
+            
+            return this;
         }
 
         /// <summary>
@@ -51,6 +70,18 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             return new LuceneQuery(this._search, BooleanClause.Occur.MUST_NOT);
         }
+
+
+        public IBooleanOperation AndNot(Func<IQuery, IBooleanOperation> inner)
+        {
+            var innerCriteria = _search.CloneForInnerQuery();
+            inner(innerCriteria);
+            _search.LuceneQuery(innerCriteria.Query, BooleanOperation.Not);
+
+            return this;
+        }
+
+
 
         /// <summary>
         /// Compiles this instance for fluent API conclusion
@@ -75,6 +106,11 @@ namespace Examine.LuceneEngine.SearchCriteria
             }
             
             return this._search;
+        }
+
+        public ISearchResults Execute()
+        {
+            return _search.Execute();
         }
 
         #endregion

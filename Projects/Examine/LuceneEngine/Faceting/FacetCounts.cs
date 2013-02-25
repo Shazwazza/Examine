@@ -34,9 +34,13 @@ namespace Examine.LuceneEngine.Faceting
 
         public IEnumerator<KeyValuePair<FacetKey, int>> GetEnumerator()
         {
+            var n = Counts.Length;
             foreach( var f in FacetMap)
             {
-                yield return new KeyValuePair<FacetKey, int>(f.Value, Counts[f.Key]);
+                if (f.Key < n)
+                {
+                    yield return new KeyValuePair<FacetKey, int>(f.Value, Counts[f.Key]);
+                }
             }
         }
 

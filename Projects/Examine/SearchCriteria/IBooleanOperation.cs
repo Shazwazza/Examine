@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace Examine.SearchCriteria
 {
     /// <summary>
@@ -11,21 +13,51 @@ namespace Examine.SearchCriteria
         /// </summary>
         /// <returns></returns>
         IQuery And();
+
+        /// <summary>
+        /// Adds the nested query
+        /// </summary>
+        /// <param name="inner"></param>
+        /// <returns></returns>
+        IBooleanOperation And(Func<IQuery, IBooleanOperation> inner);
+
         /// <summary>
         /// Sets the next operation to be OR
         /// </summary>
         /// <returns></returns>
         IQuery Or();
+
+        /// <summary>
+        /// Adds the nested query
+        /// </summary>
+        /// <param name="inner"></param>
+        /// <returns></returns>
+        IBooleanOperation Or(Func<IQuery, IBooleanOperation> inner);
+
+
+
         /// <summary>
         /// Sets the next operation to be NOT
         /// </summary>
         /// <returns></returns>
         IQuery Not();
 
+
+        /// <summary>
+        /// Adds the nested query
+        /// </summary>
+        /// <param name="inner"></param>
+        /// <returns></returns>
+        IBooleanOperation AndNot(Func<IQuery, IBooleanOperation> inner);
+
+
         /// <summary>
         /// Compiles this instance for fluent API conclusion
         /// </summary>
         /// <returns></returns>
         ISearchCriteria Compile();
+
+
+        ISearchResults Execute();
     }
 }

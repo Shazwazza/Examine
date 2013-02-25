@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Web.Mvc;
 using Examine.LuceneEngine;
+using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Providers;
 using Examine.Web.Demo.Models;
 using Examine.LuceneEngine.SearchCriteria;
@@ -76,26 +77,51 @@ namespace Examine.Web.Demo.Controllers
                 this.ModelState.AddModelError("DataError", ex.Message);
                 return View(false);
             }
-            
+
         }
 
-        public ActionResult Search(string q)
+        public ActionResult Search(string q, int count = 10, bool countFacets = true, bool facetFilter = true)
         {
+            var sw = new Stopwatch();
+            sw.Start();
             var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"];
 
+            //This is for text/plain output
             var sb = new StringBuilder();
 
-            var searchResults = searcher.Search(new TermQuery(new Term("Column1", q)));
-            
+            //Create a basic criteria with the options from the query string
+            var criteria = searcher.CreateSearchCriteria().MaxCount(count).CountFacets(countFacets);
 
-            foreach( var res in searchResults)
+            if (facetFilter)
+            {
+                //Add column1 filter as facet filter
+                criteria.Facet(new FacetKey("Column1", q));
+            }
+            else
+            {
+                //Add column1 filter as normal field query
+                criteria.Field("Column1", q);
+            }
+
+            //Get search results
+            var searchResults = criteria.Execute();
+
+
+            sb.Append("Total hits: " + searchResults.TotalItemCount + "\r\n");
+
+            //Show the results (limited by criteria.MaxCount(...) or SearchOptions.Default.MaxCount)
+            foreach (var res in searchResults)
             {
                 sb.Append(res.Id + "\r\n");
             }
 
-            foreach (var res in searchResults.FacetCounts)
+            if (countFacets) //If false FacetCounts is null
             {
-                sb.Append(res.Key + ": " + res.Value + "\r\n");
+                //Iterate all facets and show their key and count.
+                foreach (var res in searchResults.FacetCounts)
+                {
+                    sb.Append(res.Key + ": " + res.Value + "\r\n");
+                }
             }
 
 
@@ -111,6 +137,11 @@ namespace Examine.Web.Demo.Controllers
             //{
             //    sb.Append(d.Value.FacetLevels.Length + "\r\n");
             //}
+
+
+            sw.Stop();
+
+            sb.AppendFormat("Elapsed {0:N2} ms.", sw.Elapsed.TotalMilliseconds);
 
             return Content(sb.ToString(), "text/plain");
         }
@@ -132,7 +163,7 @@ namespace Examine.Web.Demo.Controllers
                 this.ModelState.AddModelError("DataError", ex.Message);
                 return View(0.0);
             }
-        }        
+        }
 
         [HttpPost]
         public ActionResult ReIndexEachItemIndividually()
@@ -143,10 +174,10 @@ namespace Examine.Web.Demo.Controllers
                 timer.Start();
                 var ds = new TableDirectReaderDataService();
                 foreach (var i in ds.GetAllData("TestType"))
-                {                    
+                {
                     ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"]
-                        .ReIndexNode(i.RowData.ToExamineXml(i.NodeDefinition.NodeId, i.NodeDefinition.Type), "TestType");  
-                }                
+                        .ReIndexNode(i.RowData.ToExamineXml(i.NodeDefinition.NodeId, i.NodeDefinition.Type), "TestType");
+                }
                 timer.Stop();
 
                 return View(timer.Elapsed.TotalSeconds);

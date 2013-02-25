@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security;
+using Examine.LuceneEngine.Faceting;
 using Examine.SearchCriteria;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
@@ -12,18 +13,62 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// </summary>
     public static class LuceneSearchExtensions
     {
-
-        public static IQuery LuceneQuery(this IQuery luceneSearchCriteria, Query query, BooleanOperation op = BooleanOperation.And)
+        static LuceneSearchCriteria GetLuceneSearchCriteria(IQuery q)
         {
-            var crit = luceneSearchCriteria as LuceneSearchCriteria;
+            var crit = q as LuceneSearchCriteria;
             if (crit == null)
             {
                 throw new ArgumentException("Provided query must be LuceneSearchCriteria", "query");
             }
 
-            crit.Query.Add(query, op.ToLuceneOccurance());
+            return crit;
+        }
 
-            return luceneSearchCriteria;
+        public static IBooleanOperation LuceneQuery(this IQuery luceneSearchCriteria, Query query, BooleanOperation? op = null)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+
+            crit.Query.Add(query, (op ?? crit.BooleanOperation).ToLuceneOccurance());
+
+            return new LuceneBooleanOperation(crit);
+        }
+
+        public static IBooleanOperation Facet(this IQuery luceneSearchCriteria, params FacetKey[] keys)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            if (keys != null)
+            {
+                foreach (var key in keys)
+                {
+                    crit.Query.Add(new ConstantScoreQuery(new FacetFilter(crit.LateBoundSearcherContext, key)), crit.BooleanOperation.ToLuceneOccurance());
+                }
+
+            }
+            return new LuceneBooleanOperation(crit);
+        }
+
+        /// <summary>
+        /// Sets the max count for the result
+        /// </summary>
+        /// <param name="maxCount"></param>
+        /// <returns></returns>
+        public static LuceneSearchCriteria MaxCount(this IQuery luceneSearchCriteria, int maxCount)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.SearchOptions.MaxCount = maxCount;
+            return crit;
+        }
+
+        /// <summary>
+        /// Toggles facet counting
+        /// </summary>
+        /// <param name="toggle"></param>
+        /// <returns></returns>        
+        public static LuceneSearchCriteria CountFacets(this IQuery luceneSearchCriteria, bool toggle)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.SearchOptions.CountFacets = toggle;
+            return crit;
         }
 
         public static ISearchResults Search(this ISearcher searcher, Query query)

@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine.Faceting
                     lock (Keys)
                     {
                         Keys.Add(k);
-                        return Keys.Count;
+                        return Keys.Count - 1;
                     }
                 });
         }

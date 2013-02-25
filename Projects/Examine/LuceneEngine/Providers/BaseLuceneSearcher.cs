@@ -124,7 +124,7 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
-            return new LuceneSearchCriteria(type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
+            return new LuceneSearchCriteria(this, type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
         }
 
         /// <summary>
@@ -173,7 +173,9 @@ namespace Examine.LuceneEngine.Providers
             if (luceneParams == null)
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
-            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher);
+            luceneParams.SearcherContext = GetSearcherContext();
+
+            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, luceneParams.SearchOptions);
             return pagesResults;
         }
 
