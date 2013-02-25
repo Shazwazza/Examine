@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using Examine;
+using Examine.LuceneEngine.Faceting;
 using Examine.SearchCriteria;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -60,7 +61,7 @@ namespace Examine.LuceneEngine.Providers
 		/// <summary>
 		/// Used as a singleton instance
 		/// </summary>
-		private volatile IndexSearcher _searcher;
+		private volatile IndexSearcherContext _searcherContext;
 		private static readonly object Locker = new object();
 	    private Lucene.Net.Store.Directory _luceneDirectory;
 
@@ -223,15 +224,15 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
-        /// <returns></returns>
+        /// <returns></returns>                
 		[SecuritySafeCritical]
-        public override Searcher GetSearcher()
+        public override ISearcherContext GetSearcherContext()
         {
             ValidateSearcher(false);
 
             //ensure scoring is turned on for sorting
-            _searcher.SetDefaultFieldSortScoring(true, true);
-            return _searcher;
+            _searcherContext.LuceneSearcher.SetDefaultFieldSortScoring(true, true);
+            return _searcherContext;
         }
         
         /// <summary>
@@ -243,7 +244,7 @@ namespace Examine.LuceneEngine.Providers
         {
             ValidateSearcher(false);
             
-            var reader = _searcher.GetIndexReader();
+            var reader = _searcherContext.LuceneSearcher.GetIndexReader();
             var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
             var searchFields = fields
@@ -280,17 +281,17 @@ namespace Examine.LuceneEngine.Providers
 
             if (!forceReopen)
             {
-                if (_searcher == null)
+                if (_searcherContext == null)
                 {
                     lock (Locker)
                     {
                         //double check
-                        if (_searcher == null)
+                        if (_searcherContext == null)
                         {
 
                             try
                             {
-                                _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+                                _searcherContext = new IndexSearcherContext(this, new IndexSearcher(GetLuceneDirectory(), true));
                             }
                             catch (IOException ex)
                             {
@@ -301,17 +302,17 @@ namespace Examine.LuceneEngine.Providers
                 }
                 else
                 {
-                    if (_searcher.GetReaderStatus() != ReaderStatus.Current)
+                    if (_searcherContext.LuceneSearcher.GetReaderStatus() != ReaderStatus.Current)
                     {
                         lock (Locker)
                         {
                             //double check, now, we need to find out if it's closed or just not current
-                            switch (_searcher.GetReaderStatus())
+                            switch (_searcherContext.LuceneSearcher.GetReaderStatus())
                             {
                                 case ReaderStatus.Current:
                                     break;
                                 case ReaderStatus.Closed:
-                                    _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+                                    _searcherContext = new IndexSearcherContext(this, new IndexSearcher(GetLuceneDirectory(), true));
                                     break;
                                 case ReaderStatus.NotCurrent:
 
@@ -321,13 +322,13 @@ namespace Examine.LuceneEngine.Providers
                                     // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
                                     // http://gist.github.com/173978 
 
-                                    var oldReader = _searcher.GetIndexReader();
+                                    var oldReader = _searcherContext.LuceneSearcher.GetIndexReader();
                                     var newReader = oldReader.Reopen(true);
                                     if (newReader != oldReader)
                                     {
-                                        _searcher.Close();
+                                        _searcherContext.LuceneSearcher.Close();
                                         oldReader.Close();
-                                        _searcher = new IndexSearcher(newReader);
+                                        _searcherContext = new IndexSearcherContext(this, new IndexSearcher(newReader), _searcherContext.ReaderData);
                                     }
 
                                     break;
@@ -340,16 +341,16 @@ namespace Examine.LuceneEngine.Providers
             {
                 //need to close the searcher and force a re-open
 
-                if (_searcher != null)
+                if (_searcherContext != null)
                 {
                     lock (Locker)
                     {
                         //double check
-                        if (_searcher != null)
+                        if (_searcherContext != null)
                         {
                             try
                             {
-                                _searcher.Close();
+                                _searcherContext.LuceneSearcher.Close();
                             }
                             catch (IOException)
                             {
@@ -358,13 +359,13 @@ namespace Examine.LuceneEngine.Providers
                             finally
                             {
                                 //set to null in case another call to this method has passed the first lock and is checking for null
-                                _searcher = null;
+                                _searcherContext = null;
                             }
 
 
                             try
                             {
-                                _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+                                _searcherContext = new IndexSearcherContext(this, new IndexSearcher(GetLuceneDirectory(), true));                                
                             }
                             catch (IOException ex)
                             {

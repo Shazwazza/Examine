@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
 using Examine.SearchCriteria;
@@ -126,15 +127,16 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
 		[SecuritySafeCritical]
-        public override Searcher GetSearcher()
+        public override ISearcherContext GetSearcherContext()
         {
-	        var searchables = new List<Searchable>();
+	        var searchables = new List<ISearcherContext>();
 			//NOTE: Do not convert this to Linq as it will fail the Code Analysis because Linq screws with it.
 			foreach(var s in Searchers)
-			{
-				searchables.Add(s.GetSearcher());
+			{               
+				searchables.Add(s.GetSearcherContext());
 			}
-			return new MultiSearcher(searchables.ToArray());
+            
+			return new MultiSearcherContext(this, searchables);            
         }
 
      

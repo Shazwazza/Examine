@@ -173,9 +173,9 @@ namespace Examine.Test.Index
         [Test]
         public void Index_Rebuild_Index()
         {
-
+            
             //get searcher and reader to get stats
-            var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();   
+            var r = ((IndexSearcher)_searcher.GetSearcherContext().LuceneSearcher).GetIndexReader();   
                                     
             //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);

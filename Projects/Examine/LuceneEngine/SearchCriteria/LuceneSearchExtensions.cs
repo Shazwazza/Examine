@@ -12,6 +12,26 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// </summary>
     public static class LuceneSearchExtensions
     {
+
+        public static IQuery LuceneQuery(this IQuery luceneSearchCriteria, Query query, BooleanOperation op = BooleanOperation.And)
+        {
+            var crit = luceneSearchCriteria as LuceneSearchCriteria;
+            if (crit == null)
+            {
+                throw new ArgumentException("Provided query must be LuceneSearchCriteria", "query");
+            }
+
+            crit.Query.Add(query, op.ToLuceneOccurance());
+
+            return luceneSearchCriteria;
+        }
+
+        public static ISearchResults Search(this ISearcher searcher, Query query)
+        {
+            return searcher.Search((ISearchCriteria)searcher.CreateSearchCriteria().LuceneQuery(query));
+        }
+
+
         /// <summary>
         /// Used to order results by the specified fields 
         /// </summary>

@@ -24,7 +24,7 @@ namespace Examine.Test
             //now, we need to ensure the right data is in there....
             
             //get searcher and reader to get stats
-            var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();
+            var r = ((IndexSearcher)_searcher.GetSearcherContext()).GetIndexReader();
 
             //there's 7 fields in the index, but 1 sorted fields, 2 are special fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -52,7 +52,7 @@ namespace Examine.Test
             _indexer.ReIndexNode(xml, "Documents");
 
             //get searcher and reader to get stats            
-            var r = ((IndexSearcher)_searcher.GetSearcher()).GetIndexReader();      
+            var r = ((IndexSearcher)_searcher.GetSearcherContext()).GetIndexReader();      
 
             //there should be 6 documents now (3 Documents, 3 Pictures)
             Assert.AreEqual(6, r.NumDocs());        

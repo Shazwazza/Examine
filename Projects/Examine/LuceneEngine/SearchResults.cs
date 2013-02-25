@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 using Examine;
+using Examine.LuceneEngine.Faceting;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
@@ -24,17 +25,25 @@ namespace Examine.LuceneEngine
         {
             return new EmptySearchResults();
         }
-
-	    /// <summary>
-	    /// Exposes the internal Lucene searcher
-	    /// </summary>
-	    public Searcher LuceneSearcher
+	   
+	    public ISearcherContext LuceneSearcherContext
 	    {
 			[SecuritySafeCritical]
 			get;
 			[SecuritySafeCritical]
 			private set;
 	    }
+
+        public FacetCounts FacetCounts { get; private set; }
+
+        /// <summary>
+        /// Exposes the internal Lucene searcher
+        /// </summary>
+        public Searcher LuceneSearcher
+        {
+            [SecuritySafeCriticalAttribute]
+            get { return LuceneSearcherContext.LuceneSearcher; }						   
+        }
 
 	    /// <summary>
 	    /// Exposes the internal lucene query to run the search
@@ -48,14 +57,17 @@ namespace Examine.LuceneEngine
 	    }
 
 
-        private AllHitsCollector _collector;
+        //private AllHitsCollector _collector;
+	    private TopDocs _topDocs;
+
+        //private ScoreD
 
 		[SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, ISearcherContext searcherContext)
         {
             LuceneQuery = query;
 
-            LuceneSearcher = searcher;
+            LuceneSearcherContext = searcherContext;
             DoSearch(query, sortField);
         }
 
@@ -85,19 +97,35 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-            if (sortField.Count() == 0)
-            {
-                var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort());
-                _collector = new AllHitsCollector(topDocs.scoreDocs);
-                topDocs = null;
-            }
-            else
-            {
-                var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort(sortField.ToArray()));
-                _collector = new AllHitsCollector(topDocs.scoreDocs);
-                topDocs = null;
-            }
-            TotalItemCount = _collector.Count;
+
+		    var count = LuceneSearcher.MaxDoc();
+
+		    var topDocsCollector = 
+                sortField.Any() ?
+                (TopDocsCollector) TopFieldCollector.create(new Sort(sortField.ToArray()), count, false, false, false, false)
+                : TopScoreDocCollector.create(count, true);
+
+		    var collector = new FacetCountCollector(LuceneSearcherContext.ReaderData, topDocsCollector);
+		    LuceneSearcher.Search(query, collector);
+
+		    FacetCounts = collector.Counts;
+
+		    _topDocs = topDocsCollector.TopDocs();
+                      
+
+            //if (sortField.Count() == 0)
+            //{
+            //    var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort());                
+            //    _collector = new AllHitsCollector(topDocs.scoreDocs);
+            //    topDocs = null;
+            //}
+            //else
+            //{
+            //    var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort(sortField.ToArray()));
+            //    _collector = new AllHitsCollector(topDocs.scoreDocs);
+            //    topDocs = null;
+            //}
+		    TotalItemCount = _topDocs.TotalHits;
         }
 
         /// <summary>
@@ -137,7 +165,7 @@ namespace Examine.LuceneEngine
             
             //ignore our internal fields though
             foreach (Field field in fields.Cast<Field>())
-            {
+            {                
                 sr.Fields.Add(field.Name(), doc.Get(field.Name()));
             }
 
@@ -149,9 +177,9 @@ namespace Examine.LuceneEngine
 		[SecuritySafeCritical]
 		private SearchResult CreateFromDocumentItem(int i)
 		{
-			var docId = _collector.GetDocId(i);
+		    var docId = _topDocs.ScoreDocs[i].doc;
 			var doc = LuceneSearcher.Doc(docId);
-			var score = _collector.GetDocScore(i);
+            var score = _topDocs.ScoreDocs[i].score;
 			var result = CreateSearchResult(doc, score);
 			return result;
 		}
@@ -166,7 +194,7 @@ namespace Examine.LuceneEngine
         /// <returns>A collection of the search results</returns>
 		[SecuritySafeCritical]
 		public IEnumerable<SearchResult> Skip(int skip)
-        {
+        {            
             for (int i = skip; i < this.TotalItemCount; i++)
             {
                 //first check our own cache to make sure it's not there

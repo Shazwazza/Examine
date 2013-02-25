@@ -1,5 +1,6 @@
 using System.IO;
 using System.Security;
+using Examine.LuceneEngine.Faceting;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
@@ -39,22 +40,22 @@ namespace Examine.LuceneEngine.Providers
             return _luceneDirectory;
         }
 
-        private IndexSearcher _searcher;
+        private IndexSearcherContext _searcherContext;
 
         /// <summary>
         /// Gets the searcher for this instance
         /// </summary>
         /// <returns></returns>
 		[SecuritySafeCritical]
-        public override Searcher GetSearcher()
+        public override ISearcherContext GetSearcherContext()
         {
-            if (_searcher == null)
+            if (_searcherContext == null)
             {
-                 _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+                 _searcherContext = new IndexSearcherContext(this, new IndexSearcher(GetLuceneDirectory(), true));
             }
             //ensure scoring is turned on for sorting
-            _searcher.SetDefaultFieldSortScoring(true, true);
-            return _searcher;
+            _searcherContext.LuceneSearcher.SetDefaultFieldSortScoring(true, true);
+            return _searcherContext;
         }
     }
 }

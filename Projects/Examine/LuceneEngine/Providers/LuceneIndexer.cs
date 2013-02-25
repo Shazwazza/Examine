@@ -1410,7 +1410,7 @@ namespace Examine.LuceneEngine.Providers
                 
                 if (inMemorySearcher != null)
                 {
-                    inMemorySearcher.GetSearcher().Close();
+                    inMemorySearcher.GetSearcherContext().LuceneSearcher.Close();
                 }
                 CloseWriter(ref inMemoryWriter);
                 CloseWriter(ref realWriter);

@@ -1,5 +1,8 @@
-﻿using System.Web.Mvc;
+﻿using System.Collections.Generic;
+using System.Web.Mvc;
 using System.Web.Routing;
+using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.Web.Demo
 {
@@ -31,6 +34,12 @@ namespace Examine.Web.Demo
 
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
+
+            var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"];
+            ((LuceneSearcher) searcher).FacetConfiguration = new FacetConfiguration
+                {
+                    FacetExtractors = new List<IFacetExtractor> {new TermFacetExtractor("Column1")}
+                };
         }
     }
 }

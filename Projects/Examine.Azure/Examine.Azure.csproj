@@ -72,7 +72,7 @@
     <Compile Include="SimpleAzureLuceneIndexer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine\Examine.csproj">
+    <ProjectReference Include="..\Examine\Examinez.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
     </ProjectReference>
