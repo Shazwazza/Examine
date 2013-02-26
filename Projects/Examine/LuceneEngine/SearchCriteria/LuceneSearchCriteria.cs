@@ -26,7 +26,9 @@ namespace Examine.LuceneEngine.SearchCriteria
     {
         internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
         internal MultiFieldQueryParser QueryParser;
-        internal BooleanQuery Query;
+
+        internal Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
+        internal BooleanQuery Query { get { return Queries.Peek(); } }
         internal List<SortField> SortFields = new List<SortField>();
 
         internal ISearcherContext SearcherContext;
@@ -88,7 +90,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             SearchOptions = SearchOptions.Default;
 
             SearchIndexType = type;
-            Query = new BooleanQuery();
+            Queries.Push(new BooleanQuery());
             this.BooleanOperation = occurance;
             Searcher = searcher;
             this.QueryParser = new MultiFieldQueryParser(_luceneVersion, fields, analyzer);
@@ -96,17 +98,17 @@ namespace Examine.LuceneEngine.SearchCriteria
             this._occurance = occurance.ToLuceneOccurance();
         }
 
-        /// <summary>
-        /// Makes a copy of the LuceneSearchCriteria for a nested query in IBooleanOperation
-        /// </summary>
-        /// <returns></returns>
-        internal LuceneSearchCriteria CloneForInnerQuery()
-        {
-            var clone = (LuceneSearchCriteria)MemberwiseClone();
-            clone.Query = new BooleanQuery();
-            clone.LateBoundSearcherContext = LateBoundSearcherContext;
-            return clone;
-        }
+        ///// <summary>
+        ///// Makes a copy of the LuceneSearchCriteria for a nested query in IBooleanOperation
+        ///// </summary>
+        ///// <returns></returns>
+        //internal LuceneSearchCriteria CloneForInnerQuery()
+        //{
+        //    var clone = (LuceneSearchCriteria)MemberwiseClone();
+        //    clone.Query = new BooleanQuery();
+        //    clone.LateBoundSearcherContext = LateBoundSearcherContext;
+        //    return clone;
+        //}
 
         /// <summary>
         /// Gets the boolean operation which this query method will be added as

@@ -12,23 +12,32 @@ namespace Examine.LuceneEngine.Faceting
     {
         public FacetLevel[][] FacetLevels { get; private set; }
 
-        public Dictionary<int, DocIdSet> FacetFilters { get; private set; }
+        public Dictionary<int, Filter> FacetFilters { get; private set; }
 
         public IndexReaderData(IndexReaderDataCollection collection, IndexReader reader)
         {
             //Load facet id's and levels from index reader.
 
+            var unbackedFacets = new HashSet<int>();
+
             var levels = new List<FacetLevel>[reader.MaxDoc()];
             var config = collection.SearcherContext.Searcher.FacetConfiguration;
             if (config != null)
             {
+                var map = config.FacetMap;
                 foreach (var fe in config.FacetExtractors)
                 {
                     foreach (var df in fe.GetDocumentFacets(reader, config))
                     {
                         if (levels[df.DocumentId] == null) levels[df.DocumentId] = new List<FacetLevel>();
 
-                        levels[df.DocumentId].Add(new FacetLevel { FacetId = config.FacetMap.Register(df.Key), Level = df.Level });
+                        var facetId = map.Register(df.Key);
+                        if (!df.TermBased || config.CacheAllQueryFilters)
+                        {
+                            unbackedFacets.Add(facetId);
+                        }
+
+                        levels[df.DocumentId].Add(new FacetLevel { FacetId = facetId, Level = df.Level });
                     }
                 }
 
@@ -50,22 +59,33 @@ namespace Examine.LuceneEngine.Faceting
 
                 for (int i = 0; i < FacetLevels.Length; i++)
                 {
-                    foreach (var facet in FacetLevels[i])
+                    foreach (var facetLevel in FacetLevels[i])
                     {
                         DocCollector docs;
-                        if (!facetFilters.TryGetValue(facet.FacetId, out docs))
+                        if (!facetFilters.TryGetValue(facetLevel.FacetId, out docs))
                         {
-                            facetFilters.Add(facet.FacetId, docs = new DocCollector(FacetLevels.Length));
+                            //If the facet is backed by a term there may only be performance reasons to cache the filter.
+                            facetFilters.Add(facetLevel.FacetId, docs =
+                                unbackedFacets.Contains(facetLevel.FacetId) ?
+                                new DocCollector(FacetLevels.Length) : null);
                         }
-                        docs.Add(i);
+                        if (docs != null) docs.Add(i);
                     }
                 }
 
-                FacetFilters = new Dictionary<int, DocIdSet>(facetFilters.Count);
+                FacetFilters = new Dictionary<int, Filter>(facetFilters.Count);
                 foreach (var kv in facetFilters)
                 {
-                    FacetFilters[kv.Key] = kv.Value.GetDocSet();
-                }                
+                    if (kv.Value == null)
+                    {
+                        var facet = map.Keys[kv.Key];
+                        FacetFilters.Add(kv.Key, new QueryWrapperFilter(new TermQuery(new Term(facet.FieldName, facet.Value))));
+                    }
+                    else
+                    {
+                        FacetFilters.Add(kv.Key, kv.Value.GetFilter());
+                    }
+                }
             }
 
         }
@@ -111,9 +131,31 @@ namespace Examine.LuceneEngine.Faceting
                 }
             }
 
-            public DocIdSet GetDocSet()
+            public Filter GetFilter()
+            {
+                return new SimpleFilter(GetDocSet());
+            }
+
+            private DocIdSet GetDocSet()
             {
                 return _bitSet ?? (DocIdSet)new SortedVIntList(_docs.ToArray());
+            }
+
+
+
+            class SimpleFilter : Filter
+            {
+                private readonly DocIdSet _docs;
+
+                public SimpleFilter(DocIdSet docs)
+                {
+                    _docs = docs;
+                }
+
+                public override DocIdSet GetDocIdSet(IndexReader reader)
+                {
+                    return _docs;
+                }
             }
         }
     }

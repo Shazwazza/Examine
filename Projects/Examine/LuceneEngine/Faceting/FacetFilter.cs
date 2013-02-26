@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Faceting
@@ -23,7 +24,7 @@ namespace Examine.LuceneEngine.Faceting
         }
 
 
-        public override DocIdSet GetDocIdSet(Lucene.Net.Index.IndexReader reader)
+        public override DocIdSet GetDocIdSet(IndexReader reader)
         {
             var context = _contextResolver();
             
@@ -33,11 +34,11 @@ namespace Examine.LuceneEngine.Faceting
             {
                 var facet = context.Searcher.FacetConfiguration.FacetMap.GetIndex(_key);
                 if (facet > -1)
-                {
-                    DocIdSet set;
+                {                                        
+                    Filter set;
                     if (readerData.FacetFilters.TryGetValue(facet, out set))
-                    {
-                        return set;
+                    {                        
+                        return set.GetDocIdSet(reader);
                     }
                 }
             }

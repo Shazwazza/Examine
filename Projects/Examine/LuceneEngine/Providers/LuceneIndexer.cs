@@ -691,7 +691,7 @@ namespace Examine.LuceneEngine.Providers
                 OnIndexOptimized(new EventArgs());
             }
             catch (Exception ex)
-            {
+            {                
                 OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
             }
             finally
@@ -1402,7 +1402,7 @@ namespace Examine.LuceneEngine.Providers
 
             }
             catch (Exception ex)
-            {
+            {                              
                 OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
             }
             finally

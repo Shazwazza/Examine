@@ -15,6 +15,8 @@ namespace Examine.LuceneEngine.Faceting
 
         public FacetMap FacetMap { get; set; }
 
+        public bool CacheAllQueryFilters { get; set; }
+
         public FacetConfiguration()
         {
             FacetMap = _sharedMap;

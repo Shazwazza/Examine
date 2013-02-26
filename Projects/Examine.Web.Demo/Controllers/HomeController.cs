@@ -80,7 +80,7 @@ namespace Examine.Web.Demo.Controllers
 
         }
 
-        public ActionResult Search(string q, int count = 10, bool countFacets = true, bool facetFilter = true)
+        public ActionResult Search(string q, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false)
         {
             var sw = new Stopwatch();
             sw.Start();
@@ -92,15 +92,22 @@ namespace Examine.Web.Demo.Controllers
             //Create a basic criteria with the options from the query string
             var criteria = searcher.CreateSearchCriteria().MaxCount(count).CountFacets(countFacets);
 
-            if (facetFilter)
+            if (all)
             {
-                //Add column1 filter as facet filter
-                criteria.Facet(new FacetKey("Column1", q));
+                criteria.All();
             }
             else
             {
-                //Add column1 filter as normal field query
-                criteria.Field("Column1", q);
+                if (facetFilter)
+                {
+                    //Add column1 filter as facet filter
+                    criteria.Facet(new FacetKey("Column1", q));
+                }
+                else
+                {             
+                    //Add column1 filter as normal field query
+                    criteria.Field("Column1", q);
+                }
             }
 
             //Get search results
@@ -160,7 +167,7 @@ namespace Examine.Web.Demo.Controllers
             }
             catch (Exception ex)
             {
-                this.ModelState.AddModelError("DataError", ex.Message);
+                this.ModelState.AddModelError("DataError", ex.Message + " - " + ex.InnerException.ToString());
                 return View(0.0);
             }
         }

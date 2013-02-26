@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Lucene.Net.Index;
+using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Faceting
 {
@@ -63,7 +64,8 @@ namespace Examine.LuceneEngine.Faceting
             {
                 DocumentId = docId,
                 Key = new FacetKey(fieldName, termValue),                
-                Level = level
+                Level = level,
+                TermBased = true
             };
         }
     }

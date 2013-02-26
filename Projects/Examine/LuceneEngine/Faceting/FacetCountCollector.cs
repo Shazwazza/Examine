@@ -18,7 +18,7 @@ namespace Examine.LuceneEngine.Faceting
         /// <param name="inner"></param>
         /// <param name="counts">If a lot of facets are used FacetCounts can be reused from an object pool and passed to this constructor. </param>
         public FacetCountCollector(IndexReaderDataCollection readerDataCollection, Collector inner, FacetCounts counts = null) : base(readerDataCollection, inner)
-        {
+        {            
             _map = readerDataCollection.SearcherContext.Searcher.FacetConfiguration.FacetMap;
 
             Counts = counts ?? new FacetCounts();
