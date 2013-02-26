@@ -39,7 +39,7 @@ namespace Examine.Web.Demo
 
             //var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"];
             //((LuceneSearcher) searcher).FacetConfiguration = new FacetConfiguration
-            //    {
+            //    { 
             //        FacetExtractors = new List<IFacetExtractor> {new TermFacetExtractor("Column1")}
             //    };
         }

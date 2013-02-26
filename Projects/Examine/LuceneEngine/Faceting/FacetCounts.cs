@@ -26,6 +26,11 @@ namespace Examine.LuceneEngine.Faceting
             }
         }
 
+        public int this[FacetKey key]
+        {
+            get { return GetCount(key); }
+        }
+
         public int GetCount(FacetKey key)
         {
             var index = FacetMap.GetIndex(key);

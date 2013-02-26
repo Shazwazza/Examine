@@ -97,7 +97,7 @@ namespace Examine.Web.Demo.Controllers
             var sb = new StringBuilder();
 
             //Create a basic criteria with the options from the query string
-            var criteria = searcher.CreateSearchCriteria().MaxCount(count).CountFacets(countFacets);
+            var criteria = searcher.CreateSearchCriteria().MaxCount(count).CountFacets(countFacets);            
 
             if (all || string.IsNullOrEmpty(q))
             {
@@ -125,9 +125,11 @@ namespace Examine.Web.Demo.Controllers
 
             //Show the results (limited by criteria.MaxCount(...) or SearchOptions.Default.MaxCount)
             foreach (var res in searchResults)
-            {
+            {                
                 sb.Append(res.Id + "\r\n");
             }
+
+            
 
             if (countFacets) //If false FacetCounts is null
             {
@@ -136,8 +138,7 @@ namespace Examine.Web.Demo.Controllers
                 {
                     sb.Append(res.Key + ": " + res.Value + "\r\n");
                 }
-            }
-
+            }            
 
 
 
