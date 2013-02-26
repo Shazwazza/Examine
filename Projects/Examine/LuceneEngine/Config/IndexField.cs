@@ -37,7 +37,7 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
-        [ConfigurationProperty("Type", IsRequired = false, DefaultValue="String")]
+        [ConfigurationProperty("Type", IsRequired = false, DefaultValue = "String")]
         public string Type
         {
             get

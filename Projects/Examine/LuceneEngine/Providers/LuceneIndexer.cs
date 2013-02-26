@@ -1038,6 +1038,7 @@ namespace Examine.LuceneEngine.Providers
                         Fieldable field = null;
                         object parsedVal = null;
                         if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
+                                                
                         switch (indexField.Type.ToUpper())
                         {
                             case "NUMBER":
@@ -1137,7 +1138,7 @@ namespace Examine.LuceneEngine.Providers
                                 {
                                     if (!TryConvert<DateTime>(x.Value, out parsedVal))
                                         break;
-
+                                    
                                     DateTime date = (DateTime)parsedVal;
                                     string dateAsString = DateTools.DateToString(date, DateTools.Resolution.HOUR);
                                     //field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue(int.Parse(dateAsString));
@@ -1167,6 +1168,9 @@ namespace Examine.LuceneEngine.Providers
                                     );
                                     break;
                                 }
+                            case "FACET": case "FACETPATH":
+                                field = new Field(x.Key, x.Value, Field.Store.YES, Field.Index.NOT_ANALYZED);
+                                break;
                             default:
                                 field =
                                     new Field(x.Key,

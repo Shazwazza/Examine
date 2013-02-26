@@ -172,7 +172,7 @@
     <Content Include="Views\Home\RebuildIndex.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine\Examinez.csproj">
+    <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
     </ProjectReference>

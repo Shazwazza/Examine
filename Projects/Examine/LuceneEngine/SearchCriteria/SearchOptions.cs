@@ -6,7 +6,7 @@ using System.Text;
 namespace Examine.LuceneEngine.SearchCriteria
 {
     public class SearchOptions
-    {
+    {        
         public static SearchOptions Default { get; set; }
 
         static SearchOptions()

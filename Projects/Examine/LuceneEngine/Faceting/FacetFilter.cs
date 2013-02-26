@@ -32,13 +32,17 @@ namespace Examine.LuceneEngine.Faceting
 
             if (readerData != null)
             {
-                var facet = context.Searcher.FacetConfiguration.FacetMap.GetIndex(_key);
-                if (facet > -1)
-                {                                        
-                    Filter set;
-                    if (readerData.FacetFilters.TryGetValue(facet, out set))
-                    {                        
-                        return set.GetDocIdSet(reader);
+                var config = context.Searcher.FacetConfiguration;
+                if (config != null)
+                {
+                    var facet = config.FacetMap.GetIndex(_key);
+                    if (facet > -1)
+                    {
+                        Filter set;
+                        if (readerData.FacetFilters.TryGetValue(facet, out set))
+                        {
+                            return set.GetDocIdSet(reader);
+                        }
                     }
                 }
             }

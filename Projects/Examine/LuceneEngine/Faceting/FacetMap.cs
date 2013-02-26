@@ -11,12 +11,14 @@ namespace Examine.LuceneEngine.Faceting
     /// Maps facets to indices. Global for all searchers.
     /// </summary>
     public class FacetMap : IEnumerable<KeyValuePair<int, FacetKey>>
-    {                
+    {
 
         public List<FacetKey> Keys { get; private set; }
 
 
         private ConcurrentDictionary<FacetKey, int> _indices = new ConcurrentDictionary<FacetKey, int>();
+
+        private SortedDictionary<string, List<FacetKey>> _keysByFieldName = new SortedDictionary<string, List<FacetKey>>(StringComparer.OrdinalIgnoreCase);
 
         public FacetMap()
         {
@@ -36,15 +38,52 @@ namespace Examine.LuceneEngine.Faceting
                     lock (Keys)
                     {
                         Keys.Add(k);
+
+                        List<FacetKey> list;
+                        if (!_keysByFieldName.TryGetValue(key.FieldName, out list))
+                        {
+                            _keysByFieldName.Add(key.FieldName, list = new List<FacetKey>());
+                        }
+                        list.Add(k);
+
                         return Keys.Count - 1;
                     }
                 });
         }
 
+        public IEnumerable<string> FieldNames
+        {
+            get
+            {
+                lock (Keys)
+                {
+                    return _keysByFieldName.Keys.ToArray();
+                }
+            }
+        }
+
+        public IEnumerable<FacetKey> GetByFieldName(string fieldName)
+        {
+            List<FacetKey> keys;
+            lock (Keys)
+            {
+                if (!_keysByFieldName.TryGetValue(fieldName, out keys))
+                {
+                    yield break;
+                }
+            }
+
+            var n = keys.Count;
+            for (var i = 0; i < n; i++)
+            {
+                yield return keys[i];
+            }
+        }
+
         public IEnumerator<KeyValuePair<int, FacetKey>> GetEnumerator()
         {
             var n = Keys.Count;
-            for( var i = 0; i < n; i++ )
+            for (var i = 0; i < n; i++)
             {
                 yield return new KeyValuePair<int, FacetKey>(i, Keys[i]);
             }

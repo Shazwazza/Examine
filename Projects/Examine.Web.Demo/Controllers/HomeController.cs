@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
 using System.Diagnostics;
@@ -53,10 +54,16 @@ namespace Examine.Web.Demo.Controllers
 
                                 for (var i = 0; i < 27000; i++)
                                 {
+                                    var path = new List<string> {"Root"};
+                                    for (int j = 0, n = r.Next(1, 3); j < n; j++)
+                                    {
+                                        path.Add("Tax" + r.Next(0, 5));
+                                    }
+
                                     rec.SetString(1, "a" + r.Next(0, 10));
-                                    rec.SetString(2, "b" + i);
+                                    rec.SetString(2, "b" + r.Next(0, 100));
                                     rec.SetString(3, "c" + i);
-                                    rec.SetString(4, "d" + i);
+                                    rec.SetString(4, string.Join("/", path));
                                     rec.SetString(5, "e" + i);
                                     rec.SetString(6, "f" + i);
                                     rs.Insert(rec);
@@ -80,7 +87,7 @@ namespace Examine.Web.Demo.Controllers
 
         }
 
-        public ActionResult Search(string q, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false)
+        public ActionResult Search(string q = null, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false)
         {
             var sw = new Stopwatch();
             sw.Start();
@@ -92,19 +99,19 @@ namespace Examine.Web.Demo.Controllers
             //Create a basic criteria with the options from the query string
             var criteria = searcher.CreateSearchCriteria().MaxCount(count).CountFacets(countFacets);
 
-            if (all)
+            if (all || string.IsNullOrEmpty(q))
             {
                 criteria.All();
             }
             else
-            {
+            {               
                 if (facetFilter)
                 {
                     //Add column1 filter as facet filter
-                    criteria.Facet(new FacetKey("Column1", q));
+                    criteria.Facets(new FacetKey("Column1", q)).AndNot(x => x.Field("Column1", "a0"));
                 }
                 else
-                {             
+                {
                     //Add column1 filter as normal field query
                     criteria.Field("Column1", q);
                 }
@@ -132,6 +139,9 @@ namespace Examine.Web.Demo.Controllers
             }
 
 
+
+
+
             //var ls = (LuceneSearcher) searcher;
             //var ctx = ls.GetSearcherContext();
             //var map = ctx.Searcher.FacetConfiguration.FacetMap;
@@ -149,6 +159,21 @@ namespace Examine.Web.Demo.Controllers
             sw.Stop();
 
             sb.AppendFormat("Elapsed {0:N2} ms.", sw.Elapsed.TotalMilliseconds);
+
+
+            sb.Append("\r\n\r\nField names:\r\n");
+            var map = ((LuceneSearcher) searcher).FacetConfiguration.FacetMap;
+            foreach( var f in map.FieldNames )
+            {
+                sb.Append(f);
+                
+                foreach( var val in map.GetByFieldName(f))
+                {
+                    sb.Append(val.Value + ",  ");
+                }
+
+                sb.Append("\r\n\r\n");
+            }
 
             return Content(sb.ToString(), "text/plain");
         }

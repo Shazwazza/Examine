@@ -208,8 +208,8 @@ namespace UmbracoExamine.SearchCriteria
     {
         [Obsolete]
 		[SecuritySafeCritical]
-		public LuceneSearchCriteria(BaseLuceneSearcher searcher, string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, Examine.SearchCriteria.BooleanOperation occurance)
-            : base(searcher, type, analyzer, fields, allowLeadingWildcards, occurance) { }
+		public LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, Examine.SearchCriteria.BooleanOperation occurance)
+            : base(null, type, analyzer, fields, allowLeadingWildcards, occurance) { }
     }
 
     /// <summary>

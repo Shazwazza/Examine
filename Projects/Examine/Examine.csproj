@@ -145,6 +145,8 @@
     <Compile Include="LuceneEngine\Faceting\MultiSearcherContext.cs" />
     <Compile Include="LuceneEngine\Faceting\PayloadDataTokenStream.cs" />
     <Compile Include="LuceneEngine\Faceting\SearcherContext.cs" />
+    <Compile Include="LuceneEngine\Faceting\TermFacetPathExtractor.cs" />
+    <Compile Include="LuceneEngine\Faceting\TermFacetExtractor.cs" />
     <Compile Include="LuceneEngine\FieldIndexTypes.cs" />
     <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />

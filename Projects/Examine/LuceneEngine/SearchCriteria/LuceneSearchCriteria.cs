@@ -67,7 +67,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             set { _NodeNameField = value; }
         }
 
-        private string _ParentIdField = "parentID";
+        private string _ParentIdField = "parentID";        
 
         /// <summary>
         /// Defines the field name to use for the parent id query
@@ -863,11 +863,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             this.Query.Add(this.QueryParser.Parse(query), this._occurance);
             return this;
         }
-
-        public IBooleanOperation Facets(params string[] key)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         public ISearchResults Execute()
         {

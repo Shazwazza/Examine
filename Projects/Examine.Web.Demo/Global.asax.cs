@@ -35,11 +35,13 @@ namespace Examine.Web.Demo
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
 
-            var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"];
-            ((LuceneSearcher) searcher).FacetConfiguration = new FacetConfiguration
-                {
-                    FacetExtractors = new List<IFacetExtractor> {new TermFacetExtractor("Column1")}
-                };
+            //This is how to create a config from code. This allows your own termfacetextractors to be used.
+
+            //var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"];
+            //((LuceneSearcher) searcher).FacetConfiguration = new FacetConfiguration
+            //    {
+            //        FacetExtractors = new List<IFacetExtractor> {new TermFacetExtractor("Column1")}
+            //    };
         }
     }
 }

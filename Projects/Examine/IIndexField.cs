@@ -16,6 +16,7 @@
         /// Whether or not this field has sorting enabled in search results
         /// </summary>
         bool EnableSorting { get; set; }
+        
 
         /// <summary>
         /// The data type

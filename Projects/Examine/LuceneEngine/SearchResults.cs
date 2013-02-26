@@ -106,10 +106,11 @@ namespace Examine.LuceneEngine
                 sortField.Any() ?
                 (TopDocsCollector)TopFieldCollector.create(new Sort(sortField.ToArray()), count, false, false, false, false)
                 : TopScoreDocCollector.create(count, true);
-
+            
             if (options.CountFacets && LuceneSearcherContext.Searcher.FacetConfiguration != null)
             {
                 var collector = new FacetCountCollector(LuceneSearcherContext.ReaderData, topDocsCollector);
+                
                 LuceneSearcher.Search(query, collector);
                 FacetCounts = collector.Counts;
             }

@@ -122,7 +122,10 @@ namespace Examine.LuceneEngine.Providers
 
 				//get the folder to index
 				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-			}		    
+			}
+
+		    
+		    FacetConfiguration = IndexSets.Instance.Sets[IndexSetName].GetFacetConfiguration();
 		}
 
 		/// <summary>

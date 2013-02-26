@@ -33,7 +33,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneBooleanOperation(crit);
         }
 
-        public static IBooleanOperation Facet(this IQuery luceneSearchCriteria, params FacetKey[] keys)
+        public static IBooleanOperation Facets(this IQuery luceneSearchCriteria, params FacetKey[] keys)
         {
             var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
             if (keys != null)
@@ -42,7 +42,6 @@ namespace Examine.LuceneEngine.SearchCriteria
                 {
                     crit.Query.Add(new ConstantScoreQuery(new FacetFilter(crit.LateBoundSearcherContext, key)), crit.BooleanOperation.ToLuceneOccurance());
                 }
-
             }
             return new LuceneBooleanOperation(crit);
         }

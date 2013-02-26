@@ -79,7 +79,11 @@ namespace Examine.LuceneEngine.Faceting
                     if (kv.Value == null)
                     {
                         var facet = map.Keys[kv.Key];
-                        FacetFilters.Add(kv.Key, new QueryWrapperFilter(new TermQuery(new Term(facet.FieldName, facet.Value))));
+                        FacetFilters.Add(kv.Key, 
+                            //new CachingWrapperFilter( <-- The CachingWrapperFilter is a way to still store the doc sets but in a garbage collectable way.
+                            new QueryWrapperFilter(new TermQuery(new Term(facet.FieldName, facet.Value))))
+                        //)
+                        ;
                     }
                     else
                     {
