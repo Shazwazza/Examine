@@ -123,6 +123,7 @@ namespace Examine.Web.Demo.Controllers
 
             sb.Append("Total hits: " + searchResults.TotalItemCount + "\r\n");
 
+            
             //Show the results (limited by criteria.MaxCount(...) or SearchOptions.Default.MaxCount)
             foreach (var res in searchResults)
             {                

@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Documents;
 
 namespace Examine.Web.Demo
 {
@@ -37,11 +39,39 @@ namespace Examine.Web.Demo
 
             //This is how to create a config from code. This allows your own termfacetextractors to be used.
 
-            //var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"];
-            //((LuceneSearcher) searcher).FacetConfiguration = new FacetConfiguration
-            //    { 
-            //        FacetExtractors = new List<IFacetExtractor> {new TermFacetExtractor("Column1")}
-            //    };
+            
+
+            var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"] as LuceneSearcher;
+
+            //Here a facet extractor is configured from code
+            var config = searcher.FacetConfiguration ?? new FacetConfiguration();
+            config.FacetExtractors.Add(new TermFacetExtractor("CustomDocField"));
+
+            var ix = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
+
+            //Here custom fields are written directly to the document regardsless of Examine's config
+            ix.DocumentWriting += (sender, args) =>
+                {
+                    string v;
+                    if( args.Fields.TryGetValue("Column1", out v))
+                    {
+                        //Here the umbraco value of a tag picker could be split into individual tags                        
+                        //PS rember to use the float value. Not int
+                        args.Document.Add(new Field("CustomDocField", new PayloadDataTokenStream(v + "_WithLevel").SetValue(.25f)));
+                        
+                        //Here we add a normal field
+                        args.Document.Add(new Field("CustomDocField", v + "Test2", Field.Store.NO, Field.Index.NOT_ANALYZED));
+                    }
+                };
+
+
+
+
+
+            //searcher.FacetConfiguration = new FacetConfiguration
+            ////    { 
+            ////        FacetExtractors = new List<IFacetExtractor> {new TermFacetExtractor("Column1")}
+            ////    };
         }
     }
 }

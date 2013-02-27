@@ -33,7 +33,7 @@ namespace Examine.LuceneEngine.Faceting
                         tp.NextPosition();
                         float level = .5f;
                         if (tp.IsPayloadAvailable())
-                        {
+                        {                            
                             tp.GetPayload(dataBuffer, 0);
                             level = PayloadDataTokenStream.GetFloatValue(dataBuffer);
                         }

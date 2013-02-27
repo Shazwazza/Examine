@@ -26,7 +26,7 @@ namespace UmbracoExamine.Config
         /// <returns></returns>
         public static IIndexCriteria ToIndexCriteria(this IndexSet set, IDataService svc)
         {
-            if (set.IndexUserFields.Count == 0)
+            if (!set.IndexUserFields.Cast<IIndexField>().Any(x=>x.Name == x.IndexName))
             {
                 lock (Locker)
                 {
