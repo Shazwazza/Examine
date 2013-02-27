@@ -41,7 +41,7 @@ namespace Examine.LuceneEngine.Faceting
 
         public IEnumerable<KeyValuePair<FacetKey, int>> GetTopFacets(int count, params string[] fieldNames)
         {
-            var facets = fieldNames == null ? GetNonEmpty()
+            var facets = fieldNames.IsNullOrEmpty() ? GetNonEmpty()
                 : FacetMap.GetByFieldNames(fieldNames).Select(f => new KeyValuePair<FacetKey, int>(f.Value, Counts[f.Key]));
 
             return facets.GetTopItems(count, 

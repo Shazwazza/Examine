@@ -916,13 +916,13 @@ namespace Examine.LuceneEngine.Providers
                 //don't add if the value is empty/null
                 if (!string.IsNullOrEmpty(value))
                 {
-                    if (values.ContainsKey(field.Name))
+                    if (values.ContainsKey(field.IndexName))
                     {
                         OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
                     }
                     else
                     {
-                        values.Add(field.Name, value);
+                        values.Add(field.IndexName, value);
                     }    
                 }
             }
@@ -1011,7 +1011,7 @@ namespace Examine.LuceneEngine.Providers
 
                 //copy local
                 var x1 = x;
-                var indexedFields = indexSetFields.Where(o => o.Name == x1.Key).ToArray();
+                var indexedFields = indexSetFields.Where(o => o.IndexName == x1.Key).ToArray();
 
                 if (!indexedFields.Any())
                 {

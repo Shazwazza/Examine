@@ -39,11 +39,11 @@ namespace Examine.LuceneEngine.Faceting
                     {
                         if (f.Type.Equals("facet", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            config.FacetExtractors.Add(new TermFacetExtractor(f.Name));
+                            config.FacetExtractors.Add(new TermFacetExtractor(f.IndexName));
                         }
                         else if (f.Type.Equals("facetpath", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            config.FacetExtractors.Add(new TermFacetPathExtractor(f.Name));
+                            config.FacetExtractors.Add(new TermFacetPathExtractor(f.IndexName));
                         }
                     }
                 }

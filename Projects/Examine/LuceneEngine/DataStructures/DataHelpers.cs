@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,15 @@ namespace Examine.LuceneEngine.DataStructures
             {
                 yield return doc;
             }
+        }
+
+        public static bool IsNullOrEmpty(this IEnumerable e)
+        {
+            if( e != null )
+            {
+                foreach (var el in e) return true;
+            }
+            return true;
         }
 
 

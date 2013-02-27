@@ -27,9 +27,11 @@ namespace Examine
         /// </summary>
         IEnumerable<IIndexField> StandardFields { get; }
 
+
         /// <summary>
         /// A list of the 'user'/custom fields to index
         /// </summary>
         IEnumerable<IIndexField> UserFields { get; }
+
     }
 }
