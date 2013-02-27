@@ -10,22 +10,24 @@ namespace Examine.LuceneEngine.Faceting
     /// </summary>
     public class TermFacetPathExtractor : TermFacetExtractor
     {
-        private readonly string _separator;
+        public string Separator { get; set; }
+        public Func<float, int, float> DistanceScorer { get; set; }
 
-        public TermFacetPathExtractor(string fieldName, string separator = "/") : base(fieldName)
+        public TermFacetPathExtractor(string fieldName, string separator = "/", Func<float, int, float> distanceScorer = null) : base(fieldName)
         {
-            _separator = separator;
+            Separator = separator;
+            DistanceScorer = DistanceScorer ?? ((level, distance) => level / distance);
         }
 
         protected override IEnumerable<DocumentFacet> ExpandTerm(int docId, string fieldName, string termValue, float level)
         {
-            var parts = termValue.Split(new [] {_separator}, StringSplitOptions.RemoveEmptyEntries);
+            var parts = termValue.Split(new [] {Separator}, StringSplitOptions.RemoveEmptyEntries);
 
             var distance = parts.Length;
             var sb = new StringBuilder();
             foreach (var p in parts)
             {
-                if (sb.Length > 0) sb.Append(_separator);
+                if (sb.Length > 0) sb.Append(Separator);
                 sb.Append(p);
 
                 yield return new DocumentFacet

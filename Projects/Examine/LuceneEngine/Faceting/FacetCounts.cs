@@ -1,28 +1,30 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Examine.LuceneEngine.DataStructures;
 
 namespace Examine.LuceneEngine.Faceting
 {
     public class FacetCounts : IEnumerable<KeyValuePair<FacetKey, int>>
     {
         public static int GrowFactor = 2048;
-
-        public int[] Counts { get; private set; }
+        
+        public LittleBigArray Counts { get; private set; }
 
         public FacetMap FacetMap { get; private set; }
 
 
         public void Reset(FacetMap map)
         {
-            FacetMap = map;
+            FacetMap = map;            
             if (Counts == null || Counts.Length < map.Keys.Count)
             {
-                Counts = new int[GrowFactor * (1 + map.Keys.Count / GrowFactor)];
+                Counts = new LittleBigArray(GrowFactor * (1 + map.Keys.Count / GrowFactor));
             }
             else
             {
-                Array.Clear(Counts, 0, Counts.Length);
+                Counts.Reset();
             }
         }
 
@@ -35,6 +37,25 @@ namespace Examine.LuceneEngine.Faceting
         {
             var index = FacetMap.GetIndex(key);
             return index > -1 && index < Counts.Length ? Counts[index] : 0;
+        }
+
+        public IEnumerable<KeyValuePair<FacetKey, int>> GetTopFacets(int count, params string[] fieldNames)
+        {
+            var facets = fieldNames == null ? GetNonEmpty()
+                : FacetMap.GetByFieldNames(fieldNames).Select(f => new KeyValuePair<FacetKey, int>(f.Value, Counts[f.Key]));
+
+            return facets.GetTopItems(count, 
+                
+                new LambdaComparer<KeyValuePair<FacetKey, int>>((x, y) =>
+                    {
+                        var c = y.Value.CompareTo(x.Value);
+                        return c == 0 ? x.Key.CompareTo(y.Key) : c;
+                    }));
+        } 
+
+        public IEnumerable<KeyValuePair<FacetKey, int>> GetNonEmpty()
+        {
+            return Counts.Select(f => new KeyValuePair<FacetKey, int>(FacetMap.Keys[f.Key], f.Value));
         }
 
         public IEnumerator<KeyValuePair<FacetKey, int>> GetEnumerator()

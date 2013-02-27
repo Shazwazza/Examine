@@ -62,21 +62,28 @@ namespace Examine.LuceneEngine.Faceting
             }
         }
 
-        public IEnumerable<FacetKey> GetByFieldName(string fieldName)
+        public IEnumerable<KeyValuePair<int, FacetKey>> GetByFieldNames(params string[] fieldNames)
         {
-            List<FacetKey> keys;
+            List<List<FacetKey>> keysList = new List<List<FacetKey>>(fieldNames.Length);
             lock (Keys)
             {
-                if (!_keysByFieldName.TryGetValue(fieldName, out keys))
+                List<FacetKey> keys;
+                foreach (var fieldName in fieldNames)
                 {
-                    yield break;
+                    if (_keysByFieldName.TryGetValue(fieldName, out keys))
+                    {
+                        keysList.Add(keys);
+                    }
                 }
             }
 
-            var n = keys.Count;
-            for (var i = 0; i < n; i++)
+            foreach (var keys in keysList)
             {
-                yield return keys[i];
+                var n = keys.Count;
+                for (var i = 0; i < n; i++)
+                {
+                    yield return new KeyValuePair<int, FacetKey>(i, keys[i]);
+                }
             }
         }
 

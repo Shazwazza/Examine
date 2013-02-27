@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine.Faceting
         public BaseLuceneSearcher Searcher { get; private set; }
 
 
-        public IndexReaderDataCollection ReaderData { get; set; }
+        public IndexReaderDataCollection ReaderData { get; set; }        
 
         public IndexSearcherContext(BaseLuceneSearcher searcher, IndexSearcher luceneSearcher, IndexReaderDataCollection oldData = null)
         {
@@ -25,5 +25,10 @@ namespace Examine.LuceneEngine.Faceting
         }
 
         Searcher ISearcherContext.LuceneSearcher { get { return LuceneSearcher; } }
+
+        public void ReloadReaderData()
+        {
+            ReaderData = IndexReaderDataCollection.FromReader(LuceneSearcher.GetIndexReader(), this, null);   
+        }
     }
 }

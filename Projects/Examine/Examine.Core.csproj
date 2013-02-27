@@ -124,6 +124,9 @@
     <Compile Include="LuceneEngine\Config\IndexFieldCollectionExtensions.cs" />
     <Compile Include="LuceneEngine\Config\IndexSet.cs" />
     <Compile Include="LuceneEngine\Config\IndexSetCollection.cs" />
+    <Compile Include="LuceneEngine\DataStructures\DataHelpers.cs" />
+    <Compile Include="LuceneEngine\DataStructures\LambdaComparer.cs" />
+    <Compile Include="LuceneEngine\DataStructures\LittleBigArray.cs" />
     <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
     <Compile Include="LuceneEngine\EmptySearchResults.cs" />
     <Compile Include="LuceneEngine\ExamineXmlExtensions.cs" />
@@ -137,7 +140,9 @@
     <Compile Include="LuceneEngine\Faceting\FacetExtractor.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetKey.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetMap.cs" />
+    <Compile Include="LuceneEngine\Faceting\GraphFacetExtractor.cs" />
     <Compile Include="LuceneEngine\Faceting\IFacetComb.cs" />
+    <Compile Include="LuceneEngine\Faceting\IFacetGraph.cs" />
     <Compile Include="LuceneEngine\Faceting\IndexReaderDataCollection.cs" />
     <Compile Include="LuceneEngine\Faceting\IndexReaderDataCollector.cs" />
     <Compile Include="LuceneEngine\Faceting\IndexSearcherContext.cs" />

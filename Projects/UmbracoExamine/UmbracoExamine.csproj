@@ -167,9 +167,9 @@
     <Content Include="README.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine\Examine.csproj">
+    <ProjectReference Include="..\Examine\Examine.Core.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
-      <Name>Examine</Name>
+      <Name>Examine.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

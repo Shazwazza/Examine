@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    public class FacetKey
+    public class FacetKey : IComparable<FacetKey>
     {
         public string FieldName { get; set; }
 
@@ -23,11 +23,16 @@ namespace Examine.LuceneEngine.Faceting
             Value = value;
         }
 
+        public int CompareTo(FacetKey other)
+        {
+            var c = FieldName.CompareTo(other.FieldName);
+            return c == 0 ? Value.CompareTo(other.Value) : c;
+        }
+
         public override string ToString()
         {
             return (FieldName != "" ? FieldName + ":" : "") + Value;
-        }
-
+        }        
         
 
         public bool Equals(FacetKey other)

@@ -134,7 +134,7 @@ namespace Examine.Web.Demo.Controllers
             if (countFacets) //If false FacetCounts is null
             {
                 //Iterate all facets and show their key and count.
-                foreach (var res in searchResults.FacetCounts)
+                foreach (var res in searchResults.FacetCounts.GetTopFacets(10, "Column4"))
                 {
                     sb.Append(res.Key + ": " + res.Value + "\r\n");
                 }
@@ -168,7 +168,7 @@ namespace Examine.Web.Demo.Controllers
             {
                 sb.Append(f);
                 
-                foreach( var val in map.GetByFieldName(f))
+                foreach( var val in map.GetByFieldNames(f))
                 {
                     sb.Append(val.Value + ",  ");
                 }
