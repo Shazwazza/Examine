@@ -5,10 +5,17 @@ using System.Text;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    public struct FacetLevel
+    public struct FacetLevel : IFacetLevel
     {
         public int FacetId;
 
         public float Level;
+
+
+        
+        FacetLevel IFacetLevel.ToFacetLevel(ISearcherContext context)
+        {
+            return this;
+        }
     }
 }

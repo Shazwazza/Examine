@@ -7,6 +7,7 @@ using System.Security;
 using System.Text.RegularExpressions;
 using Examine;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Scoring;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.QueryParsers;
@@ -22,7 +23,7 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// This class is used to query against Lucene.Net. Not thread safe.
     /// </summary>
     [DebuggerDisplay("SearchIndexType: {SearchIndexType}, LuceneQuery: {Query}")]
-    public class LuceneSearchCriteria : ISearchCriteria
+    public class LuceneSearchCriteria : ISearchCriteria, ILuceneSearchCriteria
     {
         internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
         internal MultiFieldQueryParser QueryParser;
@@ -981,5 +982,16 @@ namespace Examine.LuceneEngine.SearchCriteria
 
 
         #endregion
+
+        LuceneSearchCriteria ILuceneSearchCriteria.LuceneSearchCriteria { get { return this; } }
+
+        public LuceneSearchCriteria WrapScoreQuery(Func<Query, ReaderDataScoreQuery> scoreQuery)
+        {
+            var newQuery = new BooleanQuery();
+            newQuery.Add(scoreQuery(Queries.Pop()), BooleanClause.Occur.MUST);
+            Queries.Push(newQuery);
+
+            return this;
+        }
     }
 }

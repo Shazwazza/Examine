@@ -24,4 +24,4 @@ using System.Security;
 [assembly: InternalsVisibleTo("Examine.Azure")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
-[assembly: AllowPartiallyTrustedCallers]
+//[assembly: AllowPartiallyTrustedCallers]

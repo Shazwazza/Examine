@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using Examine.LuceneEngine.Config;
 
@@ -16,6 +17,8 @@ namespace Examine.LuceneEngine.Faceting
 
         public FacetMap FacetMap { get; set; }
 
+        public IExternalDataProvider ExternalDataProvider { get; set; }
+
         public bool CacheAllQueryFilters { get; set; }
 
         public FacetConfiguration()
@@ -28,6 +31,7 @@ namespace Examine.LuceneEngine.Faceting
 
     internal static class FacetConfigurationHelpers
     {
+        [SecuritySafeCritical]
         public static FacetConfiguration GetFacetConfiguration(this IndexSet set)
         {
             var config = new FacetConfiguration();

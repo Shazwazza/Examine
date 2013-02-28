@@ -4,13 +4,13 @@ namespace Examine.LuceneEngine.Faceting
 {
     public abstract class IndexReaderDataCollector : Collector
     {
-        protected IndexReaderDataCollection ReaderDataCollection { get; set; }
+        protected ReaderDataCollection ReaderDataCollection { get; set; }
         protected Collector Inner { get; set; }
 
         protected Scorer Scorer { get; set; }
-        protected IndexReaderData Data { get; set; }
+        protected ReaderData Data { get; set; }
 
-        public IndexReaderDataCollector(IndexReaderDataCollection readerDataCollection, Collector inner)
+        public IndexReaderDataCollector(ReaderDataCollection readerDataCollection, Collector inner)
         {
             ReaderDataCollection = readerDataCollection;
             Inner = inner;

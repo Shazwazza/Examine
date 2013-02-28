@@ -10,7 +10,7 @@ namespace Examine.LuceneEngine.Faceting
 
         Searcher LuceneSearcher { get; }
 
-        IndexReaderDataCollection ReaderData { get; }
+        ReaderDataCollection ReaderData { get; }
 
         /// <summary>
         /// Reloads the reader data (facets etc.)

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Examine;
+using Examine.LuceneEngine.Faceting;
 using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
@@ -998,6 +999,10 @@ namespace Examine.LuceneEngine.Providers
 
             var d = new Document();
 
+            //Add node id with payload term for fast retrieval in ReaderData              
+            d.Add(new ExternalIdField(nodeId));
+
+
             //get all index set fields that are defined
             var indexSetFields = IndexerData.UserFields.Concat(IndexerData.StandardFields.ToList()).ToArray();
 
@@ -1012,7 +1017,7 @@ namespace Examine.LuceneEngine.Providers
                 //copy local
                 var x1 = x;
                 var indexedFields = indexSetFields.Where(o => o.IndexName == x1.Key).ToArray();
-
+                
                 if (!indexedFields.Any())
                 {
                     //TODO: Decide if we should support non-strings in here too

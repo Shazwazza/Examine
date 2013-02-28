@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Faceting
 {
+    [SecuritySafeCritical]
     public class FacetCountCollector : IndexReaderDataCollector
     {
         private FacetMap _map;
@@ -17,7 +19,7 @@ namespace Examine.LuceneEngine.Faceting
         /// <param name="readerDataCollection"></param>
         /// <param name="inner"></param>
         /// <param name="counts">If a lot of facets are used FacetCounts can be reused from an object pool and passed to this constructor. </param>
-        public FacetCountCollector(IndexReaderDataCollection readerDataCollection, Collector inner, FacetCounts counts = null) : base(readerDataCollection, inner)
+        public FacetCountCollector(ReaderDataCollection readerDataCollection, Collector inner, FacetCounts counts = null) : base(readerDataCollection, inner)
         {            
             _map = readerDataCollection.SearcherContext.Searcher.FacetConfiguration.FacetMap;
 

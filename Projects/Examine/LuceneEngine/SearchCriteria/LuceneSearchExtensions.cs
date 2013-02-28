@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Scoring;
 using Examine.SearchCriteria;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
@@ -15,13 +16,13 @@ namespace Examine.LuceneEngine.SearchCriteria
     {
         static LuceneSearchCriteria GetLuceneSearchCriteria(IQuery q)
         {
-            var crit = q as LuceneSearchCriteria;
+            var crit = q as ILuceneSearchCriteria;
             if (crit == null)
             {
                 throw new ArgumentException("Provided query must be LuceneSearchCriteria", "query");
             }
 
-            return crit;
+            return crit.LuceneSearchCriteria;
         }
 
         public static IBooleanOperation LuceneQuery(this IQuery luceneSearchCriteria, Query query, BooleanOperation? op = null)
@@ -44,6 +45,36 @@ namespace Examine.LuceneEngine.SearchCriteria
                 }
             }
             return new LuceneBooleanOperation(crit);
+        }
+
+        public static IQuery AddRelevanceScore(this IQuery luceneSearchCriteria, double originalQueryWeight, params IFacetLevel[] levels)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.WrapScoreQuery(q => new FacetLevelScoreQuery(q, crit.LateBoundSearcherContext, new ScoreAdder(originalQueryWeight), levels));
+
+            return luceneSearchCriteria;
+        }
+
+        public static IQuery AddExternalDataScore<TData>(this IQuery luceneSearchCriteria, double originalQueryWeight, Func<TData, float> scorer)
+            where TData : class
+        {
+            return ExternalDataScore(luceneSearchCriteria, new ScoreAdder(originalQueryWeight), scorer);
+        }
+
+        public static IQuery MultiplyExternalDataScore<TData>(this IQuery luceneSearchCriteria, float originalQueryWeight, Func<TData, float> scorer)
+            where TData : class
+        {           
+            return ExternalDataScore(luceneSearchCriteria, new ScoreMultiplier(), scorer);
+        }
+
+        
+        private static IQuery ExternalDataScore<TData>(IQuery luceneSearchCriteria, ScoreOperation op, Func<TData, float> scorer)
+            where TData : class
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.WrapScoreQuery(q => new ExternalDataScoreQuery<TData>(q, crit.LateBoundSearcherContext, op, scorer));
+
+            return luceneSearchCriteria;
         }
 
         /// <summary>

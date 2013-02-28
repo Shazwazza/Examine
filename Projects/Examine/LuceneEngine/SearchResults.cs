@@ -157,7 +157,7 @@ namespace Examine.LuceneEngine
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
         [SecuritySafeCritical]
-        protected SearchResult CreateSearchResult(Document doc, float score)
+        protected SearchResult CreateSearchResult(int docId, Document doc, float score)
         {
             string id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
@@ -167,7 +167,8 @@ namespace Examine.LuceneEngine
             var sr = new SearchResult()
             {
                 Id = int.Parse(id),
-                Score = score
+                Score = score,
+                Facets = LuceneSearcherContext.ReaderData.GetFacets(docId)
             };
 
             //we can use lucene to find out the fields which have been stored for this particular document
@@ -191,7 +192,7 @@ namespace Examine.LuceneEngine
             var docId = _topDocs.ScoreDocs[i].doc;
             var doc = LuceneSearcher.Doc(docId);
             var score = _topDocs.ScoreDocs[i].score;
-            var result = CreateSearchResult(doc, score);
+            var result = CreateSearchResult(docId, doc, score);
             return result;
         }
 

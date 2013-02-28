@@ -4,6 +4,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Providers;
+using Examine.Web.Demo.Models;
 using Lucene.Net.Documents;
 
 namespace Examine.Web.Demo
@@ -47,6 +48,9 @@ namespace Examine.Web.Demo
             var config = searcher.FacetConfiguration ?? new FacetConfiguration();
             config.FacetExtractors.Add(new TermFacetExtractor("CustomDocField"));
 
+            //Attach in-memory objects to lucene documents for scoring on rapidly changing data.
+            config.ExternalDataProvider = new TestExternalDataProvider();
+
             var ix = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
 
             //Here custom fields are written directly to the document regardsless of Examine's config
@@ -55,8 +59,11 @@ namespace Examine.Web.Demo
                     string v;
                     if( args.Fields.TryGetValue("Column1", out v))
                     {
-                        //Here the umbraco value of a tag picker could be split into individual tags                        
-                        //PS rember to use the float value. Not int
+                        //Here the umbraco value of a tag picker could be split into individual tags  
+                      
+
+                        //This is how to add a facet with level (i.e. size/importance)
+                        //Remember to use a float value. Not int.
                         args.Document.Add(new Field("CustomDocField", new PayloadDataTokenStream(v + "_WithLevel").SetValue(.25f)));
                         
                         //Here we add a normal field

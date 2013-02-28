@@ -12,7 +12,7 @@ namespace Examine.LuceneEngine.Faceting
         
 
         public Searcher LuceneSearcher { get; private set; }
-        public IndexReaderDataCollection ReaderData { get; private set; }
+        public ReaderDataCollection ReaderData { get; private set; }
 
         public BaseLuceneSearcher Searcher { get; private set; }
         
@@ -23,12 +23,12 @@ namespace Examine.LuceneEngine.Faceting
             Searcher = searcher;
             Contexts = contexts.ToArray();
             LuceneSearcher = new MultiSearcher(Contexts.Select(c=>c.LuceneSearcher).ToArray());
-            ReaderData = IndexReaderDataCollection.Join(Contexts.Select(c => c.ReaderData), this);
+            ReaderData = ReaderDataCollection.Join(Contexts.Select(c => c.ReaderData), this);
         }
 
         public void ReloadReaderData()
         {
-            ReaderData = IndexReaderDataCollection.Join(Contexts.Select(c => c.ReaderData), this);
+            ReaderData = ReaderDataCollection.Join(Contexts.Select(c => c.ReaderData), this);
         }
     }
 }

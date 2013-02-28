@@ -15,20 +15,20 @@ namespace Examine.LuceneEngine.Faceting
         public BaseLuceneSearcher Searcher { get; private set; }
 
 
-        public IndexReaderDataCollection ReaderData { get; set; }        
+        public ReaderDataCollection ReaderData { get; set; }        
 
-        public IndexSearcherContext(BaseLuceneSearcher searcher, IndexSearcher luceneSearcher, IndexReaderDataCollection oldData = null)
+        public IndexSearcherContext(BaseLuceneSearcher searcher, IndexSearcher luceneSearcher, ReaderDataCollection oldData = null)
         {
             Searcher = searcher;
             LuceneSearcher = luceneSearcher;
-            ReaderData = IndexReaderDataCollection.FromReader(luceneSearcher.GetIndexReader(), this, oldData);
+            ReaderData = ReaderDataCollection.FromReader(luceneSearcher.GetIndexReader(), this, oldData);
         }
 
         Searcher ISearcherContext.LuceneSearcher { get { return LuceneSearcher; } }
 
         public void ReloadReaderData()
         {
-            ReaderData = IndexReaderDataCollection.FromReader(LuceneSearcher.GetIndexReader(), this, null);   
+            ReaderData = ReaderDataCollection.FromReader(LuceneSearcher.GetIndexReader(), this, null);   
         }
     }
 }
