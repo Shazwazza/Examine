@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <section name="Examine" type="Examine.Config.ExamineSettings, Examine" requirePermission="false" />
+    <section name="ExamineLuceneIndexSets" type="Examine.LuceneEngine.Config.IndexSets, Examine" requirePermission="false" />
+  </configSections>
+  <Examine>
+    <ExamineIndexProviders>
+      <!--Define your indexes -->
+    </ExamineIndexProviders>
+    <ExamineSearchProviders>
+      <!--Define your searchers and default searcher -->
+    </ExamineSearchProviders>
+  </Examine>
+  <ExamineLuceneIndexSets>
+    <!--Define your index sets-->
+  </ExamineLuceneIndexSets>
+</configuration>

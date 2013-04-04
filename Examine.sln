@@ -14,7 +14,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768-6ECD-40EF-84BD-5594670EA7A8}"
 	ProjectSection(SolutionItems) = preProject
 		Build-Release.ps1 = Build-Release.ps1
-		build\Examine.nuspec = build\Examine.nuspec
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine", "Projects\UmbracoExamine\UmbracoExamine.csproj", "{07FBC26B-2927-4A22-8D96-D644C667FECC}"
@@ -32,6 +31,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{E7F9DD
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine", "Examine", "{976F400B-2ABA-4C36-8FD6-B0B35D0911D0}"
+	ProjectSection(SolutionItems) = preProject
+		build\Nuspecs\Examine\Examine.nuspec = build\Nuspecs\Examine\Examine.nuspec
+		build\Nuspecs\Examine\web.config.transform = build\Nuspecs\Examine\web.config.transform
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.Azure", "Examine.Azure", "{0DAC5325-71DE-4706-A631-FFB8CCC39FE3}"
+	ProjectSection(SolutionItems) = preProject
+		build\Nuspecs\Examine.Azure\Examine.Azure.nuspec = build\Nuspecs\Examine.Azure\Examine.Azure.nuspec
+		build\Nuspecs\Examine.Azure\web.config.transform = build\Nuspecs\Examine.Azure\web.config.transform
 	EndProjectSection
 EndProject
 Global
@@ -69,5 +80,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B5833B82-4211-459A-8B0C-AA8F68438250} = {F5BA4CD4-DAFE-4F97-B342-4DF10E1F76DB}
+		{976F400B-2ABA-4C36-8FD6-B0B35D0911D0} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
+		{0DAC5325-71DE-4706-A631-FFB8CCC39FE3} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 	EndGlobalSection
 EndGlobal
