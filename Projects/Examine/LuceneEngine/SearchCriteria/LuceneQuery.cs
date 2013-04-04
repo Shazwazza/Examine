@@ -328,9 +328,10 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        [SecuritySafeCritical]
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
         {
-            throw new NotImplementedException();
+            return this.search.GroupedAndInternal(fields.ToArray(), query, this.occurance);
         }
 
         /// <summary>
