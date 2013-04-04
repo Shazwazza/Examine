@@ -65,12 +65,15 @@ Remove-Item $SqlCeDb
 
 $CoreNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Examine.nuspec";
 Copy-Item $CoreNuSpecSource -Destination $CoreExamineFolder
-# Copy-Item "$BuildFolder\nuget-transforms\Core\web.config.transform" -Destination (New-Item (Join-Path -Path $ReleaseFolder -ChildPath "nuget-transforms") -Type directory);
-
 $CoreNuSpec = Join-Path -Path $CoreExamineFolder -ChildPath "Examine.nuspec";
-
 $NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
 & $NuGet pack $CoreNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
+
+$AzureNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Examine.Azure.nuspec";
+Copy-Item $AzureNuSpecSource -Destination $ExamineAzureFolder
+$AzureNuSpec = Join-Path -Path $ExamineAzureFolder -ChildPath "Examine.Azure.nuspec";
+$NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
+& $NuGet pack $AzureNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
 
 ""
 "Build $ReleaseVersionNumber is done!"
