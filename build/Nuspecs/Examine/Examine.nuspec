@@ -1,21 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <metadata>
-        <id>Examine</id>
-        <version>0.0.0.0</version>
-        <title />
-        <authors>Shannon Deminick</authors>
-        <owners>Shannon Deminick</owners>
-        <projectUrl>http://examine.codeplex.com</projectUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it. You can either use the Fluent API that the library comes with or use raw Lucene query syntax. The indexing is configurable and will allow both synchronous and asynchronous indexing and everything works happily in web projects too.</description>
-        <summary>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it</summary>
-		<dependencies>
-            <dependency id="Lucene.Net" version="2.9.4.1" />
-        </dependencies>
-    </metadata>
-    <files>
-        <file src="Examine.dll" target="lib\Examine.dll" />
-        <file src="Examine.pdb" target="lib\Examine.pdb" />
-    </files>
+  <metadata>
+    <id>Examine</id>
+    <version>0.0.0.0</version>
+    <title />
+    <authors>Shannon Deminick</authors>
+    <owners>Shannon Deminick</owners>
+    <projectUrl>http://examine.codeplex.com</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it. You can either use the Fluent API that the library comes with or use raw Lucene query syntax. The indexing is configurable and will allow both synchronous and asynchronous indexing and everything works happily in web projects too.</description>
+    <summary>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it</summary>
+    <dependencies>
+      <dependency id="Lucene.Net" version="2.9.4.1" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Examine.dll" target="lib\Examine.dll" />
+    <file src="Examine.pdb" target="lib\Examine.pdb" />
+  </files>
 </package>
