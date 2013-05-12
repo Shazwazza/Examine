@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.LuceneEngine.Faceting;
 
 namespace Examine.LuceneEngine
 {
@@ -12,6 +13,7 @@ namespace Examine.LuceneEngine
 		{
 			return Enumerable.Empty<SearchResult>().GetEnumerator();
 		}
+        
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
@@ -27,5 +29,7 @@ namespace Examine.LuceneEngine
 		{
 			return Enumerable.Empty<SearchResult>();
 		}
+
+	    public FacetCounts FacetCounts { get; private set; }
 	}
 }

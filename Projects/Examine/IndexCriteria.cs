@@ -20,7 +20,8 @@ namespace Examine
         ///<param name="includeNodeTypes"></param>
         ///<param name="excludeNodeTypes"></param>
         ///<param name="parentNodeId"></param>
-        public IndexCriteria(IEnumerable<IIndexField> standardFields, IEnumerable<IIndexField> userFields, IEnumerable<string> includeNodeTypes, IEnumerable<string> excludeNodeTypes, int? parentNodeId)
+        public IndexCriteria(IEnumerable<IIndexField> standardFields, IEnumerable<IIndexField> userFields, 
+            IEnumerable<string> includeNodeTypes, IEnumerable<string> excludeNodeTypes, int? parentNodeId)
         {
             UserFields = userFields.ToList();
             StandardFields = standardFields.ToList();

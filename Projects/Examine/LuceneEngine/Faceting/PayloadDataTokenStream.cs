@@ -2,7 +2,7 @@
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     public class PayloadDataTokenStream : TokenStream
     {

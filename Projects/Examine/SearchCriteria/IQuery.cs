@@ -262,5 +262,20 @@ namespace Examine.SearchCriteria
         /// <param name="fieldNames">The field names.</param>
         /// <returns></returns>
         IBooleanOperation OrderByDescending(params string[] fieldNames);
+
+
+        /// <summary>
+        /// Matches all items
+        /// </summary>
+        /// <returns></returns>
+        IBooleanOperation All();
+
+      
+       
+        /// <summary>
+        /// Executes the query
+        /// </summary>
+        /// <returns></returns>
+        ISearchResults Execute();
     }
 }

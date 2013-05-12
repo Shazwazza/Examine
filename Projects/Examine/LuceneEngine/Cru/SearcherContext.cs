@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Web;
 //using Examine.LuceneEngine.Facets;
-using Examine.LuceneEngine.Facets;
+using Examine.LuceneEngine.Faceting;
 using Lucene.Net.Analysis;
 using Lucene.Net.Contrib.Management;
 using Lucene.Net.Index;

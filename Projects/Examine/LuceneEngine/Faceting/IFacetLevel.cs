@@ -1,4 +1,4 @@
-﻿namespace Examine.LuceneEngine.Facets
+﻿namespace Examine.LuceneEngine.Faceting
 {
     public interface IFacetLevel
     {

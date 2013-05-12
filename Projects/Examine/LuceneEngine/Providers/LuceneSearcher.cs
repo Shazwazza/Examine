@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using Examine;
+using Examine.LuceneEngine.Faceting;
 using Examine.SearchCriteria;
 using Examine.Session;
 using Lucene.Net.Index;
@@ -124,7 +125,10 @@ namespace Examine.LuceneEngine.Providers
 
 				//get the folder to index
 				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-			}		    
+			}
+
+		    
+		    FacetConfiguration = IndexSets.Instance.Sets[IndexSetName].GetFacetConfiguration();
 		}
 
 		/// <summary>
@@ -222,7 +226,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
-        /// <returns></returns>
+        /// <returns></returns>                
 		[SecuritySafeCritical]
         public override Searcher GetSearcher()
         {
@@ -236,8 +240,14 @@ namespace Examine.LuceneEngine.Providers
             return token.Searcher;
         }
 
-        
-        
+        public override ICriteriaContext GetCriteriaContext()
+        {
+            ValidateSearcher(false);
+
+            return _searcherContext.FacetsLoader;
+        }
+
+
         /// <summary>
         /// Returns a list of fields to search on
         /// </summary>

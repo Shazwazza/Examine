@@ -131,12 +131,16 @@ namespace Examine.LuceneEngine.Providers
 	        var searchables = new List<Searchable>();
 			//NOTE: Do not convert this to Linq as it will fail the Code Analysis because Linq screws with it.
 			foreach(var s in Searchers)
-			{
+			{               
 				searchables.Add(s.GetSearcher());
 			}
-			return new MultiSearcher(searchables.ToArray());
+
+            return new MultiSearcher(searchables.ToArray());
         }
 
-     
+        public override ICriteriaContext GetCriteriaContext()
+        {
+            return new MutliCriteriaContext(Searchers.Select(s=>s.GetCriteriaContext()).ToArray());
+        }
     }
 }

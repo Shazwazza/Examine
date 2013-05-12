@@ -163,16 +163,16 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine\Examine.csproj">
-      <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
-      <Name>Examine</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Examine\Examine.csproj">
+      <Project>{da5e35c3-89ba-4a2e-a559-32cf7b23cbff}</Project>
+      <Name>Examine</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

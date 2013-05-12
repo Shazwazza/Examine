@@ -1,7 +1,7 @@
 ﻿using Lucene.Net.Index;
 using Lucene.Net.Search;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     /// <summary>
     /// 

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Linq;
 using Examine;
+using Examine.LuceneEngine.Faceting;
 using Examine.Providers;
 using Examine.Session;
 using Lucene.Net.Analysis;
@@ -953,13 +954,13 @@ namespace Examine.LuceneEngine.Providers
                 //don't add if the value is empty/null
                 if (!string.IsNullOrEmpty(value))
                 {
-                    if (values.ContainsKey(field.Name))
+                    if (values.ContainsKey(field.IndexName))
                     {
                         OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
                     }
                     else
                     {
-                        values.Add(field.Name, value);
+                        values.Add(field.IndexName, value);
                     }    
                 }
             }
@@ -1035,6 +1036,10 @@ namespace Examine.LuceneEngine.Providers
 
             var d = new Document();
 
+            //Add node id with payload term for fast retrieval in ReaderData              
+            d.Add(new ExternalIdField(nodeId));
+
+
             //get all index set fields that are defined
             var indexSetFields = IndexerData.UserFields.Concat(IndexerData.StandardFields.ToList()).ToArray();
 
@@ -1048,8 +1053,8 @@ namespace Examine.LuceneEngine.Providers
 
                 //copy local
                 var x1 = x;
-                var indexedFields = indexSetFields.Where(o => o.Name == x1.Key).ToArray();
-
+                var indexedFields = indexSetFields.Where(o => o.IndexName == x1.Key).ToArray();
+                
                 if (!indexedFields.Any())
                 {
                     //TODO: Decide if we should support non-strings in here too
@@ -1077,6 +1082,7 @@ namespace Examine.LuceneEngine.Providers
                     Fieldable sortedField = null;
                     object parsedVal = null;
                     if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
+                                                
                     switch (indexField.Type.ToUpper())
                     {
                         case "NUMBER":
@@ -1135,6 +1141,9 @@ namespace Examine.LuceneEngine.Providers
                                 SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MINUTE, lucenePolicy, ref field, ref sortedField);
                                 break;
                             }
+                            case "FACET": case "FACETPATH":
+                                field = new Field(x.Key, x.Value, Field.Store.YES, Field.Index.NOT_ANALYZED);
+                                break;
                         default:
                             field =
                                 new Field(x.Key,

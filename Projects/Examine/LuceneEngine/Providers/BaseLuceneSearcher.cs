@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Security;
 using System.Text;
+using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
 using Examine.SearchCriteria;
@@ -24,40 +25,45 @@ namespace Examine.LuceneEngine.Providers
 
         #region Constructors
 
-		/// <summary>
-		/// Default constructor
-		/// </summary>
-		protected BaseLuceneSearcher()
-		{
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        protected BaseLuceneSearcher()
+        {
         }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected BaseLuceneSearcher(Analyzer analyzer)
-		{           
+        {
             IndexingAnalyzer = analyzer;
-		}
+        }
 
-		#endregion
+        #endregion
 
         /// <summary>
         /// Used to specify if leading wildcards are allowed. WARNING SLOWS PERFORMANCE WHEN ENABLED!
         /// </summary>
         public bool EnableLeadingWildcards { get; set; }
 
-	    /// <summary>
-	    /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
-	    /// </summary>
-	    public Analyzer IndexingAnalyzer
-	    {
-			[SecuritySafeCritical]
-		    get;
-			[SecuritySafeCritical]
-			protected internal set;
-	    }
+        /// <summary>
+        /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
+        /// </summary>
+        public Analyzer IndexingAnalyzer
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            protected internal set;
+        }
+
+        /// <summary>
+        /// Configuration for how to extract facets
+        /// </summary>
+        public FacetConfiguration FacetConfiguration { get; set; }
 
         /// <summary>
         /// Initializes the provider.
@@ -73,7 +79,7 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -97,15 +103,19 @@ namespace Examine.LuceneEngine.Providers
         }
 
         protected internal abstract string[] GetSearchFields();
-        
-        ///<summary>
-        /// returns the underlying Lucene searcher
-        ///</summary>
-        ///<returns></returns>
-		[SecuritySafeCritical]
+
+
+        /// <summary>
+        /// Gets the searcher for this instance
+        /// </summary>
+        /// <returns></returns>
+        [SecuritySafeCritical]
         public abstract Searcher GetSearcher();
 
-        
+        [SecuritySafeCritical]
+        public abstract ICriteriaContext GetCriteriaContext();        
+
+
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
@@ -113,10 +123,10 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
-		[SecuritySafeCritical]
-		public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
+        [SecuritySafeCritical]
+        public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
-            return new LuceneSearchCriteria(type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
+            return new LuceneSearchCriteria(this, type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
         }
 
         /// <summary>
@@ -170,7 +180,9 @@ namespace Examine.LuceneEngine.Providers
             if (luceneParams == null)
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
-            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher);
+            luceneParams.CriteriaContext = GetCriteriaContext();
+
+            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, luceneParams.CriteriaContext, luceneParams.SearchOptions);
             return pagesResults;
         }
 
@@ -192,7 +204,7 @@ namespace Examine.LuceneEngine.Providers
             return CreateSearchCriteria(type, BooleanOperation.And);
         }
 
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public override ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
         {
             return CreateSearchCriteria(string.Empty, defaultOperation);

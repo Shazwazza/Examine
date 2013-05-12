@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security;
 using Examine;
+using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine
 {
-	/// <summary>
+    /// <summary>
     /// An implementation of the search results returned from Lucene.Net
     /// </summary>
     public class SearchResults : ISearchResults
@@ -25,42 +28,49 @@ namespace Examine.LuceneEngine
             return new EmptySearchResults();
         }
 
-	    /// <summary>
-	    /// Exposes the internal Lucene searcher
-	    /// </summary>
-	    public Searcher LuceneSearcher
-	    {
-			[SecuritySafeCritical]
-			get;
-			[SecuritySafeCritical]
-			private set;
-	    }
+        public ICriteriaContext CriteriaContext
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            private set;
+        }
 
-	    /// <summary>
-	    /// Exposes the internal lucene query to run the search
-	    /// </summary>
-	    public Query LuceneQuery
-	    {
-			[SecuritySafeCritical]
-			get;
-			[SecuritySafeCritical]
-			private set;
-	    }
+        public FacetCounts FacetCounts { get; private set; }
+
+        /// <summary>
+        /// Exposes the internal Lucene searcher
+        /// </summary>
+        public Searcher LuceneSearcher { [SecuritySafeCritical] get; [SecuritySafeCritical] set; }
+
+        /// <summary>
+        /// Exposes the internal lucene query to run the search
+        /// </summary>
+        public Query LuceneQuery
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            private set;
+        }
 
 
-        private AllHitsCollector _collector;
+        //private AllHitsCollector _collector;
+        private TopDocs _topDocs;
 
-		[SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
+        //private ScoreD
+
+        [SecuritySafeCritical]
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, ICriteriaContext searcherContext, SearchOptions options)
         {
             LuceneQuery = query;
 
-            LuceneSearcher = searcher;
-            DoSearch(query, sortField);
+            CriteriaContext = searcherContext;
+            DoSearch(query, sortField, options);
         }
 
-		[SecuritySafeCritical]
-        private void DoSearch(Query query, IEnumerable<SortField> sortField)
+        [SecuritySafeCritical]
+        private void DoSearch(Query query, IEnumerable<SortField> sortField, SearchOptions options)
         {
             //This try catch is because analyzers strip out stop words and sometimes leave the query
             //with null values. This simply tries to extract terms, if it fails with a null
@@ -85,19 +95,44 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-            if (sortField.Count() == 0)
+
+            var count = Math.Min(options.MaxCount, LuceneSearcher.MaxDoc());
+
+            var topDocsCollector =
+                sortField.Any() ?
+                (TopDocsCollector)TopFieldCollector.create(new Sort(sortField.ToArray()), count, false, false, false, false)
+                : TopScoreDocCollector.create(count, true);
+            
+            if (options.CountFacets && CriteriaContext.FacetMap != null)
             {
-                var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort());
-                _collector = new AllHitsCollector(topDocs.scoreDocs);
-                topDocs = null;
+                var collector = new FacetCountCollector(CriteriaContext, topDocsCollector);
+                
+                LuceneSearcher.Search(query, collector);
+                FacetCounts = collector.Counts;
             }
             else
             {
-                var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort(sortField.ToArray()));
-                _collector = new AllHitsCollector(topDocs.scoreDocs);
-                topDocs = null;
+                LuceneSearcher.Search(query, topDocsCollector);
             }
-            TotalItemCount = _collector.Count;
+
+
+
+            _topDocs = topDocsCollector.TopDocs();
+
+
+            //if (sortField.Count() == 0)
+            //{
+            //    var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort());                
+            //    _collector = new AllHitsCollector(topDocs.scoreDocs);
+            //    topDocs = null;
+            //}
+            //else
+            //{
+            //    var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort(sortField.ToArray()));
+            //    _collector = new AllHitsCollector(topDocs.scoreDocs);
+            //    topDocs = null;
+            //}
+            TotalItemCount = _topDocs.TotalHits;
         }
 
         /// <summary>
@@ -117,24 +152,27 @@ namespace Examine.LuceneEngine
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-		[SecuritySafeCritical]
-        protected SearchResult CreateSearchResult(Document doc, float score)
+        [SecuritySafeCritical]
+        protected SearchResult CreateSearchResult(int docId, Document doc, float score)
         {
             string id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
             {
-				id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
+                id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
             }
             var sr = new SearchResult()
             {
                 Id = int.Parse(id),
-                Score = score
+                Score = score,
+                //TODO: Make this with the new FacetLoader stuff!
+
+                //Facets = CriteriaContext.ReaderData.GetFacets(docId)
             };
 
             //we can use lucene to find out the fields which have been stored for this particular document
             //I'm not sure if it'll return fields that have null values though
             var fields = doc.GetFields();
-            
+
             //ignore our internal fields though
             foreach (Field field in fields.Cast<Field>())
             {
@@ -144,17 +182,17 @@ namespace Examine.LuceneEngine
             return sr;
         }
 
-		//NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
-		// at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
-		[SecuritySafeCritical]
-		private SearchResult CreateFromDocumentItem(int i)
-		{
-			var docId = _collector.GetDocId(i);
-			var doc = LuceneSearcher.Doc(docId);
-			var score = _collector.GetDocScore(i);
-			var result = CreateSearchResult(doc, score);
-			return result;
-		}
+        //NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
+        // at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
+        [SecuritySafeCritical]
+        private SearchResult CreateFromDocumentItem(int i)
+        {
+            var docId = _topDocs.ScoreDocs[i].doc;
+            var doc = LuceneSearcher.Doc(docId);
+            var score = _topDocs.ScoreDocs[i].score;
+            var result = CreateSearchResult(docId, doc, score);
+            return result;
+        }
 
         /// <summary>
         /// Skips to a particular point in the search results.
@@ -164,22 +202,22 @@ namespace Examine.LuceneEngine
         /// </remarks>
         /// <param name="skip">The number of items in the results to skip.</param>
         /// <returns>A collection of the search results</returns>
-		[SecuritySafeCritical]
-		public IEnumerable<SearchResult> Skip(int skip)
+        [SecuritySafeCritical]
+        public IEnumerable<SearchResult> Skip(int skip)
         {
-            for (int i = skip; i < this.TotalItemCount; i++)
+            for (int i = skip, n = _topDocs.ScoreDocs.Length; i < n; i++)
             {
                 //first check our own cache to make sure it's not there
                 if (!Docs.ContainsKey(i))
                 {
-	                var r = CreateFromDocumentItem(i);                    
+                    var r = CreateFromDocumentItem(i);
                     Docs.Add(i, r);
                 }
                 //using yield return means if the user breaks out we wont keep going
                 //only load what we need to load!
                 //and we'll get it from our cache, this means you can go 
                 //forward/ backwards without degrading performance
-	            var result = Docs[i];
+                var result = Docs[i];
                 yield return result;
             }
         }

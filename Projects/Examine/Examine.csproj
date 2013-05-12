@@ -83,7 +83,7 @@
     </Reference>
     <Reference Include="Lucene.Net, Version=2.9.4.1, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Lucene.Net.2.9.4.1\lib\net40\Lucene.Net.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\TEMP\UmbracoCms6\bin\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -140,29 +140,29 @@
     <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
     <Compile Include="LuceneEngine\EmptySearchResults.cs" />
     <Compile Include="LuceneEngine\ExamineXmlExtensions.cs" />
-    <Compile Include="LuceneEngine\Facets\DocIdField.cs" />
-    <Compile Include="LuceneEngine\Facets\DocumentFacet.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetConfiguration.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetCountCollector.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetCounts.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetDocSet.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetExtractor.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetField.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetFilter.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetKey.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetLevel.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetMap.cs" />
-    <Compile Include="LuceneEngine\Facets\FacetsLoader.cs" />
-    <Compile Include="LuceneEngine\Facets\GraphFacetExtractor.cs" />
-    <Compile Include="LuceneEngine\Facets\IExternalDataProvider.cs" />
-    <Compile Include="LuceneEngine\Facets\IFacetComb.cs" />
-    <Compile Include="LuceneEngine\Facets\IFacetGraph.cs" />
-    <Compile Include="LuceneEngine\Facets\IFacetLevel.cs" />
-    <Compile Include="LuceneEngine\Facets\IndexReaderDataCollector.cs" />
-    <Compile Include="LuceneEngine\Facets\PayloadDataTokenStream.cs" />
-    <Compile Include="LuceneEngine\Facets\ReaderData.cs" />
-    <Compile Include="LuceneEngine\Facets\TermFacetExtractor.cs" />
-    <Compile Include="LuceneEngine\Facets\TermFacetPathExtractor.cs" />
+    <Compile Include="LuceneEngine\Faceting\DocIdField.cs" />
+    <Compile Include="LuceneEngine\Faceting\DocumentFacet.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetConfiguration.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetCountCollector.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetCounts.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetDocSet.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetExtractor.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetField.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetFilter.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetKey.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetLevel.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetMap.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetsLoader.cs" />
+    <Compile Include="LuceneEngine\Faceting\GraphFacetExtractor.cs" />
+    <Compile Include="LuceneEngine\Faceting\IExternalDataProvider.cs" />
+    <Compile Include="LuceneEngine\Faceting\IFacetComb.cs" />
+    <Compile Include="LuceneEngine\Faceting\IFacetGraph.cs" />
+    <Compile Include="LuceneEngine\Faceting\IFacetLevel.cs" />
+    <Compile Include="LuceneEngine\Faceting\IndexReaderDataCollector.cs" />
+    <Compile Include="LuceneEngine\Faceting\PayloadDataTokenStream.cs" />
+    <Compile Include="LuceneEngine\Faceting\ReaderData.cs" />
+    <Compile Include="LuceneEngine\Faceting\TermFacetExtractor.cs" />
+    <Compile Include="LuceneEngine\Faceting\TermFacetPathExtractor.cs" />
     <Compile Include="LuceneEngine\FieldIndexTypes.cs" />
     <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
@@ -177,11 +177,22 @@
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\SimpleDataIndexer.cs" />
     <Compile Include="LuceneEngine\ReaderStatus.cs" />
+    <Compile Include="LuceneEngine\Scoring\ExternalDataScoreQuery.cs" />
+    <Compile Include="LuceneEngine\Scoring\FacetKeyLevel.cs" />
+    <Compile Include="LuceneEngine\Scoring\FacetLevelScoreQuery.cs" />
+    <Compile Include="LuceneEngine\Scoring\ReaderDataScoreQuery.cs" />
+    <Compile Include="LuceneEngine\Scoring\ScoreAdder.cs" />
+    <Compile Include="LuceneEngine\Scoring\ScoreMultiplier.cs" />
+    <Compile Include="LuceneEngine\Scoring\ScoreOperation.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\ICriteriaContext.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\ILuceneSearchCriteria.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneBooleanOperation.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchExtensions.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\MutliCriteriaContext.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\SearchOptions.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\SortField.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\SortType.cs" />
     <Compile Include="LuceneEngine\SearchResults.cs" />
@@ -233,6 +244,7 @@
   <ItemGroup>
     <Content Include="README.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

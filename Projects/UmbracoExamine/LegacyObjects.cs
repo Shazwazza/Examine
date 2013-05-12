@@ -5,6 +5,7 @@ using System.Security;
 using System.Text;
 using System.IO;
 using Examine;
+using Examine.LuceneEngine.Providers;
 using UmbracoExamine;
 using Lucene.Net.Analysis;
 using Examine.SearchCriteria;
@@ -208,7 +209,7 @@ namespace UmbracoExamine.SearchCriteria
         [Obsolete]
 		[SecuritySafeCritical]
 		public LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, Examine.SearchCriteria.BooleanOperation occurance)
-            : base(type, analyzer, fields, allowLeadingWildcards, occurance) { }
+            : base(null, type, analyzer, fields, allowLeadingWildcards, occurance) { }
     }
 
     /// <summary>

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Security;
+using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Scoring;
 using Examine.SearchCriteria;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
@@ -12,6 +14,99 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// </summary>
     public static class LuceneSearchExtensions
     {
+        static LuceneSearchCriteria GetLuceneSearchCriteria(IQuery q)
+        {
+            var crit = q as ILuceneSearchCriteria;
+            if (crit == null)
+            {
+                throw new ArgumentException("Provided query must be LuceneSearchCriteria", "query");
+            }
+
+            return crit.LuceneSearchCriteria;
+        }
+
+        public static IBooleanOperation LuceneQuery(this IQuery luceneSearchCriteria, Query query, BooleanOperation? op = null)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+
+            crit.Query.Add(query, (op ?? crit.BooleanOperation).ToLuceneOccurance());
+
+            return new LuceneBooleanOperation(crit);
+        }
+
+        public static IBooleanOperation Facets(this IQuery luceneSearchCriteria, params FacetKey[] keys)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            if (keys != null)
+            {
+                foreach (var key in keys)
+                {
+                    crit.Query.Add(new ConstantScoreQuery(new FacetFilter(crit.LateBoundSearcherContext, key)), crit.BooleanOperation.ToLuceneOccurance());
+                }
+            }
+            return new LuceneBooleanOperation(crit);
+        }
+
+        public static IQuery AddRelevanceScore(this IQuery luceneSearchCriteria, double originalQueryWeight, params IFacetLevel[] levels)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.WrapScoreQuery(q => new FacetLevelScoreQuery(q, crit.LateBoundSearcherContext, new ScoreAdder(originalQueryWeight), levels));
+
+            return luceneSearchCriteria;
+        }
+
+        public static IQuery AddExternalDataScore<TData>(this IQuery luceneSearchCriteria, double originalQueryWeight, Func<TData, float> scorer)
+            where TData : class
+        {
+            return ExternalDataScore(luceneSearchCriteria, new ScoreAdder(originalQueryWeight), scorer);
+        }
+
+        public static IQuery MultiplyExternalDataScore<TData>(this IQuery luceneSearchCriteria, float originalQueryWeight, Func<TData, float> scorer)
+            where TData : class
+        {           
+            return ExternalDataScore(luceneSearchCriteria, new ScoreMultiplier(), scorer);
+        }
+
+        
+        private static IQuery ExternalDataScore<TData>(IQuery luceneSearchCriteria, ScoreOperation op, Func<TData, float> scorer)
+            where TData : class
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.WrapScoreQuery(q => new ExternalDataScoreQuery<TData>(q, crit.LateBoundSearcherContext, op, scorer));
+
+            return luceneSearchCriteria;
+        }
+
+        /// <summary>
+        /// Sets the max count for the result
+        /// </summary>
+        /// <param name="maxCount"></param>
+        /// <returns></returns>
+        public static LuceneSearchCriteria MaxCount(this IQuery luceneSearchCriteria, int maxCount)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.SearchOptions.MaxCount = maxCount;
+            return crit;
+        }
+
+        /// <summary>
+        /// Toggles facet counting
+        /// </summary>
+        /// <param name="toggle"></param>
+        /// <returns></returns>        
+        public static LuceneSearchCriteria CountFacets(this IQuery luceneSearchCriteria, bool toggle)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.SearchOptions.CountFacets = toggle;
+            return crit;
+        }
+
+        public static ISearchResults Search(this ISearcher searcher, Query query)
+        {
+            return searcher.Search((ISearchCriteria)searcher.CreateSearchCriteria().LuceneQuery(query));
+        }
+
+
         /// <summary>
         /// Used to order results by the specified fields 
         /// </summary>

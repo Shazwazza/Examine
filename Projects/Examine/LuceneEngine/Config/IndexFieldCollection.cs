@@ -16,7 +16,7 @@ namespace Examine.LuceneEngine.Config
         protected override object GetElementKey(ConfigurationElement element)
         {
             IndexField field = (IndexField)element;
-            return field.Name;
+            return field.IndexName;
         }
 
         public override bool IsReadOnly()

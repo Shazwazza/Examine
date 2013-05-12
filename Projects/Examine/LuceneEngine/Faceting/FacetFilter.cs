@@ -1,32 +1,34 @@
-﻿using Lucene.Net.Index;
+﻿using System;
+using Examine.LuceneEngine.SearchCriteria;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     public class FacetFilter : Filter
     {
-        private readonly FacetsLoader _facetsLoader;
+        private readonly Func<ICriteriaContext> _criteriaContext;
         private readonly FacetKey _key;
 
         
-        public FacetFilter(FacetsLoader facetsLoader, FacetKey key)
+        public FacetFilter(Func<ICriteriaContext> criteriaContext, FacetKey key)
         {
-            _facetsLoader = facetsLoader;
+            _criteriaContext = criteriaContext;
             _key = key;
         }
 
 
         public override DocIdSet GetDocIdSet(IndexReader reader)
         {
+            var context = _criteriaContext();
 
-            var readerData = _facetsLoader.GetReaderData(reader);
+            var readerData = context.GetReaderData(reader);
 
             if (readerData != null)
-            {
-                var config = _facetsLoader.Configuration;
-                if (config != null)
+            {                
+                if (context != null && context.FacetMap != null)
                 {
-                    var facet = config.FacetMap.GetIndex(_key);
+                    var facet = context.FacetMap.GetIndex(_key);
                     if (facet > -1)
                     {
                         Filter set;

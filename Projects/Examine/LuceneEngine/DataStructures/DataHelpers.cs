@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Lucene.Net.Search;
 
-namespace LuceneManager.Infrastructure.DataStructures
+namespace Examine.LuceneEngine.DataStructures
 {
     public static class DataHelpers
     {
@@ -60,3 +60,4 @@ namespace LuceneManager.Infrastructure.DataStructures
         }
     }
 }
+ 

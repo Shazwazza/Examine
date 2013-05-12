@@ -1,18 +1,19 @@
-﻿using Lucene.Net.Search;
+﻿using Examine.LuceneEngine.SearchCriteria;
+using Lucene.Net.Search;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     public abstract class IndexReaderDataCollector : Collector
     {
-        private readonly FacetsLoader _facetsLoader;
+        private readonly ICriteriaContext _criteriaContext;
         protected Collector Inner { get; set; }
 
         protected Scorer Scorer { get; set; }
         protected ReaderData Data { get; set; }
 
-        public IndexReaderDataCollector(FacetsLoader facetsLoader, Collector inner)
+        public IndexReaderDataCollector(ICriteriaContext criteriaContext, Collector inner)
         {
-            _facetsLoader = facetsLoader;
+            _criteriaContext = criteriaContext;
             Inner = inner;
         }
 
@@ -37,7 +38,7 @@ namespace Examine.LuceneEngine.Facets
 
         public override void SetNextReader(Lucene.Net.Index.IndexReader reader, int docBase)
         {
-            Data = _facetsLoader.GetReaderData(reader);
+            Data = _criteriaContext.GetReaderData(reader);
 
             if (Inner != null)
                 Inner.SetNextReader(reader, docBase);

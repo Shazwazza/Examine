@@ -24,6 +24,20 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
+        [ConfigurationProperty("IndexName", IsRequired = false)]
+        public string IndexName
+        {
+            get
+            {
+                var indexName = (string)this["IndexName"];
+                return string.IsNullOrEmpty(indexName) ? Name : indexName;
+            }
+            set
+            {
+                this["IndexName"] = value;
+            }
+        }
+
         [ConfigurationProperty("EnableSorting", IsRequired = false)]
         public bool EnableSorting
         {
@@ -37,7 +51,7 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
-        [ConfigurationProperty("Type", IsRequired = false, DefaultValue="String")]
+        [ConfigurationProperty("Type", IsRequired = false, DefaultValue = "String")]
         public string Type
         {
             get
@@ -54,7 +68,8 @@ namespace Examine.LuceneEngine.Config
         {
             if (compareTo is IndexField)
             {
-                return this.Name.Equals(((IndexField)compareTo).Name);
+                return this.Name.Equals(((IndexField)compareTo).Name) && 
+                   (IndexName == ((IndexField)compareTo).IndexName);
             }
             return false;
         }
@@ -63,5 +78,6 @@ namespace Examine.LuceneEngine.Config
         {
             return this.Name.GetHashCode();
         }
+        
     }
 }

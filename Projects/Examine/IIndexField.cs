@@ -11,11 +11,17 @@
         /// The name of the index field
         /// </summary>
         string Name { get; set; }
+
+        /// <summary>
+        /// The name of the field in the index
+        /// </summary>
+        string IndexName { get; set; }        
         
         /// <summary>
         /// Whether or not this field has sorting enabled in search results
         /// </summary>
         bool EnableSorting { get; set; }
+        
 
         /// <summary>
         /// The data type

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     public class FacetKey : IComparable<FacetKey>
     {

@@ -7,9 +7,10 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
-    public class LuceneQuery : IQuery
+    public class LuceneQuery : IQuery, ILuceneSearchCriteria
     {
         private LuceneSearchCriteria search;
+
         private BooleanClause.Occur occurance;
 
         /// <summary>
@@ -23,6 +24,8 @@ namespace Examine.LuceneEngine.SearchCriteria
             this.search = search;
             this.occurance = occurance;
         }
+
+        public LuceneSearchCriteria LuceneSearchCriteria { get { return search;} }
 
         /// <summary>
         /// Gets the boolean operation which this query method will be added as
@@ -441,6 +444,17 @@ namespace Examine.LuceneEngine.SearchCriteria
         public IBooleanOperation OrderByDescending(params string[] fieldNames)
         {
             return this.search.OrderByDescending(fieldNames);
+        }
+
+
+        public IBooleanOperation All()
+        {
+            return search.All();
+        }
+
+        public ISearchResults Execute()
+        {
+            return search.Execute();
         }
 
         #endregion

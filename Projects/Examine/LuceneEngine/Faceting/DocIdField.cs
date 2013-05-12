@@ -3,7 +3,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     /// <summary>
     /// An external ID of the object indexed in a Lucene document stored for fast retrieval by reading from payload data.

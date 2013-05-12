@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace LuceneManager.Infrastructure.DataStructures
+namespace Examine.LuceneEngine.DataStructures
 {
     /// <summary>
     /// This array dodges the LOH heap, is sparse, and fast to iterate when non zero items a few
@@ -118,3 +118,4 @@ namespace LuceneManager.Infrastructure.DataStructures
         }
     }
 }
+        

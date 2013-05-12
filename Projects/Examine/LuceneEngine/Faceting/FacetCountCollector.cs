@@ -1,7 +1,8 @@
 ﻿using System.Security;
+using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Search;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     [SecuritySafeCritical]
     public class FacetCountCollector : IndexReaderDataCollector
@@ -14,12 +15,12 @@ namespace Examine.LuceneEngine.Facets
         /// 
         /// </summary>
         /// <param name="readerDataCollection"></param>
-        /// <param name="facetsLoader"></param>
+        /// <param name="_criteriaContext"></param>
         /// <param name="inner"></param>
         /// <param name="counts">If a lot of facets are used FacetCounts can be reused from an object pool and passed to this constructor. </param>
-        public FacetCountCollector(FacetsLoader facetsLoader, Collector inner, FacetCounts counts = null) : base(facetsLoader, inner)
+        public FacetCountCollector(ICriteriaContext _criteriaContext, Collector inner, FacetCounts counts = null) : base(_criteriaContext, inner)
         {
-            _map = facetsLoader.Configuration.FacetMap;
+            _map = _criteriaContext.FacetMap;
 
             Counts = counts ?? new FacetCounts();
             Counts.Reset(_map);            

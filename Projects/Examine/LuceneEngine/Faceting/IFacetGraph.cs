@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     public interface IFacetGraph
     {

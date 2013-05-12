@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.LuceneEngine.Faceting;
 
 namespace Examine
 {
@@ -14,6 +15,8 @@ namespace Examine
         public int Id { get; set; }
         public float Score { get; set; }
         public IDictionary<string, string> Fields { get; protected set; }
+
+        public FacetLevel[] Facets { get; set; }        
 
         /// <summary>
         /// Returns the key value pair for the index specified

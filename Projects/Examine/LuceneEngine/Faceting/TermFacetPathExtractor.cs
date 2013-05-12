@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     /// <summary>
     /// Like term TermFacetExtractor, but allows a field to contain hierarchical facets separated by a string

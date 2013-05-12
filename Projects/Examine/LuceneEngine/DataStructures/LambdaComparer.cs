@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace LuceneManager.Infrastructure.DataStructures
+namespace Examine.LuceneEngine.DataStructures
 {
     public class LambdaComparer<T> : IComparer<T>
     {
@@ -15,7 +15,6 @@ namespace LuceneManager.Infrastructure.DataStructures
         public int Compare(T x, T y)
         {
             return _compareFn(x, y);
-        }
-
+        }    
     }
 }

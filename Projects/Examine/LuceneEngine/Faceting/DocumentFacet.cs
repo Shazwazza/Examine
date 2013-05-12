@@ -1,4 +1,4 @@
-﻿namespace Examine.LuceneEngine.Facets
+﻿namespace Examine.LuceneEngine.Faceting
 {
     /// <summary>
     /// Used for facet reading. IndexReaderData transforms DocumentFacets to FacetLevels.

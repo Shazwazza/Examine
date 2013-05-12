@@ -2,7 +2,7 @@
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     /// <summary>
     /// A facet value and level that can be added to a Lucene document for indexing

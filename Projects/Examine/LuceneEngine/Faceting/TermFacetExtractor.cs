@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Lucene.Net.Index;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     public class TermFacetExtractor : IFacetExtractor
     {

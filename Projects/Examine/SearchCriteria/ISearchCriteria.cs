@@ -23,6 +23,6 @@ namespace Examine.SearchCriteria
         /// </remarks>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        ISearchCriteria RawQuery(string query);
+        ISearchCriteria RawQuery(string query);        
     }
 }

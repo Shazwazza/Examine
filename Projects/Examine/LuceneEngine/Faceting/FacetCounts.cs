@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using LuceneManager.Infrastructure.DataStructures;
+using Examine.LuceneEngine.DataStructures;
 
-namespace Examine.LuceneEngine.Facets
+namespace Examine.LuceneEngine.Faceting
 {
     public class FacetCounts : IEnumerable<KeyValuePair<FacetKey, int>>
     {
