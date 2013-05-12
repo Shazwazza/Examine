@@ -46,12 +46,7 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = true;
         }
-
-        /// <summary>
-        /// Configuration for how to extract facets
-        /// </summary>
-        public FacetConfiguration FacetConfiguration { get; set; }
-
+        
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -237,12 +232,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 RunAsync = bool.Parse(config["runAsync"]);
             }
-
-            if (!string.IsNullOrEmpty(IndexSetName))
-            {
-                FacetConfiguration = IndexSets.Instance.Sets[IndexSetName].GetFacetConfiguration(FacetConfiguration);
-            }
-
+            
             CommitCount = 0;
 
             EnsureIndex(false);
@@ -631,8 +621,10 @@ namespace Examine.LuceneEngine.Providers
                     {
                         _indexIsNew = IndexExists();
 
+                        var facetConfig = IndexerData != null ? IndexerData.FacetConfiguration : null;
+
                         SearcherContexts.Instance.RegisterContext(
-                            _searcherContext = new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, FacetConfiguration));
+                            _searcherContext = new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, facetConfig));
                         _searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
                     }
                 }
@@ -808,7 +800,7 @@ namespace Examine.LuceneEngine.Providers
                 indexSet.IndexUserFields.Cast<IIndexField>().ToArray(),
                 indexSet.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 indexSet.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
-                indexSet.IndexParentId);
+                indexSet.IndexParentId) {FacetConfiguration = indexSet.FacetConfiguration};
         }
 
         /// <summary>

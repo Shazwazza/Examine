@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Examine.LuceneEngine.Faceting;
+
 namespace Examine
 {
     /// <summary>
@@ -32,6 +34,9 @@ namespace Examine
         /// A list of the 'user'/custom fields to index
         /// </summary>
         IEnumerable<IIndexField> UserFields { get; }
+
+
+        FacetConfiguration FacetConfiguration { get; }
 
     }
 }

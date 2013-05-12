@@ -7,8 +7,7 @@ using Examine.LuceneEngine.Faceting;
 namespace Examine.LuceneEngine.Config
 {
     public sealed class IndexSet : ConfigurationElement
-    {
-
+    {        
         [ConfigurationProperty("SetName", IsRequired = true, IsKey = true)]
         public string SetName
         {
@@ -154,8 +153,16 @@ namespace Examine.LuceneEngine.Config
         }
 
 
+
+        protected override void PostDeserialize() 
+        {
+            base.PostDeserialize();
+
+            FacetConfiguration = this.GetFacetConfiguration();
+        }
+        
         /// <summary>
-        /// Configuration for how to extract facets
+        /// How to extract facets in indexers
         /// </summary>
         public FacetConfiguration FacetConfiguration { get; set; }
 

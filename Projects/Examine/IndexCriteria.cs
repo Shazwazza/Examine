@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using Examine.LuceneEngine.Faceting;
 
 namespace Examine
 {
@@ -32,6 +33,7 @@ namespace Examine
 
         public IEnumerable<IIndexField> StandardFields { get; internal set; }
         public IEnumerable<IIndexField> UserFields { get; internal set; }
+        public FacetConfiguration FacetConfiguration { get; internal set; }
 
         public IEnumerable<string> IncludeNodeTypes { get; internal set; }
         public IEnumerable<string> ExcludeNodeTypes { get; internal set; }

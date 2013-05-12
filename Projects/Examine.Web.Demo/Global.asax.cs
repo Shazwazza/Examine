@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Providers;
 using Examine.Web.Demo.Models;
@@ -39,17 +40,20 @@ namespace Examine.Web.Demo
             RegisterRoutes(RouteTable.Routes);
 
             //This is how to create a config from code. This allows your own termfacetextractors to be used.
+            //Note that this must be added to index sets BEFORE ExamineManager.Instance is accessed.
 
-            
-
-            var indexer = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
-
+            var indexSet = IndexSets.Instance.Sets["Simple2IndexSet"];
             //Here a facet extractor is configured from code
-            var config = indexer.FacetConfiguration ?? new FacetConfiguration();
+            var config = indexSet.FacetConfiguration = indexSet.FacetConfiguration ?? new FacetConfiguration();
             config.FacetExtractors.Add(new TermFacetExtractor("CustomDocField"));
 
             //Attach in-memory objects to lucene documents for scoring on rapidly changing data.
             config.ExternalDataProvider = new TestExternalDataProvider();
+            
+
+            //And we're ready.
+
+            var indexer = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;            
 
             //Here custom fields are written directly to the document regardsless of Examine's config
             indexer.DocumentWriting += (sender, args) =>
@@ -81,12 +85,18 @@ namespace Examine.Web.Demo
         
         protected void Application_EndRequest(object sender, EventArgs e)
         {
-            ExamineManager.Instance.EndRequest();
+            if (ExamineManager.InstanceInitialized)
+            {
+                ExamineManager.Instance.EndRequest();
+            }
         }
 
         protected void Application_End()
         {
-            ExamineManager.Instance.Dispose();
+            if (ExamineManager.InstanceInitialized)
+            {
+                ExamineManager.Instance.Dispose();
+            }
         }
     }
 }

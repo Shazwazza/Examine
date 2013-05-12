@@ -57,7 +57,7 @@ namespace UmbracoExamine.Config
                 set.IndexUserFields.Cast<IIndexField>().ToArray(),
                 set.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 set.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
-                set.IndexParentId);
+                set.IndexParentId) {FacetConfiguration = set.FacetConfiguration};
         }      
       
     }

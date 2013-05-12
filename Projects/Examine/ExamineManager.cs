@@ -27,6 +27,8 @@ namespace Examine
             LoadProviders();
         }
 
+        public static bool InstanceInitialized { get;private set; }
+
         /// <summary>
         /// Singleton
         /// </summary>
@@ -34,6 +36,7 @@ namespace Examine
         {
             get
             {
+                InstanceInitialized = true;
                 return Manager;
             }
         }
