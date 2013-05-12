@@ -60,11 +60,7 @@ namespace Examine.LuceneEngine.Providers
             protected internal set;
         }
 
-        /// <summary>
-        /// Configuration for how to extract facets
-        /// </summary>
-        public FacetConfiguration FacetConfiguration { get; set; }
-
+       
         /// <summary>
         /// Initializes the provider.
         /// </summary>
@@ -182,7 +178,7 @@ namespace Examine.LuceneEngine.Providers
 
             luceneParams.CriteriaContext = GetCriteriaContext();
 
-            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, luceneParams.CriteriaContext, luceneParams.SearchOptions);
+            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, luceneParams.CriteriaContext, luceneParams.SearchOptions);
             return pagesResults;
         }
 

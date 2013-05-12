@@ -41,7 +41,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Exposes the internal Lucene searcher
         /// </summary>
-        public Searcher LuceneSearcher { [SecuritySafeCritical] get; [SecuritySafeCritical] set; }
+        public Searcher Searcher { [SecuritySafeCritical] get; [SecuritySafeCritical] set; }
 
         /// <summary>
         /// Exposes the internal lucene query to run the search
@@ -61,8 +61,9 @@ namespace Examine.LuceneEngine
         //private ScoreD
 
         [SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, ICriteriaContext searcherContext, SearchOptions options)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, ICriteriaContext searcherContext, SearchOptions options)
         {
+            Searcher = searcher;
             LuceneQuery = query;
 
             CriteriaContext = searcherContext;
@@ -96,7 +97,7 @@ namespace Examine.LuceneEngine
             }
 
 
-            var count = Math.Min(options.MaxCount, LuceneSearcher.MaxDoc());
+            var count = Math.Min(options.MaxCount, Searcher.MaxDoc());
 
             var topDocsCollector =
                 sortField.Any() ?
@@ -107,12 +108,12 @@ namespace Examine.LuceneEngine
             {
                 var collector = new FacetCountCollector(CriteriaContext, topDocsCollector);
                 
-                LuceneSearcher.Search(query, collector);
+                Searcher.Search(query, collector);
                 FacetCounts = collector.Counts;
             }
             else
             {
-                LuceneSearcher.Search(query, topDocsCollector);
+                Searcher.Search(query, topDocsCollector);
             }
 
 
@@ -160,10 +161,13 @@ namespace Examine.LuceneEngine
             {
                 id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
             }
+            var readerData = this.GetReaderData(docId);
             var sr = new SearchResult()
             {
                 Id = int.Parse(id),
                 Score = score,
+                Facets = readerData != null && readerData.Data.FacetLevels != null 
+                ? readerData.Data.FacetLevels[readerData.SubDocument] : null
                 //TODO: Make this with the new FacetLoader stuff!
 
                 //Facets = CriteriaContext.ReaderData.GetFacets(docId)
@@ -188,7 +192,7 @@ namespace Examine.LuceneEngine
         private SearchResult CreateFromDocumentItem(int i)
         {
             var docId = _topDocs.ScoreDocs[i].doc;
-            var doc = LuceneSearcher.Doc(docId);
+            var doc = Searcher.Doc(docId);
             var score = _topDocs.ScoreDocs[i].score;
             var result = CreateSearchResult(docId, doc, score);
             return result;

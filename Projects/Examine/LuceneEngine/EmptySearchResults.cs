@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.SearchCriteria;
 
 namespace Examine.LuceneEngine
 {
@@ -30,6 +31,9 @@ namespace Examine.LuceneEngine
 			return Enumerable.Empty<SearchResult>();
 		}
 
+        
+
 	    public FacetCounts FacetCounts { get; private set; }
+	    public ICriteriaContext CriteriaContext { get; private set; }
 	}
 }

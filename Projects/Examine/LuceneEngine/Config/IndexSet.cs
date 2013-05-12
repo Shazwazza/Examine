@@ -2,6 +2,7 @@
 using System.IO;
 using System.Web;
 using System.Web.Hosting;
+using Examine.LuceneEngine.Faceting;
 
 namespace Examine.LuceneEngine.Config
 {
@@ -151,5 +152,12 @@ namespace Examine.LuceneEngine.Config
                 return (IndexFieldCollection)base["IndexAttributeFields"];
             }
         }
+
+
+        /// <summary>
+        /// Configuration for how to extract facets
+        /// </summary>
+        public FacetConfiguration FacetConfiguration { get; set; }
+
     }
 }

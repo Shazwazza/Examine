@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine.Config
 
         public SearcherContext RegisterContext(SearcherContext ctx)
         {
-            if (!_contexts.TryAdd(ctx.Directory, ctx))
+            if (!_contexts.TryAdd(GetKey(ctx.Directory), ctx))
             {
                 throw new InvalidOperationException("Context with the same directory is already added");
             }

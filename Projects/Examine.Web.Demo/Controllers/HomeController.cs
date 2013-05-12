@@ -148,7 +148,7 @@ namespace Examine.Web.Demo.Controllers
 
 
 
-            var map = ((LuceneSearcher)searcher).FacetConfiguration.FacetMap;
+            var map = searchResults.CriteriaContext.FacetMap;
 
             if (countFacets) //If false FacetCounts is null
             {

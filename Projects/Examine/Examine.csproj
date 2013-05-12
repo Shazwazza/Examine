@@ -184,6 +184,7 @@
     <Compile Include="LuceneEngine\Scoring\ScoreAdder.cs" />
     <Compile Include="LuceneEngine\Scoring\ScoreMultiplier.cs" />
     <Compile Include="LuceneEngine\Scoring\ScoreOperation.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\DocumentData.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ICriteriaContext.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ILuceneSearchCriteria.cs" />

@@ -48,6 +48,12 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
+        /// Configuration for how to extract facets
+        /// </summary>
+        public FacetConfiguration FacetConfiguration { get; set; }
+
+
+        /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="indexerData"></param>
@@ -230,6 +236,11 @@ namespace Examine.LuceneEngine.Providers
             if (config["runAsync"] != null)
             {
                 RunAsync = bool.Parse(config["runAsync"]);
+            }
+
+            if (!string.IsNullOrEmpty(IndexSetName))
+            {
+                FacetConfiguration = IndexSets.Instance.Sets[IndexSetName].GetFacetConfiguration(FacetConfiguration);
             }
 
             CommitCount = 0;
@@ -621,7 +632,7 @@ namespace Examine.LuceneEngine.Providers
                         _indexIsNew = IndexExists();
 
                         SearcherContexts.Instance.RegisterContext(
-                            _searcherContext = new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer));
+                            _searcherContext = new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, FacetConfiguration));
                         _searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
                     }
                 }

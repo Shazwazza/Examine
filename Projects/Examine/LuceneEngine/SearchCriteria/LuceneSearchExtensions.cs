@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Security;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Scoring;
 using Examine.SearchCriteria;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using System.Linq;
+using Lucene.Net.Util;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
@@ -14,6 +18,50 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// </summary>
     public static class LuceneSearchExtensions
     {
+        public static IEnumerable<IndexReader> GetAllSubReaders(this IndexReader reader)
+        {
+            var readers = new ArrayList();
+            ReaderUtil.GatherSubReaders(readers, reader);
+            return readers.Cast<IndexReader>();
+        }
+
+        public static DocumentData GetReaderData(this SearchResults searchResult, int doc)
+        {
+            return searchResult.Searcher.GetReaderData(searchResult.CriteriaContext, doc);
+        }
+
+        public static DocumentData GetReaderData(this Searchable searcher, ICriteriaContext context, int doc)
+        {            
+            var multiSearcher = searcher as MultiSearcher;
+            if (multiSearcher != null)
+            {
+                var index = multiSearcher.SubSearcher(doc);
+                doc = multiSearcher.SubDoc(doc);
+                searcher = multiSearcher.GetSearchables()[index];
+
+                return searcher.GetReaderData(context, doc);
+            }
+
+            var indexSearcher = searcher as IndexSearcher;
+            if (indexSearcher == null)
+            {
+                throw new NotSupportedException("Unsupported searcher type: " + searcher.GetType().Name);
+            }
+            
+            foreach( var subReader in indexSearcher.GetIndexReader().GetAllSubReaders() )
+            {
+                var max = subReader.MaxDoc();
+                if (doc < max)
+                {
+                    var readerData = context.GetReaderData(subReader);
+                    return readerData == null ? null : new DocumentData(readerData, doc);
+                }
+                doc -= max;
+            }
+            
+            return null;
+        }
+
         static LuceneSearchCriteria GetLuceneSearchCriteria(IQuery q)
         {
             var crit = q as ILuceneSearchCriteria;

@@ -31,9 +31,9 @@ namespace Examine.LuceneEngine.Faceting
     internal static class FacetConfigurationHelpers
     {
         [SecuritySafeCritical]
-        public static FacetConfiguration GetFacetConfiguration(this IndexSet set)
+        public static FacetConfiguration GetFacetConfiguration(this IndexSet set, FacetConfiguration existing = null)
         {
-            var config = new FacetConfiguration();
+            var config = existing ?? new FacetConfiguration();
             foreach (var subset in new[] { set.IndexUserFields, set.IndexAttributeFields })
             {
                 if (subset != null)

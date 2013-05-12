@@ -42,19 +42,17 @@ namespace Examine.Web.Demo
 
             
 
-            var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"] as LuceneSearcher;
+            var indexer = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
 
             //Here a facet extractor is configured from code
-            var config = searcher.FacetConfiguration ?? new FacetConfiguration();
+            var config = indexer.FacetConfiguration ?? new FacetConfiguration();
             config.FacetExtractors.Add(new TermFacetExtractor("CustomDocField"));
 
             //Attach in-memory objects to lucene documents for scoring on rapidly changing data.
             config.ExternalDataProvider = new TestExternalDataProvider();
 
-            var ix = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
-
             //Here custom fields are written directly to the document regardsless of Examine's config
-            ix.DocumentWriting += (sender, args) =>
+            indexer.DocumentWriting += (sender, args) =>
                 {
                     string v;
                     if( args.Fields.TryGetValue("Column1", out v))

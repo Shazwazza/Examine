@@ -34,20 +34,7 @@ namespace Examine.LuceneEngine.Faceting
 
         public void Warm(IndexSearcher s)
         {
-            var reader = s.GetIndexReader();
-            var subReaders = reader.GetSequentialSubReaders();
-            if (subReaders != null
-                && subReaders.All(sr => sr != reader))
-            // <- Why/why not? If a reader for some reason should return it self this check avoids infinite recursion.
-            {
-                //Data is added for each segment reader. Normal an IndexReader consists of one or more segment readers.
-                //Those are the readers collectors etc. will meet.                                
-                foreach (var r in subReaders)
-                {
-                    AugmentReader(r);
-                }
-            }
-            else
+            foreach (var reader in s.GetIndexReader().GetAllSubReaders())
             {
                 AugmentReader(reader);
             }
