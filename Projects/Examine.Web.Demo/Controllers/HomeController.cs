@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Web.Mvc;
 using Examine.LuceneEngine;
+using Examine.Session;
 using Examine.Web.Demo.Models;
 
 namespace Examine.Web.Demo.Controllers
@@ -105,6 +106,8 @@ namespace Examine.Web.Demo.Controllers
                         .ReIndexNode(i.RowData.ToExamineXml(i.NodeDefinition.NodeId, i.NodeDefinition.Type), "TestType");  
                 }                
                 timer.Stop();
+
+                ExamineSession.WaitForChanges();
 
                 return View(timer.Elapsed.TotalSeconds);
             }

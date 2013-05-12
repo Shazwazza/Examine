@@ -64,10 +64,10 @@ namespace Examine.Azure
             return _directory ?? (_directory = this.GetAzureDirectory());
         }
 
-        public override Lucene.Net.Index.IndexWriter GetIndexWriter()
-        {
-            return this.GetAzureIndexWriter();
-        }
+        //public override Lucene.Net.Index.IndexWriter GetIndexWriter()
+        //{
+        //    return this.GetAzureIndexWriter();
+        //}
 
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {

@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Web.Mvc;
 using System.Web.Routing;
 
 namespace Examine.Web.Demo
@@ -31,6 +32,16 @@ namespace Examine.Web.Demo
 
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
+        }
+
+        protected void Application_EndRequest(object sender, EventArgs e)
+        {
+            ExamineManager.Instance.EndRequest();
+        }
+
+        protected void Application_End()
+        {
+            ExamineManager.Instance.Dispose();
         }
     }
 }

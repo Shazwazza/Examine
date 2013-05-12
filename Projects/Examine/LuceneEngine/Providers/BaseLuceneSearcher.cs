@@ -8,6 +8,7 @@ using Examine.Providers;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Contrib.Management;
 using Lucene.Net.Search;
 using System.Linq;
 
@@ -18,6 +19,8 @@ namespace Examine.LuceneEngine.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
+
+        
 
         #region Constructors
 
@@ -101,6 +104,8 @@ namespace Examine.LuceneEngine.Providers
         ///<returns></returns>
 		[SecuritySafeCritical]
         public abstract Searcher GetSearcher();
+
+        
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider

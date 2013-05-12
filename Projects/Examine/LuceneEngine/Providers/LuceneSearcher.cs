@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security;
 using Examine;
 using Examine.SearchCriteria;
+using Examine.Session;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
@@ -12,6 +13,7 @@ using Examine.LuceneEngine;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Analysis;
+using LuceneManager.Infrastructure;
 
 
 namespace Examine.LuceneEngine.Providers
@@ -51,7 +53,7 @@ namespace Examine.LuceneEngine.Providers
 		public LuceneSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
 			: base(analyzer)
 		{
-			LuceneIndexFolder = null;
+			LuceneIndexFolder = null;            
 			_luceneDirectory = luceneDirectory;
 		}
 
@@ -60,8 +62,9 @@ namespace Examine.LuceneEngine.Providers
 		/// <summary>
 		/// Used as a singleton instance
 		/// </summary>
-		private volatile IndexSearcher _searcher;
-		private static readonly object Locker = new object();
+		//private volatile IndexSearcher _searcher;
+
+		//private static readonly object Locker = new object();
 	    private Lucene.Net.Store.Directory _luceneDirectory;
 
 		/// <summary>
@@ -159,32 +162,35 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
         public virtual void EnsureIndex()
         {
-            if (_hasIndex) return;
+            //Searchers don't create indexes.
+            return;
 
-            IndexWriter writer = null;
-            try
-            {
-                if (!IndexReader.IndexExists(GetLuceneDirectory()))
-                {
-                    lock(Locker)
-                    {
-                        if (!IndexReader.IndexExists(GetLuceneDirectory()))
-                        {
-                            //create the writer (this will overwrite old index files)
-                            writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);        
-                        }
-                    }
-                }
-            }            
-            finally
-            {
-                if (writer != null)
-                {
-                    writer.Close();
-                    writer = null;
-                }
-                _hasIndex = true;
-            }
+            //if (_hasIndex) return;
+
+            //IndexWriter writer = null;
+            //try
+            //{
+            //    if (!IndexReader.IndexExists(GetLuceneDirectory()))
+            //    {
+            //        lock(Locker)
+            //        {
+            //            if (!IndexReader.IndexExists(GetLuceneDirectory()))
+            //            {
+            //                //create the writer (this will overwrite old index files)
+            //                writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);        
+            //            }
+            //        }
+            //    }
+            //}            
+            //finally
+            //{
+            //    if (writer != null)
+            //    {
+            //        writer.Close();
+            //        writer = null;
+            //    }
+            //    _hasIndex = true;
+            //}
 
         }
 
@@ -222,10 +228,15 @@ namespace Examine.LuceneEngine.Providers
         {
             ValidateSearcher(false);
 
+            var token = _searcherContext.GetSearcher();
+            DisposableCollector.Track(token);
+
             //ensure scoring is turned on for sorting
-            _searcher.SetDefaultFieldSortScoring(true, true);
-            return _searcher;
+            token.Searcher.SetDefaultFieldSortScoring(true, true);            
+            return token.Searcher;
         }
+
+        
         
         /// <summary>
         /// Returns a list of fields to search on
@@ -235,14 +246,17 @@ namespace Examine.LuceneEngine.Providers
         protected override internal string[] GetSearchFields()
         {
             ValidateSearcher(false);
-            
-            var reader = _searcher.GetIndexReader();
-            var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
-            //exclude the special index fields
-            var searchFields = fields
-                .Where(x => !x.StartsWith(LuceneIndexer.SpecialFieldPrefix))
-                .ToArray();
-            return searchFields;
+
+            using (var s = _searcherContext.GetSearcher())
+            {
+                var reader = s.Searcher.GetIndexReader();
+                var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
+                //exclude the special index fields
+                var searchFields = fields
+                    .Where(x => !x.StartsWith(LuceneIndexer.SpecialFieldPrefix))
+                    .ToArray();
+                return searchFields;
+            }
         }
 
 		[SecuritySafeCritical]
@@ -255,6 +269,8 @@ namespace Examine.LuceneEngine.Providers
 			return _luceneDirectory;
         }
 
+        private SearcherContext _searcherContext;
+
         //TODO: the real searcher should use RAM directory, will be way faster
         // but need to figure out a way to check if the real directory has been updated.
         //protected virtual Lucene.Net.Store.Directory GetInMemoryLuceneDirectory()
@@ -266,110 +282,126 @@ namespace Examine.LuceneEngine.Providers
         /// This checks if the singleton IndexSearcher is initialized and up to date.
         /// </summary>
         /// <param name="forceReopen"></param>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private void ValidateSearcher(bool forceReopen)
         {
-            EnsureIndex();
-
-            if (!forceReopen)
+            if (_searcherContext == null)
             {
-                if (_searcher == null)
+                _searcherContext = SearcherContexts.Instance.GetContext(GetLuceneDirectory());
+
+                if (_searcherContext == null)
                 {
-                    lock (Locker)
-                    {
-                        //double check
-                        if (_searcher == null)
-                        {
-
-                            try
-                            {
-                                _searcher = new IndexSearcher(GetLuceneDirectory(), true);
-                            }
-                            catch (IOException ex)
-                            {
-                                throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    if (_searcher.GetReaderStatus() != ReaderStatus.Current)
-                    {
-                        lock (Locker)
-                        {
-                            //double check, now, we need to find out if it's closed or just not current
-                            switch (_searcher.GetReaderStatus())
-                            {
-                                case ReaderStatus.Current:
-                                    break;
-                                case ReaderStatus.Closed:
-                                    _searcher = new IndexSearcher(GetLuceneDirectory(), true);
-                                    break;
-                                case ReaderStatus.NotCurrent:
-
-                                    //yes, this is actually the way the Lucene wants you to work...
-                                    //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
-                                    //here's references: 
-                                    // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
-                                    // http://gist.github.com/173978 
-
-                                    var oldReader = _searcher.GetIndexReader();
-                                    var newReader = oldReader.Reopen(true);
-                                    if (newReader != oldReader)
-                                    {
-                                        _searcher.Close();
-                                        oldReader.Close();
-                                        _searcher = new IndexSearcher(newReader);
-                                    }
-
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                //need to close the searcher and force a re-open
-
-                if (_searcher != null)
-                {
-                    lock (Locker)
-                    {
-                        //double check
-                        if (_searcher != null)
-                        {
-                            try
-                            {
-                                _searcher.Close();
-                            }
-                            catch (IOException)
-                            {
-                                //this will happen if it's already closed ( i think )
-                            }
-                            finally
-                            {
-                                //set to null in case another call to this method has passed the first lock and is checking for null
-                                _searcher = null;
-                            }
-
-
-                            try
-                            {
-                                _searcher = new IndexSearcher(GetLuceneDirectory(), true);
-                            }
-                            catch (IOException ex)
-                            {
-								throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
-                            }
-                            
-                        }
-                    }
+                    throw new NotSupportedException("No indexer is defined for the directory");
                 }
             }
 
+            if (ExamineSession.RequireImmediateConsistency)
+            {
+               ExamineSession.WaitForChanges(_searcherContext.Manager);
+            }
+
+            //Handled by NrtManager / SearcContext
+
+            //EnsureIndex();
+            //    if (!forceReopen)
+            //    {
+            //        if (_searcher == null)
+            //        {
+            //            lock (Locker)
+            //            {
+            //                //double check
+            //                if (_searcher == null)
+            //                {
+
+            //                    try
+            //                    {
+            //                        _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+            //                    }
+            //                    catch (IOException ex)
+            //                    {
+            //                        throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (_searcher.GetReaderStatus() != ReaderStatus.Current)
+            //            {
+            //                lock (Locker)
+            //                {
+            //                    //double check, now, we need to find out if it's closed or just not current
+            //                    switch (_searcher.GetReaderStatus())
+            //                    {
+            //                        case ReaderStatus.Current:
+            //                            break;
+            //                        case ReaderStatus.Closed:
+            //                            _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+            //                            break;
+            //                        case ReaderStatus.NotCurrent:
+
+            //                            //yes, this is actually the way the Lucene wants you to work...
+            //                            //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
+            //                            //here's references: 
+            //                            // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
+            //                            // http://gist.github.com/173978 
+
+            //                            var oldReader = _searcher.GetIndexReader();
+            //                            var newReader = oldReader.Reopen(true);
+            //                            if (newReader != oldReader)
+            //                            {
+            //                                _searcher.Close();
+            //                                oldReader.Close();
+            //                                _searcher = new IndexSearcher(newReader);
+            //                            }
+
+            //                            break;
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        //need to close the searcher and force a re-open
+
+            //        if (_searcher != null)
+            //        {
+            //            lock (Locker)
+            //            {
+            //                //double check
+            //                if (_searcher != null)
+            //                {
+            //                    try
+            //                    {
+            //                        _searcher.Close();
+            //                    }
+            //                    catch (IOException)
+            //                    {
+            //                        //this will happen if it's already closed ( i think )
+            //                    }
+            //                    finally
+            //                    {
+            //                        //set to null in case another call to this method has passed the first lock and is checking for null
+            //                        _searcher = null;
+            //                    }
+
+
+            //                    try
+            //                    {
+            //                        _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+            //                    }
+            //                    catch (IOException ex)
+            //                    {
+            //                        throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
+            //                    }
+
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //}
         }
-
 	}
 }

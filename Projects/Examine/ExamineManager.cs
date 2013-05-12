@@ -5,10 +5,12 @@ using System.Linq;
 using System.Web.Configuration;
 using System.Xml.Linq;
 using Examine.Config;
+using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Providers;
 using Examine.Providers;
 using Examine.SearchCriteria;
 using System.Web;
+using Examine.Session;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
@@ -17,7 +19,7 @@ namespace Examine
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : ISearcher, IIndexer
+    public class ExamineManager : ISearcher, IIndexer, IDisposable
     {
 
         private ExamineManager()
@@ -76,7 +78,9 @@ namespace Examine
 
                         //set the default
                         if (!string.IsNullOrEmpty(ExamineSettings.Instance.SearchProviders.DefaultProvider))
-                             DefaultSearchProvider = SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider];
+                            DefaultSearchProvider =
+                                SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider] ??
+                                SearchProviderCollection.Cast<BaseSearchProvider>().FirstOrDefault();
 
                         if (DefaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
@@ -257,5 +261,29 @@ namespace Examine
         }
 
         #endregion
+
+        
+        /// <summary>
+        /// Call this as last thing of the thread or request using Examine.
+        /// In web context, this MUST be called add Application_EndRequest. Otherwise horrible memory leaking may occur
+        /// </summary>
+        public void EndRequest()
+        {
+            if (ExamineSession.RequireImmediateConsistency)
+            {
+                ExamineSession.WaitForChanges();
+            }
+
+            DisposableCollector.Clean();
+        }
+        
+
+        /// <summary>
+        /// Call this in Application_End.
+        /// </summary>
+        public void Dispose()
+        {
+            SearcherContexts.Instance.Dispose();
+        }
     }
 }
