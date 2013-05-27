@@ -665,7 +665,7 @@ namespace Examine.LuceneEngine.Providers
         /// This can be an expensive operation and should only be called when there is no indexing activity
         /// </remarks>
 		[SecuritySafeCritical]
-        protected void OptimizeIndex()
+        public void OptimizeIndex()
         {
             IndexWriter writer = null;
             try

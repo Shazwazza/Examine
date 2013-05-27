@@ -47,11 +47,11 @@ New-Item $CoreExamineFolder -Type directory
 New-Item $WebExamineFolder -Type directory
 New-Item $ExamineAzureFolder -Type directory
 
-$include = @('*Examine*.dll','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
+$include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
 $CoreExamineBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine\bin\Release";
-Copy-Item "$CoreExamineBinFolder\*.dll" -Destination $CoreExamineFolder -Include $include
+Copy-Item "$CoreExamineBinFolder\*.*" -Destination $CoreExamineFolder -Include $include
 
-$include = @('*Examine*.dll','*Lucene*.dll', '*Azure*.dll','ICSharpCode.SharpZipLib.dll')
+$include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll', '*Azure*.dll','ICSharpCode.SharpZipLib.dll')
 $ExamineAzureBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine.Azure\bin\Release";
 Copy-Item "$ExamineAzureBinFolder\*.dll" -Destination $ExamineAzureFolder -Include $include
 
@@ -63,14 +63,17 @@ Remove-Item $IndexSet -Recurse
 $SqlCeDb = Join-Path $WebExamineFolder -ChildPath "App_Data\Database1.sdf";
 Remove-Item $SqlCeDb 
 
-$CoreNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Examine.nuspec";
+$CoreNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\Examine\*";
 Copy-Item $CoreNuSpecSource -Destination $CoreExamineFolder
-# Copy-Item "$BuildFolder\nuget-transforms\Core\web.config.transform" -Destination (New-Item (Join-Path -Path $ReleaseFolder -ChildPath "nuget-transforms") -Type directory);
-
 $CoreNuSpec = Join-Path -Path $CoreExamineFolder -ChildPath "Examine.nuspec";
-
 $NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
 & $NuGet pack $CoreNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
+
+$AzureNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\Examine.Azure\*";
+Copy-Item $AzureNuSpecSource -Destination $ExamineAzureFolder
+$AzureNuSpec = Join-Path -Path $ExamineAzureFolder -ChildPath "Examine.Azure.nuspec";
+$NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
+& $NuGet pack $AzureNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
 
 ""
 "Build $ReleaseVersionNumber is done!"

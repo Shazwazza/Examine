@@ -211,7 +211,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Name of the Lucene.NET index set
         /// </summary>
-        protected string IndexSetName { get; private set; }
+        public string IndexSetName { get; private set; }
 
         /// <summary>
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
