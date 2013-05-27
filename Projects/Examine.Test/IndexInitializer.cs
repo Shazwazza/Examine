@@ -49,7 +49,8 @@ namespace Examine.Test
                                                                  new TestIndexField { Name = "metaKeywords" }, 
                                                                  new TestIndexField { Name = "bodyTextColOne" }, 
                                                                  new TestIndexField { Name = "bodyTextColTwo" }, 
-                                                                 new TestIndexField { Name = "xmlStorageTest" }
+                                                                 new TestIndexField { Name = "xmlStorageTest" },
+                                                                 new TestIndexField { Name = "umbracoNaviHide" }
                                                              },
                                                          new[]
                                                              {
