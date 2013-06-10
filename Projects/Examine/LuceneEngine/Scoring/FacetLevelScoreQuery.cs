@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Scoring
 
         protected override CustomScoreProvider GetCustomScoreProvider(IndexReader reader, ReaderData data, ScoreOperation scoreOperation, ICriteriaContext context)
         {
-            return new ScoreProvider(reader, data, scoreOperation, _levels.Select(l => l.ToFacetLevel(context.FacetMap)).ToArray());
+            return new ScoreProvider(reader, data, scoreOperation, _levels.Select(l => l.ToFacetLevel(context.FacetsLoader.FacetMap)).ToArray());
         }
 
         class ScoreProvider : CustomScoreProvider

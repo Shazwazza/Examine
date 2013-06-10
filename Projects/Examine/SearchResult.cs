@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Faceting;
+using Lucene.Net.Documents;
 
 namespace Examine
 {
@@ -9,14 +10,26 @@ namespace Examine
     {
         public SearchResult()
         {
-            this.Fields = new Dictionary<string, string>();
+            Fields = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+            FieldValues = new Dictionary<string, string[]>(StringComparer.InvariantCultureIgnoreCase);
+            Highlights = new Dictionary<string, List<Func<string>>>(StringComparer.InvariantCultureIgnoreCase);
         }
 
-        public int Id { get; set; }
+        internal Document Document { get; set; }
+
+        public long Id { get; set; }
         public float Score { get; set; }
         public IDictionary<string, string> Fields { get; protected set; }
 
-        public FacetLevel[] Facets { get; set; }        
+        public IDictionary<string, string[]> FieldValues { get; protected set; }
+
+        public FacetLevel[] Facets { get; set; }
+
+
+        public FacetReferenceCount[] FacetCounts { get; set; }
+
+
+        public Dictionary<string, List<Func<string>>> Highlights { get; protected set; }
 
         /// <summary>
         /// Returns the key value pair for the index specified
@@ -57,6 +70,21 @@ namespace Examine
             var result = (SearchResult)obj;
 
             return Id.Equals(result.Id);
+        }
+
+        public string GetHighlight(string fieldName)
+        {
+            List<Func<string>> f;
+            if (Highlights.TryGetValue(fieldName, out f))
+            {
+                var hs = f.Select(hl => hl()).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+                if (hs != null)
+                {
+                    return string.Join("\r\n", hs);
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

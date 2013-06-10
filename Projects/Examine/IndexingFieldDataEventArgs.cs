@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Examine.LuceneEngine.Indexing;
 
 namespace Examine
 {
     public class IndexingFieldDataEventArgs : EventArgs, INodeEventArgs
-    {
+    {        
 
         public IndexingFieldDataEventArgs(XElement node, string fieldName, string fieldValue, bool isStandardField, int nodeId)
         {

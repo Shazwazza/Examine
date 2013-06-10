@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Security;
@@ -12,6 +13,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Contrib.Management;
 using Lucene.Net.Search;
 using System.Linq;
+using LuceneManager.Infrastructure;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -123,7 +125,7 @@ namespace Examine.LuceneEngine.Providers
         public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             return new LuceneSearchCriteria(this, type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
-        }
+        }        
 
         /// <summary>
         /// Simple search method which defaults to searching content nodes
@@ -168,8 +170,6 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
-            var searcher = GetSearcher();
-
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
 
             var luceneParams = searchParams as LuceneSearchCriteria;
@@ -178,7 +178,27 @@ namespace Examine.LuceneEngine.Providers
 
             luceneParams.CriteriaContext = GetCriteriaContext();
 
-            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, luceneParams.CriteriaContext, luceneParams.SearchOptions);
+            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, luceneParams.CriteriaContext, luceneParams.SearchOptions);
+
+            foreach (var fq in luceneParams.CriteriaContext.FieldQueries)
+            {
+                var hl = fq.Key.GetHighlighter(fq.Value, luceneParams.CriteriaContext.Searcher, luceneParams.CriteriaContext.FacetsLoader);
+                if (hl != null)
+                {                    
+                    foreach (var r in pagesResults)
+                    {
+                        List<Func<string>> highlights;
+                        if (!r.Highlights.TryGetValue(fq.Key.FieldName, out highlights))
+                        {
+                            r.Highlights.Add(fq.Key.FieldName, highlights = new List<Func<string>>());
+                        }
+
+                        string value = null;
+                        highlights.Add(()=> value ?? (value=hl.Highlight(r.Document)));
+                    }
+                }
+            }
+
             return pagesResults;
         }
 

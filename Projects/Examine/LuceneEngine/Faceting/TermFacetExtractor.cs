@@ -6,10 +6,12 @@ namespace Examine.LuceneEngine.Faceting
     public class TermFacetExtractor : IFacetExtractor
     {
         public string FieldName { get; private set; }
+        public bool ValuesAreReferences { get; private set; }
 
-        public TermFacetExtractor(string fieldName)
+        public TermFacetExtractor(string fieldName, bool valuesAreReferences = false)
         {
             FieldName = fieldName;
+            ValuesAreReferences = valuesAreReferences;
         }
 
         public IEnumerable<DocumentFacet> GetDocumentFacets(IndexReader reader, FacetConfiguration data)
@@ -53,11 +55,11 @@ namespace Examine.LuceneEngine.Faceting
         }
 
         protected virtual IEnumerable<DocumentFacet> ExpandTerm(int docId, string fieldName, string termValue, float level)
-        {
+        {            
             yield return new DocumentFacet
                 {
                     DocumentId = docId,
-                    Key = new FacetKey(fieldName, termValue),                
+                    Key = ValuesAreReferences ? new FacetReferenceKey(fieldName, long.Parse(termValue)) : new FacetKey(fieldName, termValue),                
                     Level = level,
                     TermBased = true
                 };

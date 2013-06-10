@@ -78,12 +78,45 @@
     <AssemblyOriginatorKeyFile>..\Solution Items\TheFARM-Public.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Contrib.Regex">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Contrib.Regex.dll</HintPath>
+    </Reference>
+    <Reference Include="EPocalipse.IFilter">
+      <HintPath>..\..\packages\EPocalipse\EPocalipse.IFilter.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net, Version=2.9.4.1, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\TEMP\UmbracoCms6\bin\Lucene.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.Contrib.Analyzers">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Contrib.Analyzers.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.Contrib.Core">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Contrib.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.Contrib.Highlighter">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Contrib.Highlighter.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.Contrib.Queries">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Contrib.Queries.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.Contrib.Snowball">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Contrib.Snowball.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.Contrib.Spatial">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Contrib.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.Contrib.SpellChecker">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Contrib.SpellChecker.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.FastVectorHighlighter">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.FastVectorHighlighter.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net.Search.SimpleFacetedSearch">
+      <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Search.SimpleFacetedSearch.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -106,6 +139,7 @@
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Enforcer.cs" />
+    <Compile Include="FacetReferenceCount.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IIndexField.cs" />
     <Compile Include="IndexCriteria.cs" />
@@ -152,6 +186,7 @@
     <Compile Include="LuceneEngine\Faceting\FacetKey.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetLevel.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetMap.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetReferenceKey.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetsLoader.cs" />
     <Compile Include="LuceneEngine\Faceting\GraphFacetExtractor.cs" />
     <Compile Include="LuceneEngine\Faceting\IExternalDataProvider.cs" />
@@ -159,12 +194,31 @@
     <Compile Include="LuceneEngine\Faceting\IFacetGraph.cs" />
     <Compile Include="LuceneEngine\Faceting\IFacetLevel.cs" />
     <Compile Include="LuceneEngine\Faceting\IndexReaderDataCollector.cs" />
+    <Compile Include="LuceneEngine\Faceting\MinScoreCollector.cs" />
     <Compile Include="LuceneEngine\Faceting\PayloadDataTokenStream.cs" />
     <Compile Include="LuceneEngine\Faceting\ReaderData.cs" />
+    <Compile Include="LuceneEngine\Faceting\ReferenceFacetField.cs" />
     <Compile Include="LuceneEngine\Faceting\TermFacetExtractor.cs" />
     <Compile Include="LuceneEngine\Faceting\TermFacetPathExtractor.cs" />
     <Compile Include="LuceneEngine\FieldIndexTypes.cs" />
     <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
+    <Compile Include="LuceneEngine\Indexing\Analyzers\LowercaseAccentRemovingWhitespaceAnalyzer.cs" />
+    <Compile Include="LuceneEngine\Indexing\Analyzers\PrefixAnalyzer.cs" />
+    <Compile Include="LuceneEngine\Indexing\Analyzers\PrefixFilter.cs" />
+    <Compile Include="LuceneEngine\Indexing\DefaultHighlighter.cs" />
+    <Compile Include="LuceneEngine\Indexing\IHighlighter.cs" />
+    <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
+    <Compile Include="LuceneEngine\Indexing\IIndexValueType.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueSet.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\AutoSuggestType.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\DateTimeType.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\DoubleType.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\FullTextType.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\IndexValueTypeBase.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\Int32Type.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\Int64Type.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\RawStringType.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\SingleType.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
@@ -180,14 +234,17 @@
     <Compile Include="LuceneEngine\Scoring\ExternalDataScoreQuery.cs" />
     <Compile Include="LuceneEngine\Scoring\FacetKeyLevel.cs" />
     <Compile Include="LuceneEngine\Scoring\FacetLevelScoreQuery.cs" />
+    <Compile Include="LuceneEngine\Scoring\FacetReferenceCountScorer.cs" />
     <Compile Include="LuceneEngine\Scoring\ReaderDataScoreQuery.cs" />
     <Compile Include="LuceneEngine\Scoring\ScoreAdder.cs" />
     <Compile Include="LuceneEngine\Scoring\ScoreMultiplier.cs" />
     <Compile Include="LuceneEngine\Scoring\ScoreOperation.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\DocumentData.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\FacetsLoaderCriteriaContext.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ICriteriaContext.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ILuceneSearchCriteria.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LateBoundQuery.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneBooleanOperation.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />

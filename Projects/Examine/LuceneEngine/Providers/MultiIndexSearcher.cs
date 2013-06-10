@@ -140,7 +140,7 @@ namespace Examine.LuceneEngine.Providers
 
         public override ICriteriaContext GetCriteriaContext()
         {
-            return new MutliCriteriaContext(Searchers.Select(s=>s.GetCriteriaContext()).ToArray());
+            return new MutliCriteriaContext((MultiSearcher) GetSearcher(), Searchers.Select(s=>s.GetCriteriaContext()).ToArray());
         }
     }
 }

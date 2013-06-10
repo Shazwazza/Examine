@@ -8,6 +8,7 @@ using Examine.LuceneEngine;
 using Examine;
 using Examine.LuceneEngine.Config;
 using System.Xml.Linq;
+using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine.Providers

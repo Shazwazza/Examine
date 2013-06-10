@@ -13,7 +13,7 @@ namespace Examine.LuceneEngine.Faceting
 
         public FacetMap FacetMap { get; private set; }
 
-
+              
         public void Reset(FacetMap map)
         {
             FacetMap = map;            

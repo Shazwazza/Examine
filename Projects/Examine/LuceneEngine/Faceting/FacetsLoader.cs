@@ -9,7 +9,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    public class FacetsLoader : ISearcherWarmer, IDisposable, ICriteriaContext
+    public class FacetsLoader : ISearcherWarmer, IDisposable
     {
         public FacetConfiguration Configuration { get; private set; }
 
@@ -18,13 +18,13 @@ namespace Examine.LuceneEngine.Faceting
         private readonly Thread _cleanThread;
 
         public FacetsLoader(FacetConfiguration configuration)
-        {
+        {            
             Configuration = configuration;
             _cleanThread = new Thread(Clean);
             _cleanThread.Start();
         }
 
-        public FacetMap FacetMap { get { return Configuration != null ? Configuration.FacetMap : null; }}        
+        public FacetMap FacetMap { get { return Configuration != null && !Configuration.IsEmpty ? Configuration.FacetMap : null; }}        
 
 
         public ReaderData GetReaderData(IndexReader reader)
@@ -68,7 +68,6 @@ namespace Examine.LuceneEngine.Faceting
                 {
                     if (data.Reader.GetRefCount() == 0)
                     {
-
                         if (data.Reader.GetRefCount() == 0)
                         {
                             ReaderData old;

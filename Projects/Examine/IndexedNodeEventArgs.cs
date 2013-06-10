@@ -4,11 +4,11 @@ namespace Examine
 {
     public class IndexedNodeEventArgs : EventArgs
     {
-        public IndexedNodeEventArgs(int nodeId)
+        public IndexedNodeEventArgs(long nodeId)
         {
             NodeId = nodeId;
         }
 
-        public int NodeId { get; private set; }
+        public long NodeId { get; private set; }
     }
 }

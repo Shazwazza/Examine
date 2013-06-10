@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration.Provider;
 using Examine;
 using System.Xml.Linq;
+using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine;
 
 namespace Examine.Providers
 {
@@ -52,7 +55,16 @@ namespace Examine.Providers
         /// </summary>
         /// <param name="node">XML node to reindex</param>
         /// <param name="type">Type of index to use</param>
-        public abstract void ReIndexNode(XElement node, string type);
+        [Obsolete("Use ValueSets instead")]
+        public virtual void ReIndexNode(XElement node, string type)
+        {
+            ReIndexNode(node.ToValueSet(type));
+        }
+
+        public abstract void ReIndexNode(ValueSet node);
+
+        
+        
 
         /// <summary>
         /// Deletes a node from the index

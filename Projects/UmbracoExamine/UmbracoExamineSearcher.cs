@@ -61,7 +61,7 @@ namespace UmbracoExamine
         /// <param name="defaultOperation"></param>
         /// <returns></returns>
         public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
-        {
+        {            
             var criteria = base.CreateSearchCriteria(type, defaultOperation) as LuceneSearchCriteria;
             criteria.NodeTypeAliasField = UmbracoContentIndexer.NodeTypeAliasFieldName;
             return criteria;

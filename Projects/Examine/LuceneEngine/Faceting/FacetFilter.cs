@@ -26,7 +26,7 @@ namespace Examine.LuceneEngine.Faceting
 
             if (readerData != null)
             {                
-                if (context != null && context.FacetMap != null)
+                if (context != null && context.FacetsLoader.FacetMap != null)
                 {
                     var facet = context.FacetMap.GetIndex(_key);
                     if (facet > -1)

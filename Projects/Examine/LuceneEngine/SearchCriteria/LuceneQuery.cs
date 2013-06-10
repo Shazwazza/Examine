@@ -216,7 +216,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
 		[SecuritySafeCritical]
 		public IBooleanOperation Range(string fieldName, float start, float end, bool includeLower, bool includeUpper)
-        {
+        {            
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
         }
 
@@ -450,6 +450,11 @@ namespace Examine.LuceneEngine.SearchCriteria
         public IBooleanOperation All()
         {
             return search.All();
+        }
+
+        public IBooleanOperation FieldQuery(string query, params string[] fields)
+        {
+            return search.FieldQuery(query, fields);
         }
 
         public ISearchResults Execute()

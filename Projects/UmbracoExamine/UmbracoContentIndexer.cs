@@ -10,6 +10,7 @@ using System.Web;
 using System.Xml.Linq;
 using Examine;
 using Examine.Config;
+using Examine.LuceneEngine.Indexing;
 using Examine.Providers;
 using umbraco.cms.businesslogic;
 using UmbracoExamine.DataServices;
@@ -177,7 +178,7 @@ namespace UmbracoExamine
 
         protected override void OnNodeIndexed(IndexedNodeEventArgs e)
         {
-            DataService.LogService.AddVerboseLog(e.NodeId, string.Format("Index created for node"));
+            DataService.LogService.AddVerboseLog((int)e.NodeId, string.Format("Index created for node"));
             base.OnNodeIndexed(e);
         }
 
@@ -212,6 +213,11 @@ namespace UmbracoExamine
             base.ReIndexNode(node, type);
         }
 
+        public override void ReIndexNode(ValueSet node)
+        {
+            ReIndexNode(node.ToLegacyFields().ToExamineXml((int) node.Id, node.Type), node.Type);
+        }
+
         /// <summary>
         /// Deletes a node from the index.                
         /// </summary>
@@ -237,7 +243,7 @@ namespace UmbracoExamine
                 EnqueueIndexOperation(new IndexOperation()
                     {
                         Operation = IndexOperationType.Delete,
-                        Item = new IndexItem(null, "", r.Id.ToString())
+                        Item = new IndexItem("", r.Id.ToString())
                     });
                 //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }

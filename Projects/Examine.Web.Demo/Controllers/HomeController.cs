@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web.Mvc;
@@ -67,7 +68,7 @@ namespace Examine.Web.Demo.Controllers
                                     rec.SetString(3, "c" + i);
                                     rec.SetString(4, string.Join("/", path));
                                     rec.SetString(5, "e" + i);
-                                    rec.SetString(6, "f" + i);
+                                    rec.SetString(6, "This is a nice little test. Made by Kühnel");
                                     rs.Insert(rec);
                                 }
                             }
@@ -99,7 +100,8 @@ namespace Examine.Web.Demo.Controllers
             var sb = new StringBuilder();
 
             //Create a basic criteria with the options from the query string
-            var criteria = searcher.CreateSearchCriteria().MaxCount(count).CountFacets(countFacets);
+            var criteria = searcher.CreateSearchCriteria()
+                                   .MaxCount(count).CountFacets(countFacets).CountFacetReferences(true);
 
             if (all || string.IsNullOrEmpty(q))
             {
@@ -123,7 +125,9 @@ namespace Examine.Web.Demo.Controllers
                 else
                 {
                     //Add column1 filter as normal field query
-                    criteria.Field("Column1", q);
+                    //criteria.Field("Column1", q);
+                    criteria.FieldQuery(q, "Column6").Compile()
+                        .AddExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes / 1000f); 
                 }
             }
 
@@ -140,6 +144,7 @@ namespace Examine.Web.Demo.Controllers
             {
                 sb.AppendLine();
                 sb.AppendLine("ID: " + res.Id);
+                sb.AppendLine(res.GetHighlight("Column6"));
                 sb.Append("   Facets: ");
                 sb.AppendLine(string.Join(", ", res.Facets.Select(l => l.FacetId + ":" + l.Level.ToString("N2"))));
 
@@ -152,10 +157,11 @@ namespace Examine.Web.Demo.Controllers
 
             if (countFacets) //If false FacetCounts is null
             {
+                TextWriter output;
                 //Iterate all facets and show their key and count.
                 foreach (var res in searchResults.FacetCounts.GetTopFacets(10))
                 {
-                    sb.Append(res.Key + ": " + res.Value + "   Index = " + map.GetIndex(res.Key) + "\r\n");
+                    sb.Append(res.Key.FieldName + ": " + res.Value + ", count = " + res.Value);                    
                 }
             }
 
@@ -232,7 +238,7 @@ namespace Examine.Web.Demo.Controllers
                         .ReIndexNode(i.RowData.ToExamineXml(i.NodeDefinition.NodeId, i.NodeDefinition.Type), "TestType");
                 }
                 timer.Stop();
-
+                
                 ExamineSession.WaitForChanges();
 
                 return View(timer.Elapsed.TotalSeconds);
@@ -240,7 +246,7 @@ namespace Examine.Web.Demo.Controllers
             catch (Exception ex)
             {
                 this.ModelState.AddModelError("DataError", ex.Message);
-                return View(0);
+                return View(0d);
             }
         }
 

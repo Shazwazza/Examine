@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Examine.LuceneEngine.Faceting;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
@@ -17,6 +18,10 @@ namespace Examine.LuceneEngine.SearchCriteria
         public int MaxCount { get; set; }
 
         public bool CountFacets { get; set; }
+
+        public bool CountFacetReferences { get; set; }
+
+        public FacetCounts FacetReferenceCountBasis { get; set; }
 
         public SearchOptions()
         {

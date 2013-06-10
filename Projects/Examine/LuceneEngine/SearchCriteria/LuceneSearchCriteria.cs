@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security;
 using System.Text.RegularExpressions;
 using Examine;
+using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Scoring;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
@@ -87,6 +88,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             //This is how the lucene searcher is injected into filters.
             LateBoundSearcherContext = () => CriteriaContext;
 
+            
             SearchOptions = SearchOptions.Default;
 
             SearchIndexType = type;
@@ -863,7 +865,32 @@ namespace Examine.LuceneEngine.SearchCriteria
             this.Query.Add(this.QueryParser.Parse(query), this._occurance);
             return this;
         }
-        
+
+
+        public IBooleanOperation FieldQuery(string query, params string[] fields)
+        {
+            Query.Add(new LateBoundQuery(() =>
+                {
+                    var bq = new BooleanQuery();
+                    foreach (var f in fields)
+                    {
+                        var type = CriteriaContext.GetValueType(f);
+                        if (type != null)
+                        {
+                            var q = type.GetQuery(query, CriteriaContext.Searcher, CriteriaContext.FacetsLoader);
+                            if (q != null)
+                            {
+                                CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
+                                bq.Add(q, BooleanClause.Occur.SHOULD);
+                            }
+                        }
+                    }
+                    return bq;
+                }), _occurance);
+
+            
+            return new LuceneBooleanOperation(this);
+        }
 
         public ISearchResults Execute()
         {
@@ -900,6 +927,9 @@ namespace Examine.LuceneEngine.SearchCriteria
 
             return new LuceneBooleanOperation(this);
         }
+
+
+
 
         /// <summary>
         /// Internal operation for adding the ordered results

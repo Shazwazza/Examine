@@ -13,6 +13,7 @@ namespace Examine
         IEnumerable<SearchResult> Skip(int skip);
 
         FacetCounts FacetCounts { get; }
+        
 
         ICriteriaContext CriteriaContext { get; }
     }

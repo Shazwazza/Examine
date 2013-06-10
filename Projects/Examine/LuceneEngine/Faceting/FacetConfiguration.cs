@@ -8,7 +8,12 @@ namespace Examine.LuceneEngine.Faceting
     public class FacetConfiguration
     {
         private static FacetMap _sharedMap = new FacetMap();
-        
+
+
+        public bool IsEmpty
+        {
+            get { return FacetExtractors.Count == 0; }
+        }
 
         public List<IFacetExtractor> FacetExtractors { get; set; }
 
@@ -31,9 +36,9 @@ namespace Examine.LuceneEngine.Faceting
     internal static class FacetConfigurationHelpers
     {
         [SecuritySafeCritical]
-        public static FacetConfiguration GetFacetConfiguration(this IndexSet set)
+        public static FacetConfiguration GetFacetConfiguration(this IndexSet set, FacetConfiguration current = null)
         {
-            var config = new FacetConfiguration();
+            var config = current ?? new FacetConfiguration();
             foreach (var subset in new[] { set.IndexUserFields, set.IndexAttributeFields })
             {
                 if (subset != null)
@@ -52,7 +57,7 @@ namespace Examine.LuceneEngine.Faceting
                 }
             }
 
-            return config.FacetExtractors.Count > 0 ? config : null;
+            return config;            
         }
     }
 }

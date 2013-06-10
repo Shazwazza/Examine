@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Examine.LuceneEngine.Config;
@@ -46,28 +47,40 @@ namespace Examine.Web.Demo
             //Here a facet extractor is configured from code
             var config = indexSet.FacetConfiguration = indexSet.FacetConfiguration ?? new FacetConfiguration();
             config.FacetExtractors.Add(new TermFacetExtractor("CustomDocField"));
+            config.FacetExtractors.Add(new TermFacetExtractor("RefFacet", valuesAreReferences: true));
 
             //Attach in-memory objects to lucene documents for scoring on rapidly changing data.
             config.ExternalDataProvider = new TestExternalDataProvider();
-            
+
 
             //And we're ready.
 
-            var indexer = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;            
+            var indexer = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
 
+
+            var r = new Random();
             //Here custom fields are written directly to the document regardsless of Examine's config
             indexer.DocumentWriting += (sender, args) =>
                 {
                     string v;
-                    if( args.Fields.TryGetValue("Column1", out v))
+                    if (args.Fields.TryGetValue("Column1", out v))
                     {
                         //Here the umbraco value of a tag picker could be split into individual tags  
-                      
+
 
                         //This is how to add a facet with level (i.e. size/importance)
                         //Remember to use a float value. Not int.
-                        args.Document.Add(new Field("CustomDocField", new PayloadDataTokenStream(v + "_WithLevel").SetValue(.25f)));
+
+                        foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 100)).Distinct())
+                        {
+                            args.Document.Add(new ReferenceFacetField("RefFacet", f));                            
+                        }
+
                         
+
+
+                        args.Document.Add(new Field("CustomDocField", new PayloadDataTokenStream(v + "_WithLevel").SetValue(.25f)));
+
                         //Here we add a normal field
                         args.Document.Add(new Field("CustomDocField", v + "Test2", Field.Store.NO, Field.Index.NOT_ANALYZED));
                     }
@@ -82,7 +95,7 @@ namespace Examine.Web.Demo
             ////        FacetExtractors = new List<IFacetExtractor> {new TermFacetExtractor("Column1")}
             ////    };
         }
-        
+
         protected void Application_EndRequest(object sender, EventArgs e)
         {
             if (ExamineManager.InstanceInitialized)

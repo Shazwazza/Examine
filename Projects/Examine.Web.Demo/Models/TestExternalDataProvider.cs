@@ -12,8 +12,8 @@ namespace Examine.Web.Demo.Models
 
         
         public object GetData(long id)
-        {
-            return new TestExternalData() { Likes = new Random((int)id).Next(0, 1000) };
+        {            
+            return new TestExternalData() { Likes = new Random((int)id).Next(0, 100000) };
         }
     }
 

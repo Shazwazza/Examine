@@ -270,6 +270,9 @@ namespace Examine.SearchCriteria
         /// <returns></returns>
         IBooleanOperation All();
 
+
+        IBooleanOperation FieldQuery(string query, params string[] fields);
+
       
        
         /// <summary>

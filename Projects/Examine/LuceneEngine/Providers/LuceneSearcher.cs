@@ -216,6 +216,13 @@ namespace Examine.LuceneEngine.Providers
             return TextSearchAllFields(searchText, useWildcards, sc);
         }
 
+
+        public ISearchResults Search(string query, params string[] fieldNames)
+        {
+            var sc = CreateSearchCriteria();
+            return null;
+        }
+
         /// <summary>
         /// Name of the Lucene.NET index set
         /// </summary>
@@ -242,7 +249,7 @@ namespace Examine.LuceneEngine.Providers
         {
             ValidateSearcher(false);
 
-            return _searcherContext.FacetsLoader;
+            return new FacetsLoaderCriteriaContext((IndexSearcher) GetSearcher(), _searcherContext);
         }
 
 
@@ -277,7 +284,7 @@ namespace Examine.LuceneEngine.Providers
 			return _luceneDirectory;
         }
 
-        private SearcherContext _searcherContext;
+        private SearcherContext _searcherContext;        
 
         //TODO: the real searcher should use RAM directory, will be way faster
         // but need to figure out a way to check if the real directory has been updated.
@@ -308,7 +315,7 @@ namespace Examine.LuceneEngine.Providers
                ExamineSession.WaitForChanges(_searcherContext.Manager);
             }
 
-            //Handled by NrtManager / SearcContext
+            //Handled by NrtManager / SearcherContext
 
             //EnsureIndex();
             //    if (!forceReopen)

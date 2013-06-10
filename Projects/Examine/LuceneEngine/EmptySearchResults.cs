@@ -34,6 +34,8 @@ namespace Examine.LuceneEngine
         
 
 	    public FacetCounts FacetCounts { get; private set; }
+	    
+
 	    public ICriteriaContext CriteriaContext { get; private set; }
 	}
 }

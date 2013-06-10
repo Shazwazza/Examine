@@ -7,7 +7,12 @@ using Examine.LuceneEngine.Faceting;
 namespace Examine.LuceneEngine.Config
 {
     public sealed class IndexSet : ConfigurationElement
-    {        
+    {
+        public IndexSet()
+        {
+            FacetConfiguration = new FacetConfiguration();
+        }
+
         [ConfigurationProperty("SetName", IsRequired = true, IsKey = true)]
         public string SetName
         {
@@ -154,13 +159,13 @@ namespace Examine.LuceneEngine.Config
 
 
 
-        protected override void PostDeserialize() 
+        protected override void PostDeserialize()
         {
             base.PostDeserialize();
 
-            FacetConfiguration = this.GetFacetConfiguration();
+            FacetConfiguration = this.GetFacetConfiguration(FacetConfiguration);
         }
-        
+
         /// <summary>
         /// How to extract facets in indexers
         /// </summary>

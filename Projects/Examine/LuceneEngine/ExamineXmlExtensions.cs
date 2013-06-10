@@ -4,6 +4,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using Examine.LuceneEngine.Indexing;
 
 namespace Examine.LuceneEngine
 {
@@ -190,6 +191,40 @@ namespace Examine.LuceneEngine
             {
                 return (string)x.Attribute(alias);
             }
+        }
+
+        public static ValueSet ToValueSet(this XElement node, string type, long? id = null)
+        {
+            id = id ?? long.Parse((string)node.Attribute("id"));
+            var set = new ValueSet(id.Value, type ?? node.ExamineNodeTypeAlias());
+            foreach (var attr in node.Attributes())
+            {
+                if (attr.Name != "id")
+                {
+                    set.Values.Add(new KeyValuePair<string, object>(attr.Name.LocalName, attr.Value));
+                }
+            }
+
+            var hadData = false;
+            foreach (var d in node.Elements("data"))
+            {
+                var alias = (string)d.Attribute("alias");
+                if (!string.IsNullOrEmpty(alias))
+                {
+                    set.Values.Add(new KeyValuePair<string, object>(alias, d.Value));
+                    hadData = true;
+                }
+            }
+
+            if (!hadData)
+            {
+                foreach (var e in node.Elements())
+                {
+                    set.Values.Add(new KeyValuePair<string, object>(e.Name.LocalName, e.Value));
+                }
+            }
+            
+            return set;
         }
 
         /// <summary>

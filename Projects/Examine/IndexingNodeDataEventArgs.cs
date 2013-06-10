@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine;
 
 namespace Examine
 {
@@ -15,6 +17,13 @@ namespace Examine
             this.Node = node;
         }
 
+        public IndexingNodeDataEventArgs(ValueSet valueSet)
+            : base(valueSet)
+        {
+            this.Node = valueSet.ToExamineXml();
+        }
+
+        [Obsolete("Use ValueSet instead")]
         public XElement Node { get; private set; }
     }
 }

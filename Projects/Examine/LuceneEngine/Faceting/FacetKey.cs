@@ -5,9 +5,9 @@ namespace Examine.LuceneEngine.Faceting
 {
     public class FacetKey : IComparable<FacetKey>
     {
-        public string FieldName { get; set; }
+        public string FieldName { get; private set; }
 
-        public string Value { get; set; }
+        public string Value { get; private set; }
 
         public FacetKey(string fieldName, string value)
         {
@@ -17,6 +17,14 @@ namespace Examine.LuceneEngine.Faceting
 
             FieldName = fieldName;
             Value = value;
+        }
+
+        public FacetKey Intern()
+        {
+            FieldName = string.Intern(FieldName);
+            Value = string.Intern(Value);
+
+            return this;
         }
 
         public int CompareTo(FacetKey other)
@@ -31,7 +39,7 @@ namespace Examine.LuceneEngine.Faceting
         }        
         
 
-        public bool Equals(FacetKey other)
+        public virtual bool Equals(FacetKey other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -42,7 +50,7 @@ namespace Examine.LuceneEngine.Faceting
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != typeof(FacetKey)) return false;
+            if (!(obj is FacetKey)) return false;
             return Equals((FacetKey)obj);
         }
 

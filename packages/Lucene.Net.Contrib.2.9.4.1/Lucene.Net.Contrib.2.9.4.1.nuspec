@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Lucene.Net.Contrib</id>
+    <version>2.9.4.1</version>
+    <title>Lucene.Net Contrib</title>
+    <authors>Lucene.Net Community</authors>
+    <owners>Lucene.Net Community</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
+    <projectUrl>http://incubator.apache.org/lucene.net/</projectUrl>
+    <iconUrl>https://svn.apache.org/repos/asf/incubator/lucene.net/trunk/branding/logo/lucene-net-icon-128x128.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Lucene.Net Contrib adds a set of advanced functionalites to Lucene.net, like faceted search, spatial queries, highlighters, spell check and more.</description>
+    <summary>Lucene.Net Contrib adds a set of advanced functionalites to Lucene.net</summary>
+    <copyright>Copyright 2006-2011 The Apache Software Foundation</copyright>
+    <tags>lucene.net core text contrib search information retrieval lucene apache</tags>
+    <dependencies>
+      <dependency id="Lucene.net" version="2.9.4.1" />
+    </dependencies>
+  </metadata>
+</package>

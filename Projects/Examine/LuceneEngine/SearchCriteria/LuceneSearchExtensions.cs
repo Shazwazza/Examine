@@ -25,42 +25,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             return readers.Cast<IndexReader>();
         }
 
-        public static DocumentData GetReaderData(this SearchResults searchResult, int doc)
-        {
-            return searchResult.Searcher.GetReaderData(searchResult.CriteriaContext, doc);
-        }
-
-        public static DocumentData GetReaderData(this Searchable searcher, ICriteriaContext context, int doc)
-        {            
-            var multiSearcher = searcher as MultiSearcher;
-            if (multiSearcher != null)
-            {
-                var index = multiSearcher.SubSearcher(doc);
-                doc = multiSearcher.SubDoc(doc);
-                searcher = multiSearcher.GetSearchables()[index];
-
-                return searcher.GetReaderData(context, doc);
-            }
-
-            var indexSearcher = searcher as IndexSearcher;
-            if (indexSearcher == null)
-            {
-                throw new NotSupportedException("Unsupported searcher type: " + searcher.GetType().Name);
-            }
-            
-            foreach( var subReader in indexSearcher.GetIndexReader().GetAllSubReaders() )
-            {
-                var max = subReader.MaxDoc();
-                if (doc < max)
-                {
-                    var readerData = context.GetReaderData(subReader);
-                    return readerData == null ? null : new DocumentData(readerData, doc);
-                }
-                doc -= max;
-            }
-            
-            return null;
-        }
+    
 
         static LuceneSearchCriteria GetLuceneSearchCriteria(IQuery q)
         {
@@ -147,6 +112,24 @@ namespace Examine.LuceneEngine.SearchCriteria
             var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
             crit.SearchOptions.CountFacets = toggle;
             return crit;
+        }
+
+        /// <summary>
+        /// If a search result is used as a reference facet, toggle whether the count for different field names in the result
+        /// </summary>
+        /// <param name="toggle"></param>
+        /// <returns></returns>        
+        public static LuceneSearchCriteria CountFacetReferences(this IQuery luceneSearchCriteria, bool toggle, FacetCounts basis = null)
+        {
+            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+            crit.SearchOptions.CountFacetReferences = toggle;
+            crit.SearchOptions.FacetReferenceCountBasis = basis;
+            return crit;
+        }
+
+        public static LuceneSearchCriteria CountFacetReferences(this IQuery luceneSearchCriteria, FacetCounts basis)
+        {
+            return luceneSearchCriteria.CountFacetReferences(true, basis);
         }
 
         public static ISearchResults Search(this ISearcher searcher, Query query)

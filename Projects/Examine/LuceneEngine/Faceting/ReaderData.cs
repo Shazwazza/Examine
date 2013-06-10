@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
@@ -14,6 +15,8 @@ namespace Examine.LuceneEngine.Faceting
 
         public Dictionary<int, Filter> FacetFilters { get; private set; }
 
+        public ConcurrentDictionary<string, object> Data { get; private set; }
+
         /// <summary>
         /// This can be used in scorers for fast retrieval of external IDs.        
         /// </summary>
@@ -24,6 +27,8 @@ namespace Examine.LuceneEngine.Faceting
 
         public ReaderData(FacetConfiguration config, IndexReader reader)
         {
+            Data = new ConcurrentDictionary<string, object>();
+
             Reader = reader;
             //Read external IDs from index
             ReadExternalIds(reader);

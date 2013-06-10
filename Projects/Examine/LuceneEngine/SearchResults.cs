@@ -41,7 +41,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Exposes the internal Lucene searcher
         /// </summary>
-        public Searcher Searcher { [SecuritySafeCritical] get; [SecuritySafeCritical] set; }
+        public Searcher Searcher { get { return CriteriaContext.Searcher; } }
 
         /// <summary>
         /// Exposes the internal lucene query to run the search
@@ -58,12 +58,13 @@ namespace Examine.LuceneEngine
         //private AllHitsCollector _collector;
         private TopDocs _topDocs;
 
+        private SearchOptions _options;
+
         //private ScoreD
 
         [SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, ICriteriaContext searcherContext, SearchOptions options)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, ICriteriaContext searcherContext, SearchOptions options)
         {
-            Searcher = searcher;
             LuceneQuery = query;
 
             CriteriaContext = searcherContext;
@@ -73,6 +74,8 @@ namespace Examine.LuceneEngine
         [SecuritySafeCritical]
         private void DoSearch(Query query, IEnumerable<SortField> sortField, SearchOptions options)
         {
+            _options = options;
+
             //This try catch is because analyzers strip out stop words and sometimes leave the query
             //with null values. This simply tries to extract terms, if it fails with a null
             //reference then its an invalid null query, NotSupporteException occurs when the query is
@@ -103,11 +106,11 @@ namespace Examine.LuceneEngine
                 sortField.Any() ?
                 (TopDocsCollector)TopFieldCollector.create(new Sort(sortField.ToArray()), count, false, false, false, false)
                 : TopScoreDocCollector.create(count, true);
-            
+
             if (options.CountFacets && CriteriaContext.FacetMap != null)
             {
                 var collector = new FacetCountCollector(CriteriaContext, topDocsCollector);
-                
+
                 Searcher.Search(query, collector);
                 FacetCounts = collector.Counts;
             }
@@ -147,6 +150,9 @@ namespace Examine.LuceneEngine
         /// </summary>
         protected Dictionary<int, SearchResult> Docs = new Dictionary<int, SearchResult>();
 
+
+        static FacetLevel[] _noFacets = new FacetLevel[0];
+
         /// <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
         /// </summary>
@@ -161,26 +167,41 @@ namespace Examine.LuceneEngine
             {
                 id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
             }
-            var readerData = this.GetReaderData(docId);
+            var readerData = CriteriaContext.GetDocumentData(docId);
             var sr = new SearchResult()
             {
-                Id = int.Parse(id),
+                Id = long.Parse(id),
                 Score = score,
-                Facets = readerData != null && readerData.Data.FacetLevels != null 
-                ? readerData.Data.FacetLevels[readerData.SubDocument] : null
-                //TODO: Make this with the new FacetLoader stuff!
-
-                //Facets = CriteriaContext.ReaderData.GetFacets(docId)
+                Facets = readerData != null && readerData.Data.FacetLevels != null
+                                            ? readerData.Data.FacetLevels[readerData.SubDocument] : _noFacets,
+                Document = doc
             };
+
+            if (_options.CountFacets && _options.CountFacetReferences)
+            {
+                FacetReferenceInfo[] info;
+                if (FacetCounts.FacetMap.TryGetReferenceInfo(sr.Id, out info))
+                {
+                    sr.FacetCounts =
+                        info.Select(i => new FacetReferenceCount(i.FieldName, FacetCounts.Counts[i.Id])).ToArray();
+                }
+                else
+                {
+                    sr.FacetCounts = new FacetReferenceCount[0];
+                }
+            }
+
 
             //we can use lucene to find out the fields which have been stored for this particular document
             //I'm not sure if it'll return fields that have null values though
             var fields = doc.GetFields();
 
             //ignore our internal fields though
-            foreach (Field field in fields.Cast<Field>())
+            foreach (var fieldGroup in fields.Cast<Field>().GroupBy(f => f.Name()))
             {
-                sr.Fields.Add(field.Name(), doc.Get(field.Name()));
+
+                sr.Fields.Add(fieldGroup.Key, string.Join(",", fieldGroup.Select(f => f.StringValue())));
+                sr.FieldValues.Add(fieldGroup.Key, fieldGroup.Select(f => f.StringValue()).ToArray());
             }
 
             return sr;

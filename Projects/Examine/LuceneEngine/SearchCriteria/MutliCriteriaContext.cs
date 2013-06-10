@@ -3,22 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Index;
+using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
     public class MutliCriteriaContext : ICriteriaContext
     {
+        private readonly MultiSearcher _searcher;
         private readonly ICriteriaContext[] _inner;
 
-        public MutliCriteriaContext(ICriteriaContext[] inner)
+        public MutliCriteriaContext(MultiSearcher searcher, ICriteriaContext[] inner)
         {
+            _searcher = searcher;
             _inner = inner;
             //We can do this because all facet configurations share a single static facetmap.
-            FacetMap = inner.Select(cc => cc.FacetMap).FirstOrDefault(fm => fm != null);
+            FacetsLoader = inner.Select(cc => cc.FacetsLoader).FirstOrDefault(fm => fm != null);
+            FacetMap = FacetsLoader != null ? FacetsLoader.FacetMap : null;
+
+            FieldQueries = new List<KeyValuePair<IIndexValueType, Query>>();
         }
 
+        public Searcher Searcher { get { return _searcher; } }
+
+        public FacetsLoader FacetsLoader { get; private set; }
+
         public FacetMap FacetMap { get; private set; }
+
         public ReaderData GetReaderData(IndexReader reader)
         {
             for (int i = 0, n = _inner.Length; i < n; i++)
@@ -31,6 +43,21 @@ namespace Examine.LuceneEngine.SearchCriteria
             }
 
             return null;
+        }
+
+        public DocumentData GetDocumentData(int doc)
+        {
+            var index = _searcher.SubSearcher(doc);
+            doc = _searcher.SubDoc(doc);
+
+            return _inner[index].GetDocumentData(doc);
+        }
+
+        public List<KeyValuePair<IIndexValueType, Query>> FieldQueries { get; private set; }
+
+        public IIndexValueType GetValueType(string fieldName)
+        {
+            return _inner.Select(cc => cc.GetValueType(fieldName)).FirstOrDefault(type => type != null);
         }
     }
 }
