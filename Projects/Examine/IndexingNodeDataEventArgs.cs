@@ -10,6 +10,7 @@ namespace Examine
 {
     public class IndexingNodeDataEventArgs : IndexingNodeEventArgs
     {
+        private XElement _node;
 
         public IndexingNodeDataEventArgs(XElement node, int nodeId, Dictionary<string, string> fields, string indexType)
             : base(nodeId, fields, indexType)
@@ -20,10 +21,23 @@ namespace Examine
         public IndexingNodeDataEventArgs(ValueSet valueSet)
             : base(valueSet)
         {
-            this.Node = valueSet.ToExamineXml();
+            
+        }
+
+        private void InitializeLegacyData()
+        {
+            if (_node == null)
+            {
+                _node = Values.ToExamineXml();
+            }
         }
 
         [Obsolete("Use ValueSet instead")]
-        public XElement Node { get; private set; }
+        public XElement Node
+
+        {
+            get { InitializeLegacyData(); return _node; }
+            private set { _node = value; }
+        }
     }
 }

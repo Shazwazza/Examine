@@ -31,7 +31,7 @@ namespace Examine.LuceneEngine.Indexing
         }        
         
 
-        internal static ValueSet FromLegacyFields(int nodeId, string type, Dictionary<string, string> fields)
+        internal static ValueSet FromLegacyFields(long nodeId, string type, Dictionary<string, string> fields)
         {
             return new ValueSet(nodeId, type, fields.Select(kv => new KeyValuePair<string, object>(kv.Key, kv.Value)));            
         }

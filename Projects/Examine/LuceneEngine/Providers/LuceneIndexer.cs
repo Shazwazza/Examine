@@ -916,7 +916,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        
+                
 
         /// <summary>
         /// Translates the XElement structure into a dictionary object to be indexed.
@@ -943,7 +943,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="node"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        [Obsolete("Use ValueSet instead")]
+        
         protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
             var values = new Dictionary<string, string>();
@@ -1455,14 +1455,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Private
 
-        private void EnsureSpecialFields(Dictionary<string, string> fields, string nodeId, string type)
-        {
-            //ensure the special fields are added to the dictionary to be saved to file
-            if (!fields.ContainsKey(IndexNodeIdFieldName))
-                fields.Add(IndexNodeIdFieldName, nodeId);
-            if (!fields.ContainsKey(IndexTypeFieldName))
-                fields.Add(IndexTypeFieldName, type);
-        }
+        
 
      
         
@@ -1532,11 +1525,19 @@ namespace Examine.LuceneEngine.Providers
             //get the node id
             var nodeId = int.Parse(op.Item.Id);
 
+		    var values = op.Item.ValueSet;
             //now, add the index with our dictionary object
-            var fields = GetDataToIndex(op.Item.DataToIndex, op.Item.IndexType);
-            EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexType);
+		    if (HasLegacyTransformHandlers)
+		    {
+		        var fields = GetDataToIndex(op.Item.DataToIndex, op.Item.IndexType);
+		        values = ValueSet.FromLegacyFields(values.Id, values.Type, fields);
+		    }
 
-            AddDocument(fields, nodeId, op.Item.IndexType);
+            OnTransformValues(new IndexingNodeDataEventArgs(values));
+
+		    // This is not needed any more. They are special properties of the ValueSet: EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexType);
+
+		    AddDocument(values);
 
             CommitCount++;
 

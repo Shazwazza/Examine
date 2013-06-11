@@ -9,6 +9,7 @@ namespace Examine
 {
     public class IndexingNodeEventArgs : CancelEventArgs, INodeEventArgs
     {
+        private Dictionary<string, string> _fields;
         public ValueSet Values { get; private set; }
         //public IndexingNodeEventArgs(int nodeId, Dictionary<string, string> fields, string indexType)
         
@@ -19,9 +20,7 @@ namespace Examine
 
             //Legacy stuff
             NodeId = (int) values.Id;
-            IndexType = values.Type;
-
-            Fields = values.ToLegacyFields();
+            IndexType = values.Type;            
         }
 
         [Obsolete("Use ValueSet instead")]
@@ -30,10 +29,22 @@ namespace Examine
         {                        
         }
 
+        void InitializeLegacyData()
+        {
+            if (_fields == null)
+            {
+                _fields = Values.ToLegacyFields();
+            }
+        }
+
         [Obsolete("Use ValueSet instead")]
         public int NodeId { get; private set; }
         [Obsolete("Use ValueSet instead")]
-        public Dictionary<string, string> Fields { get; private set; }
+        public Dictionary<string, string> Fields
+        {
+            get { InitializeLegacyData(); return _fields; }            
+        }
+
         [Obsolete("Use ValueSet instead")]
         public string IndexType { get; private set; }
     }

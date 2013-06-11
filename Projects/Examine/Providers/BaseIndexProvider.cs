@@ -118,6 +118,7 @@ namespace Examine.Providers
         /// <summary>
         /// Occurs when the indexer is gathering the fields and their associated data for the index
         /// </summary>
+        [Obsolete("Use the TransformValues event instead")]
         public event EventHandler<IndexingNodeDataEventArgs> GatheringNodeData;
         /// <summary>
         /// Occurs when a node is deleted from the index
@@ -126,12 +127,24 @@ namespace Examine.Providers
         /// <summary>
         /// Occurs when a particular field is having its data obtained
         /// </summary>
+        [Obsolete("Use the TransformValues event instead")]
         public event EventHandler<IndexingFieldDataEventArgs> GatheringFieldData;
         /// <summary>
         /// Occurs when node is found but outside the supported node set
         /// </summary>
         public event EventHandler<IndexingNodeDataEventArgs> IgnoringNode;
+
+        /// <summary>
+        /// Occurs just before a ValueSet is indexed. Values can be changed, removed or added here.
+        /// </summary>
+        public event EventHandler<IndexingNodeDataEventArgs> TransformValues;
+
         #endregion
+
+        protected bool HasLegacyTransformHandlers
+        {
+            get { return GatheringFieldData != null || GatheringNodeData != null; }
+        }
 
         #region Protected Event callers
 
@@ -193,6 +206,15 @@ namespace Examine.Providers
         {
             if (GatheringNodeData != null)
                 GatheringNodeData(this, e);
+        }
+
+
+        protected virtual void OnTransformValues(IndexingNodeDataEventArgs e)
+        {
+            if (TransformValues != null)
+            {
+                TransformValues(this, e);
+            }
         }
 
         /// <summary>

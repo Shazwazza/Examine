@@ -4,19 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine;
 
 namespace Examine
 {
     public class IndexingFieldDataEventArgs : EventArgs, INodeEventArgs
-    {        
-
+    {
+        
         public IndexingFieldDataEventArgs(XElement node, string fieldName, string fieldValue, bool isStandardField, int nodeId)
         {
-            this.Node = node;
-            this.FieldName = fieldName;
-            this.FieldValue = fieldValue;
-            this.IsStandardField = isStandardField;
-            this.NodeId = nodeId;
+            Node = node;
+            FieldName = fieldName;
+            FieldValue = fieldValue;
+            IsStandardField = isStandardField;            
         }
 
         public XElement Node { get; private set; }
@@ -29,5 +29,5 @@ namespace Examine
         public int NodeId { get; private set; }
 
         #endregion
-    }
+        }
 }
