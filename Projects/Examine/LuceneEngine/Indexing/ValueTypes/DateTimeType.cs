@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             return DateTools.Round(date, Resolution).Ticks;
         }
 
-        public override Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader)
+        public override Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader, IManagedQueryParameters parameters)
         {
             DateTime parsedVal;
             if (!TryConvert(query, out parsedVal))
@@ -45,7 +45,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             return GetQuery(parsedVal, parsedVal);
         }
 
-        public Query GetQuery(DateTime? lower, DateTime? upper, bool lowerInclusive = true, bool upperInclusive = true)
+        public Query GetQuery(DateTime? lower, DateTime? upper, bool lowerInclusive = true, bool upperInclusive = true, IManagedQueryParameters parameters = null)
         {
             return NumericRangeQuery.NewLongRange(FieldName,
                 lower != null ? (ValueType) DateToLong(lower.Value) : null,

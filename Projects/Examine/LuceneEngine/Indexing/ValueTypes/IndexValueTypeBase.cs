@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Indexing.Filters;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
@@ -19,7 +20,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
         public Func<object, IEnumerable<object>> Splitter { get; set; }
 
 
-        public Func<object,object> ValueConverter { get; set; }
+        public IValueFilter ValueFilter { get; set; }
         
         public IndexValueTypeBase SetSeparator(string sep)
         {
@@ -55,9 +56,9 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
 
         private void AddSingleValueInternal(Document doc, object value)
         {
-            if (ValueConverter != null)
+            if (ValueFilter != null)
             {
-                value = ValueConverter(value);
+                value = ValueFilter.Filter(value);
             }
 
             if (value != null)
@@ -73,7 +74,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
         {            
         }
 
-        public virtual Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader)
+        public virtual Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader, IManagedQueryParameters parameters)
         {
             return new TermQuery(new Term(FieldName, query));
         }

@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.SearchCriteria;
 
 namespace Examine.LuceneEngine
@@ -31,7 +33,7 @@ namespace Examine.LuceneEngine
 			return Enumerable.Empty<SearchResult>();
 		}
 
-        
+        public IDictionary<string, List<Func<SearchResult,string>>> Highlighters { get; private set; }
 
 	    public FacetCounts FacetCounts { get; private set; }
 	    

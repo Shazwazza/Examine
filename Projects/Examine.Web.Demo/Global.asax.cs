@@ -71,9 +71,9 @@ namespace Examine.Web.Demo
                         //This is how to add a facet with level (i.e. size/importance)
                         //Remember to use a float value. Not int.
 
-                        foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 100)).Distinct())
+                        foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 27000)).Distinct())
                         {
-                            args.Document.Add(new ReferenceFacetField("RefFacet", f));                            
+                            args.Document.Add(new ReferenceFacetField("RefFacet", f));
                         }
 
                         

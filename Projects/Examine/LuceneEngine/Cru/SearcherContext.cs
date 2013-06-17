@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Web;
 //using Examine.LuceneEngine.Facets;
+using Examine.LuceneEngine.Cru;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Indexing.ValueTypes;
@@ -50,11 +51,12 @@ namespace LuceneManager.Infrastructure
 
             FacetsLoader = new FacetsLoader(facetConfiguration);
 
+            var warmer = new CompositeSearcherWarmer(new[] {(ISearcherWarmer) FacetsLoader, new ValueTypeWarmer(this)});
 
             _writer = new IndexWriter(dir, Analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
 
 
-            Manager = new NrtManager(_writer, FacetsLoader);
+            Manager = new NrtManager(_writer, warmer);
             _reopener = new NrtManagerReopener(Manager, targetMaxStale, targetMinStale);
             Committer = new Committer(_writer, commitInterval, optimizeInterval);
 
@@ -62,7 +64,7 @@ namespace LuceneManager.Infrastructure
 
             using (var s = GetSearcher())
             {
-                FacetsLoader.Warm(s.Searcher);
+                warmer.Warm(s.Searcher);
             }
 
             foreach (var t in _threads)
@@ -71,14 +73,19 @@ namespace LuceneManager.Infrastructure
             }
         }
 
-        public Func<string, IIndexValueType> DefaultValueTypeFactory = name => new RawStringType(name);
-        private ConcurrentDictionary<string, IIndexValueType> _valueTypes = new ConcurrentDictionary<string, IIndexValueType>(StringComparer.InvariantCultureIgnoreCase);
+        public Func<string, IIndexValueType> DefaultValueTypeFactory = name => new FullTextType(name);
+        internal ConcurrentDictionary<string, IIndexValueType> ValueTypes = new ConcurrentDictionary<string, IIndexValueType>(StringComparer.InvariantCultureIgnoreCase);
+
+        public IEnumerable<IIndexValueType> RegisteredValueTypes
+        {
+            get { return ValueTypes.Values; }
+        }
 
         public IIndexValueType GetValueType(string fieldName, bool useDefaultIfMissing = false)
         {
             if (useDefaultIfMissing)
             {
-                return _valueTypes.GetOrAdd(fieldName, n =>
+                return ValueTypes.GetOrAdd(fieldName, n =>
                     {
                         var t = DefaultValueTypeFactory(n);
                         t.SetupAnalyzers(Analyzer);
@@ -86,12 +93,12 @@ namespace LuceneManager.Infrastructure
                     });
             }
             IIndexValueType type;
-            return _valueTypes.TryGetValue(fieldName, out type) ? type : null;
+            return ValueTypes.TryGetValue(fieldName, out type) ? type : null;
         }
 
         public void DefineValueType(IIndexValueType type)
         {
-            if (_valueTypes.TryAdd(type.FieldName, type))
+            if (ValueTypes.TryAdd(type.FieldName, type))
             {
                 type.SetupAnalyzers(Analyzer);
             }

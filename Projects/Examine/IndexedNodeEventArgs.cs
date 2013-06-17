@@ -6,9 +6,15 @@ namespace Examine
     {
         public IndexedNodeEventArgs(long nodeId)
         {
-            NodeId = nodeId;
+            NodeLongId = nodeId;
         }
 
-        public long NodeId { get; private set; }
+        public long NodeLongId { get; private set; }
+
+        public int NodeId
+        {
+            get { return (int)NodeLongId; }
+            set { NodeLongId = value; }
+        }
     }
 }

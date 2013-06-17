@@ -29,6 +29,8 @@ namespace Examine
 
         public static bool InstanceInitialized { get;private set; }
 
+        
+
         /// <summary>
         /// Singleton
         /// </summary>
@@ -91,14 +93,30 @@ namespace Examine
                         _providersInit = true;
 
 
+                        if (ExamineSettings.Instance.ConfigurationAction != null)
+                        {                            
+                            ExamineSettings.Instance.ConfigurationAction(this);
+                        }
+
                         //check if we need to rebuild on startup
                         if (ExamineSettings.Instance.RebuildOnAppStart)
                         {
                             foreach (var index in IndexProviderCollection.Cast<IIndexer>())
                             {
-                                if (!index.IndexExists())
+                                if (index.IsIndexNew())
                                 {
-                                    index.RebuildIndex();
+                                    try
+                                    {                                        
+                                        index.RebuildIndex();                                     
+
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        var li = index as LuceneIndexer;
+                                        HttpContext.Current.Response.Write("Rebuilding index" +
+                                                                           (li != null ? " " + li.Name : "") + " failed");
+                                        HttpContext.Current.Response.Write(ex.ToString());   
+                                    }
                                 }
                             }    
                         }
@@ -230,6 +248,11 @@ namespace Examine
         }
 
         public bool IndexExists()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsIndexNew()
         {
             throw new NotImplementedException();
         }

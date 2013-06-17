@@ -27,7 +27,7 @@ namespace UmbracoExamine
     /// <summary>
     /// 
     /// </summary>
-    internal class UmbracoContentIndexer : BaseUmbracoIndexer
+    public class UmbracoContentIndexer : BaseUmbracoIndexer
     {
         #region Constructors
 
@@ -243,7 +243,7 @@ namespace UmbracoExamine
                 EnqueueIndexOperation(new IndexOperation()
                     {
                         Operation = IndexOperationType.Delete,
-                        Item = new IndexItem("", r.Id.ToString())
+                        Item = new IndexItem("", r.LongId.ToString())
                     });
                 //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }
@@ -279,7 +279,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="e"></param>
         protected override void OnGatheringNodeData(IndexingNodeDataEventArgs e)
-        {
+        {            
             //strip html of all users fields
             // Get all user data that we want to index and store into a dictionary 
             foreach (var field in IndexerData.UserFields)

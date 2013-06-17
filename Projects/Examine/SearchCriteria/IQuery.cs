@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Examine.LuceneEngine.Indexing;
+
 namespace Examine.SearchCriteria
 {
     /// <summary>
@@ -182,7 +184,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns></returns>
         IBooleanOperation Range(string fieldName, string lower, string upper, bool includeLower, bool includeUpper);
-        
+
         /// <summary>
         /// Queries multiple fields with each being an And boolean operation
         /// </summary>
@@ -214,7 +216,7 @@ namespace Examine.SearchCriteria
         /// <param name="query">The query.</param>
         /// <returns></returns>
         IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query);
-        
+
         /// <summary>
         /// Queries multiple fields with each being an Not boolean operation
         /// </summary>
@@ -248,14 +250,14 @@ namespace Examine.SearchCriteria
         /// <param name="operations">The operations.</param>
         /// <returns></returns>
         IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query);
-        
+
         /// <summary>
         /// Orders the results by the specified fields
         /// </summary>
         /// <param name="fieldNames">The field names.</param>
         /// <returns></returns>
         IBooleanOperation OrderBy(params string[] fieldNames);
-        
+
         /// <summary>
         /// Orders the results by the specified fields in a descending order
         /// </summary>
@@ -271,10 +273,31 @@ namespace Examine.SearchCriteria
         IBooleanOperation All();
 
 
-        IBooleanOperation FieldQuery(string query, params string[] fields);
+        /// <summary>
+        /// Matches items as defined by the IIndexValueType used for the fields specified.  If a type is not defined for a field name nothing will be added
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="fields"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        IBooleanOperation ManagedQuery(string query, string[] fields = null, IManagedQueryParameters parameters = null);
 
-      
-       
+        /// <summary>
+        /// Matches items as defined by the IIndexValueType used for the fields specified. 
+        /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="fields"></param>
+        /// <param name="minInclusive"></param>
+        /// <param name="maxInclusive"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        IBooleanOperation ManagedRangeQuery<T>(T? min, T? max, string[] fields, bool minInclusive = true, bool maxInclusive = true, IManagedQueryParameters parameters = null) where T : struct;
+
+
+
         /// <summary>
         /// Executes the query
         /// </summary>

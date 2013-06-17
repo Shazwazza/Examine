@@ -51,5 +51,6 @@ namespace Examine
         /// </summary>
         bool IndexExists();
 
+        bool IsIndexNew();
     }
 }

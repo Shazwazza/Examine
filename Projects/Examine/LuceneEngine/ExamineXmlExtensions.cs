@@ -196,7 +196,8 @@ namespace Examine.LuceneEngine
         public static ValueSet ToValueSet(this XElement node, string type, long? id = null)
         {
             id = id ?? long.Parse((string)node.Attribute("id"));
-            var set = new ValueSet(id.Value, type ?? node.ExamineNodeTypeAlias());
+            var set = new ValueSet(id.Value, type ?? node.ExamineNodeTypeAlias()) { OriginalNode = node};
+            
             foreach (var attr in node.Attributes())
             {
                 if (attr.Name != "id")

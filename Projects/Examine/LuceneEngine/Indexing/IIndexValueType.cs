@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Indexing
         
         void AnalyzeReader(ReaderData readerData);
 
-        Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader);
+        Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader, IManagedQueryParameters parameters);
 
         IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader);
     }

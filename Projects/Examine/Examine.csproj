@@ -84,6 +84,10 @@
     <Reference Include="EPocalipse.IFilter">
       <HintPath>..\..\packages\EPocalipse\EPocalipse.IFilter.dll</HintPath>
     </Reference>
+    <Reference Include="HtmlAgilityPack, Version=1.4.5.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\umbraco 4.9.1\HtmlAgilityPack.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
@@ -161,6 +165,7 @@
     <Compile Include="LuceneEngine\Config\IndexSet.cs" />
     <Compile Include="LuceneEngine\Config\IndexSetCollection.cs" />
     <Compile Include="LuceneEngine\Config\SearcherContexts.cs" />
+    <Compile Include="LuceneEngine\Cru\CompositeSearcherWarmer.cs" />
     <Compile Include="LuceneEngine\Cru\Committer.cs" />
     <Compile Include="LuceneEngine\Cru\DisposeUtil.cs" />
     <Compile Include="LuceneEngine\Cru\ISearcherWarmer.cs" />
@@ -206,9 +211,14 @@
     <Compile Include="LuceneEngine\Indexing\Analyzers\PrefixAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\Analyzers\PrefixFilter.cs" />
     <Compile Include="LuceneEngine\Indexing\DefaultHighlighter.cs" />
+    <Compile Include="LuceneEngine\Indexing\Filters\FileTextLoader.cs" />
+    <Compile Include="LuceneEngine\Indexing\Filters\HtmlFilter.cs" />
+    <Compile Include="LuceneEngine\Indexing\Filters\IValueFilter.cs" />
+    <Compile Include="LuceneEngine\Indexing\FastVectorHighlighterWrapper.cs" />
     <Compile Include="LuceneEngine\Indexing\IHighlighter.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexValueType.cs" />
+    <Compile Include="LuceneEngine\Indexing\IManagedQueryParameters.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueSet.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\AutoSuggestType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\DateTimeType.cs" />
@@ -219,6 +229,7 @@
     <Compile Include="LuceneEngine\Indexing\ValueTypes\Int64Type.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\RawStringType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\SingleType.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypeWarmer.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />

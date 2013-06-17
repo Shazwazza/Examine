@@ -19,10 +19,12 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         ReaderData GetReaderData(IndexReader reader);
 
+        IEnumerable<IIndexValueType> ValueTypes { get; }
+
         IIndexValueType GetValueType(string fieldName);
 
         DocumentData GetDocumentData(int doc);
 
-        List<KeyValuePair<IIndexValueType, Query>> FieldQueries { get; }
+        List<KeyValuePair<IIndexValueType, Query>> ManagedQueries { get; }
     }
 }

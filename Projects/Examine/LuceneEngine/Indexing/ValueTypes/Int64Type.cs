@@ -26,7 +26,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             doc.Add(new NumericField(LuceneIndexer.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetLongValue(parsedVal));
         }
 
-        public override Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader)
+        public override Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader, IManagedQueryParameters parameters)
         {
             long parsedVal;
             if (!TryConvert(query, out parsedVal))
@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             return GetQuery(parsedVal, parsedVal);
         }
 
-        public Query GetQuery(long? lower, long? upper, bool lowerInclusive = true, bool upperInclusive = true)
+        public Query GetQuery(long? lower, long? upper, bool lowerInclusive = true, bool upperInclusive = true, IManagedQueryParameters parameters = null)
         {
             return NumericRangeQuery.NewLongRange(FieldName,
                 lower != null ? (ValueType)lower.Value : null,

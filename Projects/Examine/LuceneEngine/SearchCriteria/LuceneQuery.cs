@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
+using Examine.LuceneEngine.Indexing;
 using Examine.SearchCriteria;
 using Lucene.Net.Search;
 
@@ -452,9 +453,15 @@ namespace Examine.LuceneEngine.SearchCriteria
             return search.All();
         }
 
-        public IBooleanOperation FieldQuery(string query, params string[] fields)
+        public IBooleanOperation ManagedQuery(string query, string[] fields = null, IManagedQueryParameters parameters = null)
         {
-            return search.FieldQuery(query, fields);
+            return search.ManagedQuery(query, fields, parameters);
+        }
+
+        
+        public IBooleanOperation ManagedRangeQuery<T>(T? min, T? max, string[] fields, bool minInclusive = true, bool maxInclusive = true, IManagedQueryParameters parameters = null) where T : struct
+        {
+            return search.ManagedRangeQuery(min, max, fields, minInclusive: minInclusive, maxInclusive: maxInclusive, parameters: parameters);
         }
 
         public ISearchResults Execute()

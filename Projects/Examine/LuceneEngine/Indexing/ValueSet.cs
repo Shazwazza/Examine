@@ -9,6 +9,8 @@ namespace Examine.LuceneEngine.Indexing
 {
     public class ValueSet
     {
+        internal XElement OriginalNode { get; set; }
+
         public long Id { get; set; }
 
         public string Type { get; set; }
@@ -51,7 +53,7 @@ namespace Examine.LuceneEngine.Indexing
 
         internal  XElement ToExamineXml()
         {
-            return ToLegacyFields().ToExamineXml((int) Id, Type);
+            return OriginalNode ?? ToLegacyFields().ToExamineXml((int) Id, Type);
         }
     }
 }

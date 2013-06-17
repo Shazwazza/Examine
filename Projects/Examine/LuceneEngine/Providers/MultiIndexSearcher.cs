@@ -134,7 +134,7 @@ namespace Examine.LuceneEngine.Providers
 			{               
 				searchables.Add(s.GetSearcher());
 			}
-            
+                        
             return new MultiSearcher(searchables.ToArray());
         }
 

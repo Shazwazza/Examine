@@ -2,22 +2,35 @@
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Documents;
 
 namespace Examine
 {
     public class SearchResult
     {
+        public ISearchResults Results { get; set; }
+
+        [Obsolete("You need to specify the owning ISearchResults to enable highlighting")]
         public SearchResult()
         {
             Fields = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
-            FieldValues = new Dictionary<string, string[]>(StringComparer.InvariantCultureIgnoreCase);
-            Highlights = new Dictionary<string, List<Func<string>>>(StringComparer.InvariantCultureIgnoreCase);
+            FieldValues = new Dictionary<string, string[]>(StringComparer.InvariantCultureIgnoreCase);            
+        }
+
+        public SearchResult(ISearchResults results) : this()
+        {
+            Results = results;
         }
 
         internal Document Document { get; set; }
 
-        public long Id { get; set; }
+        internal int DocId { get; set; }
+
+        public long LongId { get; set; }
+
+        public int Id { get { return (int) LongId; } }
+        
         public float Score { get; set; }
         public IDictionary<string, string> Fields { get; protected set; }
 
@@ -26,11 +39,13 @@ namespace Examine
         public FacetLevel[] Facets { get; set; }
 
 
+        /// <summary>
+        /// How many times this document is used as a facet in the search results or facet count basis (SearchOptions.FacetReferenceCountBasis).
+        /// </summary>
         public FacetReferenceCount[] FacetCounts { get; set; }
 
 
-        public Dictionary<string, List<Func<string>>> Highlights { get; protected set; }
-
+        
         /// <summary>
         /// Returns the key value pair for the index specified
         /// </summary>
@@ -69,20 +84,20 @@ namespace Examine
 
             var result = (SearchResult)obj;
 
-            return Id.Equals(result.Id);
+            return LongId.Equals(result.LongId);
         }
 
         public string GetHighlight(string fieldName)
         {
-            List<Func<string>> f;
-            if (Highlights.TryGetValue(fieldName, out f))
+            if (Results != null && Results.Highlighters != null)
             {
-                var hs = f.Select(hl => hl()).Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
-                if (hs != null)
+                List<Func<SearchResult,string>> hls;
+                if (Results.Highlighters.TryGetValue(fieldName, out hls))
                 {
-                    return string.Join("\r\n", hs);
+                    return hls.Select(hl => hl(this)).FirstOrDefault(r => !string.IsNullOrWhiteSpace(r));
                 }
             }
+            
 
             return null;
         }
@@ -93,7 +108,7 @@ namespace Examine
         /// <returns></returns>
         public override int GetHashCode()
         {
-            return Id.GetHashCode();
+            return LongId.GetHashCode();
         }
 
     }

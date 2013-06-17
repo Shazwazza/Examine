@@ -221,7 +221,7 @@ namespace UmbracoExamine
                     XElement node = new XElement("node");
 
                     // create the @id attribute
-                    XAttribute nodeId = new XAttribute("id", result.Id);
+                    XAttribute nodeId = new XAttribute("id", result.LongId);
 
                     // create the @score attribute
                     XAttribute nodeScore = new XAttribute("score", result.Score);

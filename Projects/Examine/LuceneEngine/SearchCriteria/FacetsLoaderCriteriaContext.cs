@@ -19,7 +19,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             _searcher = searcher;
             _searcherContext = searcherContext;
 
-            FieldQueries = new List<KeyValuePair<IIndexValueType, Query>>();
+            ManagedQueries = new List<KeyValuePair<IIndexValueType, Query>>();
         }
 
         public Searcher Searcher { get { return _searcher; } }
@@ -30,6 +30,11 @@ namespace Examine.LuceneEngine.SearchCriteria
         public ReaderData GetReaderData(IndexReader reader)
         {
             return _searcherContext.FacetsLoader.GetReaderData(reader);
+        }
+
+        public IEnumerable<IIndexValueType> ValueTypes
+        {
+            get { return _searcherContext.RegisteredValueTypes; }
         }
 
         public IIndexValueType GetValueType(string fieldName)
@@ -60,6 +65,6 @@ namespace Examine.LuceneEngine.SearchCriteria
             return null;   
         }
 
-        public List<KeyValuePair<IIndexValueType, Query>> FieldQueries { get; private set; }
+        public List<KeyValuePair<IIndexValueType, Query>> ManagedQueries { get; private set; }
     }
 }

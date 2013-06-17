@@ -89,6 +89,10 @@ namespace Examine.Providers
         public IIndexCriteria IndexerData { get; set; }
 
         public abstract bool IndexExists();
+        public virtual bool IsIndexNew()
+        {
+            return !IndexExists();
+        }
 
         #endregion
 
@@ -134,17 +138,10 @@ namespace Examine.Providers
         /// </summary>
         public event EventHandler<IndexingNodeDataEventArgs> IgnoringNode;
 
-        /// <summary>
-        /// Occurs just before a ValueSet is indexed. Values can be changed, removed or added here.
-        /// </summary>
-        public event EventHandler<IndexingNodeDataEventArgs> TransformValues;
+        
 
         #endregion
-
-        protected bool HasLegacyTransformHandlers
-        {
-            get { return GatheringFieldData != null || GatheringNodeData != null; }
-        }
+      
 
         #region Protected Event callers
 
@@ -209,14 +206,7 @@ namespace Examine.Providers
         }
 
 
-        protected virtual void OnTransformValues(IndexingNodeDataEventArgs e)
-        {
-            if (TransformValues != null)
-            {
-                TransformValues(this, e);
-            }
-        }
-
+        
         /// <summary>
         /// Raises the <see cref="E:GatheringFieldData"/> event.
         /// </summary>

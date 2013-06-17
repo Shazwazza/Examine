@@ -17,7 +17,7 @@ namespace Examine.LuceneEngine.Faceting
         readonly ConditionalWeakTable<object, ReaderData> _readerData = new ConditionalWeakTable<object, ReaderData>();        
         
         public FacetsLoader(FacetConfiguration configuration)
-        {            
+        {                        
             Configuration = configuration;            
         }
 
@@ -37,10 +37,12 @@ namespace Examine.LuceneEngine.Faceting
             }
         }
 
-        void AugmentReader(IndexReader reader)
+        ReaderData AugmentReader(IndexReader reader)
         {
             var data = GetReaderData(reader);
-            data.Reader = reader;            
+            data.Reader = reader;
+
+            return data;
         }
 
         public void Dispose()

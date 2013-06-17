@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security;
 using Examine;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
@@ -60,7 +61,10 @@ namespace Examine.LuceneEngine
 
         private SearchOptions _options;
 
-        //private ScoreD
+
+        public IDictionary<string, List<Func<SearchResult,string>>> Highlighters { get; private set; }
+
+            //private ScoreD
 
         [SecuritySafeCritical]
         internal SearchResults(Query query, IEnumerable<SortField> sortField, ICriteriaContext searcherContext, SearchOptions options)
@@ -69,6 +73,9 @@ namespace Examine.LuceneEngine
 
             CriteriaContext = searcherContext;
             DoSearch(query, sortField, options);
+
+            Highlighters =
+                new Dictionary<string, List<Func<SearchResult, string>>>(StringComparer.InvariantCultureIgnoreCase);
         }
 
         [SecuritySafeCritical]
@@ -168,26 +175,32 @@ namespace Examine.LuceneEngine
                 id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
             }
             var readerData = CriteriaContext.GetDocumentData(docId);
-            var sr = new SearchResult()
+            var sr = new SearchResult(this)
             {
-                Id = long.Parse(id),
+                LongId = long.Parse(id),
+                DocId = docId,
                 Score = score,
                 Facets = readerData != null && readerData.Data.FacetLevels != null
                                             ? readerData.Data.FacetLevels[readerData.SubDocument] : _noFacets,
                 Document = doc
             };
 
-            if (_options.CountFacets && _options.CountFacetReferences)
+            if ( _options.CountFacetReferences)
             {
-                FacetReferenceInfo[] info;
-                if (FacetCounts.FacetMap.TryGetReferenceInfo(sr.Id, out info))
+
+                if (_options.CountFacets || _options.FacetReferenceCountBasis != null)
                 {
-                    sr.FacetCounts =
-                        info.Select(i => new FacetReferenceCount(i.FieldName, FacetCounts.Counts[i.Id])).ToArray();
-                }
-                else
-                {
-                    sr.FacetCounts = new FacetReferenceCount[0];
+                    var counts = _options.FacetReferenceCountBasis ?? FacetCounts;
+                    FacetReferenceInfo[] info;
+                    if (counts.FacetMap.TryGetReferenceInfo(sr.LongId, out info))
+                    {
+                        sr.FacetCounts =
+                            info.Select(i => new FacetReferenceCount(i.FieldName, counts.Counts[i.Id])).ToArray();
+                    }
+                    else
+                    {
+                        sr.FacetCounts = new FacetReferenceCount[0];
+                    }
                 }
             }
 

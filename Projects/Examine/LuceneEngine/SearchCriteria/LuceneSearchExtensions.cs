@@ -26,6 +26,27 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
     
+        public static IEnumerable<IndexSearcher> GetSubSearchers(this Searchable s)
+        {
+            var ixs = s as IndexSearcher;
+            if (ixs != null)
+            {
+                yield return ixs;
+            }
+
+            var ms = s as MultiSearcher;
+            if (ms != null)
+            {
+                foreach (var mss in ms.GetSearchables())
+                {
+                    foreach (var ss in mss.GetSubSearchers())
+                    {
+                        yield return ss;
+                    }
+                }
+            }
+        }
+
 
         static LuceneSearchCriteria GetLuceneSearchCriteria(IQuery q)
         {
@@ -115,7 +136,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
         /// <summary>
-        /// If a search result is used as a reference facet, toggle whether the count for different field names in the result
+        /// If a search result is used as a reference facet, toggle whether the count for different field names in the result will be included
         /// </summary>
         /// <param name="toggle"></param>
         /// <returns></returns>        

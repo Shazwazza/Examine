@@ -14,6 +14,7 @@ using System.Xml.Linq;
 using Examine;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine.Indexing.Filters;
 using Examine.LuceneEngine.Indexing.ValueTypes;
 using Examine.Providers;
 using Examine.Session;
@@ -48,7 +49,7 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = true;
         }
-        
+
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -57,7 +58,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
         /// <param name="async"></param>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, bool async)
             : base(indexerData)
         {
@@ -78,26 +79,26 @@ namespace Examine.LuceneEngine.Providers
             EnsureIndex(false);
         }
 
-		[SecuritySafeCritical]
-		protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
-			: base(indexerData)
-		{			
-			WorkingFolder = null;
-			LuceneIndexFolder = null;
-			_directory = luceneDirectory;
+        [SecuritySafeCritical]
+        protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
+            : base(indexerData)
+        {
+            WorkingFolder = null;
+            LuceneIndexFolder = null;
+            _directory = luceneDirectory;
 
-			IndexingAnalyzer = analyzer;
+            IndexingAnalyzer = analyzer;
 
-			//create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-			InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
+            //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
+            InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
 
-			//IndexSecondsInterval = 5;
-			OptimizationCommitThreshold = 100;
-			AutomaticallyOptimize = true;
-			RunAsync = async;
+            //IndexSecondsInterval = 5;
+            OptimizationCommitThreshold = 100;
+            AutomaticallyOptimize = true;
+            RunAsync = async;
 
             EnsureIndex(false);
-		}
+        }
 
         #endregion
 
@@ -120,7 +121,7 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -168,7 +169,7 @@ namespace Examine.LuceneEngine.Providers
                 var found = false;
                 if (name.EndsWith("Indexer"))
                 {
-                    
+
                     var setNameByConvension = name.Remove(name.LastIndexOf("Indexer")) + "IndexSet";
                     //check if we can assign the index set by naming convention
                     var set = IndexSets.Instance.Sets.Cast<IndexSet>().SingleOrDefault(x => x.SetName == setNameByConvension);
@@ -233,7 +234,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 RunAsync = bool.Parse(config["runAsync"]);
             }
-            
+
             CommitCount = 0;
 
             EnsureIndex(false);
@@ -426,16 +427,16 @@ namespace Examine.LuceneEngine.Providers
         [Obsolete("No longer used. Background thread handles optimization")]
         public int OptimizationCommitThreshold { get; protected internal set; }
 
-	    /// <summary>
-	    /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
-	    /// </summary>
-	    public Analyzer IndexingAnalyzer
-	    {
-			[SecuritySafeCritical]
-		    get;
-			[SecuritySafeCritical]
-			protected set;
-	    }
+        /// <summary>
+        /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
+        /// </summary>
+        public Analyzer IndexingAnalyzer
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            protected set;
+        }
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
@@ -487,11 +488,11 @@ namespace Examine.LuceneEngine.Providers
         /// Occurs when [document writing].
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
-        
+
         #endregion
 
         #region Event handlers
-        
+
         /// <summary>
         /// Called when an indexing error occurs
         /// </summary>
@@ -563,7 +564,7 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Provider implementation
-        
+
 
 
         public override void ReIndexNode(ValueSet node)
@@ -606,13 +607,13 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public void EnsureIndex(bool forceOverwrite)
         {
-            if (_searcherContext == null)            
+            if (_searcherContext == null)
             {
                 lock (_createLock)
-                {                    
+                {
                     if (_searcherContext == null)
                     {
                         _indexIsNew = IndexExists();
@@ -623,23 +624,23 @@ namespace Examine.LuceneEngine.Providers
                             _searcherContext = new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, facetConfig));
                         _searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
 
-                        InitializeFields();            
+                        InitializeFields();
                     }
                 }
 
-            }            
+            }
 
             if (forceOverwrite)
             {
                 _searcherContext.Manager.DeleteAll();
-            }            
+            }
         }
 
         public void InitializeFields()
         {
             foreach (var field in IndexerData.StandardFields.Concat(IndexerData.UserFields))
             {
-                Func<string,IIndexValueType> valueType;
+                Func<string, IIndexValueType> valueType;
                 if (ConfigurationTypes.TryGetValue(field.Type, out valueType))
                 {
                     _searcherContext.DefineValueType(valueType(field.Name));
@@ -675,7 +676,7 @@ namespace Examine.LuceneEngine.Providers
                     Item = new IndexItem("", nodeId)
                 });
 
-            
+
             //SafelyProcessQueueItems();
         }
 
@@ -698,7 +699,7 @@ namespace Examine.LuceneEngine.Providers
                         Operation = IndexOperationType.Delete,
                         Item = new IndexItem(type, string.Empty)
                     };
-                EnqueueIndexOperation(op);                
+                EnqueueIndexOperation(op);
             }
 
             //now do the indexing...
@@ -713,7 +714,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// This can be an expensive operation and should only be called when there is no indexing activity
         /// </remarks>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public void OptimizeIndex()
         {
             EnsureIndex(false);
@@ -778,7 +779,7 @@ namespace Examine.LuceneEngine.Providers
                     Item = new IndexItem(node)
                 });
             }
-   
+
         }
 
         /// <summary>
@@ -788,7 +789,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type"></param>
         protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
         {
-            AddNodesToIndex(nodes.Select(n=>n.ToValueSet(type)));
+            AddNodesToIndex(nodes.Select(n => n.ToValueSet(type)));
 
             //run the indexer on all queued files
             //SafelyProcessQueueItems();
@@ -816,14 +817,14 @@ namespace Examine.LuceneEngine.Providers
                 indexSet.IndexUserFields.Cast<IIndexField>().ToArray(),
                 indexSet.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 indexSet.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
-                indexSet.IndexParentId) {FacetConfiguration = indexSet.FacetConfiguration};
+                indexSet.IndexParentId) { FacetConfiguration = indexSet.FacetConfiguration };
         }
 
         /// <summary>
         /// Checks if the index is ready to open/write to.
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected bool IndexReady()
         {
             return (!IndexWriter.IsLocked(GetLuceneDirectory()));
@@ -833,10 +834,32 @@ namespace Examine.LuceneEngine.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public override bool IndexExists()
         {
             return IndexReader.IndexExists(GetLuceneDirectory());
+        }
+
+        public override bool IsIndexNew()
+        {
+            var baseNew = base.IsIndexNew();
+            if (!baseNew)
+            {                
+                var sc = _searcherContext;
+                if (sc != null)
+                {
+                    using (var s = sc.GetSearcher())
+                    {
+                        return s.Searcher.GetIndexReader().NumDocs() == 0;
+                    }
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            return baseNew;
         }
 
         /// <summary>
@@ -847,13 +870,13 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type to store the node as.</param>
         [Obsolete("Use ValueSets instead")]
         protected virtual void AddSingleNodeToIndex(XElement node, string type)
-        {               
+        {
             AddNodesToIndex(new XElement[] { node }, type);
         }
 
         protected virtual void AddSingleNodeToIndex(ValueSet node)
         {
-            AddNodesToIndex(new[]{node});
+            AddNodesToIndex(new[] { node });
         }
 
 
@@ -864,7 +887,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="iw"></param>
         /// <param name="performCommit">Obsolete. Doesn't have any effect</param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
         {
             int nodeId = -1;
@@ -878,7 +901,7 @@ namespace Examine.LuceneEngine.Providers
                     return true;
 
                 SearcherContext.Manager.DeleteDocuments(indexTerm);
-                
+
 
                 OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text())));
                 return true;
@@ -916,7 +939,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-                
+
 
         /// <summary>
         /// Translates the XElement structure into a dictionary object to be indexed.
@@ -943,7 +966,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="node"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        
+
         protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
             var values = new Dictionary<string, string>();
@@ -967,8 +990,8 @@ namespace Examine.LuceneEngine.Providers
                     }
                     else
                     {
-                        values.Add(field.Name, val);    
-                    }                    
+                        values.Add(field.Name, val);
+                    }
                 }
 
             }
@@ -994,15 +1017,18 @@ namespace Examine.LuceneEngine.Providers
                     else
                     {
                         values.Add(field.IndexName, value);
-                    }    
+                    }
                 }
             }
 
-            
+
 
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
+
+
             OnGatheringNodeData(indexingNodeDataArgs);
+
             values = indexingNodeDataArgs.Fields;
 
             return values;
@@ -1049,6 +1075,35 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
+        private Dictionary<string, List<string>> _fieldMappings;
+        private object _fieldMappingsLock = new object();
+        protected virtual IEnumerable<string> GetIndexFieldNames(string sourceName)
+
+        {
+            List<string> mappings;
+            if (_fieldMappings == null)
+            {
+                lock (_fieldMappingsLock)
+                {
+                    if (_fieldMappings == null)
+                    {
+                        _fieldMappings = new Dictionary<string, List<string>>();
+                        foreach (var f in IndexerData.UserFields.Concat(IndexerData.StandardFields))
+                        {                            
+                            if (!_fieldMappings.TryGetValue(f.Name, out mappings))
+                            {
+                                _fieldMappings.Add(f.Name, mappings = new List<string>());
+                            }
+
+                            mappings.Add(f.IndexName != f.Name ? f.IndexName : f.Name);                            
+                        }
+                    }
+                }
+            }
+
+            return _fieldMappings.TryGetValue(sourceName, out mappings) ? (IEnumerable<string>) mappings : new[] { sourceName };
+        }
+
         public virtual void AddDocument(ValueSet values)
         {
             var args = new IndexingNodeEventArgs(values);
@@ -1060,12 +1115,16 @@ namespace Examine.LuceneEngine.Providers
 
             d.Add(new ExternalIdField(values.Id));
 
+
             var sc = SearcherContext;
             foreach (var value in values.Values)
             {
-                var type = sc.GetValueType(value.Key, true);
-                
-                type.AddValue(d, value.Value);
+                foreach (var mapping in GetIndexFieldNames(value.Key))
+                {
+                    var type = sc.GetValueType(mapping, true);
+
+                    type.AddValue(d, value.Value);
+                }
             }
 
             AddSpecialFieldsToDocument(d, values);
@@ -1077,7 +1136,7 @@ namespace Examine.LuceneEngine.Providers
 
             SearcherContext.Manager.UpdateDocument(new Term(IndexNodeIdFieldName, values.Id.ToString()), d);
 
-            OnNodeIndexed(new IndexedNodeEventArgs(values.Id));            
+            OnNodeIndexed(new IndexedNodeEventArgs(values.Id));
         }
 
 
@@ -1091,7 +1150,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// This will normalize (lowercase) all text before it goes in to the index.
         /// </remarks>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected virtual void AddDocument(Dictionary<string, string> fields, int nodeId, string type)
         {
             AddDocument(ValueSet.FromLegacyFields(nodeId, type, fields));
@@ -1120,7 +1179,7 @@ namespace Examine.LuceneEngine.Providers
             //    //copy local
             //    var x1 = x;
             //    var indexedFields = indexSetFields.Where(o => o.IndexName == x1.Key).ToArray();
-                
+
             //    if (!indexedFields.Any())
             //    {
             //        //TODO: Decide if we should support non-strings in here too
@@ -1148,7 +1207,7 @@ namespace Examine.LuceneEngine.Providers
             //        Fieldable sortedField = null;
             //        object parsedVal = null;
             //        if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
-                                                
+
             //        switch (indexField.Type.ToUpper())
             //        {
             //            //case "NUMBER":
@@ -1285,6 +1344,8 @@ namespace Examine.LuceneEngine.Providers
         //}
 
 
+
+
         /// <summary>
         /// Returns a dictionary of special key/value pairs to store in the lucene index which will be stored by:
         /// - Field.Store.YES
@@ -1299,13 +1360,6 @@ namespace Examine.LuceneEngine.Providers
         protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
         {
             return new Dictionary<string, string>();
-            //return new Dictionary<string, string>() 
-            //{
-            //    //we want to store the nodeId separately as it's the index
-            //    {IndexNodeIdFieldName, allValuesForIndexing[IndexNodeIdFieldName]},
-            //    //add the index type first
-            //    {IndexTypeFieldName, allValuesForIndexing[IndexTypeFieldName]}
-            //};
         }
 
         ///// <summary>
@@ -1313,7 +1367,7 @@ namespace Examine.LuceneEngine.Providers
         ///// </summary>
         //protected internal void SafelyProcessQueueItems()
         //{
-            
+
         //    if (!RunAsync)
         //    {
         //        StartIndexing();
@@ -1347,7 +1401,7 @@ namespace Examine.LuceneEngine.Providers
         //        {
         //            if (!_isIndexing)
         //            {
-  
+
         //                _isIndexing = true;
 
         //                //keep processing until it is complete
@@ -1374,7 +1428,7 @@ namespace Examine.LuceneEngine.Providers
 
         //}
 
-        
+
         protected void ProcessIndexOperation(IndexOperation item)
         {
             switch (item.Operation)
@@ -1395,7 +1449,7 @@ namespace Examine.LuceneEngine.Providers
                     if (ValidateDocument(item.Item.ValueSet))
                     {
                         var node = ProcessIndexQueueItem(item);
-                        OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, new[] {node}));
+                        OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, new[] { node }));
                     }
                     else
                     {
@@ -1413,7 +1467,7 @@ namespace Examine.LuceneEngine.Providers
 
         protected void EnqueueIndexOperation(IndexOperation op)
         {
-            ProcessIndexOperation(op);    
+            ProcessIndexOperation(op);
             //_indexQueue.Enqueue(op);
         }
 
@@ -1423,7 +1477,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             if (_directory == null)
@@ -1440,25 +1494,25 @@ namespace Examine.LuceneEngine.Providers
         /// Returns an index writer for the current directory
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
-        
+        [SecuritySafeCritical]
+
         public virtual NrtManager GetIndexWriter()
         {
             EnsureIndex(false);
             return SearcherContext.Manager;
         }
 
-        
+
 
 
         #endregion
 
         #region Private
 
-        
 
-     
-        
+
+
+
 
         /// <summary>
         /// Adds 'special' fields to the Lucene index for use internally.
@@ -1468,10 +1522,11 @@ namespace Examine.LuceneEngine.Providers
         /// - Field.TermVector.NO
         /// </summary>
         /// <param name="d"></param>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private void AddSpecialFieldsToDocument(Document d, ValueSet values)
         {
-            d.Add(new Field(IndexNodeIdFieldName, values.Id+"", Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+
+            d.Add(new Field(IndexNodeIdFieldName, values.Id + "", Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
             d.Add(new Field(IndexTypeFieldName, values.Type.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
 
             //Legacy stuff
@@ -1502,10 +1557,10 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="op"></param>
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private void ProcessDeleteQueueItem(IndexOperation op, bool performCommit = true)
         {
-           
+
             //if the id is empty then remove the whole type
             if (string.IsNullOrEmpty(op.Item.Id))
             {
@@ -1513,35 +1568,47 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                DeleteFromIndex(new Term(IndexNodeIdFieldName, op.Item.Id), performCommit);    
+                DeleteFromIndex(new Term(IndexNodeIdFieldName, op.Item.Id), performCommit);
             }
 
             CommitCount++;
         }
 
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private IndexedNode ProcessIndexQueueItem(IndexOperation op)
         {
             //get the node id
             var nodeId = int.Parse(op.Item.Id);
 
-		    var values = op.Item.ValueSet;
+            var values = op.Item.ValueSet;
             //now, add the index with our dictionary object
-		    if (HasLegacyTransformHandlers)
-		    {
-		        var fields = GetDataToIndex(op.Item.DataToIndex, op.Item.IndexType);
-		        values = ValueSet.FromLegacyFields(values.Id, values.Type, fields);
-		    }
 
-            OnTransformValues(new IndexingNodeDataEventArgs(values));
+            var currentDict = values.ToLegacyFields();
 
-		    // This is not needed any more. They are special properties of the ValueSet: EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexType);
+            //Evil compatibility hack. Could be nice to skip
+            var fields = GetDataToIndex(op.Item.DataToIndex, op.Item.IndexType);
+            foreach (var v in fields)
+            {
+                string val;
+                if (!currentDict.TryGetValue(v.Key, out val))
+                {
+                    values.Values.Add(new KeyValuePair<string, object>(v.Key, v.Value));
+                }
+                else if (val != v.Value)
+                {
+                    values.Values.RemoveAll(kv => kv.Key == v.Key);
+                    values.Values.Add(new KeyValuePair<string, object>(v.Key, v.Value));
+                }
+            }
 
-		    AddDocument(values);
+            
+            // This is not needed any more. They are special properties of the ValueSet: EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexType);
+
+            AddDocument(values);
 
             CommitCount++;
 
-            return new IndexedNode() {NodeId = nodeId, Type = op.Item.IndexType};
+            return new IndexedNode() { NodeId = nodeId, Type = op.Item.IndexType };
         }
 
         //[SecuritySafeCritical]
@@ -1560,7 +1627,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="folder"></param>
         private void VerifyFolder(DirectoryInfo folder)
         {
-            
+
             if (!System.IO.Directory.Exists(folder.FullName))
             {
                 lock (_folderLocker)
@@ -1579,11 +1646,11 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
 
-        public static Dictionary<string, Func<string,IIndexValueType>> ConfigurationTypes = new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
+        public static Dictionary<string, Func<string, IIndexValueType>> ConfigurationTypes = new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
 
         static LuceneIndexer()
         {
-            ConfigurationTypes.Add("number", name=>new Int32Type(name));
+            ConfigurationTypes.Add("number", name => new Int32Type(name));
             ConfigurationTypes.Add("int", name => new Int32Type(name));
             ConfigurationTypes.Add("float", name => new SingleType(name));
             ConfigurationTypes.Add("double", name => new DoubleType(name));
@@ -1597,8 +1664,8 @@ namespace Examine.LuceneEngine.Providers
             ConfigurationTypes.Add("date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE));
             ConfigurationTypes.Add("facet", name => new RawStringType(name).SetSeparator(","));
             ConfigurationTypes.Add("facetpath", name => new RawStringType(name).SetSeparator(","));
-            ConfigurationTypes.Add("autosuggest", name => new AutoSuggestType(name));
-            ConfigurationTypes.Add("fulltext", name => new FullTextType(name));
+            ConfigurationTypes.Add("autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() });
+            ConfigurationTypes.Add("fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() });
         }
 
 
@@ -1638,7 +1705,7 @@ namespace Examine.LuceneEngine.Providers
                 //_isCancelling = true;
                 //this._fileWatcher.Dispose();
             }
-                
+
         }
 
         #endregion

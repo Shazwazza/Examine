@@ -68,7 +68,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             set { _NodeNameField = value; }
         }
 
-        private string _ParentIdField = "parentID";        
+        private string _ParentIdField = "parentID";
 
         /// <summary>
         /// Defines the field name to use for the parent id query
@@ -88,7 +88,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             //This is how the lucene searcher is injected into filters.
             LateBoundSearcherContext = () => CriteriaContext;
 
-            
+
             SearchOptions = SearchOptions.Default;
 
             SearchIndexType = type;
@@ -867,28 +867,56 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
 
-        public IBooleanOperation FieldQuery(string query, params string[] fields)
+        public IBooleanOperation ManagedQuery(string query, string[] fields = null, IManagedQueryParameters parameters = null)
         {
             Query.Add(new LateBoundQuery(() =>
                 {
+                    var types = fields != null
+                                    ? fields.Select(f => CriteriaContext.GetValueType(f)).Where(t => t != null)
+                                    : CriteriaContext.ValueTypes;
+
                     var bq = new BooleanQuery();
-                    foreach (var f in fields)
+                    foreach (var type in types)
                     {
-                        var type = CriteriaContext.GetValueType(f);
-                        if (type != null)
+                        var q = type.GetQuery(query, CriteriaContext.Searcher, CriteriaContext.FacetsLoader, parameters);
+                        if (q != null)
                         {
-                            var q = type.GetQuery(query, CriteriaContext.Searcher, CriteriaContext.FacetsLoader);
-                            if (q != null)
-                            {
-                                CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
-                                bq.Add(q, BooleanClause.Occur.SHOULD);
-                            }
+                            CriteriaContext.ManagedQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
+                            bq.Add(q, BooleanClause.Occur.SHOULD);
                         }
+
                     }
                     return bq;
                 }), _occurance);
 
-            
+
+            return new LuceneBooleanOperation(this);
+        }
+
+
+
+        public IBooleanOperation ManagedRangeQuery<T>(T? min, T? max, string[] fields, bool minInclusive = true, bool maxInclusive = true, IManagedQueryParameters parameters = null) where T : struct
+        {
+            Query.Add(new LateBoundQuery(() =>
+            {
+                var bq = new BooleanQuery();
+                foreach (var f in fields)
+                {
+                    var type = CriteriaContext.GetValueType(f) as IIndexRangeValueType<T>;
+                    if (type != null)
+                    {
+                        var q = type.GetQuery(min, max, minInclusive, maxInclusive, parameters: parameters);
+                        if (q != null)
+                        {
+                            //CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
+                            bq.Add(q, BooleanClause.Occur.SHOULD);
+                        }
+                    }
+                }
+                return bq;
+            }), _occurance);
+
+
             return new LuceneBooleanOperation(this);
         }
 

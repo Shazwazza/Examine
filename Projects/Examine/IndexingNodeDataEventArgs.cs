@@ -25,7 +25,7 @@ namespace Examine
         }
 
         private void InitializeLegacyData()
-        {
+        {            
             if (_node == null)
             {
                 _node = Values.ToExamineXml();

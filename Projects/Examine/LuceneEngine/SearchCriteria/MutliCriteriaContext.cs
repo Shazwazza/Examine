@@ -15,14 +15,14 @@ namespace Examine.LuceneEngine.SearchCriteria
         private readonly ICriteriaContext[] _inner;
 
         public MutliCriteriaContext(MultiSearcher searcher, ICriteriaContext[] inner)
-        {
+        {            
             _searcher = searcher;
             _inner = inner;
             //We can do this because all facet configurations share a single static facetmap.
             FacetsLoader = inner.Select(cc => cc.FacetsLoader).FirstOrDefault(fm => fm != null);
             FacetMap = FacetsLoader != null ? FacetsLoader.FacetMap : null;
 
-            FieldQueries = new List<KeyValuePair<IIndexValueType, Query>>();
+            ManagedQueries = new List<KeyValuePair<IIndexValueType, Query>>();
         }
 
         public Searcher Searcher { get { return _searcher; } }
@@ -53,7 +53,13 @@ namespace Examine.LuceneEngine.SearchCriteria
             return _inner[index].GetDocumentData(doc);
         }
 
-        public List<KeyValuePair<IIndexValueType, Query>> FieldQueries { get; private set; }
+        public List<KeyValuePair<IIndexValueType, Query>> ManagedQueries { get; private set; }
+
+
+        public IEnumerable<IIndexValueType> ValueTypes
+        {
+            get { return _inner.SelectMany(cc=>cc.ValueTypes); }
+        }
 
         public IIndexValueType GetValueType(string fieldName)
         {

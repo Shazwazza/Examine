@@ -171,7 +171,7 @@ namespace Examine.Test.Search
             var results1 = _searcher.Search(sc1);
             var results2 = _searcher.Search(sc2);
 
-            Assert.AreNotEqual(results1.First().Id, results2.First().Id);
+            Assert.AreNotEqual(results1.First().LongId, results2.First().LongId);
         }
 
         [Test]
@@ -299,7 +299,7 @@ namespace Examine.Test.Search
             Console.WriteLine(sCriteria2.ToString());
             var results2 = _searcher.Search(sCriteria2);
 
-            Assert.AreNotEqual(results.First().Id, results2.First().Id);
+            Assert.AreNotEqual(results.First().LongId, results2.First().LongId);
 
         }
 

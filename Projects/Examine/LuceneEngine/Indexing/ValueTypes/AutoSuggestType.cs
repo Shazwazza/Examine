@@ -37,7 +37,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             doc.Add(new Field(FieldName, "" + value, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS));
         }
 
-        public override Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader)
+        public override Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader, IManagedQueryParameters parameters)
         {
             if (query == null)
             {
@@ -67,7 +67,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
 
         public override IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader)
         {
-            return new DefaultHighlighter(query, _indexAnalyzer, this);
+            return new DefaultHighlighter(query, _indexAnalyzer, FieldName, searcher);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Security;
 using System.Text;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
 using Examine.SearchCriteria;
@@ -180,24 +181,41 @@ namespace Examine.LuceneEngine.Providers
 
             var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, luceneParams.CriteriaContext, luceneParams.SearchOptions);
 
-            foreach (var fq in luceneParams.CriteriaContext.FieldQueries)
-            {
-                var hl = fq.Key.GetHighlighter(fq.Value, luceneParams.CriteriaContext.Searcher, luceneParams.CriteriaContext.FacetsLoader);
-                if (hl != null)
-                {                    
-                    foreach (var r in pagesResults)
-                    {
-                        List<Func<string>> highlights;
-                        if (!r.Highlights.TryGetValue(fq.Key.FieldName, out highlights))
-                        {
-                            r.Highlights.Add(fq.Key.FieldName, highlights = new List<Func<string>>());
-                        }
 
-                        string value = null;
-                        highlights.Add(()=> value ?? (value=hl.Highlight(r.Document)));
+            foreach (var type in luceneParams.CriteriaContext.ValueTypes)
+            {
+                var hl = type.GetHighlighter(luceneParams.Query, luceneParams.CriteriaContext.Searcher, luceneParams.CriteriaContext.FacetsLoader);
+                if (hl != null)
+                {
+                    List<Func<SearchResult, string>> highlights;
+                    if (!pagesResults.Highlighters.TryGetValue(type.FieldName, out highlights))
+                    {
+                        pagesResults.Highlighters.Add(type.FieldName, highlights = new List<Func<SearchResult, string>>());
                     }
-                }
+
+                    highlights.Add(res=>hl.Highlight(res.DocId));
+                }                
             }
+
+
+            //foreach (var fq in luceneParams.CriteriaContext.FieldQueries)
+            //{
+            //    var hl = fq.Key.GetHighlighter(luceneParams.Query, luceneParams.CriteriaContext.Searcher, luceneParams.CriteriaContext.FacetsLoader);
+            //    if (hl != null)
+            //    {                    
+            //        foreach (var r in pagesResults)
+            //        {
+            //            List<Func<string>> highlights;
+            //            if (!r.Highlights.TryGetValue(fq.Key.FieldName, out highlights))
+            //            {
+            //                r.Highlights.Add(fq.Key.FieldName, highlights = new List<Func<string>>());
+            //            }
+
+            //            string value = null;
+            //            highlights.Add(() => value ?? (value = hl.Highlight(r.DocId)));
+            //        }
+            //    }
+            //}
 
             return pagesResults;
         }

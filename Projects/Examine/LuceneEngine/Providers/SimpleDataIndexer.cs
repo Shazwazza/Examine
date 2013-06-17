@@ -80,14 +80,14 @@ namespace Examine.LuceneEngine.Providers
             var data = DataService.GetAllData(type);
 
             //loop through the data and add it to the index
-            var nodes = new List<XElement>();
+            var nodes = new List<ValueSet>();
             foreach (var d in data)
             {
-                nodes.Add(d.RowData.ToExamineXml(d.NodeDefinition.NodeId, d.NodeDefinition.Type));                
+                nodes.Add(ValueSet.FromLegacyFields(d.NodeDefinition.NodeId, type ?? d.NodeDefinition.Type, d.RowData));                   
             }
             
             //now that we have XElement nodes of all of the data, process it as per normal
-            AddNodesToIndex(nodes, type);
+            AddNodesToIndex(nodes);
         }              
 
         /// <summary>

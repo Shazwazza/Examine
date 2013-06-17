@@ -16,6 +16,7 @@ using Examine.Web.Demo.Models;
 using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using NLipsum.Core;
 
 namespace Examine.Web.Demo.Controllers
 {
@@ -35,12 +36,13 @@ namespace Examine.Web.Demo.Controllers
         public ActionResult Populate()
         {
             try
-            {
+            {                
                 using (var db = new MyDbContext())
                 {
                     //check if we have data
                     if (!db.TestModels.Any())
                     {
+                        var r = new Random();
                         //using TableDirect is BY FAR one of the fastest ways to bulk insert data in SqlCe... 
                         using (db.Database.Connection)
                         {
@@ -52,9 +54,8 @@ namespace Examine.Web.Demo.Controllers
 
                                 var rs = cmd.ExecuteResultSet(ResultSetOptions.Updatable);
                                 var rec = rs.CreateRecord();
-
-                                var r = new Random(1337);
-
+                                
+                                
                                 for (var i = 0; i < 27000; i++)
                                 {
                                     var path = new List<string> { "Root" };
@@ -67,7 +68,7 @@ namespace Examine.Web.Demo.Controllers
                                     rec.SetString(2, "b" + r.Next(0, 100));
                                     rec.SetString(3, "c" + i);
                                     rec.SetString(4, string.Join("/", path));
-                                    rec.SetString(5, "e" + i);
+                                    rec.SetString(5, LipsumGenerator.GenerateHtml(r.Next(1, 5)));
                                     rec.SetString(6, "This is a nice little test. Made by Kühnel");
                                     rs.Insert(rec);
                                 }
@@ -126,7 +127,9 @@ namespace Examine.Web.Demo.Controllers
                 {
                     //Add column1 filter as normal field query
                     //criteria.Field("Column1", q);
-                    criteria.FieldQuery(q, "Column6").Compile()
+                    criteria.ManagedQuery(q, fields: new[]{"Column5", "Column6"})
+                        //.Or().Field("Column6", "test")
+                        .Compile()
                         .AddExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes / 1000f); 
                 }
             }
@@ -143,15 +146,23 @@ namespace Examine.Web.Demo.Controllers
             foreach (var res in searchResults)
             {
                 sb.AppendLine();
-                sb.AppendLine("ID: " + res.Id);
+                sb.AppendLine("ID: " + res.LongId);
+                sb.AppendLine(res.GetHighlight("Column5"));
                 sb.AppendLine(res.GetHighlight("Column6"));
                 sb.Append("   Facets: ");
                 sb.AppendLine(string.Join(", ", res.Facets.Select(l => l.FacetId + ":" + l.Level.ToString("N2"))));
+                sb.AppendLine("   Likes: " + ((TestExternalData) TestExternalDataProvider.Instance.GetData(res.LongId)).Likes);
 
-                sb.AppendLine("   Likes: " + ((TestExternalData) TestExternalDataProvider.Instance.GetData(res.Id)).Likes);
+                if (res.FacetCounts != null)
+                {
+                    foreach (var fc in res.FacetCounts)
+                    {
+                        sb.AppendLine(fc.FieldName + ": " + fc.Count);
+                    }
+                }
             }
 
-
+            sw.Stop();
 
             var map = searchResults.CriteriaContext.FacetMap;
 
@@ -161,7 +172,7 @@ namespace Examine.Web.Demo.Controllers
                 //Iterate all facets and show their key and count.
                 foreach (var res in searchResults.FacetCounts.GetTopFacets(10))
                 {
-                    sb.Append(res.Key.FieldName + ": " + res.Value + ", count = " + res.Value);                    
+                    sb.Append(res.Key.FieldName + ":" + res.Key.Value + ", count = " + res.Value + ", ");                    
                 }
             }
 
@@ -182,7 +193,7 @@ namespace Examine.Web.Demo.Controllers
             //}
 
 
-            sw.Stop();
+            
 
             sb.AppendFormat("Elapsed {0:N2} ms.", sw.Elapsed.TotalMilliseconds);
 

@@ -25,8 +25,9 @@ namespace Examine
 
         [Obsolete("Use ValueSet instead")]
         public IndexingNodeEventArgs(int nodeId, Dictionary<string, string> fields, string indexType)
-            : this( ValueSet.FromLegacyFields(nodeId, indexType, fields))            
-        {                        
+            : this( ValueSet.FromLegacyFields(nodeId, indexType, fields))
+        {
+            _fields = fields;
         }
 
         void InitializeLegacyData()

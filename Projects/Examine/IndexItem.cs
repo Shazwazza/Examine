@@ -33,8 +33,8 @@ namespace Examine
         void InitializeLegacyFields()
         {
             if (_dataToIndex == null && ValueSet != null)
-            {           
-                _dataToIndex = ValueSet.ToLegacyFields().ToExamineXml((int) ValueSet.Id, ValueSet.Type);
+            {
+                _dataToIndex = ValueSet.ToExamineXml();
             }
         }
 

@@ -31,6 +31,8 @@ namespace Examine.Config
             get { return m_Examine; }
         }
 
+        public Action<ExamineManager> ConfigurationAction { get; set; }
+
         #endregion
 
         ///<summary>
