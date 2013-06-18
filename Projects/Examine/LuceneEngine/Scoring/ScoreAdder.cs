@@ -7,16 +7,16 @@ namespace Examine.LuceneEngine.Scoring
 {
     public class ScoreAdder : ScoreOperation
     {
-        private readonly float _innerWeight;
+        private readonly float _originalWeight;
 
-        public ScoreAdder(double innerWeight)
+        public ScoreAdder(double originalWeight)
         {
-            _innerWeight = (float) innerWeight;
+            _originalWeight = (float) originalWeight;
         }
 
         public override float GetScore(float inner, float outer)
         {
-            return _innerWeight*inner + (1 - _innerWeight)*outer;
+            return _originalWeight*inner + (1 - _originalWeight)*outer;
         }
     }
 }

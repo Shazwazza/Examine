@@ -80,29 +80,30 @@ namespace Examine.LuceneEngine.SearchCriteria
             }
             return new LuceneBooleanOperation(crit);
         }
+       
+        public static IQuery WrapRelevanceScore(this IBooleanOperation luceneSearchCriteria, ScoreOperation op,
+                                                params IFacetLevel[] levels)
+        {
+            return luceneSearchCriteria.Compile().WrapRelevanceScore(op, levels);
+        }
 
-        public static IQuery AddRelevanceScore(this IQuery luceneSearchCriteria, double originalQueryWeight, params IFacetLevel[] levels)
+        public static IQuery WrapRelevanceScore(this IQuery luceneSearchCriteria, ScoreOperation op, params IFacetLevel[] levels)
         {
             var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
-            crit.WrapScoreQuery(q => new FacetLevelScoreQuery(q, crit.LateBoundSearcherContext, new ScoreAdder(originalQueryWeight), levels));
+            crit.WrapScoreQuery(q => new FacetLevelScoreQuery(q, crit.LateBoundSearcherContext, op, levels));
 
             return luceneSearchCriteria;
         }
 
-        public static IQuery AddExternalDataScore<TData>(this IQuery luceneSearchCriteria, double originalQueryWeight, Func<TData, float> scorer)
+       
+        public static IQuery WrapExternalDataScore<TData>(this IBooleanOperation luceneSearchCriteria, ScoreOperation op,
+                                                          Func<TData, float> scorer)
             where TData : class
         {
-            return ExternalDataScore(luceneSearchCriteria, new ScoreAdder(originalQueryWeight), scorer);
+            return luceneSearchCriteria.Compile().WrapExternalDataScore<TData>(op, scorer);
         }
-
-        public static IQuery MultiplyExternalDataScore<TData>(this IQuery luceneSearchCriteria, float originalQueryWeight, Func<TData, float> scorer)
-            where TData : class
-        {           
-            return ExternalDataScore(luceneSearchCriteria, new ScoreMultiplier(), scorer);
-        }
-
         
-        private static IQuery ExternalDataScore<TData>(IQuery luceneSearchCriteria, ScoreOperation op, Func<TData, float> scorer)
+        public static IQuery WrapExternalDataScore<TData>(this IQuery luceneSearchCriteria, ScoreOperation op, Func<TData, float> scorer)
             where TData : class
         {
             var crit = GetLuceneSearchCriteria(luceneSearchCriteria);

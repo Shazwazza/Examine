@@ -115,13 +115,13 @@ namespace Examine.Web.Demo.Controllers
                     //Add column1 filter as facet filter
                     criteria.Facets(new FacetKey("Column1_Facet", q)).Compile()
                         //Here, zero means that we don't case about Lucene's score. We only want to know how well the results compare to the facets
-                        .AddRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1))
+                        .WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1))
 
                         //Score by the like count we have in the external in-memory data.
                         //The value is normalized. Here we know that we can't have more than 1000 likes. 
                         //Generally be careful about the scale of the scores you combine. 
                         //If you compare large numbers to small numbers use a logarithmic transform on the large one (e.g. comparing likes to number of comments)
-                        .AddExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes/1000f); 
+                        .WrapExternalDataScore<TestExternalData>(new ScoreAdder(1 - likeWeight), d => d.Likes / 1000f); 
                 }
                 else
                 {
@@ -130,7 +130,7 @@ namespace Examine.Web.Demo.Controllers
                     criteria.ManagedQuery(q, fields: new[]{"Column5", "Column6"})
                         //.Or().Field("Column6", "test")
                         .Compile()
-                        .AddExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes / 1000f); 
+                        .WrapExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes / 1000f); 
                 }
             }
 
