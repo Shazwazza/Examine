@@ -59,7 +59,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         public override Weight Weight(Searcher searcher)
         {
             return Wrapped.Weight(searcher);
-        }        
+        }        
+
 
         public override Query Combine(Query[] queries)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.Script.Serialization;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Documents;
@@ -9,6 +10,7 @@ namespace Examine
 {
     public class SearchResult
     {
+        [ScriptIgnore]
         public ISearchResults Results { get; set; }
 
         [Obsolete("You need to specify the owning ISearchResults to enable highlighting")]

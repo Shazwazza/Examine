@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine.Providers
 {
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
-    ///</summary>
+    ///</summary>    
     public abstract class LuceneIndexer : BaseIndexProvider, IDisposable
     {
         #region Constructors

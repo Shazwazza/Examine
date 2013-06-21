@@ -18,7 +18,7 @@ namespace UmbracoExamine
     /// <remarks>
     /// XSLT extensions will ONLY work for provider that have a base class of BaseUmbracoIndexer
     /// </remarks>
-    internal class XsltExtensions
+    public class XsltExtensions
     {
         ///<summary>
         /// Uses the provider specified to search, returning an XPathNodeIterator
@@ -221,7 +221,7 @@ namespace UmbracoExamine
                     XElement node = new XElement("node");
 
                     // create the @id attribute
-                    XAttribute nodeId = new XAttribute("id", result.LongId);
+                    XAttribute nodeId = new XAttribute("id", result.Id);
 
                     // create the @score attribute
                     XAttribute nodeScore = new XAttribute("score", result.Score);

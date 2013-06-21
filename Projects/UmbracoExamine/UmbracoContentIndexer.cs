@@ -10,8 +10,9 @@ using System.Web;
 using System.Xml.Linq;
 using Examine;
 using Examine.Config;
-using Examine.LuceneEngine.Indexing;
 using Examine.Providers;
+using Lucene.Net.Documents;
+using Umbraco.Core;
 using umbraco.cms.businesslogic;
 using UmbracoExamine.DataServices;
 using Examine.LuceneEngine;
@@ -71,30 +72,35 @@ namespace UmbracoExamine
         public const string NodeTypeAliasFieldName = "__NodeTypeAlias";
 
         /// <summary>
+        /// The prefix added to a field when it is duplicated in order to store the original raw value.
+        /// </summary>
+        public const string RawFieldPrefix = "__Raw_";
+
+        /// <summary>
         /// A type that defines the type of index for each Umbraco field (non user defined fields)
         /// Alot of standard umbraco fields shouldn't be tokenized or even indexed, just stored into lucene
         /// for retreival after searching.
         /// </summary>
-        internal static readonly Dictionary<string, FieldIndexTypes> IndexFieldPolicies
-            = new Dictionary<string, FieldIndexTypes>()
+        internal static readonly List<StaticField> IndexFieldPolicies
+            = new List<StaticField>
             {
-                { "id", FieldIndexTypes.NOT_ANALYZED},
-                { "version", FieldIndexTypes.NOT_ANALYZED},
-                { "parentID", FieldIndexTypes.NOT_ANALYZED},
-                { "level", FieldIndexTypes.NOT_ANALYZED},
-                { "writerID", FieldIndexTypes.NOT_ANALYZED},
-                { "creatorID", FieldIndexTypes.NOT_ANALYZED},
-                { "nodeType", FieldIndexTypes.NOT_ANALYZED},
-                { "template", FieldIndexTypes.NOT_ANALYZED},
-                { "sortOrder", FieldIndexTypes.NOT_ANALYZED},
-                { "createDate", FieldIndexTypes.NOT_ANALYZED},
-                { "updateDate", FieldIndexTypes.NOT_ANALYZED},
-                { "nodeName", FieldIndexTypes.ANALYZED},
-                { "urlName", FieldIndexTypes.NOT_ANALYZED},
-                { "writerName", FieldIndexTypes.ANALYZED},
-                { "creatorName", FieldIndexTypes.ANALYZED},
-                { "nodeTypeAlias", FieldIndexTypes.ANALYZED},
-                { "path", FieldIndexTypes.NOT_ANALYZED}
+                new StaticField("id", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "version", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "parentID", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "level", FieldIndexTypes.NOT_ANALYZED, true, "NUMBER"),
+                new StaticField( "writerID", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "creatorID", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "nodeType", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "template", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "sortOrder", FieldIndexTypes.NOT_ANALYZED, true, "NUMBER"),
+                new StaticField( "createDate", FieldIndexTypes.NOT_ANALYZED, false, "DATETIME"),
+                new StaticField( "updateDate", FieldIndexTypes.NOT_ANALYZED, false, "DATETIME"),
+                new StaticField( "nodeName", FieldIndexTypes.ANALYZED, false, string.Empty),
+                new StaticField( "urlName", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "writerName", FieldIndexTypes.ANALYZED, false, string.Empty),
+                new StaticField( "creatorName", FieldIndexTypes.ANALYZED, false, string.Empty),
+                new StaticField( "nodeTypeAlias", FieldIndexTypes.ANALYZED, false, string.Empty),
+                new StaticField( "path", FieldIndexTypes.NOT_ANALYZED, false, string.Empty)
             };
 
         #endregion
@@ -120,7 +126,7 @@ namespace UmbracoExamine
         /// </exception>
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
-
+           
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
             bool supportUnpublished;
@@ -170,15 +176,30 @@ namespace UmbracoExamine
             base.OnIndexingError(e);
         }
 
-        //protected override void OnDocumentWriting(DocumentWritingEventArgs docArgs)
-        //{
-        //    DataService.LogService.AddVerboseLog(docArgs.NodeId, string.Format("({0}) DocumentWriting event for node ({1})", this.Name, LuceneIndexFolder.FullName));
-        //    base.OnDocumentWriting(docArgs);
-        //}
+        /// <summary>
+        /// This ensures that the special __Raw_ fields are indexed
+        /// </summary>
+        /// <param name="docArgs"></param>
+        [SecuritySafeCritical]
+        protected override void OnDocumentWriting(DocumentWritingEventArgs docArgs)
+        {
+            var d = docArgs.Document;
+            foreach (var f in docArgs.Fields.Where(x => x.Key.StartsWith(RawFieldPrefix)))
+            {                
+                d.Add(new Field(
+                   f.Key,
+                   f.Value,
+                   Field.Store.YES,
+                   Field.Index.NO, //don't index this field, we never want to search by it 
+                   Field.TermVector.NO));   
+            }            
+
+            base.OnDocumentWriting(docArgs);
+        }
 
         protected override void OnNodeIndexed(IndexedNodeEventArgs e)
         {
-            DataService.LogService.AddVerboseLog((int)e.NodeId, string.Format("Index created for node"));
+            DataService.LogService.AddVerboseLog(e.NodeId, string.Format("Index created for node"));
             base.OnNodeIndexed(e);
         }
 
@@ -209,13 +230,16 @@ namespace UmbracoExamine
             if (!SupportedTypes.Contains(type))
                 return;
 
-            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("ReIndexNode with type: {0}", type));
-            base.ReIndexNode(node, type);
-        }
-
-        public override void ReIndexNode(ValueSet node)
-        {
-            ReIndexNode(node.ToLegacyFields().ToExamineXml((int) node.Id, node.Type), node.Type);
+            if (node.Attribute("id") != null)
+            {
+                DataService.LogService.AddVerboseLog((int) node.Attribute("id"), string.Format("ReIndexNode with type: {0}", type));
+                base.ReIndexNode(node, type);
+            }
+            else
+            {
+                DataService.LogService.AddErrorLog(-1, string.Format("ReIndexNode cannot proceed, the format of the XElement is invalid, the xml has no 'id' attribute. {0}", node));
+            }
+            
         }
 
         /// <summary>
@@ -243,7 +267,7 @@ namespace UmbracoExamine
                 EnqueueIndexOperation(new IndexOperation()
                     {
                         Operation = IndexOperationType.Delete,
-                        Item = new IndexItem("", r.LongId.ToString())
+                        Item = new IndexItem(null, "", r.Id.ToString())
                     });
                 //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }
@@ -278,15 +302,25 @@ namespace UmbracoExamine
         /// ensure our special Path field is added to the collection
         /// </summary>
         /// <param name="e"></param>
+        [SecuritySafeCritical]
         protected override void OnGatheringNodeData(IndexingNodeDataEventArgs e)
-        {            
-            //strip html of all users fields
+        {
+            //strip html of all users fields if we detect it has HTML in it. 
+            //if that is the case, we'll create a duplicate 'raw' copy of it so that we can return
+            //the value of the field 'as-is'.
             // Get all user data that we want to index and store into a dictionary 
             foreach (var field in IndexerData.UserFields)
             {
                 if (e.Fields.ContainsKey(field.Name))
                 {
-                    e.Fields[field.Name] = DataService.ContentService.StripHtml(e.Fields[field.Name]);
+                    //check if the field value has html
+                    if (XmlHelper.CouldItBeXml(e.Fields[field.Name]))
+                    {
+                        //First save the raw value to a raw field, we will change the policy of this field by detecting the prefix later
+                        e.Fields[RawFieldPrefix + field.Name] = e.Fields[field.Name];
+                        //now replace the original value with the stripped html
+                        e.Fields[field.Name] = DataService.ContentService.StripHtml(e.Fields[field.Name]);    
+                    }
                 }
             }
 
@@ -340,9 +374,20 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexSet"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// If we cannot initialize we will pass back empty indexer data since we cannot read from the database
+        /// </remarks>
         protected override IIndexCriteria GetIndexerData(IndexSet indexSet)
         {
-            return indexSet.ToIndexCriteria(DataService);
+            if (CanInitialize())
+            {
+                return indexSet.ToIndexCriteria(DataService, IndexFieldPolicies);
+            }
+            else
+            {
+                return base.GetIndexerData(indexSet);
+            }
+            
         }
 
         /// <summary>
@@ -352,8 +397,8 @@ namespace UmbracoExamine
         /// <returns></returns>
         protected override FieldIndexTypes GetPolicy(string fieldName)
         {
-            var def = IndexFieldPolicies.Where(x => x.Key == fieldName);
-            return (def.Count() == 0 ? FieldIndexTypes.ANALYZED : def.Single().Value);
+            var def = IndexFieldPolicies.Where(x => x.Name == fieldName).ToArray();
+            return (def.Any() == false ? FieldIndexTypes.ANALYZED : def.Single().IndexType);
         }
 
         /// <summary>

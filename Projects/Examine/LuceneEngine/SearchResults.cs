@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
+using System.Web.Script.Serialization;
 using Examine;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
@@ -29,6 +30,7 @@ namespace Examine.LuceneEngine
             return new EmptySearchResults();
         }
 
+        [ScriptIgnore]
         public ICriteriaContext CriteriaContext
         {
             [SecuritySafeCritical]
@@ -37,6 +39,7 @@ namespace Examine.LuceneEngine
             private set;
         }
 
+        [ScriptIgnore]
         public FacetCounts FacetCounts { get; private set; }
 
         /// <summary>

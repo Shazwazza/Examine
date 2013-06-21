@@ -2,6 +2,8 @@
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Security;
+using System.Web;
+using Examine;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -24,4 +26,8 @@ using System.Security;
 [assembly: InternalsVisibleTo("Examine.Azure")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
+
 //[assembly: AllowPartiallyTrustedCallers]
+//[assembly: SecurityRules(SecurityRuleSet.Level2, SkipVerificationInFullTrust = true)]
+
+[assembly: PreApplicationStartMethod(typeof(ExamineDisposeModule), "Register")]

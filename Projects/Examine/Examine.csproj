@@ -57,6 +57,7 @@
     <DocumentationFile>bin\Debug\Examine.xml</DocumentationFile>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -67,6 +68,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Release\Examine.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -84,9 +86,9 @@
     <Reference Include="EPocalipse.IFilter">
       <HintPath>..\..\packages\EPocalipse\EPocalipse.IFilter.dll</HintPath>
     </Reference>
-    <Reference Include="HtmlAgilityPack, Version=1.4.5.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+    <Reference Include="HtmlAgilityPack, Version=1.3.0.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\umbraco 4.9.1\HtmlAgilityPack.dll</HintPath>
+      <HintPath>..\DLLs\61\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
@@ -122,12 +124,14 @@
     <Reference Include="Lucene.Net.Search.SimpleFacetedSearch">
       <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Search.SimpleFacetedSearch.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -143,6 +147,7 @@
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Enforcer.cs" />
+    <Compile Include="ExamineDisposeModule.cs" />
     <Compile Include="FacetReferenceCount.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IIndexField.cs" />

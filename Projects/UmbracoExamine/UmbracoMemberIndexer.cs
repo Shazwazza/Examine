@@ -13,10 +13,10 @@ using Lucene.Net.Analysis;
 
 namespace UmbracoExamine
 {
-    /// <summary>
+	/// <summary>
     /// 
     /// </summary>
-    internal class UmbracoMemberIndexer : UmbracoContentIndexer
+    public class UmbracoMemberIndexer : UmbracoContentIndexer
     {
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace UmbracoExamine
             return null;
         }
 
-        protected override System.Collections.Generic.Dictionary<string, string> GetDataToIndex(XElement node, string type)
+        protected override Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
             var data = base.GetDataToIndex(node, type);
 
@@ -78,9 +78,10 @@ namespace UmbracoExamine
         }
 
 		[SecuritySafeCritical]
-        private XElement GetMemberItem(int nodeId)
+        private static XElement GetMemberItem(int nodeId)
         {
-            var nodes = umbraco.library.GetMember(nodeId);
+			//TODO: Change this so that it is not using the LegacyLibrary, just serialize manually!
+            var nodes = LegacyLibrary.GetMember(nodeId);
             return XElement.Parse(nodes.Current.OuterXml);
         }
     }

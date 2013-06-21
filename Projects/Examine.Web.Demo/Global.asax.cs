@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Examine.LuceneEngine.Config;
@@ -22,7 +23,7 @@ namespace Examine.Web.Demo
         }
 
         public static void RegisterRoutes(RouteCollection routes)
-        {
+        {            
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute(
@@ -57,6 +58,7 @@ namespace Examine.Web.Demo
 
             var indexer = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
 
+            
 
             var r = new Random();
             //Here custom fields are written directly to the document regardsless of Examine's config
@@ -96,20 +98,21 @@ namespace Examine.Web.Demo
             ////    };
         }
 
-        protected void Application_EndRequest(object sender, EventArgs e)
-        {
-            if (ExamineManager.InstanceInitialized)
-            {
-                ExamineManager.Instance.EndRequest();
-            }
-        }
+        //a-HA! These are wired automatically from Examine.
+        //protected void Application_EndRequest(object sender, EventArgs e)
+        //{
+        //    if (ExamineManager.InstanceInitialized)
+        //    {
+        //        ExamineManager.Instance.EndRequest();
+        //    }
+        //}
 
-        protected void Application_End()
-        {
-            if (ExamineManager.InstanceInitialized)
-            {
-                ExamineManager.Instance.Dispose();
-            }
-        }
+        //protected void Application_End()
+        //{
+        //    if (ExamineManager.InstanceInitialized)
+        //    {
+        //        ExamineManager.Instance.Dispose();
+        //    }
+        //}
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration.Provider;
+using System.IO;
 using System.Linq;
 using System.Web.Configuration;
+using System.Web.Hosting;
 using System.Xml.Linq;
 using Examine.Config;
 using Examine.LuceneEngine.Config;
@@ -25,6 +27,9 @@ namespace Examine
         private ExamineManager()
         {
             LoadProviders();
+            
+            AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
+                
         }
 
         public static bool InstanceInitialized { get;private set; }
@@ -113,9 +118,24 @@ namespace Examine
                                     catch (Exception ex)
                                     {
                                         var li = index as LuceneIndexer;
-                                        HttpContext.Current.Response.Write("Rebuilding index" +
-                                                                           (li != null ? " " + li.Name : "") + " failed");
-                                        HttpContext.Current.Response.Write(ex.ToString());   
+                                        try
+                                        {
+                                            HttpContext.Current.Response.Write("Rebuilding index" +
+                                                                               (li != null ? " " + li.Name : "") +
+                                                                               " failed");
+                                            HttpContext.Current.Response.Write(ex.ToString());
+                                        }
+                                        catch
+                                        {
+                                            try
+                                            {
+                                                File.WriteAllText(HostingEnvironment.MapPath("~/App_Data/ExamineError.txt"), ex.ToString());
+                                            }
+                                            catch
+                                            {
+                                                throw;
+                                            }
+                                        }
                                     }
                                 }
                             }    

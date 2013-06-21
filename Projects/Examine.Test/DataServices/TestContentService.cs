@@ -86,7 +86,9 @@ namespace Examine.Test.DataServices
 
         public IEnumerable<string> GetAllSystemPropertyNames()
         {
-            return UmbracoContentIndexer.IndexFieldPolicies.Select(x => x.Key);
+            //TODO: WTF? What's StaticField?
+            //return UmbracoContentIndexer.IndexFieldPolicies.Select(x => x.Key);
+            yield break;
         }
 
         #endregion
