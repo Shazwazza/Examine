@@ -26,4 +26,4 @@ Examine allows you to index and search data easily and wraps the Lucene.Net inde
 * Targetted indexing. You can specify via configuration as to what node types, properties, and node subsets (based on parent node) that you want included in your index.
 * If you're a Lucene fanatic, you can specify any type of Analzers you want to use for your indexing or searching via configuration.
 
-Full documentation can be found in the [Documentation] section.
+Full documentation can be found in the [Documentation](https://github.com/Shandem/Examine/wiki) section.
