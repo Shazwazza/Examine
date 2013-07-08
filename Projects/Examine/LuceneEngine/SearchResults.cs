@@ -56,11 +56,20 @@ namespace Examine.LuceneEngine
             LuceneQuery = query;
 
             LuceneSearcher = searcher;
-            DoSearch(query, sortField);
+            DoSearch(query, sortField, 0);
+        }
+
+        [SecuritySafeCritical]
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
+        {
+            LuceneQuery = query;
+
+            LuceneSearcher = searcher;
+            DoSearch(query, sortField, maxResults);
         }
 
 		[SecuritySafeCritical]
-        private void DoSearch(Query query, IEnumerable<SortField> sortField)
+        private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
         {
             //This try catch is because analyzers strip out stop words and sometimes leave the query
             //with null values. This simply tries to extract terms, if it fails with a null
@@ -85,15 +94,17 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
+		    maxResults = maxResults > 1 ? maxResults : LuceneSearcher.MaxDoc();
+
             if (sortField.Count() == 0)
             {
-                var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort());
+                var topDocs = LuceneSearcher.Search(query, null, maxResults, new Sort());
                 _collector = new AllHitsCollector(topDocs.scoreDocs);
                 topDocs = null;
             }
             else
             {
-                var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort(sortField.ToArray()));
+                var topDocs = LuceneSearcher.Search(query, null, maxResults, new Sort(sortField.ToArray()));
                 _collector = new AllHitsCollector(topDocs.scoreDocs);
                 topDocs = null;
             }
