@@ -1,0 +1,15 @@
+*.add
+_ReSharper*
+*.suo
+[Dd]ebug/
+[Rr]elease/
+x64/
+build/
+[Bb]in/
+[Oo]bj/
+*ReSharper.user
+TestResults/*
+Examine.Web.Demo/App_Data/*
+*.user
+build/Releases/*
+packages/*

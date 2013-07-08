@@ -157,6 +157,15 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
+            return Search(searchParams, 0);
+        }
+
+        /// <summary>
+        /// Performs a search with a maximum number of results
+        /// </summary>        
+        [SecuritySafeCritical]
+        public ISearchResults Search(ISearchCriteria searchParams, int maxResults)
+        {
             var searcher = GetSearcher();
 
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
@@ -165,7 +174,7 @@ namespace Examine.LuceneEngine.Providers
             if (luceneParams == null)
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
-            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher);
+            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);
             return pagesResults;
         }
 
