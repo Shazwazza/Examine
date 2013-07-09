@@ -202,7 +202,7 @@ namespace Examine.LuceneEngine
             {
                 if (attr.Name != "id")
                 {
-                    set.Values.Add(new KeyValuePair<string, object>(attr.Name.LocalName, attr.Value));
+                    set.Add(attr.Name.LocalName, attr.Value);                    
                 }
             }
 
@@ -212,7 +212,7 @@ namespace Examine.LuceneEngine
                 var alias = (string)d.Attribute("alias");
                 if (!string.IsNullOrEmpty(alias))
                 {
-                    set.Values.Add(new KeyValuePair<string, object>(alias, d.Value));
+                    set.Add(alias, d.Value);
                     hadData = true;
                 }
             }
@@ -221,7 +221,7 @@ namespace Examine.LuceneEngine
             {
                 foreach (var e in node.Elements())
                 {
-                    set.Values.Add(new KeyValuePair<string, object>(e.Name.LocalName, e.Value));
+                    set.Add(e.Name.LocalName, e.Value);
                 }
             }
             

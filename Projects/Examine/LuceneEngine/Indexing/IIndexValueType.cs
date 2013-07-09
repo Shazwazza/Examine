@@ -24,5 +24,7 @@ namespace Examine.LuceneEngine.Indexing
         Query GetQuery(string query, Searcher searcher, FacetsLoader facetsLoader, IManagedQueryParameters parameters);
 
         IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader);
+
+        IFacetExtractor CreateFacetExtractor();
     }
 }

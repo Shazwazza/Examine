@@ -95,7 +95,7 @@
     </Reference>
     <Reference Include="Lucene.Net, Version=2.9.4.1, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\TEMP\UmbracoCms6\bin\Lucene.Net.dll</HintPath>
+      <HintPath>..\..\packages\Lucene.Net.2.9.4.1\lib\net40\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net.Contrib.Analyzers">
       <HintPath>..\..\packages\Lucene.Net.Contrib.2.9.4.1\lib\net40\Lucene.Net.Contrib.Analyzers.dll</HintPath>
@@ -187,6 +187,7 @@
     <Compile Include="LuceneEngine\Faceting\DocIdField.cs" />
     <Compile Include="LuceneEngine\Faceting\DocumentFacet.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetConfiguration.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetCount.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetCountCollector.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetCounts.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetDocSet.cs" />
@@ -228,6 +229,7 @@
     <Compile Include="LuceneEngine\Indexing\ValueTypes\AutoSuggestType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\DateTimeType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\DoubleType.cs" />
+    <Compile Include="LuceneEngine\Indexing\ValueTypes\FacetType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\FullTextType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\IndexValueTypeBase.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\Int32Type.cs" />
@@ -236,6 +238,7 @@
     <Compile Include="LuceneEngine\Indexing\ValueTypes\SingleType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypeWarmer.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
+    <Compile Include="LuceneEngine\IValueSetService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
     <Compile Include="IndexItem.cs" />
@@ -246,7 +249,9 @@
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\SimpleDataIndexer.cs" />
+    <Compile Include="LuceneEngine\Providers\ValueSetIndexer.cs" />
     <Compile Include="LuceneEngine\ReaderStatus.cs" />
+    <Compile Include="LuceneEngine\Scoring\DecayingNumber.cs" />
     <Compile Include="LuceneEngine\Scoring\ExternalDataScoreQuery.cs" />
     <Compile Include="LuceneEngine\Scoring\FacetKeyLevel.cs" />
     <Compile Include="LuceneEngine\Scoring\FacetLevelScoreQuery.cs" />

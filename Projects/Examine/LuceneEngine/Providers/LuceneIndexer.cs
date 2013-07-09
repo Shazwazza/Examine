@@ -620,9 +620,15 @@ namespace Examine.LuceneEngine.Providers
 
                         var facetConfig = IndexerData != null ? IndexerData.FacetConfiguration : null;
 
-                        SearcherContexts.Instance.RegisterContext(
-                            _searcherContext = new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, facetConfig));
-                        _searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
+                        //TODO: Test what happens if someone actually wires two indexers to the same index set.
+                        _searcherContext = SearcherContexts.Instance.GetContext(GetLuceneDirectory());
+                        if (_searcherContext == null)
+                        {
+                            SearcherContexts.Instance.RegisterContext(
+                                _searcherContext =
+                                new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, facetConfig));
+                            _searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
+                        }
 
                         InitializeFields();
                     }
@@ -643,7 +649,7 @@ namespace Examine.LuceneEngine.Providers
                 Func<string, IIndexValueType> valueType;
                 if (ConfigurationTypes.TryGetValue(field.Type, out valueType))
                 {
-                    _searcherContext.DefineValueType(valueType(field.Name));
+                    _searcherContext.DefineValueType(valueType(field.IndexName));
                 }
             }
         }
@@ -692,15 +698,13 @@ namespace Examine.LuceneEngine.Providers
                 RebuildIndex();
                 return;
             }
-            else
-            {
-                var op = new IndexOperation()
-                    {
-                        Operation = IndexOperationType.Delete,
-                        Item = new IndexItem(type, string.Empty)
-                    };
-                EnqueueIndexOperation(op);
-            }
+
+            var op = new IndexOperation()
+                {
+                    Operation = IndexOperationType.Delete,
+                    Item = new IndexItem(type, string.Empty)
+                };
+            EnqueueIndexOperation(op);
 
             //now do the indexing...
             PerformIndexAll(type);
@@ -844,7 +848,7 @@ namespace Examine.LuceneEngine.Providers
         {
             var baseNew = base.IsIndexNew();
             if (!baseNew)
-            {                
+            {
                 var sc = _searcherContext;
                 if (sc != null)
                 {
@@ -889,10 +893,10 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
         [SecuritySafeCritical]
         protected bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
-        {
-            int nodeId = -1;
-            if (indexTerm.Field() == "id")
-                int.TryParse(indexTerm.Text(), out nodeId);
+        {            
+            long nodeId = -1;
+            if (indexTerm != null && indexTerm.Field() == "id")
+                long.TryParse(indexTerm.Text(), out nodeId);
 
             try
             {
@@ -900,15 +904,22 @@ namespace Examine.LuceneEngine.Providers
                 if (!IndexExists())
                     return true;
 
-                SearcherContext.Manager.DeleteDocuments(indexTerm);
+                if (indexTerm == null)
+                {
+                    SearcherContext.Manager.DeleteAll();
+                }
+                else
+                {
+                    SearcherContext.Manager.DeleteDocuments(indexTerm);
+                }
 
 
-                OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text())));
+                OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm == null ? "" : indexTerm.Field(), indexTerm == null ? "" : indexTerm.Text())));
                 return true;
             }
             catch (Exception ee)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeId, ee));
+                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", (int) (nodeId > int.MaxValue ? int.MaxValue : nodeId), ee));
                 return false;
             }
         }
@@ -1078,7 +1089,6 @@ namespace Examine.LuceneEngine.Providers
         private Dictionary<string, List<string>> _fieldMappings;
         private object _fieldMappingsLock = new object();
         protected virtual IEnumerable<string> GetIndexFieldNames(string sourceName)
-
         {
             List<string> mappings;
             if (_fieldMappings == null)
@@ -1089,19 +1099,19 @@ namespace Examine.LuceneEngine.Providers
                     {
                         _fieldMappings = new Dictionary<string, List<string>>();
                         foreach (var f in IndexerData.UserFields.Concat(IndexerData.StandardFields))
-                        {                            
+                        {
                             if (!_fieldMappings.TryGetValue(f.Name, out mappings))
                             {
                                 _fieldMappings.Add(f.Name, mappings = new List<string>());
                             }
 
-                            mappings.Add(f.IndexName != f.Name ? f.IndexName : f.Name);                            
+                            mappings.Add(f.IndexName != f.Name ? f.IndexName : f.Name);
                         }
                     }
                 }
             }
 
-            return _fieldMappings.TryGetValue(sourceName, out mappings) ? (IEnumerable<string>) mappings : new[] { sourceName };
+            return _fieldMappings.TryGetValue(sourceName, out mappings) ? (IEnumerable<string>)mappings : new[] { sourceName };
         }
 
         public virtual void AddDocument(ValueSet values)
@@ -1122,8 +1132,10 @@ namespace Examine.LuceneEngine.Providers
                 foreach (var mapping in GetIndexFieldNames(value.Key))
                 {
                     var type = sc.GetValueType(mapping, true);
-
-                    type.AddValue(d, value.Value);
+                    foreach (var val in value.Value)
+                    {
+                        type.AddValue(d, val);
+                    }
                 }
             }
 
@@ -1561,8 +1573,13 @@ namespace Examine.LuceneEngine.Providers
         private void ProcessDeleteQueueItem(IndexOperation op, bool performCommit = true)
         {
 
+            //if type and id are empty remove it all
+            if (string.IsNullOrEmpty(op.Item.Id) && string.IsNullOrEmpty(op.Item.IndexType))
+            {
+                DeleteFromIndex(null, performCommit);
+            }
             //if the id is empty then remove the whole type
-            if (string.IsNullOrEmpty(op.Item.Id))
+            else if (string.IsNullOrEmpty(op.Item.Id))
             {
                 DeleteFromIndex(new Term(IndexTypeFieldName, op.Item.IndexType), performCommit);
             }
@@ -1592,16 +1609,16 @@ namespace Examine.LuceneEngine.Providers
                 string val;
                 if (!currentDict.TryGetValue(v.Key, out val))
                 {
-                    values.Values.Add(new KeyValuePair<string, object>(v.Key, v.Value));
+                    values.Add(v.Key, v.Value);
                 }
                 else if (val != v.Value)
                 {
-                    values.Values.RemoveAll(kv => kv.Key == v.Key);
-                    values.Values.Add(new KeyValuePair<string, object>(v.Key, v.Value));
+                    values.Values.Remove(v.Key);
+                    values.Add(v.Key, v.Value);
                 }
             }
 
-            
+
             // This is not needed any more. They are special properties of the ValueSet: EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexType);
 
             AddDocument(values);
@@ -1662,8 +1679,10 @@ namespace Examine.LuceneEngine.Providers
             ConfigurationTypes.Add("date.day", name => new DateTimeType(name, DateTools.Resolution.DAY));
             ConfigurationTypes.Add("date.hour", name => new DateTimeType(name, DateTools.Resolution.HOUR));
             ConfigurationTypes.Add("date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE));
-            ConfigurationTypes.Add("facet", name => new RawStringType(name).SetSeparator(","));
-            ConfigurationTypes.Add("facetpath", name => new RawStringType(name).SetSeparator(","));
+            ConfigurationTypes.Add("raw", name => new RawStringType(name));
+            ConfigurationTypes.Add("rawfacet", name => new FacetType(name));
+            ConfigurationTypes.Add("facet", name => new FacetType(name).SetSeparator(","));
+            ConfigurationTypes.Add("facetpath", name => new FacetType(name, extractorFactory: ()=>new TermFacetPathExtractor(name)).SetSeparator(","));
             ConfigurationTypes.Add("autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() });
             ConfigurationTypes.Add("fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() });
         }

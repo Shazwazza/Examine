@@ -12,19 +12,6 @@ namespace Examine.LuceneEngine.Faceting
         public FacetReferenceKey(string fieldName, long referenceId) : base(fieldName, ""+referenceId)
         {
             ReferenceId = referenceId;
-        }
-
-        public override bool Equals(FacetKey other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            
-            var otherKey = other as FacetReferenceKey;
-            if (otherKey != null)
-            {
-                return otherKey.ReferenceId == ReferenceId;
-            }
-
-            return base.Equals(other);
-        }
+        }        
     }
 }

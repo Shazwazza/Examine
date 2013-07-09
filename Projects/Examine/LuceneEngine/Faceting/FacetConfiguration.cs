@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Security;
 using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine.Faceting
 {
@@ -45,13 +47,14 @@ namespace Examine.LuceneEngine.Faceting
                 {
                     foreach (IIndexField f in subset)
                     {
-                        if (f.Type.Equals("facet", StringComparison.InvariantCultureIgnoreCase))
+                        Func<string, IIndexValueType> valueType;
+                        if (LuceneIndexer.ConfigurationTypes.TryGetValue(f.Type, out valueType))
                         {
-                            config.FacetExtractors.Add(new TermFacetExtractor(f.IndexName));
-                        }
-                        else if (f.Type.Equals("facetpath", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            config.FacetExtractors.Add(new TermFacetPathExtractor(f.IndexName));
+                            var fe = valueType(f.IndexName).CreateFacetExtractor();
+                            if (fe != null)
+                            {
+                                config.FacetExtractors.Add(fe);
+                            }
                         }
                     }
                 }

@@ -5,7 +5,7 @@ using Examine.LuceneEngine.DataStructures;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    public class FacetCounts : IEnumerable<KeyValuePair<FacetKey, int>>
+    public class FacetCounts : IEnumerable<FacetCount>
     {
         public static int GrowFactor = 2048;
         
@@ -38,33 +38,33 @@ namespace Examine.LuceneEngine.Faceting
             return index > -1 && index < Counts.Length ? Counts[index] : 0;
         }
 
-        public IEnumerable<KeyValuePair<FacetKey, int>> GetTopFacets(int count, params string[] fieldNames)
+        public IEnumerable<FacetCount> GetTopFacets(int count, params string[] fieldNames)
         {
             var facets = fieldNames.IsNullOrEmpty() ? GetNonEmpty()
-                : FacetMap.GetByFieldNames(fieldNames).Select(f => new KeyValuePair<FacetKey, int>(f.Value, Counts[f.Key]));
+                : FacetMap.GetByFieldNames(fieldNames).Select(f => new FacetCount(f.Value, Counts[f.Key]));
 
             return facets.GetTopItems(count, 
                 
-                new LambdaComparer<KeyValuePair<FacetKey, int>>((x, y) =>
+                new LambdaComparer<FacetCount>((x, y) =>
                     {
-                        var c = y.Value.CompareTo(x.Value);
+                        var c = y.Count.CompareTo(x.Count);
                         return c == 0 ? x.Key.CompareTo(y.Key) : c;
                     }));
         } 
 
-        public IEnumerable<KeyValuePair<FacetKey, int>> GetNonEmpty()
+        public IEnumerable<FacetCount> GetNonEmpty()
         {
-            return Counts.Select(f => new KeyValuePair<FacetKey, int>(FacetMap.Keys[f.Key], f.Value));
+            return Counts.Select(f => new FacetCount(FacetMap.Keys[f.Key], f.Value));
         }
 
-        public IEnumerator<KeyValuePair<FacetKey, int>> GetEnumerator()
+        public IEnumerator<FacetCount> GetEnumerator()
         {
             var n = Counts.Length;
             foreach( var f in FacetMap)
             {
                 if (f.Key < n)
                 {
-                    yield return new KeyValuePair<FacetKey, int>(f.Value, Counts[f.Key]);
+                    yield return new FacetCount(f.Value, Counts[f.Key]);
                 }
             }
         }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Lucene.Net.Documents;
 
 namespace Examine.LuceneEngine.Indexing
 {
@@ -15,15 +16,18 @@ namespace Examine.LuceneEngine.Indexing
 
         public string Type { get; set; }
 
-        public List<KeyValuePair<string, object>> Values { get; set; }
+        public Dictionary<string, List<object>> Values { get; set; } 
 
-        public ValueSet(long id, string type, IEnumerable<KeyValuePair<string, object>> values = null)
+        
+        public ValueSet(long id, string type, IEnumerable<KeyValuePair<string, object>> values)
+            : this(id, type, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) {}
+        
+
+        public ValueSet(long id, string type, Dictionary<string, List<object>> values = null)
         {
             Id = id;
             Type = type;
-            Values = values == null
-                         ? new List<KeyValuePair<string, object>>()
-                         : new List<KeyValuePair<string, object>>(values);
+            Values = values ?? new Dictionary<string, List<object>>();
         }
       
         public ValueSet(long id, string type, IEnumerable<KeyValuePair<string, object[]>> values)
@@ -31,6 +35,23 @@ namespace Examine.LuceneEngine.Indexing
         {
             
         }        
+
+        public IEnumerable<object> GetValues(string key)
+        {
+            List<object> values;
+            return !Values.TryGetValue(key, out values) ? (IEnumerable<object>) new object[0] : values;
+        }
+
+        
+        public void Add(string key, object value)
+        {
+            List<object> values;
+            if (!Values.TryGetValue(key, out values))
+            {
+                Values.Add(key, values=new List<object>());
+            }
+            values.Add(value);
+        }
         
 
         internal static ValueSet FromLegacyFields(long nodeId, string type, Dictionary<string, string> fields)
@@ -43,9 +64,13 @@ namespace Examine.LuceneEngine.Indexing
             var fields = new Dictionary<string, string>();
             foreach (var v in Values)
             {
-                if (v.Value != null && !fields.ContainsKey(v.Key))
+                foreach( var val in v.Value )
                 {
-                    fields.Add(v.Key, ""+v.Value);
+                    if (val != null)
+                    {
+                        fields.Add(v.Key, "" + val);
+                        break;
+                    }
                 }
             }
             return fields;

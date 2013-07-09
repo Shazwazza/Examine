@@ -23,7 +23,7 @@ namespace Examine.LuceneEngine.Faceting
         protected override IEnumerable<DocumentFacet> ExpandTerm(int docId, string fieldName, string termValue, float level)
         {
             foreach( var df in base.ExpandTerm(docId, fieldName, termValue, level) )
-            {
+            {                
                 yield return df;
             }
 

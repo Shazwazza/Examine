@@ -7,7 +7,7 @@ namespace Examine.LuceneEngine.Faceting
     public class PayloadDataTokenStream : TokenStream
     {
         private readonly Token _token;
-        private bool _returnToken = false;
+        private bool _returnToken;
 
 
         public PayloadDataTokenStream(string value)

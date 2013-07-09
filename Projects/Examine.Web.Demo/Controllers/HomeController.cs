@@ -172,7 +172,7 @@ namespace Examine.Web.Demo.Controllers
                 //Iterate all facets and show their key and count.
                 foreach (var res in searchResults.FacetCounts.GetTopFacets(10))
                 {
-                    sb.Append(res.Key.FieldName + ":" + res.Key.Value + ", count = " + res.Value + ", ");                    
+                    sb.Append(res.Key.FieldName + ":" + res.Key.Value + ", count = " + res.Count + ", ");                    
                 }
             }
 

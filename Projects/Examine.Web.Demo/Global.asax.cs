@@ -75,7 +75,7 @@ namespace Examine.Web.Demo
 
                         foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 27000)).Distinct())
                         {
-                            args.Document.Add(new ReferenceFacetField("RefFacet", f));
+                            args.Document.Add(new Field("RefFacet", new ReferenceFacetValue(f)));
                         }
 
                         

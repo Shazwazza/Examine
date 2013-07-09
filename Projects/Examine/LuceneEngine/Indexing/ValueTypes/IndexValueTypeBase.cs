@@ -116,5 +116,10 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
         {
             return null;
         }
+
+        public virtual IFacetExtractor CreateFacetExtractor()
+        {
+            return null;
+        }
     }
 }

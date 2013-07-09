@@ -21,13 +21,21 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
         {
             var f = value as Fieldable;
             if (f != null)
-            {
+            {                
                 doc.Add(f);
             }
             else
             {
-                doc.Add(new Field(FieldName, "" + value, Store ? Field.Store.YES : Field.Store.NO,
-                                  Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+                var ts = value as TokenStream;
+                if (ts != null)
+                {
+                    doc.Add(new Field(FieldName, ts));
+                }
+                else
+                {
+                    doc.Add(new Field(FieldName, "" + value, Store ? Field.Store.YES : Field.Store.NO,
+                                      Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+                }
             }
         }
     }
