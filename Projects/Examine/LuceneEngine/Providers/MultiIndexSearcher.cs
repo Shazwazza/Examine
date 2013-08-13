@@ -79,7 +79,8 @@ namespace Examine.LuceneEngine.Providers
 			[SecuritySafeCritical]
 			private set;
 	    }
-        
+
+        [SecuritySafeCritical]
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -104,7 +105,14 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //create the searchers
-            Searchers = toSearch.Select(s => new LuceneSearcher(s.IndexDirectory, IndexingAnalyzer)).ToList();
+            var analyzer = IndexingAnalyzer;
+            var searchers = new List<LuceneSearcher>();
+            //DO NOT PUT THIS INTO LINQ BECAUSE THE SECURITY ACCCESS SHIT WONT WORK
+            foreach (var s in toSearch)
+            {
+                searchers.Add(new LuceneSearcher(s.IndexDirectory, analyzer));
+            }
+            Searchers = searchers;
         }
         
         /// <summary>
