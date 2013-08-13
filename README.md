@@ -27,3 +27,13 @@ Examine allows you to index and search data easily and wraps the Lucene.Net inde
 * If you're a Lucene fanatic, you can specify any type of Analzers you want to use for your indexing or searching via configuration.
 
 Full documentation can be found in the [Documentation](https://github.com/Shandem/Examine/wiki) section.
+
+## Nuget
+
+	PM> Install-Package Examine
+
+## Copyright & Licence
+
+&copy; 2013 by Shannon Deminick
+
+This is free software and is licensed under the [Microsoft Public License (Ms-PL)](http://opensource.org/licenses/MS-PL)
