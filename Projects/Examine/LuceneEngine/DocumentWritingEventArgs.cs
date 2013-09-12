@@ -20,9 +20,9 @@ namespace Examine.LuceneEngine
 	    /// </summary>        
 	    public Document Document
 	    {
-			[SecuritySafeCritical]
+			
 			get;
-			[SecuritySafeCritical]
+			
 			private set;
 	    }
 
@@ -58,7 +58,7 @@ namespace Examine.LuceneEngine
         /// <param name="nodeId"></param>
         /// <param name="d"></param>
         /// <param name="fields"></param>
-		[SecuritySafeCritical]
+		
         [Obsolete("Use ValueSet instead")]
         public DocumentWritingEventArgs(int nodeId, Document d, Dictionary<string, string> fields)
             :this(d, ValueSet.FromLegacyFields(nodeId, null, fields))

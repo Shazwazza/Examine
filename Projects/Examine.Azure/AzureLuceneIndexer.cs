@@ -57,7 +57,7 @@ namespace Examine.Azure
 
         private Lucene.Net.Store.Directory _directory;
 
-		[SecuritySafeCritical]
+		
         public override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             //always return one instance.

@@ -37,7 +37,7 @@ namespace Examine.LuceneEngine.Faceting
 
     internal static class FacetConfigurationHelpers
     {
-        [SecuritySafeCritical]
+        
         public static FacetConfiguration GetFacetConfiguration(this IndexSet set, FacetConfiguration current = null)
         {
             var config = current ?? new FacetConfiguration();

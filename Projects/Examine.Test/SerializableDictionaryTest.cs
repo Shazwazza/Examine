@@ -5,7 +5,7 @@ using System;
 using System.Xml;
 using System.Text;
 using System.Collections.Generic;
-using Examine.Test.PartialTrust;
+
 using NUnit.Framework;
 
 namespace Examine.Test
@@ -17,7 +17,7 @@ namespace Examine.Test
     ///to contain all SerializableDictionaryTest Unit Tests
     ///</summary>
     [TestFixture]
-    public class SerializableDictionaryTest : AbstractPartialTrustFixture<SerializableDictionaryTest>
+    public class SerializableDictionaryTest
     {
 
         [Test]
@@ -121,11 +121,13 @@ namespace Examine.Test
         }
 
 
-	    public override void TestSetup()
+        [SetUp]
+	    public void TestSetup()
 	    {
 	    }
 
-	    public override void TestTearDown()
+        [TearDown]
+	    public void TestTearDown()
 	    {
 	    }
     }

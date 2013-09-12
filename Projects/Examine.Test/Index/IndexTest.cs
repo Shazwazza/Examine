@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
 using NUnit.Framework;
@@ -24,7 +24,7 @@ namespace Examine.Test.Index
     /// Tests the standard indexing capabilities
     /// </summary>
     [TestFixture, RequiresSTA]
-    public class IndexTest : AbstractPartialTrustFixture<IndexTest>
+    public class IndexTest 
     {
 
         /// <summary>
@@ -210,14 +210,16 @@ namespace Examine.Test.Index
 
         private Lucene.Net.Store.Directory _luceneDir;
 
-        public override void TestTearDown()
+        [TearDown]
+        public void TestTearDown()
         {
             //set back to 100
             _indexer.OptimizationCommitThreshold = 100;
             _luceneDir.Dispose();
         }
 
-        public override void TestSetup()
+        [SetUp]
+        public void TestSetup()
         {
             _luceneDir = new RAMDirectory();
             _indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);

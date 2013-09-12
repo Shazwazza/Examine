@@ -1,13 +1,13 @@
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Examine.LuceneEngine;
-using Examine.Test.PartialTrust;
+
 using NUnit.Framework;
 
 namespace Examine.Test
 {
     [TestFixture]
-    public class XmlExtensionsTest : AbstractPartialTrustFixture<XmlExtensionsTest>
+    public class XmlExtensionsTest 
     {
         [Test]
         public void ToXDocument_With_Root_Node_Check()
@@ -17,14 +17,5 @@ namespace Examine.Test
             var result = iterator.ToXDocument();
             Assert.AreEqual(null, result);
         }
-
-	    public override void TestSetup()
-	    {
-		    
-	    }
-
-	    public override void TestTearDown()
-	    {
-	    }
     }
 }

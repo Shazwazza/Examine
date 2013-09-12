@@ -1,0 +1,13 @@
+build/Releases/*
+Projects/Examine.Test/bin/*
+Projects/Examine.Azure/bin/*
+Projects/Examine.Azure/obj/*
+Projects/Examine.Test/obj/*
+Projects/Examine.Web.Demo/App_Data/*
+Projects/Examine.Web.Demo/bin/*
+Projects/Examine/bin/*
+Projects/Examine/obj/*
+Projects/Examine.Web.Demo/obj/*
+packages/*
+Projects/UmbracoExamine/bin/*
+Projects/UmbracoExamine/obj/*

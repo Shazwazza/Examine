@@ -27,7 +27,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// Sets the next operation to be AND
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         public IQuery And()
         {
             return new LuceneQuery(this._search, BooleanClause.Occur.MUST);
@@ -42,7 +42,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// Sets the next operation to be OR
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         public IQuery Or()
         {
             return new LuceneQuery(this._search, BooleanClause.Occur.SHOULD);
@@ -64,7 +64,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// Sets the next operation to be NOT
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         public IQuery Not()
         {
             return new LuceneQuery(this._search, BooleanClause.Occur.MUST_NOT);
@@ -82,7 +82,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// Compiles this instance for fluent API conclusion
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         public ISearchCriteria Compile()
         {
             if (!_hasCompiled && !string.IsNullOrEmpty(this._search.SearchIndexType))

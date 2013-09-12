@@ -26,8 +26,4 @@ using Examine;
 [assembly: InternalsVisibleTo("Examine.Azure")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
-
-//[assembly: AllowPartiallyTrustedCallers]
-//[assembly: SecurityRules(SecurityRuleSet.Level2, SkipVerificationInFullTrust = true)]
-
 [assembly: PreApplicationStartMethod(typeof(ExamineDisposeModule), "Register")]

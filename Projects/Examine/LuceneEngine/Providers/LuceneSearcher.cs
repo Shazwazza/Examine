@@ -38,7 +38,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
         public LuceneSearcher(DirectoryInfo workingFolder, Analyzer analyzer)
             : base(analyzer)
 		{
@@ -50,7 +50,7 @@ namespace Examine.LuceneEngine.Providers
 		/// </summary>
 		/// <param name="luceneDirectory"></param>
 		/// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
 		public LuceneSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
 			: base(analyzer)
 		{
@@ -82,7 +82,7 @@ namespace Examine.LuceneEngine.Providers
 		/// <exception cref="T:System.InvalidOperationException">
 		/// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
 		/// </exception>
-		[SecuritySafeCritical]
+		
 		public override void Initialize(string name, NameValueCollection config)
 		{
 			base.Initialize(name, config);
@@ -161,7 +161,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Ensures the index exists exists
         /// </summary>
-		[SecuritySafeCritical]
+		
         public virtual void EnsureIndex()
         {
             //Searchers don't create indexes.
@@ -232,7 +232,7 @@ namespace Examine.LuceneEngine.Providers
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
         /// <returns></returns>                
-		[SecuritySafeCritical]
+		
         public override Searcher GetSearcher()
         {
             ValidateSearcher(false);
@@ -257,7 +257,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns a list of fields to search on
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         protected override internal string[] GetSearchFields()
         {
             ValidateSearcher(false);
@@ -274,7 +274,7 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-		[SecuritySafeCritical]
+		
         protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
 			if (_luceneDirectory == null)
@@ -297,7 +297,7 @@ namespace Examine.LuceneEngine.Providers
         /// This checks if the singleton IndexSearcher is initialized and up to date.
         /// </summary>
         /// <param name="forceReopen"></param>
-        [SecuritySafeCritical]
+        
         private void ValidateSearcher(bool forceReopen)
         {
             if (_searcherContext == null)

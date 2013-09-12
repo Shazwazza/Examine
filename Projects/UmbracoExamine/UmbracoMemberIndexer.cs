@@ -32,7 +32,7 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
 		public UmbracoMemberIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, dataService, analyzer, async) { }
 
@@ -47,7 +47,7 @@ namespace UmbracoExamine
             }
         }
 
-		[SecuritySafeCritical]
+		
         protected override XDocument GetXDocument(string xPath, string type)
         {
             if (type == IndexTypes.Member)
@@ -77,7 +77,7 @@ namespace UmbracoExamine
             return data;
         }
 
-		[SecuritySafeCritical]
+		
         private static XElement GetMemberItem(int nodeId)
         {
 			//TODO: Change this so that it is not using the LegacyLibrary, just serialize manually!

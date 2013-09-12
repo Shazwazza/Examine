@@ -42,14 +42,14 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-        [SecuritySafeCritical]
+        
         protected BaseUmbracoIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, analyzer, async)
         {
             DataService = dataService;
         }
 
-		[SecuritySafeCritical]
+		
 		protected BaseUmbracoIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
 			: base(indexerData, luceneDirectory, analyzer, async)
 		{
@@ -216,7 +216,7 @@ namespace UmbracoExamine
         /// Returns true if the Umbraco application is in a state that we can initialize the examine indexes
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         protected bool CanInitialize()
         {
             //check the DisableInitializationCheck and ensure that it is not set to true

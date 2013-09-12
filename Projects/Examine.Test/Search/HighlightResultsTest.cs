@@ -4,7 +4,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
@@ -12,7 +12,7 @@ using NUnit.Framework;
 namespace Examine.Test.Search
 {
     [TestFixture]
-	public class HighlightResultsTest : AbstractPartialTrustFixture<HighlightResultsTest>
+	public class HighlightResultsTest 
     {
         [Test]
         public void HighlightResults_Do_Highlight()
@@ -38,7 +38,8 @@ namespace Examine.Test.Search
         private static IIndexer _indexer;
 		private Lucene.Net.Store.Directory _luceneDir;
 
-		public override void TestSetup()
+        [SetUp]
+		public void TestSetup()
         {
 			_luceneDir = new RAMDirectory();
 			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
@@ -46,7 +47,8 @@ namespace Examine.Test.Search
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
-		public override void TestTearDown()
+        [TearDown]
+		public void TestTearDown()
 		{
 			_luceneDir.Dispose();
 		}

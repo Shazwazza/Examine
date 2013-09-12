@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Test.DataServices;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
@@ -17,7 +17,7 @@ namespace Examine.Test.Search
     /// Summary description for UnitTest1
     /// </summary>
     [TestFixture]
-	public class SearchTest : AbstractPartialTrustFixture<SearchTest>
+	public class SearchTest
     {
 
         [Test]
@@ -68,7 +68,8 @@ namespace Examine.Test.Search
 
         #region Initialize and Cleanup
 
-		public override void TestSetup()
+        [SetUp]
+		public void TestSetup()
         {
 			_luceneDir = new RAMDirectory();
 			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
@@ -76,7 +77,8 @@ namespace Examine.Test.Search
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
-		public override void TestTearDown()
+        [TearDown]
+		public void TestTearDown()
 		{
 			_luceneDir.Dispose();	
 		}

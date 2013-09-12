@@ -33,7 +33,5 @@ using UmbracoExamine;
 [assembly: AssemblyVersion("0.6.0.*")]
 [assembly: AssemblyFileVersion("0.6.0.*")]
 
-//[assembly: AllowPartiallyTrustedCallers]
-
 [assembly: InternalsVisibleTo("Examine.Test")]
 [assembly: InternalsVisibleTo("Umbraco.Tests")]

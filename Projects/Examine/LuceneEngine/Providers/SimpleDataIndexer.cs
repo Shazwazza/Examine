@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="dataService"></param>
         /// <param name="indexTypes"></param>
         /// <param name="async"></param>
-		[SecuritySafeCritical]
+		
 		public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
             : base(indexerData, workingFolder, analyzer, async)
         {
@@ -52,7 +52,7 @@ namespace Examine.LuceneEngine.Providers
 		/// <param name="dataService"></param>
 		/// <param name="indexTypes"></param>
 		/// <param name="async"></param>
-		[SecuritySafeCritical]
+		
 		public SimpleDataIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
 			: base(indexerData, luceneDirectory, analyzer, async)
 		{

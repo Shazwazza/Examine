@@ -14,13 +14,13 @@ namespace Examine.LuceneEngine
     /// </summary>
     public static class LuceneExtensions
     {
-		[SecuritySafeCritical]
+		
         public static ReaderStatus GetReaderStatus(this IndexSearcher searcher)
         {
             return searcher.GetIndexReader().GetReaderStatus();
         }        
 
-		[SecuritySafeCritical]
+		
         public static ReaderStatus GetReaderStatus(this IndexReader reader)
         {
             ReaderStatus status = ReaderStatus.NotCurrent;

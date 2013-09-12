@@ -1,10 +1,10 @@
-﻿using Examine.Test.PartialTrust;
+﻿
 using NUnit.Framework;
 
 namespace Examine.Test.Search
 {
     [TestFixture]
-	public class StringTests : AbstractPartialTrustFixture<StringTests>
+	public class StringTests 
     {
         [Test]
         public void Search_Remove_Stop_Words()
@@ -20,12 +20,14 @@ namespace Examine.Test.Search
             Assert.AreEqual("\"into the darkness\" sentence quote \"the front and the end\"", parsed2);
         }
 
-	    public override void TestSetup()
+        [SetUp]
+	    public void TestSetup()
 	    {
 		    
 	    }
 
-	    public override void TestTearDown()
+        [TearDown]
+	    public void TestTearDown()
 	    {
 		    
 	    }

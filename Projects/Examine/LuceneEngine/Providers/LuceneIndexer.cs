@@ -58,7 +58,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
         /// <param name="async"></param>
-        [SecuritySafeCritical]
+        
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, bool async)
             : base(indexerData)
         {
@@ -79,7 +79,7 @@ namespace Examine.LuceneEngine.Providers
             EnsureIndex(false);
         }
 
-        [SecuritySafeCritical]
+        
         protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
             : base(indexerData)
         {
@@ -121,7 +121,7 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-        [SecuritySafeCritical]
+        
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -432,9 +432,9 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public Analyzer IndexingAnalyzer
         {
-            [SecuritySafeCritical]
+            
             get;
-            [SecuritySafeCritical]
+            
             protected set;
         }
 
@@ -607,7 +607,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
-        [SecuritySafeCritical]
+        
         public void EnsureIndex(bool forceOverwrite)
         {
             if (_searcherContext == null)
@@ -718,7 +718,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// This can be an expensive operation and should only be called when there is no indexing activity
         /// </remarks>
-        [SecuritySafeCritical]
+        
         public void OptimizeIndex()
         {
             EnsureIndex(false);
@@ -828,7 +828,7 @@ namespace Examine.LuceneEngine.Providers
         /// Checks if the index is ready to open/write to.
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         protected bool IndexReady()
         {
             return (!IndexWriter.IsLocked(GetLuceneDirectory()));
@@ -838,7 +838,7 @@ namespace Examine.LuceneEngine.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         public override bool IndexExists()
         {
             return IndexReader.IndexExists(GetLuceneDirectory());
@@ -891,7 +891,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="iw"></param>
         /// <param name="performCommit">Obsolete. Doesn't have any effect</param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
-        [SecuritySafeCritical]
+        
         protected bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
         {            
             long nodeId = -1;
@@ -1060,7 +1060,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="fieldIndex"></param>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         private Field.Index TranslateFieldIndexTypeToLuceneType(FieldIndexTypes fieldIndex)
         {
             switch (fieldIndex)
@@ -1162,7 +1162,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// This will normalize (lowercase) all text before it goes in to the index.
         /// </remarks>
-        [SecuritySafeCritical]
+        
         protected virtual void AddDocument(Dictionary<string, string> fields, int nodeId, string type)
         {
             AddDocument(ValueSet.FromLegacyFields(nodeId, type, fields));
@@ -1328,7 +1328,7 @@ namespace Examine.LuceneEngine.Providers
             //OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
         }
 
-        //[SecuritySafeCritical]
+        //
         //private void SetDateTimeField(string fieldName, string valueToParse, DateTools.Resolution resolution, Field.Index lucenePolicy,
         //    ref Fieldable field, ref Fieldable sortedField)
         //{
@@ -1489,7 +1489,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         public virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             if (_directory == null)
@@ -1506,7 +1506,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns an index writer for the current directory
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
 
         public virtual NrtManager GetIndexWriter()
         {
@@ -1534,7 +1534,7 @@ namespace Examine.LuceneEngine.Providers
         /// - Field.TermVector.NO
         /// </summary>
         /// <param name="d"></param>
-        [SecuritySafeCritical]
+        
         private void AddSpecialFieldsToDocument(Document d, ValueSet values)
         {
 
@@ -1557,7 +1557,7 @@ namespace Examine.LuceneEngine.Providers
         ///// Creates a new in-memory index with a writer for it
         ///// </summary>
         ///// <returns></returns>
-        //[SecuritySafeCritical]
+        //
         //private IndexWriter GetNewInMemoryWriter()
         //{
         //    return new IndexWriter(new Lucene.Net.Store.RAMDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
@@ -1569,7 +1569,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="op"></param>
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
-        [SecuritySafeCritical]
+        
         private void ProcessDeleteQueueItem(IndexOperation op, bool performCommit = true)
         {
 
@@ -1591,7 +1591,7 @@ namespace Examine.LuceneEngine.Providers
             CommitCount++;
         }
 
-        [SecuritySafeCritical]
+        
         private IndexedNode ProcessIndexQueueItem(IndexOperation op)
         {
             //get the node id
@@ -1628,7 +1628,7 @@ namespace Examine.LuceneEngine.Providers
             return new IndexedNode() { NodeId = nodeId, Type = op.Item.IndexType };
         }
 
-        //[SecuritySafeCritical]
+        //
         //private void CloseWriter(ref IndexWriter writer)
         //{
         //    if (writer != null)

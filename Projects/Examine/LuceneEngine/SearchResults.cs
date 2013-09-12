@@ -33,9 +33,9 @@ namespace Examine.LuceneEngine
         [ScriptIgnore]
         public ICriteriaContext CriteriaContext
         {
-            [SecuritySafeCritical]
+            
             get;
-            [SecuritySafeCritical]
+            
             private set;
         }
 
@@ -52,9 +52,9 @@ namespace Examine.LuceneEngine
         /// </summary>
         public Query LuceneQuery
         {
-            [SecuritySafeCritical]
+            
             get;
-            [SecuritySafeCritical]
+            
             private set;
         }
 
@@ -69,7 +69,7 @@ namespace Examine.LuceneEngine
 
             //private ScoreD
 
-        [SecuritySafeCritical]
+        
         internal SearchResults(Query query, IEnumerable<SortField> sortField, ICriteriaContext searcherContext, SearchOptions options)
         {
             LuceneQuery = query;
@@ -81,7 +81,7 @@ namespace Examine.LuceneEngine
                 new Dictionary<string, List<Func<SearchResult, string>>>(StringComparer.InvariantCultureIgnoreCase);
         }
 
-        [SecuritySafeCritical]
+        
         private void DoSearch(Query query, IEnumerable<SortField> sortField, SearchOptions options)
         {
             _options = options;
@@ -169,7 +169,7 @@ namespace Examine.LuceneEngine
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-        [SecuritySafeCritical]
+        
         protected SearchResult CreateSearchResult(int docId, Document doc, float score)
         {
             string id = doc.Get("id");
@@ -225,7 +225,7 @@ namespace Examine.LuceneEngine
 
         //NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
         // at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
-        [SecuritySafeCritical]
+        
         private SearchResult CreateFromDocumentItem(int i)
         {
             var docId = _topDocs.ScoreDocs[i].doc;
@@ -243,7 +243,7 @@ namespace Examine.LuceneEngine
         /// </remarks>
         /// <param name="skip">The number of items in the results to skip.</param>
         /// <returns>A collection of the search results</returns>
-        [SecuritySafeCritical]
+        
         public IEnumerable<SearchResult> Skip(int skip)
         {
             for (int i = skip, n = _topDocs.ScoreDocs.Length; i < n; i++)

@@ -60,13 +60,13 @@ namespace Examine.Azure
 
         private Lucene.Net.Store.Directory _directory;
 		
-		[SecuritySafeCritical]
+		
         public override Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             return _directory ?? (_directory = this.GetAzureDirectory());
         }
 
-        //[SecuritySafeCritical]
+        //
         //public override Lucene.Net.Index.IndexWriter GetIndexWriter()
         //{
         //    return this.GetAzureIndexWriter();

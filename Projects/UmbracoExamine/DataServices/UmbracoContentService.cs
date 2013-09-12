@@ -29,14 +29,14 @@ namespace UmbracoExamine.DataServices
 
         private readonly ApplicationContext _applicationContext;
 
-        [SecuritySafeCritical]
+        
 		public UmbracoContentService()
 			: this(ApplicationContext.Current)
 		{
 
 		}
 
-        [SecuritySafeCritical]
+        
         public UmbracoContentService(ApplicationContext applicationContext)
 		{
             _applicationContext = applicationContext;
@@ -47,7 +47,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public string StripHtml(string value)
         {
 			return value.StripHtml();
@@ -58,7 +58,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="xpath"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public XDocument GetPublishedContentByXPath(string xpath)
         {
 			//TODO: Remove the need for this, the best way would be to remove all requirements of examine based on Xml but that
@@ -74,7 +74,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="xpath"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public XDocument GetLatestContentByXPath(string xpath)
         {
             var xmlContent = XDocument.Parse("<content></content>");
@@ -93,7 +93,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="documentId"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		private static XmlNode GetPage(int documentId)
         {
             var x = Access.AccessXml.SelectSingleNode("/access/page [@id=" + documentId.ToString() + "]");
@@ -117,7 +117,7 @@ namespace UmbracoExamine.DataServices
         /// Returns a list of all of the user defined property names in Umbraco
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public IEnumerable<string> GetAllUserPropertyNames()
 	    {
             try

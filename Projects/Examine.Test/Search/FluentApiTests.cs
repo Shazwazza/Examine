@@ -3,7 +3,7 @@ using System.Linq;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
@@ -12,7 +12,7 @@ using UmbracoExamine;
 namespace Examine.Test.Search
 {
     [TestFixture]
-	public class FluentApiTests : AbstractPartialTrustFixture<FluentApiTests>
+	public class FluentApiTests
     {
         //[Test]
         //public void FluentApiTests_Grouped_Or_Examiness()
@@ -310,8 +310,8 @@ namespace Examine.Test.Search
         #region Initialize and Cleanup
 
 
-
-		public override void TestSetup()
+        [SetUp]
+		public void TestSetup()
         {
 			_luceneDir = new RAMDirectory();
 			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
@@ -319,8 +319,8 @@ namespace Examine.Test.Search
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
-
-		public override void TestTearDown()
+        [TearDown]
+		public void TestTearDown()
 		{
 			_luceneDir.Dispose();	
 		}

@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="indexPath"></param>
         /// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
 		public MultiIndexSearcher(IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
             : base(analyzer)
         {
@@ -54,7 +54,7 @@ namespace Examine.LuceneEngine.Providers
 		/// </summary>
 		/// <param name="luceneDirs"></param>
 		/// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
 		public MultiIndexSearcher(IEnumerable<Lucene.Net.Store.Directory> luceneDirs, Analyzer analyzer)
 			: base(analyzer)
 		{
@@ -74,9 +74,9 @@ namespace Examine.LuceneEngine.Providers
 	    ///</summary>
 	    public IEnumerable<LuceneSearcher> Searchers
 		{
-			[SecuritySafeCritical]
+			
 		    get;
-			[SecuritySafeCritical]
+			
 			private set;
 	    }
         
@@ -125,7 +125,7 @@ namespace Examine.LuceneEngine.Providers
         /// Gets the searcher for this instance
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         public override Searcher GetSearcher()
         {
 	        var searchables = new List<Searchable>();

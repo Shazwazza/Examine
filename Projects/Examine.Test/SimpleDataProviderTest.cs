@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
@@ -15,7 +15,7 @@ using NUnit.Framework;
 namespace Examine.Test
 {
     [TestFixture]
-	public class SimpleDataProviderTest : AbstractPartialTrustFixture<SimpleDataProviderTest>
+	public class SimpleDataProviderTest 
     {
         [Test]
         public void SimpleData_RebuildIndex()
@@ -74,7 +74,8 @@ namespace Examine.Test
         private static LuceneSearcher _searcher;
 		private Lucene.Net.Store.Directory _luceneDir;
 
-		public override void TestSetup()
+        [SetUp]
+		public void TestSetup()
 		{
 			_luceneDir = new RAMDirectory();
 			_indexer = IndexInitializer.GetSimpleIndexer(_luceneDir);
@@ -82,7 +83,8 @@ namespace Examine.Test
 			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
 		}
 
-		public override void TestTearDown()
+        [TearDown]
+		public void TestTearDown()
 		{
 			_luceneDir.Dispose();
 		}

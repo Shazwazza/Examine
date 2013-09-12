@@ -4,7 +4,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    [SecuritySafeCritical]
+    
     public class FacetCountCollector : IndexReaderDataCollector
     {
         private FacetMap _map;

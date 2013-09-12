@@ -19,7 +19,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="search">The search.</param>
         /// <param name="occurance">The occurance.</param>
-		[SecuritySafeCritical]
+		
         internal LuceneQuery(LuceneSearchCriteria search, BooleanClause.Occur occurance)
         {
             this.search = search;
@@ -34,7 +34,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <value>The boolean operation.</value>
         public BooleanOperation BooleanOperation
         {
-			[SecuritySafeCritical]
+			
             get { return occurance.ToBooleanOperation(); }
         }
 
@@ -46,7 +46,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
         public IBooleanOperation Id(int id)
         {
             return this.search.IdInternal(id, this.occurance);
@@ -57,7 +57,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="nodeName">Name of the node.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
         public IBooleanOperation NodeName(string nodeName)
         {
             return this.search.NodeNameInternal(new ExamineValue(Examineness.Explicit, nodeName), occurance);
@@ -68,7 +68,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="nodeTypeAlias">The node type alias.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation NodeTypeAlias(string nodeTypeAlias)
         {
             return this.search.NodeTypeAliasInternal(new ExamineValue(Examineness.Explicit, nodeTypeAlias), occurance);
@@ -79,7 +79,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="id">The id of the parent.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation ParentId(int id)
         {
             return this.search.ParentIdInternal(id, occurance);
@@ -91,7 +91,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="fieldValue">The field value.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation Field(string fieldName, string fieldValue)
         {
             return this.search.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), occurance);
@@ -161,7 +161,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
         {
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
@@ -188,7 +188,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation Range(string fieldName, double start, double end, bool includeLower, bool includeUpper)
         {
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
@@ -215,7 +215,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation Range(string fieldName, float start, float end, bool includeLower, bool includeUpper)
         {            
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
@@ -242,7 +242,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation Range(string fieldName, long start, long end, bool includeLower, bool includeUpper)
         {
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
@@ -269,7 +269,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation Range(string fieldName, string start, string end, bool includeLower, bool includeUpper)
         {
             return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
@@ -280,7 +280,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="nodeName">Name of the node.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation NodeName(IExamineValue nodeName)
         {
             return this.search.NodeNameInternal(nodeName, occurance);
@@ -291,7 +291,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="nodeTypeAlias">The node type alias.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias)
         {
             return this.search.NodeTypeAliasInternal(nodeTypeAlias, occurance);
@@ -303,7 +303,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="fieldValue">The field value.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
             return this.search.FieldInternal(fieldName, fieldValue, occurance);
@@ -315,7 +315,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
         {
             var fieldVals = new List<IExamineValue>();
@@ -332,7 +332,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        [SecuritySafeCritical]
+        
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
         {
             return this.search.GroupedAndInternal(fields.ToArray(), query, this.occurance);
@@ -344,7 +344,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
         {
             var fieldVals = new List<IExamineValue>();
@@ -361,7 +361,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
         {
             return this.search.GroupedOrInternal(fields.ToArray(), query, this.occurance);
@@ -373,7 +373,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
         {
             var fieldVals = new List<IExamineValue>();
@@ -390,7 +390,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
             return this.search.GroupedNotInternal(fields.ToArray(), query, this.occurance);
@@ -403,7 +403,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="operations">The operations.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
         {
             var fieldVals = new List<IExamineValue>();
@@ -421,7 +421,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="operations">The operations.</param>
         /// <param name="query">The query.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-		[SecuritySafeCritical]
+		
 		public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query)
         {
             return this.search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, occurance);
