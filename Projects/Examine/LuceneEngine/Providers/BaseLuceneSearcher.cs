@@ -177,7 +177,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Performs a search with a maximum number of results
         /// </summary>        
-        [SecuritySafeCritical]
+        
         public ISearchResults Search(ISearchCriteria searchParams, int maxResults)
         {
             Enforcer.ArgumentNotNull(searchParams, "searchParams");

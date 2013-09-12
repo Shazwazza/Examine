@@ -80,7 +80,7 @@ namespace Examine.LuceneEngine.Providers
 			private set;
 	    }
 
-        [SecuritySafeCritical]
+        
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);

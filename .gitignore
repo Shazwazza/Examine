@@ -26,3 +26,4 @@ Projects/Examine.Web.Demo/App_Data/*.sdf
 Projects/Examine.Web.Demo/App_Data/SimpleIndexSet2/Index/*
 Projects/UmbracoExamine/bin/*
 Projects/UmbracoExamine/obj/*
+*.orig
