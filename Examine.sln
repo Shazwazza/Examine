@@ -6,6 +6,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Build-Release.ps1 = Build-Release.ps1
 		Examine.vsmdi = Examine.vsmdi
 		Local.testsettings = Local.testsettings
+		README.md = README.md
 		SolutionInfo.cs = SolutionInfo.cs
 	EndProjectSection
 EndProject

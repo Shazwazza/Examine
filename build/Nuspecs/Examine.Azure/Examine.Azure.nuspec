@@ -1,20 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <metadata>
-        <id>Examine.Azure</id>
-        <version>0.1.43.2941</version>
-        <title />
-        <authors>Shannon Deminick</authors>
-        <owners />
-        <projectUrl>http://examine.codeplex.com</projectUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Examine.Azure.dll library</description>
-        <dependencies>
-            <dependency id="AzureDirectory" />
-            <dependency id="Examine" />
-        </dependencies>
-    </metadata>
-    <files>
-        <file src="Examine.Azure.dll" target="lib\Examine.Azure.dll" />
-    </files>
+  <metadata>
+    <id>Examine.Azure</id>
+    <version>0.0.0.0</version>
+    <title />
+    <authors>Shannon Deminick</authors>
+    <owners>Shannon Deminick</owners>
+    <projectUrl>http://examine.codeplex.com</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>An Azure abstract implementation for Examine which provides an Azure indexer and searcher based on an AzureDirectory</description>
+    <summary>An Azure abstract implementation for Examine</summary>
+    <dependencies>
+      <dependency id="AzureDirectory" />
+      <dependency id="Examine" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Examine.Azure.dll" target="lib\Examine.Azure.dll" />
+  </files>
 </package>

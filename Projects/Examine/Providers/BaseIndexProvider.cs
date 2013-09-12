@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration.Provider;
+using System.Security;
 using Examine;
 using System.Xml.Linq;
 using Examine.LuceneEngine.Indexing;
@@ -40,6 +41,7 @@ namespace Examine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
+        [SecuritySafeCritical]
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);

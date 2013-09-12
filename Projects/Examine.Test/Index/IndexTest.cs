@@ -180,9 +180,9 @@ namespace Examine.Test.Index
             //there's 16 fields in the index, but 3 sorted fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
 
-            Assert.AreEqual(18, fields.Count());
+            Assert.AreEqual(21, fields.Count());
             //ensure there's 3 sorting fields
-            Assert.AreEqual(3, fields.Count(x => x.StartsWith(LuceneIndexer.SortedFieldNamePrefix)));
+            Assert.AreEqual(4, fields.Count(x => x.StartsWith(LuceneIndexer.SortedFieldNamePrefix)));
             //there should be 11 documents (10 content, 1 media)
             Assert.AreEqual(10, r.NumDocs());
 

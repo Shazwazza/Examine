@@ -1,3 +1,16 @@
+*.add
+_ReSharper*
+*.suo
+[Dd]ebug/
+[Rr]elease/
+x64/
+build/
+[Bb]in/
+[Oo]bj/
+*ReSharper.user
+TestResults/*
+Examine.Web.Demo/App_Data/*
+*.user
 build/Releases/*
 Projects/Examine.Test/bin/*
 Projects/Examine.Azure/bin/*
@@ -9,5 +22,7 @@ Projects/Examine/bin/*
 Projects/Examine/obj/*
 Projects/Examine.Web.Demo/obj/*
 packages/*
+Projects/Examine.Web.Demo/App_Data/*.sdf
+Projects/Examine.Web.Demo/App_Data/SimpleIndexSet2/Index/*
 Projects/UmbracoExamine/bin/*
 Projects/UmbracoExamine/obj/*

@@ -171,6 +171,15 @@ namespace Examine.LuceneEngine.Providers
         
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
+            return Search(searchParams, 0);
+        }
+
+        /// <summary>
+        /// Performs a search with a maximum number of results
+        /// </summary>        
+        [SecuritySafeCritical]
+        public ISearchResults Search(ISearchCriteria searchParams, int maxResults)
+        {
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
 
             var luceneParams = searchParams as LuceneSearchCriteria;

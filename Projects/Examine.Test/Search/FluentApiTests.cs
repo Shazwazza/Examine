@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
@@ -34,6 +35,15 @@ namespace Examine.Test.Search
         //    Assert.IsTrue(results.TotalItemCount > 0);
         //}
 
+        [Test]
+        public void FluentApi_Grouped_Or_With_Not()
+        {
+            //paths contain punctuation, we'll escape it and ensure an exact match
+            var criteria = _searcher.CreateSearchCriteria("content");
+            var filter = criteria.GroupedOr(new string[] { "nodeName", "bodyText", "headerText" }, "ipsum").Not().Field("umbracoNaviHide", "1");            
+            var results = _searcher.Search(filter.Compile());
+            Assert.AreEqual(1, results.TotalItemCount);
+        }
 
         [Test]
         public void FluentApi_Exact_Match_By_Escaped_Path()
@@ -314,6 +324,9 @@ namespace Examine.Test.Search
 		public void TestSetup()
         {
 			_luceneDir = new RAMDirectory();
+
+            //_luceneDir = new SimpleFSDirectory(new DirectoryInfo(Path.Combine(TestHelper.AssemblyDirectory, Guid.NewGuid().ToString())));
+
 			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);

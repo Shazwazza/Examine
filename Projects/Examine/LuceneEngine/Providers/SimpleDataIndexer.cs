@@ -106,6 +106,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="config"></param>
+        [SecuritySafeCritical]
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
