@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Xml.Linq;
 using Examine.Test.PartialTrust;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Documents;
 using Lucene.Net.Store;
 using NUnit.Framework;
 
@@ -26,6 +27,28 @@ namespace Examine.Test.Index
     [TestFixture, RequiresSTA]
 	public class IndexTest : AbstractPartialTrustFixture<IndexTest>
     {
+
+        //[Test]
+        //public void Add_Sortable_Field_Api()
+        //{
+        //    _indexer.DocumentWriting += ExternalIndexer_DocumentWriting;
+        //    _indexer.RebuildIndex();
+        //}
+
+        //void ExternalIndexer_DocumentWriting(object sender, DocumentWritingEventArgs e)
+        //{
+        //    var field = e.Document.GetFieldable("writerName");
+        //    if (field != null)
+        //    {
+        //        var sortedField = new Field(
+        //            LuceneIndexer.SortedFieldNamePrefix + field.Name(),
+        //            field.StringValue(),
+        //            Field.Store.NO, //we don't want to store the field because we're only using it to sort, not return data
+        //            Field.Index.NOT_ANALYZED,
+        //            Field.TermVector.NO);
+        //        e.Document.Add(sortedField);
+        //    }
+        //}
 
         /// <summary>
         /// This will create a new index queue item for the same ID multiple times to ensure that the 

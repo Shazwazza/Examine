@@ -1021,7 +1021,7 @@ namespace Examine.LuceneEngine.Providers
                         x.Value,
                         Field.Store.YES,
                         lucenePolicy,
-                        lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES));
+                              Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES));
                 }
 
                 else
@@ -1046,25 +1046,25 @@ namespace Examine.LuceneEngine.Providers
                         case "INT":
                             if (!TryConvert<int>(x.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetIntValue((int)parsedVal);
+                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetIntValue((int)parsedVal);
                             sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetIntValue((int)parsedVal);
                             break;
                         case "FLOAT":
                             if (!TryConvert<float>(x.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetFloatValue((float)parsedVal);
+                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetFloatValue((float)parsedVal);
                             sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetFloatValue((float)parsedVal);
                             break;
                         case "DOUBLE":
                             if (!TryConvert<double>(x.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetDoubleValue((double)parsedVal);
+                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetDoubleValue((double)parsedVal);
                             sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetDoubleValue((double)parsedVal);
                             break;
                         case "LONG":
                             if (!TryConvert<long>(x.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, lucenePolicy != Field.Index.NO).SetLongValue((long)parsedVal);
+                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetLongValue((long)parsedVal);
                             sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetLongValue((long)parsedVal);
                             break;
                         case "DATE":
@@ -1104,7 +1104,7 @@ namespace Examine.LuceneEngine.Providers
                                     x.Value,
                                     Field.Store.YES,
                                     lucenePolicy,
-                                    lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
+                                          Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES
                                 );
                             sortedField = new Field(SortedFieldNamePrefix + x.Key,
                                                     x.Value,
@@ -1160,7 +1160,7 @@ namespace Examine.LuceneEngine.Providers
                           dateAsString,
                           Field.Store.YES,
                           lucenePolicy,
-                          lucenePolicy == Field.Index.NO ? Field.TermVector.NO : Field.TermVector.YES
+                          Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES
                     );
 
             sortedField =

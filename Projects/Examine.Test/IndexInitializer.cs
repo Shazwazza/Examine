@@ -26,9 +26,10 @@ namespace Examine.Test
     /// </summary>
     internal static class IndexInitializer
     {
-		public static UmbracoContentIndexer GetUmbracoIndexer(Lucene.Net.Store.Directory luceneDir)
+        
+        public static UmbracoContentIndexer GetUmbracoIndexer(Lucene.Net.Store.Directory luceneDir)
         {
-	        
+
             var i = new UmbracoContentIndexer(new IndexCriteria(
                                                          new[]
                                                              {
@@ -65,7 +66,7 @@ namespace Examine.Test
                                                              },
                                                          new string[] { },
                                                          -1),
-														 luceneDir, //custom lucene directory
+                                                         luceneDir, //custom lucene directory
                                                          new TestDataService(),
                                                          new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
                                                          false);
@@ -76,12 +77,12 @@ namespace Examine.Test
 
             return i;
         }
-		public static UmbracoExamineSearcher GetUmbracoSearcher(Lucene.Net.Store.Directory luceneDir)
+        public static UmbracoExamineSearcher GetUmbracoSearcher(Lucene.Net.Store.Directory luceneDir)
         {
 
-			return new UmbracoExamineSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+            return new UmbracoExamineSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
         }
-		public static SimpleDataIndexer GetSimpleIndexer(Lucene.Net.Store.Directory luceneDir)
+        public static SimpleDataIndexer GetSimpleIndexer(Lucene.Net.Store.Directory luceneDir)
         {
             var i = new SimpleDataIndexer(new IndexCriteria(
                                                          new IIndexField[] { },
@@ -104,32 +105,32 @@ namespace Examine.Test
                                                          new string[] { },
                                                          new string[] { },
                                                          -1),
-														 luceneDir,
+                                                         luceneDir,
                                                          new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
                                                          new TestSimpleDataProvider(),
-                                                         new[] { "Documents", "Pictures" }, 
+                                                         new[] { "Documents", "Pictures" },
                                                          false);
             i.IndexingError += IndexingError;
 
             return i;
         }
-		public static LuceneSearcher GetLuceneSearcher(Lucene.Net.Store.Directory luceneDir)
+        public static LuceneSearcher GetLuceneSearcher(Lucene.Net.Store.Directory luceneDir)
         {
-			return new LuceneSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+            return new LuceneSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
         }
-		
-		public static MultiIndexSearcher GetMultiSearcher(Lucene.Net.Store.Directory pdfDir, Lucene.Net.Store.Directory simpleDir, Lucene.Net.Store.Directory conventionDir, Lucene.Net.Store.Directory cwsDir)
+
+        public static MultiIndexSearcher GetMultiSearcher(Lucene.Net.Store.Directory pdfDir, Lucene.Net.Store.Directory simpleDir, Lucene.Net.Store.Directory conventionDir, Lucene.Net.Store.Directory cwsDir)
         {
             var i = new MultiIndexSearcher(new[] { pdfDir, simpleDir, conventionDir, cwsDir }, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
             return i;
         }
 
-        
+
         internal static void IndexingError(object sender, IndexingErrorEventArgs e)
         {
             throw new ApplicationException(e.Message, e.InnerException);
         }
 
-     
+
     }
 }

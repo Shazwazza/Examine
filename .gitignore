@@ -15,3 +15,5 @@ build/Releases/*
 packages/*
 Projects/Examine.Web.Demo/App_Data/*.sdf
 Projects/Examine.Web.Demo/App_Data/SimpleIndexSet2/Index/*
+NDepend/*
+*.orig
