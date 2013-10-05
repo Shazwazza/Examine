@@ -9,12 +9,15 @@ namespace Examine.Session
 {
     //TODO : I'm not sure if this is thread safe ??
 
-    internal static class ExamineSession
+    /// <summary>
+    /// 
+    /// </summary>
+    public static class ExamineSession
     {
         private static readonly RequestScoped<Dictionary<NrtManager, long>> CurrentGeneration =
             new RequestScoped<Dictionary<NrtManager, long>>(()=>new Dictionary<NrtManager, long>());
 
-        public static void TrackGeneration(NrtManager manager, long generation)
+        internal static void TrackGeneration(NrtManager manager, long generation)
         {
             CurrentGeneration.Value[manager] = generation;
         }

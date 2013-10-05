@@ -75,25 +75,10 @@ namespace Examine.Azure
             return writer;
         }
 
+        [Obsolete("This is not longer used, optimizations handled internally")]
         public static void SetOptimizationThresholdOnInit(this LuceneIndexer indexer, System.Collections.Specialized.NameValueCollection config)
         {
-            if (config["autoOptimizeCommitThreshold"] == null)
-            {
-                //by default we need a higher threshold according to lucene azure docs
-                indexer.OptimizationCommitThreshold = 1000;
-            }
-            else
-            {
-                int autoCommitThreshold;
-                if (int.TryParse(config["autoOptimizeCommitThreshold"], out autoCommitThreshold))
-                {
-                    indexer.OptimizationCommitThreshold = autoCommitThreshold;
-                }
-                else
-                {
-                    throw new FormatException("Could not parse autoCommitThreshold value into an integer");
-                }
-            }
+            
         }
 
     }

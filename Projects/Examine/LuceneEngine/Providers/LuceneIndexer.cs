@@ -46,8 +46,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         protected LuceneIndexer()
         {
-            OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = true;
         }
 
 
@@ -71,11 +69,6 @@ namespace Examine.LuceneEngine.Providers
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
             InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);
 
-            //IndexSecondsInterval = 5;
-            OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = true;
-            RunAsync = async;
-
             EnsureIndex(false);
         }
 
@@ -91,12 +84,7 @@ namespace Examine.LuceneEngine.Providers
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
             InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
-
-            //IndexSecondsInterval = 5;
-            OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = true;
-            RunAsync = async;
-
+            
             EnsureIndex(false);
         }
 
@@ -125,42 +113,7 @@ namespace Examine.LuceneEngine.Providers
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
-
-            if (config["autoOptimizeCommitThreshold"] == null)
-            {
-                OptimizationCommitThreshold = 100;
-            }
-            else
-            {
-                int autoCommitThreshold;
-                if (int.TryParse(config["autoOptimizeCommitThreshold"], out autoCommitThreshold))
-                {
-                    OptimizationCommitThreshold = autoCommitThreshold;
-                }
-                else
-                {
-                    throw new FormatException("Could not parse autoCommitThreshold value into an integer");
-                }
-            }
-
-            if (config["autoOptimize"] == null)
-            {
-                AutomaticallyOptimize = true;
-            }
-            else
-            {
-                bool autoOptimize;
-                if (bool.TryParse(config["autoOptimize"], out autoOptimize))
-                {
-                    AutomaticallyOptimize = autoOptimize;
-                }
-                else
-                {
-                    throw new FormatException("Could not parse autoOptimize value into a boolean");
-                }
-
-            }
-
+            
             //Need to check if the index set or IndexerData is specified...
 
             if (config["indexSet"] == null && IndexerData == null)
@@ -228,12 +181,6 @@ namespace Examine.LuceneEngine.Providers
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
             InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);
-
-            RunAsync = true;
-            if (config["runAsync"] != null)
-            {
-                RunAsync = bool.Parse(config["runAsync"]);
-            }
 
             CommitCount = 0;
 
@@ -518,13 +465,11 @@ namespace Examine.LuceneEngine.Providers
             base.OnIndexingError(e);
 
             //TODO: Maybe this exception shouldn't propagate to the user directly.
-            if (!RunAsync)
-            {
-                var msg = "Indexing Error Occurred: " + e.Message;
-                if (e.InnerException != null)
-                    msg += ". ERROR: " + e.InnerException.Message;
-                throw new Exception(msg, e.InnerException);
-            }
+
+            var msg = "Indexing Error Occurred: " + e.Message;
+            if (e.InnerException != null)
+                msg += ". ERROR: " + e.InnerException.Message;
+            throw new Exception(msg, e.InnerException);
 
         }
 
