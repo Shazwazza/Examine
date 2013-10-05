@@ -6,9 +6,12 @@ using Lucene.Net.Contrib.Management;
 
 namespace Examine.Session
 {
-    public static class DisposableCollector
+
+    //TODO: I'm not sure this class is thread safe ???
+
+    internal static class DisposableCollector
     {
-        private static RequestScoped<Queue<HashSet<IDisposable>>> _disposables =
+        private static readonly RequestScoped<Queue<HashSet<IDisposable>>> Disposables =
             new RequestScoped<Queue<HashSet<IDisposable>>>(() =>
                 {
                     var q = new Queue<HashSet<IDisposable>>();
@@ -20,12 +23,12 @@ namespace Examine.Session
 
         public static void Track(IDisposable disposable)
         {
-            _disposables.Value.Peek().Add(disposable);
+            Disposables.Value.Peek().Add(disposable);
         }
 
         public static void Untrack(IDisposable disposable)
         {
-            _disposables.Value.Peek().Remove(disposable);
+            Disposables.Value.Peek().Remove(disposable);
         }
 
         private static void CleanScope(HashSet<IDisposable> scope)
@@ -39,21 +42,21 @@ namespace Examine.Session
 
         public static void Clean()
         {
-            var disposables = _disposables.Value;
+            var disposables = Disposables.Value;
             while (disposables.Count > 0)
             {
                 CleanScope(disposables.Dequeue());
             }
-            _disposables.Reset();
+            Disposables.Reset();
 
         }
 
         public static IDisposable OpenScope()
         {
             var scope = new HashSet<IDisposable>();
-            _disposables.Value.Enqueue(scope);
+            Disposables.Value.Enqueue(scope);
 
-            return new DisposableScope(() => CleanScope(_disposables.Value.Dequeue()));
+            return new DisposableScope(() => CleanScope(Disposables.Value.Dequeue()));
         }
 
         private class DisposableScope : IDisposable

@@ -6,7 +6,9 @@ using System.Web;
 
 namespace Examine.Session
 {
-    public class RequestScoped<TValue>
+    //TODO: I don't think this class is thread safe!
+
+    internal class RequestScoped<TValue>
     {        
         [ThreadStatic]
         private static TValue _threadScoped;
@@ -39,7 +41,7 @@ namespace Examine.Session
                     return value;
                 }
 
-                if (_initialized)
+                if (!_initialized)
                 {
                     _threadScoped = _defaultValue();
                     _initialized = true;

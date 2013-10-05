@@ -56,7 +56,12 @@ namespace Examine.LuceneEngine.Config
         {
             get
             {
-                return (string)this["Type"];
+                var type = (string)this["Type"];
+                if (string.IsNullOrWhiteSpace(type))
+                {
+                    return "fulltext";
+                }
+                return type;
             }
             set
             {
@@ -66,10 +71,11 @@ namespace Examine.LuceneEngine.Config
 
         public override bool Equals(object compareTo)
         {
-            if (compareTo is IndexField)
+            var to = compareTo as IndexField;
+            if (to != null)
             {
-                return this.Name.Equals(((IndexField)compareTo).Name) && 
-                   (IndexName == ((IndexField)compareTo).IndexName);
+                return this.Name.Equals(to.Name) && 
+                   (IndexName == to.IndexName);
             }
             return false;
         }

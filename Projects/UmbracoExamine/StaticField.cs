@@ -1,4 +1,5 @@
-﻿using Examine;
+﻿using System;
+using Examine;
 using Examine.LuceneEngine;
 
 namespace UmbracoExamine
@@ -7,7 +8,20 @@ namespace UmbracoExamine
     {
         public StaticField(string name, FieldIndexTypes indexType, bool enableSorting, string type)
         {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException("name");
+            if (string.IsNullOrWhiteSpace(type)) throw new ArgumentNullException("type");
+            
             Type = type;
+            EnableSorting = enableSorting;
+            IndexType = indexType;
+            Name = name;
+        }
+
+        public StaticField(string name, FieldIndexTypes indexType, bool enableSorting)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException("name");
+
+            Type = "fulltext";
             EnableSorting = enableSorting;
             IndexType = indexType;
             Name = name;

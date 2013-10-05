@@ -12,6 +12,7 @@
         /// </summary>
         string Name { get; set; }
 
+        //TODO: What is this and why do we need it ?????
         /// <summary>
         /// The name of the field in the index
         /// </summary>

@@ -647,9 +647,15 @@ namespace Examine.LuceneEngine.Providers
             foreach (var field in IndexerData.StandardFields.Concat(IndexerData.UserFields))
             {
                 Func<string, IIndexValueType> valueType;
-                if (ConfigurationTypes.TryGetValue(field.Type, out valueType))
+                if (!string.IsNullOrWhiteSpace(field.Type) && ConfigurationTypes.TryGetValue(field.Type, out valueType))
                 {
                     _searcherContext.DefineValueType(valueType(field.IndexName));
+                }
+                else
+                {
+                    //Define the default!
+                    var fulltext = ConfigurationTypes["fulltext"];
+                    _searcherContext.DefineValueType(fulltext(field.IndexName));
                 }
             }
         }
@@ -1086,8 +1092,8 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        private Dictionary<string, List<string>> _fieldMappings;
-        private object _fieldMappingsLock = new object();
+        private volatile Dictionary<string, List<string>> _fieldMappings;
+        private readonly object _fieldMappingsLock = new object();
         protected virtual IEnumerable<string> GetIndexFieldNames(string sourceName)
         {
             List<string> mappings;
@@ -1542,6 +1548,7 @@ namespace Examine.LuceneEngine.Providers
             d.Add(new Field(IndexTypeFieldName, values.Type.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
 
             //Legacy stuff
+            //TODO: Why not just remove this logic since this just returns an empty dictionary ???
             var specialFields = GetSpecialFieldsToIndex(values.ToLegacyFields());
 
             foreach (var s in specialFields)
@@ -1663,41 +1670,47 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
 
-        public static Dictionary<string, Func<string, IIndexValueType>> ConfigurationTypes = new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
+        /// <summary>
+        /// Defines the field types
+        /// </summary>
+        /// <remarks>
+        /// Makes concurrent dictionary becaues this is a global static field
+        /// </remarks>
+        public static ConcurrentDictionary<string, Func<string, IIndexValueType>> ConfigurationTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
 
         static LuceneIndexer()
         {
-            ConfigurationTypes.Add("number", name => new Int32Type(name));
-            ConfigurationTypes.Add("int", name => new Int32Type(name));
-            ConfigurationTypes.Add("float", name => new SingleType(name));
-            ConfigurationTypes.Add("double", name => new DoubleType(name));
-            ConfigurationTypes.Add("long", name => new Int64Type(name));
-            ConfigurationTypes.Add("date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
-            ConfigurationTypes.Add("datetime", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
-            ConfigurationTypes.Add("date.year", name => new DateTimeType(name, DateTools.Resolution.YEAR));
-            ConfigurationTypes.Add("date.month", name => new DateTimeType(name, DateTools.Resolution.MONTH));
-            ConfigurationTypes.Add("date.day", name => new DateTimeType(name, DateTools.Resolution.DAY));
-            ConfigurationTypes.Add("date.hour", name => new DateTimeType(name, DateTools.Resolution.HOUR));
-            ConfigurationTypes.Add("date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE));
-            ConfigurationTypes.Add("raw", name => new RawStringType(name));
-            ConfigurationTypes.Add("rawfacet", name => new FacetType(name));
-            ConfigurationTypes.Add("facet", name => new FacetType(name).SetSeparator(","));
-            ConfigurationTypes.Add("facetpath", name => new FacetType(name, extractorFactory: ()=>new TermFacetPathExtractor(name)).SetSeparator(","));
-            ConfigurationTypes.Add("autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() });
-            ConfigurationTypes.Add("fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() });
+            ConfigurationTypes.TryAdd("number", name => new Int32Type(name));
+            ConfigurationTypes.TryAdd("int", name => new Int32Type(name));
+            ConfigurationTypes.TryAdd("float", name => new SingleType(name));
+            ConfigurationTypes.TryAdd("double", name => new DoubleType(name));
+            ConfigurationTypes.TryAdd("long", name => new Int64Type(name));
+            ConfigurationTypes.TryAdd("date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
+            ConfigurationTypes.TryAdd("datetime", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
+            ConfigurationTypes.TryAdd("date.year", name => new DateTimeType(name, DateTools.Resolution.YEAR));
+            ConfigurationTypes.TryAdd("date.month", name => new DateTimeType(name, DateTools.Resolution.MONTH));
+            ConfigurationTypes.TryAdd("date.day", name => new DateTimeType(name, DateTools.Resolution.DAY));
+            ConfigurationTypes.TryAdd("date.hour", name => new DateTimeType(name, DateTools.Resolution.HOUR));
+            ConfigurationTypes.TryAdd("date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE));
+            ConfigurationTypes.TryAdd("raw", name => new RawStringType(name));
+            ConfigurationTypes.TryAdd("rawfacet", name => new FacetType(name));
+            ConfigurationTypes.TryAdd("facet", name => new FacetType(name).SetSeparator(","));
+            ConfigurationTypes.TryAdd("facetpath", name => new FacetType(name, extractorFactory: () => new TermFacetPathExtractor(name)).SetSeparator(","));
+            ConfigurationTypes.TryAdd("autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() });
+            ConfigurationTypes.TryAdd("fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() });
         }
 
 
         #region IDisposable Members
 
-        protected bool _disposed;
+        protected bool Disposed;
 
         /// <summary>
         /// Checks the disposal state of the objects
         /// </summary>
         protected void CheckDisposed()
         {
-            if (_disposed)
+            if (Disposed)
                 throw new ObjectDisposedException("LuceneExamine.BaseLuceneExamineIndexer");
         }
 
@@ -1709,7 +1722,7 @@ namespace Examine.LuceneEngine.Providers
             this.CheckDisposed();
             this.Dispose(true);
             GC.SuppressFinalize(this);
-            this._disposed = true;
+            this.Disposed = true;
         }
 
         /// <summary>

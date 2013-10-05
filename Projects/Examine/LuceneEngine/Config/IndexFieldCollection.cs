@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine.Config
         }
         protected override object GetElementKey(ConfigurationElement element)
         {
-            IndexField field = (IndexField)element;
+            var field = (IndexField)element;
             return field.IndexName;
         }
 

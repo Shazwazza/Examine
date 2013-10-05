@@ -7,19 +7,21 @@ using LuceneManager.Infrastructure;
 
 namespace Examine.Session
 {
-    public static class ExamineSession
+    //TODO : I'm not sure if this is thread safe ??
+
+    internal static class ExamineSession
     {
-        private static readonly RequestScoped<Dictionary<NrtManager, long>> _currentGeneration =
+        private static readonly RequestScoped<Dictionary<NrtManager, long>> CurrentGeneration =
             new RequestScoped<Dictionary<NrtManager, long>>(()=>new Dictionary<NrtManager, long>());
 
         public static void TrackGeneration(NrtManager manager, long generation)
         {
-            _currentGeneration.Value[manager] = generation;
+            CurrentGeneration.Value[manager] = generation;
         }
 
         public static void WaitForChanges()
         {
-            foreach (var manager in _currentGeneration.Value)
+            foreach (var manager in CurrentGeneration.Value)
             {
                 manager.Key.WaitForGeneration(manager.Value);
             }
@@ -28,7 +30,7 @@ namespace Examine.Session
         public static void WaitForChanges(NrtManager manager)
         {
             long generation;
-            if (_currentGeneration.Value.TryGetValue(manager, out generation))
+            if (CurrentGeneration.Value.TryGetValue(manager, out generation))
             {
                 manager.WaitForGeneration(generation);
             }

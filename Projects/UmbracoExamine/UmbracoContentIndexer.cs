@@ -84,23 +84,23 @@ namespace UmbracoExamine
         internal static readonly List<StaticField> IndexFieldPolicies
             = new List<StaticField>
             {
-                new StaticField("id", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
-                new StaticField( "version", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
-                new StaticField( "parentID", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField("id", FieldIndexTypes.NOT_ANALYZED, false),
+                new StaticField( "version", FieldIndexTypes.NOT_ANALYZED, false),
+                new StaticField( "parentID", FieldIndexTypes.NOT_ANALYZED, false),
                 new StaticField( "level", FieldIndexTypes.NOT_ANALYZED, true, "NUMBER"),
-                new StaticField( "writerID", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
-                new StaticField( "creatorID", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
-                new StaticField( "nodeType", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
-                new StaticField( "template", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
+                new StaticField( "writerID", FieldIndexTypes.NOT_ANALYZED, false),
+                new StaticField( "creatorID", FieldIndexTypes.NOT_ANALYZED, false),
+                new StaticField( "nodeType", FieldIndexTypes.NOT_ANALYZED, false),
+                new StaticField( "template", FieldIndexTypes.NOT_ANALYZED, false),
                 new StaticField( "sortOrder", FieldIndexTypes.NOT_ANALYZED, true, "NUMBER"),
                 new StaticField( "createDate", FieldIndexTypes.NOT_ANALYZED, false, "DATETIME"),
                 new StaticField( "updateDate", FieldIndexTypes.NOT_ANALYZED, false, "DATETIME"),
-                new StaticField( "nodeName", FieldIndexTypes.ANALYZED, false, string.Empty),
-                new StaticField( "urlName", FieldIndexTypes.NOT_ANALYZED, false, string.Empty),
-                new StaticField( "writerName", FieldIndexTypes.ANALYZED, false, string.Empty),
-                new StaticField( "creatorName", FieldIndexTypes.ANALYZED, false, string.Empty),
-                new StaticField( "nodeTypeAlias", FieldIndexTypes.ANALYZED, false, string.Empty),
-                new StaticField( "path", FieldIndexTypes.NOT_ANALYZED, false, string.Empty)
+                new StaticField( "nodeName", FieldIndexTypes.ANALYZED, false),
+                new StaticField( "urlName", FieldIndexTypes.NOT_ANALYZED, false),
+                new StaticField( "writerName", FieldIndexTypes.ANALYZED, false),
+                new StaticField( "creatorName", FieldIndexTypes.ANALYZED, false),
+                new StaticField( "nodeTypeAlias", FieldIndexTypes.ANALYZED, false),
+                new StaticField( "path", FieldIndexTypes.NOT_ANALYZED, false)
             };
 
         #endregion
