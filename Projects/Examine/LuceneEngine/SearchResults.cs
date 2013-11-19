@@ -94,7 +94,7 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-		    maxResults = maxResults > 1 ? maxResults : LuceneSearcher.MaxDoc();
+		    maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc();
 
             if (sortField.Count() == 0)
             {
