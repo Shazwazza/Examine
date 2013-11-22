@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Xml.Linq;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine;
@@ -11,22 +12,24 @@ namespace Examine
     public class IndexItem
     {
         private XElement _dataToIndex;
-        private string _indexType;
-        private string _id;
+
+        /// <summary>
+        /// Exposes the underlying ValueSet
+        /// </summary>
         public ValueSet ValueSet { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IndexItem"/> class.
         /// </summary>
         /// <param name="data">The data.</param>
-        /// <param name="type">The type.</param>
+        /// <param name="indexCategory">The type.</param>
         /// <param name="id">The id.</param>
         [Obsolete("Use ValueSets instead")]
-        public IndexItem(XElement data, string type, string id)
-           : this(data.ToValueSet(type, long.Parse(id)))
+        public IndexItem(XElement data, string indexCategory, string id)
+           : this(data.ToValueSet(indexCategory, data.ExamineNodeTypeAlias(), long.Parse(id)))
         {
             DataToIndex = data;
-            IndexType = type;
+            IndexType = indexCategory;
             Id = id;            
         }
 
@@ -38,17 +41,26 @@ namespace Examine
             }
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        [Obsolete("Use ValueSets instead")]
         public IndexItem(string type, string id)
         {
             IndexType = type;
             Id = id;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="valueSet"></param>
+        [Obsolete("Use ValueSets instead")]
         public IndexItem(ValueSet valueSet)
         {
             ValueSet = valueSet;
-            IndexType = ValueSet.Type;
-            Id = ValueSet.Id.ToString();            
+            IndexType = ValueSet.IndexCategory;
+            Id = ValueSet.Id.ToString(CultureInfo.InvariantCulture);            
         }
 
         /// <summary>

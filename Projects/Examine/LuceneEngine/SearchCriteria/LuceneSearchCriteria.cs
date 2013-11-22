@@ -186,7 +186,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal protected IBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this.QueryParser.GetFieldQuery(LuceneIndexer.IndexNodeIdFieldName, id.ToString()), occurance);
+            Query.Add(this.QueryParser.GetFieldQuery(LuceneIndexer.IndexNodeIdFieldName, id.ToString(CultureInfo.InvariantCulture)), occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -266,7 +266,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         
         internal protected IBooleanOperation ParentIdInternal(int id, BooleanClause.Occur occurance)
         {
-            Query.Add(this.QueryParser.GetFieldQuery(ParentIdField, id.ToString()), occurance);
+            Query.Add(this.QueryParser.GetFieldQuery(ParentIdField, id.ToString(CultureInfo.InvariantCulture)), occurance);
 
             return new LuceneBooleanOperation(this);
         }

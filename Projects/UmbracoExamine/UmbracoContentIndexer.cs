@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -45,9 +46,19 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-		
+        [Obsolete("This constructor should no be used, the async flag has no relevance")]
 		public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, dataService, analyzer, async) { }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="indexPath"></param>
+        /// <param name="dataService"></param>
+        /// <param name="analyzer"></param>
+        public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, indexPath, dataService, analyzer) { }
 
 		/// <summary>
 		/// Constructor to allow for creating an indexer at runtime
@@ -57,9 +68,19 @@ namespace UmbracoExamine
 		/// <param name="dataService"></param>
 		/// <param name="analyzer"></param>
 		/// <param name="async"></param>
-		
+        [Obsolete("This constructor should no be used, the async flag has no relevance")]
 		public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
 			: base(indexerData, luceneDirectory, dataService, analyzer, async) { }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="luceneDirectory"></param>
+        /// <param name="dataService"></param>
+        /// <param name="analyzer"></param>
+        public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, luceneDirectory, dataService, analyzer) { }
 
         #endregion
 
@@ -268,7 +289,7 @@ namespace UmbracoExamine
                 EnqueueIndexOperation(new IndexOperation()
                     {
                         Operation = IndexOperationType.Delete,
-                        Item = new IndexItem(null, "", r.Id.ToString())
+                        Item = new IndexItem(null, "", r.Id.ToString(CultureInfo.InvariantCulture))
                     });
                 //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }
@@ -407,6 +428,7 @@ namespace UmbracoExamine
         /// content to be indexed when this is disabled).
         /// <returns></returns>
         /// </summary>
+        [Obsolete("This method is no longer used and will be removed in future versions, do not call this method")]
         protected override bool ValidateDocument(XElement node)
         {
             var nodeId = int.Parse(node.Attribute("id").Value);

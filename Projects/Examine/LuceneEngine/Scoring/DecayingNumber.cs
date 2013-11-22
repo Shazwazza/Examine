@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -73,7 +74,7 @@ namespace Examine.LuceneEngine.Scoring
 
         public override string ToString()
         {
-            return Count.ToString();
+            return Count.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

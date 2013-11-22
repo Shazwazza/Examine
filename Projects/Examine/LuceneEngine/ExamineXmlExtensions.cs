@@ -193,10 +193,22 @@ namespace Examine.LuceneEngine
             }
         }
 
-        public static ValueSet ToValueSet(this XElement node, string type, long? id = null)
+        /// <summary>
+        /// Converts the legacy XML representation to a ValueSet
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="itemType">
+        /// The item's node type (in umbraco terms this would be the doc type alias)</param>
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        //public static ValueSet ToValueSet(this XElement node, string type, long? id = null)
+        public static ValueSet ToValueSet(this XElement node, string indexCategory, string itemType, long? id = null)
         {
             id = id ?? long.Parse((string)node.Attribute("id"));
-            var set = new ValueSet(id.Value, type ?? node.ExamineNodeTypeAlias()) { OriginalNode = node};
+            var set = new ValueSet(id.Value, indexCategory, node.ExamineNodeTypeAlias()) { OriginalNode = node};
             
             foreach (var attr in node.Attributes())
             {

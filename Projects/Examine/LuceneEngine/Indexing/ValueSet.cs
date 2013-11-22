@@ -8,41 +8,102 @@ using Lucene.Net.Documents;
 
 namespace Examine.LuceneEngine.Indexing
 {
+    /// <summary>
+    /// Represents an item to be indexed
+    /// </summary>
     public class ValueSet
     {
+        /// <summary>
+        /// Used for legacy purposes and stores the original xml document that used to be used for indexing
+        /// </summary>
         internal XElement OriginalNode { get; set; }
 
-        public long Id { get; set; }
+        /// <summary>
+        /// The id of the object to be indexed
+        /// </summary>
+        public long Id { get; private set; }
 
-        public string Type { get; set; }
+        /// <summary>
+        /// The index category
+        /// </summary>
+        /// <remarks>
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </remarks>
+        public string IndexCategory { get; private set; }
 
-        public Dictionary<string, List<object>> Values { get; set; } 
+        /// <summary>
+        /// The item's node type (in umbraco terms this would be the doc type alias)
+        /// </summary>
+        public string ItemType { get; private set; }
 
-        
-        public ValueSet(long id, string type, IEnumerable<KeyValuePair<string, object>> values)
-            : this(id, type, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) {}
-        
+        /// <summary>
+        /// The values to be indexed
+        /// </summary>
+        public Dictionary<string, List<object>> Values { get; private set; } 
 
-        public ValueSet(long id, string type, Dictionary<string, List<object>> values = null)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="itemType">
+        /// The item's node type (in umbraco terms this would be the doc type alias)</param>
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="values"></param>
+        public ValueSet(long id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object>> values)
+            : this(id, indexCategory, itemType, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="itemType">
+        /// The item's node type (in umbraco terms this would be the doc type alias)</param>
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="values"></param>
+        public ValueSet(long id, string indexCategory, string itemType, Dictionary<string, List<object>> values = null)
         {
             Id = id;
-            Type = type;
+            IndexCategory = indexCategory;
+            ItemType = itemType;
             Values = values ?? new Dictionary<string, List<object>>();
         }
       
-        public ValueSet(long id, string type, IEnumerable<KeyValuePair<string, object[]>> values)
-            : this(id, type, values.Where(kv=>kv.Value != null).SelectMany(kv=>kv.Value.Select(v=>new KeyValuePair<string, object>(kv.Key, v))))
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="itemType">
+        /// The item's node type (in umbraco terms this would be the doc type alias)</param>
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="values"></param>
+        public ValueSet(long id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object[]>> values)
+            : this(id, indexCategory, itemType, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
         {
             
         }        
 
+        /// <summary>
+        /// Gets the values for the key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public IEnumerable<object> GetValues(string key)
         {
             List<object> values;
             return !Values.TryGetValue(key, out values) ? (IEnumerable<object>) new object[0] : values;
         }
 
-        
+        /// <summary>
+        /// Adds a value to the keyed item
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
         public void Add(string key, object value)
         {
             List<object> values;
@@ -52,13 +113,24 @@ namespace Examine.LuceneEngine.Indexing
             }
             values.Add(value);
         }
-        
 
-        internal static ValueSet FromLegacyFields(long nodeId, string type, Dictionary<string, string> fields)
+        /// <summary>
+        /// Convert to a ValueSet from legacy fields
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="indexCategory"></param>
+        /// <param name="itemType"></param>
+        /// <param name="fields"></param>
+        /// <returns></returns>
+        internal static ValueSet FromLegacyFields(long nodeId, string indexCategory, string itemType, Dictionary<string, string> fields)
         {
-            return new ValueSet(nodeId, type, fields.Select(kv => new KeyValuePair<string, object>(kv.Key, kv.Value)));            
+            return new ValueSet(nodeId, indexCategory, itemType, fields.Select(kv => new KeyValuePair<string, object>(kv.Key, kv.Value)));            
         }
 
+        /// <summary>
+        /// Convert this value set to legacy fields
+        /// </summary>
+        /// <returns></returns>
         internal Dictionary<string, string> ToLegacyFields()
         {
             var fields = new Dictionary<string, string>();
@@ -76,9 +148,13 @@ namespace Examine.LuceneEngine.Indexing
             return fields;
         }
 
+        /// <summary>
+        /// Converts the value set to the legacy XML representation
+        /// </summary>
+        /// <returns></returns>
         internal  XElement ToExamineXml()
         {
-            return OriginalNode ?? ToLegacyFields().ToExamineXml((int) Id, Type);
+            return OriginalNode ?? ToLegacyFields().ToExamineXml((int) Id, IndexCategory);
         }
     }
 }

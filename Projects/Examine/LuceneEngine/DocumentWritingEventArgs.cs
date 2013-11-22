@@ -26,6 +26,9 @@ namespace Examine.LuceneEngine
 			private set;
 	    }
 
+        /// <summary>
+        /// Returns the value set associated
+        /// </summary>
         public ValueSet Values { get; private set; }
 
         /// <summary>
@@ -40,7 +43,11 @@ namespace Examine.LuceneEngine
         [Obsolete("Use ValueSet instead")]        
         public int NodeId { get; private set; }
 
-
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="d"></param>
+        /// <param name="values"></param>
         public DocumentWritingEventArgs(Document d, ValueSet values)
         {
             Document = d;
@@ -53,15 +60,14 @@ namespace Examine.LuceneEngine
         }
 
         /// <summary>
-        /// 
+        /// Constructor
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="d"></param>
-        /// <param name="fields"></param>
-		
-        [Obsolete("Use ValueSet instead")]
+        /// <param name="fields"></param>		
+        [Obsolete("Do not use this constructor, it does not contain enough information to create a ValueSet")]
         public DocumentWritingEventArgs(int nodeId, Document d, Dictionary<string, string> fields)
-            :this(d, ValueSet.FromLegacyFields(nodeId, null, fields))
+            :this(d, ValueSet.FromLegacyFields(nodeId, null, null, fields))
         {            
         }
     }

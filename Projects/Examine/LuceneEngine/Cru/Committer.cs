@@ -44,6 +44,9 @@ namespace LuceneManager.Infrastructure
             {
                 _waitHandle.Reset();
 
+
+                //TODO: I think we really need a try/catch here, if this fails for whatever reason this loop 
+                // somehow still continues and keeps calling this... Need to check with Niels K.
                 _writer.Commit();
 
                 if (_optimizeNow || sw.ElapsedTicks - lastOptimize > _optimizeInterval.Ticks)

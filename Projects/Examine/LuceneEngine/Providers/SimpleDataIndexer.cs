@@ -34,10 +34,40 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="analyzer"></param>
         /// <param name="dataService"></param>
         /// <param name="indexTypes"></param>
+        public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes)
+            : base(indexerData, workingFolder, analyzer)
+        {
+            DataService = dataService;
+            IndexTypes = indexTypes;
+        }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="workingFolder"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="dataService"></param>
+        /// <param name="indexTypes"></param>
         /// <param name="async"></param>
-		
+        [Obsolete("This constructor should no be used, the async flag has no relevance")]
 		public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
             : base(indexerData, workingFolder, analyzer, async)
+        {
+            DataService = dataService;
+            IndexTypes = indexTypes;
+        }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="luceneDirectory"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="dataService"></param>
+        /// <param name="indexTypes"></param>
+        public SimpleDataIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes)
+            : base(indexerData, luceneDirectory, analyzer)
         {
             DataService = dataService;
             IndexTypes = indexTypes;
@@ -52,7 +82,7 @@ namespace Examine.LuceneEngine.Providers
 		/// <param name="dataService"></param>
 		/// <param name="indexTypes"></param>
 		/// <param name="async"></param>
-		
+        [Obsolete("This constructor should no be used, the async flag has no relevance")]
 		public SimpleDataIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
 			: base(indexerData, luceneDirectory, analyzer, async)
 		{
@@ -83,7 +113,7 @@ namespace Examine.LuceneEngine.Providers
             var nodes = new List<ValueSet>();
             foreach (var d in data)
             {
-                nodes.Add(ValueSet.FromLegacyFields(d.NodeDefinition.NodeId, type ?? d.NodeDefinition.Type, d.RowData));                   
+                nodes.Add(ValueSet.FromLegacyFields(d.NodeDefinition.NodeId, type, d.NodeDefinition.Type, d.RowData));                   
             }
             
             //now that we have XElement nodes of all of the data, process it as per normal

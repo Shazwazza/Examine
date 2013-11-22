@@ -60,14 +60,15 @@ namespace Examine.Providers
         [Obsolete("Use ValueSets instead")]
         public virtual void ReIndexNode(XElement node, string type)
         {
-            ReIndexNode(node.ToValueSet(type));
+            ReIndexNode(node.ToValueSet(type, node.ExamineNodeTypeAlias()));
         }
 
+        /// <summary>
+        /// Re-indexes an item
+        /// </summary>
+        /// <param name="node"></param>
         public abstract void ReIndexNode(ValueSet node);
-
         
-        
-
         /// <summary>
         /// Deletes a node from the index
         /// </summary>

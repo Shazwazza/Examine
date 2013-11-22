@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security;
 using System.Xml;
@@ -32,9 +33,9 @@ namespace UmbracoExamine
 		[Obsolete("This method is no longer used and will be removed in future versions")]
         public static XDocument ToXDocument(this Content node, bool cacheOnly)
         {
-            if (cacheOnly && node.GetType().Equals(typeof(Document)))
+            if (cacheOnly && node.GetType() == typeof(Document))
             {
-                var umbXml = LegacyLibrary.GetXmlNodeById(node.Id.ToString());
+                var umbXml = LegacyLibrary.GetXmlNodeById(node.Id.ToString(CultureInfo.InvariantCulture));
                 if (umbXml != null)
                 {
                     return umbXml.ToXDocument();    

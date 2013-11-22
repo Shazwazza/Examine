@@ -35,6 +35,12 @@ namespace UmbracoExamine
         {
         }
 
+        protected BaseUmbracoIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, indexPath, analyzer)
+        {
+            DataService = dataService;
+        }
+
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
@@ -42,14 +48,20 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-        
+        [Obsolete("This constructor should no be used, the async flag has no relevance")]
         protected BaseUmbracoIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, analyzer, async)
         {
             DataService = dataService;
         }
 
-		
+        protected BaseUmbracoIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer)
+            : base(indexerData, luceneDirectory, analyzer)
+        {
+            DataService = dataService;
+        }
+
+        [Obsolete("This constructor should no be used, the async flag has no relevance")]
 		protected BaseUmbracoIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
 			: base(indexerData, luceneDirectory, analyzer, async)
 		{
@@ -240,6 +252,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
+        [Obsolete("This method is no longer used and will be removed in future versions, do not call this method")]
         protected override bool ValidateDocument(XElement node)
         {
             //check if this document is a descendent of the parent

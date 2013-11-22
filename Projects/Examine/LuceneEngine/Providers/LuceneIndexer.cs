@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -56,8 +57,13 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
         /// <param name="async"></param>
-        
+        [Obsolete("This constructor should no be used, the async flag has no relevance")]
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, bool async)
+            : this(indexerData, workingFolder, analyzer)
+        {
+        }
+
+        protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer)
             : base(indexerData)
         {
             //set up our folders based on the index path
@@ -72,8 +78,13 @@ namespace Examine.LuceneEngine.Providers
             EnsureIndex(false);
         }
 
-        
+        [Obsolete("This constructor should no be used, the async flag has no relevance")]
         protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
+            : this(indexerData, luceneDirectory, analyzer)
+        {            
+        }
+
+        protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
             : base(indexerData)
         {
             WorkingFolder = null;
@@ -84,7 +95,7 @@ namespace Examine.LuceneEngine.Providers
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
             InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
-            
+
             EnsureIndex(false);
         }
 
@@ -110,7 +121,7 @@ namespace Examine.LuceneEngine.Providers
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
         
-        public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
+        public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
             
@@ -212,45 +223,15 @@ namespace Examine.LuceneEngine.Providers
         public const string IndexNodeIdFieldName = "__NodeId";
 
         /// <summary>
-        /// Used to perform thread locking
-        /// </summary>
-        private readonly object _indexerLocker = new object();
-
-        /// <summary>
         /// used to thread lock calls for creating and verifying folders
         /// </summary>
         private readonly object _folderLocker = new object();
-
-        /// <summary>
-        /// Used for double check locking during an index operation
-        /// </summary>
-        private volatile bool _isIndexing = false;
-
-        //private System.Timers.Timer _fileWatcher = null;
-        //private System.Timers.ElapsedEventHandler FileWatcher_ElapsedEventHandler;
 
         /// <summary>
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
         /// </summary>
         protected BaseSearchProvider InternalSearcher { get; private set; }
-
-        /// <summary>
-        /// This is our threadsafe queue of items which can be read by our background worker to process the queue
-        /// </summary>
-        private readonly ConcurrentQueue<IndexOperation> _indexQueue = new ConcurrentQueue<IndexOperation>();
-
-        ///// <summary>
-        ///// The async task that runs during an async indexing operation
-        ///// </summary>
-        //private Task _asyncTask;
-
-        ///// <summary>
-        ///// Used to cancel the async operation
-        ///// </summary>
-        //private volatile bool _isCancelling = false;
-
-        //private bool _hasIndex = false;
 
         #endregion
 
@@ -449,8 +430,8 @@ namespace Examine.LuceneEngine.Providers
         {
             if (resetIndexingFlag)
             {
-                //reset our volatile flag... something else funny is going on but we don't want this to prevent ALL future operations
-                _isIndexing = false;
+                ////reset our volatile flag... something else funny is going on but we don't want this to prevent ALL future operations
+                //_isIndexing = false;
             }
 
             OnIndexingError(e);
@@ -744,7 +725,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type"></param>
         protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
         {
-            AddNodesToIndex(nodes.Select(n => n.ToValueSet(type)));
+            AddNodesToIndex(nodes.Select(n => n.ToValueSet(type, n.ExamineNodeTypeAlias())));
 
             //run the indexer on all queued files
             //SafelyProcessQueueItems();
@@ -875,33 +856,36 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
+        /// <summary>
+        /// Ensures that the node being indexed is of a correct type 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         protected virtual bool ValidateDocument(ValueSet node)
         {
             //check if this document is of a correct type of node type alias
             if (IndexerData.IncludeNodeTypes.Any())
-                if (!IndexerData.IncludeNodeTypes.Contains(node.Type))
+                if (!IndexerData.IncludeNodeTypes.Contains(node.ItemType))
                     return false;
 
             //if this node type is part of our exclusion list, do not validate
             if (IndexerData.ExcludeNodeTypes.Any())
-                if (IndexerData.ExcludeNodeTypes.Contains(node.Type))
+                if (IndexerData.ExcludeNodeTypes.Contains(node.ItemType))
                     return false;
 
             return true;
         }
+
         /// <summary>
         /// Ensures that the node being indexed is of a correct type and is a descendent of the parent id specified.
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        [Obsolete("Use ValueSets instead")]
+        [Obsolete("This method is no longer used and will be removed in future versions, do not call this method")]
         protected virtual bool ValidateDocument(XElement node)
         {
-            return ValidateDocument(node.ToValueSet(node.ExamineNodeTypeAlias()));
+            return ValidateDocument(node.ToValueSet(null, node.ExamineNodeTypeAlias()));
         }
-
-
-
 
         /// <summary>
         /// Translates the XElement structure into a dictionary object to be indexed.
@@ -1065,6 +1049,10 @@ namespace Examine.LuceneEngine.Providers
             return _fieldMappings.TryGetValue(sourceName, out mappings) ? (IEnumerable<string>)mappings : new[] { sourceName };
         }
 
+        /// <summary>
+        /// Adds an item to the index
+        /// </summary>
+        /// <param name="values"></param>
         public virtual void AddDocument(ValueSet values)
         {
             var args = new IndexingNodeEventArgs(values);
@@ -1097,7 +1085,7 @@ namespace Examine.LuceneEngine.Providers
             if (docArgs.Cancel)
                 return;
 
-            SearcherContext.Manager.UpdateDocument(new Term(IndexNodeIdFieldName, values.Id.ToString()), d);
+            SearcherContext.Manager.UpdateDocument(new Term(IndexNodeIdFieldName, values.Id.ToString(CultureInfo.InvariantCulture)), d);
 
             OnNodeIndexed(new IndexedNodeEventArgs(values.Id));
         }
@@ -1107,16 +1095,17 @@ namespace Examine.LuceneEngine.Providers
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
         /// <param name="fields">The fields and their associated data.</param>
-        /// <param name="writer">The writer that will be used to update the Lucene index.</param>
         /// <param name="nodeId">The node id.</param>
         /// <param name="type">The type to index the node as.</param>
         /// <remarks>
         /// This will normalize (lowercase) all text before it goes in to the index.
         /// </remarks>
-        
+        [Obsolete("Use the ValueSet override instead, this method should not be used")]
         protected virtual void AddDocument(Dictionary<string, string> fields, int nodeId, string type)
         {
-            AddDocument(ValueSet.FromLegacyFields(nodeId, type, fields));
+            //we don't have enough info here to create a real ValueSet - missing the item type
+            AddDocument(ValueSet.FromLegacyFields(nodeId, type, null, fields));
+
             //var args = new IndexingNodeEventArgs(nodeId, fields, type);
             //OnNodeIndexing(args);
             //if (args.Cancel)
@@ -1490,7 +1479,7 @@ namespace Examine.LuceneEngine.Providers
         {
 
             d.Add(new Field(IndexNodeIdFieldName, values.Id + "", Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
-            d.Add(new Field(IndexTypeFieldName, values.Type.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+            d.Add(new Field(IndexTypeFieldName, values.IndexCategory.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
 
             //Legacy stuff
             //TODO: Why not just remove this logic since this just returns an empty dictionary ???
@@ -1519,9 +1508,7 @@ namespace Examine.LuceneEngine.Providers
         /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
         /// </summary>
         /// <param name="op"></param>
-        /// <param name="iw"></param>
-        /// <param name="performCommit"></param>
-        
+        /// <param name="performCommit"></param>        
         private void ProcessDeleteQueueItem(IndexOperation op, bool performCommit = true)
         {
 

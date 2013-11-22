@@ -26,6 +26,13 @@ namespace Examine.Test
     /// </summary>
     internal static class IndexInitializer
     {
+        //static ctor
+        static IndexInitializer()
+        {
+            //set the flag to disable init check
+            BaseUmbracoIndexer.DisableInitializationCheck = true;
+        }
+
         public static UmbracoContentIndexer GetUmbracoIndexer(Lucene.Net.Store.Directory luceneDir)
         {
 
@@ -67,8 +74,7 @@ namespace Examine.Test
                                                          -1),
                                                          luceneDir, //custom lucene directory
                                                          new TestDataService(),
-                                                         new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
-                                                         false);
+                                                         new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
 
             //i.IndexSecondsInterval = 1;
 
@@ -107,8 +113,7 @@ namespace Examine.Test
                                                          luceneDir,
                                                          new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
                                                          new TestSimpleDataProvider(),
-                                                         new[] { "Documents", "Pictures" },
-                                                         false);
+                                                         new[] { "Documents", "Pictures" });
             i.IndexingError += IndexingError;
 
             return i;

@@ -12,7 +12,14 @@ namespace Examine
     /// </summary>
     public class IndexedNode
     {
+        /// <summary>
+        /// The node id
+        /// </summary>
         public int NodeId { get; set; }
+
+        /// <summary>
+        /// The Node Type (this is not the index category)
+        /// </summary>
         public string Type { get; set; }
 
         /// <summary>

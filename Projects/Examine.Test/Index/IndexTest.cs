@@ -68,10 +68,10 @@ namespace Examine.Test.Index
             Assert.AreEqual(10, r.NumDocs());
 
             //test for the special fields to ensure they are there:
-            Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
-            Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
-            Assert.AreEqual(1, fields.Where(x => x == UmbracoContentIndexer.IndexPathFieldName).Count());
-            Assert.AreEqual(1, fields.Where(x => x == UmbracoContentIndexer.NodeTypeAliasFieldName).Count());
+            Assert.AreEqual(1, fields.Count(x => x == LuceneIndexer.IndexNodeIdFieldName));
+            Assert.AreEqual(1, fields.Count(x => x == LuceneIndexer.IndexTypeFieldName));
+            Assert.AreEqual(1, fields.Count(x => x == UmbracoContentIndexer.IndexPathFieldName));
+            Assert.AreEqual(1, fields.Count(x => x == UmbracoContentIndexer.NodeTypeAliasFieldName));
 
         }
 
