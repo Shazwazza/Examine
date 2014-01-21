@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -60,7 +61,8 @@ namespace Examine.LuceneEngine.Providers
 		/// <summary>
 		/// Used as a singleton instance
 		/// </summary>
-		private volatile IndexSearcher _searcher;
+		private IndexSearcher _searcher;
+        private volatile IndexReader _reader;
 		private static readonly object Locker = new object();
 	    private Lucene.Net.Store.Directory _luceneDirectory;
 
@@ -236,8 +238,8 @@ namespace Examine.LuceneEngine.Providers
         {
             ValidateSearcher(false);
             
-            var reader = _searcher.GetIndexReader();
-            var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
+            //var reader = _searcher.GetIndexReader();
+            var fields = _reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
             var searchFields = fields
                 .Where(x => !x.StartsWith(LuceneIndexer.SpecialFieldPrefix))
@@ -273,17 +275,18 @@ namespace Examine.LuceneEngine.Providers
 
             if (!forceReopen)
             {
-                if (_searcher == null)
+                if (_reader == null)
                 {
                     lock (Locker)
                     {
                         //double check
-                        if (_searcher == null)
+                        if (_reader == null)
                         {
 
                             try
                             {
-                                _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+                                _reader = IndexReader.Open(GetLuceneDirectory(), true);
+                                _searcher = new IndexSearcher(_reader);
                             }
                             catch (IOException ex)
                             {
@@ -294,17 +297,19 @@ namespace Examine.LuceneEngine.Providers
                 }
                 else
                 {
-                    if (_searcher.GetReaderStatus() != ReaderStatus.Current)
+
+                    if (_reader.GetReaderStatus() != ReaderStatus.Current)
                     {
                         lock (Locker)
                         {
                             //double check, now, we need to find out if it's closed or just not current
-                            switch (_searcher.GetReaderStatus())
+                            switch (_reader.GetReaderStatus())
                             {
                                 case ReaderStatus.Current:
                                     break;
                                 case ReaderStatus.Closed:
-                                    _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+                                    _reader = IndexReader.Open(GetLuceneDirectory(), true);
+                                    _searcher = new IndexSearcher(_reader);
                                     break;
                                 case ReaderStatus.NotCurrent:
 
@@ -318,9 +323,12 @@ namespace Examine.LuceneEngine.Providers
                                     var newReader = oldReader.Reopen(true);
                                     if (newReader != oldReader)
                                     {
+                                        //Debug.WriteLine("Examine: opening new reader/searcher");
+
                                         _searcher.Close();
                                         oldReader.Close();
-                                        _searcher = new IndexSearcher(newReader);
+                                        _reader = newReader;
+                                        _searcher = new IndexSearcher(_reader);
                                     }
 
                                     break;
@@ -333,31 +341,35 @@ namespace Examine.LuceneEngine.Providers
             {
                 //need to close the searcher and force a re-open
 
-                if (_searcher != null)
+                if (_reader != null)
                 {
                     lock (Locker)
                     {
                         //double check
-                        if (_searcher != null)
+                        if (_reader != null)
                         {
                             try
                             {
                                 _searcher.Close();
+                                _reader.Close();
                             }
-                            catch (IOException)
+                            catch (IOException ex)
                             {
                                 //this will happen if it's already closed ( i think )
+                                Trace.TraceError("Examine: error occurred closing index searcher. {0}", ex);                                
                             }
                             finally
                             {
                                 //set to null in case another call to this method has passed the first lock and is checking for null
                                 _searcher = null;
+                                _reader = null;
                             }
 
 
                             try
                             {
-                                _searcher = new IndexSearcher(GetLuceneDirectory(), true);
+                                _reader = IndexReader.Open(GetLuceneDirectory(), true);
+                                _searcher = new IndexSearcher(_reader);
                             }
                             catch (IOException ex)
                             {

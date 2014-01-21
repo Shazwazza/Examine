@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -24,8 +26,8 @@ namespace Examine.Test.Index
     /// <summary>
     /// Tests the standard indexing capabilities
     /// </summary>
-    [TestFixture, RequiresSTA]
-	public class IndexTest : AbstractPartialTrustFixture<IndexTest>
+    [TestFixture]
+	public class IndexTest //: AbstractPartialTrustFixture<IndexTest>
     {
 
         //[Test]
@@ -115,6 +117,143 @@ namespace Examine.Test.Index
 				var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Id(id).Compile());
 				Assert.AreEqual(1, results.Count());                
 	        }            
+        }
+
+        [Test]
+        public void Index_Read_And_Write_Ensure_No_Errors_In_Async()
+        {
+            using (var d = new RAMDirectory())
+            {
+                var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
+                var customSearcher = IndexInitializer.GetUmbracoSearcher(d);
+
+                var isIndexing = false;
+
+                EventHandler operationComplete = (sender, e) =>
+                {
+                    isIndexing = false;
+                };
+
+                //add the handler for optimized since we know it will be optimized last based on the commit count
+                customIndexer.IndexOperationComplete += operationComplete;
+
+                //remove the normal indexing error handler
+                customIndexer.IndexingError -= IndexInitializer.IndexingError;
+
+                //run in async mode
+                customIndexer.RunAsync = true;
+
+                //get a node from the data repo
+                var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+                    .Root
+                    .Elements()
+                    .First();
+
+                ////get the id for th node we're re-indexing.
+                //var id = (int)node.Attribute("id");
+
+                //set our internal monitoring flag
+                isIndexing = true;
+
+                var random = new Random();
+                var searchThreadCount = 42;
+                var indexThreadCount = 20;
+                //spawn a bunch of threads to perform some reading                
+                var waitHandles = new WaitHandle[searchThreadCount + indexThreadCount];
+                var threads = new List<Thread>();
+                Action<AutoResetEvent, UmbracoExamineSearcher> doSearch = (a, s) =>
+                {
+                    try
+                    {
+                        for (var counter = 0; counter < 100; counter++)
+                        {
+                            var randomId = random.Next(1, 100);
+                            var r = s.Search(s.CreateSearchCriteria().Id(randomId).Compile());
+                            Debug.WriteLine("searching tId: {0}, tName: {1}, found: {2}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.Name, r.Count());
+                            Thread.Sleep(50);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine("ERROR!! {0}", ex);
+                    }
+                    finally
+                    {
+                        //signal this thread is done
+                        a.Set();
+                    }
+                };
+                Action<AutoResetEvent, UmbracoContentIndexer> doIndex = (a, ind) =>
+                {
+                    try
+                    {
+                        //reindex the same node a bunch of times
+                        for (var i = 0; i < 100; i++)
+                        {
+                            //get a randome id between 100
+                            var randomId = random.Next(1, 100);
+                            var cloned = new XElement(node);
+                            cloned.Attribute("id").Value = randomId.ToString(CultureInfo.InvariantCulture);
+
+                            Debug.WriteLine("Indexing {0}", i);
+                            ind.ReIndexNode(cloned, IndexTypes.Content);
+                            Thread.Sleep(100);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine("ERROR!! {0}", ex);
+                    }
+                    finally
+                    {
+                        //signal this thread is done
+                        a.Set();
+                    }
+                };
+
+                //searching threads
+                for (var i = 0; i < searchThreadCount; i++)
+                {
+                    var auto = new AutoResetEvent(false);
+                    waitHandles[i] = auto;
+                    threads.Add(new Thread(() => doSearch(auto, customSearcher)){ Name = "myThread_" + i});
+                }
+                //indexing threads
+                for (var i = 0; i < indexThreadCount; i++)
+                {
+                    var auto = new AutoResetEvent(false);
+                    waitHandles[i + searchThreadCount] = auto;
+                    threads.Add(new Thread(() => doIndex(auto, customIndexer)) { Name = "indexerThread" + i });
+                }   
+                
+                //start all the threads
+                foreach (var t in threads)
+                {
+                    t.Start();
+                }
+
+                //wait for all threads to complete
+                WaitHandle.WaitAll(waitHandles);
+
+                //we need to check if the indexing is complete
+                while (isIndexing)
+                {
+                    //wait until indexing is done
+                    Thread.Sleep(1000);
+                }
+
+                //reset the async mode and remove event handler
+                customIndexer.IndexOptimized -= operationComplete;
+                customIndexer.IndexingError += IndexInitializer.IndexingError;
+                customIndexer.RunAsync = false;
+
+
+                //ensure no duplicates
+                Thread.Sleep(10000); //seems to take a while to get its shit together... this i'm not sure why since the optimization should have def finished (and i've stepped through that code!)
+                
+                //var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Id(id).Compile());
+                //Assert.AreEqual(1, results.Count());
+            }
         }
 
         [Test]
@@ -233,14 +372,16 @@ namespace Examine.Test.Index
 
 	    private Lucene.Net.Store.Directory _luceneDir;
 
-	    public override void TestTearDown()
+        [TearDown]
+	    public void TestTearDown()
         {
             //set back to 100
             _indexer.OptimizationCommitThreshold = 100;
 			_luceneDir.Dispose();
         }
 
-		public override void TestSetup()
+        [SetUp]
+		public void TestSetup()
         {
 			_luceneDir = new RAMDirectory();
 			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
