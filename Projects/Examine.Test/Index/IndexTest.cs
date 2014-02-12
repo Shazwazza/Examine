@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Examine.Test.PartialTrust;
@@ -220,10 +221,13 @@ namespace Examine.Test.Index
                 }
                 catch (AggregateException e)
                 {
+                    var sb = new StringBuilder();
+                    sb.Append(e.Message + ": ");
                     foreach (var v in e.InnerExceptions)
-                        Debug.WriteLine(e.Message + " " + v.Message);
-
-                    Assert.Fail("An error occurred!");
+                    {
+                        sb.Append(v.Message + "; ");
+                    }
+                    Assert.Fail(sb.ToString());
                 }
                 
                 //we need to check if the indexing is complete
@@ -271,56 +275,6 @@ namespace Examine.Test.Index
             var results = _searcher.Search(_searcher.CreateSearchCriteria().Id(id).Compile());
             Assert.AreEqual(1, results.Count());
         }     
-
-        /// <summary>
-        /// This test makes sure that .del files get processed before .add files
-        /// </summary>
-        [Test]
-        public void Index_Ensure_Queue_File_Ordering()
-        {
-            _indexer.RebuildIndex();
-
-            var isDeleted = false;
-            var isAdded = false;
-
-            //first we need to wire up some events... we need to ensure that during an update process that the item is deleted before it's added
-
-            EventHandler<DeleteIndexEventArgs> indexDeletedHandler = (sender, e) =>
-            {
-                isDeleted = true;
-                Assert.IsFalse(isAdded, "node was added before it was deleted!");
-            };
-
-            //add index deleted event handler
-            _indexer.IndexDeleted += indexDeletedHandler;
-
-            EventHandler<IndexedNodeEventArgs> nodeIndexedHandler = (sender, e) =>
-            {
-                isAdded = true;
-                Assert.IsTrue(isDeleted, "node was not deleted first!");
-            };
-
-            //add index added event handler
-            _indexer.NodeIndexed += nodeIndexedHandler;
-            //get a node from the data repo
-            var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
-                .Root
-                .Elements()
-                .First();
-
-            //this will do the reindex (deleting, then updating)
-            _indexer.ReIndexNode(node, IndexTypes.Content);
-
-            _indexer.IndexDeleted -= indexDeletedHandler;
-            _indexer.NodeIndexed -= nodeIndexedHandler;
-
-            Assert.IsTrue(isDeleted, "node was not deleted");
-            Assert.IsTrue(isAdded, "node was not re-added");
-        }
-
-
-         
-
 
         [Test]
         public void Index_Rebuild_Index()

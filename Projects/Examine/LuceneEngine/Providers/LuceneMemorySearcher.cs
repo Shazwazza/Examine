@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Security;
 using Lucene.Net.Analysis;
@@ -48,6 +49,7 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
         public override Searcher GetSearcher()
         {
+            //Debug.WriteLine("LuceneMemorySearcher.GetSearcher");
             if (_searcher == null)
             {
                  _searcher = new IndexSearcher(GetLuceneDirectory(), true);

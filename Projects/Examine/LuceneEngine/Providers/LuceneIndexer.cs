@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -160,9 +161,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     var setNameByConvension = name.Remove(name.LastIndexOf("Indexer")) + "IndexSet";
                     //check if we can assign the index set by naming convention
-                    var set = IndexSets.Instance.Sets.Cast<IndexSet>()
-                        .Where(x => x.SetName == setNameByConvension)
-                        .SingleOrDefault();
+                    var set = IndexSets.Instance.Sets.Cast<IndexSet>().SingleOrDefault(x => x.SetName == setNameByConvension);
 
                     if (set != null)
                     {
@@ -1141,7 +1140,7 @@ namespace Examine.LuceneEngine.Providers
             if (docArgs.Cancel)
                 return;
 
-            writer.UpdateDocument(new Term(IndexNodeIdFieldName, nodeId.ToString()), d);    
+            writer.UpdateDocument(new Term(IndexNodeIdFieldName, nodeId.ToString(CultureInfo.InvariantCulture)), d);    
 
             OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
         }
@@ -1291,22 +1290,14 @@ namespace Examine.LuceneEngine.Providers
                 return 0;
             }
 
-            IndexWriter inMemoryWriter = null;
             IndexWriter realWriter = null;
-            LuceneSearcher inMemorySearcher = null;
 
             //track all of the nodes indexed
             var indexedNodes = new ConcurrentBag<IndexedNode>();
 
             try
             {
-
-                inMemoryWriter = GetNewInMemoryWriter();
                 realWriter = GetIndexWriter();
-
-                //create an in memory snapshot of the index now so we can use that to internally search to see if we 
-                //need to delete from the master index.
-                inMemorySearcher = new LuceneMemorySearcher(GetLuceneDirectory(), IndexingAnalyzer);
 
                 IndexOperation item;
                 while (_indexQueue.TryDequeue(out item))
@@ -1315,17 +1306,11 @@ namespace Examine.LuceneEngine.Providers
                     switch (item.Operation)
                     {
                         case IndexOperationType.Add:
-                            //check if it is already in our index
-                            var idResult = inMemorySearcher.Search(inMemorySearcher.CreateSearchCriteria().Id(int.Parse(item.Item.Id)).Compile());
-                            //if one is found, then delete it from the main index before the fast index is merged in
-                            if (idResult.Any())
-                            {
-                                //do the delete but no commit
-                                ProcessDeleteQueueItem(item, realWriter, false);
-                            }
+                            
                             if (ValidateDocument(item.Item.DataToIndex))
                             {
-                                var added = ProcessIndexQueueItem(item, inMemoryWriter);
+                                //var added = ProcessIndexQueueItem(item, inMemoryWriter);
+                                var added = ProcessIndexQueueItem(item, realWriter);
                                 indexedNodes.Add(added);
                             }
                             else
@@ -1341,14 +1326,8 @@ namespace Examine.LuceneEngine.Providers
                     }
                 }
 
-
-                inMemoryWriter.Commit(); //commit changes!
                 realWriter.Commit(); //commit the changes (this will process the deletes)
-
-
-                //merge the index into the 'real' one
-                realWriter.AddIndexesNoOptimize(new[] { inMemoryWriter.GetDirectory() });
-
+                
                 //this is required to ensure the index is written to during the same thread execution
                 if (!RunAsync)
                 {
@@ -1365,12 +1344,6 @@ namespace Examine.LuceneEngine.Providers
             }
             finally
             {
-                
-                if (inMemorySearcher != null)
-                {
-                    inMemorySearcher.GetSearcher().Close();
-                }
-                CloseWriter(ref inMemoryWriter);
                 CloseWriter(ref realWriter);
             }         
             return indexedNodes.Count;

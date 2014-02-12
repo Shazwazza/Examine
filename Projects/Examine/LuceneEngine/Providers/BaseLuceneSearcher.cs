@@ -166,14 +166,13 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public ISearchResults Search(ISearchCriteria searchParams, int maxResults)
         {
-            var searcher = GetSearcher();
-
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
 
             var luceneParams = searchParams as LuceneSearchCriteria;
             if (luceneParams == null)
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
+            var searcher = GetSearcher();
             var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);
             return pagesResults;
         }
