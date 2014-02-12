@@ -5,6 +5,7 @@ using System.Security;
 using Examine;
 using Examine.Providers;
 using Examine.SearchCriteria;
+using Lucene.Net.Index;
 using UmbracoExamine.Config;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
@@ -51,6 +52,12 @@ namespace UmbracoExamine
 			: base(luceneDirectory, analyzer)
 		{
 		}
+
+        [SecuritySafeCritical]
+        public UmbracoExamineSearcher(IndexWriter writer, Analyzer analyzer)
+            : base(writer, analyzer)
+        {
+        }
 
 		#endregion
 

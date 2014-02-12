@@ -23,13 +23,26 @@ namespace Examine.LuceneEngine.Providers
 	///</summary>
     public class LuceneSearcher : BaseLuceneSearcher
 	{
-		#region Constructors
+        #region Constructors
 
 		/// <summary>
 		/// Default constructor
 		/// </summary>
         public LuceneSearcher()
 		{
+        }
+
+        /// <summary>
+        /// Constructor allowing for creating a NRT instance based on a given writer
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="analyzer"></param>
+        [SecuritySafeCritical]
+        public LuceneSearcher(IndexWriter writer, Analyzer analyzer)
+            : base(analyzer)
+        {
+            if (writer == null) throw new ArgumentNullException("writer");
+            _nrtWriter = writer;
         }
 
         /// <summary>
@@ -64,9 +77,9 @@ namespace Examine.LuceneEngine.Providers
 		/// </summary>
 		private IndexSearcher _searcher;
         private volatile IndexReader _reader;
-		//private static readonly object Locker = new object();
         private static readonly ReaderWriterLockSlim Locker = new ReaderWriterLockSlim();
 	    private Lucene.Net.Store.Directory _luceneDirectory;
+        private readonly IndexWriter _nrtWriter;
 
 		/// <summary>
 		/// Initializes the provider.
@@ -167,10 +180,22 @@ namespace Examine.LuceneEngine.Providers
 
             Locker.EnterUpgradeableReadLock();
 
+            if (_nrtWriter != null)
+            {
+                _hasIndex = true;
+                
+            }
+
             IndexWriter writer = null;
             try
             {
-                if (!IndexReader.IndexExists(GetLuceneDirectory()))
+                if (_nrtWriter != null)
+                {
+                    Locker.EnterWriteLock();
+                    _hasIndex = true;
+                    Locker.ExitWriteLock();
+                }
+                else if (!IndexReader.IndexExists(GetLuceneDirectory()))
                 {
                     Locker.EnterWriteLock();
 
@@ -230,7 +255,6 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
         public override Searcher GetSearcher()
         {
-            //Debug.WriteLine("LuceneSearcher.GetSearcher");
             ValidateSearcher(false);
 
             //ensure scoring is turned on for sorting
@@ -259,6 +283,11 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
         protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
+		    if (_nrtWriter != null)
+		    {
+		        return _nrtWriter.GetDirectory();
+		    }
+
 			if (_luceneDirectory == null)
 			{
 				_luceneDirectory = new SimpleFSDirectory(LuceneIndexFolder);
@@ -287,7 +316,11 @@ namespace Examine.LuceneEngine.Providers
 
                         try
                         {
-                            _reader = IndexReader.Open(GetLuceneDirectory(), true);
+                            //get a reader - could be NRT or based on directly depending on how this was constructed
+                            _reader = _nrtWriter == null 
+                                ? IndexReader.Open(GetLuceneDirectory(), true) 
+                                : _nrtWriter.GetReader();
+
                             _searcher = new IndexSearcher(_reader);
                         }
                         catch (IOException ex)
@@ -310,7 +343,11 @@ namespace Examine.LuceneEngine.Providers
                                 Locker.EnterWriteLock();
                                 try
                                 {
-                                    _reader = IndexReader.Open(GetLuceneDirectory(), true);
+                                    //get a reader - could be NRT or based on directly depending on how this was constructed
+                                    _reader = _nrtWriter == null
+                                        ? IndexReader.Open(GetLuceneDirectory(), true)
+                                        : _nrtWriter.GetReader();
+
                                     _searcher = new IndexSearcher(_reader);
                                 }
                                 finally
@@ -379,7 +416,11 @@ namespace Examine.LuceneEngine.Providers
 
                         try
                         {
-                            _reader = IndexReader.Open(GetLuceneDirectory(), true);
+                            //get a reader - could be NRT or based on directly depending on how this was constructed
+                            _reader = _nrtWriter == null
+                                ? IndexReader.Open(GetLuceneDirectory(), true)
+                                : _nrtWriter.GetReader();
+
                             _searcher = new IndexSearcher(_reader);
                         }
                         catch (IOException ex)

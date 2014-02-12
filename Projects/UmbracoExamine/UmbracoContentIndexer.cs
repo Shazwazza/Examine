@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using Examine;
 using Examine.Config;
 using Examine.Providers;
+using Lucene.Net.Index;
 using umbraco.cms.businesslogic;
 using UmbracoExamine.DataServices;
 using Examine.LuceneEngine;
@@ -58,6 +59,10 @@ namespace UmbracoExamine
 		[SecuritySafeCritical]
 		public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
 			: base(indexerData, luceneDirectory, dataService, analyzer, async) { }
+
+        [SecuritySafeCritical]
+        public UmbracoContentIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
+            : base(indexerData, writer, dataService, async) { }
 
         #endregion
 

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Web;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
+using Lucene.Net.Index;
 using umbraco.BasePages;
 using umbraco.BusinessLogic;
 using UmbracoExamine.DataServices;
@@ -54,6 +55,13 @@ namespace UmbracoExamine
 		{
 			DataService = dataService;
 		}
+
+        [SecuritySafeCritical]
+        protected BaseUmbracoIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
+            : base(indexerData, writer, async)
+        {
+            DataService = dataService;
+        }
 
         #endregion
 

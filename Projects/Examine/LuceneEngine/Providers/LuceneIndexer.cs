@@ -87,8 +87,28 @@ namespace Examine.LuceneEngine.Providers
 			OptimizationCommitThreshold = 100;
 			AutomaticallyOptimize = true;
 			RunAsync = async;
-
 		}
+
+        [SecuritySafeCritical]
+        protected LuceneIndexer(IIndexCriteria indexerData, IndexWriter writer, bool async)
+            : base(indexerData)
+        {
+            if (writer == null) throw new ArgumentNullException("writer");
+            _nrtWriter = writer;
+            WorkingFolder = null;
+            LuceneIndexFolder = null;
+
+            IndexingAnalyzer = writer.GetAnalyzer();
+
+            //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
+            InternalSearcher = new LuceneSearcher(_nrtWriter, IndexingAnalyzer);
+
+            //IndexSecondsInterval = 5;
+            OptimizationCommitThreshold = 100;
+            AutomaticallyOptimize = true;
+            RunAsync = async;
+
+        }
 
         #endregion
 
@@ -232,6 +252,8 @@ namespace Examine.LuceneEngine.Providers
 
         #region Constants & Fields
 
+        private IndexWriter _nrtWriter;
+
         /// <summary>
         /// The prefix characters denoting a special field stored in the lucene index for use internally
         /// </summary>
@@ -266,9 +288,6 @@ namespace Examine.LuceneEngine.Providers
         /// Used for double check locking during an index operation
         /// </summary>
         private volatile bool _isIndexing = false;
-
-        //private System.Timers.Timer _fileWatcher = null;
-        //private System.Timers.ElapsedEventHandler FileWatcher_ElapsedEventHandler;
 
         /// <summary>
         /// We need an internal searcher used to search against our own index.
@@ -593,7 +612,7 @@ namespace Examine.LuceneEngine.Providers
             }
             finally
             {
-                CloseWriter(ref writer);
+                CloseWriter(ref writer);                
                 _hasIndex = true;
             }
 
@@ -696,7 +715,10 @@ namespace Examine.LuceneEngine.Providers
             }
             finally
             {
-                CloseWriter(ref writer);
+                if (_nrtWriter == null)
+                {
+                    CloseWriter(ref writer);    
+                }
             }
 
         }
@@ -764,7 +786,7 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
         protected bool IndexReady()
         {
-            return (!IndexWriter.IsLocked(GetLuceneDirectory()));
+            return _nrtWriter != null || (!IndexWriter.IsLocked(GetLuceneDirectory()));
         }
 
         /// <summary>
@@ -774,7 +796,7 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
         public override bool IndexExists()
         {
-            return IndexReader.IndexExists(GetLuceneDirectory());
+            return _nrtWriter != null || IndexReader.IndexExists(GetLuceneDirectory());
         }
 
         /// <summary>
@@ -1290,14 +1312,13 @@ namespace Examine.LuceneEngine.Providers
                 return 0;
             }
 
-            IndexWriter realWriter = null;
-
             //track all of the nodes indexed
             var indexedNodes = new ConcurrentBag<IndexedNode>();
+            IndexWriter writer = null;
 
             try
             {
-                realWriter = GetIndexWriter();
+                writer = GetIndexWriter();
 
                 IndexOperation item;
                 while (_indexQueue.TryDequeue(out item))
@@ -1310,7 +1331,7 @@ namespace Examine.LuceneEngine.Providers
                             if (ValidateDocument(item.Item.DataToIndex))
                             {
                                 //var added = ProcessIndexQueueItem(item, inMemoryWriter);
-                                var added = ProcessIndexQueueItem(item, realWriter);
+                                var added = ProcessIndexQueueItem(item, writer);
                                 indexedNodes.Add(added);
                             }
                             else
@@ -1319,19 +1340,19 @@ namespace Examine.LuceneEngine.Providers
                             }
                             break;
                         case IndexOperationType.Delete:
-                            ProcessDeleteQueueItem(item, realWriter, false);
+                            ProcessDeleteQueueItem(item, writer, false);
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
                 }
 
-                realWriter.Commit(); //commit the changes (this will process the deletes)
+                writer.Commit(); //commit the changes (this will process the deletes)
                 
                 //this is required to ensure the index is written to during the same thread execution
                 if (!RunAsync)
                 {
-                    realWriter.WaitForMerges();
+                    writer.WaitForMerges();
                 }
 
                 //raise the completed event
@@ -1344,7 +1365,10 @@ namespace Examine.LuceneEngine.Providers
             }
             finally
             {
-                CloseWriter(ref realWriter);
+                if (_nrtWriter == null)
+                {
+                    CloseWriter(ref writer);    
+                }
             }         
             return indexedNodes.Count;
                    
@@ -1382,7 +1406,9 @@ namespace Examine.LuceneEngine.Providers
         public virtual IndexWriter GetIndexWriter()
         {
             EnsureIndex(false);
-            return new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+
+            return _nrtWriter ?? new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            
         }
 
 
@@ -1446,17 +1472,6 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-
-        /// <summary>
-        /// Creates a new in-memory index with a writer for it
-        /// </summary>
-        /// <returns></returns>
-		[SecuritySafeCritical]
-        private IndexWriter GetNewInMemoryWriter()
-        {
-            return new IndexWriter(new Lucene.Net.Store.RAMDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-        }
-
         /// <summary>
         /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
         /// </summary>
@@ -1497,7 +1512,7 @@ namespace Examine.LuceneEngine.Providers
             return new IndexedNode() {NodeId = nodeId, Type = op.Item.IndexType};
         }
 
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private void CloseWriter(ref IndexWriter writer)
         {
             if (writer != null)
