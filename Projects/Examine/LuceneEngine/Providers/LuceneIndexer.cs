@@ -1336,6 +1336,10 @@ namespace Examine.LuceneEngine.Providers
                             }
                             else
                             {
+                                //do the delete but no commit - it may or may not exist in the index but since it is not 
+                                // valid it should definitely not be there.
+                                ProcessDeleteQueueItem(item, writer, false);
+
                                 OnIgnoringNode(new IndexingNodeDataEventArgs(item.Item.DataToIndex, int.Parse(item.Item.Id), null, item.Item.IndexType));
                             }
                             break;
