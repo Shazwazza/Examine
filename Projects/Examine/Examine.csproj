@@ -184,7 +184,7 @@
     <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
     <Compile Include="LuceneEngine\EmptySearchResults.cs" />
     <Compile Include="LuceneEngine\ExamineXmlExtensions.cs" />
-    <Compile Include="LuceneEngine\Faceting\DocIdField.cs" />
+    <Compile Include="LuceneEngine\ExternalIdField.cs" />
     <Compile Include="LuceneEngine\Faceting\DocumentFacet.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetConfiguration.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetConfigurationHelpers.cs" />

@@ -4,7 +4,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.DataStructures
 {
-    public static class DataHelpers
+    internal static class DataHelpers
     {
         public static IEnumerable<int> GetDocIds(this DocIdSet set)
         {

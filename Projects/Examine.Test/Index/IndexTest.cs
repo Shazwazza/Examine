@@ -66,13 +66,95 @@ namespace Examine.Test.Index
             ExamineSession.WaitForChanges();
 
             var sc = indexer.SearcherContext;
-
-            if (sc != null)
+            using (var s = sc.GetSearcher())
             {
-                using (var s = sc.GetSearcher())
+                Assert.AreEqual(1, s.Searcher.GetIndexReader().NumDocs());
+            }
+        }
+
+        [Test]
+        public void Can_Add_Same_Document_Twice_Without_Duplication()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            var value = new ValueSet(1, "test", "content",
+                new Dictionary<string, List<object>>
                 {
-                    Assert.AreEqual(1, s.Searcher.GetIndexReader().NumDocs());
-                }
+                    {"item1", new List<object>(new[] {"value1"})},
+                    {"item2", new List<object>(new[] {"value2"})}
+                });
+
+            indexer.AddDocument(value);
+            ExamineSession.WaitForChanges();
+
+            indexer.AddDocument(value);
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                Assert.AreEqual(1, s.Searcher.GetIndexReader().NumDocs());
+            }
+        }
+
+        [Test]
+        public void Can_Add_Multiple_Docs()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+            
+            for (var i = 0; i < 10; i++)
+            {
+                indexer.AddDocument(new ValueSet(i, "test", "content",
+                    new Dictionary<string, List<object>>
+                    {
+                        {"item1", new List<object>(new[] {"value1"})},
+                        {"item2", new List<object>(new[] {"value2"})}
+                    }));                
+            }
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                Assert.AreEqual(10, s.Searcher.GetIndexReader().NumDocs());
+            }
+        }
+
+        [Test]
+        public void Can_Delete()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            for (var i = 0; i < 10; i++)
+            {
+                indexer.AddDocument(new ValueSet(i, "test", "content",
+                    new Dictionary<string, List<object>>
+                    {
+                        {"item1", new List<object>(new[] {"value1"})},
+                        {"item2", new List<object>(new[] {"value2"})}
+                    }));
+            }
+            indexer.DeleteFromIndex("9");
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                Assert.AreEqual(9, s.Searcher.GetIndexReader().NumDocs());
             }
         }
 
