@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Lucene.Net.Contrib.Management;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Cru
 {
-    public class CompositeSearcherWarmer : ISearcherWarmer, IDisposable
+    internal class CompositeSearcherWarmer : ISearcherWarmer, IDisposable
     {
         private readonly IEnumerable<ISearcherWarmer> _warmers;
 

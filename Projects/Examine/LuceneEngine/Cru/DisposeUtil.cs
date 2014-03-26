@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 
-namespace Lucene.Net.Contrib.Management
+namespace Examine.LuceneEngine.Cru
 {
-    public static class DisposeUtil
+    internal static class DisposeUtil
     {
         public static void Dispose(params IDisposable[] disposables)
         {

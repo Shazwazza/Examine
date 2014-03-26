@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Linq;
 using Examine;
+using Examine.LuceneEngine.Cru;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Indexing.Filters;
@@ -21,7 +22,6 @@ using Examine.Providers;
 using Examine.Session;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Contrib.Management;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
@@ -30,7 +30,6 @@ using Examine.LuceneEngine.Config;
 using Lucene.Net.Util;
 using System.ComponentModel;
 using System.Xml;
-using LuceneManager.Infrastructure;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -41,14 +40,11 @@ namespace Examine.LuceneEngine.Providers
     {
         #region Constructors
 
-        /// <summary>
-        /// Default constructor.        
-        /// If using this constructor, DO call EnsureIndex(false) when the indexer is initialized.
-        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Do not use this constructor, it does not allow you to specify a lucene directory")]
         protected LuceneIndexer()
         {
         }
-
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -57,37 +53,49 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
         /// <param name="async"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("This constructor should no be used, the async flag has no relevance")]
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, bool async)
             : this(indexerData, workingFolder, analyzer)
         {
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="workingFolder"></param>
+        /// <param name="analyzer"></param>
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer)
             : base(indexerData)
         {
             //set up our folders based on the index path
-            WorkingFolder = workingFolder;
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
 
             IndexingAnalyzer = analyzer;
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);
+            InternalSearcher = new LuceneSearcher(workingFolder, IndexingAnalyzer);
 
             EnsureIndex(false);
         }
 
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("This constructor should no be used, the async flag has no relevance")]
         protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
             : this(indexerData, luceneDirectory, analyzer)
         {            
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="luceneDirectory"></param>
+        /// <param name="analyzer"></param>
         protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
             : base(indexerData)
-        {
-            WorkingFolder = null;
+        {            
             LuceneIndexFolder = null;
             _directory = luceneDirectory;
 
@@ -127,6 +135,8 @@ namespace Examine.LuceneEngine.Providers
             
             //Need to check if the index set or IndexerData is specified...
 
+            DirectoryInfo workingFolder = null;
+
             if (config["indexSet"] == null && IndexerData == null)
             {
                 //if we don't have either, then we'll try to set the index set by naming conventions
@@ -147,7 +157,7 @@ namespace Examine.LuceneEngine.Providers
                         IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
 
                         //now set the index folders
-                        WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
+                        workingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
                         LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
 
                         found = true;
@@ -174,7 +184,7 @@ namespace Examine.LuceneEngine.Providers
                     IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
 
                     //now set the index folders
-                    WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
+                    workingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
                     LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
                 }
             }
@@ -191,9 +201,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneSearcher(WorkingFolder, IndexingAnalyzer);
-
-            CommitCount = 0;
+            InternalSearcher = new LuceneSearcher(workingFolder, IndexingAnalyzer);
 
             EnsureIndex(false);
         }
@@ -347,12 +355,14 @@ namespace Examine.LuceneEngine.Providers
         /// This will automatically optimize the index every 'AutomaticCommitThreshold' commits
         ///</summary>
         [Obsolete("No longer used. Background thread handles optimization")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public bool AutomaticallyOptimize { get; protected set; }
 
         /// <summary>
         /// The number of commits to wait for before optimizing the index if AutomaticallyOptimize = true
         /// </summary>
         [Obsolete("No longer used. Background thread handles optimization")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public int OptimizationCommitThreshold { get; protected internal set; }
 
         /// <summary>
@@ -370,12 +380,15 @@ namespace Examine.LuceneEngine.Providers
         /// Used to keep track of how many index commits have been performed.
         /// This is used to determine when index optimization needs to occur.
         /// </summary>
+        [Obsolete("This is no longer used")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public int CommitCount { get; protected internal set; }
 
         /// <summary>
         /// Indicates whether or this system will process the queue items asynchonously. Default is true.
         /// </summary>
         [Obsolete("Items are added synchroniously and commits and reopens are handled asynchroniously")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public bool RunAsync { get; protected internal set; }
 
         /// <summary>
@@ -386,6 +399,8 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The base folder that contains the queue and index folder and the indexer executive files
         /// </summary>
+        [Obsolete("This is no longer used")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public DirectoryInfo WorkingFolder { get; private set; }
 
         /// <summary>
@@ -507,7 +522,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Ensures that only one thread creates the searcher context
         /// </summary>
-        private object _createLock = new object();
+        private readonly object _createLock = new object();
 
         /// <summary>
         /// Indicates that the index was created
@@ -533,7 +548,6 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
-        
         public void EnsureIndex(bool forceOverwrite)
         {
             if (_searcherContext == null)
@@ -547,12 +561,13 @@ namespace Examine.LuceneEngine.Providers
                         var facetConfig = IndexerData != null ? IndexerData.FacetConfiguration : null;
 
                         //TODO: Test what happens if someone actually wires two indexers to the same index set.
-                        _searcherContext = SearcherContexts.Instance.GetContext(GetLuceneDirectory());
+                        _searcherContext = SearcherContextCollection.Instance.GetContext(GetLuceneDirectory());
                         if (_searcherContext == null)
                         {
-                            SearcherContexts.Instance.RegisterContext(
+                            SearcherContextCollection.Instance.RegisterContext(
                                 _searcherContext =
                                 new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, facetConfig));
+
                             _searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
                         }
 
@@ -613,9 +628,6 @@ namespace Examine.LuceneEngine.Providers
                     Operation = IndexOperationType.Delete,
                     Item = new IndexItem("", nodeId)
                 });
-
-
-            //SafelyProcessQueueItems();
         }
 
         /// <summary>
@@ -650,7 +662,6 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// This can be an expensive operation and should only be called when there is no indexing activity
         /// </remarks>
-        
         public void OptimizeIndex()
         {
             EnsureIndex(false);
@@ -658,40 +669,6 @@ namespace Examine.LuceneEngine.Providers
             SearcherContext.Committer.OptimizeNow();
 
             //TODO: Hook into searchcontexts comitter thread to optimize
-
-
-            //IndexWriter writer = null;
-            //try
-            //{
-            //    if (!IndexExists())
-            //        return;
-
-            //    //check if the index is ready to be written to.
-            //    if (!IndexReady())
-            //    {
-            //        OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null), true);
-            //        return;
-            //    }
-
-            //    OnIndexOptimizing(new EventArgs());
-
-            //    //open the writer for optization
-            //    writer = GetIndexWriter();
-
-            //    //wait for optimization to complete (true)
-            //    writer.Optimize(true);
-
-            //    OnIndexOptimized(new EventArgs());
-            //}
-            //catch (Exception ex)
-            //{
-            //    OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
-            //}
-            //finally
-            //{
-            //    CloseWriter(ref writer);
-            //}
-
         }
 
         #region Protected
@@ -726,9 +703,6 @@ namespace Examine.LuceneEngine.Providers
         protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
         {
             AddNodesToIndex(nodes.Select(n => n.ToValueSet(type, n.ExamineNodeTypeAlias())));
-
-            //run the indexer on all queued files
-            //SafelyProcessQueueItems();
         }
 
         /// <summary>
@@ -760,7 +734,6 @@ namespace Examine.LuceneEngine.Providers
         /// Checks if the index is ready to open/write to.
         /// </summary>
         /// <returns></returns>
-        
         protected bool IndexReady()
         {
             return (!IndexWriter.IsLocked(GetLuceneDirectory()));
@@ -770,12 +743,15 @@ namespace Examine.LuceneEngine.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-        
         public override bool IndexExists()
         {
             return IndexReader.IndexExists(GetLuceneDirectory());
         }
 
+        /// <summary>
+        /// Indicate if the index is new or not
+        /// </summary>
+        /// <returns></returns>
         public override bool IsIndexNew()
         {
             var baseNew = base.IsIndexNew();
@@ -805,6 +781,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="node">The node to index.</param>
         /// <param name="type">The type to store the node as.</param>
         [Obsolete("Use ValueSets instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void AddSingleNodeToIndex(XElement node, string type)
         {
             AddNodesToIndex(new XElement[] { node }, type);
@@ -820,10 +797,8 @@ namespace Examine.LuceneEngine.Providers
         /// Removes the specified term from the index
         /// </summary>
         /// <param name="indexTerm"></param>
-        /// <param name="iw"></param>
         /// <param name="performCommit">Obsolete. Doesn't have any effect</param>
-        /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
-        
+        /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>        
         protected bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
         {            
             long nodeId = -1;
@@ -888,91 +863,127 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Translates the XElement structure into a dictionary object to be indexed.
+        /// Called before the item is put into the index and filters/formats the data
         /// </summary>
-        /// <remarks>
-        /// This is used when re-indexing an individual node since this is the way the provider model works.
-        /// For this provider, it will use a very similar XML structure as umbraco 4.0.x:
-        /// </remarks>
-        /// <example>
-        /// <code>
-        /// <![CDATA[
-        /// <root>
-        ///     <node id="1234" nodeTypeAlias="yourIndexType">
-        ///         <data alias="fieldName1">Some data</data>
-        ///         <data alias="fieldName2">Some other data</data>
-        ///     </node>
-        ///     <node id="345" nodeTypeAlias="anotherIndexType">
-        ///         <data alias="fieldName3">More data</data>
-        ///     </node>
-        /// </root>
-        /// ]]>
-        /// </code>        
-        /// </example>
-        /// <param name="node"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-
-        protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
+        /// <param name="indexItem"></param>
+        protected internal virtual void TransformDataToIndex(IndexItem indexItem)
         {
-            var values = new Dictionary<string, string>();
+            //copy all original valus here so we can give them to the transform values event
+            var originalValues = new Dictionary<string, IEnumerable<object>>(
+                indexItem.ValueSet.Values.ToDictionary(pair => pair.Key, pair => (IEnumerable<object>)pair.Value));
 
-            var nodeId = int.Parse(node.Attribute("id").Value);
+            var valueSet = indexItem.ValueSet;            
+
+            //remove any field that is not declared
+            var toRemove = valueSet.Values.Keys.Except(
+                IndexerData.StandardFields.Select(x => x.Name).Union(IndexerData.UserFields.Select(x => x.Name)))
+                .ToArray();
+
+            foreach (var r in toRemove)
+            {
+                valueSet.Values.Remove(r);
+            }
 
             // Add umbraco node properties 
             foreach (var field in IndexerData.StandardFields)
             {
-                string val = node.SelectExaminePropertyValue(field.Name);
-                var args = new IndexingFieldDataEventArgs(node, field.Name, val, true, nodeId);
-                OnGatheringFieldData(args);
-                val = args.FieldValue;
-
-                //don't add if the value is empty/null                
-                if (!string.IsNullOrEmpty(val))
+                if (valueSet.Values.ContainsKey(field.Name))
                 {
-                    if (values.ContainsKey(field.Name))
-                    {
-                        OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
-                    }
-                    else
-                    {
-                        values.Add(field.Name, val);
-                    }
+                    HandleLegacyFieldEvent(field, valueSet, true);
                 }
-
             }
 
             // Get all user data that we want to index and store into a dictionary 
             foreach (var field in IndexerData.UserFields)
             {
-                // Get the value of the data                
-                string value = node.SelectExamineDataValue(field.Name);
-
-                //raise the event and assign the value to the returned data from the event
-                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, field.Name, value, false, nodeId);
-                OnGatheringFieldData(indexingFieldDataArgs);
-                value = indexingFieldDataArgs.FieldValue;
-
-                //don't add if the value is empty/null
-                if (!string.IsNullOrEmpty(value))
+                if (valueSet.Values.ContainsKey(field.Name))
                 {
-                    if (values.ContainsKey(field.IndexName))
-                    {
-                        OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
-                    }
-                    else
-                    {
-                        values.Add(field.IndexName, value);
-                    }
-                }
+                    HandleLegacyFieldEvent(field, valueSet, false);
+                }                
             }
 
+            //Now do the legacy stuff.
+            //this will call the legacy method to get the returned filtered data to index, we then 
+            // need to align the actual field data with the results:
+            // * remove any fields that are not contained in the results
+            // * update any fields that have changed values
+            // * add any fields that don't exist
+            var fieldResult = GetDataToIndex(indexItem.DataToIndex, indexItem.IndexType);                        
+            var legacyVals = valueSet.ToLegacyFields();
+            foreach (var v in fieldResult)
+            {
+                string val;
+                if (!legacyVals.TryGetValue(v.Key, out val))
+                {
+                    //if the value doesn't exist in the real values, then add it
+                    valueSet.Add(v.Key, v.Value);
+                }
+                else if (val != v.Value)
+                {
+                    //if the value has changed, then change it
+                    valueSet.Values.Remove(v.Key);
+                    valueSet.Add(v.Key, v.Value);
+                }
+            }
+            
+            //Ok, now that the legacy stuff is done, we can emit our new events
+            OnTransformingIndexValues(new TransformingIndexDataEventArgs(indexItem.ValueSet, originalValues));
+        }
 
+        /// <summary>
+        /// Used to deal with the legacy events
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="valueSet"></param>
+        /// <param name="isStandardField"></param>
+        private void HandleLegacyFieldEvent(IIndexField field, ValueSet valueSet, bool isStandardField)
+        {
+            var fieldVals = valueSet.Values.ContainsKey(field.Name)
+                                    ? valueSet.Values[field.Name].ToArray()
+                                    : new object[] { };
 
+            //here we need to support the legacy events - which only supports one value so we need to perform some trickery here.                
+            int intId;
+            try
+            {
+                intId = Convert.ToInt32(valueSet.Id);
+            }
+            catch (Exception)
+            {
+                //if that cannot be converted we'll just skip it
+                return;
+            }
+            //legacy events only support one value so use the first
+            var singleVal = fieldVals.Any() ? fieldVals.First().ToString() : "";
+            var asXml = valueSet.ToExamineXml();
+            var args = new IndexingFieldDataEventArgs(asXml, field.Name, singleVal, isStandardField, intId);
+            OnGatheringFieldData(args);
+            //update the first field
+            if (fieldVals.Any())
+            {
+                fieldVals[0] = args.FieldValue;
+            }
+            else if (!string.IsNullOrEmpty(args.FieldValue))
+            {
+                //it didn't originally exist so add it
+                valueSet.Values.Add(field.Name, new List<object> { args.FieldValue });
+            }
+        }
+
+        /// <summary>
+        /// This now just raises the legacy event
+        /// </summary>      
+        [Obsolete("This should no longer be used, use the TransformDataToIndex method instead with the ValueSet data")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
+        {
+            var values = new Dictionary<string, string>();
+
+            var nodeId = int.Parse(node.Attribute("id").Value);
+            
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
-
-
+            
             OnGatheringNodeData(indexingNodeDataArgs);
 
             values = indexingNodeDataArgs.Fields;
@@ -980,46 +991,12 @@ namespace Examine.LuceneEngine.Providers
             return values;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <returns></returns>
+        [Obsolete("This is no longer used")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual FieldIndexTypes GetPolicy(string fieldName)
         {
             return FieldIndexTypes.ANALYZED;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fieldIndex"></param>
-        /// <returns></returns>
-        
-        private Field.Index TranslateFieldIndexTypeToLuceneType(FieldIndexTypes fieldIndex)
-        {
-            switch (fieldIndex)
-            {
-                case FieldIndexTypes.ANALYZED:
-                    return Field.Index.ANALYZED;
-
-                case FieldIndexTypes.ANALYZED_NO_NORMS:
-                    return Field.Index.ANALYZED_NO_NORMS;
-
-                case FieldIndexTypes.NO:
-                    return Field.Index.NO;
-
-                case FieldIndexTypes.NOT_ANALYZED:
-                    return Field.Index.NOT_ANALYZED;
-
-                case FieldIndexTypes.NOT_ANALYZED_NO_NORMS:
-                    return Field.Index.NOT_ANALYZED_NO_NORMS;
-
-                default:
-                    throw new Exception("Unknown field index type");
-            }
-        }
-
 
         private volatile Dictionary<string, List<string>> _fieldMappings;
         private readonly object _fieldMappingsLock = new object();
@@ -1101,6 +1078,7 @@ namespace Examine.LuceneEngine.Providers
         /// This will normalize (lowercase) all text before it goes in to the index.
         /// </remarks>
         [Obsolete("Use the ValueSet override instead, this method should not be used")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void AddDocument(Dictionary<string, string> fields, int nodeId, string type)
         {
             //we don't have enough info here to create a real ValueSet - missing the item type
@@ -1309,95 +1287,17 @@ namespace Examine.LuceneEngine.Providers
         /// </param>
         /// <returns></returns>
         [Obsolete("Every field is special in its own way. Don't use this method.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
         {
             return new Dictionary<string, string>();
         }
-
-        ///// <summary>
-        ///// Process all of the queue items
-        ///// </summary>
-        //protected internal void SafelyProcessQueueItems()
-        //{
-
-        //    if (!RunAsync)
-        //    {
-        //        StartIndexing();
-        //    }
-        //    else
-        //    {                
-        //        if (!_isIndexing)
-        //        {
-        //            //don't run the worker if it's currently running since it will just pick up the rest of the queue during its normal operation                    
-        //            lock (_indexerLocker)
-        //            {
-        //                if (!_isIndexing && (_asyncTask == null || _asyncTask.IsCompleted))
-        //                {
-        //                    //Debug.WriteLine("Examine: Launching task");
-        //                    _asyncTask = Task.Factory.StartNew(StartIndexing, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //}
-
-        ///// <summary>
-        ///// Processes the queue and checks if optimization needs to occur at the end
-        ///// </summary>
-        //void StartIndexing()
-        //{
-        //    if (!_isIndexing)
-        //    {
-        //        lock (_indexerLocker)
-        //        {
-        //            if (!_isIndexing)
-        //            {
-
-        //                _isIndexing = true;
-
-        //                //keep processing until it is complete
-        //                var numProcessedItems = 0;
-        //                do
-        //                {
-        //                    numProcessedItems = ForceProcessQueueItems();
-        //                } while (!_isCancelling && numProcessedItems > 0);
-
-        //                //if there are enough commits, then we'll run an optimization
-        //                if (CommitCount >= OptimizationCommitThreshold)
-        //                {
-        //                    OptimizeIndex();
-        //                    CommitCount = 0; //reset the counter
-        //                }
-
-        //                //reset the flag
-        //                _isIndexing = false;
-
-        //                OnIndexOperationComplete(new EventArgs());
-        //            }
-        //        }
-        //    }
-
-        //}
-
-
+        
         protected void ProcessIndexOperation(IndexOperation item)
         {
             switch (item.Operation)
             {
                 case IndexOperationType.Add:
-
-                    //NOTE: No need to delete here. UpdateDocument is used when it is added.
-
-                    ////check if it is already in our index
-                    //var idResult = inMemorySearcher.Search(inMemorySearcher.CreateSearchCriteria().Id(int.Parse(item.Item.Id)).Compile());
-                    ////if one is found, then delete it from the main index before the fast index is merged in
-                    //if (idResult.Any())
-                    //{
-                    //    //do the delete but no commit
-                    //    ProcessDeleteQueueItem(item, realWriter, false);
-                    //}
-
                     if (ValidateDocument(item.Item.ValueSet))
                     {
                         var node = ProcessIndexQueueItem(item);
@@ -1434,28 +1334,21 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_directory == null)
             {
-                //ensure all of the folders are created at startup   
-                VerifyFolder(WorkingFolder);
-                VerifyFolder(LuceneIndexFolder);
-                _directory = new SimpleFSDirectory(LuceneIndexFolder);
+                lock (_folderLocker)
+                {
+                    VerifyFolder(LuceneIndexFolder);
+                    _directory = new SimpleFSDirectory(LuceneIndexFolder);
+                }
             }
             return _directory;
         }
 
-        /// <summary>
-        /// Returns an index writer for the current directory
-        /// </summary>
-        /// <returns></returns>
-        
-
-        public virtual NrtManager GetIndexWriter()
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Do not use this method, though it will return an IndexWriter, it should never be used directly with the new NrtManager")]
+        public virtual IndexWriter GetIndexWriter()
         {
-            EnsureIndex(false);
-            return SearcherContext.Manager;
+            return SearcherContext.GetWriter();
         }
-
-
-
 
         #endregion
 
@@ -1493,17 +1386,6 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-
-        ///// <summary>
-        ///// Creates a new in-memory index with a writer for it
-        ///// </summary>
-        ///// <returns></returns>
-        //
-        //private IndexWriter GetNewInMemoryWriter()
-        //{
-        //    return new IndexWriter(new Lucene.Net.Store.RAMDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-        //}
-
         /// <summary>
         /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
         /// </summary>
@@ -1527,7 +1409,6 @@ namespace Examine.LuceneEngine.Providers
                 DeleteFromIndex(new Term(IndexNodeIdFieldName, op.Item.Id), performCommit);
             }
 
-            CommitCount++;
         }
 
         
@@ -1536,47 +1417,16 @@ namespace Examine.LuceneEngine.Providers
             //get the node id
             var nodeId = int.Parse(op.Item.Id);
 
+            //transform the data
+            TransformDataToIndex(op.Item);
+
             var values = op.Item.ValueSet;
-            //now, add the index with our dictionary object
-
-            var currentDict = values.ToLegacyFields();
-
-            //Evil compatibility hack. Could be nice to skip
-            var fields = GetDataToIndex(op.Item.DataToIndex, op.Item.IndexType);
-            foreach (var v in fields)
-            {
-                string val;
-                if (!currentDict.TryGetValue(v.Key, out val))
-                {
-                    values.Add(v.Key, v.Value);
-                }
-                else if (val != v.Value)
-                {
-                    values.Values.Remove(v.Key);
-                    values.Add(v.Key, v.Value);
-                }
-            }
-
-
-            // This is not needed any more. They are special properties of the ValueSet: EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexType);
-
+            
             AddDocument(values);
-
-            CommitCount++;
 
             return new IndexedNode() { NodeId = nodeId, Type = op.Item.IndexType };
         }
-
-        //
-        //private void CloseWriter(ref IndexWriter writer)
-        //{
-        //    if (writer != null)
-        //    {
-        //        writer.Close();
-        //        writer = null;
-        //    }
-        //}
-
+      
         /// <summary>
         /// Creates the folder if it does not exist.
         /// </summary>
@@ -1586,14 +1436,8 @@ namespace Examine.LuceneEngine.Providers
 
             if (!System.IO.Directory.Exists(folder.FullName))
             {
-                lock (_folderLocker)
-                {
-                    if (!System.IO.Directory.Exists(folder.FullName))
-                    {
-                        folder.Create();
-                        folder.Refresh();
-                    }
-                }
+                folder.Create();
+                folder.Refresh();                
             }
 
         }

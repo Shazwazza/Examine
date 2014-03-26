@@ -25,8 +25,8 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             TermExpansions = 25;
         }
 
-        Analyzer _analyzer = new LowercaseAccentRemovingWhitespaceAnalyzer();
-        public override void SetupAnalyzers(Lucene.Net.Analysis.PerFieldAnalyzerWrapper analyzer)
+        private readonly Analyzer _analyzer = new LowercaseAccentRemovingWhitespaceAnalyzer();
+        public override void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
         {
             base.SetupAnalyzers(analyzer);
 

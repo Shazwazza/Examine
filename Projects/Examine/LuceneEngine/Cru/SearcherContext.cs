@@ -1,45 +1,81 @@
-﻿using System;
+﻿//using Examine.LuceneEngine.Facets;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Web;
-//using Examine.LuceneEngine.Facets;
-using Examine.LuceneEngine.Cru;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Indexing.ValueTypes;
 using Lucene.Net.Analysis;
-using Lucene.Net.Contrib.Management;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
-namespace LuceneManager.Infrastructure
+namespace Examine.LuceneEngine.Cru
 {
+    /// <summary>
+    /// A searcher context
+    /// </summary>
     public class SearcherContext : IDisposable
     {
+        /// <summary>
+        /// Returns the current lucene directory
+        /// </summary>
         public Directory Directory { get; private set; }
-
-
+        
+        /// <summary>
+        /// Returns the near real time manager
+        /// </summary>
         public NrtManager Manager { get; private set; }
 
+        /// <summary>
+        /// Returns the PerFieldAnalyzerWrapper
+        /// </summary>
         public PerFieldAnalyzerWrapper Analyzer { get; private set; }
 
+        /// <summary>
+        /// Returns the FacetsLoader
+        /// </summary>
         public FacetsLoader FacetsLoader { get; private set; }
 
         private readonly IndexWriter _writer;
 
+        /// <summary>
+        /// This should never be used, it is exposed purely for legacy purposes
+        /// </summary>
+        /// <returns></returns>
+        internal IndexWriter GetWriter()
+        {
+            return _writer;
+        }
+
         private readonly NrtManagerReopener _reopener;
-        public Committer Committer { get; private set; }
+        internal Committer Committer { get; private set; }
 
         private readonly List<Thread> _threads = new List<Thread>();
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <param name="defaultAnalyzer"></param>
+        /// <param name="facetConfiguration"></param>
         public SearcherContext(Directory dir, Analyzer defaultAnalyzer, FacetConfiguration facetConfiguration = null)
             : this(dir, defaultAnalyzer, TimeSpan.FromMilliseconds(25), TimeSpan.FromSeconds(2),
             TimeSpan.FromSeconds(10), TimeSpan.FromHours(2), facetConfiguration)
         {
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <param name="defaultAnalyzer"></param>
+        /// <param name="targetMinStale"></param>
+        /// <param name="targetMaxStale"></param>
+        /// <param name="commitInterval"></param>
+        /// <param name="optimizeInterval"></param>
+        /// <param name="facetConfiguration"></param>
         public SearcherContext(Directory dir, Analyzer defaultAnalyzer,
                         TimeSpan targetMinStale, TimeSpan targetMaxStale,
                         TimeSpan commitInterval, TimeSpan optimizeInterval
@@ -73,7 +109,7 @@ namespace LuceneManager.Infrastructure
             }
         }
 
-        public Func<string, IIndexValueType> DefaultValueTypeFactory = name => new FullTextType(name);
+        internal Func<string, IIndexValueType> DefaultValueTypeFactory = name => new FullTextType(name);
         internal ConcurrentDictionary<string, IIndexValueType> ValueTypes = new ConcurrentDictionary<string, IIndexValueType>(StringComparer.InvariantCultureIgnoreCase);
 
         public IEnumerable<IIndexValueType> RegisteredValueTypes

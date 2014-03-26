@@ -169,7 +169,7 @@
     <Compile Include="LuceneEngine\Config\IndexFieldCollectionExtensions.cs" />
     <Compile Include="LuceneEngine\Config\IndexSet.cs" />
     <Compile Include="LuceneEngine\Config\IndexSetCollection.cs" />
-    <Compile Include="LuceneEngine\Config\SearcherContexts.cs" />
+    <Compile Include="LuceneEngine\Config\SearcherContextCollection.cs" />
     <Compile Include="LuceneEngine\Cru\CompositeSearcherWarmer.cs" />
     <Compile Include="LuceneEngine\Cru\Committer.cs" />
     <Compile Include="LuceneEngine\Cru\DisposeUtil.cs" />
@@ -187,6 +187,7 @@
     <Compile Include="LuceneEngine\Faceting\DocIdField.cs" />
     <Compile Include="LuceneEngine\Faceting\DocumentFacet.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetConfiguration.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetConfigurationHelpers.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetCount.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetCountCollector.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetCounts.cs" />
@@ -296,6 +297,7 @@
     <Compile Include="Session\RequestScoped.cs" />
     <Compile Include="Session\ExamineSession.cs" />
     <Compile Include="StringExtensions.cs" />
+    <Compile Include="TransformingIndexDataEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

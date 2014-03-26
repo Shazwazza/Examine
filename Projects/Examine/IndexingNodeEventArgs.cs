@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Collections.Generic;
 using Examine.LuceneEngine.Indexing;
-using LuceneManager.Infrastructure;
 using System.Linq;
 
 namespace Examine
@@ -18,7 +17,6 @@ namespace Examine
         /// The value's for the node indexing
         /// </summary>
         public ValueSet Values { get; private set; }
-        //public IndexingNodeEventArgs(int nodeId, Dictionary<string, string> fields, string indexType)
         
         /// <summary>
         /// Constructor

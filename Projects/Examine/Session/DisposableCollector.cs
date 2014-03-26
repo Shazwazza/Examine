@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using Lucene.Net.Contrib.Management;
+using Examine.LuceneEngine.Cru;
 
 namespace Examine.Session
 {
@@ -23,12 +23,12 @@ namespace Examine.Session
 
         public static void Track(IDisposable disposable)
         {
-            Disposables.Value.Peek().Add(disposable);
+            Disposables.Instance.Peek().Add(disposable);
         }
 
         public static void Untrack(IDisposable disposable)
         {
-            Disposables.Value.Peek().Remove(disposable);
+            Disposables.Instance.Peek().Remove(disposable);
         }
 
         private static void CleanScope(HashSet<IDisposable> scope)
@@ -42,7 +42,7 @@ namespace Examine.Session
 
         public static void Clean()
         {
-            var disposables = Disposables.Value;
+            var disposables = Disposables.Instance;
             while (disposables.Count > 0)
             {
                 CleanScope(disposables.Dequeue());
@@ -54,9 +54,9 @@ namespace Examine.Session
         public static IDisposable OpenScope()
         {
             var scope = new HashSet<IDisposable>();
-            Disposables.Value.Enqueue(scope);
+            Disposables.Instance.Enqueue(scope);
 
-            return new DisposableScope(() => CleanScope(Disposables.Value.Dequeue()));
+            return new DisposableScope(() => CleanScope(Disposables.Instance.Dequeue()));
         }
 
         private class DisposableScope : IDisposable

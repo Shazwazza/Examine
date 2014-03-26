@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Linq;
 using System.Security;
 using System.Xml.Linq;
@@ -19,9 +20,7 @@ namespace UmbracoExamine
     public class UmbracoMemberIndexer : UmbracoContentIndexer
     {
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
+        [Obsolete("Do not use this constructor, it does not allow you to specify a lucene directory")]
         public UmbracoMemberIndexer()
             : base() { }
 

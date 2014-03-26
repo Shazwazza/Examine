@@ -112,10 +112,13 @@ namespace Examine.LuceneEngine
 
             var count = Math.Min(options.MaxCount, Searcher.MaxDoc());
 
+            var asArray = sortField.ToArray();
+
             var topDocsCollector =
-                sortField.Any() ?
-                (TopDocsCollector)TopFieldCollector.create(new Sort(sortField.ToArray()), count, false, false, false, false)
-                : TopScoreDocCollector.create(count, true);
+                asArray.Any()
+                    ? (TopDocsCollector) TopFieldCollector.create(
+                        new Sort(asArray.ToArray()), count, false, false, false, false)
+                    : TopScoreDocCollector.create(count, true);
 
             if (options.CountFacets && CriteriaContext.FacetMap != null)
             {

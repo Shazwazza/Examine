@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using System.Threading;
 
-namespace Lucene.Net.Contrib.Management
+namespace Examine.LuceneEngine.Cru
 {
-    public class NrtManagerReopener : NrtManager.IWaitingListener, IDisposable
+    internal class NrtManagerReopener : NrtManager.IWaitingListener, IDisposable
     {
         private readonly NrtManager _manager;
         private readonly TimeSpan _targetMaxStale;
@@ -13,7 +13,7 @@ namespace Lucene.Net.Contrib.Management
         private long _waitingGen;
         private bool _waitingNeedsDeletes;
 
-        private ManualResetEventSlim _waitHandle = new ManualResetEventSlim(false);
+        private readonly ManualResetEventSlim _waitHandle = new ManualResetEventSlim(false);
 
         public NrtManagerReopener(NrtManager manager, TimeSpan targetMaxStale, TimeSpan targetMinStale)
         {

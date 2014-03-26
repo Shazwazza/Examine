@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Security;
 using System.Text;
@@ -11,10 +12,8 @@ using Examine.Providers;
 using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Contrib.Management;
 using Lucene.Net.Search;
 using System.Linq;
-using LuceneManager.Infrastructure;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -24,13 +23,10 @@ namespace Examine.LuceneEngine.Providers
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
 
-        
-
         #region Constructors
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Do not use this constructor, it does not allow you to specify an analyzer")]
         protected BaseLuceneSearcher()
         {
         }
@@ -167,8 +163,7 @@ namespace Examine.LuceneEngine.Providers
         /// Performs a search
         /// </summary>
         /// <param name="searchParams"></param>
-        /// <returns></returns>
-        
+        /// <returns></returns>        
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
             return Search(searchParams, 0);
@@ -177,7 +172,6 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Performs a search with a maximum number of results
         /// </summary>        
-        
         public ISearchResults Search(ISearchCriteria searchParams, int maxResults)
         {
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
@@ -189,8 +183,7 @@ namespace Examine.LuceneEngine.Providers
             luceneParams.CriteriaContext = GetCriteriaContext();
 
             var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, luceneParams.CriteriaContext, luceneParams.SearchOptions);
-
-
+            
             foreach (var type in luceneParams.CriteriaContext.ValueTypes)
             {
                 var hl = type.GetHighlighter(luceneParams.Query, luceneParams.CriteriaContext.Searcher, luceneParams.CriteriaContext.FacetsLoader);

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using Examine.LuceneEngine.Cru;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using System.Linq;
 using Lucene.Net.Util;
-using LuceneManager.Infrastructure;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {

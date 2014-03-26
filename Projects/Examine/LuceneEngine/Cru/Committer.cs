@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
-using System.Web;
 using Lucene.Net.Index;
 
-namespace LuceneManager.Infrastructure
+namespace Examine.LuceneEngine.Cru
 {
-    public class Committer : IDisposable
+    internal class Committer : IDisposable
     {
         private readonly IndexWriter _writer;
         private readonly TimeSpan _commitInterval;
         private readonly TimeSpan _optimizeInterval;
-        private ManualResetEventSlim _waitHandle = new ManualResetEventSlim(false);
+        private readonly ManualResetEventSlim _waitHandle = new ManualResetEventSlim(false);
         private bool _finish;
 
         public Committer(IndexWriter writer, TimeSpan commitInterval, TimeSpan optimizeInterval)

@@ -7,9 +7,11 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 
-namespace Lucene.Net.Contrib.Management
+namespace Examine.LuceneEngine.Cru
 {
-
+    /// <summary>
+    /// Near real time manager
+    /// </summary>
     public class NrtManager : IDisposable
     {
         private const long MaxSearcherGen = long.MaxValue;
@@ -18,20 +20,25 @@ namespace Lucene.Net.Contrib.Management
 
         private long _indexingGen = 1;
 
-        private List<IWaitingListener> _waitingListeners = new List<IWaitingListener>();
+        private readonly List<IWaitingListener> _waitingListeners = new List<IWaitingListener>();
 
-        private object _reopenLock = new object();
+        private readonly object _reopenLock = new object();
 
         //The Java condition _newGeneration is not used in this port. Monitor.Wait and PulseAll suffice.
 
-        private SearcherManagerRef _withDeletes;
-        private SearcherManagerRef _withoutDeletes;
+        private readonly SearcherManagerRef _withDeletes;
+        private readonly SearcherManagerRef _withoutDeletes;
 
         /// <summary>
         /// This function is called when an operation is performed on the indexwriter.
         /// </summary>
         public Action<NrtManager, long> Tracker { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="warmer"></param>
         public NrtManager(IndexWriter writer, ISearcherWarmer warmer = null)
         {
             _writer = writer;
@@ -131,8 +138,6 @@ namespace Lucene.Net.Contrib.Management
 
             return Track(_indexingGen);
         }
-
-
 
         public SearcherManager WaitForGeneration(long targetGen, bool requireDeletes = true)
         {
@@ -280,7 +285,7 @@ namespace Lucene.Net.Contrib.Management
 
         private class SearcherManagerRef : IDisposable
         {
-            public bool ApplyDeletes { get; set; }
+            private bool ApplyDeletes { get; set; }
             public long Generation { get; set; }
             public SearcherManager Manager { get; private set; }
 

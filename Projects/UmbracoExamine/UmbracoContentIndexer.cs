@@ -33,9 +33,7 @@ namespace UmbracoExamine
     {
         #region Constructors
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
+        [Obsolete("Do not use this constructor, it does not allow you to specify a lucene directory")]
         public UmbracoContentIndexer()
             : base() { }
 

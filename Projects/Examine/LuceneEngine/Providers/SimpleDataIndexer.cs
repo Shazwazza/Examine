@@ -19,9 +19,7 @@ namespace Examine.LuceneEngine.Providers
     public class SimpleDataIndexer : LuceneIndexer
     {
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
+        [Obsolete("Do not use this constructor, it does not allow you to specify a lucene directory")]
         public SimpleDataIndexer()
         {
         }

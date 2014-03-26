@@ -41,6 +41,11 @@ namespace Examine
             }
         }
 
+        internal void ResetLegacyFields()
+        {
+            _dataToIndex = null;
+        }
+
         /// <summary>
         /// Constructor
         /// </summary>

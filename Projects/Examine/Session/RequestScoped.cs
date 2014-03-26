@@ -6,7 +6,7 @@ using System.Web;
 
 namespace Examine.Session
 {
-    //TODO: I don't think this class is thread safe!
+    //TODO: I don't think this class is thread safe! - but I'm not sure it's supposed to be?
 
     internal class RequestScoped<TValue>
     {        
@@ -23,7 +23,7 @@ namespace Examine.Session
             _defaultValue = defaultValue;
         }
 
-        public TValue Value
+        public TValue Instance
         {
             get
             {

@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
-
+using Examine.LuceneEngine.Indexing;
+using Examine.Session;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
+using Lucene.Net.Util;
+using Moq;
 using NUnit.Framework;
 
 using Lucene.Net.Search;
@@ -16,9 +21,62 @@ using Examine.LuceneEngine.Providers;
 using System.Threading;
 using Examine.Test.DataServices;
 using UmbracoExamine;
+using Directory = Lucene.Net.Store.Directory;
+using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Index
 {
+    [TestFixture]
+    public class LuceneIndexerTests
+    {
+        private class TestIndexer : LuceneIndexer
+        {
+            public TestIndexer(IIndexCriteria indexerData, Directory luceneDirectory, Analyzer analyzer) 
+                : base(indexerData, luceneDirectory, analyzer)
+            {
+            }
+
+            protected override void PerformIndexAll(string type)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override void PerformIndexRebuild()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [Test]
+        public void Can_Add_One_Document()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.AddDocument(new ValueSet(1, "test", "content",
+                new Dictionary<string, List<object>>
+                {
+                    {"item1", new List<object>(new[] {"value1"})},
+                    {"item2", new List<object>(new[] {"value2"})}
+                }));
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+
+            if (sc != null)
+            {
+                using (var s = sc.GetSearcher())
+                {
+                    Assert.AreEqual(1, s.Searcher.GetIndexReader().NumDocs());
+                }
+            }
+        }
+
+    }
 
     /// <summary>
     /// Tests the standard indexing capabilities

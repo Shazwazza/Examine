@@ -8,6 +8,7 @@ using Examine.LuceneEngine;
 
 namespace Examine
 {
+    [Obsolete("This is used for legacy events which should no longer be used")]
     public class IndexingFieldDataEventArgs : EventArgs, INodeEventArgs
     {
         

@@ -55,6 +55,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Lucene.Net.2.9.4.1\lib\net40\Lucene.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Moq">
+      <HintPath>..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
     </Reference>

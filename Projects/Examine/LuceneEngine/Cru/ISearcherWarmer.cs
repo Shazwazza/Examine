@@ -1,6 +1,6 @@
 ﻿using Lucene.Net.Search;
 
-namespace Lucene.Net.Contrib.Management
+namespace Examine.LuceneEngine.Cru
 {
     public interface ISearcherWarmer
     {

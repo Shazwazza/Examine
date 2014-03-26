@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration.Provider;
 using System.Security;
 using Examine;
@@ -58,6 +59,7 @@ namespace Examine.Providers
         /// <param name="node">XML node to reindex</param>
         /// <param name="type">Type of index to use</param>
         [Obsolete("Use ValueSets instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual void ReIndexNode(XElement node, string type)
         {
             ReIndexNode(node.ToValueSet(type, node.ExamineNodeTypeAlias()));
@@ -125,8 +127,15 @@ namespace Examine.Providers
         /// <summary>
         /// Occurs when the indexer is gathering the fields and their associated data for the index
         /// </summary>
-        [Obsolete("Use the TransformValues event instead")]
+        [Obsolete("Use the TransformIndexValues event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public event EventHandler<IndexingNodeDataEventArgs> GatheringNodeData;
+
+        /// <summary>
+        /// Raised before the item is indexed allowing developers to customize the data that get's stored in the index
+        /// </summary>
+        public event EventHandler<TransformingIndexDataEventArgs> TransformingIndexValues;
+
         /// <summary>
         /// Occurs when a node is deleted from the index
         /// </summary>
@@ -134,7 +143,8 @@ namespace Examine.Providers
         /// <summary>
         /// Occurs when a particular field is having its data obtained
         /// </summary>
-        [Obsolete("Use the TransformValues event instead")]
+        [Obsolete("Use the TransformIndexValues event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public event EventHandler<IndexingFieldDataEventArgs> GatheringFieldData;
         /// <summary>
         /// Occurs when node is found but outside the supported node set
@@ -208,7 +218,11 @@ namespace Examine.Providers
                 GatheringNodeData(this, e);
         }
 
-
+        protected virtual void OnTransformingIndexValues(TransformingIndexDataEventArgs e)
+        {
+            if (TransformingIndexValues != null)
+                TransformingIndexValues(this, e);
+        }
         
         /// <summary>
         /// Raises the <see cref="E:GatheringFieldData"/> event.

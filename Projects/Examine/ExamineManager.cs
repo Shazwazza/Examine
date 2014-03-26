@@ -329,7 +329,7 @@ namespace Examine
         /// </summary>
         public void Dispose()
         {
-            SearcherContexts.Instance.Dispose();
+            SearcherContextCollection.Instance.Dispose();
         }
     }
 }

@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Examine.LuceneEngine.Cru;
 using Examine.LuceneEngine.SearchCriteria;
-using Lucene.Net.Contrib.Management;
 using Lucene.Net.Search;
-using LuceneManager.Infrastructure;
 
 namespace Examine.LuceneEngine.Indexing
 {
-    public class ValueTypeWarmer : ISearcherWarmer
+    internal class ValueTypeWarmer : ISearcherWarmer
     {
         private readonly SearcherContext _searcherContext;
 

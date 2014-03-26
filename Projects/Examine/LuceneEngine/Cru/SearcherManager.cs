@@ -4,7 +4,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 
-namespace Lucene.Net.Contrib.Management
+namespace Examine.LuceneEngine.Cru
 {
     public class SearcherManager : IDisposable
     {
@@ -75,7 +75,7 @@ namespace Lucene.Net.Contrib.Management
             }
         }
 
-        public IndexSearcherToken Acquire()
+        internal IndexSearcherToken Acquire()
         {
             return new IndexSearcherToken(AcquireSearcher(), this);
         }
@@ -127,13 +127,24 @@ namespace Lucene.Net.Contrib.Management
                 SwapSearcher(null);
             }
         }
-
-
+        
+        /// <summary>
+        /// Exposes an IndexSearcher and ensures that the manager disposes resources after use
+        /// </summary>
         public class IndexSearcherToken : IDisposable
         {
             private readonly SearcherManager _manager;
+        
+            /// <summary>
+            /// Returns the IndexSearcher instance
+            /// </summary>
             public IndexSearcher Searcher { get; private set; }
 
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="searcher"></param>
+            /// <param name="manager"></param>
             public IndexSearcherToken(IndexSearcher searcher, SearcherManager manager)
             {
                 _manager = manager;
@@ -150,7 +161,7 @@ namespace Lucene.Net.Contrib.Management
             }
         }
 
-        class WarmerWrapper : IndexWriter.IndexReaderWarmer
+        private class WarmerWrapper : IndexWriter.IndexReaderWarmer
         {
             private readonly ISearcherWarmer _searcher;
 
