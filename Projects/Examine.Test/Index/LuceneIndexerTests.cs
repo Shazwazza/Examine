@@ -24,14 +24,74 @@ namespace Examine.Test.Index
             {
             }
 
+            private IEnumerable<ValueSet> AllData()
+            {
+                var data = new List<ValueSet>();
+                for (int i = 0; i < 100; i++)
+                {
+                    data.Add(new ValueSet(i, "test", "category" + (i%2), new {item1 = "value" + i, item2 = "value" + i}));
+                }
+                return data;
+            } 
+
             protected override void PerformIndexAll(string type)
             {
-                throw new NotImplementedException();
+                IndexItems(AllData().Where(x => x.ItemType == type).ToArray());
             }
 
             protected override void PerformIndexRebuild()
             {
-                throw new NotImplementedException();
+                IndexItems(AllData().ToArray());
+            }
+        }
+
+        [Test]
+        public void Rebuild_Index()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.RebuildIndex();
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                Assert.AreEqual(100, s.Searcher.GetIndexReader().NumDocs());
+            }
+        }
+
+        [Test]
+        public void Reindex_Item_Type()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.IndexAll("category0");
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                Assert.AreEqual(50, s.Searcher.GetIndexReader().NumDocs());
+            }
+
+            indexer.IndexAll("category1");
+
+            ExamineSession.WaitForChanges();
+
+            sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                Assert.AreEqual(100, s.Searcher.GetIndexReader().NumDocs());
             }
         }
 
