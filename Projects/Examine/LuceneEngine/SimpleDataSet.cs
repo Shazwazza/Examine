@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Examine.LuceneEngine
 {
+    /// <summary>
+    /// Used for the ISimpleDataService
+    /// </summary>
     public class SimpleDataSet
     {
         /// <summary>

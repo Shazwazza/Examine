@@ -16,10 +16,13 @@ namespace Examine.LuceneEngine.Providers
     /// <summary>
     /// An index provider that can be used to index simple data structures such as those from a database, dictionary or array.
     /// </summary>
+    [Obsolete("Use ValueSetIndexer instead")]
     public class SimpleDataIndexer : LuceneIndexer
     {
 
-        [Obsolete("Do not use this constructor, it does not allow you to specify a lucene directory")]
+        /// <summary>
+        /// Constructor used for provider instantiation
+        /// </summary>
         public SimpleDataIndexer()
         {
         }
@@ -115,7 +118,7 @@ namespace Examine.LuceneEngine.Providers
             }
             
             //now that we have XElement nodes of all of the data, process it as per normal
-            AddNodesToIndex(nodes);
+            IndexItems(nodes.ToArray());
         }              
 
         /// <summary>
@@ -133,8 +136,7 @@ namespace Examine.LuceneEngine.Providers
         /// Initializes the provider from the config
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="config"></param>
-        
+        /// <param name="config"></param>        
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);

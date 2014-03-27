@@ -16,7 +16,7 @@ namespace Examine.Providers
     public abstract class BaseIndexProvider : ProviderBase, IIndexer
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
+        /// Constructor used for provider instantiation
         /// </summary>
         protected BaseIndexProvider() { }
         /// <summary>
@@ -62,14 +62,14 @@ namespace Examine.Providers
         [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual void ReIndexNode(XElement node, string type)
         {
-            ReIndexNode(node.ToValueSet(type, node.ExamineNodeTypeAlias()));
+            IndexItems(node.ToValueSet(type, node.ExamineNodeTypeAlias()));
         }
 
         /// <summary>
         /// Re-indexes an item
         /// </summary>
-        /// <param name="node"></param>
-        public abstract void ReIndexNode(ValueSet node);
+        /// <param name="nodes"></param>
+        public abstract void IndexItems(params ValueSet[] nodes);
         
         /// <summary>
         /// Deletes a node from the index

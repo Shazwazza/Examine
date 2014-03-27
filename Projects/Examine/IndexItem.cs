@@ -45,22 +45,11 @@ namespace Examine
         {
             _dataToIndex = null;
         }
-
+        
         /// <summary>
         /// Constructor
         /// </summary>
-        [Obsolete("Use ValueSets instead")]
-        public IndexItem(string type, string id)
-        {
-            IndexType = type;
-            Id = id;
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="valueSet"></param>
-        [Obsolete("Use ValueSets instead")]
+        /// <param name="valueSet"></param>        
         public IndexItem(ValueSet valueSet)
         {
             ValueSet = valueSet;

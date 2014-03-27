@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Examine.LuceneEngine
 {
+    /// <summary>
+    /// The data source for the SimpleDataIndexer
+    /// </summary>
     public interface ISimpleDataService
     {
         /// <summary>

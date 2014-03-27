@@ -284,7 +284,7 @@ namespace UmbracoExamine
             //need to create a delete queue item for each one found
             foreach (var r in results)
             {
-                EnqueueIndexOperation(new IndexOperation()
+                ProcessIndexOperation(new IndexOperation()
                     {
                         Operation = IndexOperationType.Delete,
                         Item = new IndexItem(null, "", r.Id.ToString(CultureInfo.InvariantCulture))
@@ -355,19 +355,6 @@ namespace UmbracoExamine
             var nodeTypeAlias = e.Node.Attribute("nodeTypeAlias") == null ? e.Node.Name.LocalName : e.Node.Attribute("nodeTypeAlias").Value;
             if (!e.Fields.ContainsKey(NodeTypeAliasFieldName))
                 e.Fields.Add(NodeTypeAliasFieldName, nodeTypeAlias);
-        }
-
-        /// <summary>
-        /// Called when a duplicate field is detected in the dictionary that is getting indexed.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="indexSetName"></param>
-        /// <param name="fieldName"></param>
-        protected override void OnDuplicateFieldWarning(int nodeId, string indexSetName, string fieldName)
-        {
-            base.OnDuplicateFieldWarning(nodeId, indexSetName, fieldName);
-
-            this.DataService.LogService.AddInfoLog(nodeId, "Field \"" + fieldName + "\" is listed multiple times in the index set \"" + indexSetName + "\". Please ensure all names are unique");
         }
 
         /// <summary>
