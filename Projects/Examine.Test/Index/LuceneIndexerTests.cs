@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.LuceneEngine;
+using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Providers;
 using Examine.Session;
@@ -10,6 +12,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Store;
 using Moq;
 using NUnit.Framework;
+using UmbracoExamine;
 using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Index
@@ -339,5 +342,38 @@ namespace Examine.Test.Index
                 Assert.AreEqual("value4", fields.Single(x => x.Name() == "item2").StringValue());
             }
         }
+
+        [Test]
+        public void Filters_Fields()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                new IndexCriteria(new[]
+                {
+                    new StaticField("item1", FieldIndexTypes.ANALYZED, false),
+                    new StaticField("item3", FieldIndexTypes.ANALYZED, false)
+                }, Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null), 
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.IndexItems(new ValueSet(1, "test", "content",
+                new Dictionary<string, List<object>>
+                {
+                    {"item1", new List<object>(new[] {"value1"})},
+                    {"item2", new List<object>(new[] {"value2"})}
+                }));
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                var fields = s.Searcher.Doc(s.Searcher.MaxDoc() - 1).GetFields().Cast<Fieldable>().ToArray();
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
+                Assert.IsNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+            }
+        }
+
+        //TODO: Somewhere we need to test for data types, sorting, etc...
     }
 }

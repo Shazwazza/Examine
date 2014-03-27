@@ -443,14 +443,9 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="e"></param>
         /// <param name="resetIndexingFlag">set to true if the IsIndexing flag should be reset (set to false) so future indexing operations can occur</param>
+        [Obsolete("This no longer performs any function, the resetIndexingFlag has no affect")]
         protected void OnIndexingError(IndexingErrorEventArgs e, bool resetIndexingFlag)
         {
-            if (resetIndexingFlag)
-            {
-                ////reset our volatile flag... something else funny is going on but we don't want this to prevent ALL future operations
-                //_isIndexing = false;
-            }
-
             OnIndexingError(e);
         }
 
@@ -603,13 +598,15 @@ namespace Examine.LuceneEngine.Providers
                 Func<string, IIndexValueType> valueType;
                 if (!string.IsNullOrWhiteSpace(field.Type) && ConfigurationTypes.TryGetValue(field.Type, out valueType))
                 {
-                    _searcherContext.DefineValueType(valueType(field.IndexName));
+                    _searcherContext.DefineValueType(
+                        valueType(string.IsNullOrWhiteSpace(field.IndexName) ? field.Name : field.IndexName));
                 }
                 else
                 {
                     //Define the default!
                     var fulltext = ConfigurationTypes["fulltext"];
-                    _searcherContext.DefineValueType(fulltext(field.IndexName));
+                    _searcherContext.DefineValueType(
+                        fulltext(string.IsNullOrWhiteSpace(field.IndexName) ? field.Name : field.IndexName));
                 }
             }
         }
@@ -987,6 +984,9 @@ namespace Examine.LuceneEngine.Providers
                 {
                     if (_fieldMappings == null)
                     {
+                        //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
+                        // of resetting the mappings variable with 'out' parmams and how the 'IndexName' get's used.
+
                         _fieldMappings = new Dictionary<string, List<string>>();
                         foreach (var f in IndexerData.UserFields.Concat(IndexerData.StandardFields))
                         {
@@ -995,7 +995,12 @@ namespace Examine.LuceneEngine.Providers
                                 _fieldMappings.Add(f.Name, mappings = new List<string>());
                             }
 
-                            mappings.Add(f.IndexName != f.Name ? f.IndexName : f.Name);
+                            mappings.Add(
+                                string.IsNullOrWhiteSpace(f.IndexName)
+                                    ? f.Name
+                                    : f.IndexName != f.Name
+                                        ? f.IndexName
+                                        : f.Name);
                         }
                     }
                 }
