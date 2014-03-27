@@ -60,6 +60,19 @@ namespace Examine.LuceneEngine.Indexing
         /// Constructor
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="values">
+        /// An anonymous object converted to a dictionary
+        /// </param>
+        public ValueSet(long id, string indexCategory, object values)
+            : this(id, indexCategory, string.Empty, values.ToDictionary<object>()) { }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>
         /// <param name="itemType">
         /// The item's node type (in umbraco terms this would be the doc type alias)</param>
         /// <param name="indexCategory">
@@ -68,6 +81,17 @@ namespace Examine.LuceneEngine.Indexing
         /// <param name="values"></param>
         public ValueSet(long id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object>> values)
             : this(id, indexCategory, itemType, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="values"></param>
+        public ValueSet(long id, string indexCategory, IEnumerable<KeyValuePair<string, object>> values)
+            : this(id, indexCategory, string.Empty, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
 
         /// <summary>
         /// Constructor
@@ -86,6 +110,17 @@ namespace Examine.LuceneEngine.Indexing
             ItemType = itemType;
             Values = values ?? new Dictionary<string, List<object>>();
         }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>        
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="values"></param>
+        public ValueSet(long id, string indexCategory, Dictionary<string, List<object>> values = null)
+            : this(id, indexCategory, string.Empty, values){ }
       
         /// <summary>
         /// Constructor
@@ -101,7 +136,21 @@ namespace Examine.LuceneEngine.Indexing
             : this(id, indexCategory, itemType, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
         {
             
-        }        
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="values"></param>
+        public ValueSet(long id, string indexCategory, IEnumerable<KeyValuePair<string, object[]>> values)
+            : this(id, indexCategory, string.Empty, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
+        {
+
+        }  
 
         /// <summary>
         /// Gets the values for the key

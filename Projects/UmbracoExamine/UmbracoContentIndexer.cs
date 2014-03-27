@@ -244,16 +244,16 @@ namespace UmbracoExamine
         /// Overridden for logging
         /// </summary>
         /// <param name="node"></param>
-        /// <param name="type"></param>
-        public override void ReIndexNode(XElement node, string type)
+        /// <param name="category"></param>
+        public override void ReIndexNode(XElement node, string category)
         {
-            if (!SupportedTypes.Contains(type))
+            if (!SupportedTypes.Contains(category))
                 return;
 
             if (node.Attribute("id") != null)
             {
-                DataService.LogService.AddVerboseLog((int) node.Attribute("id"), string.Format("ReIndexNode with type: {0}", type));
-                base.ReIndexNode(node, type);
+                DataService.LogService.AddVerboseLog((int) node.Attribute("id"), string.Format("ReIndexNode with type: {0}", category));
+                base.ReIndexNode(node, category);
             }
             else
             {

@@ -12,8 +12,8 @@ namespace Examine
         /// Forces a particular XML node to be reindexed
         /// </summary>
         /// <param name="node">XML node to reindex</param>
-        /// <param name="type">Type of index to use</param>
-        void ReIndexNode(XElement node, string type);
+        /// <param name="category">Type of index to use</param>
+        void ReIndexNode(XElement node, string category);
         
         /// <summary>
         /// Deletes a node from the index

@@ -104,17 +104,17 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Gets the data for the index type from the data service and indexes it.
         /// </summary>
-        /// <param name="type"></param>
-        protected override void PerformIndexAll(string type)
+        /// <param name="category"></param>
+        protected override void PerformIndexAll(string category)
         {
             //get the data for the index type
-            var data = DataService.GetAllData(type);
+            var data = DataService.GetAllData(category);
 
             //loop through the data and add it to the index
             var nodes = new List<ValueSet>();
             foreach (var d in data)
             {
-                nodes.Add(ValueSet.FromLegacyFields(d.NodeDefinition.NodeId, type, d.NodeDefinition.Type, d.RowData));                   
+                nodes.Add(ValueSet.FromLegacyFields(d.NodeDefinition.NodeId, category, d.NodeDefinition.Type, d.RowData));                   
             }
             
             //now that we have XElement nodes of all of the data, process it as per normal

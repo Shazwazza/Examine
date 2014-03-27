@@ -32,14 +32,14 @@ namespace Examine.Test.Index
                 var data = new List<ValueSet>();
                 for (int i = 0; i < 100; i++)
                 {
-                    data.Add(new ValueSet(i, "test", "category" + (i%2), new {item1 = "value" + i, item2 = "value" + i}));
+                    data.Add(new ValueSet(i, "category" + (i%2), new {item1 = "value" + i, item2 = "value" + i}));
                 }
                 return data;
             } 
 
-            protected override void PerformIndexAll(string type)
+            protected override void PerformIndexAll(string category)
             {
-                IndexItems(AllData().Where(x => x.ItemType == type).ToArray());
+                IndexItems(AllData().Where(x => x.IndexCategory == category).ToArray());
             }
 
             protected override void PerformIndexRebuild()
@@ -119,7 +119,7 @@ namespace Examine.Test.Index
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
-            indexer.IndexItems(new ValueSet(1, "test", "content",
+            indexer.IndexItems(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
                 {
                     {"item1", new List<object>(new[] {"value1"})},
@@ -144,7 +144,7 @@ namespace Examine.Test.Index
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
-            var value = new ValueSet(1, "test", "content",
+            var value = new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
                 {
                     {"item1", new List<object>(new[] {"value1"})},
@@ -175,7 +175,7 @@ namespace Examine.Test.Index
             
             for (var i = 0; i < 10; i++)
             {
-                indexer.IndexItems(new ValueSet(i, "test", "content",
+                indexer.IndexItems(new ValueSet(i, "content",
                     new Dictionary<string, List<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
@@ -203,7 +203,7 @@ namespace Examine.Test.Index
 
             for (var i = 0; i < 10; i++)
             {
-                indexer.IndexItems(new ValueSet(i, "test", "content",
+                indexer.IndexItems(new ValueSet(i, "content",
                     new Dictionary<string, List<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
@@ -230,7 +230,7 @@ namespace Examine.Test.Index
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
-            indexer.IndexItems(new ValueSet(1, "test", "content",
+            indexer.IndexItems(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
                 {
                     {"item1", new List<object>(new[] {"value1"})},
@@ -259,7 +259,7 @@ namespace Examine.Test.Index
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
-            indexer.IndexItems(new ValueSet(1, "test", "content",
+            indexer.IndexItems(new ValueSet(1, "content",
                 new {item1 = "value1", item2 = "value2"}));
 
             ExamineSession.WaitForChanges();
@@ -284,7 +284,7 @@ namespace Examine.Test.Index
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
-            indexer.IndexItems(new ValueSet(1, "test", "content",
+            indexer.IndexItems(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
                 {
                     {
@@ -322,12 +322,12 @@ namespace Examine.Test.Index
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
-            indexer.IndexItems(new ValueSet(1, "test", "content",
+            indexer.IndexItems(new ValueSet(1, "content",
                 new { item1 = "value1", item2 = "value2" }));
 
             ExamineSession.WaitForChanges();
 
-            indexer.IndexItems(new ValueSet(1, "test", "content",
+            indexer.IndexItems(new ValueSet(1, "content",
                 new { item1 = "value3", item2 = "value4" }));
 
             ExamineSession.WaitForChanges();
@@ -350,13 +350,13 @@ namespace Examine.Test.Index
             var indexer = new TestIndexer(
                 new IndexCriteria(new[]
                 {
-                    new StaticField("item1", FieldIndexTypes.ANALYZED, false),
-                    new StaticField("item3", FieldIndexTypes.ANALYZED, false)
+                    new StaticField("item1", false),
+                    new StaticField("item3", false)
                 }, Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null), 
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
-            indexer.IndexItems(new ValueSet(1, "test", "content",
+            indexer.IndexItems(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
                 {
                     {"item1", new List<object>(new[] {"value1"})},

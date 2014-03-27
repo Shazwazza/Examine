@@ -60,9 +60,9 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public IEnumerable<string> IndexTypes { get; private set; }
 
-        protected override void PerformIndexAll(string type)
+        protected override void PerformIndexAll(string category)
         {
-            IndexItems(DataService.GetAllData(type).ToArray());
+            IndexItems(DataService.GetAllData(category).ToArray());
         }
 
         protected override void PerformIndexRebuild()

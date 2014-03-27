@@ -179,11 +179,11 @@ namespace Examine
         /// Reindex nodes for the providers specified
         /// </summary>
         /// <param name="node"></param>
-        /// <param name="type"></param>
+        /// <param name="category"></param>
         /// <param name="providers"></param>
-        public void ReIndexNode(XElement node, string type, IEnumerable<BaseIndexProvider> providers)
+        public void ReIndexNode(XElement node, string category, IEnumerable<BaseIndexProvider> providers)
         {
-            _ReIndexNode(node, type, providers);
+            _ReIndexNode(node, category, providers);
         }
 
         /// <summary>
@@ -202,10 +202,10 @@ namespace Examine
         /// Reindex nodes for all providers
         /// </summary>
         /// <param name="node"></param>
-        /// <param name="type"></param>
-        public void ReIndexNode(XElement node, string type)
+        /// <param name="category"></param>
+        public void ReIndexNode(XElement node, string category)
         {
-            _ReIndexNode(node, type, IndexProviderCollection);
+            _ReIndexNode(node, category, IndexProviderCollection);
         }
         private void _ReIndexNode(XElement node, string type, IEnumerable<BaseIndexProvider> providers)
         {

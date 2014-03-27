@@ -596,7 +596,7 @@ namespace Examine.LuceneEngine.Providers
             foreach (var field in IndexerData.StandardFields.Concat(IndexerData.UserFields))
             {
                 Func<string, IIndexValueType> valueType;
-                if (!string.IsNullOrWhiteSpace(field.Type) && ConfigurationTypes.TryGetValue(field.Type, out valueType))
+                if (!string.IsNullOrWhiteSpace(field.Type) && IndexFieldTypes.TryGetValue(field.Type, out valueType))
                 {
                     _searcherContext.DefineValueType(
                         valueType(string.IsNullOrWhiteSpace(field.IndexName) ? field.Name : field.IndexName));
@@ -604,7 +604,7 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     //Define the default!
-                    var fulltext = ConfigurationTypes["fulltext"];
+                    var fulltext = IndexFieldTypes["fulltext"];
                     _searcherContext.DefineValueType(
                         fulltext(string.IsNullOrWhiteSpace(field.IndexName) ? field.Name : field.IndexName));
                 }
@@ -685,8 +685,8 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Called to perform the operation to do the actual indexing of an index type after the lucene index has been re-initialized.
         /// </summary>
-        /// <param name="type"></param>
-        protected abstract void PerformIndexAll(string type);
+        /// <param name="category"></param>
+        protected abstract void PerformIndexAll(string category);
 
         /// <summary>
         /// Called to perform the actual rebuild of the indexes once the lucene index has been re-initialized.
@@ -975,6 +975,12 @@ namespace Examine.LuceneEngine.Providers
 
         private volatile Dictionary<string, List<string>> _fieldMappings;
         private readonly object _fieldMappingsLock = new object();
+
+        /// <summary>
+        /// Returns the index field names for the source item name
+        /// </summary>
+        /// <param name="sourceName"></param>
+        /// <returns></returns>
         protected virtual IEnumerable<string> GetIndexFieldNames(string sourceName)
         {
             List<string> mappings;
@@ -1213,36 +1219,35 @@ namespace Examine.LuceneEngine.Providers
 
 
         #endregion
-
-
+        
         /// <summary>
-        /// Defines the field types
+        /// Defines the field types such as number, fulltext, etc...
         /// </summary>
         /// <remarks>
         /// Makes concurrent dictionary becaues this is a global static field
         /// </remarks>
-        public static ConcurrentDictionary<string, Func<string, IIndexValueType>> ConfigurationTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
+        public static ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
 
         static LuceneIndexer()
         {
-            ConfigurationTypes.TryAdd("number", name => new Int32Type(name));
-            ConfigurationTypes.TryAdd("int", name => new Int32Type(name));
-            ConfigurationTypes.TryAdd("float", name => new SingleType(name));
-            ConfigurationTypes.TryAdd("double", name => new DoubleType(name));
-            ConfigurationTypes.TryAdd("long", name => new Int64Type(name));
-            ConfigurationTypes.TryAdd("date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
-            ConfigurationTypes.TryAdd("datetime", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
-            ConfigurationTypes.TryAdd("date.year", name => new DateTimeType(name, DateTools.Resolution.YEAR));
-            ConfigurationTypes.TryAdd("date.month", name => new DateTimeType(name, DateTools.Resolution.MONTH));
-            ConfigurationTypes.TryAdd("date.day", name => new DateTimeType(name, DateTools.Resolution.DAY));
-            ConfigurationTypes.TryAdd("date.hour", name => new DateTimeType(name, DateTools.Resolution.HOUR));
-            ConfigurationTypes.TryAdd("date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE));
-            ConfigurationTypes.TryAdd("raw", name => new RawStringType(name));
-            ConfigurationTypes.TryAdd("rawfacet", name => new FacetType(name));
-            ConfigurationTypes.TryAdd("facet", name => new FacetType(name).SetSeparator(","));
-            ConfigurationTypes.TryAdd("facetpath", name => new FacetType(name, extractorFactory: () => new TermFacetPathExtractor(name)).SetSeparator(","));
-            ConfigurationTypes.TryAdd("autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() });
-            ConfigurationTypes.TryAdd("fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() });
+            IndexFieldTypes.TryAdd("number", name => new Int32Type(name));
+            IndexFieldTypes.TryAdd("int", name => new Int32Type(name));
+            IndexFieldTypes.TryAdd("float", name => new SingleType(name));
+            IndexFieldTypes.TryAdd("double", name => new DoubleType(name));
+            IndexFieldTypes.TryAdd("long", name => new Int64Type(name));
+            IndexFieldTypes.TryAdd("date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
+            IndexFieldTypes.TryAdd("datetime", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
+            IndexFieldTypes.TryAdd("date.year", name => new DateTimeType(name, DateTools.Resolution.YEAR));
+            IndexFieldTypes.TryAdd("date.month", name => new DateTimeType(name, DateTools.Resolution.MONTH));
+            IndexFieldTypes.TryAdd("date.day", name => new DateTimeType(name, DateTools.Resolution.DAY));
+            IndexFieldTypes.TryAdd("date.hour", name => new DateTimeType(name, DateTools.Resolution.HOUR));
+            IndexFieldTypes.TryAdd("date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE));
+            IndexFieldTypes.TryAdd("raw", name => new RawStringType(name));
+            IndexFieldTypes.TryAdd("rawfacet", name => new FacetType(name));
+            IndexFieldTypes.TryAdd("facet", name => new FacetType(name).SetSeparator(","));
+            IndexFieldTypes.TryAdd("facetpath", name => new FacetType(name, extractorFactory: () => new TermFacetPathExtractor(name)).SetSeparator(","));
+            IndexFieldTypes.TryAdd("autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() });
+            IndexFieldTypes.TryAdd("fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() });
         }
 
 

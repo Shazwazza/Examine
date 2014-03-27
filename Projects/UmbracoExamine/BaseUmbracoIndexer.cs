@@ -196,14 +196,14 @@ namespace UmbracoExamine
             }
         }
 
-        public override void ReIndexNode(XElement node, string type)
+        public override void ReIndexNode(XElement node, string category)
         {
             if (CanInitialize())
             {
-                if (!SupportedTypes.Contains(type))
+                if (!SupportedTypes.Contains(category))
                     return;
 
-                base.ReIndexNode(node, type);
+                base.ReIndexNode(node, category);
             }
         }
 
@@ -276,10 +276,10 @@ namespace UmbracoExamine
         /// Builds an xpath statement to query against Umbraco data for the index type specified, then
         /// initiates the re-indexing of the data matched.
         /// </summary>
-        /// <param name="type"></param>
-        protected override void PerformIndexAll(string type)
+        /// <param name="category"></param>
+        protected override void PerformIndexAll(string category)
         {
-            if (!SupportedTypes.Contains(type))
+            if (!SupportedTypes.Contains(category))
                 return;
 
             var xPath = "//*[(number(@id) > 0 and (@isDoc or @nodeTypeAlias)){0}]"; //we'll add more filters to this below if needed
@@ -318,7 +318,7 @@ namespace UmbracoExamine
             xPath = string.Format(xPath, filter.Length > 0 ? " and " + filter : "");
 
             //raise the event and set the xpath statement to the value returned
-            var args = new IndexingNodesEventArgs(IndexerData, xPath, type);
+            var args = new IndexingNodesEventArgs(IndexerData, xPath, category);
             OnNodesIndexing(args);
             if (args.Cancel)
             {
@@ -329,7 +329,7 @@ namespace UmbracoExamine
 
             DataService.LogService.AddVerboseLog(-1, string.Format("({0}) PerformIndexAll with XPATH: {1}", this.Name, xPath));
 
-            AddNodesToIndex(xPath, type);
+            AddNodesToIndex(xPath, category);
         }
 
         /// <summary>

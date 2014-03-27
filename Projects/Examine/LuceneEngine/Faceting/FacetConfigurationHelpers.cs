@@ -18,7 +18,7 @@ namespace Examine.LuceneEngine.Faceting
                     foreach (IIndexField f in subset)
                     {
                         Func<string, IIndexValueType> valueType;
-                        if (LuceneIndexer.ConfigurationTypes.TryGetValue(f.Type, out valueType))
+                        if (LuceneIndexer.IndexFieldTypes.TryGetValue(f.Type, out valueType))
                         {
                             var fe = valueType(f.IndexName).CreateFacetExtractor();
                             if (fe != null)

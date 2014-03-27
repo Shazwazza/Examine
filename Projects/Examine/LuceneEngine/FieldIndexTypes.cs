@@ -5,9 +5,8 @@ using System.Text;
 
 namespace Examine.LuceneEngine
 {
-	/// <summary>
-	/// 
-	/// </summary>
+
+    [Obsolete("This is no longer used")]
 	public enum FieldIndexTypes
 	{
 		ANALYZED,
