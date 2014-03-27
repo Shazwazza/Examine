@@ -8,6 +8,7 @@ using Examine.LuceneEngine.Indexing;
 using Examine.Session;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Documents;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
 using Moq;
@@ -158,6 +159,127 @@ namespace Examine.Test.Index
             }
         }
 
+        [Test]
+        public void Can_Add_Doc_With_Fields()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.AddDocument(new ValueSet(1, "test", "content",
+                new Dictionary<string, List<object>>
+                {
+                    {"item1", new List<object>(new[] {"value1"})},
+                    {"item2", new List<object>(new[] {"value2"})}
+                }));
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                var fields = s.Searcher.Doc(0).GetFields().Cast<Fieldable>().ToArray();
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+                Assert.AreEqual("value1", fields.Single(x => x.Name() == "item1").StringValue());
+                Assert.AreEqual("value2", fields.Single(x => x.Name() == "item2").StringValue());
+            }
+        }
+
+        [Test]
+        public void Can_Add_Doc_With_Easy_Fields()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.AddDocument(new ValueSet(1, "test", "content",
+                new {item1 = "value1", item2 = "value2"}));
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                var fields = s.Searcher.Doc(0).GetFields().Cast<Fieldable>().ToArray();
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+                Assert.AreEqual("value1", fields.Single(x => x.Name() == "item1").StringValue());
+                Assert.AreEqual("value2", fields.Single(x => x.Name() == "item2").StringValue());
+            }
+        }
+
+        [Test]
+        public void Can_Have_Multiple_Values_In_Fields()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.AddDocument(new ValueSet(1, "test", "content",
+                new Dictionary<string, List<object>>
+                {
+                    {
+                        "item1", new List<object> {"subval1", "subval2"}
+                    },
+                    {
+                        "item2", new List<object> {"subval1", "subval2", "subval3"}
+                    }
+                }));
+            
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                var fields = s.Searcher.Doc(0).GetFields().Cast<Fieldable>().ToArray();
+                Assert.AreEqual(2, fields.Count(x => x.Name() == "item1"));
+                Assert.AreEqual(3, fields.Count(x => x.Name() == "item2"));
+
+                Assert.AreEqual("subval1", fields.Where(x => x.Name() == "item1").ElementAt(0).StringValue());
+                Assert.AreEqual("subval2", fields.Where(x => x.Name() == "item1").ElementAt(1).StringValue());
+
+                Assert.AreEqual("subval1", fields.Where(x => x.Name() == "item2").ElementAt(0).StringValue());
+                Assert.AreEqual("subval2", fields.Where(x => x.Name() == "item2").ElementAt(1).StringValue());
+                Assert.AreEqual("subval3", fields.Where(x => x.Name() == "item2").ElementAt(2).StringValue());
+            }
+        }
+
+        [Test]
+        public void Can_Update_Document()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.AddDocument(new ValueSet(1, "test", "content",
+                new { item1 = "value1", item2 = "value2" }));
+
+            ExamineSession.WaitForChanges();
+
+            indexer.AddDocument(new ValueSet(1, "test", "content",
+                new { item1 = "value3", item2 = "value4" }));
+
+            ExamineSession.WaitForChanges();
+            
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                var fields = s.Searcher.Doc(s.Searcher.MaxDoc()-1).GetFields().Cast<Fieldable>().ToArray();
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+                Assert.AreEqual("value3", fields.Single(x => x.Name() == "item1").StringValue());
+                Assert.AreEqual("value4", fields.Single(x => x.Name() == "item2").StringValue());
+            }
+        }
     }
 
     /// <summary>

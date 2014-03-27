@@ -39,7 +39,22 @@ namespace Examine.LuceneEngine.Indexing
         /// <summary>
         /// The values to be indexed
         /// </summary>
-        public Dictionary<string, List<object>> Values { get; private set; } 
+        public Dictionary<string, List<object>> Values { get; private set; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="itemType">
+        /// The item's node type (in umbraco terms this would be the doc type alias)</param>
+        /// <param name="indexCategory">
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </param>
+        /// <param name="values">
+        /// An anonymous object converted to a dictionary
+        /// </param>
+        public ValueSet(long id, string indexCategory, string itemType, object values)
+            : this(id, indexCategory, itemType, values.ToDictionary<object>()) { }
 
         /// <summary>
         /// Constructor
