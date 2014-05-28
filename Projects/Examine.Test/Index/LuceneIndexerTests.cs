@@ -374,6 +374,33 @@ namespace Examine.Test.Index
             }
         }
 
+        [Test]
+        public void Number_Field()
+        {
+            var luceneDir = new RAMDirectory();
+            var indexer = new TestIndexer(
+                Mock.Of<IIndexCriteria>(),
+                luceneDir,
+                new StandardAnalyzer(Version.LUCENE_29));
+
+            indexer.IndexItems(new ValueSet(1, "content",
+                new Dictionary<string, List<object>>
+                {
+                    {"item1", new List<object>(new[] {"value1"})},
+                    {"item2", new List<object>(new[] {"value2"})}
+                }));
+
+            ExamineSession.WaitForChanges();
+
+            var sc = indexer.SearcherContext;
+            using (var s = sc.GetSearcher())
+            {
+                var fields = s.Searcher.Doc(s.Searcher.MaxDoc() - 1).GetFields().Cast<Fieldable>().ToArray();
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
+                Assert.IsNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+            }
+        }
+
         //TODO: Somewhere we need to test for data types, sorting, etc...
     }
 }
