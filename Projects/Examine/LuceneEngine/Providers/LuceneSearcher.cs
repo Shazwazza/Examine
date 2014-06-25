@@ -77,10 +77,16 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private IndexSearcher _searcher;
         private volatile IndexReader _reader;
-        private static readonly ReaderWriterLockSlim Locker = new ReaderWriterLockSlim();
+        private static readonly object Locker = new object();
         private Lucene.Net.Store.Directory _luceneDirectory;
         private readonly IndexWriter _nrtWriter;
-
+        /// <summary>
+        /// Do not access this object directly. The public property ensures that the folder state is always up to date
+        /// </summary>
+        private DirectoryInfo _indexFolder;
+        
+        private volatile bool _hasIndex = false;
+        
         /// <summary>
         /// Initializes the provider.
         /// </summary>
@@ -164,62 +170,44 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Do not access this object directly. The public property ensures that the folder state is always up to date
-        /// </summary>
-        private DirectoryInfo _indexFolder;
-
-        private bool _hasIndex = false;
-
-        /// <summary>
         /// Ensures the index exists
         /// </summary>
         [SecuritySafeCritical]
         public virtual void EnsureIndex()
         {
-            if (_hasIndex) return;
-
-            Locker.EnterUpgradeableReadLock();
-
-            if (_nrtWriter != null)
+            if (!_hasIndex)
             {
-                _hasIndex = true;
-
-            }
-
-            IndexWriter writer = null;
-            try
-            {
-                if (_nrtWriter != null)
+                lock (Locker)
                 {
-                    Locker.EnterWriteLock();
-                    _hasIndex = true;
-                    Locker.ExitWriteLock();
-                }
-                else if (!IndexReader.IndexExists(GetLuceneDirectory()))
-                {
-                    Locker.EnterWriteLock();
-
-                    try
+                    //double check
+                    if (!_hasIndex)
                     {
-                        //create the writer (this will overwrite old index files)
-                        writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-                    }
-                    finally
-                    {
-                        Locker.ExitWriteLock();
-                    }
-                }
-            }
-            finally
-            {
-                if (writer != null)
-                {
-                    writer.Close();
-                    writer = null;
-                }
-                _hasIndex = true;
 
-                Locker.ExitUpgradeableReadLock();
+                        if (_nrtWriter != null)
+                        {
+                            _hasIndex = true;
+                            return;
+                        }
+
+                        IndexWriter writer = null;
+                        try
+                        {
+                            if (!IndexReader.IndexExists(GetLuceneDirectory()))
+                            {
+                                //create the writer (this will overwrite old index files)
+                                writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                            }
+                        }
+                        finally
+                        {
+                            if (writer != null)
+                            {
+                                writer.Close();
+                            }
+                            _hasIndex = true;
+                        }
+                    }
+                }
             }
         }
 
@@ -308,35 +296,11 @@ namespace Examine.LuceneEngine.Providers
             {
                 if (_reader == null)
                 {
-                    Locker.EnterWriteLock();
-
-                    try
+                    lock (Locker)
                     {
-                        //get a reader - could be NRT or based on directly depending on how this was constructed
-                        _reader = _nrtWriter == null
-                            ? IndexReader.Open(GetLuceneDirectory(), true)
-                            : _nrtWriter.GetReader();
-
-                        _searcher = new IndexSearcher(_reader);
-                    }
-                    catch (IOException ex)
-                    {
-                        throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
-                    }
-                    finally
-                    {
-                        Locker.ExitWriteLock();
-                    }
-                }
-                else
-                {
-                    switch (_reader.GetReaderStatus())
-                    {
-                        case ReaderStatus.Current:
-                            break;
-                        case ReaderStatus.Closed:
-
-                            Locker.EnterWriteLock();
+                        //double check
+                        if (_reader == null)
+                        {
                             try
                             {
                                 //get a reader - could be NRT or based on directly depending on how this was constructed
@@ -346,15 +310,33 @@ namespace Examine.LuceneEngine.Providers
 
                                 _searcher = new IndexSearcher(_reader);
                             }
-                            finally
+                            catch (IOException ex)
                             {
-                                Locker.ExitWriteLock();
+                                throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    switch (_reader.GetReaderStatus())
+                    {
+                        case ReaderStatus.Current:
+                            break;
+                        case ReaderStatus.Closed:
+                            lock (Locker)
+                            {
+                                //get a reader - could be NRT or based on directly depending on how this was constructed
+                                _reader = _nrtWriter == null
+                                    ? IndexReader.Open(GetLuceneDirectory(), true)
+                                    : _nrtWriter.GetReader();
+
+                                _searcher = new IndexSearcher(_reader);
                             }
                             break;
                         case ReaderStatus.NotCurrent:
 
-                            Locker.EnterWriteLock();
-                            try
+                            lock (Locker)
                             {
                                 //yes, this is actually the way the Lucene wants you to work...
                                 //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
@@ -377,11 +359,7 @@ namespace Examine.LuceneEngine.Providers
                                     _searcher = new IndexSearcher(_reader);
                                 }
                             }
-                            finally
-                            {
-                                Locker.ExitWriteLock();
-                            }
-
+                           
                             break;
                     }
 
@@ -389,44 +367,46 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                //need to close the searcher and force a re-open
-                Locker.EnterWriteLock();
-                try
+                if (_reader != null)
                 {
-                    try
+                    lock (Locker)
                     {
-                        _searcher.Close();
-                        _reader.Close();
-                    }
-                    catch (IOException ex)
-                    {
-                        //this will happen if it's already closed ( i think )
-                        Trace.TraceError("Examine: error occurred closing index searcher. {0}", ex);
-                    }
-                    finally
-                    {
-                        //set to null in case another call to this method has passed the first lock and is checking for null
-                        _searcher = null;
-                        _reader = null;
-                    }
+                        //double check
+                        if (_reader != null)
+                        {
+                            try
+                            {
+                                _searcher.Close();
+                                _reader.Close();
+                            }
+                            catch (IOException ex)
+                            {
+                                //this will happen if it's already closed ( i think )
+                                Trace.TraceError("Examine: error occurred closing index searcher. {0}", ex);
+                            }
+                            finally
+                            {
+                                //set to null in case another call to this method has passed the first lock and is checking for null
+                                _searcher = null;
+                                _reader = null;
+                            }
 
-                    try
-                    {
-                        //get a reader - could be NRT or based on directly depending on how this was constructed
-                        _reader = _nrtWriter == null
-                            ? IndexReader.Open(GetLuceneDirectory(), true)
-                            : _nrtWriter.GetReader();
+                            try
+                            {
+                                //get a reader - could be NRT or based on directly depending on how this was constructed
+                                _reader = _nrtWriter == null
+                                    ? IndexReader.Open(GetLuceneDirectory(), true)
+                                    : _nrtWriter.GetReader();
 
-                        _searcher = new IndexSearcher(_reader);
+                                _searcher = new IndexSearcher(_reader);
+                            }
+                            catch (IOException ex)
+                            {
+                                throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
+                            }
+                        }
+
                     }
-                    catch (IOException ex)
-                    {
-                        throw new ApplicationException("Could not create an index searcher with the supplied lucene directory", ex);
-                    }
-                }
-                finally
-                {
-                    Locker.ExitWriteLock();
                 }
             }
         }
