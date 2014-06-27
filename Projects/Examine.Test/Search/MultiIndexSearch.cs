@@ -17,6 +17,11 @@ namespace Examine.Test.Search
     [TestFixture]
     public class MultiIndexSearch
     {
+        [TearDown]
+        public void Teardown()
+        {
+            DisposableCollector.Clean();
+        }
 
         [Test]
         public void MultiIndex_Simple_Search()

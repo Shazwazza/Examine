@@ -343,7 +343,7 @@ namespace Examine.Test.Index
             using (var indexer = new TestIndexer(
                 new[]
                 {
-                    new FieldDefinition("item2", "Number")
+                    new FieldDefinition("item2", "number")
                 },
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29)))

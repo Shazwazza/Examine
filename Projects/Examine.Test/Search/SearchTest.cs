@@ -22,7 +22,13 @@ namespace Examine.Test.Search
     /// </summary>
     [TestFixture]
 	public class SearchTest
-    { 
+    {
+
+        [TearDown]
+        public void Teardown()
+        {
+            DisposableCollector.Clean();
+        }
 
         [Test]
         public void Search_All_Fields_No_Wildcards()
