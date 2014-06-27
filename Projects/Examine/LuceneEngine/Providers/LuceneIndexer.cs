@@ -49,6 +49,27 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
+        /// Constructor to create an indexer at runtime
+        /// </summary>
+        /// <param name="fieldDefinitions"></param>
+        /// <param name="facetConfiguration"></param>
+        /// <param name="luceneDirectory"></param>
+        /// <param name="defaultAnalyzer">Specifies the default analyzer to use per field</param>
+        protected LuceneIndexer(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration, Lucene.Net.Store.Directory luceneDirectory, Analyzer defaultAnalyzer)
+            : base(fieldDefinitions, facetConfiguration)
+        {
+            LuceneIndexFolder = null;
+            _directory = luceneDirectory;
+
+            IndexingAnalyzer = defaultAnalyzer;
+
+            //Create the legacy searcher
+            InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
+
+            EnsureIndex(false);
+        }
+
+        /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="indexerData"></param>
@@ -68,6 +89,8 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexerData"></param>
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("IIndexCriteria should no longer be used")]
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer)
             : base(indexerData)
         {
@@ -86,7 +109,7 @@ namespace Examine.LuceneEngine.Providers
         [Obsolete("This constructor should no be used, the async flag has no relevance")]
         protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
             : this(indexerData, luceneDirectory, analyzer)
-        {            
+        {
         }
 
         /// <summary>
@@ -95,9 +118,11 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexerData"></param>
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("IIndexCriteria should no longer be used")]
         protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
             : base(indexerData)
-        {            
+        {
             LuceneIndexFolder = null;
             _directory = luceneDirectory;
 
@@ -130,11 +155,11 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-        
+
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
-            
+
             //Need to check if the index set or IndexerData is specified...
 
             DirectoryInfo workingFolder = null;
@@ -241,6 +266,8 @@ namespace Examine.LuceneEngine.Providers
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
         /// </summary>
+        [Obsolete("This should no longer be used, use the SearcherContext instead to perform any internal searching")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected BaseSearchProvider InternalSearcher { get; private set; }
 
         #endregion
@@ -368,13 +395,13 @@ namespace Examine.LuceneEngine.Providers
         public int OptimizationCommitThreshold { get; protected internal set; }
 
         /// <summary>
-        /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
+        /// The default analyzer to use when indexing content, analyers can however be specified on a per field basis
         /// </summary>
         public Analyzer IndexingAnalyzer
         {
-            
+
             get;
-            
+
             protected set;
         }
 
@@ -496,7 +523,7 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Provider implementation
-        
+
         public override void IndexItems(params ValueSet[] nodes)
         {
             //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
@@ -518,7 +545,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         private volatile SearcherContext _searcherContext;
-        
+
         /// <summary>
         /// Returns the current SearcherContext
         /// </summary>
@@ -566,15 +593,13 @@ namespace Examine.LuceneEngine.Providers
                     {
                         _indexIsNew = IndexExists();
 
-                        var facetConfig = IndexerData != null ? IndexerData.FacetConfiguration : null;
-
                         //TODO: Test what happens if someone actually wires two indexers to the same index set.
                         _searcherContext = SearcherContextCollection.Instance.GetContext(GetLuceneDirectory());
                         if (_searcherContext == null)
                         {
                             SearcherContextCollection.Instance.RegisterContext(
                                 _searcherContext =
-                                new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, facetConfig));
+                                new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, FacetConfiguration));
 
                             _searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
                         }
@@ -590,10 +615,14 @@ namespace Examine.LuceneEngine.Providers
                 _searcherContext.Manager.DeleteAll();
             }
         }
-        
+
+        /// <summary>
+        /// This initializes all of the defined value types on the searcher context for the fields defined on this indexer
+        /// </summary>
         internal void InitializeFields()
         {
-            foreach (var field in IndexerData.StandardFields.Concat(IndexerData.UserFields))
+            //perform the operation for all new field definitions
+            foreach (var field in FieldDefinitions)
             {
                 Func<string, IIndexValueType> valueType;
                 if (!string.IsNullOrWhiteSpace(field.Type) && IndexFieldTypes.TryGetValue(field.Type, out valueType))
@@ -607,6 +636,23 @@ namespace Examine.LuceneEngine.Providers
                     var fulltext = IndexFieldTypes["fulltext"];
                     _searcherContext.DefineValueType(
                         fulltext(string.IsNullOrWhiteSpace(field.IndexName) ? field.Name : field.IndexName));
+                }
+            }
+            
+            //perform the operation for all legacy declared fields - We don't have the 'IndexName' 
+            // on legacy field types
+            foreach (var field in IndexerData.AllFields())
+            {
+                Func<string, IIndexValueType> valueType;
+                if (!string.IsNullOrWhiteSpace(field.Type) && IndexFieldTypes.TryGetValue(field.Type, out valueType))
+                {
+                    _searcherContext.DefineValueType(valueType(field.Name));
+                }
+                else
+                {
+                    //Define the default!
+                    var fulltext = IndexFieldTypes["fulltext"];
+                    _searcherContext.DefineValueType(fulltext(field.Name));
                 }
             }
         }
@@ -647,7 +693,7 @@ namespace Examine.LuceneEngine.Providers
 
             //Here we just need to delete all items of a type....
             DeleteFromIndex(new Term(IndexTypeFieldName, type), false);
-            
+
             //now do the indexing...
             PerformIndexAll(type);
         }
@@ -771,7 +817,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="performCommit">Obsolete. Doesn't have any effect</param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>        
         protected bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
-        {            
+        {
             long nodeId = -1;
             if (indexTerm != null && indexTerm.Field() == "id")
                 long.TryParse(indexTerm.Text(), out nodeId);
@@ -797,7 +843,7 @@ namespace Examine.LuceneEngine.Providers
             }
             catch (Exception ee)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", (int) (nodeId > int.MaxValue ? int.MaxValue : nodeId), ee));
+                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", (int)(nodeId > int.MaxValue ? int.MaxValue : nodeId), ee));
                 return false;
             }
         }
@@ -843,38 +889,29 @@ namespace Examine.LuceneEngine.Providers
             var originalValues = new Dictionary<string, IEnumerable<object>>(
                 indexItem.ValueSet.Values.ToDictionary(pair => pair.Key, pair => (IEnumerable<object>)pair.Value));
 
-            var valueSet = indexItem.ValueSet;            
+            var valueSet = indexItem.ValueSet;
 
             //if the index critera does not list any fields whatsoever, than we will let
             // all fields be indexed.
-            if (IndexerData.StandardFields.Any() || IndexerData.UserFields.Any())
+            if (IndexerData.AllFields().Any())
             {
                 //remove any field that is not declared
                 var toRemove = valueSet.Values.Keys.Except(
-                    IndexerData.StandardFields.Select(x => x.Name).Union(IndexerData.UserFields.Select(x => x.Name)))
+                    IndexerData.AllFields().Select(x => x.Name))
                     .ToArray();
                 foreach (var r in toRemove)
                 {
                     valueSet.Values.Remove(r);
-                }    
+                }
             }
 
-            // Add umbraco node properties 
-            foreach (var field in IndexerData.StandardFields)
+            // handle legacy field event for all fields
+            foreach (var field in IndexerData.AllFields())
             {
                 if (valueSet.Values.ContainsKey(field.Name))
                 {
                     HandleLegacyFieldEvent(field, valueSet, true);
                 }
-            }
-
-            // Get all user data that we want to index and store into a dictionary 
-            foreach (var field in IndexerData.UserFields)
-            {
-                if (valueSet.Values.ContainsKey(field.Name))
-                {
-                    HandleLegacyFieldEvent(field, valueSet, false);
-                }                
             }
 
             //Now do the legacy stuff.
@@ -883,7 +920,7 @@ namespace Examine.LuceneEngine.Providers
             // * remove any fields that are not contained in the results
             // * update any fields that have changed values
             // * add any fields that don't exist
-            var fieldResult = GetDataToIndex(indexItem.DataToIndex, indexItem.IndexType);                        
+            var fieldResult = GetDataToIndex(indexItem.DataToIndex, indexItem.IndexType);
             var legacyVals = valueSet.ToLegacyFields();
             foreach (var v in fieldResult)
             {
@@ -900,7 +937,7 @@ namespace Examine.LuceneEngine.Providers
                     valueSet.Add(v.Key, v.Value);
                 }
             }
-            
+
             //Ok, now that the legacy stuff is done, we can emit our new events
             OnTransformingIndexValues(new TransformingIndexDataEventArgs(indexItem.ValueSet, originalValues));
         }
@@ -955,10 +992,10 @@ namespace Examine.LuceneEngine.Providers
             var values = new Dictionary<string, string>();
 
             var nodeId = int.Parse(node.Attribute("id").Value);
-            
+
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
-            
+
             OnGatheringNodeData(indexingNodeDataArgs);
 
             values = indexingNodeDataArgs.Fields;
@@ -990,12 +1027,14 @@ namespace Examine.LuceneEngine.Providers
                 {
                     if (_fieldMappings == null)
                     {
-                        //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
-                        // of resetting the mappings variable with 'out' parmams and how the 'IndexName' get's used.
-
                         _fieldMappings = new Dictionary<string, List<string>>();
-                        foreach (var f in IndexerData.UserFields.Concat(IndexerData.StandardFields))
+                       
+                        //iterate over field definitions
+                        foreach (var f in FieldDefinitions)
                         {
+                            //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
+                            // of resetting the mappings variable with 'out' parmams and how the 'IndexName' get's used.
+
                             if (!_fieldMappings.TryGetValue(f.Name, out mappings))
                             {
                                 _fieldMappings.Add(f.Name, mappings = new List<string>());
@@ -1007,6 +1046,19 @@ namespace Examine.LuceneEngine.Providers
                                     : f.IndexName != f.Name
                                         ? f.IndexName
                                         : f.Name);
+                        }
+
+                        //iterate over legacy fields - legacy fields do not have an 'IndexName'
+                        foreach (var f in IndexerData.AllFields())
+                        {
+                            //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
+                            // of resetting the mappings variable with 'out' parmams
+
+                            if (!_fieldMappings.TryGetValue(f.Name, out mappings))
+                            {
+                                _fieldMappings.Add(f.Name, mappings = new List<string>());
+                            }
+                            mappings.Add(f.Name);
                         }
                     }
                 }
@@ -1029,7 +1081,7 @@ namespace Examine.LuceneEngine.Providers
             var d = new Document();
 
             d.Add(new ExternalIdField(values.Id));
-            
+
             var sc = SearcherContext;
             foreach (var value in values.Values)
             {
@@ -1089,7 +1141,7 @@ namespace Examine.LuceneEngine.Providers
         {
             return new Dictionary<string, string>();
         }
-        
+
         /// <summary>
         /// Processes the index operation and validates the item
         /// </summary>
@@ -1120,7 +1172,7 @@ namespace Examine.LuceneEngine.Providers
         [Obsolete("This is no longer used, use ProcessIndexOperation instead")]
         protected void EnqueueIndexOperation(IndexOperation op)
         {
-            ProcessIndexOperation(op);         
+            ProcessIndexOperation(op);
         }
 
         private Lucene.Net.Store.Directory _directory;
@@ -1129,7 +1181,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-        
+
         public virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             if (_directory == null)
@@ -1166,9 +1218,9 @@ namespace Examine.LuceneEngine.Providers
         private void AddSpecialFieldsToDocument(Document d, ValueSet values)
         {
             d.Add(new Field(IndexNodeIdFieldName, values.Id + "", Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
-            d.Add(new Field(IndexTypeFieldName, values.IndexCategory.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));            
+            d.Add(new Field(IndexTypeFieldName, values.IndexCategory.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
         }
-        
+
         private void ProcessDeleteItem(IndexItem item, bool performCommit = true)
         {
             //if type and id are empty remove it all
@@ -1186,22 +1238,23 @@ namespace Examine.LuceneEngine.Providers
                 DeleteFromIndex(new Term(IndexNodeIdFieldName, item.Id), performCommit);
             }
         }
-        
+
         private IndexedNode ProcessIndexItem(IndexItem item)
         {
             //get the node id
+            //TODO: Fix this - it might not be int?
             var nodeId = int.Parse(item.Id);
 
             //transform the data
             TransformDataToIndex(item);
 
             var values = item.ValueSet;
-            
+
             AddDocument(values);
 
             return new IndexedNode() { NodeId = nodeId, Type = item.IndexType };
         }
-      
+
         /// <summary>
         /// Creates the folder if it does not exist.
         /// </summary>
@@ -1212,14 +1265,14 @@ namespace Examine.LuceneEngine.Providers
             if (!System.IO.Directory.Exists(folder.FullName))
             {
                 folder.Create();
-                folder.Refresh();                
+                folder.Refresh();
             }
 
         }
 
 
         #endregion
-        
+
         /// <summary>
         /// Defines the field types such as number, fulltext, etc...
         /// </summary>

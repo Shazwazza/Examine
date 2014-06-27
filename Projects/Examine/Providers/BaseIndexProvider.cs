@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration.Provider;
+using System.Linq;
 using System.Security;
 using Examine;
 using System.Xml.Linq;
+using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine;
 
@@ -13,18 +15,41 @@ namespace Examine.Providers
     /// <summary>
     /// Base class for an Examine Index Provider. You must implement this class to create an IndexProvider
     /// </summary>
-    public abstract class BaseIndexProvider : ProviderBase, IIndexer
+    public abstract class BaseIndexProvider : ProviderBase, IIndexer, IExamineIndexer
     {
+        public IEnumerable<FieldDefinition> FieldDefinitions { get; set; }
+        public FacetConfiguration FacetConfiguration { get; set; }
+
         /// <summary>
         /// Constructor used for provider instantiation
         /// </summary>
-        protected BaseIndexProvider() { }
+        protected BaseIndexProvider()
+        {
+            FieldDefinitions = Enumerable.Empty<FieldDefinition>();
+        }
+
+
+        /// <summary>
+        /// Constructor for creating an indexer at runtime
+        /// </summary>
+        /// <param name="fieldDefinitions"></param>
+        /// <param name="facetConfiguration"></param>
+        protected BaseIndexProvider(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration)
+        {
+            FieldDefinitions = fieldDefinitions;
+            FacetConfiguration = facetConfiguration;
+            //for legacy, all empty collections means it will be ignored
+            IndexerData = new IndexCriteria(Enumerable.Empty<IIndexField>(), Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), -1);
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
         /// </summary>
         /// <param name="indexerData">The indexer data.</param>
+        [Obsolete("IIndexCriteria should no longer be used")]
         protected BaseIndexProvider(IIndexCriteria indexerData)
         {
+            FieldDefinitions = Enumerable.Empty<FieldDefinition>();
             IndexerData = indexerData;
         }
 
@@ -91,9 +116,15 @@ namespace Examine.Providers
         /// <summary>
         /// Gets/sets the index criteria to create the index with
         /// </summary>
+        [Obsolete("IIndexCriteria should no longer be used")]
         public IIndexCriteria IndexerData { get; set; }
 
         public abstract bool IndexExists();
+
+        /// <summary>
+        /// Returns true if the index is brand new/empty
+        /// </summary>
+        /// <returns></returns>
         public virtual bool IsIndexNew()
         {
             return !IndexExists();

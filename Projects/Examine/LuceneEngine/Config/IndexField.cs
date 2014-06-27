@@ -24,20 +24,6 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
-        [ConfigurationProperty("IndexName", IsRequired = false)]
-        public string IndexName
-        {
-            get
-            {
-                var indexName = (string)this["IndexName"];
-                return string.IsNullOrEmpty(indexName) ? Name : indexName;
-            }
-            set
-            {
-                this["IndexName"] = value;
-            }
-        }
-
         [ConfigurationProperty("EnableSorting", IsRequired = false)]
         public bool EnableSorting
         {
@@ -74,8 +60,7 @@ namespace Examine.LuceneEngine.Config
             var to = compareTo as IndexField;
             if (to != null)
             {
-                return this.Name.Equals(to.Name) && 
-                   (IndexName == to.IndexName);
+                return this.Name.Equals(to.Name);
             }
             return false;
         }

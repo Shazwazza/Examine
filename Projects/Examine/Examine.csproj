@@ -149,9 +149,12 @@
     <Compile Include="Enforcer.cs" />
     <Compile Include="ExamineDisposeModule.cs" />
     <Compile Include="FacetReferenceCount.cs" />
+    <Compile Include="IExamineIndexer.cs" />
+    <Compile Include="IFieldDefinition.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IIndexField.cs" />
     <Compile Include="IndexCriteria.cs" />
+    <Compile Include="IndexCriteriaExtensions.cs" />
     <Compile Include="IndexedNode.cs" />
     <Compile Include="IndexedNodesEventArgs.cs" />
     <Compile Include="IndexingErrorEventArgs.cs" />

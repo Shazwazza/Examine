@@ -44,6 +44,7 @@ namespace Examine.LuceneEngine.Cru
         /// This should never be used, it is exposed purely for legacy purposes
         /// </summary>
         /// <returns></returns>
+        [Obsolete("Marked obsolete because it should never be used, it is exposed purely for legacy purposes")]
         internal IndexWriter GetWriter()
         {
             return _writer;
@@ -112,11 +113,21 @@ namespace Examine.LuceneEngine.Cru
         internal Func<string, IIndexValueType> DefaultValueTypeFactory = name => new FullTextType(name);
         internal ConcurrentDictionary<string, IIndexValueType> ValueTypes = new ConcurrentDictionary<string, IIndexValueType>(StringComparer.InvariantCultureIgnoreCase);
 
+        /// <summary>
+        /// Returns the list of explitly registered value types
+        /// </summary>
         public IEnumerable<IIndexValueType> RegisteredValueTypes
         {
             get { return ValueTypes.Values; }
         }
 
+        /// <summary>
+        /// Returns the value type for the field name specified, if useDefaultIfMissing then it will resolve the value
+        /// type from the DefaultValueTypeFactory method if the field has not been registered explicitly
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="useDefaultIfMissing"></param>
+        /// <returns></returns>
         public IIndexValueType GetValueType(string fieldName, bool useDefaultIfMissing = false)
         {
             if (useDefaultIfMissing)
@@ -132,6 +143,10 @@ namespace Examine.LuceneEngine.Cru
             return ValueTypes.TryGetValue(fieldName, out type) ? type : null;
         }
 
+        /// <summary>
+        /// Explicitly defines a value type and sets it up
+        /// </summary>
+        /// <param name="type"></param>
         public void DefineValueType(IIndexValueType type)
         {
             if (ValueTypes.TryAdd(type.FieldName, type))
@@ -140,6 +155,10 @@ namespace Examine.LuceneEngine.Cru
             }
         }
 
+        /// <summary>
+        /// Returns a new searcher (ensure it's disposed!)
+        /// </summary>
+        /// <returns></returns>
         public SearcherManager.IndexSearcherToken GetSearcher()
         {
             return Manager.GetSearcherManager().Acquire();

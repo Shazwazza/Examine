@@ -25,16 +25,8 @@ namespace Examine.Test
             EnableSorting = enableSorting;
             Name = name;
         }
-
-        private string _indexName;
+    
         public string Name { get; set; }
-        
-        public string IndexName
-        {
-            get { return _indexName ?? Name; }
-            set { _indexName = value; }
-        }
-
         public bool EnableSorting { get; set; }
         public string Type { get; set; }
     }

@@ -49,7 +49,6 @@ namespace UmbracoExamine
         }
 
         public string Name { get; set; }
-        public string IndexName { get; set; }
 
         [Obsolete("This is no longer used")]
         public FieldIndexTypes IndexType { get; private set; }

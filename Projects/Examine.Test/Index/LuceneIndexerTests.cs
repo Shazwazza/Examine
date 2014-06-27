@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine.Indexing.ValueTypes;
 using Examine.LuceneEngine.Providers;
 using Examine.Session;
 using Lucene.Net.Analysis;
@@ -22,7 +24,12 @@ namespace Examine.Test.Index
     {
         private class TestIndexer : LuceneIndexer
         {
-            public TestIndexer(IIndexCriteria indexerData, Directory luceneDirectory, Analyzer analyzer) 
+            public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration, Directory luceneDirectory, Analyzer defaultAnalyzer)
+                : base(fieldDefinitions, facetConfiguration, luceneDirectory, defaultAnalyzer)
+            {
+            }
+
+            public TestIndexer(IIndexCriteria indexerData, Directory luceneDirectory, Analyzer analyzer)
                 : base(indexerData, luceneDirectory, analyzer)
             {
             }
@@ -32,10 +39,10 @@ namespace Examine.Test.Index
                 var data = new List<ValueSet>();
                 for (int i = 0; i < 100; i++)
                 {
-                    data.Add(new ValueSet(i, "category" + (i%2), new {item1 = "value" + i, item2 = "value" + i}));
+                    data.Add(new ValueSet(i, "category" + (i % 2), new { item1 = "value" + i, item2 = "value" + i }));
                 }
                 return data;
-            } 
+            }
 
             protected override void PerformIndexAll(string category)
             {
@@ -106,7 +113,7 @@ namespace Examine.Test.Index
                 Mock.Of<IIndexCriteria>(),
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
-            
+
             Assert.IsTrue(indexer.IndexExists());
         }
 
@@ -172,7 +179,7 @@ namespace Examine.Test.Index
                 Mock.Of<IIndexCriteria>(),
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
-            
+
             for (var i = 0; i < 10; i++)
             {
                 indexer.IndexItems(new ValueSet(i, "content",
@@ -180,7 +187,7 @@ namespace Examine.Test.Index
                     {
                         {"item1", new List<object>(new[] {"value1"})},
                         {"item2", new List<object>(new[] {"value2"})}
-                    }));                
+                    }));
             }
 
             ExamineSession.WaitForChanges();
@@ -260,7 +267,7 @@ namespace Examine.Test.Index
                 new StandardAnalyzer(Version.LUCENE_29));
 
             indexer.IndexItems(new ValueSet(1, "content",
-                new {item1 = "value1", item2 = "value2"}));
+                new { item1 = "value1", item2 = "value2" }));
 
             ExamineSession.WaitForChanges();
 
@@ -294,7 +301,7 @@ namespace Examine.Test.Index
                         "item2", new List<object> {"subval1", "subval2", "subval3"}
                     }
                 }));
-            
+
             ExamineSession.WaitForChanges();
 
             var sc = indexer.SearcherContext;
@@ -331,11 +338,11 @@ namespace Examine.Test.Index
                 new { item1 = "value3", item2 = "value4" }));
 
             ExamineSession.WaitForChanges();
-            
+
             var sc = indexer.SearcherContext;
             using (var s = sc.GetSearcher())
             {
-                var fields = s.Searcher.Doc(s.Searcher.MaxDoc()-1).GetFields().Cast<Fieldable>().ToArray();
+                var fields = s.Searcher.Doc(s.Searcher.MaxDoc() - 1).GetFields().Cast<Fieldable>().ToArray();
                 Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
                 Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
                 Assert.AreEqual("value3", fields.Single(x => x.Name() == "item1").StringValue());
@@ -352,7 +359,7 @@ namespace Examine.Test.Index
                 {
                     new StaticField("item1", false),
                     new StaticField("item3", false)
-                }, Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null), 
+                }, Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null),
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
@@ -379,7 +386,11 @@ namespace Examine.Test.Index
         {
             var luceneDir = new RAMDirectory();
             var indexer = new TestIndexer(
-                Mock.Of<IIndexCriteria>(),
+                new[]
+                {
+                    new FieldDefinition("item2", "Number")
+                },
+                new FacetConfiguration(),
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_29));
 
@@ -387,7 +398,7 @@ namespace Examine.Test.Index
                 new Dictionary<string, List<object>>
                 {
                     {"item1", new List<object>(new[] {"value1"})},
-                    {"item2", new List<object>(new[] {"value2"})}
+                    {"item2", new List<object>(new object[] {123456})}
                 }));
 
             ExamineSession.WaitForChanges();
@@ -396,8 +407,12 @@ namespace Examine.Test.Index
             using (var s = sc.GetSearcher())
             {
                 var fields = s.Searcher.Doc(s.Searcher.MaxDoc() - 1).GetFields().Cast<Fieldable>().ToArray();
-                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
-                Assert.IsNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+
+                var valType = sc.GetValueType("item2");
+                Assert.AreEqual(typeof(Int32Type), valType.GetType());
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+                //for a number type there will always be a sort field
+                Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == LuceneIndexer.SortedFieldNamePrefix + "item2"));
             }
         }
 

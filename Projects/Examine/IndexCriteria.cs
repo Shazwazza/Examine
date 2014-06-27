@@ -10,6 +10,7 @@ namespace Examine
     /// <summary>
     /// a data structure for storing indexing/searching instructions
     /// </summary>
+    [Obsolete("This shouldn't be used anymore but exists for legacy reasons")]
     public class IndexCriteria : IIndexCriteria
     {
 

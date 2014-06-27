@@ -1,8 +1,12 @@
-﻿namespace Examine
-{    
+﻿using System;
+using System.ComponentModel;
+
+namespace Examine
+{
     /// <summary>
     /// Represents a field to index
     /// </summary>
+    [Obsolete("Use IFieldDefinition instead")]
     public interface IIndexField
     {
         /// <summary>
@@ -11,18 +15,9 @@
         string Name { get; set; }
         
         /// <summary>
-        /// IndexName is so that you can index the same field with different analyzers
-        /// </summary>
-        /// <remarks>
-        /// You might for instance both use a prefix indexer and a full text indexer. Also, if you have multiple data sources you can use a common field name in the index. If it's not specified it will just be the field name.
-        /// 
-        /// If this is null it should default to 'Name'
-        /// </remarks>
-        string IndexName { get; set; }        
-        
-        /// <summary>
         /// Whether or not this field has sorting enabled in search results
         /// </summary>
+        [Obsolete("This is no longer used, sorting is enabled only by data type")]        
         bool EnableSorting { get; set; }
         
         /// <summary>

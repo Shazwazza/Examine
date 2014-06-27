@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Xml.Linq;
 
 namespace Examine
@@ -6,6 +6,7 @@ namespace Examine
     /// <summary>
     /// Interface to represent an Examine Indexer
     /// </summary>
+    [Obsolete("Use IExamineIndexer instead")]
     public interface IIndexer
     {
         /// <summary>

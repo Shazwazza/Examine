@@ -7,6 +7,7 @@ namespace Examine
     /// <summary>
     /// Represents all fields and information to index
     /// </summary>
+    [Obsolete("This shouldn't be used anymore but exists for legacy reasons")]
     public interface IIndexCriteria
     {
         /// <summary>
@@ -34,9 +35,6 @@ namespace Examine
         /// A list of the 'user'/custom fields to index
         /// </summary>
         IEnumerable<IIndexField> UserFields { get; }
-
-
-        FacetConfiguration FacetConfiguration { get; }
-
+        
     }
 }
