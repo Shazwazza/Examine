@@ -49,7 +49,6 @@ namespace Examine.Providers
         ///</summary>
         ///<param name="defaultOperation"></param>
         ///<returns></returns>
-		
 		public abstract ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
 
         /// <summary>
@@ -58,7 +57,6 @@ namespace Examine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
-		
 		public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
 
         #endregion

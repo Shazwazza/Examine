@@ -551,7 +551,14 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public SearcherContext SearcherContext
         {
-            get { return _searcherContext; }
+            get
+            {
+                if (_searcherContext == null)
+                {
+                    throw new InvalidOperationException("The index has not been initialized, not SearcherContext is available");
+                }
+                return _searcherContext;
+            }
         }
 
         /// <summary>
@@ -1337,6 +1344,9 @@ namespace Examine.LuceneEngine.Providers
             this.CheckDisposed();
             if (disposing)
             {
+                //TODO: Should we dispose anything ?
+                // the SearcherContext basically contains all elements but what disposes that apart from the Examine Manager? what about tests?
+
                 //_isCancelling = true;
                 //this._fileWatcher.Dispose();
             }

@@ -169,7 +169,8 @@ namespace Examine.LuceneEngine.Cru
         {
             if (_disposed) return;
             _disposed = true;
-
+            
+            //TODO: Should dispose the Lucene Directory ?
 
             var disposeActions = new List<Action>
                 {

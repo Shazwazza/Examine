@@ -20,6 +20,8 @@ using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine.Providers
 {
+    //TODO: TO make this IDisposable or not ?
+
     ///<summary>
 	/// Standard object used to search a Lucene index
 	///</summary>
@@ -27,8 +29,10 @@ namespace Examine.LuceneEngine.Providers
 	{
 		#region Constructors
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Do not use this constructor, it does not allow you to specify a lucene directory")]
+        /// <summary>
+        /// Constructor used for provider instantiation
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]        
         public LuceneSearcher()
 		{
         }
@@ -81,7 +85,6 @@ namespace Examine.LuceneEngine.Providers
 		/// <exception cref="T:System.InvalidOperationException">
 		/// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
 		/// </exception>
-		
 		public override void Initialize(string name, NameValueCollection config)
 		{
 			base.Initialize(name, config);
@@ -191,7 +194,6 @@ namespace Examine.LuceneEngine.Providers
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
         /// <returns></returns>                
-		
         public override Searcher GetSearcher()
         {
             ValidateSearcher();
@@ -216,7 +218,6 @@ namespace Examine.LuceneEngine.Providers
         /// Returns a list of fields to search on
         /// </summary>
         /// <returns></returns>
-		
         protected override internal string[] GetSearchFields()
         {
             ValidateSearcher();
@@ -234,6 +235,10 @@ namespace Examine.LuceneEngine.Providers
         }
 
 		
+        /// <summary>
+        /// Returns the lucene directory
+        /// </summary>
+        /// <returns></returns>
         protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
 			if (_luceneDirectory == null)

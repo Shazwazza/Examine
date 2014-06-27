@@ -18,6 +18,7 @@ namespace Examine
         /// <param name="useWildcards">if set to <c>true</c> the search will use wildcards.</param>
         /// <returns>Search Results</returns>
         ISearchResults Search(string searchText, bool useWildcards);
+
         /// <summary>
         /// Searches using the specified search query parameters
         /// </summary>

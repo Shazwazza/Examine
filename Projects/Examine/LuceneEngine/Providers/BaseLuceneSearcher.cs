@@ -25,8 +25,9 @@ namespace Examine.LuceneEngine.Providers
 
         #region Constructors
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Do not use this constructor, it does not allow you to specify an analyzer")]
+        /// <summary>
+        /// Constructor used for provider instantiation
+        /// </summary>
         protected BaseLuceneSearcher()
         {
         }
@@ -35,7 +36,6 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="analyzer"></param>
-        
         protected BaseLuceneSearcher(Analyzer analyzer)
         {
             IndexingAnalyzer = analyzer;
@@ -74,7 +74,6 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-        
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -104,12 +103,10 @@ namespace Examine.LuceneEngine.Providers
         /// Gets the searcher for this instance
         /// </summary>
         /// <returns></returns>
-        
         public abstract Searcher GetSearcher();
 
         
         public abstract ICriteriaContext GetCriteriaContext();        
-
 
 
         /// <summary>
@@ -118,7 +115,6 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
-        
         public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             return new LuceneSearchCriteria(this, type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);

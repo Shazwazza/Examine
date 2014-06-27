@@ -2,14 +2,18 @@
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
+using Examine.Session;
 using Examine.Test.DataServices;
-
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
+using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Search
 {
@@ -18,71 +22,60 @@ namespace Examine.Test.Search
     /// </summary>
     [TestFixture]
 	public class SearchTest
-    {
+    { 
 
         [Test]
-        public void Match_Search_Field_Sort_Syntax()
+        public void Search_All_Fields_No_Wildcards()
         {
-            var val = "myFieldName[Type=INT]";
-            var match = LuceneSearchCriteria.SortMatchExpression.Match(val);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())      
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.RebuildIndex();
+                ExamineSession.WaitForChanges();
 
-            Assert.IsTrue(match.Success);
-            var type = match.Groups["type"];
-            Assert.IsNotNull(type);
-            Assert.AreEqual("INT", type.Value);
-            Assert.AreEqual("myFieldName", val.Substring(0, match.Index));
-        }
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var result = searcher.Search("value1", false);
 
-        [Test]
-        public void Search_On_Stop_Word()
-        {
-           
-            var result = _searcher.Search("into", false);
-            var result2 = _searcher.Search("into sam", false);
-
-            Assert.AreEqual(0, result.TotalItemCount);
-            Assert.AreEqual(0, result.Count());
-
-            Assert.IsTrue(result2.TotalItemCount > 0);
-            Assert.IsTrue(result2.Count() > 0);
+                Assert.AreEqual(1, result.TotalItemCount);
+            }    
         }
 
         [Test]
-        public void Search_SimpleSearch()
+        public void Search_All_Fields_Wildcards()
         {
-            var result = _searcher.Search("sam", false);
-            Assert.AreEqual(4, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.RebuildIndex();
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var result = searcher.Search("value", true);
+
+                Assert.AreEqual(100, result.TotalItemCount);
+            }
         }
 
         [Test]
-        public void Search_SimpleSearchWithWildcard()
+        public void Search_On_Stop_Word_No_Result()
         {
-            var result = _searcher.Search("umb", true);
-            Assert.AreEqual(7, result.Count(), "Total results for 'umb' is 8 using wildcards");
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new ValueSet(1, "content",
+                   new { item1 = "value1", item2 = "here we go into the darkness" }));
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var result = searcher.Search("into", false);
+
+                Assert.AreEqual(0, result.TotalItemCount);
+            }
         }
 
-        
-        private static ISearcher _searcher;
-        private static IIndexer _indexer;
-		private Lucene.Net.Store.Directory _luceneDir;
-
-        #region Initialize and Cleanup
-
-        [SetUp]
-		public void TestSetup()
-        {
-			_luceneDir = new RAMDirectory();
-			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
-            _indexer.RebuildIndex();
-			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
-        }
-
-        [TearDown]
-		public void TestTearDown()
-		{
-			_luceneDir.Dispose();	
-		}
-
-        #endregion
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -25,7 +26,7 @@ namespace Examine.LuceneEngine.Providers
         #region Constructors
 
 		/// <summary>
-		/// Default constructor
+		/// constructor for provider based construction
 		/// </summary>
         public MultiIndexSearcher()
 		{
@@ -36,7 +37,8 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="indexPath"></param>
         /// <param name="analyzer"></param>
-		
+		[Obsolete("Do not use this ctor")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
 		public MultiIndexSearcher(IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
             : base(analyzer)
         {
@@ -54,7 +56,6 @@ namespace Examine.LuceneEngine.Providers
 		/// </summary>
 		/// <param name="luceneDirs"></param>
 		/// <param name="analyzer"></param>
-		
 		public MultiIndexSearcher(IEnumerable<Lucene.Net.Store.Directory> luceneDirs, Analyzer analyzer)
 			: base(analyzer)
 		{
@@ -96,7 +97,7 @@ namespace Examine.LuceneEngine.Providers
             var sets = IndexSets.Instance.Sets.Cast<IndexSet>();
             foreach(var i in config["indexSets"].Split(','))
             {
-                var s = sets.Where(x => x.SetName == i).SingleOrDefault();
+                var s = sets.SingleOrDefault(x => x.SetName == i);
                 if (s == null)
                 {
                     throw new ArgumentException("The index set " + i + " does not exist");
