@@ -9,8 +9,16 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing.ValueTypes
 {
+    /// <summary>
+    /// Indexes a raw string value - not analyzed
+    /// </summary>
     public class RawStringType : IndexValueTypeBase
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="store"></param>
         public RawStringType(string fieldName, bool store = true)
             : base(fieldName, store)
         {

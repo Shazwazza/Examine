@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Examine.LuceneEngine.Indexing;
@@ -15,7 +16,7 @@ using Version = Lucene.Net.Util.Version;
 namespace Examine.Test.Search
 {
     [TestFixture]
-	public class FluentApiTests
+    public class FluentApiTests
     {
         [TearDown]
         public void Teardown()
@@ -25,25 +26,53 @@ namespace Examine.Test.Search
 
         //TODO: Finish these
 
-        //[Test]
-        //public void FluentApiTests_Grouped_Or_Examiness()
-        //{
-        //    ////Arrange
-        //    var criteria = _searcher.CreateSearchCriteria("content");
+        [Test]
+        public void FluentApiTests_Grouped_Or_Examiness()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new
+                        {
+                            nodeName = "my name 1",
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    new ValueSet(2, "content",
+                        new
+                        {
+                            nodeName = "About us",
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    new ValueSet(3, "content",
+                        new
+                        {
+                            nodeName = "my name 3",
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                    );
 
-        //    //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
-        //    var filter = criteria.GroupedOr(
-        //        new[] { "nodeTypeAlias", "nodeName" },
-        //        new[] { "CWS\\_Home".Boost(10), "About".MultipleCharacterWildcard() })
-        //        .Compile();
+                ExamineSession.WaitForChanges();
 
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //    ////Act
-        //    var results = _searcher.Search(filter);
+                //paths contain punctuation, we'll escape it and ensure an exact match
+                var criteria = searcher.CreateSearchCriteria("content");
 
-        //    ////Assert
-        //    Assert.IsTrue(results.TotalItemCount > 0);
-        //}
+                //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
+                var filter = criteria.GroupedOr(
+                    new[] { "nodeTypeAlias", "nodeName" },
+                    new[] { "CWS\\_Home".Boost(10), "About".MultipleCharacterWildcard() });
+
+                var results = searcher.Search(filter.Compile());
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
 
         [Test]
         public void FluentApi_Grouped_Or_With_Not()
@@ -58,8 +87,8 @@ namespace Examine.Test.Search
                 luceneDir, analyzer))
             {
                 indexer.IndexItems(
-                    new ValueSet(1, "content", 
-                        new { nodeName = "my name 1", bodyText = "lorem ipsum", headerText = "header 1", umbracoNaviHide = "1" } ),
+                    new ValueSet(1, "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ipsum", headerText = "header 1", umbracoNaviHide = "1" }),
                     new ValueSet(2, "content",
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     );
@@ -76,113 +105,310 @@ namespace Examine.Test.Search
             }
         }
 
-        //[Test]
-        //public void FluentApi_Exact_Match_By_Escaped_Path()
-        //{
-        //    //paths contain punctuation, we'll escape it and ensure an exact match
-        //    var criteria = _searcher.CreateSearchCriteria("content");
-        //    var filter = criteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148");
-        //    var results = _searcher.Search(filter.Compile());
-        //    Assert.AreEqual(0, results.TotalItemCount);
+        [Test]
+        public void FluentApi_Exact_Match_By_Escaped_Path()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                //TODO: Find out how the PATH is auto indexed as 'raw'
+                new[] { new FieldDefinition(UmbracoContentIndexer.IndexPathFieldName, "raw") }, 
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 1"},
+                            {"bodyText", "lorem ipsum"},
+                            {UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148"}
+                        }),
+                    new ValueSet(2, "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 2"},
+                            {"bodyText", "lorem ipsum"},
+                            {UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1149"}
+                        })
+                    );
 
-        //    //now escape it
-        //    var exactcriteria = _searcher.CreateSearchCriteria("content");
-        //    var exactfilter = exactcriteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148".Escape());
-        //    results = _searcher.Search(exactfilter.Compile());
-        //    Assert.AreEqual(1, results.TotalItemCount);
-        //}
+                ExamineSession.WaitForChanges();
 
-        //[Test]
-        //public void FluentApi_Find_By_ParentId()
-        //{
-        //    var criteria = _searcher.CreateSearchCriteria("content");
-        //    var filter = criteria.ParentId(1139);
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //    var results = _searcher.Search(filter.Compile());
+                //paths contain punctuation, we'll escape it and ensure an exact match
+                var criteria = searcher.CreateSearchCriteria("content");
+                var filter = criteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148");
+                var results = searcher.Search(filter.Compile());
+                Assert.AreEqual(0, results.TotalItemCount);
 
-        //    Assert.AreEqual(2, results.TotalItemCount);
-        //}
+                //now escape it
+                var exactcriteria = searcher.CreateSearchCriteria("content");
+                var exactfilter = exactcriteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148".Escape());
+                results = searcher.Search(exactfilter.Compile());
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
 
-        //[Test]
-        //public void FluentApi_Find_By_NodeTypeAlias()
-        //{
-        //    var criteria = _searcher.CreateSearchCriteria("content");
-        //    var filter = criteria.NodeTypeAlias("CWS_Home").Compile();
 
-        //    var results = _searcher.Search(filter);
+        }
 
-        //    Assert.IsTrue(results.TotalItemCount > 0);
-        //}
+        [Test]
+        public void FluentApi_Find_By_ParentId()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ipsum", parentID = "1235" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", parentID = "1139" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
+                    );
 
-        //[Test]
-        //public void FluentApi_Search_With_Stop_Words()
-        //{
-        //    var criteria = _searcher.CreateSearchCriteria();
-        //    var filter = criteria.Field("nodeName", "into")
-        //        .Or().Field("nodeTypeAlias", "into");
+                ExamineSession.WaitForChanges();
 
-        //    var results = _searcher.Search(filter.Compile());
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //    Assert.AreEqual(0, results.TotalItemCount);
-        //}
+                var criteria = searcher.CreateSearchCriteria("content");
+                var filter = criteria.ParentId(1139);
 
-        //[Test]
-        //public void FluentApi_Search_Raw_Query()
-        //{
-        //    //var criteria = _searcher.CreateSearchCriteria(IndexTypes.Content);
-        //    var criteria = _searcher.CreateSearchCriteria("content");
-        //    var filter = criteria.RawQuery("nodeTypeAlias:CWS_Home");
+                var results = searcher.Search(filter.Compile());
 
-        //    var results = _searcher.Search(filter);
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
 
-        //    Assert.IsTrue(results.TotalItemCount > 0);
-        //}
+        [Test]
+        public void FluentApi_Find_By_NodeTypeAlias()
+        {
+            //TODO: Shouldn't the fluent api lookup the internal field __NodeTypeAlias ?
 
-        
-        //[Test]
-        //public void FluentApi_Find_Only_Image_Media()
-        //{
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                //TODO: Find out how the nodeTypeAlias is auto indexed as 'raw'
+                new[] { new FieldDefinition("nodeTypeAlias", "raw") }, 
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 1"},
+                            {"nodeTypeAlias", "CWS_Home"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
+                        }),
+                    new ValueSet(2, "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 2"},
+                            {"nodeTypeAlias", "CWS_Home"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
+                        }),
+                    new ValueSet(3, "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 3"},
+                            {"nodeTypeAlias", "CWS_Page"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Page"}
+                        })
+                    );
 
-        //    var criteria = _searcher.CreateSearchCriteria("media");
-        //    var filter = criteria.NodeTypeAlias("image").Compile();
+                ExamineSession.WaitForChanges();
 
-        //    var results = _searcher.Search(filter);
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //    Assert.IsTrue(results.TotalItemCount > 0);
+                var criteria = searcher.CreateSearchCriteria("content");
+                var filter = criteria.NodeTypeAlias("CWS_Home").Compile();
 
-        //}
+                var results = searcher.Search(filter);
 
-        //[Test]
-        //public void FluentApi_Find_Both_Media_And_Content()
-        //{          
-        //    var criteria = _searcher.CreateSearchCriteria(BooleanOperation.Or);
-        //    var filter = criteria
-        //        .Field(LuceneIndexer.IndexTypeFieldName, "media")
-        //        .Or()
-        //        .Field(LuceneIndexer.IndexTypeFieldName, "content")
-        //        .Compile();
+                //TODO: Why this doesn't work? Seems to lowercase the query
 
-        //    var results = _searcher.Search(filter);
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
 
-        //    Assert.AreEqual(10, results.Count());
+        [Test]
+        public void FluentApi_Search_With_Stop_Words()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "into 1", bodyText = "It was one thing to bring Carmen into it, but Jonathan was another story." }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "my name 2", bodyText = "Hands shoved backwards into his back pockets, he took slow deliberate steps, as if he had something on his mind."}),
+                    new ValueSet(3, "content",
+                        new { nodeName = "my name 3", bodyText = "Slowly carrying the full cups into the living room, she handed one to Alex." })
+                    );
 
-        //}
+                ExamineSession.WaitForChanges();
 
-        //[Test]
-        //public void FluentApi_Sort_Result_By_Number_Field()
-        //{
-        //    var sc = _searcher.CreateSearchCriteria("content");
-        //    var sc1 = sc.ParentId(1143).And().OrderBy(new SortableField("sortOrder", SortType.Int)).Compile();
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //    var results1 = _searcher.Search(sc1).ToArray();
+                var criteria = searcher.CreateSearchCriteria();
+                var filter = criteria.Field("bodyText", "into")
+                    .Or().Field("nodeName", "into");
 
-        //    var currSort = 0;
-        //    for (var i = 0; i < results1.Count(); i++)
-        //    {
-        //        Assert.GreaterOrEqual(int.Parse(results1[i].Fields["sortOrder"]), currSort);
-        //        currSort = int.Parse(results1[i].Fields["sortOrder"]);
-        //    }
-        //}
+                var results = searcher.Search(filter.Compile());
+
+                Assert.AreEqual(0, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void FluentApi_Search_Raw_Query()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 1"},
+                            {"nodeTypeAlias", "CWS_Home"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
+                        }),
+                    new ValueSet(2, "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 2"},
+                            {"nodeTypeAlias", "CWS_Home"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
+                        }),
+                    new ValueSet(3, "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 3"},
+                            {"nodeTypeAlias", "CWS_Page"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Page"}
+                        })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria("content");
+                var filter = criteria.RawQuery("nodeTypeAlias:CWS_Home");
+
+                var results = searcher.Search(filter);
+
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+            
+        }
+
+
+        [Test]
+        public void FluentApi_Find_Only_Image_Media()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "media",
+                        new { nodeName = "my name 1", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
+                    new ValueSet(2, "media",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
+                    new ValueSet(3, "media",
+                        new { nodeName = "my name 3", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria("media");
+                var filter = criteria.NodeTypeAlias("image").Compile();
+
+                var results = searcher.Search(filter);
+
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void FluentApi_Find_Both_Media_And_Content()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "media",
+                        new { nodeName = "my name 1", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
+                    new ValueSet(2, "media",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "my name 3", bodyText = "lorem ipsum", nodeTypeAlias = "file" }),
+                    new ValueSet(4, "other",
+                        new { nodeName = "my name 4", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria(BooleanOperation.Or);
+                var filter = criteria
+                    .Field(LuceneIndexer.IndexTypeFieldName, "media")
+                    .Or()
+                    .Field(LuceneIndexer.IndexTypeFieldName, "content")
+                    .Compile();
+
+                var results = searcher.Search(filter);
+
+                Assert.AreEqual(3, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void FluentApi_Sort_Result_By_Number_Field()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "my name 1", sortOrder = "3", parentID = "1143" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "my name 2", sortOrder = "1", parentID = "1143" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "my name 3", sortOrder = "2", parentID = "1143" }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "my name 4", bodyText = "lorem ipsum", parentID = "2222" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var sc = searcher.CreateSearchCriteria("content");
+                var sc1 = sc.ParentId(1143).And().OrderBy(new SortableField("sortOrder", SortType.Int)).Compile();
+
+                var results1 = searcher.Search(sc1).ToArray();
+
+                Assert.AreEqual(3, results1.Length);
+
+                var currSort = 0;
+                for (var i = 0; i < results1.Length; i++)
+                {
+                    Assert.GreaterOrEqual(int.Parse(results1[i].Fields["sortOrder"]), currSort);
+                    currSort = int.Parse(results1[i].Fields["sortOrder"]);
+                }
+            }
+        }
 
         //[Test]
         //public void FluentApi_Sort_Result_By_Date_Field()
