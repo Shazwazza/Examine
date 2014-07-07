@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine.Indexing.ValueTypes;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
@@ -15,7 +16,7 @@ using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Search
 {
-    [TestFixture]
+    [TestFixture, RequiresSTA]
     public class FluentApiTests
     {
         [TearDown]
@@ -377,7 +378,10 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (var indexer = new TestIndexer(
+                //Ensure it's set to a number, otherwise it's not sortable
+                new[] { new FieldDefinition("sortOrder", "number") }, 
+                luceneDir, analyzer))
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -410,88 +414,210 @@ namespace Examine.Test.Search
             }
         }
 
-        //[Test]
-        //public void FluentApi_Sort_Result_By_Date_Field()
-        //{
-        //    var sc = _searcher.CreateSearchCriteria("content");
-        //    var sc1 = sc.ParentId(1143).And().OrderBy(new SortableField("updateDate", SortType.Double)).Compile();
+        [Test]
+        public void FluentApi_Sort_Result_By_Date_Field()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                //Ensure it's set to a date, otherwise it's not sortable
+                new[] { new FieldDefinition("updateDate", "date") },
+                luceneDir, analyzer))
+            {
+                var now = DateTime.Now;
 
-        //    var results1 = _searcher.Search(sc1).ToArray();
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "my name 1", updateDate = now.AddDays(2).ToString("yyyy-MM-dd"), parentID = "1143" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "my name 2", updateDate = now.ToString("yyyy-MM-dd"), parentID = "1143" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "my name 3", updateDate = now.AddDays(1).ToString("yyyy-MM-dd"), parentID = "1143" }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "my name 4", updateDate = now, parentID = "2222" })
+                    );
 
-        //    double currSort = 0;
-        //    for (var i = 0; i < results1.Count(); i++)
-        //    {
-        //        Assert.GreaterOrEqual(double.Parse(results1[i].Fields["updateDate"]), currSort);
-        //        currSort = double.Parse(results1[i].Fields["updateDate"]);
-        //    }
-        //}
+                ExamineSession.WaitForChanges();
 
-        //[Test]
-        //public void FluentApi_Sort_Result_By_Single_Field()
-        //{
-        //    var sc = _searcher.CreateSearchCriteria("content");
-        //    var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName").Compile();
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //    sc = _searcher.CreateSearchCriteria("content");
-        //    var sc2 = sc.Field("writerName", "administrator").And().OrderByDescending("nodeName").Compile();
+                var sc = searcher.CreateSearchCriteria("content");
+                var sc1 = sc.ParentId(1143).And().OrderBy(new SortableField("updateDate", SortType.Double)).Compile();
 
-        //    var results1 = _searcher.Search(sc1);
-        //    var results2 = _searcher.Search(sc2);
+                var results1 = searcher.Search(sc1).ToArray();
 
-        //    Assert.AreNotEqual(results1.First().LongId, results2.First().LongId);
-        //}
+                Assert.AreEqual(3, results1.Length);
 
-        //[Test]
-        //public void FluentApi_Standard_Results_Sorted_By_Score()
-        //{
-        //    //Arrange
-        //    var sc = _searcher.CreateSearchCriteria("content", SearchCriteria.BooleanOperation.Or);
-        //    sc = sc.NodeName("umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco").Compile();
+                double currSort = 0;
+                for (var i = 0; i < results1.Length; i++)
+                {
+                    Assert.GreaterOrEqual(double.Parse(results1[i].Fields["updateDate"]), currSort);
+                    currSort = double.Parse(results1[i].Fields["updateDate"]);
+                }
+            }
+        }
 
-        //    //Act
-        //    var results = _searcher.Search(sc);
+        [Test]
+        public void FluentApi_Sort_Result_By_Single_Field()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                //Ensure it's set to a fulltextsortable, otherwise it's not sortable
+                new[] { new FieldDefinition("nodeName", "fulltextsortable") },
+                luceneDir, analyzer))
+            {
 
-        //    //Assert
-        //    for (int i = 0; i < results.TotalItemCount - 1; i++)
-        //    {
-        //        var curr = results.ElementAt(i);
-        //        var next = results.ElementAtOrDefault(i + 1);
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "my name 1", writerName = "administrator", parentID = "1143" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "my name 2", writerName = "administrator", parentID = "1143" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "my name 3", writerName = "administrator", parentID = "1143" }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
+                    );
 
-        //        if (next == null)
-        //            break;
+                ExamineSession.WaitForChanges();
 
-        //        Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
-        //    }
-        //}
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //[Test]
-        //public void FluentApi_Skip_Results_Returns_Different_Results()
-        //{
-        //    //Arrange
-        //    var sc = _searcher.CreateSearchCriteria("content");
-        //    sc = sc.Field("writerName", "administrator").Compile();
+                var sc = searcher.CreateSearchCriteria("content");
+                var sc1 = sc.Field("writerName", "administrator").And()
+                    .OrderBy(new SortableField("nodeName", SortType.String)).Compile();
 
-        //    //Act
-        //    var results = _searcher.Search(sc);
+                sc = searcher.CreateSearchCriteria("content");
+                var sc2 = sc.Field("writerName", "administrator").And()
+                    .OrderByDescending(new SortableField("nodeName", SortType.String)).Compile();
 
-        //    //Assert
-        //    Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
-        //}
+                var results1 = searcher.Search(sc1);
+                var results2 = searcher.Search(sc2);
 
-        //[Test]
-        //public void FluentApiTests_Escaping_Includes_All_Words()
-        //{
-        //    //Arrange
-        //    var sc = _searcher.CreateSearchCriteria("content");
-        //    var op = sc.NodeName("codegarden 09".Escape());
-        //    sc = op.Compile();
+                Assert.AreNotEqual(results1.First().LongId, results2.First().LongId);
+            }
 
-        //    //Act
-        //    var results = _searcher.Search(sc);
+            
+        }
 
-        //    //Assert
-        //    Assert.IsTrue(results.TotalItemCount > 0);
-        //}
+        [Test]
+        public void FluentApi_Standard_Results_Sorted_By_Score()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "umbraco", headerText = "world", bodyText = "blah" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", bodyText = "blah" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", bodyText = "umbraco" }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "hello", headerText = "world", bodyText = "blah" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var sc = searcher.CreateSearchCriteria("content", BooleanOperation.Or);
+                var sc1 = sc.NodeName("umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco").Compile();
+
+                var results = searcher.Search(sc1);
+
+                //Assert
+                for (int i = 0; i < results.TotalItemCount - 1; i++)
+                {
+                    var curr = results.ElementAt(i);
+                    var next = results.ElementAtOrDefault(i + 1);
+
+                    if (next == null)
+                        break;
+
+                    Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
+                }
+            }
+
+        }
+
+        [Test]
+        public void FluentApi_Skip_Results_Returns_Different_Results()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                //Arrange
+                var sc = searcher.CreateSearchCriteria("content");
+                sc = sc.Field("writerName", "administrator").Compile();
+
+                //Act
+                var results = searcher.Search(sc);
+
+                //Assert
+                Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
+            }
+
+            
+        }
+
+        [Test]
+        public void FluentApiTests_Escaping_Includes_All_Words()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "codegarden09", headerText = "world", writerName = "administrator" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "codegarden 09", headerText = "umbraco", writerName = "administrator" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "codegarden  09", headerText = "umbraco", writerName = "administrator" }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "codegarden 090", headerText = "world", writerName = "blah" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                //Arrange
+                var sc = searcher.CreateSearchCriteria("content");
+                var op = sc.NodeName("codegarden 09".Escape());
+                sc = op.Compile();
+
+                //Act
+                var results = searcher.Search(sc);
+
+                //Assert
+                //NOTE: The result is 2 because the double space is removed with the analyzer
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+
+            
+        }
 
         //[Test]
         //public void FluentApiTests_Grouped_And_Examiness()

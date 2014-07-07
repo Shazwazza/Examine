@@ -273,7 +273,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <summary>
         /// Escapes the string within Lucene
         /// </summary>
-        /// <param name="s">The string to wildcard.</param>
+        /// <param name="s">The string to escape.</param>
         /// <returns>An IExamineValue for the required operation</returns>
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
         

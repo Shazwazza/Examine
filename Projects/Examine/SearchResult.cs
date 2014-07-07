@@ -31,6 +31,7 @@ namespace Examine
 
         public long LongId { get; set; }
 
+        [Obsolete("Use LongId instead")]
         public int Id { get { return (int) LongId; } }
         
         public float Score { get; set; }

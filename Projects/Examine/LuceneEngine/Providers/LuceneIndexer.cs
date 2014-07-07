@@ -46,6 +46,7 @@ namespace Examine.LuceneEngine.Providers
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected LuceneIndexer()
         {
+            InitFieldTypes(GetDefaultIndexValueTypes());
         }
 
         /// <summary>
@@ -55,9 +56,20 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="facetConfiguration"></param>
         /// <param name="luceneDirectory"></param>
         /// <param name="defaultAnalyzer">Specifies the default analyzer to use per field</param>
-        protected LuceneIndexer(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration, Lucene.Net.Store.Directory luceneDirectory, Analyzer defaultAnalyzer)
+        /// <param name="indexValueTypes">
+        /// Specifies the index value types to use for this indexer, if this is not specified then the result of LuceneIndexer.GetDefaultIndexValueTypes() will be used.
+        /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
+        /// </param>
+        protected LuceneIndexer(
+            IEnumerable<FieldDefinition> fieldDefinitions, 
+            FacetConfiguration facetConfiguration, 
+            Lucene.Net.Store.Directory luceneDirectory, 
+            Analyzer defaultAnalyzer,
+            IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
             : base(fieldDefinitions, facetConfiguration)
         {
+            InitFieldTypes(indexValueTypes ?? GetDefaultIndexValueTypes());
+
             LuceneIndexFolder = null;
             _directory = luceneDirectory;
 
@@ -94,6 +106,8 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer)
             : base(indexerData)
         {
+            InitFieldTypes(GetDefaultIndexValueTypes());
+
             //set up our folders based on the index path
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
 
@@ -123,6 +137,8 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
             : base(indexerData)
         {
+            InitFieldTypes(GetDefaultIndexValueTypes());
+
             LuceneIndexFolder = null;
             _directory = luceneDirectory;
 
@@ -155,7 +171,6 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -216,6 +231,10 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
+            //at this point we must have an index set and we'll setup facet config for it
+            IndexSets.Instance.Sets[IndexSetName].FacetConfiguration =
+                IndexSets.Instance.Sets[IndexSetName].GetFacetConfiguration(this, FacetConfiguration);
+
             if (config["analyzer"] != null)
             {
                 //this should be a fully qualified type
@@ -273,6 +292,36 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Static Helpers
+
+        /// <summary>
+        /// Returns the default index value types that is used in normal construction of an indexer
+        /// </summary>
+        /// <returns></returns>
+        public static IDictionary<string, Func<string, IIndexValueType>> GetDefaultIndexValueTypes()
+        {
+            return new Dictionary<string, Func<string, IIndexValueType>>
+            {
+                {"number", name => new Int32Type(name)},
+                {"int", name => new Int32Type(name)},
+                {"float", name => new SingleType(name)},
+                {"double", name => new DoubleType(name)},
+                {"long", name => new Int64Type(name)},
+                {"date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
+                {"datetime", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
+                {"date.year", name => new DateTimeType(name, DateTools.Resolution.YEAR)},
+                {"date.month", name => new DateTimeType(name, DateTools.Resolution.MONTH)},
+                {"date.day", name => new DateTimeType(name, DateTools.Resolution.DAY)},
+                {"date.hour", name => new DateTimeType(name, DateTools.Resolution.HOUR)},
+                {"date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
+                {"raw", name => new RawStringType(name)},
+                {"rawfacet", name => new FacetType(name)},
+                {"facet", name => new FacetType(name).SetSeparator(",")},
+                {"facetpath", name => new FacetType(name, extractorFactory: () => new TermFacetPathExtractor(name)).SetSeparator(",")},
+                {"autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() }},
+                {"fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() }},
+                {"fulltextsortable", name => new FullTextType(name, true) { ValueFilter = new HtmlFilter() }}
+            };
+        } 
 
         /// <summary>
         /// Converts a DateTime to total number of milliseconds for storage in a numeric field
@@ -444,11 +493,15 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Occurs when [index optimizing].
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This is no longer used, index optimization is no longer managed with the LuceneIndexer")]
         public event EventHandler IndexOptimizing;
 
         ///<summary>
         /// Occurs when the index is finished optmizing
         ///</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This is no longer used, index optimization is no longer managed with the LuceneIndexer")]
         public event EventHandler IndexOptimized;
 
         /// <summary>
@@ -499,12 +552,16 @@ namespace Examine.LuceneEngine.Providers
                 DocumentWriting(this, docArgs);
         }
 
+        [Obsolete("This is no longer used, index optimization is no longer managed with the LuceneIndexer")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnIndexOptimizing(EventArgs e)
         {
             if (IndexOptimizing != null)
                 IndexOptimizing(this, e);
         }
 
+        [Obsolete("This is no longer used, index optimization is no longer managed with the LuceneIndexer")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnIndexOptimized(EventArgs e)
         {
             if (IndexOptimized != null)
@@ -518,6 +575,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [Obsolete("This is no longer relavent and not used, duplicate fields are allowed")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnDuplicateFieldWarning(int nodeId, string indexSetName, string fieldName) { }
 
         #endregion
@@ -1224,6 +1282,8 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="values"></param>
         private void AddSpecialFieldsToDocument(Document d, ValueSet values)
         {
+            //TODO: These should be added using a value base type? I.E. We shouldn't need the ToLower bits
+
             d.Add(new Field(IndexNodeIdFieldName, values.Id + "", Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
             d.Add(new Field(IndexTypeFieldName, values.IndexCategory.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
         }
@@ -1277,6 +1337,13 @@ namespace Examine.LuceneEngine.Providers
 
         }
 
+        private void InitFieldTypes(IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types)
+        {
+            foreach (var type in types)
+            {
+                IndexFieldTypes.TryAdd(type.Key, type.Value);
+            }
+        }
 
         #endregion
 
@@ -1284,33 +1351,11 @@ namespace Examine.LuceneEngine.Providers
         /// Defines the field types such as number, fulltext, etc...
         /// </summary>
         /// <remarks>
-        /// Makes concurrent dictionary becaues this is a global static field
+        /// Makes concurrent dictionary becaues this is a singleton - though I don't think this collection is ever modified
+        /// after construction but we'll leave it like this anyways.
         /// </remarks>
-        public static ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
-
-        static LuceneIndexer()
-        {
-            IndexFieldTypes.TryAdd("number", name => new Int32Type(name));
-            IndexFieldTypes.TryAdd("int", name => new Int32Type(name));
-            IndexFieldTypes.TryAdd("float", name => new SingleType(name));
-            IndexFieldTypes.TryAdd("double", name => new DoubleType(name));
-            IndexFieldTypes.TryAdd("long", name => new Int64Type(name));
-            IndexFieldTypes.TryAdd("date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
-            IndexFieldTypes.TryAdd("datetime", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND));
-            IndexFieldTypes.TryAdd("date.year", name => new DateTimeType(name, DateTools.Resolution.YEAR));
-            IndexFieldTypes.TryAdd("date.month", name => new DateTimeType(name, DateTools.Resolution.MONTH));
-            IndexFieldTypes.TryAdd("date.day", name => new DateTimeType(name, DateTools.Resolution.DAY));
-            IndexFieldTypes.TryAdd("date.hour", name => new DateTimeType(name, DateTools.Resolution.HOUR));
-            IndexFieldTypes.TryAdd("date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE));
-            IndexFieldTypes.TryAdd("raw", name => new RawStringType(name));
-            IndexFieldTypes.TryAdd("rawfacet", name => new FacetType(name));
-            IndexFieldTypes.TryAdd("facet", name => new FacetType(name).SetSeparator(","));
-            IndexFieldTypes.TryAdd("facetpath", name => new FacetType(name, extractorFactory: () => new TermFacetPathExtractor(name)).SetSeparator(","));
-            IndexFieldTypes.TryAdd("autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() });
-            IndexFieldTypes.TryAdd("fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() });
-        }
-
-
+        internal ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
+        
         #region IDisposable Members
 
         protected bool Disposed;

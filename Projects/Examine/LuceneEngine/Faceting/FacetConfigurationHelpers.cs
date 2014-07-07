@@ -1,17 +1,27 @@
 using System;
+using System.Linq;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    //NOTE: Facets will not be enabled via configuration
+    //TODO: Facets will not be enabled via configuration? Currently it will work but should we?
 
     internal static class FacetConfigurationHelpers
     {
-
-        public static FacetConfiguration GetFacetConfiguration(this IndexSet set, FacetConfiguration current = null)
+        /// <summary>
+        /// This is used to try and get facet configuration enabled for indexes that are using the old config.
+        /// </summary>
+        /// <param name="set"></param>
+        /// <param name="indexer"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public static FacetConfiguration GetFacetConfiguration(this IndexSet set, LuceneIndexer indexer, FacetConfiguration current = null)
         {
+            if (set == null) throw new ArgumentNullException("set");
+            if (indexer == null) throw new ArgumentNullException("indexer");
+
             var config = current ?? new FacetConfiguration();
             foreach (var subset in new[] { set.IndexUserFields, set.IndexAttributeFields })
             {
@@ -20,7 +30,7 @@ namespace Examine.LuceneEngine.Faceting
                     foreach (IIndexField f in subset)
                     {
                         Func<string, IIndexValueType> valueType;
-                        if (LuceneIndexer.IndexFieldTypes.TryGetValue(f.Type, out valueType))
+                        if (indexer.IndexFieldTypes.TryGetValue(f.Type, out valueType))
                         {
                             var fe = valueType(f.Name).CreateFacetExtractor();
                             if (fe != null)

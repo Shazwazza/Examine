@@ -157,15 +157,6 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
-
-
-        protected override void PostDeserialize()
-        {
-            base.PostDeserialize();
-
-            FacetConfiguration = this.GetFacetConfiguration(FacetConfiguration);
-        }
-
         /// <summary>
         /// How to extract facets in indexers
         /// </summary>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing.Analyzers;
+using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
 using Lucene.Net.Documents;
@@ -17,11 +18,19 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
 {
     public class FullTextType : IndexValueTypeBase
     {
+        private readonly bool _sortable;
         public int TermExpansions { get; set; }
 
-        public FullTextType(string fieldName)
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="sortable"></param>
+        public FullTextType(string fieldName, bool sortable = false)
             : base(fieldName, true)
         {
+            _sortable = sortable;
             TermExpansions = 25;
         }
 
@@ -36,6 +45,13 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
         protected override void AddSingleValue(Document doc, object value)
         {
             doc.Add(new Field(FieldName, "" + value, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS));
+
+            if (_sortable)
+            {
+                doc.Add(new Field(LuceneIndexer.SortedFieldNamePrefix + FieldName, "" + value,
+                    Field.Store.YES,
+                    Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+            }
         }
 
         public override void AnalyzeReader(ReaderData readerData)

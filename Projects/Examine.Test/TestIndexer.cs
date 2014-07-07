@@ -11,13 +11,13 @@ namespace Examine.Test
 {
     public class TestIndexer : LuceneIndexer
     {
-        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration, Directory luceneDirectory, Analyzer defaultAnalyzer)
-            : base(fieldDefinitions, facetConfiguration, luceneDirectory, defaultAnalyzer)
+        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration, Directory luceneDirectory, Analyzer defaultAnalyzer, IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
+            : base(fieldDefinitions, facetConfiguration, luceneDirectory, defaultAnalyzer,indexValueTypes)
         {
         }
 
-        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer defaultAnalyzer)
-            : base(fieldDefinitions, new FacetConfiguration(), luceneDirectory, defaultAnalyzer)
+        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer defaultAnalyzer, IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
+            : base(fieldDefinitions, new FacetConfiguration(), luceneDirectory, defaultAnalyzer, indexValueTypes)
         {
         }
 

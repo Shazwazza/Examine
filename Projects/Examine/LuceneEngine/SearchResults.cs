@@ -112,12 +112,12 @@ namespace Examine.LuceneEngine
 
             var count = Math.Min(options.MaxCount, Searcher.MaxDoc());
 
-            var asArray = sortField.ToArray();
+            var sortFields = sortField.ToArray();
 
             var topDocsCollector =
-                asArray.Any()
+                sortFields.Any()
                     ? (TopDocsCollector) TopFieldCollector.create(
-                        new Sort(asArray.ToArray()), count, false, false, false, false)
+                        new Sort(sortFields.ToArray()), count, false, false, false, false)
                     : TopScoreDocCollector.create(count, true);
 
             if (options.CountFacets && CriteriaContext.FacetMap != null)
@@ -136,19 +136,6 @@ namespace Examine.LuceneEngine
 
             _topDocs = topDocsCollector.TopDocs();
 
-
-            //if (sortField.Count() == 0)
-            //{
-            //    var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort());                
-            //    _collector = new AllHitsCollector(topDocs.scoreDocs);
-            //    topDocs = null;
-            //}
-            //else
-            //{
-            //    var topDocs = LuceneSearcher.Search(query, null, LuceneSearcher.MaxDoc(), new Sort(sortField.ToArray()));
-            //    _collector = new AllHitsCollector(topDocs.scoreDocs);
-            //    topDocs = null;
-            //}
             TotalItemCount = _topDocs.TotalHits;
         }
 

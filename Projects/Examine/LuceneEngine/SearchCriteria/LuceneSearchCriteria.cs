@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text.RegularExpressions;
@@ -377,13 +378,14 @@ namespace Examine.LuceneEngine.SearchCriteria
                     }
                     break;
                 case Examineness.Escaped:
-                    //when an item is escaped it should be an exact match
-                    // http://examine.codeplex.com/workitem/10359
 
-                    //standard query ... no query parser
+                    //This uses the KeywordAnalyzer to parse the 'phrase'
                     var stdQuery = fieldName + ":" + fieldValue.Value;
                     queryToAdd = ParseRawQuery(stdQuery);
 
+                    //This uses the PhraseQuery to parse the phrase, the results seem identical
+                    queryToAdd = ParseRawQuery(fieldName, fieldValue.Value);
+                    
                     break;
                 case Examineness.Explicit:
                 default:
@@ -413,13 +415,33 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </remarks>
         /// <param name="rawQuery"></param>
         /// <returns></returns>
-        
         internal protected Query ParseRawQuery(string rawQuery)
         {
-            var qry = new QueryParser(_luceneVersion, "", new KeywordAnalyzer());
-            return qry.Parse(rawQuery);
+            var parser = new QueryParser(_luceneVersion, "", new KeywordAnalyzer());         
+            return parser.Parse(rawQuery);
         }
-
+        
+        /// <summary>
+        /// Uses a PhraseQuery to build a 'raw/exact' match
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="txt"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// The result of this seems to be better than the above since it does not include results that contain part of the phrase.
+        /// For example, 'codegarden 090' would be matched against the search term 'codegarden 09' with the above, whereas when using the 
+        /// PhraseQuery this is not the case
+        /// </remarks>
+        private Query ParseRawQuery(string field, string txt)
+        {
+            var phraseQuery = new PhraseQuery();
+            phraseQuery.SetSlop(0);
+            foreach (var val in txt.Split(new[]{' '}, StringSplitOptions.RemoveEmptyEntries))
+            {
+                phraseQuery.Add(new Term(field, val));
+            }
+            return phraseQuery;
+        }
         
         internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
         {

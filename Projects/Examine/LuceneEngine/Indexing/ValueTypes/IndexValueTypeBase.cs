@@ -79,6 +79,8 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             return new TermQuery(new Term(FieldName, query));
         }
 
+        
+        //TODO: We shoud convert this to the TryConvertTo in the umb codebase!
 
         /// <summary>
         /// Tries to parse a type using the Type's type converter
