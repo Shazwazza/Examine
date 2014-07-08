@@ -98,19 +98,52 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
                 return true;
             }
 
+            var inputConverter = TypeDescriptor.GetConverter(val);
+            if (inputConverter.CanConvertTo(typeof(T)))
+            {
+                try
+                {
+                    var converted = inputConverter.ConvertTo(val, typeof(T));
+                    parsedVal = (T) converted;
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    parsedVal = default(T);
+                    return false;
+                }
+            }
+
+            var outputConverter = TypeDescriptor.GetConverter(typeof(T));
+            if (outputConverter.CanConvertFrom(val.GetType()))
+            {
+                try
+                {
+                    var converted = outputConverter.ConvertFrom(val);
+                    parsedVal = (T)converted;
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    parsedVal = default(T);
+                    return false;
+                }
+            }
+
             try
             {
-                var t = typeof(T);
-                TypeConverter tc = TypeDescriptor.GetConverter(t);
-                parsedVal = (T)tc.ConvertFrom(val);
+                var casted = Convert.ChangeType(val, typeof(T));
+                parsedVal = (T)casted;
                 return true;
             }
-            catch (NotSupportedException)
+            catch (Exception e)
             {
                 parsedVal = default(T);
                 return false;
             }
 
+            parsedVal = default(T);
+            return false;
         }
 
 

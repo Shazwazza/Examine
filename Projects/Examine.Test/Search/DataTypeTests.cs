@@ -131,125 +131,13 @@ namespace Examine.Test.Search
             Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
         }
 
-        /// <summary>
-        /// test range query with a Date.Minute structure
-        /// </summary>
-        [Test]
-        public void DataTypesTests_Date_Range_Minute_SimpleIndexSet()
-        {
-            ////Arrange
-
-            var criteria = _searcher.CreateSearchCriteria();
-            var filter = criteria.Range("MinuteCreated", _reIndexDateTime, DateTime.Now, true, true, SearchCriteria.DateResolution.Minute).Compile();
-
-            var criteriaNotFound = _searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("MinuteCreated", _reIndexDateTime.AddMinutes(-20), _reIndexDateTime.AddMinutes(-1), true, true).Compile();
-
-            ////Act
-            var results = _searcher.Search(filter);
-            var resultsNotFound = _searcher.Search(filterNotFound);
-
-            ////Assert
-            Assert.IsTrue(results.TotalItemCount > 0);
-            Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
-        }
+        
 
 
-        /// <summary>
-        /// test range query with a Number structure
-        /// </summary>
-        [Test]
-        public void DataTypesTests_Number_Range_SimpleIndexSet()
-        {
+        
 
-            ////Arrange
-            //all numbers should be between 0 and 100 based on the data source
-            var criteria = _searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeNumber", 0, 100, true, true).Compile();
+        
 
-            var criteriaNotFound = _searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeNumber", 101, 200, true, true).Compile();
-
-            ////Act
-            var results = _searcher.Search(filter);
-            var resultsNotFound = _searcher.Search(filterNotFound);
-
-            ////Assert
-            Assert.IsTrue(results.TotalItemCount > 0);
-            Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
-        }
-
-        /// <summary>
-        /// test range query with a Float structure
-        /// </summary>
-        [Test]
-        public void DataTypesTests_Float_Range_SimpleIndexSet()
-        {
-            ////Arrange            
-
-            //all numbers should be between 0 and 100 based on the data source
-            var criteria = _searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeFloat", 0f, 100f, true, true).Compile();
-
-            var criteriaNotFound = _searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeFloat", 101f, 200f, true, true).Compile();
-
-            ////Act
-            var results = _searcher.Search(filter);
-            var resultsNotFound = _searcher.Search(filterNotFound);
-
-            ////Assert
-            Assert.IsTrue(results.TotalItemCount > 0);
-            Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
-        }
-
-        /// <summary>
-        /// test range query with a Double structure
-        /// </summary>
-        [Test]
-        public void DataTypesTests_Double_Range_SimpleIndexSet()
-        {
-            ////Arrange            
-
-            //all numbers should be between 0 and 100 based on the data source
-            var criteria = _searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeDouble", 0d, 100d, true, true).Compile();
-
-            var criteriaNotFound = _searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeDouble", 101d, 200d, true, true).Compile();
-
-            ////Act
-            var results = _searcher.Search(filter);
-            var resultsNotFound = _searcher.Search(filterNotFound);
-
-            ////Assert
-            Assert.IsTrue(results.TotalItemCount > 0);
-            Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
-        }
-
-        /// <summary>
-        /// test range query with a Double structure
-        /// </summary>
-        [Test]
-        public void DataTypesTests_Long_Range_SimpleIndexSet()
-        {
-            ////Arrange            
-
-            //all numbers should be between 0 and 100 based on the data source
-            var criteria = _searcher.CreateSearchCriteria();
-            var filter = criteria.Range("SomeLong", 0L, 100L, true, true).Compile();
-
-            var criteriaNotFound = _searcher.CreateSearchCriteria();
-            var filterNotFound = criteriaNotFound.Range("SomeLong", 101L, 200L, true, true).Compile();
-
-            ////Act
-            var results = _searcher.Search(filter);
-            var resultsNotFound = _searcher.Search(filterNotFound);
-
-            ////Assert
-            Assert.IsTrue(results.TotalItemCount > 0);
-            Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
-        }
 
         private static ISearcher _searcher;
         private static IIndexer _indexer;

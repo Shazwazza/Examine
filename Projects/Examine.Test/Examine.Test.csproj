@@ -92,7 +92,6 @@
     <Compile Include="Search\DataTypeTests.cs" />
     <Compile Include="Search\FluentApiTests.cs" />
     <Compile Include="IndexInitializer.cs" />
-    <Compile Include="Index\IndexTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Search\HighlightResultsTest.cs" />
     <Compile Include="Search\MultiIndexSearch.cs" />

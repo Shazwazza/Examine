@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Indexing.ValueTypes;
 using Examine.LuceneEngine.Providers;
@@ -619,108 +620,320 @@ namespace Examine.Test.Search
             
         }
 
-        //[Test]
-        //public void FluentApiTests_Grouped_And_Examiness()
-        //{
-        //    ////Arrange
-        //    var criteria = _searcher.CreateSearchCriteria("content");
+        [Test]
+        public void FluentApiTests_Grouped_And_Examiness()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
 
-        //    //get all node type aliases starting with CWS and all nodees starting with "A"
-        //    var filter = criteria.GroupedAnd(
-        //        new string[] { "nodeTypeAlias", "nodeName" },
-        //        new IExamineValue[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() })
-        //        .Compile();
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "Aloha", nodeTypeAlias = "CWS_Hello"}),
+                    new ValueSet(2, "content",
+                        new { nodeName = "Helo", nodeTypeAlias = "CWS_World" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "Another node", nodeTypeAlias = "SomethingElse" }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "Always consider this", nodeTypeAlias = "CWS_World" })
+                    );
 
+                ExamineSession.WaitForChanges();
 
-        //    ////Act
-        //    var results = _searcher.Search(filter);
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //    ////Assert
-        //    Assert.IsTrue(results.TotalItemCount > 0);
-        //}
+                //Arrange
+                var criteria = searcher.CreateSearchCriteria("content");
 
-        //[Test]
-        //public void FluentApiTests_Examiness_Proximity()
-        //{
-        //    ////Arrange
-        //    var criteria = _searcher.CreateSearchCriteria("content");
-
-        //    //get all nodes that contain the words warren and creative within 5 words of each other
-        //    var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5)).Compile();
-
-        //    ////Act
-        //    var results = _searcher.Search(filter);
-
-        //    ////Assert
-        //    Assert.IsTrue(results.TotalItemCount > 0);
-        //}
-
-        //[Test]
-        //public void FluentApiTests_Grouped_Or_Examiness()
-        //{
-        //    ////Arrange
-        //    var criteria = _searcher.CreateSearchCriteria("content");
-
-        //    //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
-        //    var filter = criteria.GroupedOr(
-        //        new[] { "nodeTypeAlias", "nodeName" },
-        //        new[] { "CWS\\_Home".Boost(10), "About".MultipleCharacterWildcard() })
-        //        .Compile();
+                //get all node type aliases starting with CWS and all nodees starting with "A"
+                var filter = criteria.GroupedAnd(
+                    new[] { "nodeTypeAlias", "nodeName" },
+                    new[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() })
+                    .Compile();
 
 
-        //    ////Act
-        //    var results = _searcher.Search(filter);
+                //Act
+                var results = searcher.Search(filter);
 
-        //    ////Assert
-        //    Assert.IsTrue(results.TotalItemCount > 0);
-        //}
+                //Assert
+                Assert.AreEqual(2, results.TotalItemCount);
+            }            
+        }
 
-        //[Test]
-        //public void FluentApiTests_Cws_TextPage_OrderedByNodeName()
-        //{
-        //    var criteria = _searcher.CreateSearchCriteria("content");
-        //    IBooleanOperation query = criteria.NodeTypeAlias("cws_textpage");
-        //    query = query.And().OrderBy("nodeName");
-        //    var sCriteria = query.Compile();
-        //    Console.WriteLine(sCriteria.ToString());
-        //    var results = _searcher.Search(sCriteria);
+        [Test]
+        public void FluentApiTests_Examiness_Proximity()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            {
 
-        //    criteria = _searcher.CreateSearchCriteria("content");
-        //    IBooleanOperation query2 = criteria.NodeTypeAlias("cws_textpage");
-        //    query2 = query2.And().OrderByDescending("nodeName");
-        //    var sCriteria2 = query2.Compile();
-        //    Console.WriteLine(sCriteria2.ToString());
-        //    var results2 = _searcher.Search(sCriteria2);
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "Aloha", metaKeywords = "Warren is likely to be creative" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "Helo", metaKeywords = "Creative is Warren's middle name" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "Another node", metaKeywords = "If Warren were creative... well, he actually is" }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "Always consider this", metaKeywords = "Warren is a very talented individual and quite creative" })
+                    );
 
-        //    Assert.AreNotEqual(results.First().LongId, results2.First().LongId);
+                ExamineSession.WaitForChanges();
 
-        //}
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-        //private static ISearcher _searcher;
-        //private static IIndexer _indexer;
-        //private Lucene.Net.Store.Directory _luceneDir;
+                //Arrange
+                var criteria = searcher.CreateSearchCriteria("content");
 
-        //#region Initialize and Cleanup
+                //get all nodes that contain the words warren and creative within 5 words of each other
+                var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5)).Compile();
 
+                //Act
+                var results = searcher.Search(filter);
 
-        //[SetUp]
-        //public void TestSetup()
-        //{
-        //    _luceneDir = new RAMDirectory();
+                //Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+            }
 
-        //    //_luceneDir = new SimpleFSDirectory(new DirectoryInfo(Path.Combine(TestHelper.AssemblyDirectory, Guid.NewGuid().ToString())));
+            
+        }
+        
+        /// <summary>
+        /// test range query with a Float structure
+        /// </summary>
+        [Test]
+        public void DataTypesTests_Float_Range_SimpleIndexSet()
+        {
 
-        //    _indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
-        //    _indexer.RebuildIndex();
-        //    _searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
-        //}
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                //Ensure it's set to a float
+                new[] { new FieldDefinition("SomeFloat", "float") }, 
+                luceneDir, analyzer))
+            {
 
-        //[TearDown]
-        //public void TestTearDown()
-        //{
-        //    _luceneDir.Dispose();	
-        //}
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "Aloha", SomeFloat = 1 }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "Helo", SomeFloat = 123 }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "Another node", SomeFloat = 12 }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "Always consider this", SomeFloat = 25 })
+                    );
 
-        //#endregion
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                //all numbers should be between 0 and 100 based on the data source
+                var criteria1 = searcher.CreateSearchCriteria();
+                var filter1 = criteria1.Range("SomeFloat", 0f, 100f, true, true).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("SomeFloat", 101f, 200f, true, true).Compile();
+
+                //Act
+                var results1 = searcher.Search(filter1);
+                var results2 = searcher.Search(filter2);
+
+                //Assert
+                Assert.AreEqual(3, results1.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+            }
+
+            
+        }
+
+        /// <summary>
+        /// test range query with a Number structure
+        /// </summary>
+        [Test]
+        public void DataTypesTests_Number_Range_SimpleIndexSet()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                //Ensure it's set to a float
+                new[] { new FieldDefinition("SomeNumber", "number") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "Aloha", SomeNumber = 1 }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "Helo", SomeNumber = 123 }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "Another node", SomeNumber = 12 }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "Always consider this", SomeNumber = 25 })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                //all numbers should be between 0 and 100 based on the data source
+                var criteria1 = searcher.CreateSearchCriteria();
+                var filter1 = criteria1.Range("SomeNumber", 0, 100, true, true).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("SomeNumber", 101, 200, true, true).Compile();
+
+                //Act
+                var results1 = searcher.Search(filter1);
+                var results2 = searcher.Search(filter2);
+
+                //Assert
+                Assert.AreEqual(3, results1.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+            }            
+        }
+
+        /// <summary>
+        /// test range query with a Number structure
+        /// </summary>
+        [Test]
+        public void DataTypesTests_Double_Range_SimpleIndexSet()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                //Ensure it's set to a float
+                new[] { new FieldDefinition("SomeDouble", "double") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "Aloha", SomeDouble = 1d }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "Helo", SomeDouble = 123d }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "Another node", SomeDouble = 12d }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "Always consider this", SomeDouble = 25d })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                //all numbers should be between 0 and 100 based on the data source
+                var criteria1 = searcher.CreateSearchCriteria();
+                var filter1 = criteria1.Range("SomeDouble", 0d, 100d, true, true).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("SomeDouble", 101d, 200d, true, true).Compile();
+
+                //Act
+                var results1 = searcher.Search(filter1);
+                var results2 = searcher.Search(filter2);
+
+                //Assert
+                Assert.AreEqual(3, results1.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+            }
+        }
+
+        /// <summary>
+        /// test range query with a Double structure
+        /// </summary>
+        [Test]
+        public void DataTypesTests_Long_Range_SimpleIndexSet()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                //Ensure it's set to a float
+                new[] { new FieldDefinition("SomeLong", "long") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "Aloha", SomeLong = 1L }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "Helo", SomeLong = 123L }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "Another node", SomeLong = 12L }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "Always consider this", SomeLong = 25L })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                //all numbers should be between 0 and 100 based on the data source
+                var criteria1 = searcher.CreateSearchCriteria();
+                var filter1 = criteria1.Range("SomeLong", 0L, 100L, true, true).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("SomeLong", 101L, 200L, true, true).Compile();
+
+                //Act
+                var results1 = searcher.Search(filter1);
+                var results2 = searcher.Search(filter2);
+
+                //Assert
+                Assert.AreEqual(3, results1.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+            }
+        }
+
+        /// <summary>
+        /// test range query with a Date.Minute structure
+        /// </summary>
+        [Test]
+        public void DataTypesTests_Date_Range_Minute_SimpleIndexSet()
+        {
+            var reIndexDateTime = DateTime.Now;
+            Thread.Sleep(1000);
+
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                
+                new[] { new FieldDefinition("MinuteCreated", "date.minute") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { nodeName = "Aloha", MinuteCreated = reIndexDateTime }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "Helo", MinuteCreated = reIndexDateTime }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "Another node", MinuteCreated = reIndexDateTime.AddMinutes(-2) }),
+                    new ValueSet(4, "content",
+                        new { nodeName = "Always consider this", MinuteCreated = reIndexDateTime })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+                var filter = criteria.Range("MinuteCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Minute).Compile();
+
+                var criteriaNotFound = searcher.CreateSearchCriteria();
+                var filterNotFound = criteriaNotFound.Range("MinuteCreated", reIndexDateTime.AddMinutes(-20), reIndexDateTime.AddMinutes(-1), true, true).Compile();
+
+                ////Act
+                var results = searcher.Search(filter);
+                var resultsNotFound = searcher.Search(filterNotFound);
+
+                ////Assert
+                Assert.IsTrue(results.TotalItemCount > 0);
+                Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
+            }
+            
+        }
     }
 }
