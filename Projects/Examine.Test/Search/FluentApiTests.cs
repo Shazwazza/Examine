@@ -113,7 +113,6 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
-                //TODO: Find out how the PATH is auto indexed as 'raw'
                 new[] { new FieldDefinition(UmbracoContentIndexer.IndexPathFieldName, "raw") }, 
                 luceneDir, analyzer))
             {
@@ -159,7 +158,9 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (var indexer = new TestIndexer(
+                new[] { new FieldDefinition("parentID", "number") }, 
+                luceneDir, analyzer))
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -175,7 +176,7 @@ namespace Examine.Test.Search
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 var criteria = searcher.CreateSearchCriteria("content");
-                var filter = criteria.ParentId(1139);
+                var filter = criteria.Field("parentID", 1139);
 
                 var results = searcher.Search(filter.Compile());
 
@@ -186,12 +187,9 @@ namespace Examine.Test.Search
         [Test]
         public void Find_By_NodeTypeAlias()
         {
-            //TODO: Shouldn't the fluent api lookup the internal field __NodeTypeAlias ?
-
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
-                //TODO: Find out how the nodeTypeAlias is auto indexed as 'raw'
                 new[] { new FieldDefinition("nodeTypeAlias", "raw") }, 
                 luceneDir, analyzer))
             {
@@ -224,11 +222,10 @@ namespace Examine.Test.Search
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 var criteria = searcher.CreateSearchCriteria("content");
-                var filter = criteria.NodeTypeAlias("CWS_Home").Compile();
+                var filter = criteria.Field("nodeTypeAlias","CWS_Home".Escape()).Compile();
 
                 var results = searcher.Search(filter);
 
-                //TODO: Why this doesn't work? Seems to lowercase the query
 
                 Assert.AreEqual(2, results.TotalItemCount);
             }
@@ -331,7 +328,7 @@ namespace Examine.Test.Search
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 var criteria = searcher.CreateSearchCriteria("media");
-                var filter = criteria.NodeTypeAlias("image").Compile();
+                var filter = criteria.Field("nodeTypeAlias","image").Compile();
 
                 var results = searcher.Search(filter);
 
@@ -381,7 +378,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a number, otherwise it's not sortable
-                new[] { new FieldDefinition("sortOrder", "number") }, 
+                new[] { new FieldDefinition("sortOrder", "number"), new FieldDefinition("parentID", "number") }, 
                 luceneDir, analyzer))
             {
                 indexer.IndexItems(
@@ -400,7 +397,7 @@ namespace Examine.Test.Search
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 var sc = searcher.CreateSearchCriteria("content");
-                var sc1 = sc.ParentId(1143).And().OrderBy(new SortableField("sortOrder", SortType.Int)).Compile();
+                var sc1 = sc.Field("parentID", 1143).And().OrderBy(new SortableField("sortOrder", SortType.Int)).Compile();
 
                 var results1 = searcher.Search(sc1).ToArray();
 
@@ -422,7 +419,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a date, otherwise it's not sortable
-                new[] { new FieldDefinition("updateDate", "date") },
+                new[] { new FieldDefinition("updateDate", "date"), new FieldDefinition("parentID", "number") },
                 luceneDir, analyzer))
             {
                 var now = DateTime.Now;
@@ -431,9 +428,9 @@ namespace Examine.Test.Search
                     new ValueSet(1, "content",
                         new { nodeName = "my name 1", updateDate = now.AddDays(2).ToString("yyyy-MM-dd"), parentID = "1143" }),
                     new ValueSet(2, "content",
-                        new { nodeName = "my name 2", updateDate = now.ToString("yyyy-MM-dd"), parentID = "1143" }),
+                        new { nodeName = "my name 2", updateDate = now.ToString("yyyy-MM-dd"), parentID = 1143 }),
                     new ValueSet(3, "content",
-                        new { nodeName = "my name 3", updateDate = now.AddDays(1).ToString("yyyy-MM-dd"), parentID = "1143" }),
+                        new { nodeName = "my name 3", updateDate = now.AddDays(1).ToString("yyyy-MM-dd"), parentID = 1143 }),
                     new ValueSet(4, "content",
                         new { nodeName = "my name 4", updateDate = now, parentID = "2222" })
                     );
@@ -443,7 +440,7 @@ namespace Examine.Test.Search
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 var sc = searcher.CreateSearchCriteria("content");
-                var sc1 = sc.ParentId(1143).And().OrderBy(new SortableField("updateDate", SortType.Double)).Compile();
+                var sc1 = sc.Field("parentID", 1143).And().OrderBy(new SortableField("updateDate", SortType.Double)).Compile();
 
                 var results1 = searcher.Search(sc1).ToArray();
 
@@ -525,7 +522,7 @@ namespace Examine.Test.Search
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 var sc = searcher.CreateSearchCriteria("content", BooleanOperation.Or);
-                var sc1 = sc.NodeName("umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco").Compile();
+                var sc1 = sc.Field("nodeName", "umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco").Compile();
 
                 var results = searcher.Search(sc1);
 
@@ -606,7 +603,7 @@ namespace Examine.Test.Search
 
                 //Arrange
                 var sc = searcher.CreateSearchCriteria("content");
-                var op = sc.NodeName("codegarden 09".Escape());
+                var op = sc.Field("nodeName", "codegarden 09".Escape());
                 sc = op.Compile();
 
                 //Act

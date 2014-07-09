@@ -44,43 +44,6 @@ namespace Examine.LuceneEngine.SearchCriteria
         private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
         public BaseLuceneSearcher Searcher { get; set; }
-
-
-        #region Field Name properties
-        private string _NodeTypeAliasField = "nodeTypeAlias";
-
-        /// <summary>
-        /// Defines the field name to use for the node type alias query
-        /// </summary>
-        public string NodeTypeAliasField
-        {
-            get { return _NodeTypeAliasField; }
-            set { _NodeTypeAliasField = value; }
-        }
-
-        private string _NodeNameField = "nodeName";
-
-        /// <summary>
-        /// Defines the field name to use for the node name query
-        /// </summary>
-        public string NodeNameField
-        {
-            get { return _NodeNameField; }
-            set { _NodeNameField = value; }
-        }
-
-        private string _ParentIdField = "parentID";
-
-        /// <summary>
-        /// Defines the field name to use for the parent id query
-        /// </summary>
-        public string ParentIdField
-        {
-            get { return _ParentIdField; }
-            set { _ParentIdField = value; }
-        }
-        #endregion
-
         
         internal LuceneSearchCriteria(BaseLuceneSearcher searcher, string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurance)
         {
@@ -183,7 +146,12 @@ namespace Examine.LuceneEngine.SearchCriteria
             return IdInternal(id, _occurance);
         }
 
-        
+        public IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct
+        {
+            return ManagedRangeQuery<T>(fieldValue, fieldValue, new[] {fieldName});
+        }
+
+
         internal protected IBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
@@ -191,87 +159,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
             return new LuceneBooleanOperation(this);
         }
-
-        /// <summary>
-        /// Query on the NodeName
-        /// </summary>
-        /// <param name="nodeName">Name of the node.</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        public IBooleanOperation NodeName(string nodeName)
-        {
-            Enforcer.ArgumentNotNull(nodeName, "nodeName");
-            return NodeName(new ExamineValue(Examineness.Explicit, nodeName));
-        }
-
-        /// <summary>
-        /// Query on the NodeName
-        /// </summary>
-        /// <param name="nodeName">Name of the node.</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         
-        public IBooleanOperation NodeName(IExamineValue nodeName)
-        {
-            Enforcer.ArgumentNotNull(nodeName, "nodeName");
-            return this.NodeNameInternal(nodeName, _occurance);
-        }
-
-        
-        internal protected IBooleanOperation NodeNameInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
-        {
-            return this.FieldInternal(NodeNameField, examineValue, occurance);
-        }
-
-        /// <summary>
-        /// Query on the NodeTypeAlias
-        /// </summary>
-        /// <param name="nodeTypeAlias">The node type alias.</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        public IBooleanOperation NodeTypeAlias(string nodeTypeAlias)
-        {
-            Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
-            return this.NodeTypeAlias(new ExamineValue(Examineness.Explicit, nodeTypeAlias));
-        }
-
-        /// <summary>
-        /// Query on the NodeTypeAlias
-        /// </summary>
-        /// <param name="nodeTypeAlias">The node type alias.</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        
-        public IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias)
-        {
-            Enforcer.ArgumentNotNull(nodeTypeAlias, "nodeTypeAlias");
-            return this.NodeTypeAliasInternal(nodeTypeAlias, _occurance);
-        }
-
-        
-        internal protected IBooleanOperation NodeTypeAliasInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
-        {
-            //force lower case
-            var eVal = new ExamineValue(examineValue.Examineness, examineValue.Value.ToLower(), examineValue.Level);
-            //don't use the query parser for this operation, it needs to match exact
-            return this.FieldInternal(NodeTypeAliasField, eVal, occurance, false);
-        }
-
-        /// <summary>
-        /// Query on the Parent ID
-        /// </summary>
-        /// <param name="id">The id of the parent.</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        
-        public IBooleanOperation ParentId(int id)
-        {
-            return this.ParentIdInternal(id, _occurance);
-        }
-
-        
-        internal protected IBooleanOperation ParentIdInternal(int id, BooleanClause.Occur occurance)
-        {
-            Query.Add(this.QueryParser.GetFieldQuery(ParentIdField, id.ToString(CultureInfo.InvariantCulture)), occurance);
-
-            return new LuceneBooleanOperation(this);
-        }
-
         /// <summary>
         /// Query on the specified field
         /// </summary>
@@ -447,7 +335,6 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             return FieldInternal(fieldName, fieldValue, occurance, true);
         }
-
         
         internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance, bool useQueryParser)
         {
@@ -458,7 +345,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
             return new LuceneBooleanOperation(this);
         }
-
+        
         /// <summary>
         /// Ranges the specified field name.
         /// </summary>

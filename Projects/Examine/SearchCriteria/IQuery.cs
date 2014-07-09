@@ -21,36 +21,16 @@ namespace Examine.SearchCriteria
         /// <param name="id">The id.</param>
         /// <returns></returns>
         IBooleanOperation Id(int id);
+
         /// <summary>
-        /// Query on the NodeName
+        /// Query on the specified field for a struct value which will try to be auto converted with the correct query
         /// </summary>
-        /// <param name="nodeName">Name of the node.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldValue"></param>
         /// <returns></returns>
-        IBooleanOperation NodeName(string nodeName);
-        /// <summary>
-        /// Query on the NodeName
-        /// </summary>
-        /// <param name="nodeName">Name of the node.</param>
-        /// <returns></returns>
-        IBooleanOperation NodeName(IExamineValue nodeName);
-        /// <summary>
-        /// Query on the NodeTypeAlias
-        /// </summary>
-        /// <param name="nodeTypeAlias">The node type alias.</param>
-        /// <returns></returns>
-        IBooleanOperation NodeTypeAlias(string nodeTypeAlias);
-        /// <summary>
-        /// Query on the NodeTypeAlias
-        /// </summary>
-        /// <param name="nodeTypeAlias">The node type alias.</param>
-        /// <returns></returns>
-        IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias);
-        /// <summary>
-        /// Query on the Parent ID
-        /// </summary>
-        /// <param name="id">The id of the parent.</param>
-        /// <returns></returns>
-        IBooleanOperation ParentId(int id);
+        IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct;
+
         /// <summary>
         /// Query on the specified field
         /// </summary>
@@ -72,6 +52,7 @@ namespace Examine.SearchCriteria
         /// <param name="lower">The lower.</param>
         /// <param name="upper">The upper.</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, DateTime lower, DateTime upper);
         /// <summary>
         /// Query on a specified field using a date range using a default <see cref="DateResolution"/> of DateResolution.Millisecond
@@ -82,6 +63,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> the lower.</param>
         /// <param name="includeUpper">if set to <c>true</c> the upper.</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, DateTime lower, DateTime upper, bool includeLower, bool includeUpper);
         /// <summary>
         /// Query on a specified field using a date range using the specified date resolution
@@ -93,6 +75,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <param name="resolution">The resolution of the date field.</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, DateTime lower, DateTime upper, bool includeLower, bool includeUpper, DateResolution resolution);
         /// <summary>
         /// Query on a specified field using an int range
@@ -101,6 +84,7 @@ namespace Examine.SearchCriteria
         /// <param name="lower">The lower.</param>
         /// <param name="upper">The upper.</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, int lower, int upper);
         /// <summary>
         /// Query on a specified field using an int range. Includes upper and lower bounds
@@ -111,6 +95,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, int lower, int upper, bool includeLower, bool includeUpper);
         /// <summary>
         /// Ranges the specified field name.
@@ -119,6 +104,7 @@ namespace Examine.SearchCriteria
         /// <param name="lower">The lower.</param>
         /// <param name="upper">The upper.</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, double lower, double upper);
         /// <summary>
         /// Ranges the specified field name.
@@ -129,6 +115,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, double lower, double upper, bool includeLower, bool includeUpper);
         /// <summary>
         /// Ranges the specified field name.
@@ -137,6 +124,7 @@ namespace Examine.SearchCriteria
         /// <param name="lower">The lower.</param>
         /// <param name="upper">The upper.</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, float lower, float upper);
         /// <summary>
         /// Ranges the specified field name.
@@ -147,6 +135,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, float lower, float upper, bool includeLower, bool includeUpper);
         /// <summary>
         /// Ranges the specified field name.
@@ -155,6 +144,7 @@ namespace Examine.SearchCriteria
         /// <param name="lower">The lower.</param>
         /// <param name="upper">The upper.</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, long lower, long upper);
         /// <summary>
         /// Ranges the specified field name.
@@ -165,6 +155,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, long lower, long upper, bool includeLower, bool includeUpper);
         /// <summary>
         /// Query on a specified field using a string range. Includes upper and lower bounds
@@ -173,6 +164,7 @@ namespace Examine.SearchCriteria
         /// <param name="lower">The lower.</param>
         /// <param name="upper">The upper.</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, string lower, string upper);
         /// <summary>
         /// Query on a specified field using a string range
@@ -183,6 +175,7 @@ namespace Examine.SearchCriteria
         /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <returns></returns>
+        [Obsolete("Use ManagedRangeQuery instead")]
         IBooleanOperation Range(string fieldName, string lower, string upper, bool includeLower, bool includeUpper);
 
         /// <summary>

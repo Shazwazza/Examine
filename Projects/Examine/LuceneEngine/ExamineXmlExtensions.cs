@@ -11,6 +11,7 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// Static methods to help query umbraco xml
     /// </summary>
+    [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
     public static class ExamineXmlExtensions
     {
         /// <summary>
@@ -35,6 +36,7 @@ namespace Examine.LuceneEngine
         /// ]]>
         /// </code>        
         /// </example>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static XElement ToExamineXml(this Dictionary<string, string> data, int nodeId, string nodeType)
         {
             return new XElement("node",
@@ -53,6 +55,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <param name="node">Node to convert</param>
         /// <returns>Converted node</returns>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static XElement ToXElement(this XmlNode node)
         {
             using (var x = new XmlNodeReader(node))
@@ -67,6 +70,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <param name="elements">Elements to create document from</param>
         /// <returns>Document containing elements</returns>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static XDocument ToXDocument(this IEnumerable<XElement> elements)
         {
             if (elements.Any())
@@ -81,6 +85,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static XDocument ToXDocument(this XPathNodeIterator xml)
         {
             if (xml.Count == 1)
@@ -127,6 +132,7 @@ namespace Examine.LuceneEngine
         /// <param name="x"></param>
         /// <param name="alias"></param>
         /// <returns></returns>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static bool IsExamineProperty(this XElement x, string alias)
         {
             if ((x.Name == alias) //this will match if its the new schema
@@ -143,6 +149,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static bool IsExamineElement(this XElement x)
         {
             var id = (string) x.Attribute("id");
@@ -167,6 +174,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static string ExamineNodeTypeAlias(this XElement x)
         {
             return !x.IsExamineElement() ? string.Empty
@@ -181,6 +189,7 @@ namespace Examine.LuceneEngine
         /// <param name="x"></param>
         /// <param name="alias"></param>
         /// <returns></returns>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static string SelectExaminePropertyValue(this XElement x, string alias)
         {
             if (alias == "nodeTypeAlias")
@@ -205,6 +214,7 @@ namespace Examine.LuceneEngine
         /// <param name="id"></param>
         /// <returns></returns>
         //public static ValueSet ToValueSet(this XElement node, string type, long? id = null)
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static ValueSet ToValueSet(this XElement node, string indexCategory, string itemType, long? id = null)
         {
             id = id ?? long.Parse((string)node.Attribute("id"));
@@ -246,6 +256,7 @@ namespace Examine.LuceneEngine
         /// <param name="xml"></param>
         /// <param name="alias"></param>
         /// <returns></returns>
+        [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static string SelectExamineDataValue(this XElement xml, string alias)
         {
             if (!xml.IsExamineElement())
