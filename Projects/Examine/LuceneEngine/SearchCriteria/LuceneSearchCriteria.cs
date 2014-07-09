@@ -495,53 +495,26 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
         /// <param name="resolution">The resolution.</param>
         /// <returns></returns>
-        
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper, DateResolution resolution)
         {
-            //By specifying the resolution we can do more accurate range searching on date fields
-            DateTools.Resolution luceneResolution;
-            switch (resolution)
-            {
-                case DateResolution.Year:
-                    luceneResolution = DateTools.Resolution.YEAR;
-                    break;
-                case DateResolution.Month:
-                    luceneResolution = DateTools.Resolution.MONTH;
-                    break;
-                case DateResolution.Day:
-                    luceneResolution = DateTools.Resolution.DAY;
-                    break;
-                case DateResolution.Hour:
-                    luceneResolution = DateTools.Resolution.HOUR;
-                    break;
-                case DateResolution.Minute:
-                    luceneResolution = DateTools.Resolution.MINUTE;
-                    break;
-                case DateResolution.Second:
-                    luceneResolution = DateTools.Resolution.SECOND;
-                    break;
-                case DateResolution.Millisecond:
-                default:
-                    luceneResolution = DateTools.Resolution.MILLISECOND;
-                    break;
-            }
-            //since lucene works on string's for all searching we need to flatten the date
-            return this.RangeInternal(fieldName, DateTools.DateToString(start, luceneResolution), DateTools.DateToString(end, luceneResolution), includeLower, includeUpper, _occurance);
+            Enforcer.ArgumentNotNull(fieldName, "fieldName");
+            return ManagedRangeQuery<DateTime>(start, end, new[] { fieldName }, includeLower, includeUpper);
         }
 
         public IBooleanOperation Range(string fieldName, int start, int end)
         {
             Enforcer.ArgumentNotNull(fieldName, "fieldName");
-            return this.Range(fieldName, start, end, true, true);
+            return ManagedRangeQuery<int>(start, end, new[] { fieldName });
         }
 
         
         public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
         {
-            return this.RangeInternal(fieldName, start, end, includeLower, includeUpper, _occurance);
+            Enforcer.ArgumentNotNull(fieldName, "fieldName");
+            return ManagedRangeQuery<int>(start, end, new[] { fieldName }, includeLower, includeUpper);
         }
 
-        
+        [Obsolete("This is no longer used, use ManagedRangeQuery instead")]
         protected internal IBooleanOperation RangeInternal(string fieldName, int start, int end, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
         {
             Query.Add(NumericRangeQuery.NewIntRange(fieldName, start, end, includeLower, includeUpper), occurance);
@@ -914,10 +887,13 @@ namespace Examine.LuceneEngine.SearchCriteria
 
             return new LuceneBooleanOperation(this);
         }
-
-
-
-        public IBooleanOperation ManagedRangeQuery<T>(T? min, T? max, string[] fields, bool minInclusive = true, bool maxInclusive = true, IManagedQueryParameters parameters = null) where T : struct
+        
+        public IBooleanOperation ManagedRangeQuery<T>(
+            T? min, T? max, 
+            string[] fields, 
+            bool minInclusive = true, 
+            bool maxInclusive = true, 
+            IManagedQueryParameters parameters = null) where T : struct
         {
             Query.Add(new LateBoundQuery(() =>
             {

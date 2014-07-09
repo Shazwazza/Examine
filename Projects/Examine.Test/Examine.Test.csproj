@@ -89,7 +89,6 @@
     <Compile Include="DataServices\TestSimpleDataProvider.cs" />
     <Compile Include="Index\LuceneIndexerTests.cs" />
     <Compile Include="TestIndexer.cs" />
-    <Compile Include="Search\DataTypeTests.cs" />
     <Compile Include="Search\FluentApiTests.cs" />
     <Compile Include="IndexInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

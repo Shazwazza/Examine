@@ -29,7 +29,7 @@ namespace Examine.Test.Search
         //TODO: Finish these
 
         [Test]
-        public void FluentApiTests_Grouped_Or_Examiness()
+        public void Grouped_Or_Examiness()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -77,7 +77,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Grouped_Or_With_Not()
+        public void Grouped_Or_With_Not()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -108,7 +108,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Exact_Match_By_Escaped_Path()
+        public void Exact_Match_By_Escaped_Path()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -155,7 +155,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Find_By_ParentId()
+        public void Find_By_ParentId()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -184,7 +184,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Find_By_NodeTypeAlias()
+        public void Find_By_NodeTypeAlias()
         {
             //TODO: Shouldn't the fluent api lookup the internal field __NodeTypeAlias ?
 
@@ -235,7 +235,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Search_With_Stop_Words()
+        public void Search_With_Stop_Words()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -265,7 +265,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Search_Raw_Query()
+        public void Search_Raw_Query()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -311,7 +311,7 @@ namespace Examine.Test.Search
 
 
         [Test]
-        public void FluentApi_Find_Only_Image_Media()
+        public void Find_Only_Image_Media()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -340,7 +340,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Find_Both_Media_And_Content()
+        public void Find_Both_Media_And_Content()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -375,7 +375,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Sort_Result_By_Number_Field()
+        public void Sort_Result_By_Number_Field()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -416,7 +416,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Sort_Result_By_Date_Field()
+        public void Sort_Result_By_Date_Field()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -459,7 +459,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Sort_Result_By_Single_Field()
+        public void Sort_Result_By_Single_Field()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -502,7 +502,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Standard_Results_Sorted_By_Score()
+        public void Standard_Results_Sorted_By_Score()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -545,7 +545,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApi_Skip_Results_Returns_Different_Results()
+        public void Skip_Results_Returns_Different_Results()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -582,7 +582,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApiTests_Escaping_Includes_All_Words()
+        public void Escaping_Includes_All_Words()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -621,7 +621,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApiTests_Grouped_And_Examiness()
+        public void Grouped_And_Examiness()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -662,7 +662,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void FluentApiTests_Examiness_Proximity()
+        public void Examiness_Proximity()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -704,7 +704,7 @@ namespace Examine.Test.Search
         /// test range query with a Float structure
         /// </summary>
         [Test]
-        public void DataTypesTests_Float_Range_SimpleIndexSet()
+        public void Float_Range_SimpleIndexSet()
         {
 
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
@@ -753,7 +753,7 @@ namespace Examine.Test.Search
         /// test range query with a Number structure
         /// </summary>
         [Test]
-        public void DataTypesTests_Number_Range_SimpleIndexSet()
+        public void Number_Range_SimpleIndexSet()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -799,7 +799,7 @@ namespace Examine.Test.Search
         /// test range query with a Number structure
         /// </summary>
         [Test]
-        public void DataTypesTests_Double_Range_SimpleIndexSet()
+        public void Double_Range_SimpleIndexSet()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -845,7 +845,7 @@ namespace Examine.Test.Search
         /// test range query with a Double structure
         /// </summary>
         [Test]
-        public void DataTypesTests_Long_Range_SimpleIndexSet()
+        public void Long_Range_SimpleIndexSet()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -891,10 +891,9 @@ namespace Examine.Test.Search
         /// test range query with a Date.Minute structure
         /// </summary>
         [Test]
-        public void DataTypesTests_Date_Range_Minute_SimpleIndexSet()
+        public void Date_Range_Minute_SimpleIndexSet()
         {
-            var reIndexDateTime = DateTime.Now;
-            Thread.Sleep(1000);
+            var reIndexDateTime = DateTime.Now.AddMinutes(-2);
 
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -906,13 +905,13 @@ namespace Examine.Test.Search
 
                 indexer.IndexItems(
                     new ValueSet(1, "content",
-                        new { nodeName = "Aloha", MinuteCreated = reIndexDateTime }),
+                        new { MinuteCreated = reIndexDateTime }),
                     new ValueSet(2, "content",
-                        new { nodeName = "Helo", MinuteCreated = reIndexDateTime }),
+                        new { MinuteCreated = reIndexDateTime }),
                     new ValueSet(3, "content",
-                        new { nodeName = "Another node", MinuteCreated = reIndexDateTime.AddMinutes(-2) }),
+                        new { MinuteCreated = reIndexDateTime.AddMinutes(-10) }),
                     new ValueSet(4, "content",
-                        new { nodeName = "Always consider this", MinuteCreated = reIndexDateTime })
+                        new { MinuteCreated = reIndexDateTime })
                     );
 
                 ExamineSession.WaitForChanges();
@@ -920,20 +919,265 @@ namespace Examine.Test.Search
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 var criteria = searcher.CreateSearchCriteria();
-                var filter = criteria.Range("MinuteCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Minute).Compile();
+                var filter = criteria.Range("MinuteCreated", 
+                    reIndexDateTime, DateTime.Now, true, true, DateResolution.Minute).Compile();
 
-                var criteriaNotFound = searcher.CreateSearchCriteria();
-                var filterNotFound = criteriaNotFound.Range("MinuteCreated", reIndexDateTime.AddMinutes(-20), reIndexDateTime.AddMinutes(-1), true, true).Compile();
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("MinuteCreated",
+                    reIndexDateTime.AddMinutes(-20), reIndexDateTime.AddMinutes(-1), true, true, DateResolution.Minute).Compile();
 
                 ////Act
                 var results = searcher.Search(filter);
-                var resultsNotFound = searcher.Search(filterNotFound);
+                var results2 = searcher.Search(filter2);
 
                 ////Assert
-                Assert.IsTrue(results.TotalItemCount > 0);
-                Assert.IsTrue(resultsNotFound.TotalItemCount == 0);
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
             }
             
         }
+
+        /// <summary>
+        /// test range query with a Date.Hour structure
+        /// </summary>
+        [Test]
+        public void Date_Range_Hour_SimpleIndexSet()
+        {
+            var reIndexDateTime = DateTime.Now.AddHours(-2);
+
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+
+                new[] { new FieldDefinition("HourCreated", "date.hour") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { HourCreated = reIndexDateTime }),
+                    new ValueSet(2, "content",
+                        new { HourCreated = reIndexDateTime }),
+                    new ValueSet(3, "content",
+                        new { HourCreated = reIndexDateTime.AddHours(-10) }),
+                    new ValueSet(4, "content",
+                        new { HourCreated = reIndexDateTime })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+                var filter = criteria.Range("HourCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Hour).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("HourCreated", reIndexDateTime.AddHours(-20), reIndexDateTime.AddHours(-3), true, true, DateResolution.Hour).Compile();
+
+                ////Act
+                var results = searcher.Search(filter);
+                var results2 = searcher.Search(filter2);
+
+                ////Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+            }
+        }
+
+        /// <summary>
+        /// test range query with a Date.Day structure
+        /// </summary>
+        [Test]
+        public void Date_Range_Day_SimpleIndexSet()
+        {
+            var reIndexDateTime = DateTime.Now.AddDays(-2);
+
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+
+                new[] { new FieldDefinition("DayCreated", "date.day") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { DayCreated = reIndexDateTime }),
+                    new ValueSet(2, "content",
+                        new { DayCreated = reIndexDateTime }),
+                    new ValueSet(3, "content",
+                        new { DayCreated = reIndexDateTime.AddDays(-10) }),
+                    new ValueSet(4, "content",
+                        new { DayCreated = reIndexDateTime })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+                var filter = criteria.Range("DayCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Day).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("DayCreated", reIndexDateTime.AddDays(-20), reIndexDateTime.AddDays(-3), true, true, DateResolution.Day).Compile();
+
+                ////Act
+                var results = searcher.Search(filter);
+                var results2 = searcher.Search(filter2);
+
+                ////Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+            }
+
+        }
+
+        /// <summary>
+        /// test range query with a Date.Month structure
+        /// </summary>
+        [Test]
+        public void Date_Range_Month_SimpleIndexSet()
+        {
+            var reIndexDateTime = DateTime.Now.AddMonths(-2);
+
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+
+                new[] { new FieldDefinition("MonthCreated", "date.month") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { MonthCreated = reIndexDateTime }),
+                    new ValueSet(2, "content",
+                        new { MonthCreated = reIndexDateTime }),
+                    new ValueSet(3, "content",
+                        new { MonthCreated = reIndexDateTime.AddMonths(-10) }),
+                    new ValueSet(4, "content",
+                        new { MonthCreated = reIndexDateTime })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+                var filter = criteria.Range("MonthCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Month).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("MonthCreated", reIndexDateTime.AddMonths(-20), reIndexDateTime.AddMonths(-3), true, true, DateResolution.Month).Compile();
+
+                ////Act
+                var results = searcher.Search(filter);
+                var results2 = searcher.Search(filter2);
+
+                ////Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+            }
+
+            
+        }
+
+        /// <summary>
+        /// test range query with a Date.Year structure
+        /// </summary>
+        [Test]
+        public void Date_Range_Year_SimpleIndexSet()
+        {
+            var reIndexDateTime = DateTime.Now.AddYears(-2);
+
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+
+                new[] { new FieldDefinition("YearCreated", "date.year") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { YearCreated = reIndexDateTime }),
+                    new ValueSet(2, "content",
+                        new { YearCreated = reIndexDateTime }),
+                    new ValueSet(3, "content",
+                        new { YearCreated = reIndexDateTime.AddMonths(-10) }),
+                    new ValueSet(4, "content",
+                        new { YearCreated = reIndexDateTime })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+
+                var filter = criteria.Range("YearCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Year).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("YearCreated", DateTime.Now.AddYears(-20), DateTime.Now.AddYears(-3), true, true, DateResolution.Year).Compile();
+
+                ////Act
+                var results = searcher.Search(filter);
+                var results2 = searcher.Search(filter2);
+
+                ////Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+            }
+        }
+
+        /// <summary>
+        /// Test range query with a DateTime structure
+        /// </summary>
+        [Test]
+        public void Date_Range_SimpleIndexSet()
+        {
+            var reIndexDateTime = DateTime.Now;
+
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+
+                new[] { new FieldDefinition("DateCreated", "datetime") },
+                luceneDir, analyzer))
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { DateCreated = reIndexDateTime }),
+                    new ValueSet(2, "content",
+                        new { DateCreated = reIndexDateTime }),
+                    new ValueSet(3, "content",
+                        new { DateCreated = reIndexDateTime.AddMonths(-10) }),
+                    new ValueSet(4, "content",
+                        new { DateCreated = reIndexDateTime })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+                var filter = criteria.Range("DateCreated", reIndexDateTime, DateTime.Now, true, true).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Range("DateCreated", reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true).Compile();
+
+                ////Act
+                var results = searcher.Search(filter);
+                var results2 = searcher.Search(filter2);
+
+                ////Assert
+                Assert.IsTrue(results.TotalItemCount > 0);
+                Assert.IsTrue(results2.TotalItemCount == 0);
+            }
+
+            
+        }
+
+        //TODO: Look into LuceneSearchExtensions!!!! Lots of stuff to test there
     }
 }

@@ -31,6 +31,11 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             doc.Add(new NumericField(LuceneIndexer.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetLongValue(val));
         }
 
+        /// <summary>
+        /// Returns the ticks to be indexed, then use NumericRangeQuery to query against it
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
         protected long DateToLong(DateTime date)
         {
             return DateTools.Round(date, Resolution).Ticks;
