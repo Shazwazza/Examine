@@ -112,7 +112,6 @@
     <Compile Include="XsltExtensionsTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="README.txt" />
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
