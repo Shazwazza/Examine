@@ -1,4 +1,4 @@
-![Examine](http://shazwazza.com/Content/Downloads/ExamineLogo.png)
+![Examine](/ExamineLogo.png?raw=true)
 
 ##What is Examine?
 
