@@ -120,17 +120,6 @@ namespace Examine.LuceneEngine.SearchCriteria
             return luceneSearchCriteria;
         }
 
-        ///// <summary>
-        ///// Sets the max count for the result
-        ///// </summary>
-        ///// <param name="maxCount"></param>
-        ///// <returns></returns>
-        //public static ISearchCriteria MaxCount(this IQuery luceneSearchCriteria, int maxCount)
-        //{
-        //    var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
-        //    crit.SearchOptions.MaxCount = maxCount;
-        //    return crit;
-        //}
 
         /// <summary>
         /// Toggles facet counting

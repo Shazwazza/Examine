@@ -179,7 +179,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="useWildcards"></param>
         /// <param name="indexType"></param>
         /// <returns></returns>
-        public ISearchResults Search(string searchText, bool useWildcards, string indexType)
+        public ILuceneSearchResults Search(string searchText, bool useWildcards, string indexType)
         {
             var sc = CreateSearchCriteria(indexType);
             return TextSearchAllFields(searchText, useWildcards, sc);

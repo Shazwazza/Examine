@@ -20,7 +20,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// Simple abstract class containing basic properties for Lucene searchers
     ///</summary>
-    public abstract class BaseLuceneSearcher : BaseSearchProvider
+    public abstract class BaseLuceneSearcher : BaseSearchProvider<ILuceneSearchResults, LuceneSearchResult>
     {
 
         #region Constructors
@@ -106,6 +106,10 @@ namespace Examine.LuceneEngine.Providers
         public abstract Searcher GetSearcher();
 
         
+        /// <summary>
+        /// Gets the CriteriaContext
+        /// </summary>
+        /// <returns></returns>
         public abstract ICriteriaContext GetCriteriaContext();        
 
 
@@ -132,11 +136,11 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
-            var sc = this.CreateSearchCriteria();
-            return TextSearchAllFields(searchText, useWildcards, sc);
+            var result = Find(searchText, useWildcards);
+            return new SearchResultsProxy<LuceneSearchResult>(result);
         }
 
-        internal ISearchResults TextSearchAllFields(string searchText, bool useWildcards, ISearchCriteria sc)
+        internal ILuceneSearchResults TextSearchAllFields(string searchText, bool useWildcards, ISearchCriteria sc)
         {
             var splitSearch = searchText.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -152,13 +156,30 @@ namespace Examine.LuceneEngine.Providers
                 sc = sc.GroupedOr(GetSearchFields(), splitSearch).Compile();
             }
 
-            return Search(sc);
+            return Find(sc);
         }
 
         /// <summary>
-        /// Performs a search 
+        /// Performs a search with a standard result
         /// </summary>        
         public override ISearchResults Search(ISearchCriteria searchParams)
+        {
+            var pagesResults = Find(searchParams);
+            return new SearchResultsProxy<LuceneSearchResult>(pagesResults);
+        }
+
+        public override ILuceneSearchResults Find(string searchText, bool useWildcards)
+        {
+            var sc = this.CreateSearchCriteria();
+            return TextSearchAllFields(searchText, useWildcards, sc);
+        }
+
+        /// <summary>
+        /// Performs a search with a typed result
+        /// </summary>
+        /// <param name="searchParams"></param>
+        /// <returns></returns>
+        public override ILuceneSearchResults Find(ISearchCriteria searchParams)
         {
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
 
@@ -171,7 +192,7 @@ namespace Examine.LuceneEngine.Providers
             luceneParams.SearchOptions.MaxCount = searchParams.MaxResults;
 
             var pagesResults = new LuceneSearchResults(luceneParams.Query, luceneParams.SortFields, luceneParams.CriteriaContext, luceneParams.SearchOptions);
-            
+
             foreach (var type in luceneParams.CriteriaContext.ValueTypes)
             {
                 var hl = type.GetHighlighter(luceneParams.Query, luceneParams.CriteriaContext.Searcher, luceneParams.CriteriaContext.FacetsLoader);
@@ -183,8 +204,8 @@ namespace Examine.LuceneEngine.Providers
                         pagesResults.Highlighters.Add(type.FieldName, highlights = new List<Func<LuceneSearchResult, string>>());
                     }
 
-                    highlights.Add(res=>hl.Highlight(res.DocId));
-                }                
+                    highlights.Add(res => hl.Highlight(res.DocId));
+                }
             }
 
 
@@ -207,9 +228,7 @@ namespace Examine.LuceneEngine.Providers
             //    }
             //}
 
-            return new SearchResultsProxy<LuceneSearchResult>(pagesResults);
-
-            //return (ISearchResults)pagesResults;
+            return pagesResults;
         }
 
         /// <summary>

@@ -1278,11 +1278,15 @@ namespace Examine.Test.Search
                     .Compile()
                     .MaxCount(3);
 
-                ////Act
+                //Act
                 var results = searcher.Search(filter);
 
-                ////Assert
-                Assert.AreEqual(3, results.TotalItemCount);
+                //Assert
+
+                Assert.AreEqual(3, results.Count());
+                
+                //NOTE: THese are the total matched! The actual results are limited
+                Assert.AreEqual(4, results.TotalItemCount);
 
             }
 

@@ -10,6 +10,36 @@ using Examine.SearchCriteria;
 
 namespace Examine.Providers
 {
+    /// <summary>
+    /// Abstract search provider with a typed search result
+    /// </summary>
+    /// <typeparam name="TResults"></typeparam>
+    /// <typeparam name="TResult"></typeparam>
+    public abstract class BaseSearchProvider<TResults, TResult> : BaseSearchProvider
+        where TResults : ISearchResults<TResult>
+        where TResult : ISearchResult
+    {
+        /// <summary>
+        /// Simple search method which should default to searching content nodes
+        /// </summary>
+        /// <param name="searchText"></param>
+        /// <param name="useWildcards"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This is the same as Search but with a typed result
+        /// </remarks>
+        public abstract TResults Find(string searchText, bool useWildcards);
+        /// <summary>
+        /// Searches the data source using the Examine Fluent API
+        /// </summary>
+        /// <param name="searchParams">The fluent API search.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This is the same as Search but with a typed result
+        /// </remarks>
+        public abstract TResults Find(ISearchCriteria searchParams);
+    }
+
     ///<summary>
     /// Abstract search provider object
     ///</summary>
