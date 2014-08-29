@@ -7,6 +7,36 @@ using Examine.SearchCriteria;
 namespace Examine
 {
     /// <summary>
+    /// An interface representing an Examine Searcher with a typed result
+    /// </summary>
+    /// <typeparam name="TResults"></typeparam>
+    /// <typeparam name="TResult"></typeparam>
+    public interface ISearcher<out TResults, TResult>
+        where TResults : ISearchResults<TResult>
+        where TResult : ISearchResult
+    {
+        /// <summary>
+        /// Simple search method which should default to searching content nodes
+        /// </summary>
+        /// <param name="searchText"></param>
+        /// <param name="useWildcards"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This is the same as Search but with a typed result
+        /// </remarks>
+        TResults Find(string searchText, bool useWildcards);
+        /// <summary>
+        /// Searches the data source using the Examine Fluent API
+        /// </summary>
+        /// <param name="searchParams">The fluent API search.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This is the same as Search but with a typed result
+        /// </remarks>
+        TResults Find(ISearchCriteria searchParams);
+    }
+
+    /// <summary>
     /// An interface representing an Examine Searcher
     /// </summary>
     public interface ISearcher

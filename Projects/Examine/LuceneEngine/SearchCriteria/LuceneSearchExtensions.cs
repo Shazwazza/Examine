@@ -175,7 +175,8 @@ namespace Examine.LuceneEngine.SearchCriteria
             where TResults : ISearchResults<TResult> 
             where TResult : ISearchResult
         {
-            return (TResults)searcher.Search(criteria);
+            var typedSearcher = (ISearcher<TResults, TResult>)searcher;
+            return typedSearcher.Find(criteria);
         }
 
         /// <summary>

@@ -15,7 +15,7 @@ namespace Examine.Providers
     /// </summary>
     /// <typeparam name="TResults"></typeparam>
     /// <typeparam name="TResult"></typeparam>
-    public abstract class BaseSearchProvider<TResults, TResult> : BaseSearchProvider
+    public abstract class BaseSearchProvider<TResults, TResult> : BaseSearchProvider, ISearcher<TResults, TResult>
         where TResults : ISearchResults<TResult>
         where TResult : ISearchResult
     {
