@@ -2,6 +2,7 @@
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Providers;
 using System.IO;
@@ -36,6 +37,7 @@ namespace Examine.Test.Search
             using (var indexer2 = new TestIndexer(luceneDir2, analyzer))
             using (var indexer3 = new TestIndexer(luceneDir3, analyzer))
             using (var indexer4 = new TestIndexer(luceneDir4, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer1.IndexItems(new ValueSet(1, "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItems(new ValueSet(1, "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -71,6 +73,7 @@ namespace Examine.Test.Search
             using (var indexer2 = new TestIndexer(luceneDir2, analyzer))
             using (var indexer3 = new TestIndexer(luceneDir3, analyzer))
             using (var indexer4 = new TestIndexer(luceneDir4, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer1.IndexItems(new ValueSet(1, "content", new { item1 = "hello", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItems(new ValueSet(1, "content", new { item1 = "world", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
