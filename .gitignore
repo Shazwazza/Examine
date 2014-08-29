@@ -28,3 +28,5 @@ Projects/UmbracoExamine/bin/*
 Projects/UmbracoExamine/obj/*
 *.orig
 NDepend/*
+packages/*
+packages/*
