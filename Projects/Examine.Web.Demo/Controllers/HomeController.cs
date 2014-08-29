@@ -135,13 +135,13 @@ namespace Examine.Web.Demo.Controllers
             }
             
             //Get search results
-            var searchResults = searcher.Search<ILuceneSearchResults>(criteria);
+            var searchResults = searcher.Search<ILuceneSearchResults, LuceneSearchResult>(criteria);
             
             sb.Append("Total hits: " + searchResults.TotalItemCount + "\r\n");
 
 
             //Show the results (limited by criteria.MaxCount(...) or SearchOptions.Default.MaxCount)
-            foreach (var res in searchResults.Cast<LuceneSearchResult>())
+            foreach (var res in searchResults)
             {
                 sb.AppendLine();
                 sb.AppendLine("ID: " + res.LongId);

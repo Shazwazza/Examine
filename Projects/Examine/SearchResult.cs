@@ -8,32 +8,32 @@ using Lucene.Net.Documents;
 
 namespace Examine
 {
-    //public interface ISearchResult
-    //{
-    //    [Obsolete("Use LongId instead")]
-    //    int Id { get; }
+    public interface ISearchResult
+    {
+        [Obsolete("Use LongId instead")]
+        int Id { get; }
 
-    //    long LongId { get; set; }
-    //    float Score { get; set; }
-    //    IDictionary<string, string> Fields { get; }
-    //    IDictionary<string, string[]> FieldValues { get; }
+        long LongId { get; set; }
+        float Score { get; set; }
+        IDictionary<string, string> Fields { get; }
+        IDictionary<string, string[]> FieldValues { get; }
 
-    //    /// <summary>
-    //    /// Returns the key value pair for the index specified
-    //    /// </summary>
-    //    /// <param name="resultIndex"></param>
-    //    /// <returns></returns>
-    //    KeyValuePair<string, string> this[int resultIndex] { get; }
+        /// <summary>
+        /// Returns the key value pair for the index specified
+        /// </summary>
+        /// <param name="resultIndex"></param>
+        /// <returns></returns>
+        KeyValuePair<string, string> this[int resultIndex] { get; }
 
-    //    /// <summary>
-    //    /// Returns the value for the key specified
-    //    /// </summary>
-    //    /// <param name="key"></param>
-    //    /// <returns></returns>
-    //    string this[string key] { get; }
-    //}
+        /// <summary>
+        /// Returns the value for the key specified
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        string this[string key] { get; }
+    }
 
-    public class SearchResult //: ISearchResult
+    public class SearchResult : ISearchResult
     {
 
         public SearchResult()

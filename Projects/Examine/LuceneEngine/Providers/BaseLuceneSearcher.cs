@@ -207,7 +207,9 @@ namespace Examine.LuceneEngine.Providers
             //    }
             //}
 
-            return pagesResults;
+            return new SearchResultsProxy<LuceneSearchResult>(pagesResults);
+
+            //return (ISearchResults)pagesResults;
         }
 
         /// <summary>

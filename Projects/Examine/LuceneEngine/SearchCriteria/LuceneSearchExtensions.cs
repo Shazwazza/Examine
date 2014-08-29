@@ -177,14 +177,16 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <summary>
         /// Searches with an expected typed result
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResults"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
         /// <param name="searcher"></param>
         /// <param name="criteria"></param>
         /// <returns></returns>
-        public static T Search<T>(this ISearcher searcher, ISearchCriteria criteria)
-            where T: ISearchResults
+        public static TResults Search<TResults, TResult>(this ISearcher searcher, ISearchCriteria criteria)
+            where TResults : ISearchResults<TResult> 
+            where TResult : ISearchResult
         {
-            return (T)searcher.Search(criteria);
+            return (TResults)searcher.Search(criteria);
         }
 
         /// <summary>

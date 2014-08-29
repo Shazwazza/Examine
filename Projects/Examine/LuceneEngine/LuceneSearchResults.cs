@@ -55,7 +55,7 @@ namespace Examine.LuceneEngine
         }
     }
 
-    public interface ILuceneSearchResults : ISearchResults,  IEnumerable<LuceneSearchResult>
+    public interface ILuceneSearchResults : ISearchResults<LuceneSearchResult>
     {
         FacetCounts FacetCounts { get; }
 
@@ -76,7 +76,7 @@ namespace Examine.LuceneEngine
         /// Returns an empty search result
         ///</summary>
         ///<returns></returns>
-        public static ISearchResults Empty()
+        public static ILuceneSearchResults Empty()
         {
             return new EmptySearchResults();
         }
@@ -195,7 +195,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Internal cache of search results
         /// </summary>
-        protected Dictionary<int, SearchResult> Docs = new Dictionary<int, SearchResult>();
+        protected Dictionary<int, LuceneSearchResult> Docs = new Dictionary<int, LuceneSearchResult>();
 
 
         static FacetLevel[] _noFacets = new FacetLevel[0];
@@ -206,7 +206,7 @@ namespace Examine.LuceneEngine
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-        protected SearchResult CreateSearchResult(int docId, Document doc, float score)
+        protected LuceneSearchResult CreateSearchResult(int docId, Document doc, float score)
         {
             string id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
@@ -261,8 +261,8 @@ namespace Examine.LuceneEngine
 
         //NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
         // at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
-        
-        private SearchResult CreateFromDocumentItem(int i)
+
+        private LuceneSearchResult CreateFromDocumentItem(int i)
         {
             var docId = _topDocs.ScoreDocs[i].doc;
             var doc = Searcher.Doc(docId);
@@ -280,19 +280,6 @@ namespace Examine.LuceneEngine
         /// <param name="skip">The number of items in the results to skip.</param>
         /// <returns>A collection of the search results</returns>
         public IEnumerable<LuceneSearchResult> Skip(int skip)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Skips to a particular point in the search results.
-        /// </summary>
-        /// <remarks>
-        /// This allows for lazy loading of the results paging. We don't go into Lucene until we have to.
-        /// </remarks>
-        /// <param name="skip">The number of items in the results to skip.</param>
-        /// <returns>A collection of the search results</returns>
-        IEnumerable<SearchResult> ISearchResults.Skip(int skip)
         {
             for (int i = skip, n = _topDocs.ScoreDocs.Length; i < n; i++)
             {
@@ -313,10 +300,6 @@ namespace Examine.LuceneEngine
 
         #region IEnumerable<SearchResult> Members
 
-        IEnumerator<SearchResult> IEnumerable<SearchResult>.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
 
         public IEnumerator<LuceneSearchResult> GetEnumerator()
         {
