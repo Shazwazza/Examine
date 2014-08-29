@@ -133,17 +133,15 @@ namespace Examine.Web.Demo.Controllers
                         .WrapExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes / 1000f); 
                 }
             }
-
+            
             //Get search results
-            var searchResults = criteria.Execute();
-
-
-
+            var searchResults = searcher.Search<ILuceneSearchResults>(criteria);
+            
             sb.Append("Total hits: " + searchResults.TotalItemCount + "\r\n");
 
 
             //Show the results (limited by criteria.MaxCount(...) or SearchOptions.Default.MaxCount)
-            foreach (var res in searchResults)
+            foreach (var res in searchResults.Cast<LuceneSearchResult>())
             {
                 sb.AppendLine();
                 sb.AppendLine("ID: " + res.LongId);

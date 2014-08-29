@@ -278,7 +278,7 @@
     <Compile Include="LuceneEngine\SearchCriteria\SearchOptions.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\SortField.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\SortType.cs" />
-    <Compile Include="LuceneEngine\SearchResults.cs" />
+    <Compile Include="LuceneEngine\LuceneSearchResults.cs" />
     <Compile Include="LuceneEngine\SimpleDataSet.cs" />
     <Compile Include="ObjectExtensions.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />

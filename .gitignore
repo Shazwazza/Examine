@@ -30,3 +30,4 @@ Projects/UmbracoExamine/obj/*
 NDepend/*
 packages/*
 packages/*
+.Examine.boltdata/*

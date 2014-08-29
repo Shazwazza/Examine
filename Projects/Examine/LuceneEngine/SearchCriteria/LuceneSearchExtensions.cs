@@ -59,6 +59,14 @@ namespace Examine.LuceneEngine.SearchCriteria
             return crit.LuceneSearchCriteria;
         }
 
+        /// <summary>
+        /// Performs a true Lucene Query 
+        /// TODO: We need to deal with this in a much nicer way
+        /// </summary>
+        /// <param name="luceneSearchCriteria"></param>
+        /// <param name="query"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
         public static IBooleanOperation LuceneQuery(this IQuery luceneSearchCriteria, Query query, BooleanOperation? op = null)
         {
             var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
@@ -112,24 +120,24 @@ namespace Examine.LuceneEngine.SearchCriteria
             return luceneSearchCriteria;
         }
 
-        /// <summary>
-        /// Sets the max count for the result
-        /// </summary>
-        /// <param name="maxCount"></param>
-        /// <returns></returns>
-        public static LuceneSearchCriteria MaxCount(this IQuery luceneSearchCriteria, int maxCount)
-        {
-            var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
-            crit.SearchOptions.MaxCount = maxCount;
-            return crit;
-        }
+        ///// <summary>
+        ///// Sets the max count for the result
+        ///// </summary>
+        ///// <param name="maxCount"></param>
+        ///// <returns></returns>
+        //public static ISearchCriteria MaxCount(this IQuery luceneSearchCriteria, int maxCount)
+        //{
+        //    var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
+        //    crit.SearchOptions.MaxCount = maxCount;
+        //    return crit;
+        //}
 
         /// <summary>
         /// Toggles facet counting
         /// </summary>
         /// <param name="toggle"></param>
         /// <returns></returns>        
-        public static LuceneSearchCriteria CountFacets(this IQuery luceneSearchCriteria, bool toggle)
+        public static ISearchCriteria CountFacets(this IQuery luceneSearchCriteria, bool toggle)
         {
             var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
             crit.SearchOptions.CountFacets = toggle;
@@ -141,7 +149,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="toggle"></param>
         /// <returns></returns>        
-        public static LuceneSearchCriteria CountFacetReferences(this IQuery luceneSearchCriteria, bool toggle, FacetCounts basis = null)
+        public static ISearchCriteria CountFacetReferences(this IQuery luceneSearchCriteria, bool toggle, FacetCounts basis = null)
         {
             var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
             crit.SearchOptions.CountFacetReferences = toggle;
@@ -149,16 +157,35 @@ namespace Examine.LuceneEngine.SearchCriteria
             return crit;
         }
 
-        public static LuceneSearchCriteria CountFacetReferences(this IQuery luceneSearchCriteria, FacetCounts basis)
+        public static ISearchCriteria CountFacetReferences(this IQuery luceneSearchCriteria, FacetCounts basis)
         {
             return luceneSearchCriteria.CountFacetReferences(true, basis);
         }
 
+        /// <summary>
+        /// Performs a true Lucene Query 
+        /// TODO: We need to deal with this in a much nicer way
+        /// </summary>
+        /// <param name="searcher"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
         public static ISearchResults Search(this ISearcher searcher, Query query)
         {
             return searcher.Search((ISearchCriteria)searcher.CreateSearchCriteria().LuceneQuery(query));
         }
 
+        /// <summary>
+        /// Searches with an expected typed result
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="searcher"></param>
+        /// <param name="criteria"></param>
+        /// <returns></returns>
+        public static T Search<T>(this ISearcher searcher, ISearchCriteria criteria)
+            where T: ISearchResults
+        {
+            return (T)searcher.Search(criteria);
+        }
 
         /// <summary>
         /// Used to order results by the specified fields 

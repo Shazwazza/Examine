@@ -1206,6 +1206,89 @@ namespace Examine.Test.Search
             
         }
 
+        [Test]
+        public void Fuzzy_Search()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { Content = "I'm thinking here" }),
+                    new ValueSet(2, "content",
+                        new { Content = "I'm a thinker" }),
+                    new ValueSet(3, "content",
+                        new { Content = "I am pretty thoughtful" }),
+                    new ValueSet(4, "content",
+                        new { Content = "I thought you were cool" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+                var filter = criteria.Field("Content", "think".Fuzzy(0.1F)).Compile();
+
+                var criteria2 = searcher.CreateSearchCriteria();
+                var filter2 = criteria2.Field("Content", "thought".Fuzzy()).Compile();
+
+                ////Act
+                var results = searcher.Search(filter);
+                var results2 = searcher.Search(filter2);
+
+                ////Assert
+                Assert.AreEqual(2, results.TotalItemCount);
+                Assert.AreEqual(2, results2.TotalItemCount);
+                
+            }
+
+
+        }
+
+        [Test]
+        public void Max_Count()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { Content = "hello world" }),
+                    new ValueSet(2, "content",
+                        new { Content = "hello worlds" }),
+                    new ValueSet(3, "content",
+                        new { Content = "hello you cruel world" }),
+                    new ValueSet(4, "content",
+                        new { Content = "hi there, hello world" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+                var filter = criteria.Field("Content", "hello")
+                    .Compile()
+                    .MaxCount(3);
+
+                ////Act
+                var results = searcher.Search(filter);
+
+                ////Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+
+            }
+
+
+        }
+
         //TODO: Look into LuceneSearchExtensions!!!! Lots of stuff to test there
     }
 }

@@ -8,16 +8,12 @@ using Examine.LuceneEngine.SearchCriteria;
 
 namespace Examine
 {
-    public interface ISearchResults : IEnumerable<SearchResult>
+    public interface ISearchResults : IEnumerable<SearchResult>//: IEnumerable<ISearchResult>
     {
         int TotalItemCount { get; }
+
         IEnumerable<SearchResult> Skip(int skip);
 
-        FacetCounts FacetCounts { get; }
-
-
-        IDictionary<string, List<Func<SearchResult,string>>> Highlighters { get; }
-
-        ICriteriaContext CriteriaContext { get; }
+        
     }
 }

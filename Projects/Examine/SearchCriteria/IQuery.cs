@@ -5,7 +5,7 @@ using Examine.LuceneEngine.Indexing;
 namespace Examine.SearchCriteria
 {
     /// <summary>
-    /// Defines the query methods for the fluent search API
+    /// Defines the chainable query methods for the fluent search API
     /// </summary>
     public interface IQuery
     {
@@ -288,13 +288,6 @@ namespace Examine.SearchCriteria
         /// <param name="parameters"></param>
         /// <returns></returns>
         IBooleanOperation ManagedRangeQuery<T>(T? min, T? max, string[] fields, bool minInclusive = true, bool maxInclusive = true, IManagedQueryParameters parameters = null) where T : struct;
-
-
-
-        /// <summary>
-        /// Executes the query
-        /// </summary>
-        /// <returns></returns>
-        ISearchResults Execute();
+        
     }
 }

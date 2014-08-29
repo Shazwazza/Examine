@@ -42,6 +42,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         private readonly BooleanClause.Occur _occurance;
         private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
+        private int _maxResults = int.MaxValue;
 
         public BaseLuceneSearcher Searcher { get; set; }
         
@@ -107,9 +108,14 @@ namespace Examine.LuceneEngine.SearchCriteria
             }
         }
 
-        public SearchOptions SearchOptions { get; set; }
+        internal SearchOptions SearchOptions { get; set; }
 
         #region ISearchCriteria Members
+
+        public int MaxResults
+        {
+            get { return _maxResults; }
+        }
 
         public string SearchIndexType
         {
@@ -117,17 +123,17 @@ namespace Examine.LuceneEngine.SearchCriteria
             protected set;
         }
 
-        public bool IncludeHitCount
-        {
-            get;
-            set;
-        }
+        //public bool IncludeHitCount
+        //{
+        //    get;
+        //    set;
+        //}
 
-        public int TotalHits
-        {
-            get;
-            internal protected set;
-        }
+        //public int TotalHits
+        //{
+        //    get;
+        //    internal protected set;
+        //}
 
         #endregion
 
@@ -255,7 +261,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                     //}
                     //queryToAdd = new SpanNearQuery(spans.ToArray(), Convert.ToInt32(fieldValue.Level), true);
 
-                    var qry = fieldName + ":\"" + fieldValue.Value + "\"~" + Convert.ToInt32(fieldValue.Level).ToString();
+                    var qry = fieldName + ":\"" + fieldValue.Value + "\"~" + Convert.ToInt32(fieldValue.Level);
                     if (useQueryParser)
                     {
                         queryToAdd = QueryParser.Parse(qry);
@@ -747,6 +753,12 @@ namespace Examine.LuceneEngine.SearchCriteria
         public ISearchCriteria RawQuery(string query)
         {
             this.Query.Add(this.QueryParser.Parse(query), this._occurance);
+            return this;
+        }
+
+        public ISearchCriteria MaxCount(int maxCount)
+        {
+            _maxResults = maxCount;
             return this;
         }
 

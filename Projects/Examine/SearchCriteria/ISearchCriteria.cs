@@ -4,10 +4,15 @@ using System.Collections.Generic;
 namespace Examine.SearchCriteria
 {
     /// <summary>
-    /// 
+    /// Defines the query parameters for the search
     /// </summary>
     public interface ISearchCriteria : IQuery
     {
+        /// <summary>
+        /// Indicates the max number of results to return
+        /// </summary>
+        int MaxResults { get; }
+
         /// <summary>
         /// Indicates the type of data to search on
         /// </summary>
@@ -23,6 +28,14 @@ namespace Examine.SearchCriteria
         /// </remarks>
         /// <param name="query">The query.</param>
         /// <returns></returns>
-        ISearchCriteria RawQuery(string query);        
+        ISearchCriteria RawQuery(string query);
+
+        /// <summary>
+        /// Sets the max count for the result
+        /// </summary>
+        /// <param name="maxCount"></param>
+        /// <returns></returns>
+        ISearchCriteria MaxCount(int maxCount);
+
     }
 }

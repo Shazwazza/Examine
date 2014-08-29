@@ -6,9 +6,15 @@ using Examine.LuceneEngine.Faceting;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
-    public class SearchOptions
+    /// <summary>
+    /// Options for Lucene search
+    /// </summary>
+    internal class SearchOptions
     {        
-        public static SearchOptions Default { get; set; }
+        /// <summary>
+        /// The default options
+        /// </summary>
+        public static SearchOptions Default { get; private set; }
 
         static SearchOptions()
         {
@@ -23,9 +29,12 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public FacetCounts FacetReferenceCountBasis { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public SearchOptions()
         {
-            MaxCount = int.MaxValue;
+            //MaxCount = int.MaxValue;
             CountFacets = true;
         }
     }

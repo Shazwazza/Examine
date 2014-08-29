@@ -8,26 +8,39 @@ using Lucene.Net.Documents;
 
 namespace Examine
 {
-    public class SearchResult
-    {
-        [ScriptIgnore]
-        public ISearchResults Results { get; set; }
+    //public interface ISearchResult
+    //{
+    //    [Obsolete("Use LongId instead")]
+    //    int Id { get; }
 
-        [Obsolete("You need to specify the owning ISearchResults to enable highlighting")]
+    //    long LongId { get; set; }
+    //    float Score { get; set; }
+    //    IDictionary<string, string> Fields { get; }
+    //    IDictionary<string, string[]> FieldValues { get; }
+
+    //    /// <summary>
+    //    /// Returns the key value pair for the index specified
+    //    /// </summary>
+    //    /// <param name="resultIndex"></param>
+    //    /// <returns></returns>
+    //    KeyValuePair<string, string> this[int resultIndex] { get; }
+
+    //    /// <summary>
+    //    /// Returns the value for the key specified
+    //    /// </summary>
+    //    /// <param name="key"></param>
+    //    /// <returns></returns>
+    //    string this[string key] { get; }
+    //}
+
+    public class SearchResult //: ISearchResult
+    {
+
         public SearchResult()
         {
             Fields = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             FieldValues = new Dictionary<string, string[]>(StringComparer.InvariantCultureIgnoreCase);            
         }
-
-        public SearchResult(ISearchResults results) : this()
-        {
-            Results = results;
-        }
-
-        internal Document Document { get; set; }
-
-        internal int DocId { get; set; }
 
         public long LongId { get; set; }
 
@@ -38,15 +51,6 @@ namespace Examine
         public IDictionary<string, string> Fields { get; protected set; }
 
         public IDictionary<string, string[]> FieldValues { get; protected set; }
-
-        public FacetLevel[] Facets { get; set; }
-
-
-        /// <summary>
-        /// How many times this document is used as a facet in the search results or facet count basis (SearchOptions.FacetReferenceCountBasis).
-        /// </summary>
-        public FacetReferenceCount[] FacetCounts { get; set; }
-
 
         
         /// <summary>
@@ -88,21 +92,6 @@ namespace Examine
             var result = (SearchResult)obj;
 
             return LongId.Equals(result.LongId);
-        }
-
-        public string GetHighlight(string fieldName)
-        {
-            if (Results != null && Results.Highlighters != null)
-            {
-                List<Func<SearchResult,string>> hls;
-                if (Results.Highlighters.TryGetValue(fieldName, out hls))
-                {
-                    return hls.Select(hl => hl(this)).FirstOrDefault(r => !string.IsNullOrWhiteSpace(r));
-                }
-            }
-            
-
-            return null;
         }
 
         /// <summary>

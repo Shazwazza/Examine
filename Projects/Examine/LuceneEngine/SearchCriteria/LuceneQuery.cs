@@ -8,11 +8,14 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
+    /// <summary>
+    /// Defines the chainable query methods for the fluent search API for Lucene
+    /// </summary>
     public class LuceneQuery : IQuery, ILuceneSearchCriteria
     {
-        private LuceneSearchCriteria search;
+        private readonly LuceneSearchCriteria _search;
 
-        private BooleanClause.Occur occurance;
+        private readonly BooleanClause.Occur _occurance;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LuceneQuery"/> class.
@@ -22,11 +25,11 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
         internal LuceneQuery(LuceneSearchCriteria search, BooleanClause.Occur occurance)
         {
-            this.search = search;
-            this.occurance = occurance;
+            this._search = search;
+            this._occurance = occurance;
         }
 
-        public LuceneSearchCriteria LuceneSearchCriteria { get { return search;} }
+        public LuceneSearchCriteria LuceneSearchCriteria { get { return _search;} }
 
         /// <summary>
         /// Gets the boolean operation which this query method will be added as
@@ -35,11 +38,11 @@ namespace Examine.LuceneEngine.SearchCriteria
         public BooleanOperation BooleanOperation
         {
 			
-            get { return occurance.ToBooleanOperation(); }
+            get { return _occurance.ToBooleanOperation(); }
         }
 
 
-        #region ISearch Members
+        #region IQuery Members
 
         /// <summary>
         /// Query on the id
@@ -49,7 +52,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
         public IBooleanOperation Id(int id)
         {
-            return this.search.IdInternal(id, this.occurance);
+            return this._search.IdInternal(id, this._occurance);
         }
 
         public IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct
@@ -66,7 +69,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation Field(string fieldName, string fieldValue)
         {
-            return this.search.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), occurance);
+            return this._search.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), _occurance);
         }
 
         /// <summary>
@@ -109,7 +112,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper, DateResolution resolution)
         {
-            return this.search.Range(fieldName, start, end, includeLower, includeUpper);
+            return this._search.Range(fieldName, start, end, includeLower, includeUpper);
         }
 
         /// <summary>
@@ -163,7 +166,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation Range(string fieldName, double start, double end, bool includeLower, bool includeUpper)
         {
-            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
+            return this._search.RangeInternal(fieldName, start, end, includeLower, includeUpper, _occurance);
         }
 
         /// <summary>
@@ -190,7 +193,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation Range(string fieldName, float start, float end, bool includeLower, bool includeUpper)
         {            
-            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
+            return this._search.RangeInternal(fieldName, start, end, includeLower, includeUpper, _occurance);
         }
 
         /// <summary>
@@ -217,7 +220,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation Range(string fieldName, long start, long end, bool includeLower, bool includeUpper)
         {
-            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
+            return this._search.RangeInternal(fieldName, start, end, includeLower, includeUpper, _occurance);
         }
 
         /// <summary>
@@ -244,7 +247,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation Range(string fieldName, string start, string end, bool includeLower, bool includeUpper)
         {
-            return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
+            return this._search.RangeInternal(fieldName, start, end, includeLower, includeUpper, _occurance);
         }
         
         /// <summary>
@@ -256,7 +259,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
-            return this.search.FieldInternal(fieldName, fieldValue, occurance);
+            return this._search.FieldInternal(fieldName, fieldValue, _occurance);
         }
 
         /// <summary>
@@ -273,7 +276,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
-            return this.search.GroupedAndInternal(fields.ToArray(), fieldVals.ToArray(), this.occurance);
+            return this._search.GroupedAndInternal(fields.ToArray(), fieldVals.ToArray(), this._occurance);
         }
 
         /// <summary>
@@ -285,7 +288,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
         {
-            return this.search.GroupedAndInternal(fields.ToArray(), query, this.occurance);
+            return this._search.GroupedAndInternal(fields.ToArray(), query, this._occurance);
         }
 
         /// <summary>
@@ -302,7 +305,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
-            return this.search.GroupedOrInternal(fields.ToArray(), fieldVals.ToArray(), this.occurance);
+            return this._search.GroupedOrInternal(fields.ToArray(), fieldVals.ToArray(), this._occurance);
         }
 
         /// <summary>
@@ -314,7 +317,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
         {
-            return this.search.GroupedOrInternal(fields.ToArray(), query, this.occurance);
+            return this._search.GroupedOrInternal(fields.ToArray(), query, this._occurance);
         }
 
         /// <summary>
@@ -331,7 +334,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
-            return this.search.GroupedNotInternal(fields.ToArray(), fieldVals.ToArray(), this.occurance);
+            return this._search.GroupedNotInternal(fields.ToArray(), fieldVals.ToArray(), this._occurance);
         }
 
         /// <summary>
@@ -343,7 +346,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
-            return this.search.GroupedNotInternal(fields.ToArray(), query, this.occurance);
+            return this._search.GroupedNotInternal(fields.ToArray(), query, this._occurance);
         }
 
         /// <summary>
@@ -361,7 +364,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
-            return this.search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), fieldVals.ToArray(), occurance);
+            return this._search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), fieldVals.ToArray(), _occurance);
         }
 
         /// <summary>
@@ -374,7 +377,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
 		public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query)
         {
-            return this.search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, occurance);
+            return this._search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, _occurance);
         }
 
         /// <summary>
@@ -384,7 +387,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation OrderBy(params string[] fieldNames)
         {
-            return this.search.OrderBy(fieldNames);
+            return this._search.OrderBy(fieldNames);
         }
 
         /// <summary>
@@ -394,29 +397,29 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public IBooleanOperation OrderByDescending(params string[] fieldNames)
         {
-            return this.search.OrderByDescending(fieldNames);
+            return this._search.OrderByDescending(fieldNames);
         }
 
 
         public IBooleanOperation All()
         {
-            return search.All();
+            return _search.All();
         }
 
         public IBooleanOperation ManagedQuery(string query, string[] fields = null, IManagedQueryParameters parameters = null)
         {
-            return search.ManagedQuery(query, fields, parameters);
+            return _search.ManagedQuery(query, fields, parameters);
         }
 
         
         public IBooleanOperation ManagedRangeQuery<T>(T? min, T? max, string[] fields, bool minInclusive = true, bool maxInclusive = true, IManagedQueryParameters parameters = null) where T : struct
         {
-            return search.ManagedRangeQuery(min, max, fields, minInclusive: minInclusive, maxInclusive: maxInclusive, parameters: parameters);
+            return _search.ManagedRangeQuery(min, max, fields, minInclusive: minInclusive, maxInclusive: maxInclusive, parameters: parameters);
         }
 
         public ISearchResults Execute()
         {
-            return search.Execute();
+            return _search.Execute();
         }
 
         #endregion

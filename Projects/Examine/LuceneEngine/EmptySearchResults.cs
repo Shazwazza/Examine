@@ -8,17 +8,22 @@ using Examine.LuceneEngine.SearchCriteria;
 
 namespace Examine.LuceneEngine
 {
-	internal class EmptySearchResults : ISearchResults
+	internal class EmptySearchResults : ILuceneSearchResults
 	{
-		private List<ISearchResults>  _emptyResult = new List<ISearchResults>();
 
-		public IEnumerator<SearchResult> GetEnumerator()
-		{
-			return Enumerable.Empty<SearchResult>().GetEnumerator();
-		}
-        
+	    //public IEnumerator<ISearchResult> GetEnumerator()
+	    IEnumerator<LuceneSearchResult> IEnumerable<LuceneSearchResult>.GetEnumerator()
+	    {
+            return Enumerable.Empty<LuceneSearchResult>().GetEnumerator();
+	    }
 
-		IEnumerator IEnumerable.GetEnumerator()
+	    public IEnumerator<SearchResult> GetEnumerator()
+	    {
+            //return Enumerable.Empty<ISearchResult>().GetEnumerator();
+            return Enumerable.Empty<SearchResult>().GetEnumerator();
+	    }
+
+	    IEnumerator IEnumerable.GetEnumerator()
 		{
 			return Enumerable.Empty<SearchResult>().GetEnumerator();
 		}
@@ -28,12 +33,17 @@ namespace Examine.LuceneEngine
 			get { return 0; }
 		}
 
-		public IEnumerable<SearchResult> Skip(int skip)
+	    IEnumerable<LuceneSearchResult> ILuceneSearchResults.Skip(int skip)
+	    {
+            return Enumerable.Empty<LuceneSearchResult>();
+	    }
+
+	    public IEnumerable<SearchResult> Skip(int skip)
 		{
 			return Enumerable.Empty<SearchResult>();
 		}
 
-        public IDictionary<string, List<Func<SearchResult,string>>> Highlighters { get; private set; }
+        public IDictionary<string, List<Func<LuceneSearchResult, string>>> Highlighters { get; private set; }
 
 	    public FacetCounts FacetCounts { get; private set; }
 	    
