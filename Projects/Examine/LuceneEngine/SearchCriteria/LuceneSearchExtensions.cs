@@ -281,7 +281,12 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
-            return new ExamineValue(Examineness.Escaped, QueryParser.Escape(s));
+
+            //NOTE: You would be tempted to use QueryParser.Escape(s) here but that is incorrect because
+            // inside of LuceneSearchCriteria when we detect Escaped, we use a PhraseQuery which automatically
+            // escapes invalid chars.
+            
+            return new ExamineValue(Examineness.Escaped, s);
         }
 
         ///// <summary>

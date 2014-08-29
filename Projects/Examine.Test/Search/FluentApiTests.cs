@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Indexing.ValueTypes;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
 using Examine.Session;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
 using NUnit.Framework;
@@ -22,7 +25,7 @@ namespace Examine.Test.Search
     {
         [TearDown]
         public void Teardown()
-        {
+        {            
             DisposableCollector.Clean();
         }
 
@@ -34,6 +37,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -87,6 +91,7 @@ namespace Examine.Test.Search
                 //new[] { new FieldDefinition("umbracoNaviHide", "number") }, 
 
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -111,10 +116,12 @@ namespace Examine.Test.Search
         public void Exact_Match_By_Escaped_Path()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 new[] { new FieldDefinition(UmbracoContentIndexer.IndexPathFieldName, "raw") }, 
-                luceneDir, analyzer))
+                luceneDir, analyzer))            
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -122,14 +129,14 @@ namespace Examine.Test.Search
                         {
                             {"nodeName", "my name 1"},
                             {"bodyText", "lorem ipsum"},
-                            {UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148"}
+                            {UmbracoContentIndexer.IndexPathFieldName, "-1,123,456,789"}
                         }),
                     new ValueSet(2, "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
                             {"bodyText", "lorem ipsum"},
-                            {UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1149"}
+                            {UmbracoContentIndexer.IndexPathFieldName, "-1,123,456,987"}
                         })
                     );
 
@@ -139,15 +146,15 @@ namespace Examine.Test.Search
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateSearchCriteria("content");
-                var filter = criteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148");
-                var results = searcher.Search(filter.Compile());
-                Assert.AreEqual(0, results.TotalItemCount);
+                var filter = criteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,123,456,789");
+                var results1 = searcher.Search(filter.Compile());
+                Assert.AreEqual(0, results1.TotalItemCount);
 
                 //now escape it
                 var exactcriteria = searcher.CreateSearchCriteria("content");
-                var exactfilter = exactcriteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,1139,1143,1148".Escape());
-                results = searcher.Search(exactfilter.Compile());
-                Assert.AreEqual(1, results.TotalItemCount);
+                var exactfilter = exactcriteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,123,456,789".Escape());
+                var results2 = searcher.Search(exactfilter.Compile());
+                Assert.AreEqual(1, results2.TotalItemCount);
             }
 
 
@@ -161,6 +168,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(
                 new[] { new FieldDefinition("parentID", "number") }, 
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -192,6 +200,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(
                 new[] { new FieldDefinition("nodeTypeAlias", "raw") }, 
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -237,6 +246,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -267,6 +277,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -313,6 +324,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "media",
@@ -342,6 +354,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "media",
@@ -380,6 +393,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a number, otherwise it's not sortable
                 new[] { new FieldDefinition("sortOrder", "number"), new FieldDefinition("parentID", "number") }, 
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
@@ -421,6 +435,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a date, otherwise it's not sortable
                 new[] { new FieldDefinition("updateDate", "date"), new FieldDefinition("parentID", "number") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
                 var now = DateTime.Now;
 
@@ -464,6 +479,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 new[] { new FieldDefinition("nodeName", "fulltextsortable") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -504,6 +520,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -547,6 +564,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -584,6 +602,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -623,6 +642,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -664,6 +684,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -710,6 +731,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new[] { new FieldDefinition("SomeFloat", "float") }, 
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -758,6 +780,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new[] { new FieldDefinition("SomeNumber", "number") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -804,6 +827,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new[] { new FieldDefinition("SomeDouble", "double") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -850,6 +874,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new[] { new FieldDefinition("SomeLong", "long") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -898,6 +923,7 @@ namespace Examine.Test.Search
                 
                 new[] { new FieldDefinition("MinuteCreated", "date.minute") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -948,6 +974,7 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("HourCreated", "date.hour") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -995,6 +1022,7 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("DayCreated", "date.day") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -1043,6 +1071,7 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("MonthCreated", "date.month") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -1092,6 +1121,7 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("YearCreated", "date.year") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(
@@ -1140,6 +1170,7 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("DateCreated", "datetime") },
                 luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
             {
 
                 indexer.IndexItems(

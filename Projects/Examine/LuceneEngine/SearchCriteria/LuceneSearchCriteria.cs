@@ -269,7 +269,9 @@ namespace Examine.LuceneEngine.SearchCriteria
 
                     //This uses the KeywordAnalyzer to parse the 'phrase'
                     var stdQuery = fieldName + ":" + fieldValue.Value;
-                    queryToAdd = ParseRawQuery(stdQuery);
+
+                    //NOTE: We used to just use this but it's more accurate/exact with the below usage of phrase query
+                    //queryToAdd = ParseRawQuery(stdQuery);
 
                     //This uses the PhraseQuery to parse the phrase, the results seem identical
                     queryToAdd = ParseRawQuery(fieldName, fieldValue.Value);
