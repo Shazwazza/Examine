@@ -18,6 +18,7 @@ using Lucene.Net.Store;
 
 namespace Examine
 {
+
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>

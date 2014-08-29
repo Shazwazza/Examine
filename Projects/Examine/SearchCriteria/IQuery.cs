@@ -4,6 +4,158 @@ using Examine.LuceneEngine.Indexing;
 
 namespace Examine.SearchCriteria
 {
+
+    /// <summary>
+    /// Defines the chainable query methods for the fluent search API
+    /// </summary>
+    public interface IQuery<out TBoolOp> : IQuery
+        where TBoolOp : IBooleanOperation
+    {      
+        /// <summary>
+        /// Query on the id
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <returns></returns>
+        new TBoolOp Id(int id);
+
+        /// <summary>
+        /// Query on the specified field for a struct value which will try to be auto converted with the correct query
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldValue"></param>
+        /// <returns></returns>
+        new TBoolOp Field<T>(string fieldName, T fieldValue) where T : struct;
+
+        /// <summary>
+        /// Query on the specified field
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="fieldValue">The field value.</param>
+        /// <returns></returns>
+        new TBoolOp Field(string fieldName, string fieldValue);
+        
+        /// <summary>
+        /// Query on the specified field
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="fieldValue">The field value.</param>
+        /// <returns></returns>
+        new TBoolOp Field(string fieldName, IExamineValue fieldValue);
+       
+        /// <summary>
+        /// Queries multiple fields with each being an And boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        new TBoolOp GroupedAnd(IEnumerable<string> fields, params string[] query);
+
+        /// <summary>
+        /// Queries multiple fields with each being an And boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        new TBoolOp GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query);
+
+        /// <summary>
+        /// Queries multiple fields with each being an Or boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        new TBoolOp GroupedOr(IEnumerable<string> fields, params string[] query);
+
+        /// <summary>
+        /// Queries multiple fields with each being an Or boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        new TBoolOp GroupedOr(IEnumerable<string> fields, params IExamineValue[] query);
+
+        /// <summary>
+        /// Queries multiple fields with each being an Not boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        new TBoolOp GroupedNot(IEnumerable<string> fields, params string[] query);
+
+        /// <summary>
+        /// Queries multiple fields with each being an Not boolean operation
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        new TBoolOp GroupedNot(IEnumerable<string> fields, params IExamineValue[] query);
+
+        /// <summary>
+        /// Queries on multiple fields with their inclusions customly defined
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <param name="operations">The operations.</param>
+        /// <returns></returns>
+        new TBoolOp GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query);
+
+        /// <summary>
+        /// Queries on multiple fields with their inclusions customly defined
+        /// </summary>
+        /// <param name="fields">The fields.</param>
+        /// <param name="query">The query.</param>
+        /// <param name="operations">The operations.</param>
+        /// <returns></returns>
+        new TBoolOp GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query);
+
+        /// <summary>
+        /// Orders the results by the specified fields
+        /// </summary>
+        /// <param name="fieldNames">The field names.</param>
+        /// <returns></returns>
+        new TBoolOp OrderBy(params string[] fieldNames);
+
+        /// <summary>
+        /// Orders the results by the specified fields in a descending order
+        /// </summary>
+        /// <param name="fieldNames">The field names.</param>
+        /// <returns></returns>
+        new TBoolOp OrderByDescending(params string[] fieldNames);
+
+
+        /// <summary>
+        /// Matches all items
+        /// </summary>
+        /// <returns></returns>
+        new TBoolOp All();
+
+
+        /// <summary>
+        /// Matches items as defined by the IIndexValueType used for the fields specified.  If a type is not defined for a field name nothing will be added
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="fields"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        new TBoolOp ManagedQuery(string query, string[] fields = null, IManagedQueryParameters parameters = null);
+
+        /// <summary>
+        /// Matches items as defined by the IIndexValueType used for the fields specified. 
+        /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="fields"></param>
+        /// <param name="minInclusive"></param>
+        /// <param name="maxInclusive"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        new TBoolOp ManagedRangeQuery<T>(T? min, T? max, string[] fields, bool minInclusive = true, bool maxInclusive = true, IManagedQueryParameters parameters = null) where T : struct;
+
+    }
+
     /// <summary>
     /// Defines the chainable query methods for the fluent search API
     /// </summary>

@@ -15,9 +15,11 @@ namespace Examine.Providers
     /// </summary>
     /// <typeparam name="TResults"></typeparam>
     /// <typeparam name="TResult"></typeparam>
-    public abstract class BaseSearchProvider<TResults, TResult> : BaseSearchProvider, ISearcher<TResults, TResult>
+    /// <typeparam name="TSearchCriteria"></typeparam>
+    public abstract class BaseSearchProvider<TResults, TResult, TSearchCriteria> : BaseSearchProvider, ISearcher<TResults, TResult, TSearchCriteria>
         where TResults : ISearchResults<TResult>
         where TResult : ISearchResult
+        where TSearchCriteria : ISearchCriteria
     {
         /// <summary>
         /// Simple search method which should default to searching content nodes
@@ -38,6 +40,14 @@ namespace Examine.Providers
         /// This is the same as Search but with a typed result
         /// </remarks>
         public abstract TResults Find(ISearchCriteria searchParams);
+        
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <param name="type">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
+        /// <returns>A blank SearchCriteria</returns>
+        public abstract TSearchCriteria CreateCriteria(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
     }
 
     ///<summary>

@@ -20,7 +20,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// Simple abstract class containing basic properties for Lucene searchers
     ///</summary>
-    public abstract class BaseLuceneSearcher : BaseSearchProvider<ILuceneSearchResults, LuceneSearchResult>
+    public abstract class BaseLuceneSearcher : BaseSearchProvider<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>
     {
 
         #region Constructors
@@ -111,18 +111,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
         public abstract ICriteriaContext GetCriteriaContext();        
-
-
-        /// <summary>
-        /// Creates an instance of SearchCriteria for the provider
-        /// </summary>
-        /// <param name="type">The type of data in the index.</param>
-        /// <param name="defaultOperation">The default operation.</param>
-        /// <returns>A blank SearchCriteria</returns>
-        public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
-        {
-            return new LuceneSearchCriteria(this, type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
-        }        
+    
 
         /// <summary>
         /// Simple search method which defaults to searching content nodes
@@ -234,8 +223,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
         /// </summary>
-        /// <returns></returns>
-        
+        /// <returns></returns>        
         public override ISearchCriteria CreateSearchCriteria()
         {
             return CreateSearchCriteria(string.Empty, BooleanOperation.And);
@@ -253,6 +241,30 @@ namespace Examine.LuceneEngine.Providers
         public override ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
         {
             return CreateSearchCriteria(string.Empty, defaultOperation);
+        }
+
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <param name="type">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
+        /// <returns>A blank SearchCriteria</returns>
+        public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
+        {
+            return CreateCriteria(type, defaultOperation);
+        }    
+
+        /// <summary>
+        /// Creates Criteria specific to lucene searches
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="defaultOperation"></param>
+        /// <returns></returns>
+        public override LuceneSearchCriteria CreateCriteria(string type = null, BooleanOperation defaultOperation = BooleanOperation.And)
+        {
+            if (type == null) type = string.Empty;
+
+            return new LuceneSearchCriteria(this, type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
         }
 
 

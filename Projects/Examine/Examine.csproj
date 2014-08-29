@@ -268,7 +268,6 @@
     <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\FacetsLoaderCriteriaContext.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ICriteriaContext.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\ILuceneSearchCriteria.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LateBoundQuery.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneBooleanOperation.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />

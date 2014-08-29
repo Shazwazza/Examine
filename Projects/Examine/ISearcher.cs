@@ -11,9 +11,11 @@ namespace Examine
     /// </summary>
     /// <typeparam name="TResults"></typeparam>
     /// <typeparam name="TResult"></typeparam>
-    public interface ISearcher<out TResults, TResult>
+    /// <typeparam name="TSearchCriteria"></typeparam>
+    public interface ISearcher<out TResults, TResult, out TSearchCriteria>
         where TResults : ISearchResults<TResult>
         where TResult : ISearchResult
+        where TSearchCriteria : ISearchCriteria
     {
         /// <summary>
         /// Simple search method which should default to searching content nodes
@@ -34,6 +36,14 @@ namespace Examine
         /// This is the same as Search but with a typed result
         /// </remarks>
         TResults Find(ISearchCriteria searchParams);
+
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <param name="type">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
+        /// <returns>A blank SearchCriteria</returns>
+        TSearchCriteria CreateCriteria(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
     }
 
     /// <summary>

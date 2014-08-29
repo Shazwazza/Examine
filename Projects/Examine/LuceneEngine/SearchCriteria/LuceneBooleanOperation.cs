@@ -11,7 +11,7 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// An implementation of the fluent API boolean operations
     /// </summary>
     [DebuggerDisplay("{_search}")]
-    public class LuceneBooleanOperation : IBooleanOperation
+    public class LuceneBooleanOperation : IBooleanOperation<LuceneBooleanOperation, LuceneQuery, LuceneSearchCriteria>
     {
         private readonly LuceneSearchCriteria _search;
         private bool _hasCompiled = false;
@@ -28,7 +28,40 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <returns></returns>
         
-        public IQuery And()
+        IQuery IBooleanOperation.And()
+        {
+            return And();
+        }
+
+        public LuceneBooleanOperation And(Func<LuceneQuery, LuceneBooleanOperation> inner)
+        {
+            //TODO: Test this!!
+            return Op(query => inner((LuceneQuery)query), BooleanOperation.And);
+        }
+
+        public LuceneQuery Or()
+        {
+            return new LuceneQuery(this._search, BooleanClause.Occur.SHOULD);
+        }
+
+        public LuceneBooleanOperation Or(Func<LuceneQuery, LuceneBooleanOperation> inner)
+        {
+            //TODO: Test this!!
+            return Op(query => inner((LuceneQuery)query), BooleanOperation.Or);
+        }
+
+        public LuceneQuery Not()
+        {
+            return new LuceneQuery(this._search, BooleanClause.Occur.MUST_NOT);
+        }
+
+        public LuceneBooleanOperation AndNot(Func<LuceneQuery, LuceneBooleanOperation> inner)
+        {
+            //TODO: Test this!!
+            return Op(query => inner((LuceneQuery)query), BooleanOperation.Not);
+        }
+
+        public LuceneQuery And()
         {
             return new LuceneQuery(this._search, BooleanClause.Occur.MUST);
         }
@@ -43,9 +76,9 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <returns></returns>
 		
-        public IQuery Or()
+        IQuery IBooleanOperation.Or()
         {
-            return new LuceneQuery(this._search, BooleanClause.Occur.SHOULD);
+            return Or();
         }
 
         public IBooleanOperation Or(Func<IQuery, IBooleanOperation> inner)
@@ -53,21 +86,14 @@ namespace Examine.LuceneEngine.SearchCriteria
             return Op(inner, BooleanOperation.Or);
         }
 
-        protected IBooleanOperation Op(Func<IQuery, IBooleanOperation> inner, BooleanOperation op)
-        {
-            _search.Queries.Push(new BooleanQuery());
-            inner(_search);
-            return _search.LuceneQuery(_search.Queries.Pop(), op);            
-        }
-
         /// <summary>
         /// Sets the next operation to be NOT
         /// </summary>
         /// <returns></returns>
-		
-        public IQuery Not()
+
+        IQuery IBooleanOperation.Not()
         {
-            return new LuceneQuery(this._search, BooleanClause.Occur.MUST_NOT);
+            return Not();
         }
 
 
@@ -76,14 +102,17 @@ namespace Examine.LuceneEngine.SearchCriteria
             return Op(inner, BooleanOperation.Not);
         }
 
+        ISearchCriteria IBooleanOperation.Compile()
+        {
+            return Compile();
+        }
 
 
         /// <summary>
         /// Compiles this instance for fluent API conclusion
         /// </summary>
-        /// <returns></returns>
-		
-        public ISearchCriteria Compile()
+        /// <returns></returns>		
+        public LuceneSearchCriteria Compile()
         {
             if (!_hasCompiled && !string.IsNullOrEmpty(this._search.SearchIndexType))
             {                
@@ -103,13 +132,15 @@ namespace Examine.LuceneEngine.SearchCriteria
             }
             
             return this._search;
-        }
-
-        public ISearchResults Execute()
-        {
-            return _search.Execute();
-        }
+        }       
 
         #endregion
+
+        protected LuceneBooleanOperation Op(Func<IQuery, IBooleanOperation> inner, BooleanOperation op)
+        {
+            _search.Queries.Push(new BooleanQuery());
+            inner(_search);
+            return _search.LuceneQuery(_search.Queries.Pop(), op);
+        }
     }
 }

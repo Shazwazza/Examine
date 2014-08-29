@@ -37,23 +37,7 @@ namespace Examine.Test.Search
                     new ValueSet(1, "content",
                         new
                         {
-                            nodeName = "my name 1",
-                            bodyText = "lorem ipsum",
-                            nodeTypeAlias = "CWS_Home"
-                        }),
-                    new ValueSet(2, "content",
-                        new
-                        {
-                            nodeName = "About us",
-                            bodyText = "lorem ipsum",
-                            nodeTypeAlias = "CWS_Test"
-                        }),
-                    new ValueSet(3, "content",
-                        new
-                        {
-                            nodeName = "my name 3",
-                            bodyText = "lorem ipsum",
-                            nodeTypeAlias = "CWS_Page"
+                            nodeName = "my name 1"
                         })
                     );
 
@@ -61,17 +45,15 @@ namespace Examine.Test.Search
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
-                //paths contain punctuation, we'll escape it and ensure an exact match
-                var criteria = searcher.CreateSearchCriteria("content");
-
-                //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
+                var criteria = searcher.CreateCriteria("content");
                 var filter = criteria.Field("nodeName", "name");
-
-                var results = searcher.Search<ILuceneSearchResults, LuceneSearchResult>(filter.Compile());
+                var results = searcher.LuceneSearch(filter.Compile());
 
                 Assert.AreEqual(typeof(LuceneSearchResults), results.GetType());
             }
         }
+
+
 
     }
 }

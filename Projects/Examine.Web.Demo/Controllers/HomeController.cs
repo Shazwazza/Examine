@@ -95,14 +95,16 @@ namespace Examine.Web.Demo.Controllers
         {
             var sw = new Stopwatch();
             sw.Start();
-            var searcher = ExamineManager.Instance.SearchProviderCollection["Simple2Searcher"];
+            var searcher = ExamineManager.Instance.GetLuceneSearcher("Simple2Searcher");
 
             //This is for text/plain output
             var sb = new StringBuilder();
-
+            
             //Create a basic criteria with the options from the query string
-            var criteria = searcher.CreateSearchCriteria()
-                                   .MaxCount(count).CountFacets(countFacets).CountFacetReferences(true);
+            var criteria = searcher.CreateCriteria()
+                                   .MaxCount(count)
+                                   .CountFacets(countFacets)
+                                   .CountFacetReferences(true);
 
             if (all || string.IsNullOrEmpty(q))
             {
@@ -113,7 +115,8 @@ namespace Examine.Web.Demo.Controllers
                 if (facetFilter)
                 {
                     //Add column1 filter as facet filter
-                    criteria.Facets(new FacetKey("Column1_Facet", q)).Compile()
+                    criteria.Facets(new FacetKey("Column1_Facet", q))
+                        .Compile()
                         //Here, zero means that we don't case about Lucene's score. We only want to know how well the results compare to the facets
                         .WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1))
 
@@ -135,7 +138,7 @@ namespace Examine.Web.Demo.Controllers
             }
             
             //Get search results
-            var searchResults = searcher.Search<ILuceneSearchResults, LuceneSearchResult>(criteria);
+            var searchResults = searcher.LuceneSearch(criteria);
             
             sb.Append("Total hits: " + searchResults.TotalItemCount + "\r\n");
 

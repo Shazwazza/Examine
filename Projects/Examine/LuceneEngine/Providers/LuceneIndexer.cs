@@ -287,7 +287,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         [Obsolete("This should no longer be used, use the SearcherContext instead to perform any internal searching")]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected BaseSearchProvider InternalSearcher { get; private set; }
+        protected BaseLuceneSearcher InternalSearcher { get; private set; }
 
         #endregion
 
