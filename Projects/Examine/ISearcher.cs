@@ -57,6 +57,7 @@ namespace Examine
         /// <param name="searchText">The search text.</param>
         /// <param name="useWildcards">if set to <c>true</c> the search will use wildcards.</param>
         /// <returns>Search Results</returns>
+        [Obsolete("Use the Find method instead for strongly typed search results")]
         ISearchResults Search(string searchText, bool useWildcards);
 
         /// <summary>
@@ -64,6 +65,7 @@ namespace Examine
         /// </summary>
         /// <param name="searchParameters">The search parameters.</param>
         /// <returns>Search Results</returns>
+        [Obsolete("Use the Find method instead for strongly typed search results")]
         ISearchResults Search(ISearchCriteria searchParameters);
 
         /// <summary>
@@ -77,12 +79,14 @@ namespace Examine
         /// </summary>
         /// <param name="defaultOperation"></param>
         /// <returns></returns>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
 
         /// <summary>
         /// Creates a search criteria instance as required by the implementation
         /// </summary>
         /// <param name="type">The type of index (i.e. Media or Content )</param>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         ISearchCriteria CreateSearchCriteria(string type);
 
         /// <summary>
@@ -93,6 +97,7 @@ namespace Examine
         /// <returns>
         /// An instance of <see cref="Examine.SearchCriteria.ISearchCriteria"/>
         /// </returns>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
     }
 }

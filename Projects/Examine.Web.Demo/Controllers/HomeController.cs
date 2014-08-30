@@ -138,7 +138,7 @@ namespace Examine.Web.Demo.Controllers
             }
             
             //Get search results
-            var searchResults = searcher.LuceneSearch(criteria);
+            var searchResults = searcher.Find(criteria);
             
             sb.Append("Total hits: " + searchResults.TotalItemCount + "\r\n");
 

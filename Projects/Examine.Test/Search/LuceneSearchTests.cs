@@ -23,7 +23,7 @@ namespace Examine.Test.Search
             DisposableCollector.Clean();
         }
 
-        //TODO: Finish these
+        //TODO: Write tests for all 'LuceneSearch', 'LuceneQuery', 'Facets*', 'Wrap*' methods
 
         [Test]
         public void Can_Get_Lucene_Search_Result()
@@ -47,7 +47,7 @@ namespace Examine.Test.Search
 
                 var criteria = searcher.CreateCriteria("content");
                 var filter = criteria.Field("nodeName", "name");
-                var results = searcher.LuceneSearch(filter.Compile());
+                var results = searcher.Find(filter.Compile());
 
                 Assert.AreEqual(typeof(LuceneSearchResults), results.GetType());
             }

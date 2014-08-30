@@ -123,6 +123,7 @@ namespace Examine.LuceneEngine.Providers
         /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
         /// in a wild card search too.
         /// </remarks>
+        [Obsolete("Use the Find method instead for strongly typed search results")]
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
             var result = Find(searchText, useWildcards);
@@ -151,6 +152,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Performs a search with a standard result
         /// </summary>        
+        [Obsolete("Use the Find method instead for strongly typed search results")]
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
             var pagesResults = Find(searchParams);
@@ -159,7 +161,7 @@ namespace Examine.LuceneEngine.Providers
 
         public override ILuceneSearchResults Find(string searchText, bool useWildcards)
         {
-            var sc = this.CreateSearchCriteria();
+            var sc = this.CreateCriteria();
             return TextSearchAllFields(searchText, useWildcards, sc);
         }
 
@@ -224,6 +226,7 @@ namespace Examine.LuceneEngine.Providers
         /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
         /// </summary>
         /// <returns></returns>        
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         public override ISearchCriteria CreateSearchCriteria()
         {
             return CreateSearchCriteria(string.Empty, BooleanOperation.And);
@@ -232,12 +235,13 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         public override ISearchCriteria CreateSearchCriteria(string type)
         {
             return CreateSearchCriteria(type, BooleanOperation.And);
         }
 
-        
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         public override ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
         {
             return CreateSearchCriteria(string.Empty, defaultOperation);
@@ -249,6 +253,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             return CreateCriteria(type, defaultOperation);

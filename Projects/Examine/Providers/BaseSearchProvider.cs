@@ -63,18 +63,21 @@ namespace Examine.Providers
         /// <param name="searchText"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
+        [Obsolete("Use the Find method instead for strongly typed search results")]
         public abstract ISearchResults Search(string searchText, bool useWildcards);
         /// <summary>
         /// Searches the data source using the Examine Fluent API
         /// </summary>
         /// <param name="searchParams">The fluent API search.</param>
         /// <returns></returns>
+        [Obsolete("Use the Find method instead for strongly typed search results")]
         public abstract ISearchResults Search(ISearchCriteria searchParams);
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
         /// <returns></returns>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         public abstract ISearchCriteria CreateSearchCriteria();
 
         /// <summary>
@@ -82,6 +85,7 @@ namespace Examine.Providers
         /// </summary>
         /// <param name="type">The type of data in the index.</param>
         /// <returns>A blank SearchCriteria</returns>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         public abstract ISearchCriteria CreateSearchCriteria(string type);
 
         ///<summary>
@@ -89,6 +93,7 @@ namespace Examine.Providers
         ///</summary>
         ///<param name="defaultOperation"></param>
         ///<returns></returns>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
 		public abstract ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
 
         /// <summary>
@@ -97,6 +102,7 @@ namespace Examine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
 		public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
 
         #endregion

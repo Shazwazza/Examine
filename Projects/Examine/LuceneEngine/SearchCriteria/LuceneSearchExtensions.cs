@@ -59,35 +59,35 @@ namespace Examine.LuceneEngine.SearchCriteria
             }
         }
         
-        /// <summary>
-        /// Performs a true Lucene Query 
-        /// </summary>
-        /// <param name="searcher"></param>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// so long as the searcher is a lucene searcher, otherwise an exception is thrown
-        /// </remarks>
-        public static ILuceneSearchResults LuceneSearch(this ISearcher searcher, Query query)
-        {
-            var typedSearcher = (ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>)searcher;
-            return searcher.LuceneSearch(typedSearcher.CreateCriteria().LuceneQuery(query).Compile());
-        }
+        ///// <summary>
+        ///// Performs a true Lucene Query 
+        ///// </summary>
+        ///// <param name="searcher"></param>
+        ///// <param name="query"></param>
+        ///// <returns></returns>
+        ///// <remarks>
+        ///// so long as the searcher is a lucene searcher, otherwise an exception is thrown
+        ///// </remarks>
+        //public static ILuceneSearchResults LuceneSearch(this ISearcher searcher, Query query)
+        //{
+        //    var typedSearcher = (ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>)searcher;
+        //    return searcher.LuceneSearch(typedSearcher.CreateCriteria().LuceneQuery(query).Compile());
+        //}
 
-        /// <summary>
-        /// Searches and returns a typed lucene search result 
-        /// </summary>
-        /// <param name="searcher"></param>
-        /// <param name="criteria"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// so long as the searcher is a lucene searcher, otherwise an exception is thrown
-        /// </remarks>
-        public static ILuceneSearchResults LuceneSearch(this ISearcher searcher, LuceneSearchCriteria criteria)
-        {
-            var typedSearcher = (ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>)searcher;
-            return typedSearcher.Find(criteria);
-        }
+        ///// <summary>
+        ///// Searches and returns a typed lucene search result 
+        ///// </summary>
+        ///// <param name="searcher"></param>
+        ///// <param name="criteria"></param>
+        ///// <returns></returns>
+        ///// <remarks>
+        ///// so long as the searcher is a lucene searcher, otherwise an exception is thrown
+        ///// </remarks>
+        //public static ILuceneSearchResults LuceneSearch(this ISearcher searcher, LuceneSearchCriteria criteria)
+        //{
+        //    var typedSearcher = (ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>)searcher;
+        //    return typedSearcher.Find(criteria);
+        //}
 
         /// <summary>
         /// Used to order results by the specified fields 
