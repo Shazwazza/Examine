@@ -18,8 +18,9 @@ namespace Examine.SearchCriteria
         /// Adds the nested query
         /// </summary>
         /// <param name="inner"></param>
+        /// <param name="defaultOp"></param>
         /// <returns></returns>
-        TBoolOp And(Func<TQuery, TBoolOp> inner);
+        new TBoolOp And(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Sets the next operation to be OR
@@ -31,21 +32,23 @@ namespace Examine.SearchCriteria
         /// Adds the nested query
         /// </summary>
         /// <param name="inner"></param>
+        /// <param name="defaultOp"></param>
         /// <returns></returns>
-        TBoolOp Or(Func<TQuery, TBoolOp> inner);
+        new TBoolOp Or(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Sets the next operation to be NOT
         /// </summary>
         /// <returns></returns>
         new TQuery Not();
-        
+
         /// <summary>
         /// Adds the nested query
         /// </summary>
         /// <param name="inner"></param>
+        /// <param name="defaultOp"></param>
         /// <returns></returns>
-        TBoolOp AndNot(Func<TQuery, TBoolOp> inner);
+        new TBoolOp AndNot(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Compiles this instance for fluent API conclusion
@@ -70,7 +73,7 @@ namespace Examine.SearchCriteria
         /// </summary>
         /// <param name="inner"></param>
         /// <returns></returns>
-        IBooleanOperation And(Func<IQuery, IBooleanOperation> inner);
+        IBooleanOperation And(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Sets the next operation to be OR
@@ -83,7 +86,7 @@ namespace Examine.SearchCriteria
         /// </summary>
         /// <param name="inner"></param>
         /// <returns></returns>
-        IBooleanOperation Or(Func<IQuery, IBooleanOperation> inner);
+        IBooleanOperation Or(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
         
         /// <summary>
         /// Sets the next operation to be NOT
@@ -97,7 +100,7 @@ namespace Examine.SearchCriteria
         /// </summary>
         /// <param name="inner"></param>
         /// <returns></returns>
-        IBooleanOperation AndNot(Func<IQuery, IBooleanOperation> inner);
+        IBooleanOperation AndNot(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
 
         /// <summary>

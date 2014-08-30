@@ -25,7 +25,7 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// This class is used to query against Lucene.Net. Not thread safe.
     /// </summary>
     [DebuggerDisplay("SearchIndexType: {SearchIndexType}, LuceneQuery: {Query}")]
-    public class LuceneSearchCriteria : ISearchCriteria<LuceneBooleanOperation, LuceneSearchCriteria>
+    public class LuceneSearchCriteria : ISearchCriteria<LuceneBooleanOperation, LuceneSearchCriteria, LuceneSearchCriteria>
     {
         internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
         internal MultiFieldQueryParser QueryParser;
@@ -41,7 +41,9 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         internal Func<ICriteriaContext> LateBoundSearcherContext;
 
-        private readonly BooleanClause.Occur _occurrence;
+        private BooleanClause.Occur _occurrence;
+        private BooleanOperation _boolOp;
+
         private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
         private int _maxResults = int.MaxValue;
 
@@ -53,23 +55,21 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </value>
         public BaseLuceneSearcher Searcher { get; set; }
         
-        internal LuceneSearchCriteria(BaseLuceneSearcher searcher, string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurance)
+        internal LuceneSearchCriteria(BaseLuceneSearcher searcher, string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurrence)
         {
             Enforcer.ArgumentNotNull(fields, "fields");
 
             //This is how the lucene searcher is injected into filters.
             LateBoundSearcherContext = () => CriteriaContext;
 
-
             SearchOptions = SearchOptions.Default;
 
             SearchIndexType = type;
             Queries.Push(new BooleanQuery());
-            this.BooleanOperation = occurance;
+            this.BooleanOperation = occurrence;
             Searcher = searcher;
             this.QueryParser = new MultiFieldQueryParser(_luceneVersion, fields, analyzer);
             this.QueryParser.SetAllowLeadingWildcard(allowLeadingWildcards);
-            this._occurrence = occurance.ToLuceneOccurrence();
         }
 
         ///// <summary>
@@ -90,8 +90,12 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <value>The boolean operation.</value>
         public BooleanOperation BooleanOperation
         {
-            get;
-            protected set;
+            get { return _boolOp; }
+            internal protected set
+            {
+                _boolOp = value;
+                _occurrence = _boolOp.ToLuceneOccurrence();
+            }
         }
 
         /// <summary>
@@ -138,6 +142,19 @@ namespace Examine.LuceneEngine.SearchCriteria
         #endregion
 
         #region ISearch Members
+
+        /// <summary>
+        /// Creates an inner group query
+        /// </summary>
+        /// <param name="inner"></param>
+        /// <param name="defaultOp">The default operation is OR, generally a grouped query would have complex inner queries with an OR against another complex group query</param>
+        /// <returns></returns>
+        public LuceneBooleanOperation Group(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or)
+        {
+            var bo = new LuceneBooleanOperation(this);
+            bo.Op(inner, defaultOp);
+            return bo;
+        }
 
         /// <summary>
         /// Query on the id
@@ -396,9 +413,9 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
         [Obsolete("Use ManagedRangeQuery instead")]
-        protected internal IBooleanOperation RangeInternal(string fieldName, int start, int end, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation RangeInternal(string fieldName, int start, int end, bool includeLower, bool includeUpper, BooleanClause.Occur occurrence)
         {
-            Query.Add(NumericRangeQuery.NewIntRange(fieldName, start, end, includeLower, includeUpper), occurance);
+            Query.Add(NumericRangeQuery.NewIntRange(fieldName, start, end, includeLower, includeUpper), occurrence);
             return new LuceneBooleanOperation(this);
         }
 
@@ -852,74 +869,74 @@ namespace Examine.LuceneEngine.SearchCriteria
             return qry;
         }
 
-        protected internal LuceneBooleanOperation GroupedAndInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        protected internal LuceneBooleanOperation GroupedAndInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurrence)
         {
 
             //if there's only 1 query text we want to build up a string like this:
             //(+field1:query +field2:query +field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.MUST), occurance);
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.MUST), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
 
-        protected internal LuceneBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        protected internal LuceneBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurrence)
         {
             //if there's only 1 query text we want to build up a string like this:
             //(!field1:query !field2:query !field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.MUST_NOT), occurance);
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.MUST_NOT), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
 
 
-        protected internal LuceneBooleanOperation GroupedOrInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        protected internal LuceneBooleanOperation GroupedOrInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurrence)
         {
             //if there's only 1 query text we want to build up a string like this:
             //(field1:query field2:query field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.SHOULD, true), occurance);
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.SHOULD, true), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
 
 
-        protected internal IBooleanOperation RangeInternal(string fieldName, float lower, float upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation RangeInternal(string fieldName, float lower, float upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurrence)
         {
-            Query.Add(NumericRangeQuery.NewFloatRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
+            Query.Add(NumericRangeQuery.NewFloatRange(fieldName, lower, upper, includeLower, includeUpper), occurrence);
             return new LuceneBooleanOperation(this);
         }
 
 
-        protected internal IBooleanOperation RangeInternal(string fieldName, string start, string end, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation RangeInternal(string fieldName, string start, string end, bool includeLower, bool includeUpper, BooleanClause.Occur occurrence)
         {
-            Query.Add(new TermRangeQuery(fieldName, start, end, includeLower, includeUpper), occurance);
+            Query.Add(new TermRangeQuery(fieldName, start, end, includeLower, includeUpper), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
 
 
-        protected internal IBooleanOperation RangeInternal(string fieldName, long lower, long upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation RangeInternal(string fieldName, long lower, long upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurrence)
         {
-            Query.Add(NumericRangeQuery.NewLongRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
+            Query.Add(NumericRangeQuery.NewLongRange(fieldName, lower, upper, includeLower, includeUpper), occurrence);
             return new LuceneBooleanOperation(this);
         }
 
 
-        protected internal IBooleanOperation RangeInternal(string fieldName, double lower, double upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation RangeInternal(string fieldName, double lower, double upper, bool includeLower, bool includeUpper, BooleanClause.Occur occurrence)
         {
-            Query.Add(NumericRangeQuery.NewDoubleRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
+            Query.Add(NumericRangeQuery.NewDoubleRange(fieldName, lower, upper, includeLower, includeUpper), occurrence);
             return new LuceneBooleanOperation(this);
         }
 
-        internal protected LuceneBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
+        internal protected LuceneBooleanOperation IdInternal(int id, BooleanClause.Occur occurrence)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this.QueryParser.GetFieldQuery(LuceneIndexer.IndexNodeIdFieldName, id.ToString(CultureInfo.InvariantCulture)), occurance);
+            Query.Add(this.QueryParser.GetFieldQuery(LuceneIndexer.IndexNodeIdFieldName, id.ToString(CultureInfo.InvariantCulture)), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
@@ -1068,17 +1085,17 @@ namespace Examine.LuceneEngine.SearchCriteria
             return phraseQuery;
         }
 
-        internal protected LuceneBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
+        internal protected LuceneBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurrence)
         {
-            return FieldInternal(fieldName, fieldValue, occurance, true);
+            return FieldInternal(fieldName, fieldValue, occurrence, true);
         }
 
-        internal protected LuceneBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance, bool useQueryParser)
+        internal protected LuceneBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurrence, bool useQueryParser)
         {
             Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
 
             if (queryToAdd != null)
-                Query.Add(queryToAdd, occurance);
+                Query.Add(queryToAdd, occurrence);
 
             return new LuceneBooleanOperation(this);
         } 

@@ -6,12 +6,13 @@ namespace Examine.SearchCriteria
     /// <summary>
     /// Defines the query parameters for the search
     /// </summary>
-    public interface ISearchCriteria<out TBoolOp, out TSearchCriteria> : IQuery<TBoolOp>, ISearchCriteria
+    public interface ISearchCriteria<out TBoolOp, out TSearchCriteria, out TQuery> : IQuery<TBoolOp>, ISearchCriteria
         where TBoolOp : IBooleanOperation
-        where TSearchCriteria : ISearchCriteria<TBoolOp, TSearchCriteria>
+        where TSearchCriteria : ISearchCriteria<TBoolOp, TSearchCriteria, TQuery>
+        where TQuery : IQuery
     {
         /// <summary>
-        /// Passes a text string which is preformatted for the underlying search API. Examine will not modify this
+        /// Passes a text string which is pre-formatted for the underlying search API. Examine will not modify this
         /// </summary>
         /// <remarks>
         /// This allows a developer to completely bypass and Examine logic and comprise their own query text which they are passing in.
@@ -47,7 +48,7 @@ namespace Examine.SearchCriteria
         string SearchIndexType { get; }
 
         /// <summary>
-        /// Passes a text string which is preformatted for the underlying search API. Examine will not modify this
+        /// Passes a text string which is pre-formatted for the underlying search API. Examine will not modify this
         /// </summary>
         /// <remarks>
         /// This allows a developer to completely bypass and Examine logic and comprise their own query text which they are passing in.

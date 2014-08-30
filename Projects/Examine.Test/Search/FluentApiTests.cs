@@ -1285,12 +1285,186 @@ namespace Examine.Test.Search
 
                 Assert.AreEqual(3, results.Count());
                 
-                //NOTE: THese are the total matched! The actual results are limited
+                //NOTE: These are the total matched! The actual results are limited
                 Assert.AreEqual(4, results.TotalItemCount);
 
             }
 
 
+        }
+
+        [Test]
+        public void Inner_Or_Query()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { Content = "hello world", Type="type1" }),
+                    new ValueSet(2, "content",
+                        new { Content = "hello something or other", Type="type1" }),
+                    new ValueSet(3, "content",
+                        new { Content = "hello you cruel world", Type="type2" }),
+                    new ValueSet(4, "content",
+                        new { Content = "hi there, hello world", Type="type2" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+
+                //Query = 
+                //  +Type:type1 +(Content:world Content:something)
+
+                var filter = criteria.Field("Type", "type1")
+                    .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or)
+                    .Compile();
+
+                //Act
+                var results = searcher.Search(filter);
+
+                //Assert
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Inner_And_Query()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    new ValueSet(2, "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    new ValueSet(2, "content",
+                        new { Content = "hello something or world", Type = "type1" }),
+                    new ValueSet(3, "content",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    new ValueSet(4, "content",
+                        new { Content = "hi there, hello world", Type = "type2" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+
+                //Query = 
+                //  +Type:type1 +(+Content:world +Content:hello)
+
+                var filter = criteria.Field("Type", "type1")
+                    .And(query => query.Field("Content", "world").And().Field("Content", "hello"))
+                    .Compile();
+
+                //Act
+                var results = searcher.Search(filter);
+
+                //Assert
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Inner_Not_Query()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    new ValueSet(2, "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    new ValueSet(2, "content",
+                        new { Content = "hello something or world", Type = "type1" }),
+                    new ValueSet(3, "content",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    new ValueSet(4, "content",
+                        new { Content = "hi there, hello world", Type = "type2" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateSearchCriteria();
+
+                //Query = 
+                //  +Type:type1 +(+Content:world -Content:something)
+
+                var filter = criteria.Field("Type", "type1")
+                    .And(query => query.Field("Content", "world").Not().Field("Content", "something"))
+                    .Compile();
+
+                //Act
+                var results = searcher.Search(filter);
+
+                //Assert
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Complex_Or_Group_Nested_Query()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
+            using (SearcherContextCollection.Instance)
+            {
+
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    new ValueSet(2, "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    new ValueSet(2, "content",
+                        new { Content = "hello you guys", Type = "type1" }),
+                    new ValueSet(3, "content",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    new ValueSet(4, "content",
+                        new { Content = "hi there, hello world", Type = "type2" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateCriteria(defaultOperation: BooleanOperation.Or);
+
+                //Query = 
+                //  (Type:type1 +(Content:world Content:something)) (Type:type2 +(+Content:world +Content:cruel))
+
+                var filter = criteria
+                    .Group(group => group.Field("Type", "type1")
+                        .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or))
+                    .Or()
+                    .Group(group => group.Field("Type", "type2")
+                        .And(query => query.Field("Content", "world").And().Field("Content", "cruel")))
+                    .Compile();                    
+
+                //Act
+                var results = searcher.Search(filter);
+
+                //Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+            }
         }
 
         //TODO: Look into LuceneSearchExtensions!!!! Lots of stuff to test there

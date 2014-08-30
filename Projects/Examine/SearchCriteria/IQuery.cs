@@ -10,7 +10,16 @@ namespace Examine.SearchCriteria
     /// </summary>
     public interface IQuery<out TBoolOp> : IQuery
         where TBoolOp : IBooleanOperation
-    {      
+    {
+
+        /// <summary>
+        /// Creates an inner group query
+        /// </summary>
+        /// <param name="inner"></param>
+        /// <param name="defaultOp">The default operation is OR, generally a grouped query would have complex inner queries with an OR against another complex group query</param>
+        /// <returns></returns>
+        TBoolOp Group(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or);
+
         /// <summary>
         /// Query on the id
         /// </summary>
@@ -92,7 +101,7 @@ namespace Examine.SearchCriteria
         new TBoolOp GroupedNot(IEnumerable<string> fields, params IExamineValue[] query);
 
         /// <summary>
-        /// Queries on multiple fields with their inclusions customly defined
+        /// Queries on multiple fields with their inclusions custom defined
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
@@ -101,7 +110,7 @@ namespace Examine.SearchCriteria
         new TBoolOp GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query);
 
         /// <summary>
-        /// Queries on multiple fields with their inclusions customly defined
+        /// Queries on multiple fields with their inclusions custom defined
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>

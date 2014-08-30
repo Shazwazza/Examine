@@ -206,8 +206,8 @@ namespace UmbracoExamine.SearchCriteria
     public class LuceneSearchCriteria : Examine.LuceneEngine.SearchCriteria.LuceneSearchCriteria
     {
         [Obsolete]
-        public LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, Examine.SearchCriteria.BooleanOperation occurance)
-            : base((BaseLuceneSearcher) ExamineManager.Instance.DefaultSearchProvider, type, analyzer, fields, allowLeadingWildcards, occurance) { }
+        public LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, Examine.SearchCriteria.BooleanOperation occurrence)
+            : base((BaseLuceneSearcher) ExamineManager.Instance.DefaultSearchProvider, type, analyzer, fields, allowLeadingWildcards, occurrence) { }
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ namespace UmbracoExamine.SearchCriteria
     public class LuceneQuery : Examine.LuceneEngine.SearchCriteria.LuceneQuery
     {
         [Obsolete]
-        public LuceneQuery(LuceneSearchCriteria search, Lucene.Net.Search.BooleanClause.Occur occurance)
-            : base(search, occurance) { }
+        public LuceneQuery(LuceneSearchCriteria search, Lucene.Net.Search.BooleanClause.Occur occurrence)
+            : base(search, occurrence) { }
     }
 }

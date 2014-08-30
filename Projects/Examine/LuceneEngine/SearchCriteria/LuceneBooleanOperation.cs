@@ -25,6 +25,11 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         #region IBooleanOperation Members
 
+        //public LuceneBooleanOperation Group(Func<LuceneQuery, LuceneBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
+        //{
+        //    return Op(query => inner((LuceneQuery)query), defaultOp, defaultOp);
+        //}
+
         /// <summary>
         /// Sets the next operation to be AND
         /// </summary>
@@ -35,10 +40,9 @@ namespace Examine.LuceneEngine.SearchCriteria
             return And();
         }
 
-        public LuceneBooleanOperation And(Func<LuceneQuery, LuceneBooleanOperation> inner)
+        public LuceneBooleanOperation And(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
         {
-            //TODO: Test this!!
-            return Op(query => inner((LuceneQuery)query), BooleanOperation.And);
+            return Op(inner, BooleanOperation.And, defaultOp);
         }
 
         public LuceneQuery Or()
@@ -46,10 +50,9 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneQuery(this._search, BooleanClause.Occur.SHOULD);
         }
 
-        public LuceneBooleanOperation Or(Func<LuceneQuery, LuceneBooleanOperation> inner)
+        public LuceneBooleanOperation Or(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
         {
-            //TODO: Test this!!
-            return Op(query => inner((LuceneQuery)query), BooleanOperation.Or);
+            return Op(inner, BooleanOperation.Or, defaultOp);
         }
 
         public LuceneQuery Not()
@@ -57,10 +60,9 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneQuery(this._search, BooleanClause.Occur.MUST_NOT);
         }
 
-        public LuceneBooleanOperation AndNot(Func<LuceneQuery, LuceneBooleanOperation> inner)
+        public LuceneBooleanOperation AndNot(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
         {
-            //TODO: Test this!!
-            return Op(query => inner((LuceneQuery)query), BooleanOperation.Not);
+            return Op(inner, BooleanOperation.Not, defaultOp);
         }
 
         public LuceneQuery And()
@@ -68,9 +70,9 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneQuery(this._search, BooleanClause.Occur.MUST);
         }
 
-        public IBooleanOperation And(Func<IQuery, IBooleanOperation> inner)
+        IBooleanOperation IBooleanOperation.And(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
         {
-            return Op(inner, BooleanOperation.And);
+            return Op(inner, BooleanOperation.And, defaultOp);
         }
 
         /// <summary>
@@ -83,9 +85,9 @@ namespace Examine.LuceneEngine.SearchCriteria
             return Or();
         }
 
-        public IBooleanOperation Or(Func<IQuery, IBooleanOperation> inner)
+        IBooleanOperation IBooleanOperation.Or(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
         {
-            return Op(inner, BooleanOperation.Or);
+            return Op(inner, BooleanOperation.Or, defaultOp);
         }
 
         /// <summary>
@@ -99,9 +101,9 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
 
-        public IBooleanOperation AndNot(Func<IQuery, IBooleanOperation> inner)
+        IBooleanOperation IBooleanOperation.AndNot(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
         {
-            return Op(inner, BooleanOperation.Not);
+            return Op(inner, BooleanOperation.Not, defaultOp);
         }
 
         ISearchCriteria IBooleanOperation.Compile()
@@ -138,11 +140,30 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         #endregion
 
-        protected LuceneBooleanOperation Op(Func<IQuery, IBooleanOperation> inner, BooleanOperation op)
+        protected internal LuceneBooleanOperation Op(
+            Func<IQuery, IBooleanOperation> inner, 
+            BooleanOperation outerOp, 
+            BooleanOperation? defaultInnerOp = null)
         {
             _search.Queries.Push(new BooleanQuery());
+
+            //change the default inner op if specified
+            var currentOp = _search.BooleanOperation;
+            if (defaultInnerOp != null)
+            {
+                _search.BooleanOperation = defaultInnerOp.Value;    
+            }
+
+            //run the inner search
             inner(_search);
-            return _search.LuceneQuery(_search.Queries.Pop(), op);
+
+            //reset to original op if specified
+            if (defaultInnerOp != null)
+            {
+                _search.BooleanOperation = currentOp;
+            }
+
+            return _search.LuceneQuery(_search.Queries.Pop(), outerOp);
         }
 
         public LuceneSearchCriteria WrapRelevanceScore(ScoreOperation op, params IFacetLevel[] levels)
