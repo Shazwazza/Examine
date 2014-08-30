@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security;
 using System.Text.RegularExpressions;
 using Examine;
+using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Scoring;
 using Examine.SearchCriteria;
@@ -68,7 +69,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             Searcher = searcher;
             this.QueryParser = new MultiFieldQueryParser(_luceneVersion, fields, analyzer);
             this.QueryParser.SetAllowLeadingWildcard(allowLeadingWildcards);
-            this._occurrence = occurance.ToLuceneOccurance();
+            this._occurrence = occurance.ToLuceneOccurrence();
         }
 
         ///// <summary>
@@ -273,7 +274,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public LuceneBooleanOperation All()
         {
-            Query.Add(new MatchAllDocsQuery(), BooleanOperation.ToLuceneOccurance());
+            Query.Add(new MatchAllDocsQuery(), BooleanOperation.ToLuceneOccurrence());
 
             return new LuceneBooleanOperation(this);
         }
@@ -576,7 +577,74 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         #region Public methods
 
-        //TODO: Move the extension methods here!
+        /// <summary>
+        /// Adds a true Lucene Query 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public LuceneBooleanOperation LuceneQuery(Query query, BooleanOperation? op = null)
+        {
+            this.Query.Add(query, (op ?? this.BooleanOperation).ToLuceneOccurrence());
+
+            return new LuceneBooleanOperation(this);
+        }
+
+        public LuceneBooleanOperation Facets(params FacetKey[] keys)
+        {
+            if (keys != null)
+            {
+                foreach (var key in keys)
+                {
+                    this.Query.Add(new ConstantScoreQuery(new FacetFilter(this.LateBoundSearcherContext, key)), this.BooleanOperation.ToLuceneOccurrence());
+                }
+            }
+            return new LuceneBooleanOperation(this);
+        }
+
+        public LuceneSearchCriteria WrapRelevanceScore(ScoreOperation op, params IFacetLevel[] levels)
+        {
+            this.WrapScoreQuery(q => new FacetLevelScoreQuery(q, this.LateBoundSearcherContext, op, levels));
+
+            return this;
+        }
+
+        public LuceneSearchCriteria WrapExternalDataScore<TData>(ScoreOperation op, Func<TData, float> scorer)
+            where TData : class
+        {
+            this.WrapScoreQuery(q => new ExternalDataScoreQuery<TData>(q, this.LateBoundSearcherContext, op, scorer));
+
+            return this;
+        }
+
+        /// <summary>
+        /// Toggles facet counting
+        /// </summary>
+        /// <param name="toggle"></param>
+        /// <returns></returns>        
+        public LuceneSearchCriteria CountFacets(bool toggle)
+        {
+            this.SearchOptions.CountFacets = toggle;
+            return this;
+        }
+
+        /// <summary>
+        /// If a search result is used as a reference facet, toggle whether the count for different field names in the result will be included
+        /// </summary>
+        /// <param name="toggle"></param>
+        /// <param name="basis"></param>
+        /// <returns></returns>        
+        public LuceneSearchCriteria CountFacetReferences(bool toggle, FacetCounts basis = null)
+        {
+            this.SearchOptions.CountFacetReferences = toggle;
+            this.SearchOptions.FacetReferenceCountBasis = basis;
+            return this;
+        }
+
+        public LuceneSearchCriteria CountFacetReferences(FacetCounts basis)
+        {
+            return this.CountFacetReferences(true, basis);
+        }
 
         public LuceneSearchCriteria WrapScoreQuery(Func<Query, ReaderDataScoreQuery> scoreQuery)
         {
@@ -599,7 +667,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
             var flags = new BooleanClause.Occur[operations.Count()];
             for (int i = 0; i < flags.Length; i++)
-                flags[i] = operations.ElementAt(i).ToLuceneOccurance();
+                flags[i] = operations.ElementAt(i).ToLuceneOccurrence();
 
             var queryVals = new IExamineValue[fields.Length];
             if (fieldVals.Length == 1)

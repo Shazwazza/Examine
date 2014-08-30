@@ -6,7 +6,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
-    public class LateBoundQuery : Query
+    internal class LateBoundQuery : Query
     {
         private readonly Func<Query> _factory;
 

@@ -58,119 +58,31 @@ namespace Examine.LuceneEngine.SearchCriteria
                 }
             }
         }
-
-
+        
         /// <summary>
         /// Performs a true Lucene Query 
-        /// TODO: We need to deal with this in a much nicer way
-        /// </summary>
-        /// <param name="luceneSearchCriteria"></param>
-        /// <param name="query"></param>
-        /// <param name="op"></param>
-        /// <returns></returns>
-        public static LuceneBooleanOperation LuceneQuery(this LuceneSearchCriteria luceneSearchCriteria, Query query, BooleanOperation? op = null)
-        {
-            //var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
-
-            luceneSearchCriteria.Query.Add(query, (op ?? luceneSearchCriteria.BooleanOperation).ToLuceneOccurance());
-
-            return new LuceneBooleanOperation(luceneSearchCriteria);
-        }
-
-        public static LuceneBooleanOperation Facets(this LuceneSearchCriteria luceneSearchCriteria, params FacetKey[] keys)
-        {            
-            if (keys != null)
-            {
-                foreach (var key in keys)
-                {
-                    luceneSearchCriteria.Query.Add(new ConstantScoreQuery(new FacetFilter(luceneSearchCriteria.LateBoundSearcherContext, key)), luceneSearchCriteria.BooleanOperation.ToLuceneOccurance());
-                }
-            }
-            return new LuceneBooleanOperation(luceneSearchCriteria);
-        }
-
-        public static IQuery WrapRelevanceScore(this LuceneBooleanOperation luceneSearchCriteria, ScoreOperation op,
-                                                params IFacetLevel[] levels)
-        {
-            return luceneSearchCriteria.Compile().WrapRelevanceScore(op, levels);
-        }
-
-        public static LuceneSearchCriteria WrapRelevanceScore(this LuceneSearchCriteria luceneSearchCriteria, ScoreOperation op, params IFacetLevel[] levels)
-        {
-            luceneSearchCriteria.WrapScoreQuery(q => new FacetLevelScoreQuery(q, luceneSearchCriteria.LateBoundSearcherContext, op, levels));
-
-            return luceneSearchCriteria;
-        }
-
-
-        public static LuceneSearchCriteria WrapExternalDataScore<TData>(this LuceneBooleanOperation luceneSearchCriteria, ScoreOperation op,
-                                                          Func<TData, float> scorer)
-            where TData : class
-        {
-            return luceneSearchCriteria.Compile().WrapExternalDataScore<TData>(op, scorer);
-        }
-
-        public static LuceneSearchCriteria WrapExternalDataScore<TData>(this LuceneSearchCriteria luceneSearchCriteria, ScoreOperation op, Func<TData, float> scorer)
-            where TData : class
-        {
-            //var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
-            luceneSearchCriteria.WrapScoreQuery(q => new ExternalDataScoreQuery<TData>(q, luceneSearchCriteria.LateBoundSearcherContext, op, scorer));
-
-            return luceneSearchCriteria;
-        }
-
-
-        /// <summary>
-        /// Toggles facet counting
-        /// </summary>
-        /// <param name="toggle"></param>
-        /// <returns></returns>        
-        public static LuceneSearchCriteria CountFacets(this LuceneSearchCriteria luceneSearchCriteria, bool toggle)
-        {
-            //var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
-            luceneSearchCriteria.SearchOptions.CountFacets = toggle;
-            return luceneSearchCriteria;
-        }
-
-        /// <summary>
-        /// If a search result is used as a reference facet, toggle whether the count for different field names in the result will be included
-        /// </summary>
-        /// <param name="toggle"></param>
-        /// <returns></returns>        
-        public static LuceneSearchCriteria CountFacetReferences(this LuceneSearchCriteria luceneSearchCriteria, bool toggle, FacetCounts basis = null)
-        {
-            //var crit = GetLuceneSearchCriteria(luceneSearchCriteria);
-            luceneSearchCriteria.SearchOptions.CountFacetReferences = toggle;
-            luceneSearchCriteria.SearchOptions.FacetReferenceCountBasis = basis;
-            return luceneSearchCriteria;
-        }
-
-        public static LuceneSearchCriteria CountFacetReferences(this LuceneSearchCriteria luceneSearchCriteria, FacetCounts basis)
-        {
-            return luceneSearchCriteria.CountFacetReferences(true, basis);
-        }
-
-        /// <summary>
-        /// Performs a true Lucene Query 
-        /// TODO: We need to deal with this in a much nicer way
         /// </summary>
         /// <param name="searcher"></param>
         /// <param name="query"></param>
         /// <returns></returns>
-        public static ILuceneSearchResults LuceneSearch(this BaseLuceneSearcher searcher, Query query)
+        /// <remarks>
+        /// so long as the searcher is a lucene searcher, otherwise an exception is thrown
+        /// </remarks>
+        public static ILuceneSearchResults LuceneSearch(this ISearcher searcher, Query query)
         {
-            var asdf = searcher.CreateCriteria().LuceneQuery(query);
-
-            return searcher.LuceneSearch(asdf.Compile());
+            var typedSearcher = (ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>)searcher;
+            return searcher.LuceneSearch(typedSearcher.CreateCriteria().LuceneQuery(query).Compile());
         }
 
         /// <summary>
-        /// Searches and returns a typed lucene search result, so long as the searcher is a lucene searcher 
-        /// (otherwise an exception is thrown)
+        /// Searches and returns a typed lucene search result 
         /// </summary>
         /// <param name="searcher"></param>
         /// <param name="criteria"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// so long as the searcher is a lucene searcher, otherwise an exception is thrown
+        /// </remarks>
         public static ILuceneSearchResults LuceneSearch(this ISearcher searcher, LuceneSearchCriteria criteria)
         {
             var typedSearcher = (ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>)searcher;
@@ -243,16 +155,16 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// Configures the string for fuzzy matching in Lucene using the supplied fuzziness level
         /// </summary>
         /// <param name="s">The string to configure fuzzy matching on.</param>
-        /// <param name="fuzzieness">The fuzzieness level.</param>
+        /// <param name="fuzzyness">The fuzzyness level.</param>
         /// <returns>
         /// An IExamineValue for the required operation
         /// </returns>
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
-        public static IExamineValue Fuzzy(this string s, float fuzzieness)
+        public static IExamineValue Fuzzy(this string s, float fuzzyness)
         {
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
-            return new ExamineValue(Examineness.Fuzzy, s, fuzzieness);
+            return new ExamineValue(Examineness.Fuzzy, s, fuzzyness);
         }
 
         /// <summary>
@@ -337,7 +249,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="o">The operation.</param>
         /// <returns>The translated Boolean operation</returns>
         
-        public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
+        public static BooleanClause.Occur ToLuceneOccurrence(this BooleanOperation o)
         {
             switch (o)
             {
@@ -359,11 +271,11 @@ namespace Examine.LuceneEngine.SearchCriteria
         
         public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
         {
-            if (o == BooleanClause.Occur.MUST)
+            if (Equals(o, BooleanClause.Occur.MUST))
             {
                 return BooleanOperation.And;
             }
-            else if (o == BooleanClause.Occur.MUST_NOT)
+            else if (Equals(o, BooleanClause.Occur.MUST_NOT))
             {
                 return BooleanOperation.Not;
             }

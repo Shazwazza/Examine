@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Security;
+using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Scoring;
 using Examine.SearchCriteria;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
@@ -141,6 +143,17 @@ namespace Examine.LuceneEngine.SearchCriteria
             _search.Queries.Push(new BooleanQuery());
             inner(_search);
             return _search.LuceneQuery(_search.Queries.Pop(), op);
+        }
+
+        public LuceneSearchCriteria WrapRelevanceScore(ScoreOperation op, params IFacetLevel[] levels)
+        {
+            return this.Compile().WrapRelevanceScore(op, levels);
+        }
+        
+        public LuceneSearchCriteria WrapExternalDataScore<TData>(ScoreOperation op, Func<TData, float> scorer)
+            where TData : class
+        {
+            return this.Compile().WrapExternalDataScore<TData>(op, scorer);
         }
     }
 }
