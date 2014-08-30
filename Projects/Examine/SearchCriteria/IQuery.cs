@@ -379,7 +379,7 @@ namespace Examine.SearchCriteria
         IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query);
 
         /// <summary>
-        /// Queries on multiple fields with their inclusions customly defined
+        /// Queries on multiple fields with their inclusions custom defined
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
@@ -388,7 +388,7 @@ namespace Examine.SearchCriteria
         IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query);
 
         /// <summary>
-        /// Queries on multiple fields with their inclusions customly defined
+        /// Queries on multiple fields with their inclusions custom defined
         /// </summary>
         /// <param name="fields">The fields.</param>
         /// <param name="query">The query.</param>
