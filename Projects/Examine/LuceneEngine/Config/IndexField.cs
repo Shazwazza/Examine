@@ -55,6 +55,20 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
+        [ConfigurationProperty("IndexName", IsRequired = false)]
+        public string IndexName
+        {
+            get
+            {
+                var indexName = (string)this["IndexName"];
+                return string.IsNullOrEmpty(indexName) ? Name : indexName;
+            }
+            set
+            {
+                this["IndexName"] = value;
+            }
+        }
+
         public override bool Equals(object compareTo)
         {
             var to = compareTo as IndexField;
