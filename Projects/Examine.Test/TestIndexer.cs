@@ -12,17 +12,17 @@ namespace Examine.Test
     public class TestIndexer : LuceneIndexer
     {
         public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration, Directory luceneDirectory, Analyzer defaultAnalyzer, IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
-            : base(fieldDefinitions, facetConfiguration, luceneDirectory, defaultAnalyzer,indexValueTypes)
+            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, facetConfiguration, indexValueTypes)
         {
         }
 
         public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer defaultAnalyzer, IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
-            : base(fieldDefinitions, new FacetConfiguration(), luceneDirectory, defaultAnalyzer, indexValueTypes)
+            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, new FacetConfiguration(), indexValueTypes)
         {
         }
 
         public TestIndexer(Directory luceneDirectory, Analyzer defaultAnalyzer)
-            : base(new FieldDefinition[] { }, new FacetConfiguration(), luceneDirectory, defaultAnalyzer)
+            : base(new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer)
         {
         }
 

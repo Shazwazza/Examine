@@ -21,7 +21,15 @@ namespace Examine.LuceneEngine.Faceting
             Configuration = configuration;            
         }
 
-        public FacetMap FacetMap { get { return Configuration != null && !Configuration.IsEmpty ? Configuration.FacetMap : null; }}        
+        public FacetMap FacetMap
+        {
+            get
+            {
+                return (Configuration != null && !Configuration.IsEmpty)
+                    ? Configuration.FacetMap 
+                    : null;
+            }
+        }        
 
 
         public ReaderData GetReaderData(IndexReader reader)

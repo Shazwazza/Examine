@@ -13,8 +13,7 @@ namespace Examine.LuceneEngine.Faceting
         {
             if (fieldName == null) throw new ArgumentNullException("fieldName");
             if (value == null) throw new ArgumentNullException("value");
-            Contract.EndContractBlock();
-
+            
             FieldName = fieldName;
             Value = value;
         }

@@ -17,9 +17,8 @@ namespace Examine.Providers
     /// </summary>
     public abstract class BaseIndexProvider : ProviderBase, IIndexer, IExamineIndexer
     {
-        public IEnumerable<FieldDefinition> FieldDefinitions { get; set; }
-        public FacetConfiguration FacetConfiguration { get; set; }
-
+        public IEnumerable<FieldDefinition> FieldDefinitions { get; private set; }
+        
         /// <summary>
         /// Constructor used for provider instantiation
         /// </summary>
@@ -33,11 +32,10 @@ namespace Examine.Providers
         /// Constructor for creating an indexer at runtime
         /// </summary>
         /// <param name="fieldDefinitions"></param>
-        /// <param name="facetConfiguration"></param>
-        protected BaseIndexProvider(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration)
+        protected BaseIndexProvider(IEnumerable<FieldDefinition> fieldDefinitions)
         {
             FieldDefinitions = fieldDefinitions;
-            FacetConfiguration = facetConfiguration;
+
             //for legacy, all empty collections means it will be ignored
             IndexerData = new IndexCriteria(Enumerable.Empty<IIndexField>(), Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), -1);
         }

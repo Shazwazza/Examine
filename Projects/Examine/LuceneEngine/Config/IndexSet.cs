@@ -8,11 +8,20 @@ namespace Examine.LuceneEngine.Config
 {
     public sealed class IndexSet : ConfigurationElement
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IndexSet"/> class.
+        /// </summary>
         public IndexSet()
         {
             FacetConfiguration = new FacetConfiguration();
         }
 
+        /// <summary>
+        /// Gets the name of the set.
+        /// </summary>
+        /// <value>
+        /// The name of the set.
+        /// </value>
         [ConfigurationProperty("SetName", IsRequired = true, IsKey = true)]
         public string SetName
         {
@@ -22,7 +31,7 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
-        private string m_IndexPath = "";
+        private string _indexPath = "";
 
         /// <summary>
         /// The folder path of where the lucene index is stored
@@ -36,14 +45,14 @@ namespace Examine.LuceneEngine.Config
         {
             get
             {
-                if (string.IsNullOrEmpty(m_IndexPath))
-                    m_IndexPath = (string)this["IndexPath"];
+                if (string.IsNullOrEmpty(_indexPath))
+                    _indexPath = (string)this["IndexPath"];
 
-                return m_IndexPath;
+                return _indexPath;
             }
             set
             {
-                m_IndexPath = value;
+                _indexPath = value;
             }
         }
 

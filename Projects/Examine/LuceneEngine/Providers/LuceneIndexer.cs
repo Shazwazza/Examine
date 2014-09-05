@@ -61,17 +61,19 @@ namespace Examine.LuceneEngine.Providers
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
         protected LuceneIndexer(
-            IEnumerable<FieldDefinition> fieldDefinitions, 
-            FacetConfiguration facetConfiguration, 
+            IEnumerable<FieldDefinition> fieldDefinitions,             
             Lucene.Net.Store.Directory luceneDirectory, 
             Analyzer defaultAnalyzer,
+            FacetConfiguration facetConfiguration = null, 
             IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
-            : base(fieldDefinitions, facetConfiguration)
+            : base(fieldDefinitions)
         {
             InitFieldTypes(indexValueTypes ?? GetDefaultIndexValueTypes());
 
             LuceneIndexFolder = null;
             _directory = luceneDirectory;
+
+            FacetConfiguration = facetConfiguration ?? new FacetConfiguration();
 
             IndexingAnalyzer = defaultAnalyzer;
 
@@ -232,8 +234,15 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //at this point we must have an index set and we'll setup facet config for it
-            IndexSets.Instance.Sets[IndexSetName].FacetConfiguration =
-                IndexSets.Instance.Sets[IndexSetName].GetFacetConfiguration(this, FacetConfiguration);
+            //in some cases the config may have been set programatically from code, in that case we'll not 
+            //reassign based on config
+            if (IndexSets.Instance.Sets[IndexSetName].FacetConfiguration == null || IndexSets.Instance.Sets[IndexSetName].FacetConfiguration.IsEmpty)
+            {
+                IndexSets.Instance.Sets[IndexSetName].FacetConfiguration =
+                    IndexSets.Instance.Sets[IndexSetName].GetFacetConfiguration(this, FacetConfiguration);    
+            }
+            //then assign it to ourselves
+            FacetConfiguration = IndexSets.Instance.Sets[IndexSetName].FacetConfiguration;
 
             if (config["analyzer"] != null)
             {
@@ -428,6 +437,13 @@ namespace Examine.LuceneEngine.Providers
 
         #region Properties
 
+        /// <summary>
+        /// Gets the facet configuration.
+        /// </summary>
+        /// <value>
+        /// The facet configuration.
+        /// </value>
+        public FacetConfiguration FacetConfiguration { get; private set; }
 
         ///<summary>
         /// This will automatically optimize the index every 'AutomaticCommitThreshold' commits

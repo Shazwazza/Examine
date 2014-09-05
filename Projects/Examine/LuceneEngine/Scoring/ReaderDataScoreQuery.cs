@@ -17,7 +17,10 @@ namespace Examine.LuceneEngine.Scoring
 
         public ReaderDataScoreQuery(Query subQuery, Func<ICriteriaContext> contextResolver, ScoreOperation scoreOperation, ValueSourceQuery[] valSrcQueries)
             : base(subQuery, valSrcQueries)
-        {          
+        {
+            if (contextResolver == null) throw new ArgumentNullException("contextResolver");
+            if (scoreOperation == null) throw new ArgumentNullException("scoreOperation");
+
             _contextResolver = contextResolver;
             ScoreOperation = scoreOperation;
         }

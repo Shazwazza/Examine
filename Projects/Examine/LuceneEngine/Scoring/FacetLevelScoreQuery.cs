@@ -21,6 +21,8 @@ namespace Examine.LuceneEngine.Scoring
 
         protected override CustomScoreProvider GetCustomScoreProvider(IndexReader reader, ReaderData data, ScoreOperation scoreOperation, ICriteriaContext context)
         {
+            //TODO: if the FacetMap is null or empty this will ysod! Need to do something about that.
+
             return new ScoreProvider(reader, data, scoreOperation, _levels.Select(l => l.ToFacetLevel(context.FacetsLoader.FacetMap)).ToArray());
         }
 
@@ -33,6 +35,10 @@ namespace Examine.LuceneEngine.Scoring
             public ScoreProvider(IndexReader reader, ReaderData data, ScoreOperation scoreOperation, FacetLevel[] levels)
                 : base(reader)
             {
+                if (data == null) throw new ArgumentNullException("data");
+                if (scoreOperation == null) throw new ArgumentNullException("scoreOperation");
+                if (levels == null) throw new ArgumentNullException("levels");
+
                 _data = data.FacetLevels;
                 _scoreOperation = scoreOperation;
                 _levels = levels.ToDictionary(l => l.FacetId, l => l.Level);

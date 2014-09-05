@@ -44,14 +44,14 @@ namespace Examine.Web.Demo
             //This is how to create a config from code. This allows your own termfacetextractors to be used.
             //Note that this must be added to index sets BEFORE ExamineManager.Instance is accessed.
 
-            var indexSet = IndexSets.Instance.Sets["Simple2IndexSet"];
-            //Here a facet extractor is configured from code
-            var config = indexSet.FacetConfiguration = indexSet.FacetConfiguration ?? new FacetConfiguration();
-            config.FacetExtractors.Add(new TermFacetExtractor("CustomDocField"));
-            config.FacetExtractors.Add(new TermFacetExtractor("RefFacet", valuesAreReferences: true));
+            //var indexSet = IndexSets.Instance.Sets["Simple2IndexSet"];
+            ////Here a facet extractor is configured from code
+            //var config = indexSet.FacetConfiguration = indexSet.FacetConfiguration ?? new FacetConfiguration();
+            //config.FacetExtractors.Add(new TermFacetExtractor("CustomDocField"));
+            //config.FacetExtractors.Add(new TermFacetExtractor("RefFacet", valuesAreReferences: true));
 
-            //Attach in-memory objects to lucene documents for scoring on rapidly changing data.
-            config.ExternalDataProvider = new TestExternalDataProvider();
+            ////Attach in-memory objects to lucene documents for scoring on rapidly changing data.
+            //config.ExternalDataProvider = new TestExternalDataProvider();
 
 
             //And we're ready.

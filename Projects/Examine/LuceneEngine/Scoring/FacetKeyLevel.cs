@@ -13,6 +13,8 @@ namespace Examine.LuceneEngine.Scoring
 
         public FacetKeyLevel(FacetKey key, float level)
         {
+            if (key == null) throw new ArgumentNullException("key");
+
             Key = key;
             Level = level;
         }
@@ -25,6 +27,8 @@ namespace Examine.LuceneEngine.Scoring
 
         public FacetLevel ToFacetLevel(FacetMap map)
         {
+            if (map == null) throw new ArgumentNullException("map");
+
             return new FacetLevel {FacetId = map.GetIndex(Key), Level = Level};
         }
     }

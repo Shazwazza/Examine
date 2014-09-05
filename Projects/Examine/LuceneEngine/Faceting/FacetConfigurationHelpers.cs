@@ -6,8 +6,7 @@ using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    //TODO: Facets will not be enabled via configuration? Currently it will work but should we?
-
+    
     internal static class FacetConfigurationHelpers
     {
         /// <summary>
