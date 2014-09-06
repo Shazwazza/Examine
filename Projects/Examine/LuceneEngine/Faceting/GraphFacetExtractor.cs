@@ -10,12 +10,12 @@ namespace Examine.LuceneEngine.Faceting
     {
         private readonly IFacetGraph _graph;
 
-        public Func<float, int, float> DistanceScorer { get; set; }
+        public Func<float, int, float> DistanceScorer { get; private set; }
 
         public GraphFacetExtractor(string fieldName, IFacetGraph graph, Func<float, int, float> distanceScorer = null)
             : base(fieldName)
         {
-            DistanceScorer = DistanceScorer ?? ((level, distance) => level / distance);
+            DistanceScorer = distanceScorer ?? ((level, distance) => level / distance);
             _graph = graph;
         }
 
@@ -39,13 +39,7 @@ namespace Examine.LuceneEngine.Faceting
             {
                 if( !seen.Contains(parent)) //The hashset is used to avoid infinte recursion
                 {
-                    yield return new DocumentFacet
-                        {
-                            DocumentId = docId,
-                            Key = parent,
-                            Level = DistanceScorer(level, distance + 1),
-                            TermBased = false
-                        };
+                    yield return new DocumentFacet(docId, false, parent, DistanceScorer(level, distance + 1));
 
                     foreach( var df in ExpandKey(docId, parent, level, distance + 1, seen))
                     {

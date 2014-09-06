@@ -15,57 +15,6 @@ using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine
 {
-    public class LuceneSearchResult : SearchResult
-    {
-
-        public LuceneSearchResult(ILuceneSearchResults results)
-            : base()
-        {
-            Results = results;
-        }
-
-        [ScriptIgnore]
-        ILuceneSearchResults Results { get; set; }
-
-        internal Document Document { get; set; }
-
-        internal int DocId { get; set; }
-
-        public FacetLevel[] Facets { get; set; }
-
-
-        /// <summary>
-        /// How many times this document is used as a facet in the search results or facet count basis (SearchOptions.FacetReferenceCountBasis).
-        /// </summary>
-        public FacetReferenceCount[] FacetCounts { get; set; }
-
-        public string GetHighlight(string fieldName)
-        {
-            if (Results != null && Results.Highlighters != null)
-            {
-                List<Func<LuceneSearchResult, string>> hls;
-                if (Results.Highlighters.TryGetValue(fieldName, out hls))
-                {
-                    return hls.Select(hl => hl(this)).FirstOrDefault(r => !string.IsNullOrWhiteSpace(r));
-                }
-            }
-
-
-            return null;
-        }
-    }
-
-    public interface ILuceneSearchResults : ISearchResults<LuceneSearchResult>
-    {
-        FacetCounts FacetCounts { get; }
-
-        IDictionary<string, List<Func<LuceneSearchResult, string>>> Highlighters { get; }
-
-        ICriteriaContext CriteriaContext { get; }
-
-        IEnumerable<LuceneSearchResult> Skip(int skip);
-    }
-
     /// <summary>
     /// An implementation of the search results returned from Lucene.Net
     /// </summary>
@@ -84,9 +33,9 @@ namespace Examine.LuceneEngine
         [ScriptIgnore]
         public ICriteriaContext CriteriaContext
         {
-            
+
             get;
-            
+
             private set;
         }
 
@@ -115,9 +64,9 @@ namespace Examine.LuceneEngine
 
         public IDictionary<string, List<Func<LuceneSearchResult, string>>> Highlighters { get; private set; }
 
-            //private ScoreD
+        //private ScoreD
 
-        
+
         internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, ICriteriaContext searcherContext, SearchOptions options)
         {
             LuceneQuery = query;
@@ -129,7 +78,7 @@ namespace Examine.LuceneEngine
                 new Dictionary<string, List<Func<LuceneSearchResult, string>>>(StringComparer.InvariantCultureIgnoreCase);
         }
 
-        
+
         private void DoSearch(Query query, IEnumerable<SortField> sortField, SearchOptions options)
         {
             _options = options;
@@ -163,7 +112,7 @@ namespace Examine.LuceneEngine
 
             var topDocsCollector =
                 sortFields.Any()
-                    ? (TopDocsCollector) TopFieldCollector.create(
+                    ? (TopDocsCollector)TopFieldCollector.create(
                         new Sort(sortFields.ToArray()), count, false, false, false, false)
                     : TopScoreDocCollector.create(count, true);
 
@@ -214,36 +163,30 @@ namespace Examine.LuceneEngine
                 id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
             }
             var readerData = CriteriaContext.GetDocumentData(docId);
-            var sr = new LuceneSearchResult(this)
-            {
-                LongId = long.Parse(id),
-                DocId = docId,
-                Score = score,
-                Facets = readerData != null && readerData.Data.FacetLevels != null
-                                            ? readerData.Data.FacetLevels[readerData.SubDocument] : _noFacets,
-                Document = doc
-            };
 
-            if ( _options.CountFacetReferences)
-            {
+            var longId = long.Parse(id);
 
-                if (_options.CountFacets || _options.FacetReferenceCountBasis != null)
+            FacetReferenceCount[] facetCount = null;
+            if ( _options.CountFacetReferences && (_options.CountFacets || _options.FacetReferenceCountBasis != null))
+            {
+                var counts = _options.FacetReferenceCountBasis ?? FacetCounts;
+                FacetReferenceInfo[] info;
+                if (counts.FacetMap.TryGetReferenceInfo(longId, out info))
                 {
-                    var counts = _options.FacetReferenceCountBasis ?? FacetCounts;
-                    FacetReferenceInfo[] info;
-                    if (counts.FacetMap.TryGetReferenceInfo(sr.LongId, out info))
-                    {
-                        sr.FacetCounts =
-                            info.Select(i => new FacetReferenceCount(i.FieldName, counts.Counts[i.Id])).ToArray();
-                    }
-                    else
-                    {
-                        sr.FacetCounts = new FacetReferenceCount[0];
-                    }
+                    facetCount =
+                        info.Select(i => new FacetReferenceCount(i.FieldName, counts.Counts[i.Id])).ToArray();
+                }
+                else
+                {
+                    facetCount = new FacetReferenceCount[0];
                 }
             }
 
-
+            var sr = new LuceneSearchResult(this, long.Parse(id),
+                readerData != null && readerData.Data.FacetLevels != null
+                    ? readerData.Data.FacetLevels[readerData.SubDocument] : _noFacets,
+                facetCount, docId, doc, score);
+            
             //we can use lucene to find out the fields which have been stored for this particular document
             //I'm not sure if it'll return fields that have null values though
             var fields = doc.GetFields();
@@ -315,6 +258,6 @@ namespace Examine.LuceneEngine
 
         #endregion
 
-        
+
     }
 }

@@ -201,6 +201,7 @@
     <Compile Include="LuceneEngine\Faceting\FacetKey.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetLevel.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetMap.cs" />
+    <Compile Include="LuceneEngine\Faceting\FacetReferenceInfo.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetReferenceKey.cs" />
     <Compile Include="LuceneEngine\Faceting\FacetsLoader.cs" />
     <Compile Include="LuceneEngine\Faceting\GraphFacetExtractor.cs" />
@@ -217,6 +218,7 @@
     <Compile Include="LuceneEngine\Faceting\TermFacetPathExtractor.cs" />
     <Compile Include="LuceneEngine\FieldIndexTypes.cs" />
     <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
+    <Compile Include="LuceneEngine\ILuceneSearchResults.cs" />
     <Compile Include="LuceneEngine\Indexing\Analyzers\LowercaseAccentRemovingWhitespaceAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\Analyzers\PrefixAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\Analyzers\PrefixFilter.cs" />
@@ -244,6 +246,7 @@
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
     <Compile Include="LuceneEngine\IValueSetService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
+    <Compile Include="LuceneEngine\LuceneSearchResult.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
     <Compile Include="IndexItem.cs" />
     <Compile Include="IndexOperation.cs" />

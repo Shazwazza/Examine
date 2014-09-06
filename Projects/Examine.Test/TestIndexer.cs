@@ -21,8 +21,8 @@ namespace Examine.Test
         {
         }
 
-        public TestIndexer(Directory luceneDirectory, Analyzer defaultAnalyzer)
-            : base(new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer)
+        public TestIndexer(Directory luceneDirectory, Analyzer defaultAnalyzer, FacetConfiguration facetConfiguration = null)
+            : base(new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer, facetConfiguration)
         {
         }
 

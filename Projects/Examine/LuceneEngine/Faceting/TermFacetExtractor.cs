@@ -6,6 +6,7 @@ namespace Examine.LuceneEngine.Faceting
     public class TermFacetExtractor : IFacetExtractor
     {
         public string FieldName { get; private set; }
+
         public bool ValuesAreReferences { get; private set; }
 
         public TermFacetExtractor(string fieldName, bool valuesAreReferences = false)
@@ -55,14 +56,14 @@ namespace Examine.LuceneEngine.Faceting
         }
 
         protected virtual IEnumerable<DocumentFacet> ExpandTerm(int docId, string fieldName, string termValue, float level)
-        {            
-            yield return new DocumentFacet
-                {
-                    DocumentId = docId,
-                    Key = ValuesAreReferences ? new FacetReferenceKey(fieldName, long.Parse(termValue)) : new FacetKey(fieldName, termValue),                
-                    Level = level,
-                    TermBased = true
-                };
+        {
+            //TODO: We need to test whether or not ValuesAreReferences is true and if the termValue can actually be parsed to a long
+
+            yield return new DocumentFacet(docId, true,
+                ValuesAreReferences 
+                    ? new FacetReferenceKey(fieldName, long.Parse(termValue)) 
+                    : new FacetKey(fieldName, termValue), 
+                level);
         }
     }
 }

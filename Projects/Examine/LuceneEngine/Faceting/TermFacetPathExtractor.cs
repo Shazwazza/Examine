@@ -9,13 +9,13 @@ namespace Examine.LuceneEngine.Faceting
     /// </summary>
     public class TermFacetPathExtractor : TermFacetExtractor
     {
-        public string Separator { get; set; }
-        public Func<float, int, float> DistanceScorer { get; set; }
+        public string Separator { get; private set; }
+        public Func<float, int, float> DistanceScorer { get; private set; }
 
         public TermFacetPathExtractor(string fieldName, string separator = "/", Func<float, int, float> distanceScorer = null) : base(fieldName)
         {
             Separator = separator;
-            DistanceScorer = DistanceScorer ?? ((level, distance) => level / distance);
+            DistanceScorer = distanceScorer ?? ((level, distance) => level / distance);
         }
 
         protected override IEnumerable<DocumentFacet> ExpandTerm(int docId, string fieldName, string termValue, float level)
@@ -29,13 +29,8 @@ namespace Examine.LuceneEngine.Faceting
                 if (sb.Length > 0) sb.Append(Separator);
                 sb.Append(p);
 
-                yield return new DocumentFacet
-                {
-                    DocumentId = docId,
-                    Key = new FacetKey(fieldName, sb.ToString()),
-                    Level = level/distance,
-                    TermBased = false
-                };
+                yield return new DocumentFacet(docId, false, new FacetKey(fieldName, sb.ToString()), level/distance);
+
                 --distance;
             }                      
         }

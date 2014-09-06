@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.DataStructures;
+using Lucene.Net.Documents;
 
 namespace Examine.LuceneEngine.Faceting
 {
@@ -9,7 +10,7 @@ namespace Examine.LuceneEngine.Faceting
     {
         public static int GrowFactor = 2048;
         
-        public LittleBigArray Counts { get; private set; }
+        internal LittleBigArray Counts { get; private set; }
 
         public FacetMap FacetMap { get; private set; }
 
@@ -37,7 +38,7 @@ namespace Examine.LuceneEngine.Faceting
             var index = FacetMap.GetIndex(key);
             return index > -1 && index < Counts.Length ? Counts[index] : 0;
         }
-
+        
         public IEnumerable<FacetCount> GetTopFacets(int count, params string[] fieldNames)
         {
             var facets = fieldNames.IsNullOrEmpty() ? GetNonEmpty()
