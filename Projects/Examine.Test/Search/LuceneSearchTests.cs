@@ -91,6 +91,7 @@ namespace Examine.Test.Search
                 var criteria = searcher.CreateCriteria();
                 var filter = criteria
                     //NOTE: This is optional, it is true by default!
+                    //TODO: Should we change this to false by default?? I think so
                     .CountFacets(true)
                     .Field("description", "hello");
                 
@@ -111,28 +112,71 @@ namespace Examine.Test.Search
                 Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "2mp").Count);
                 Assert.AreEqual(2, results.FacetCounts.Single(x => x.Key.Value == "12mp").Count);
 
-                if (results.FacetCounts != null)
-                {
-                    Console.WriteLine(" :: FACETS");
-                    foreach (var fc in results.FacetCounts)
-                    {
-                        Console.WriteLine(fc.Key + " : " + fc.Count);
-                    }
-                }
+                DebutOutputResults(results);
+            }
+        }
 
-                foreach (var result in results)
-                {
+        [Test]
+        public void Can_Count_Facets_Refs()
+        {
+            //TODO: I'm not sure about passing the facet config into the indexer on ctor? 
+            // in theory shouldn't we be able to specify this config when we search?
 
-                    Console.WriteLine(" :: RESULT :: " + result.GetHighlight("description"));
-                    if (result.FacetCounts != null)
-                    {
-                        foreach (var fc in result.FacetCounts)
-                        {
-                            Console.WriteLine(fc.FieldName + " : " + fc.Count);
-                        }
-                    }    
-                }
+            var config = new FacetConfiguration();
+            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
+            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
 
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer, config))
+            using (SearcherContextCollection.Instance)
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { description = "hello world", manufacturer = "Canon", resolution = "2MP" }),
+                    new ValueSet(2, "content",
+                        new { description = "hello something or other", manufacturer = "Sony", resolution = "4MP" }),
+                    new ValueSet(3, "content",
+                        new { description = "hello you guys", manufacturer = "Nikon", resolution = "12MP" }),
+                    new ValueSet(4, "content",
+                        new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP" }),
+                    new ValueSet(5, "content",
+                        new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateCriteria();
+                var filter = criteria
+                    //NOTE: This is optional, it is true by default!
+                    //TODO: Should we change this to false by default?? I think so
+                    .CountFacets(true)
+                    //NOTE: This is false by default
+                    .CountFacetReferences(true)
+                    .Field("description", "hello");
+
+                var results = searcher.Find(filter.Compile());
+
+                Assert.Fail("TODO: Find out why facet refs on each result is empty!");
+
+                //Assert.AreEqual(2, results.FacetCounts.FacetMap.FieldNames.Count());
+
+                //Assert.AreEqual(4, results.FacetCounts.Count(x => x.Key.FieldName == "manufacturer"));
+
+                //Assert.AreEqual(2, results.FacetCounts.Single(x => x.Key.Value == "canon").Count);
+                //Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "sony").Count);
+                //Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "pentax").Count);
+                //Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "nikon").Count);
+
+                //Assert.AreEqual(3, results.FacetCounts.Count(x => x.Key.FieldName == "resolution"));
+
+                //Assert.AreEqual(2, results.FacetCounts.Single(x => x.Key.Value == "4mp").Count);
+                //Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "2mp").Count);
+                //Assert.AreEqual(2, results.FacetCounts.Single(x => x.Key.Value == "12mp").Count);
+
+                DebutOutputResults(results);
             }
         }
 
@@ -177,6 +221,71 @@ namespace Examine.Test.Search
             }
         }
 
+        [Test]
+        public void Facet_Count_On_Result_Is_Null_When_Disabled()
+        {
+            var config = new FacetConfiguration();
+            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
+            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
 
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer, config))
+            using (SearcherContextCollection.Instance)
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { description = "hello world", manufacturer = "Canon", resolution = "2MP" }),
+                    new ValueSet(2, "content",
+                        new { description = "hello something or other", manufacturer = "Sony", resolution = "4MP" }),
+                    new ValueSet(3, "content",
+                        new { description = "hello you guys", manufacturer = "Nikon", resolution = "12MP" }),
+                    new ValueSet(4, "content",
+                        new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP" }),
+                    new ValueSet(5, "content",
+                        new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateCriteria();
+                var filter = criteria
+                    //NOTE: This is false by default!
+                    .CountFacetReferences(false)
+                    .Field("description", "hello");
+
+                var results = searcher.Find(filter.Compile());
+
+                Assert.IsNull(results.First().FacetCounts);
+            }
+        }
+
+        private void DebutOutputResults(ILuceneSearchResults results)
+        {
+
+            if (results.FacetCounts != null)
+            {
+                Console.WriteLine(" :: FACETS");
+                foreach (var fc in results.FacetCounts)
+                {
+                    Console.WriteLine(fc.Key + " : " + fc.Count);
+                }
+            }
+
+            foreach (var result in results)
+            {
+
+                Console.WriteLine(" :: RESULT :: " + result.GetHighlight("description"));
+                if (result.FacetCounts != null)
+                {
+                    foreach (var fc in result.FacetCounts)
+                    {
+                        Console.WriteLine(fc.FieldName + " : " + fc.Count);
+                    }
+                }
+            }
+        }
     }
 }
