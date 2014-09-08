@@ -194,6 +194,75 @@ namespace Examine.Test.Search
             }
         }
 
+        [Test]
+        public void Search_By_Facet_Filter()
+        {           
+            var config = new FacetConfiguration();
+            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
+            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
+            config.FacetExtractors.Add(new TermFacetExtractor("similar", true));
+            config.FacetExtractors.Add(new TermFacetExtractor("recommended", true));
+
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer, config))
+            using (SearcherContextCollection.Instance)
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { description = "hello world", manufacturer = "Canon", resolution = "2MP", similar = 5F, recommended = 5F }),
+                    new ValueSet(2, "content",
+                        new { description = "hello something or other", manufacturer = "Sony", resolution = "4MP", similar = 4F }),
+                    new ValueSet(3, "content",
+                        new { description = "hello you guys", manufacturer = "Nikon", resolution = "12MP", similar = 5F }),
+                    new ValueSet(4, "content",
+                        new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP", similar = 2F }),
+                    new ValueSet(5, "content",
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("description", "hi there, hello world"),
+                            new KeyValuePair<string, object>("manufacturer", "Canon"),
+                            new KeyValuePair<string, object>("resolution", "12MP"),
+                            new KeyValuePair<string, object>("similar", 1F),
+                            new KeyValuePair<string, object>("similar", 3F)
+                        }),
+                    new ValueSet(6, "content",
+                        new { description = "hello, yo, whats up", manufacturer = "Pentax", resolution = "4MP" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateCriteria();
+                var filter = criteria
+                    .CountFacets(true)
+                    .CountFacetReferences(true)
+                    .Facets(new FacetKey("manufacturer", "canon"));
+
+                var results = searcher.Find(filter.Compile());
+
+                DebutOutputResults(results);
+
+                Assert.AreEqual(2, results.TotalItemCount);
+
+                Assert.AreEqual(4, results.FacetCounts.FacetMap.FieldNames.Count());
+
+                Assert.AreEqual(4, results.FacetCounts.Count(x => x.Key.FieldName == "manufacturer"));
+
+                Assert.AreEqual(2, results.FacetCounts.Single(x => x.Key.Value == "canon").Count);
+                Assert.AreEqual(0, results.FacetCounts.Single(x => x.Key.Value == "sony").Count);
+                Assert.AreEqual(0, results.FacetCounts.Single(x => x.Key.Value == "pentax").Count);
+                Assert.AreEqual(0, results.FacetCounts.Single(x => x.Key.Value == "nikon").Count);
+
+                Assert.AreEqual(3, results.FacetCounts.Count(x => x.Key.FieldName == "resolution"));
+
+                Assert.AreEqual(0, results.FacetCounts.Single(x => x.Key.Value == "4mp").Count);
+                Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "2mp").Count);
+                Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "12mp").Count);
+            }
+        }
+
 
         [Test]
         public void Facet_Count_Is_Null_When_Disabled()
