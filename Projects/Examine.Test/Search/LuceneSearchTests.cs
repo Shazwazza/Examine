@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Config;
@@ -90,8 +91,6 @@ namespace Examine.Test.Search
 
                 var criteria = searcher.CreateCriteria();
                 var filter = criteria
-                    //NOTE: This is optional, it is true by default!
-                    //TODO: Should we change this to false by default?? I think so
                     .CountFacets(true)
                     .Field("description", "hello");
                 
@@ -121,10 +120,14 @@ namespace Examine.Test.Search
         {
             //TODO: I'm not sure about passing the facet config into the indexer on ctor? 
             // in theory shouldn't we be able to specify this config when we search?
+            // NOTE: Turns out facet information get's 'warmed' up on the searcher so needs to happen early i think, but 
+            // i think it can also re-warm?
 
             var config = new FacetConfiguration();
             config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
             config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
+            config.FacetExtractors.Add(new TermFacetExtractor("similar", true));
+            config.FacetExtractors.Add(new TermFacetExtractor("recommended", true));
 
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
@@ -133,15 +136,24 @@ namespace Examine.Test.Search
             {
                 indexer.IndexItems(
                     new ValueSet(1, "content",
-                        new { description = "hello world", manufacturer = "Canon", resolution = "2MP" }),
+                        new { description = "hello world", manufacturer = "Canon", resolution = "2MP", similar = 5F, recommended = 5F }),
                     new ValueSet(2, "content",
-                        new { description = "hello something or other", manufacturer = "Sony", resolution = "4MP" }),
+                        new { description = "hello something or other", manufacturer = "Sony", resolution = "4MP", similar = 4F }),
                     new ValueSet(3, "content",
-                        new { description = "hello you guys", manufacturer = "Nikon", resolution = "12MP" }),
+                        new { description = "hello you guys", manufacturer = "Nikon", resolution = "12MP", similar = 5F }),
                     new ValueSet(4, "content",
-                        new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP" }),
+                        new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP", similar = 2F }),
                     new ValueSet(5, "content",
-                        new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
+                        new []
+                        {
+                            new KeyValuePair<string, object>("description", "hi there, hello world"),
+                            new KeyValuePair<string, object>("manufacturer", "Canon"),
+                            new KeyValuePair<string, object>("resolution", "12MP"),
+                            new KeyValuePair<string, object>("similar", 1F),
+                            new KeyValuePair<string, object>("similar", 3F)
+                        }),
+                    new ValueSet(6, "content",
+                        new { description = "hello, yo, whats up", manufacturer = "Pentax", resolution = "4MP" })
                     );
 
                 ExamineSession.WaitForChanges();
@@ -150,33 +162,35 @@ namespace Examine.Test.Search
 
                 var criteria = searcher.CreateCriteria();
                 var filter = criteria
-                    //NOTE: This is optional, it is true by default!
-                    //TODO: Should we change this to false by default?? I think so
                     .CountFacets(true)
-                    //NOTE: This is false by default
                     .CountFacetReferences(true)
-                    .Field("description", "hello");
+                    .All();
 
                 var results = searcher.Find(filter.Compile());
 
-                Assert.Fail("TODO: Find out why facet refs on each result is empty!");
-
-                //Assert.AreEqual(2, results.FacetCounts.FacetMap.FieldNames.Count());
-
-                //Assert.AreEqual(4, results.FacetCounts.Count(x => x.Key.FieldName == "manufacturer"));
-
-                //Assert.AreEqual(2, results.FacetCounts.Single(x => x.Key.Value == "canon").Count);
-                //Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "sony").Count);
-                //Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "pentax").Count);
-                //Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "nikon").Count);
-
-                //Assert.AreEqual(3, results.FacetCounts.Count(x => x.Key.FieldName == "resolution"));
-
-                //Assert.AreEqual(2, results.FacetCounts.Single(x => x.Key.Value == "4mp").Count);
-                //Assert.AreEqual(1, results.FacetCounts.Single(x => x.Key.Value == "2mp").Count);
-                //Assert.AreEqual(2, results.FacetCounts.Single(x => x.Key.Value == "12mp").Count);
-
                 DebutOutputResults(results);
+
+                //doc #1 has 1 doc ref by 1 facet
+                Assert.AreEqual(1, results.Single(x => x.LongId == 1F).FacetCounts.Count());
+                Assert.AreEqual(1, results.Single(x => x.LongId == 1F).FacetCounts.First().Count);
+                //doc #2 has 1 doc ref by 1 facet
+                Assert.AreEqual(1, results.Single(x => x.LongId == 2F).FacetCounts.Count());
+                Assert.AreEqual(1, results.Single(x => x.LongId == 2F).FacetCounts.First().Count);
+                //doc #3 has 1 doc ref by 1 facet
+                Assert.AreEqual(1, results.Single(x => x.LongId == 3F).FacetCounts.Count());
+                Assert.AreEqual(1, results.Single(x => x.LongId == 3F).FacetCounts.First().Count);
+                //doc #4 has 1 doc ref by 1 facet
+                Assert.AreEqual(1, results.Single(x => x.LongId == 4F).FacetCounts.Count());
+                Assert.AreEqual(1, results.Single(x => x.LongId == 4F).FacetCounts.First().Count);
+                //doc #5 has 3 doc ref by 2 facet
+                Assert.AreEqual(2, results.Single(x => x.LongId == 5F).FacetCounts.Count());
+                Assert.AreEqual(2, results.Single(x => x.LongId == 5F).FacetCounts.Single(x => x.FieldName == "similar").Count);
+                Assert.AreEqual(1, results.Single(x => x.LongId == 5F).FacetCounts.Single(x => x.FieldName == "recommended").Count);
+                //doc #6 has 0 doc ref
+                Assert.AreEqual(0, results.Single(x => x.LongId == 6F).FacetCounts.Count());
+
+                
+
             }
         }
 

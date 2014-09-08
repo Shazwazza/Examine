@@ -35,7 +35,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         public SearchOptions()
         {
             //MaxCount = int.MaxValue;
-            CountFacets = true;
+            CountFacets = false;
+            CountFacetReferences = false;
         }
     }
 }

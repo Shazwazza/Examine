@@ -2,7 +2,7 @@
 
 namespace Examine.LuceneEngine.Cru
 {
-    public interface ISearcherWarmer
+    internal interface ISearcherWarmer
     {
         void Warm(IndexSearcher s);        
     }

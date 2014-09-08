@@ -12,7 +12,7 @@ namespace Examine.LuceneEngine.Cru
     /// <summary>
     /// Near real time manager
     /// </summary>
-    public class NrtManager : IDisposable
+    internal class NrtManager : IDisposable
     {
         private const long MaxSearcherGen = long.MaxValue;
 

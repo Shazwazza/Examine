@@ -26,12 +26,12 @@ namespace Examine.LuceneEngine.Cru
         /// <summary>
         /// Returns the near real time manager
         /// </summary>
-        public NrtManager Manager { get; private set; }
+        internal NrtManager Manager { get; private set; }
 
         /// <summary>
         /// Returns the PerFieldAnalyzerWrapper
         /// </summary>
-        public PerFieldAnalyzerWrapper Analyzer { get; private set; }
+        internal PerFieldAnalyzerWrapper Analyzer { get; private set; }
 
         /// <summary>
         /// Returns the FacetsLoader
@@ -159,7 +159,7 @@ namespace Examine.LuceneEngine.Cru
         /// Returns a new searcher (ensure it's disposed!)
         /// </summary>
         /// <returns></returns>
-        public SearcherManager.IndexSearcherToken GetSearcher()
+        internal SearcherManager.IndexSearcherToken GetSearcher()
         {
             return Manager.GetSearcherManager().Acquire();
         }

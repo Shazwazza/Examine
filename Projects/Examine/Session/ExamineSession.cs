@@ -30,7 +30,7 @@ namespace Examine.Session
         /// <remarks>
         /// This is called only when NrtManager.Tracker property is set to use this delegate
         /// </remarks>
-        public static void TrackGeneration(NrtManager manager, long generation)
+        internal static void TrackGeneration(NrtManager manager, long generation)
         {
             CurrentGeneration.Instance[manager] = generation;
         }
@@ -50,7 +50,7 @@ namespace Examine.Session
         /// Waits for any outstanding operations to finish for the specified NrtManager
         /// </summary>
         /// <param name="manager"></param>
-        public static void WaitForChanges(NrtManager manager)
+        internal static void WaitForChanges(NrtManager manager)
         {
             long generation;
             if (CurrentGeneration.Instance.TryGetValue(manager, out generation))

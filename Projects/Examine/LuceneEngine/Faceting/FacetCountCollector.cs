@@ -5,25 +5,24 @@ using Lucene.Net.Search;
 namespace Examine.LuceneEngine.Faceting
 {
     
-    public class FacetCountCollector : IndexReaderDataCollector
+    internal class FacetCountCollector : IndexReaderDataCollector
     {
-        private FacetMap _map;
         private FacetLevel[][] _levels;
+
         public FacetCounts Counts { get; private set; }
 
         /// <summary>
-        /// 
+        /// Constructor
         /// </summary>
-        /// <param name="readerDataCollection"></param>
-        /// <param name="_criteriaContext"></param>
+        /// <param name="criteriaContext"></param>
         /// <param name="inner"></param>
         /// <param name="counts">If a lot of facets are used FacetCounts can be reused from an object pool and passed to this constructor. </param>
-        public FacetCountCollector(ICriteriaContext _criteriaContext, Collector inner, FacetCounts counts = null) : base(_criteriaContext, inner)
+        public FacetCountCollector(ICriteriaContext criteriaContext, Collector inner, FacetCounts counts = null) : base(criteriaContext, inner)
         {
-            _map = _criteriaContext.FacetsLoader.FacetMap;
+            var map = criteriaContext.FacetsLoader.FacetMap;
 
             Counts = counts ?? new FacetCounts();
-            Counts.Reset(_map);            
+            Counts.Reset(map);            
         }
 
         public override void Collect(int doc)

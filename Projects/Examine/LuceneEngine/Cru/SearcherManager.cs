@@ -6,7 +6,7 @@ using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine.Cru
 {
-    public class SearcherManager : IDisposable
+    internal class SearcherManager : IDisposable
     {
         private readonly ISearcherWarmer _warmer;
 

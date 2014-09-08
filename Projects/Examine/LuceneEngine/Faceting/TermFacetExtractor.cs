@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Lucene.Net.Index;
 
@@ -57,12 +58,21 @@ namespace Examine.LuceneEngine.Faceting
 
         protected virtual IEnumerable<DocumentFacet> ExpandTerm(int docId, string fieldName, string termValue, float level)
         {
-            //TODO: We need to test whether or not ValuesAreReferences is true and if the termValue can actually be parsed to a long
+            if (ValuesAreReferences)
+            {
+                long longId;
+                if (!long.TryParse(termValue, out longId))
+                {
+                    throw new InvalidOperationException("Cannot use term value as a reference, the value must be convertable to a long data type");
+                }
 
+                yield return new DocumentFacet(docId, true,
+                    new FacetReferenceKey(fieldName, long.Parse(termValue)),
+                    level);
+            }
+            
             yield return new DocumentFacet(docId, true,
-                ValuesAreReferences 
-                    ? new FacetReferenceKey(fieldName, long.Parse(termValue)) 
-                    : new FacetKey(fieldName, termValue), 
+                new FacetKey(fieldName, termValue),
                 level);
         }
     }

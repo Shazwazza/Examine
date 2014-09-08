@@ -6,8 +6,8 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine
 {
-	
-    public class AllHitsCollector : Collector
+
+    internal class AllHitsCollector : Collector
     {
         public class AllHit
         {

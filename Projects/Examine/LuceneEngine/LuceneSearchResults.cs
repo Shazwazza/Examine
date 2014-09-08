@@ -152,6 +152,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
         /// </summary>
+        /// <param name="docId"></param>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>

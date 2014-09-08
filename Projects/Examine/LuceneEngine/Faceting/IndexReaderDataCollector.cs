@@ -3,7 +3,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    public abstract class IndexReaderDataCollector : Collector
+    internal abstract class IndexReaderDataCollector : Collector
     {
         private readonly ICriteriaContext _criteriaContext;
         protected Collector Inner { get; set; }

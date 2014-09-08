@@ -6,6 +6,8 @@ using System.Linq;
 
 namespace Examine.LuceneEngine.Faceting
 {
+    //TODO: Is this actually global for all searchers?
+
     /// <summary>
     /// Maps facets to indices. Global for all searchers.
     /// </summary>
@@ -15,11 +17,11 @@ namespace Examine.LuceneEngine.Faceting
         public List<FacetKey> Keys { get; private set; }
 
 
-        private ConcurrentDictionary<FacetKey, int> _indices = new ConcurrentDictionary<FacetKey, int>();
+        private readonly ConcurrentDictionary<FacetKey, int> _indices = new ConcurrentDictionary<FacetKey, int>();
 
-        private SortedDictionary<string, List<FacetKey>> _keysByFieldName = new SortedDictionary<string, List<FacetKey>>(StringComparer.OrdinalIgnoreCase);
+        private readonly SortedDictionary<string, List<FacetKey>> _keysByFieldName = new SortedDictionary<string, List<FacetKey>>(StringComparer.OrdinalIgnoreCase);
         
-        private ConcurrentDictionary<long, FacetReferenceInfo[]> _referenceInfo = new ConcurrentDictionary<long, FacetReferenceInfo[]>();
+        private readonly ConcurrentDictionary<long, FacetReferenceInfo[]> _referenceInfo = new ConcurrentDictionary<long, FacetReferenceInfo[]>();
 
         public FacetMap()
         {
@@ -84,7 +86,7 @@ namespace Examine.LuceneEngine.Faceting
 
         public IEnumerable<KeyValuePair<int, FacetKey>> GetByFieldNames(params string[] fieldNames)
         {
-            List<List<FacetKey>> keysList = new List<List<FacetKey>>(fieldNames.Length);
+            var keysList = new List<List<FacetKey>>(fieldNames.Length);
             lock (Keys)
             {
                 List<FacetKey> keys;

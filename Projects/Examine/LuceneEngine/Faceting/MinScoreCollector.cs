@@ -7,7 +7,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    public class MinScoreCollector : Collector
+    internal class MinScoreCollector : Collector
     {
         private readonly Collector _inner;
         private readonly float _minScore;
