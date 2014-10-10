@@ -62,7 +62,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             //This is how the lucene searcher is injected into filters.
             LateBoundSearcherContext = () => CriteriaContext;
 
-            SearchOptions = SearchOptions.Default;
+            SearchOptions = new SearchOptions();
 
             SearchIndexType = type;
             Queries.Push(new BooleanQuery());

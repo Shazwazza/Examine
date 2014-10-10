@@ -10,24 +10,7 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// Options for Lucene search
     /// </summary>
     internal class SearchOptions
-    {        
-        /// <summary>
-        /// The default options
-        /// </summary>
-        public static SearchOptions Default { get; private set; }
-
-        static SearchOptions()
-        {
-            Default = new SearchOptions();
-        }
-
-        public int MaxCount { get; set; }
-
-        public bool CountFacets { get; set; }
-
-        public bool CountFacetReferences { get; set; }
-
-        public FacetCounts FacetReferenceCountBasis { get; set; }
+    {
 
         /// <summary>
         /// Constructor
@@ -38,5 +21,15 @@ namespace Examine.LuceneEngine.SearchCriteria
             CountFacets = false;
             CountFacetReferences = false;
         }
+
+        public int MaxCount { get; set; }
+
+        public bool CountFacets { get; set; }
+
+        public bool CountFacetReferences { get; set; }
+
+        public FacetCounts FacetReferenceCountBasis { get; set; }
+
+        
     }
 }

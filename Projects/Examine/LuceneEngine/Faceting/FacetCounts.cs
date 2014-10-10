@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.DataStructures;
@@ -13,10 +14,11 @@ namespace Examine.LuceneEngine.Faceting
         internal LittleBigArray Counts { get; private set; }
 
         public FacetMap FacetMap { get; private set; }
-
-              
+        
         public void Reset(FacetMap map)
         {
+            if (map == null) throw new ArgumentNullException("map");
+
             FacetMap = map;            
             if (Counts == null || Counts.Length < map.Keys.Count)
             {
@@ -30,11 +32,16 @@ namespace Examine.LuceneEngine.Faceting
 
         public int this[FacetKey key]
         {
-            get { return GetCount(key); }
+            get
+            {
+                if (key == null) throw new ArgumentNullException("key");
+                return GetCount(key);
+            }
         }
 
         public int GetCount(FacetKey key)
         {
+            if (key == null) throw new ArgumentNullException("key");
             var index = FacetMap.GetIndex(key);
             return index > -1 && index < Counts.Length ? Counts[index] : 0;
         }

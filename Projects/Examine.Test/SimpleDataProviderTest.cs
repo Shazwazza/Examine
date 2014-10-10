@@ -110,7 +110,7 @@ namespace Examine.Test
             }
         }
 
-        public static SimpleDataIndexer GetSimpleIndexer(Lucene.Net.Store.Directory luceneDir, Analyzer analyzer, ISimpleDataService dataService)
+        public SimpleDataIndexer GetSimpleIndexer(Lucene.Net.Store.Directory luceneDir, Analyzer analyzer, ISimpleDataService dataService)
         {
             var i = new SimpleDataIndexer(new IndexCriteria(
                                                          new IIndexField[] { },
@@ -142,7 +142,7 @@ namespace Examine.Test
             return i;
         }
 
-        internal static void IndexingError(object sender, IndexingErrorEventArgs e)
+        internal void IndexingError(object sender, IndexingErrorEventArgs e)
         {
             throw new ApplicationException(e.Message, e.InnerException);
         }

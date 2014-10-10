@@ -29,64 +29,14 @@ namespace Examine.Test
         //static ctor
         static IndexInitializer()
         {
-            //set the flag to disable init check
-            BaseUmbracoIndexer.DisableInitializationCheck = true;
+            
         }
 
-        public static UmbracoContentIndexer GetUmbracoIndexer(Lucene.Net.Store.Directory luceneDir)
-        {
+        //public static UmbracoExamineSearcher GetUmbracoSearcher(Lucene.Net.Store.Directory luceneDir)
+        //{
 
-            var i = new UmbracoContentIndexer(new IndexCriteria(
-                                                         new[]
-                                                             {
-                                                                 new TestIndexField ("id", "Number", true), 
-                                                                 new TestIndexField ("nodeName", true ),
-                                                                 new TestIndexField ("updateDate", "DateTime", true), 
-                                                                 new TestIndexField ("writerName" ), 
-                                                                 new TestIndexField ("path" ), 
-                                                                 new TestIndexField ("nodeTypeAlias" ), 
-                                                                 new TestIndexField ("parentID" ),
-                                                                 new TestIndexField ("sortOrder", "Number", true),
-                                                             },
-                                                         new[]
-                                                             {
-                                                                 new TestIndexField ("headerText" ), 
-                                                                 new TestIndexField ("bodyText" ),
-                                                                 new TestIndexField ("metaDescription" ), 
-                                                                 new TestIndexField ("metaKeywords" ), 
-                                                                 new TestIndexField ("bodyTextColOne" ), 
-                                                                 new TestIndexField ("bodyTextColTwo" ), 
-                                                                 new TestIndexField ("xmlStorageTest" ),
-                                                                 new TestIndexField ("umbracoNaviHide" )
-                                                             },
-                                                         new[]
-                                                             {
-                                                                 "CWS_Home", 
-                                                                 "CWS_Textpage",
-                                                                 "CWS_TextpageTwoCol", 
-                                                                 "CWS_NewsEventsList", 
-                                                                 "CWS_NewsItem", 
-                                                                 "CWS_Gallery", 
-                                                                 "CWS_EventItem", 
-                                                                 "Image", 
-                                                             },
-                                                         new string[] { },
-                                                         -1),
-                                                         luceneDir, //custom lucene directory
-                                                         new TestDataService(),
-                                                         new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
-
-            //i.IndexSecondsInterval = 1;
-
-            i.IndexingError += IndexingError;
-
-            return i;
-        }
-        public static UmbracoExamineSearcher GetUmbracoSearcher(Lucene.Net.Store.Directory luceneDir)
-        {
-
-            return new UmbracoExamineSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
-        }
+        //    return new UmbracoExamineSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
+        //}
         
         public static LuceneSearcher GetLuceneSearcher(Lucene.Net.Store.Directory luceneDir)
         {
@@ -100,10 +50,7 @@ namespace Examine.Test
         }
 
 
-        internal static void IndexingError(object sender, IndexingErrorEventArgs e)
-        {
-            throw new ApplicationException(e.Message, e.InnerException);
-        }
+        
 
 
     }
