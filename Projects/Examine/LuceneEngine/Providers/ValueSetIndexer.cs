@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Analysis;
 using Directory = Lucene.Net.Store.Directory;
 
@@ -14,40 +17,29 @@ namespace Examine.LuceneEngine.Providers
     public class ValueSetIndexer : LuceneIndexer
     {
         /// <summary>
-        /// Constructor used for provider instantiation
+        /// Constructor to create an indexer at runtime
         /// </summary>
-        public ValueSetIndexer()
-        {            
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="indexerData"></param>
-        /// <param name="workingFolder"></param>
-        /// <param name="analyzer"></param>
+        /// <param name="fieldDefinitions"></param>
+        /// <param name="facetConfiguration"></param>
+        /// <param name="dataService"></param>
         /// <param name="indexTypes"></param>
-        /// <param name="valueSetService"></param>
-        public ValueSetIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer,
-            IEnumerable<string> indexTypes, IValueSetService valueSetService) : base(indexerData, workingFolder, analyzer)
-        {
-            IndexTypes = indexTypes;
-            DataService = valueSetService;
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="indexerData"></param>
         /// <param name="luceneDirectory"></param>
-        /// <param name="analyzer"></param>
-        /// <param name="indexTypes"></param>
-        /// <param name="valueSetService"></param>
-        public ValueSetIndexer(IIndexCriteria indexerData, Directory luceneDirectory, Analyzer analyzer, 
-            IEnumerable<string> indexTypes, IValueSetService valueSetService) : base(indexerData, luceneDirectory, analyzer)
+        /// <param name="defaultAnalyzer">Specifies the default analyzer to use per field</param>
+        /// <param name="indexValueTypes">
+        /// Specifies the index value types to use for this indexer, if this is not specified then the result of LuceneIndexer.GetDefaultIndexValueTypes() will be used.
+        /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
+        /// </param>
+        public ValueSetIndexer(IEnumerable<FieldDefinition> fieldDefinitions,
+            IValueSetService dataService,
+            IEnumerable<string> indexTypes,
+            Directory luceneDirectory,
+            Analyzer defaultAnalyzer,
+            FacetConfiguration facetConfiguration = null,
+            IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
+            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, facetConfiguration, indexValueTypes)
         {
+            DataService = dataService;
             IndexTypes = indexTypes;
-            DataService = valueSetService;
         }
 
         /// <summary>
@@ -73,32 +65,5 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-
-        /// <summary>
-        /// Initializes the provider from the config
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="config"></param>
-        public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
-        {
-            base.Initialize(name, config);
-
-            if (config["indexTypes"] == null || string.IsNullOrEmpty(config["indexTypes"]))
-            {
-                throw new ArgumentNullException("The indexTypes property must be specified for the SimpleDataIndexer provider");
-            }
-            IndexTypes = config["indexTypes"].Split(',');
-
-            if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
-            {
-                //this should be a fully qualified type
-                var serviceType = Type.GetType(config["dataService"]);
-                DataService = (IValueSetService)Activator.CreateInstance(serviceType);
-            }
-            else
-            {
-                throw new ArgumentNullException("The dataService property must be specified for the SimpleDataIndexer provider");
-            }
-        }
     }
 }

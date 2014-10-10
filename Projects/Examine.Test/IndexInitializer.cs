@@ -87,37 +87,7 @@ namespace Examine.Test
 
             return new UmbracoExamineSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
         }
-        public static SimpleDataIndexer GetSimpleIndexer(Lucene.Net.Store.Directory luceneDir)
-        {
-            var i = new SimpleDataIndexer(new IndexCriteria(
-                                                         new IIndexField[] { },
-                                                         new[]
-                                                             {
-                                                                 new TestIndexField ("Author"), 
-                                                                 new TestIndexField ("DateCreated", "DateTime", true),
-                                                                 new TestIndexField ("Title" ), 
-                                                                 new TestIndexField ("Photographer" ), 
-                                                                 new TestIndexField ("YearCreated", "Date.Year" ), 
-                                                                 new TestIndexField ("MonthCreated", "Date.Month"), 
-                                                                 new TestIndexField ("DayCreated", "Date.Day" ),
-                                                                 new TestIndexField ("HourCreated", "Date.Hour" ),
-                                                                 new TestIndexField ("MinuteCreated", "Date.Minute" ),
-                                                                 new TestIndexField ("SomeNumber", "Number" ),
-                                                                 new TestIndexField ("SomeFloat", "Float" ),
-                                                                 new TestIndexField ("SomeDouble", "Double" ),
-                                                                 new TestIndexField ("SomeLong", "Long" )
-                                                             },
-                                                         new string[] { },
-                                                         new string[] { },
-                                                         -1),
-                                                         luceneDir,
-                                                         new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
-                                                         new TestSimpleDataProvider(),
-                                                         new[] { "Documents", "Pictures" });
-            i.IndexingError += IndexingError;
-
-            return i;
-        }
+        
         public static LuceneSearcher GetLuceneSearcher(Lucene.Net.Store.Directory luceneDir)
         {
             return new LuceneSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));

@@ -81,7 +81,7 @@ namespace Examine.Providers
         /// </summary>
         /// <param name="node">XML node to reindex</param>
         /// <param name="category">Type of index to use</param>
-        [Obsolete("Use ValueSets instead")]
+        [Obsolete("Use ValueSets with IndexItems instead")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual void ReIndexNode(XElement node, string category)
         {

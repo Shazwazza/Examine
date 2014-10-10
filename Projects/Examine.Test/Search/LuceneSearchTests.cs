@@ -345,6 +345,60 @@ namespace Examine.Test.Search
             }
         }
 
+        [Test]
+        public void Can_Highlight_Results()
+        {
+            //TODO: I'm not sure about passing the facet config into the indexer on ctor? 
+            // in theory shouldn't we be able to specify this config when we search?
+
+            var config = new FacetConfiguration();
+            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
+            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
+
+            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer, config))
+            using (SearcherContextCollection.Instance)
+            {
+                indexer.IndexItems(
+                    new ValueSet(1, "content",
+                        new { description = "hello world", manufacturer = "Canon", resolution = "2MP" }),
+                    new ValueSet(2, "content",
+                        new { description = "hello something or other", manufacturer = "Sony", resolution = "4MP" }),
+                    new ValueSet(3, "content",
+                        new { description = "hello you guys", manufacturer = "Nikon", resolution = "12MP" }),
+                    new ValueSet(4, "content",
+                        new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP" }),
+                    new ValueSet(5, "content",
+                        new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
+                    );
+
+                ExamineSession.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateCriteria();
+                var filter = criteria
+                    .CountFacets(true)
+                    .Field("description", "hello");
+
+                var results = searcher.Find(filter.Compile());
+                
+                 //:: RESULT :: <em>hello</em> world
+                Assert.IsTrue(results.ElementAt(0).GetHighlight("description").Contains("<em>hello</em>"));
+                //:: RESULT :: <em>hello</em> something or other
+                Assert.IsTrue(results.ElementAt(1).GetHighlight("description").Contains("<em>hello</em>"));
+                //:: RESULT :: <em>hello</em> you guys
+                Assert.IsTrue(results.ElementAt(2).GetHighlight("description").Contains("<em>hello</em>"));
+                //:: RESULT :: <em>hello</em> you cruel world
+                Assert.IsTrue(results.ElementAt(3).GetHighlight("description").Contains("<em>hello</em>"));
+                //:: RESULT :: hi there, <em>hello</em> world
+                Assert.IsTrue(results.ElementAt(4).GetHighlight("description").Contains("<em>hello</em>"));
+                
+                DebutOutputResults(results);
+            }
+        }
+
         private void DebutOutputResults(ILuceneSearchResults results)
         {
 
