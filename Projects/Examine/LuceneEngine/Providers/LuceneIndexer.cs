@@ -311,24 +311,24 @@ namespace Examine.LuceneEngine.Providers
             return new Dictionary<string, Func<string, IIndexValueType>>
             {
                 {"number", name => new Int32Type(name)},
-                {"int", name => new Int32Type(name)},
-                {"float", name => new SingleType(name)},
-                {"double", name => new DoubleType(name)},
-                {"long", name => new Int64Type(name)},
+                {FieldDefinitionTypes.Integer.ToLowerInvariant(), name => new Int32Type(name)},
+                {FieldDefinitionTypes.Float.ToLowerInvariant(), name => new SingleType(name)},
+                {FieldDefinitionTypes.Double.ToLowerInvariant(), name => new DoubleType(name)},
+                {FieldDefinitionTypes.Long.ToLowerInvariant(), name => new Int64Type(name)},
                 {"date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {"datetime", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {"date.year", name => new DateTimeType(name, DateTools.Resolution.YEAR)},
-                {"date.month", name => new DateTimeType(name, DateTools.Resolution.MONTH)},
-                {"date.day", name => new DateTimeType(name, DateTools.Resolution.DAY)},
-                {"date.hour", name => new DateTimeType(name, DateTools.Resolution.HOUR)},
-                {"date.minute", name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
-                {"raw", name => new RawStringType(name)},
-                {"rawfacet", name => new FacetType(name)},
-                {"facet", name => new FacetType(name).SetSeparator(",")},
-                {"facetpath", name => new FacetType(name, extractorFactory: () => new TermFacetPathExtractor(name)).SetSeparator(",")},
-                {"autosuggest", name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() }},
-                {"fulltext", name => new FullTextType(name) { ValueFilter = new HtmlFilter() }},
-                {"fulltextsortable", name => new FullTextType(name, true) { ValueFilter = new HtmlFilter() }}
+                {FieldDefinitionTypes.DateTime.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateYear.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.YEAR)},
+                {FieldDefinitionTypes.DateMonth.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MONTH)},
+                {FieldDefinitionTypes.DateDay.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.DAY)},
+                {FieldDefinitionTypes.DateHour.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.HOUR)},
+                {FieldDefinitionTypes.DateMinute.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
+                {FieldDefinitionTypes.Raw.ToLowerInvariant(), name => new RawStringType(name)},
+                {FieldDefinitionTypes.RawFacet.ToLowerInvariant(), name => new FacetType(name)},
+                {FieldDefinitionTypes.Facet.ToLowerInvariant(), name => new FacetType(name).SetSeparator(",")},
+                {FieldDefinitionTypes.FacetPath.ToLowerInvariant(), name => new FacetType(name, extractorFactory: () => new TermFacetPathExtractor(name)).SetSeparator(",")},
+                {FieldDefinitionTypes.AutoSuggest.ToLowerInvariant(), name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() }},
+                {FieldDefinitionTypes.FullText.ToLowerInvariant(), name => new FullTextType(name) { ValueFilter = new HtmlFilter() }},
+                {FieldDefinitionTypes.FullTextSortable.ToLowerInvariant(), name => new FullTextType(name, true) { ValueFilter = new HtmlFilter() }}
             };
         } 
 

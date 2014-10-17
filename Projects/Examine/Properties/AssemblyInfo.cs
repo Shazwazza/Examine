@@ -8,6 +8,8 @@ using Examine;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
+using Examine.Session;
+
 [assembly: AssemblyTitle("Examine")]
 [assembly: AssemblyDescription("A provider-based indexer & searcher model")]
 [assembly: AssemblyConfiguration("")]

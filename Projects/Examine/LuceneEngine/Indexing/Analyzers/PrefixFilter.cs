@@ -7,7 +7,7 @@ using Lucene.Net.Analysis.Tokenattributes;
 
 namespace Examine.LuceneEngine.Indexing.Analyzers
 {
-    public class PrefixFilter : TokenFilter
+    public sealed class PrefixFilter : TokenFilter
     {
         private TermAttribute _term;
         private OffsetAttribute _offset;

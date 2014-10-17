@@ -6,8 +6,10 @@ using System.Web;
 
 namespace Examine.Session
 {
-    //TODO: I don't think this class is thread safe! - but I'm not sure it's supposed to be?
-
+    /// <summary>
+    /// If there's an http context, this will scope an object to that lifetime
+    /// </summary>
+    /// <typeparam name="TValue"></typeparam>
     internal class RequestScoped<TValue>
     {        
         [ThreadStatic]
@@ -32,7 +34,7 @@ namespace Examine.Session
                     TValue value;                
                     if (HttpContext.Current.Items[this] == null)
                     {
-                        HttpContext.Current.Items[this] = value = _defaultValue();
+                        HttpContext.Current.Items[this] = value = _defaultValue();                        
                     }
                     else
                     {

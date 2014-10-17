@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Web;
+using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Providers;
+using Examine.Session;
 using Examine.Web.Demo.Models;
+using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
+using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Web.Demo
 {
@@ -44,6 +49,20 @@ namespace Examine.Web.Demo
 
             //Database.SetInitializer<MyDbContext>(null);
 
+            ConfigureExamine();
+        }
+
+        protected void ConfigureExamine()
+        {
+
+            var customIndexer = new ValueSetIndexer(
+                new[] {new FieldDefinition("Email", FieldDefinitionTypes.Raw)},
+                new TestDataService(), new[] {"Type1", "Type2"}, 
+                new DirectoryInfo(HostingEnvironment.MapPath("~/App_Data/RuntimeIndex1")),
+                new StandardAnalyzer(Version.LUCENE_29));
+            
+            ExamineManager.Instance.AddIndexProvider("RuntimeIndexer1", customIndexer);
+
             //This is how to create a config from code. This allows your own termfacetextractors to be used.
             //Note that this must be added to index sets BEFORE ExamineManager.Instance is accessed.
 
@@ -55,45 +74,34 @@ namespace Examine.Web.Demo
 
             ////Attach in-memory objects to lucene documents for scoring on rapidly changing data.
             //config.ExternalDataProvider = new TestExternalDataProvider();
-
-
+            
             //And we're ready.
 
             var indexer = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
-
             
-
             var r = new Random();
             //Here custom fields are written directly to the document regardsless of Examine's config
             indexer.DocumentWriting += (sender, args) =>
+            {
+                string v;
+                if (args.Fields.TryGetValue("Column1", out v))
                 {
-                    string v;
-                    if (args.Fields.TryGetValue("Column1", out v))
+                    //Here the umbraco value of a tag picker could be split into individual tags  
+                    
+                    //This is how to add a facet with level (i.e. size/importance)
+                    //Remember to use a float value. Not int.
+
+                    foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 27000)).Distinct())
                     {
-                        //Here the umbraco value of a tag picker could be split into individual tags  
-
-
-                        //This is how to add a facet with level (i.e. size/importance)
-                        //Remember to use a float value. Not int.
-
-                        foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 27000)).Distinct())
-                        {
-                            args.Document.Add(new Field("RefFacet", new ReferenceFacetValue(f)));
-                        }
-
-                        
-
-
-                        args.Document.Add(new Field("CustomDocField", new PayloadDataTokenStream(v + "_WithLevel").SetValue(.25f)));
-
-                        //Here we add a normal field
-                        args.Document.Add(new Field("CustomDocField", v + "Test2", Field.Store.NO, Field.Index.NOT_ANALYZED));
+                        args.Document.Add(new Field("RefFacet", new ReferenceFacetValue(f)));
                     }
-                };
 
+                    args.Document.Add(new Field("CustomDocField", new PayloadDataTokenStream(v + "_WithLevel").SetValue(.25f)));
 
-
-
+                    //Here we add a normal field
+                    args.Document.Add(new Field("CustomDocField", v + "Test2", Field.Store.NO, Field.Index.NOT_ANALYZED));
+                }
+            };
 
             //searcher.FacetConfiguration = new FacetConfiguration
             ////    { 

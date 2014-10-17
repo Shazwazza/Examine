@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration.Provider;
+using System.Globalization;
 using System.Linq;
 using System.Security;
 using Examine;
@@ -15,8 +16,11 @@ namespace Examine.Providers
     /// <summary>
     /// Base class for an Examine Index Provider. You must implement this class to create an IndexProvider
     /// </summary>
-    public abstract class BaseIndexProvider : ProviderBase, IIndexer, IExamineIndexer
+    public abstract class BaseIndexProvider : ProviderBase, IExamineIndexer
     {
+        /// <summary>
+        /// Gets the defined field definitions
+        /// </summary>
         public IEnumerable<FieldDefinition> FieldDefinitions { get; private set; }
         
         /// <summary>
@@ -94,6 +98,15 @@ namespace Examine.Providers
         /// <param name="nodes"></param>
         public abstract void IndexItems(params ValueSet[] nodes);
         
+        /// <summary>
+        /// Deletes a node from the index
+        /// </summary>
+        /// <param name="nodeId"></param>
+        public void DeleteFromIndex(long nodeId)
+        {
+            DeleteFromIndex(nodeId.ToString(CultureInfo.InvariantCulture));
+        }
+
         /// <summary>
         /// Deletes a node from the index
         /// </summary>

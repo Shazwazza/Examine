@@ -7,6 +7,7 @@ using System.Text;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Analysis;
+using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Providers
@@ -22,16 +23,17 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="fieldDefinitions"></param>
         /// <param name="facetConfiguration"></param>
         /// <param name="dataService"></param>
-        /// <param name="indexTypes"></param>
+        /// <param name="indexCategories"></param>
         /// <param name="luceneDirectory"></param>
         /// <param name="defaultAnalyzer">Specifies the default analyzer to use per field</param>
         /// <param name="indexValueTypes">
         /// Specifies the index value types to use for this indexer, if this is not specified then the result of LuceneIndexer.GetDefaultIndexValueTypes() will be used.
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
-        public ValueSetIndexer(IEnumerable<FieldDefinition> fieldDefinitions,
+        public ValueSetIndexer(
+            IEnumerable<FieldDefinition> fieldDefinitions,
             IValueSetService dataService,
-            IEnumerable<string> indexTypes,
+            IEnumerable<string> indexCategories,
             Directory luceneDirectory,
             Analyzer defaultAnalyzer,
             FacetConfiguration facetConfiguration = null,
@@ -39,7 +41,32 @@ namespace Examine.LuceneEngine.Providers
             : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, facetConfiguration, indexValueTypes)
         {
             DataService = dataService;
-            IndexTypes = indexTypes;
+            IndexCategories = indexCategories;
+        }
+
+        /// <summary>
+        /// Constructor to create an indexer at runtime
+        /// </summary>
+        /// <param name="fieldDefinitions"></param>
+        /// <param name="facetConfiguration"></param>
+        /// <param name="dataService"></param>
+        /// <param name="indexCategories"></param>
+        /// <param name="indexDirectory"></param>
+        /// <param name="defaultAnalyzer">Specifies the default analyzer to use per field</param>
+        /// <param name="indexValueTypes">
+        /// Specifies the index value types to use for this indexer, if this is not specified then the result of LuceneIndexer.GetDefaultIndexValueTypes() will be used.
+        /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
+        /// </param>
+        public ValueSetIndexer(
+            IEnumerable<FieldDefinition> fieldDefinitions,
+            IValueSetService dataService,
+            IEnumerable<string> indexCategories,
+            DirectoryInfo indexDirectory,
+            Analyzer defaultAnalyzer,
+            FacetConfiguration facetConfiguration = null,
+            IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
+            : this(fieldDefinitions, dataService, indexCategories, new SimpleFSDirectory(indexDirectory), defaultAnalyzer, facetConfiguration, indexValueTypes)
+        {
         }
 
         /// <summary>
@@ -48,9 +75,9 @@ namespace Examine.LuceneEngine.Providers
         public IValueSetService DataService { get; private set; }
 
         /// <summary>
-        /// A list of index types defined for this indexer
+        /// A list of index categories defined for this indexer
         /// </summary>
-        public IEnumerable<string> IndexTypes { get; private set; }
+        public IEnumerable<string> IndexCategories { get; private set; }
 
         protected override void PerformIndexAll(string category)
         {
@@ -59,7 +86,7 @@ namespace Examine.LuceneEngine.Providers
 
         protected override void PerformIndexRebuild()
         {
-            foreach (var t in IndexTypes)
+            foreach (var t in IndexCategories)
             {
                 IndexAll(t);
             }

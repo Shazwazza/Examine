@@ -8,7 +8,7 @@ using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine.Indexing.Analyzers
 {
-    public class LowercaseAccentRemovingWhitespaceAnalyzer : Analyzer
+    public sealed class LowercaseAccentRemovingWhitespaceAnalyzer : Analyzer
     {
         
         public override TokenStream TokenStream(string fieldName, TextReader tr)

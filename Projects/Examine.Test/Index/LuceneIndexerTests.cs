@@ -19,6 +19,8 @@ namespace Examine.Test.Index
     [TestFixture]
     public class LuceneIndexerTests
     {
+        //TODO: Test all field definition types
+        //TODO: Test FieldDefinition.IndexName and figure out what it does!
 
         [Test]
         public void Rebuild_Index()

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web;
+using System.Web.Configuration;
 using Examine.LuceneEngine.Faceting;
 
 namespace Examine.Web.Demo.Models
@@ -15,10 +14,5 @@ namespace Examine.Web.Demo.Models
         {            
             return new TestExternalData() { Likes = new Random((int)id).Next(0, 100000) };
         }
-    }
-
-    public class TestExternalData
-    {
-        public int Likes { get; set; }
     }
 }

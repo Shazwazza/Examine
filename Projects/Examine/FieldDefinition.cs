@@ -1,5 +1,5 @@
 ﻿namespace Examine
-{
+{    
     /// <summary>
     /// Defines a field to be indexed
     /// </summary>
@@ -42,6 +42,7 @@
         public string Type { get; private set; }
 
         //TODO: REname this to something more relavent once we figure out exactly what it is doing!
+        //TODO: Test this !!
         /// <summary>
         /// IndexName is so that you can index the same field with different analyzers
         /// </summary>
@@ -53,6 +54,6 @@
         public string IndexName
         {
             get { return _indexName ?? Name; }
-        }
+        }        
     }
 }

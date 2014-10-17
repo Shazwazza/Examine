@@ -29,7 +29,7 @@ namespace Examine.Providers
         {
             get
             {
-                return this.Cast<BaseIndexProvider>().ToArray()[index];
+                return this.ToArray()[index];
             }
         }
 
@@ -62,43 +62,17 @@ namespace Examine.Providers
             base.Add(provider);
         }
 
-        private List<BaseIndexProvider> m_List = null;
-
-        #region IEnumerable<BaseIndexProvider> Members
-
-        /// <summary>
-        /// Gets the enumerator.
-        /// </summary>
-        /// <returns></returns>
-        IEnumerator<BaseIndexProvider> IEnumerable<BaseIndexProvider>.GetEnumerator()
+        public new IEnumerator<BaseIndexProvider> GetEnumerator()
         {
-            if (m_List == null)
+            var baseEnum = base.GetEnumerator();
+            if (baseEnum != null)
             {
-                m_List = new List<BaseIndexProvider>();
-                foreach (var x in this)
+                while (baseEnum.MoveNext())
                 {
-                    m_List.Add((BaseIndexProvider)x);
-                }
+                    yield return (BaseIndexProvider)baseEnum.Current;
+                }    
             }
-            return m_List.GetEnumerator();
         }
-
-        #endregion
-
-        #region IEnumerable Members
-
-        /// <summary>
-        /// Returns an object that implements the <see cref="T:System.Collections.IEnumerator"/> interface to iterate through the collection.
-        /// </summary>
-        /// <returns>
-        /// An object that implements <see cref="T:System.Collections.IEnumerator"/> to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        #endregion
     }
 
    

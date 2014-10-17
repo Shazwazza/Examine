@@ -67,12 +67,9 @@ namespace Examine.LuceneEngine.Config
                 //TODO: Get this out of the index set. We need to use the Indexer's DataService to lookup the folder so it can be unit tested. Probably need DataServices on the searcher then too
 
                 //we need to de-couple the context
-                if (HttpContext.Current != null)
-                    return new DirectoryInfo(HttpContext.Current.Server.MapPath(this.IndexPath));
-                else if (HostingEnvironment.ApplicationID != null)
-                    return new DirectoryInfo(HostingEnvironment.MapPath(this.IndexPath));
-                else
-                    return new DirectoryInfo(this.IndexPath);
+                return HostingEnvironment.IsHosted 
+                    ? new DirectoryInfo(HostingEnvironment.MapPath(this.IndexPath)) 
+                    : new DirectoryInfo(this.IndexPath);
             }
         }
 

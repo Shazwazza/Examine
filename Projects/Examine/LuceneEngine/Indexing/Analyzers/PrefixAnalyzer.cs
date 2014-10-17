@@ -7,7 +7,7 @@ using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine.Indexing.Analyzers
 {
-    public class PrefixAnalyzer : Analyzer
+    public sealed class PrefixAnalyzer : Analyzer
     {
         private readonly Analyzer _inner;
         

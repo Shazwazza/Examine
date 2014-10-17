@@ -227,6 +227,10 @@ namespace Examine.Web.Demo.Controllers
             ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"].RebuildIndex();
             timer.Stop();
 
+            //rebuild our non-config index
+            ExamineManager.Instance.IndexProviders["RuntimeIndexer1"].RebuildIndex();
+
+
             return View(timer.Elapsed.TotalSeconds);
             //}
             //catch (Exception ex)

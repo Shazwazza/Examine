@@ -6,9 +6,9 @@ using Examine.LuceneEngine.Cru;
 
 namespace Examine.Session
 {
-
-    //TODO: I'm not sure this class is thread safe ???
-
+    /// <summary>
+    /// Tracks disposable objects per request
+    /// </summary>
     internal static class DisposableCollector
     {
         private static readonly RequestScoped<Queue<HashSet<IDisposable>>> Disposables =
@@ -18,8 +18,6 @@ namespace Examine.Session
                     q.Enqueue(new HashSet<IDisposable>());
                     return q;
                 });
-
-
 
         public static void Track(IDisposable disposable)
         {

@@ -28,6 +28,7 @@ namespace Examine.Test.Search
             DisposableCollector.Clean();
         }
 
+        //TODO: Test FieldDefinition.IndexName and figure out what it does!
         //TODO: Write tests for all 'LuceneSearch', 'LuceneQuery', 'Facets*', 'Wrap*' methods
 
         [Test]

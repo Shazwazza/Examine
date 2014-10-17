@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Examine</RootNamespace>
     <AssemblyName>Examine</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>
     </SccProjectName>
@@ -148,10 +148,11 @@
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Enforcer.cs" />
-    <Compile Include="ExamineDisposeModule.cs" />
+    <Compile Include="FieldDefinitionTypes.cs" />
+    <Compile Include="Session\ExamineDisposeModule.cs" />
     <Compile Include="FacetReferenceCount.cs" />
     <Compile Include="IExamineIndexer.cs" />
-    <Compile Include="IFieldDefinition.cs" />
+    <Compile Include="FieldDefinition.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IIndexField.cs" />
     <Compile Include="IndexCriteria.cs" />
@@ -163,7 +164,6 @@
     <Compile Include="IndexingNodeDataEventArgs.cs" />
     <Compile Include="IndexingNodeEventArgs.cs" />
     <Compile Include="IndexingNodesEventArgs.cs" />
-    <Compile Include="IIndexer.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\AllHitsCollector.cs" />

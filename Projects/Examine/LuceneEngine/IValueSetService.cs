@@ -8,6 +8,6 @@ namespace Examine.LuceneEngine
 {
     public interface IValueSetService
     {
-        IEnumerable<ValueSet> GetAllData(string type);
+        IEnumerable<ValueSet> GetAllData(string indexCategory);
     }
 }

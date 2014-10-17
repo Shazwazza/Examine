@@ -81,15 +81,15 @@ $CoreNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\Examine\*";
 Copy-Item $CoreNuSpecSource -Destination $CoreExamineFolder
 $CoreNuSpec = Join-Path -Path $CoreExamineFolder -ChildPath "Examine.nuspec";
 $NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
-& $NuGet pack $CoreNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
+& $NuGet pack $CoreNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber$PreReleaseName
 
 $AzureNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\Examine.Azure\*";
 Copy-Item $AzureNuSpecSource -Destination $ExamineAzureFolder
 $AzureNuSpec = Join-Path -Path $ExamineAzureFolder -ChildPath "Examine.Azure.nuspec";
 $NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
-& $NuGet pack $AzureNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
+& $NuGet pack $AzureNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber$PreReleaseName
 
 ""
-"Build $ReleaseVersionNumber is done!"
+"Build $ReleaseVersionNumber$PreReleaseName is done!"
 "NuGet packages also created, so if you want to push them just run:"
 "  nuget push $CoreNuSpec"

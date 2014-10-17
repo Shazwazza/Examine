@@ -136,6 +136,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\MyDbContext.cs" />
+    <Compile Include="Models\TestDataService.cs" />
+    <Compile Include="Models\TestExternalData.cs" />
     <Compile Include="Models\TestExternalDataProvider.cs" />
     <Compile Include="Models\TestModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

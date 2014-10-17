@@ -13,7 +13,8 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing.ValueTypes
 {
-    public class AutoSuggestType : IndexValueTypeBase
+    //TOOD: What does this do?
+    public sealed class AutoSuggestType : IndexValueTypeBase
     {
         private Analyzer _queryAnalyzer;
         private Analyzer _indexAnalyzer;

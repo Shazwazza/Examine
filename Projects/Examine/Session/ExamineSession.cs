@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Web;
 using Examine.LuceneEngine.Cru;
 
 namespace Examine.Session
 {
-    //TODO : I'm not sure if this is thread safe ?? - I think so because everything is done in a RequestScoped object.
-    
     /// <summary>
     /// Used by Examine classes to track the current generation of the NrtManager
     /// so that the Examine classes can specifically wait for outstanding operations to complete

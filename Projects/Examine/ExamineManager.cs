@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration.Provider;
 using System.IO;
 using System.Linq;
@@ -22,7 +24,7 @@ namespace Examine
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : ISearcher, IIndexer, IDisposable
+    public class ExamineManager : ISearcher, IDisposable, IRegisteredObject
     {
 
         private ExamineManager()
@@ -30,12 +32,13 @@ namespace Examine
             LoadProviders();
             
             AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
-                
+            HostingEnvironment.RegisterObject(this);          
         }
 
-        public static bool InstanceInitialized { get;private set; }
-
-        
+        /// <summary>
+        /// Returns true if this singleton has been initialized
+        /// </summary>
+        public static bool InstanceInitialized { get;private set; }       
 
         /// <summary>
         /// Singleton
@@ -52,6 +55,7 @@ namespace Examine
         private static readonly ExamineManager Manager = new ExamineManager();
 
         private readonly object _lock = new object();
+        private readonly ConcurrentDictionary<string, IExamineIndexer> _indexers = new ConcurrentDictionary<string, IExamineIndexer>();
 
         ///<summary>
         /// Returns the default search provider
@@ -64,9 +68,39 @@ namespace Examine
         public SearchProviderCollection SearchProviderCollection { get; private set; }
 
         /// <summary>
-        /// Return the colleciton of indexers
+        /// Return the colleciton of indexer providers (only the ones registered in config)
         /// </summary>
+        [Obsolete("Use the IndexProviders property instead")]
         public IndexProviderCollection IndexProviderCollection { get; private set; }
+
+        /// <summary>
+        /// Gets a list of all index providers
+        /// </summary>
+        public IReadOnlyDictionary<string, IExamineIndexer> IndexProviders
+        {
+            get
+            {
+                var providerDictionary = IndexProviderCollection.ToDictionary(x => x.Name, x => (IExamineIndexer) x);
+                foreach (var i in _indexers)
+                {
+                    providerDictionary[i.Key] = i.Value;
+                }
+                return new ReadOnlyDictionary<string, IExamineIndexer>(providerDictionary);
+            }
+        }
+
+        /// <summary>
+        /// Adds an index provider to the manager
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="indexer"></param>
+        public void AddIndexProvider(string name, IExamineIndexer indexer)
+        {
+            if (IndexProviderCollection[name] == null)
+            {
+                _indexers.TryAdd(name, indexer);    
+            }
+        }
 
         private volatile bool _providersInit = false;
 
@@ -107,7 +141,7 @@ namespace Examine
                         //check if we need to rebuild on startup
                         if (ExamineSettings.Instance.RebuildOnAppStart)
                         {
-                            foreach (var index in IndexProviderCollection.Cast<IIndexer>())
+                            foreach (var index in IndexProviderCollection)
                             {
                                 if (index.IsIndexNew())
                                 {
@@ -324,13 +358,44 @@ namespace Examine
             DisposableCollector.Clean();
         }
         
-
         /// <summary>
         /// Call this in Application_End.
         /// </summary>
         public void Dispose()
         {
-            SearcherContextCollection.Instance.Dispose();
+            Dispose(true);
+
+            // Use SupressFinalize in case a subclass 
+            // of this type implements a finalizer.
+            GC.SuppressFinalize(this);
+        }
+        private bool _disposed = false;
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {                    
+                    SearcherContextCollection.Instance.Dispose();
+                }
+
+                // Indicate that the instance has been disposed.
+                _disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Occurs when a web app shuts down, we need to ensure that any indexing processes are completed, then dispose ourselves
+        /// </summary>
+        /// <param name="immediate"></param>
+        public void Stop(bool immediate)
+        {
+            if (!immediate)
+            {
+                ExamineSession.WaitForChanges();
+                Dispose();
+            }
+            HostingEnvironment.UnregisterObject(this); 
         }
     }
 }
