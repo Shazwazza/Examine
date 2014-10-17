@@ -142,6 +142,7 @@
     <Compile Include="..\..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="CaseInsensitiveKeyReadOnlyDictionary.cs" />
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\ExamineSettings.cs" />
@@ -149,6 +150,7 @@
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
+    <Compile Include="LuceneEngine\Providers\ILuceneSearcher.cs" />
     <Compile Include="Session\ExamineDisposeModule.cs" />
     <Compile Include="FacetReferenceCount.cs" />
     <Compile Include="IExamineIndexer.cs" />

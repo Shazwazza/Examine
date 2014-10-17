@@ -20,7 +20,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// Simple abstract class containing basic properties for Lucene searchers
     ///</summary>
-    public abstract class BaseLuceneSearcher : BaseSearchProvider<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>
+    public abstract class BaseLuceneSearcher : BaseSearchProvider<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>, ILuceneSearcher
     {
 
         #region Constructors

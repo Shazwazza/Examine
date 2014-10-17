@@ -91,6 +91,29 @@ namespace Examine.Web.Demo.Controllers
 
         }
 
+        public ActionResult SearchCustom(string indexName, string q = null, int count = 10, bool all = false)
+        {
+            var searcher = ExamineManager.Instance.GetSearcher(indexName);
+
+            ILuceneSearchResults result;
+            if (all)
+            {
+                result = searcher.Find(searcher.CreateCriteria().All().Compile());
+            }
+            else
+            {
+                result = searcher.Find(q, false);    
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendFormat("Total: {0}\n\n", result.TotalItemCount);
+            foreach (var r in result)
+            {
+                sb.AppendFormat("{0} - {1} - {2}\n", r.LongId, r.Fields["Name"], r.Fields["Email"]);
+            }
+            return Content(sb.ToString(), "text/plain");
+        }
+
         public ActionResult Search(string q = null, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false, double likeWeight = 0)
         {
             var sw = new Stopwatch();

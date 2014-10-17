@@ -26,19 +26,19 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="mgr"></param>
         /// <param name="searcherName"></param>
         /// <returns></returns>
-        public static BaseLuceneSearcher GetLuceneSearcher(this ExamineManager mgr, string searcherName)
+        public static ILuceneSearcher GetLuceneSearcher(this ExamineManager mgr, string searcherName)
         {
-            return (BaseLuceneSearcher)mgr.SearchProviderCollection[searcherName];
+            return (ILuceneSearcher)mgr.SearchProviderCollection[searcherName];
         }
 
-        public static IEnumerable<IndexReader> GetAllSubReaders(this IndexReader reader)
+        internal static IEnumerable<IndexReader> GetAllSubReaders(this IndexReader reader)
         {
             var readers = new ArrayList();
             ReaderUtil.GatherSubReaders(readers, reader);
             return readers.Cast<IndexReader>();
         }
-        
-        public static IEnumerable<IndexSearcher> GetSubSearchers(this Searchable s)
+
+        internal static IEnumerable<IndexSearcher> GetSubSearchers(this Searchable s)
         {
             var ixs = s as IndexSearcher;
             if (ixs != null)
@@ -59,36 +59,6 @@ namespace Examine.LuceneEngine.SearchCriteria
             }
         }
         
-        ///// <summary>
-        ///// Performs a true Lucene Query 
-        ///// </summary>
-        ///// <param name="searcher"></param>
-        ///// <param name="query"></param>
-        ///// <returns></returns>
-        ///// <remarks>
-        ///// so long as the searcher is a lucene searcher, otherwise an exception is thrown
-        ///// </remarks>
-        //public static ILuceneSearchResults LuceneSearch(this ISearcher searcher, Query query)
-        //{
-        //    var typedSearcher = (ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>)searcher;
-        //    return searcher.LuceneSearch(typedSearcher.CreateCriteria().LuceneQuery(query).Compile());
-        //}
-
-        ///// <summary>
-        ///// Searches and returns a typed lucene search result 
-        ///// </summary>
-        ///// <param name="searcher"></param>
-        ///// <param name="criteria"></param>
-        ///// <returns></returns>
-        ///// <remarks>
-        ///// so long as the searcher is a lucene searcher, otherwise an exception is thrown
-        ///// </remarks>
-        //public static ILuceneSearchResults LuceneSearch(this ISearcher searcher, LuceneSearchCriteria criteria)
-        //{
-        //    var typedSearcher = (ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>)searcher;
-        //    return typedSearcher.Find(criteria);
-        //}
-
         /// <summary>
         /// Used to order results by the specified fields 
         /// </summary>
@@ -204,8 +174,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="s">The string to escape.</param>
         /// <returns>An IExamineValue for the required operation</returns>
-        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
-        
+        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>        
         public static IExamineValue Escape(this string s)
         {
             if (String.IsNullOrEmpty(s))
@@ -218,37 +187,11 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new ExamineValue(Examineness.Escaped, s);
         }
 
-        ///// <summary>
-        ///// Sets up an <see cref="IExamineValue"/> for an additional Examiness
-        ///// </summary>
-        ///// <param name="examineValue">The IExamineValue to continue working with.</param>
-        ///// <param name="s">The string to postfix.</param>
-        ///// <returns>Combined strings</returns>
-        //public static string Then(this IExamineValue examineValue, string s)
-        //{
-        //    if (examineValue == null)
-        //        throw new ArgumentNullException("examineValue", "examineValue is null.");
-        //    if (String.IsNullOrEmpty(s))
-        //        throw new ArgumentException("Supplied string is null or empty.", "s");
-        //    return examineValue.Value + s;
-        //}
-
-        ///// <summary>
-        ///// Sets up an <see cref="IExamineValue"/> for an additional Examiness
-        ///// </summary>
-        ///// <param name="examineValue">The IExamineValue to continue working with.</param>
-        ///// <returns>Combined strings</returns>
-        //public static string Then(this IExamineValue examineValue)
-        //{
-        //    return Then(examineValue, string.Empty);
-        //}
-
         /// <summary>
         /// Converts an Examine boolean operation to a Lucene representation
         /// </summary>
         /// <param name="o">The operation.</param>
-        /// <returns>The translated Boolean operation</returns>
-        
+        /// <returns>The translated Boolean operation</returns>        
         public static BooleanClause.Occur ToLuceneOccurrence(this BooleanOperation o)
         {
             switch (o)
@@ -268,7 +211,6 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The occurrence to translate.</param>
         /// <returns>The translated boolean occurrence</returns>
-        
         public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
         {
             if (Equals(o, BooleanClause.Occur.MUST))

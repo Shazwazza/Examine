@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Configuration.Provider;
 using System.IO;
 using System.Linq;
@@ -10,17 +11,18 @@ using System.Web.Hosting;
 using System.Xml.Linq;
 using Examine.Config;
 using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Providers;
 using Examine.Providers;
 using Examine.SearchCriteria;
 using System.Web;
 using Examine.Session;
+using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
 namespace Examine
 {
-
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
@@ -60,18 +62,46 @@ namespace Examine
         ///<summary>
         /// Returns the default search provider
         ///</summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will return null")]
         public BaseSearchProvider DefaultSearchProvider { get; private set; }
 
         /// <summary>
         /// Returns the collection of searchers
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Searchers should be resolved using the GetSearcher method")]
         public SearchProviderCollection SearchProviderCollection { get; private set; }
 
         /// <summary>
         /// Return the colleciton of indexer providers (only the ones registered in config)
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Use the IndexProviders property instead")]
         public IndexProviderCollection IndexProviderCollection { get; private set; }
+
+        /// <summary>
+        /// Returns a lucene search based on the lucene indexer name
+        /// </summary>
+        /// <param name="indexerName"></param>
+        /// <param name="searchAnalyzer">
+        /// A custom analyzer to use for searching, if not specified then the analyzer defined on the indexer will be used.
+        /// </param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public ILuceneSearcher GetSearcher(string indexerName, Analyzer searchAnalyzer = null)
+        {
+            if (IndexProviders.ContainsKey(indexerName))
+            {
+                var indexer = IndexProviders[indexerName] as LuceneIndexer;
+                if (indexer == null)
+                {
+                    throw new InvalidOperationException("Cannot create an ILuceneSearcher based on a non LuceneIndexer indexer");
+                }
+                return new LuceneSearcher(indexer.GetLuceneDirectory(), searchAnalyzer ?? indexer.IndexingAnalyzer);
+            }
+            throw new KeyNotFoundException("No indexer defined by name " + indexerName);
+        }
 
         /// <summary>
         /// Gets a list of all index providers
@@ -85,7 +115,7 @@ namespace Examine
                 {
                     providerDictionary[i.Key] = i.Value;
                 }
-                return new ReadOnlyDictionary<string, IExamineIndexer>(providerDictionary);
+                return new CaseInsensitiveKeyReadOnlyDictionary<IExamineIndexer>(providerDictionary);
             }
         }
 
@@ -96,9 +126,15 @@ namespace Examine
         /// <param name="indexer"></param>
         public void AddIndexProvider(string name, IExamineIndexer indexer)
         {
-            if (IndexProviderCollection[name] == null)
+            //make sure this name doesn't exist in
+
+            if (IndexProviderCollection[name] != null)
             {
-                _indexers.TryAdd(name, indexer);    
+                throw new InvalidOperationException("The indexer with name " + name + " already exists");
+            }
+            if (!_indexers.TryAdd(name, indexer))
+            {
+                throw new InvalidOperationException("The indexer with name " + name + " already exists");
             }
         }
 
@@ -190,8 +226,14 @@ namespace Examine
         /// <param name="searchParameters"></param>
         /// <returns></returns>
         /// <remarks>This is just a wrapper for the default provider</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will throw an exception")]
         public ISearchResults Search(ISearchCriteria searchParameters)
         {
+            if (DefaultSearchProvider == null)
+            {
+                throw new InvalidOperationException("ExamineManager.Search should not be used, get a searcher using the GetSearcher method");
+            }
             return DefaultSearchProvider.Search(searchParameters);
         }
 
@@ -199,11 +241,16 @@ namespace Examine
         /// Uses the default provider specified to search
         /// </summary>
         /// <param name="searchText"></param>
-        /// <param name="maxResults"></param>
         /// <param name="useWildcards"></param>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will throw an exception")]
         public ISearchResults Search(string searchText, bool useWildcards)
         {
+            if (DefaultSearchProvider == null)
+            {
+                throw new InvalidOperationException("ExamineManager.Search should not be used, get a searcher using the GetSearcher method");
+            }
             return DefaultSearchProvider.Search(searchText, useWildcards);
         }
 
@@ -216,9 +263,24 @@ namespace Examine
         /// <param name="node"></param>
         /// <param name="category"></param>
         /// <param name="providers"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Do not use this, use the IndexItems method instead")]
         public void ReIndexNode(XElement node, string category, IEnumerable<BaseIndexProvider> providers)
         {
             _ReIndexNode(node, category, providers);
+        }
+
+        /// <summary>
+        /// Re-indexes items for the providers specified
+        /// </summary>
+        /// <param name="nodes"></param>
+        /// <param name="providers"></param>
+        public void IndexItems(ValueSet[] nodes, IEnumerable<IExamineIndexer> providers)
+        {
+            foreach (var provider in providers)
+            {
+                provider.IndexItems(nodes);
+            }
         }
 
         /// <summary>
@@ -226,18 +288,33 @@ namespace Examine
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="providers"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Do not use this, use the other DeleteFromIndex method instead")]
         public void DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
         {
             _DeleteFromIndex(nodeId, providers);
         }
 
-        #region IIndexer Members
+        /// <summary>
+        /// Deletes index for node for the specified providers
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="providers"></param>
+        public void DeleteFromIndex(long nodeId, IEnumerable<IExamineIndexer> providers)
+        {
+            foreach (var provider in providers)
+            {
+                provider.DeleteFromIndex(nodeId);
+            }
+        }
 
         /// <summary>
         /// Reindex nodes for all providers
         /// </summary>
         /// <param name="node"></param>
         /// <param name="category"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Do not use this, use the IndexItems method instead")]
         public void ReIndexNode(XElement node, string category)
         {
             _ReIndexNode(node, category, IndexProviderCollection);
@@ -251,9 +328,20 @@ namespace Examine
         }
 
         /// <summary>
+        /// Reindex nodes for all providers
+        /// </summary>
+        /// <param name="nodes"></param>
+        public void IndexItems(ValueSet[] nodes)
+        {
+            IndexItems(nodes, IndexProviders.Values);
+        }
+
+        /// <summary>
         /// Deletes index for node for all providers
         /// </summary>
         /// <param name="nodeId"></param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Do not use this, use the other DeleteFromIndex method instead")]
         public void DeleteFromIndex(string nodeId)
         {
             _DeleteFromIndex(nodeId, IndexProviderCollection);
@@ -266,54 +354,37 @@ namespace Examine
             }
         }
 
-        public void IndexAll(string type)
+        /// <summary>
+        /// Deletes index for node for all providers
+        /// </summary>
+        /// <param name="nodeId"></param>
+        public void DeleteFromIndex(long nodeId)
         {
-            _IndexAll(type);
+            DeleteFromIndex(nodeId, IndexProviders.Values);
         }
-        private void _IndexAll(string type)
+
+        /// <summary>
+        /// Indexes all items for the index category for all providers
+        /// </summary>
+        /// <param name="indexCategory"></param>
+        public void IndexAll(string indexCategory)
         {
-            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            foreach (var provider in IndexProviders.Values)
             {
-                provider.IndexAll(type);
+                provider.IndexAll(indexCategory);
             }
         }
 
+        /// <summary>
+        /// Rebuilds indexes for all providers
+        /// </summary>
         public void RebuildIndex()
         {
-            _RebuildIndex();
-        }
-        private void _RebuildIndex()
-        {
-            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            foreach (var provider in IndexProviders.Values)
             {
                 provider.RebuildIndex();
             }
         }
-
-        public IIndexCriteria IndexerData
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public bool IndexExists()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsIndexNew()
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-
 
         #region ISearcher Members
 
@@ -321,28 +392,39 @@ namespace Examine
         /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
         /// </summary>
         /// <returns></returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will throw an exception")]
         public ISearchCriteria CreateSearchCriteria()
         {
             return this.CreateSearchCriteria(string.Empty, BooleanOperation.And);
         }
 
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will throw an exception")]
         public ISearchCriteria CreateSearchCriteria(string type)
         {
             return this.CreateSearchCriteria(type, BooleanOperation.And);
         }
 
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will throw an exception")]
         public ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
         {
             return this.CreateSearchCriteria(string.Empty, defaultOperation);
         }
 
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will throw an exception")]
         public ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
+            if (DefaultSearchProvider == null)
+            {
+                throw new InvalidOperationException("ExamineManager.CreateSearchCriteria should not be used, get a searcher using the GetSearcher method");
+            }
             return this.DefaultSearchProvider.CreateSearchCriteria(type, defaultOperation);
         }
 
         #endregion
-
         
         /// <summary>
         /// Call this as last thing of the thread or request using Examine.
