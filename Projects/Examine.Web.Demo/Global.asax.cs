@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -40,6 +41,8 @@ namespace Examine.Web.Demo
 
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
+
+            //Database.SetInitializer<MyDbContext>(null);
 
             //This is how to create a config from code. This allows your own termfacetextractors to be used.
             //Note that this must be added to index sets BEFORE ExamineManager.Instance is accessed.

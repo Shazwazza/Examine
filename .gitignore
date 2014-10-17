@@ -31,3 +31,5 @@ NDepend/*
 packages/*
 packages/*
 .Examine.boltdata/*
+Projects/Examine.Web.Demo/_bin_deployableAssemblies/*
+Projects/Examine.Web.Demo/Scripts/*
