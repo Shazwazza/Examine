@@ -6,7 +6,8 @@ using System.Text;
 
 namespace Examine.LuceneEngine.Scoring
 {
-    public class DecayingNumber
+    //TODO: Figure out what this does? and when we want to use it since its not in use
+    internal class DecayingNumber
     {
         private double _lambda;
         public DecayingNumber(double halflifeInDays = 2)

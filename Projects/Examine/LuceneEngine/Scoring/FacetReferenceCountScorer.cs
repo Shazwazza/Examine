@@ -9,7 +9,8 @@ using System.Linq;
 
 namespace Examine.LuceneEngine.Scoring
 {
-    public class FacetReferenceCountScorer : ReaderDataScoreQuery
+    //TODO: Figure out what this does? and when we want to use it since its not in use
+    internal class FacetReferenceCountScorer : ReaderDataScoreQuery
     {
         private readonly FacetCounts _counts;
 

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 
 namespace Examine.LuceneEngine.Faceting
 {
+    //TODO: Figure out what this does? and when we want to use it since its not in use
+
     /// <summary>
     /// A hierarchical facet extractor based on external information about facet relations.
     /// </summary>
-    public class GraphFacetExtractor : TermFacetExtractor
+    internal class GraphFacetExtractor : TermFacetExtractor
     {
         private readonly IFacetGraph _graph;
 
