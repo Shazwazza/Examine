@@ -2,18 +2,24 @@ param (
 	[Parameter(Mandatory=$true)]
 	[ValidatePattern("\d+?\.\d+?\.\d+?\.\d")]
 	[string]
-	$ReleaseVersionNumber
+	$ReleaseVersionNumber,
+	[Parameter(Mandatory=$true)]
+	[string]
+	[AllowEmptyString()]
+	$PreReleaseName
 )
 
 $PSScriptFilePath = (Get-Item $MyInvocation.MyCommand.Path).FullName
 
 $SolutionRoot = Split-Path -Path $PSScriptFilePath -Parent
 
-$MSBuild = "$Env:SYSTEMROOT\Microsoft.NET\Framework\v4.0.30319\msbuild.exe"
+#This detects 64 bit vs 32 bit and returns the correct path
+$MSBuildPath = (${env:ProgramFiles(x86)}, ${env:ProgramFiles} -ne $null)[0]
+$MSBuild = "$MSBuildPath\MSBuild\12.0\Bin\msbuild.exe"
 
 # Make sure we don't have a release folder for this version already
 $BuildFolder = Join-Path -Path $SolutionRoot -ChildPath "build";
-$ReleaseFolder = Join-Path -Path $BuildFolder -ChildPath "Releases\v$ReleaseVersionNumber";
+$ReleaseFolder = Join-Path -Path $BuildFolder -ChildPath "Releases\v$ReleaseVersionNumber$PreReleaseName";
 if ((Get-Item $ReleaseFolder -ErrorAction SilentlyContinue) -ne $null)
 {
 	Write-Warning "$ReleaseFolder already exists on your local machine. It will now be deleted."
@@ -24,6 +30,14 @@ if ((Get-Item $ReleaseFolder -ErrorAction SilentlyContinue) -ne $null)
 $SolutionInfoPath = Join-Path -Path $SolutionRoot -ChildPath "SolutionInfo.cs"
 (gc -Path $SolutionInfoPath) `
 	-replace "(?<=Version\(`")[.\d]*(?=`"\))", $ReleaseVersionNumber |
+	sc -Path $SolutionInfoPath -Encoding UTF8
+(gc -Path $SolutionInfoPath) `
+	-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", "$ReleaseVersionNumber$PreReleaseName" |
+	sc -Path $SolutionInfoPath -Encoding UTF8
+# Set the copyright
+$Copyright = "Copyright © Shannon Deminick ".(Get-Date).year
+(gc -Path $SolutionInfoPath) `
+	-replace "(?<=AssemblyCopyright\(`")[.\w-]*(?=`"\))", $Copyright |
 	sc -Path $SolutionInfoPath -Encoding UTF8
 
 # Build the solution in release mode

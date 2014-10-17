@@ -6,7 +6,9 @@ using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    
+    /// <summary>
+    /// This is used to try and get facet configuration enabled for indexes that are using the old config.
+    /// </summary>
     internal static class FacetConfigurationHelpers
     {
         /// <summary>

@@ -2,10 +2,11 @@
 using System.Security;
 
 [assembly: AssemblyCompany("Shannon Deminick")]
-[assembly: AssemblyCopyright("Copyright \xa9 Shannon Deminick 2011")]
+[assembly: AssemblyCopyright("Copyright © Shannon Deminick 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 
-[assembly: AssemblyVersion("0.1.52.2941")]
-[assembly: AssemblyFileVersion("0.1.52.2941")]
+[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyFileVersion("2.0.0.0")]
+[assembly: AssemblyInformationalVersion("2.0.0.0-Alpha1")]

@@ -5,6 +5,13 @@
     /// </summary>
     public class DocumentFacet
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="documentId"></param>
+        /// <param name="termBased"></param>
+        /// <param name="key"></param>
+        /// <param name="level"></param>
         public DocumentFacet(int documentId, bool termBased, FacetKey key, float level)
         {
             DocumentId = documentId;

@@ -6,28 +6,39 @@ using System.Linq;
 
 namespace Examine.LuceneEngine.Faceting
 {
-    //TODO: Is this actually global for all searchers?
-
     /// <summary>
-    /// Maps facets to indices. Global for all searchers.
+    /// Maps facets to indices
     /// </summary>
+    /// <remarks>
+    /// A FacetMap is attached to the FacetConfiguration. It is possible that a FacetMap could be shared among multiple configurations and thus 
+    /// multiple searchers
+    /// </remarks>
     public class FacetMap : IEnumerable<KeyValuePair<int, FacetKey>>
     {
-        
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public FacetMap()
+        {
+            Keys = new List<FacetKey>();
+        }        
+
+        /// <summary>
+        /// Gets the list of facet keys for this map
+        /// </summary>
         public List<FacetKey> Keys { get; private set; }
-
-
+        
         private readonly ConcurrentDictionary<FacetKey, int> _indices = new ConcurrentDictionary<FacetKey, int>();
 
         private readonly SortedDictionary<string, List<FacetKey>> _keysByFieldName = new SortedDictionary<string, List<FacetKey>>(StringComparer.OrdinalIgnoreCase);
         
         private readonly ConcurrentDictionary<long, FacetReferenceInfo[]> _referenceInfo = new ConcurrentDictionary<long, FacetReferenceInfo[]>();
 
-        public FacetMap()
-        {
-            Keys = new List<FacetKey>();
-        }        
-
+        /// <summary>
+        /// Returns the index for the facet key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public int GetIndex(FacetKey key)
         {
             int index;
@@ -39,6 +50,11 @@ namespace Examine.LuceneEngine.Faceting
             return _referenceInfo.TryGetValue(reference, out info);
         }
 
+        /// <summary>
+        /// Registers a facet key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public int Register(FacetKey key)
         {
             key = key.Intern();
@@ -73,6 +89,9 @@ namespace Examine.LuceneEngine.Faceting
                 });
         }
 
+        /// <summary>
+        /// Gets the field names
+        /// </summary>
         public IEnumerable<string> FieldNames
         {
             get

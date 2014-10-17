@@ -206,6 +206,10 @@ namespace Examine.LuceneEngine.Providers
             return token.Searcher;
         }
 
+        /// <summary>
+        /// Returns the searcher's criteria context
+        /// </summary>
+        /// <returns></returns>
         public override ICriteriaContext GetCriteriaContext()
         {
             ValidateSearcher();

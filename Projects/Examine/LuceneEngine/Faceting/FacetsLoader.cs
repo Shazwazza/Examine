@@ -12,15 +12,25 @@ namespace Examine.LuceneEngine.Faceting
 {
     public class FacetsLoader : ISearcherWarmer, IDisposable
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="configuration"></param>
+        public FacetsLoader(FacetConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        /// <summary>
+        /// Returns the FacetConfiguration associated with this instance
+        /// </summary>
         public FacetConfiguration Configuration { get; private set; }
 
         readonly ConditionalWeakTable<object, ReaderData> _readerData = new ConditionalWeakTable<object, ReaderData>();        
         
-        public FacetsLoader(FacetConfiguration configuration)
-        {                        
-            Configuration = configuration;            
-        }
-
+        /// <summary>
+        /// Returns the FacetMap associated with this instance
+        /// </summary>
         public FacetMap FacetMap
         {
             get
@@ -31,13 +41,17 @@ namespace Examine.LuceneEngine.Faceting
             }
         }        
 
-
+        /// <summary>
+        /// Gets the reader data
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         public ReaderData GetReaderData(IndexReader reader)
         {
             return _readerData.GetValue(reader.GetFieldCacheKey(), key => new ReaderData(Configuration, reader));
         }
 
-        public void Warm(IndexSearcher s)
+        void ISearcherWarmer.Warm(IndexSearcher s)
         {
             foreach (var reader in s.GetIndexReader().GetAllSubReaders())
             {
@@ -56,6 +70,8 @@ namespace Examine.LuceneEngine.Faceting
         public void Dispose()
         {           
         }
+
+
         
     }
 }

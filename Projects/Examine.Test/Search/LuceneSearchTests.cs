@@ -9,6 +9,7 @@ using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Session;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
 using Version = Lucene.Net.Util.Version;
@@ -118,10 +119,8 @@ namespace Examine.Test.Search
         [Test]
         public void Can_Count_Facets_Refs()
         {
-            //TODO: I'm not sure about passing the facet config into the indexer on ctor? 
-            // in theory shouldn't we be able to specify this config when we search?
-            // NOTE: Turns out facet information get's 'warmed' up on the searcher so needs to happen early i think, but 
-            // i think it can also re-warm?
+            //TODO: After some investigation, you cannot declare runtime facets, the thing that loads the facets is in ReaderData.ReadFacets which is
+            // only called once when ReaderData is ctor'd which is lazily called on the first call to FacetsLoader.GetReaderData
 
             var config = new FacetConfiguration();
             config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
@@ -193,6 +192,7 @@ namespace Examine.Test.Search
 
             }
         }
+
 
         [Test]
         public void Search_By_Facet_Filter()

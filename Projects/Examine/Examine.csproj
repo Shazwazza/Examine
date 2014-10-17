@@ -211,6 +211,7 @@
     <Compile Include="LuceneEngine\Faceting\IFacetGraph.cs" />
     <Compile Include="LuceneEngine\Faceting\IFacetLevel.cs" />
     <Compile Include="LuceneEngine\Faceting\IndexReaderDataCollector.cs" />
+    <Compile Include="LuceneEngine\Faceting\MaxLevelFacetComb.cs" />
     <Compile Include="LuceneEngine\Faceting\MinScoreCollector.cs" />
     <Compile Include="LuceneEngine\Faceting\PayloadDataTokenStream.cs" />
     <Compile Include="LuceneEngine\Faceting\ReaderData.cs" />
