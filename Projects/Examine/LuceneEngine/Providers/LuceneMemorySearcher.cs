@@ -28,14 +28,14 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
 		[SecuritySafeCritical]
-        public LuceneMemorySearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
+        public LuceneMemorySearcher(Directory luceneDirectory, Analyzer analyzer)
         {
             _luceneDirectory = new RAMDirectory(luceneDirectory);;
             IndexingAnalyzer = analyzer;
         }
 
 		[SecuritySafeCritical]
-        protected override Lucene.Net.Store.Directory GetLuceneDirectory()
+        protected override Directory GetLuceneDirectory()
         {
             return _luceneDirectory;
         }

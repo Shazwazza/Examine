@@ -1,5 +1,6 @@
 ﻿using System.Web.Mvc;
 using System.Web.Routing;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.Web.Demo
 {
@@ -24,7 +25,7 @@ namespace Examine.Web.Demo
             );
 
         }
-
+        
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();

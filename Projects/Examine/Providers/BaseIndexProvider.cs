@@ -78,6 +78,10 @@ namespace Examine.Providers
         /// </summary>
         public IIndexCriteria IndexerData { get; set; }
 
+        /// <summary>
+        /// Check if the index exists
+        /// </summary>
+        /// <returns></returns>
         public abstract bool IndexExists();
 
         #endregion

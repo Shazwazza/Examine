@@ -105,6 +105,7 @@
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="DisposableObject.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IIndexField.cs" />

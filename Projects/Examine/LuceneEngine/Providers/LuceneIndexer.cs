@@ -1551,43 +1551,29 @@ namespace Examine.LuceneEngine.Providers
 
         #region IDisposable Members
 
-        protected bool _disposed;
+        private readonly DisposableIndexer _disposer = new DisposableIndexer();
 
-        /// <summary>
-        /// Checks the disposal state of the objects
-        /// </summary>
-        protected void CheckDisposed()
+        private class DisposableIndexer : DisposableObject
         {
-            if (_disposed)
-                throw new ObjectDisposedException("LuceneExamine.BaseLuceneExamineIndexer");
+            /// <summary>
+            /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
+            /// </summary>
+            protected override void DisposeResources()
+            {
+                //TODO: Do we need to dispose anything?
+            }
         }
 
         /// <summary>
-        /// When the object is disposed, all data should be written
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
         {
-            this.CheckDisposed();
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-            this._disposed = true;
-        }
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            this.CheckDisposed();
-            if (disposing)
-            {
-                _isCancelling = true;
-                //this._fileWatcher.Dispose();
-            }
-                
+            _disposer.Dispose();
         }
 
         #endregion
+
+        
     }
 }
