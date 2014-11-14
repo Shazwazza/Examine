@@ -10,11 +10,25 @@ using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Documents;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
 
 namespace Examine.LuceneEngine
 {
+    [Obsolete("This is no longer used, used LuceneSearchResults instead")]
+    public class SearchResults : LuceneSearchResults
+    {
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, ICriteriaContext searcherContext, SearchOptions options) : base(query, sortField, searcherContext, options)
+        {
+        }
+
+        public static ISearchResults Empty()
+        {
+            return new SearchResultsProxy<ISearchResult>(new EmptySearchResults());
+        }
+    }
+
     /// <summary>
     /// An implementation of the search results returned from Lucene.Net
     /// </summary>
@@ -91,7 +105,7 @@ namespace Examine.LuceneEngine
             //before throwing exceptions.
             try
             {
-                var set = new Hashtable();
+                var set = new HashSet<Term>();
                 query.ExtractTerms(set);
             }
             catch (NullReferenceException)
@@ -106,15 +120,20 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-            var count = Math.Min(options.MaxCount, Searcher.MaxDoc());
+            var count = Math.Min(options.MaxCount, Searcher.MaxDoc);
 
             var sortFields = sortField.ToArray();
 
-            var topDocsCollector =
-                sortFields.Any()
-                    ? (TopDocsCollector)TopFieldCollector.create(
-                        new Sort(sortFields.ToArray()), count, false, false, false, false)
-                    : TopScoreDocCollector.create(count, true);
+            Collector topDocsCollector;
+            if (sortField.Any())
+            {
+                topDocsCollector = TopFieldCollector.Create(
+                    new Sort(sortFields.ToArray()), count, false, false, false, false);
+            }
+            else
+            {
+                topDocsCollector = TopScoreDocCollector.Create(count, true);
+            }
 
             if (options.CountFacets && CriteriaContext.FacetMap != null)
             {
@@ -128,9 +147,9 @@ namespace Examine.LuceneEngine
                 Searcher.Search(query, topDocsCollector);
             }
 
-
-
-            _topDocs = topDocsCollector.TopDocs();
+            _topDocs = sortField.Any()
+                ? ((TopFieldCollector) topDocsCollector).TopDocs()
+                : ((TopScoreDocCollector) topDocsCollector).TopDocs();
 
             TotalItemCount = _topDocs.TotalHits;
         }
@@ -193,11 +212,11 @@ namespace Examine.LuceneEngine
             var fields = doc.GetFields();
 
             //ignore our internal fields though
-            foreach (var fieldGroup in fields.Cast<Field>().GroupBy(f => f.Name()))
+            foreach (var fieldGroup in fields.Cast<Field>().GroupBy(f => f.Name))
             {
 
-                sr.Fields.Add(fieldGroup.Key, string.Join(",", fieldGroup.Select(f => f.StringValue())));
-                sr.FieldValues.Add(fieldGroup.Key, fieldGroup.Select(f => f.StringValue()).ToArray());
+                sr.Fields.Add(fieldGroup.Key, string.Join(",", fieldGroup.Select(f => f.StringValue)));
+                sr.FieldValues.Add(fieldGroup.Key, fieldGroup.Select(f => f.StringValue).ToArray());
             }
 
             return sr;
@@ -208,9 +227,9 @@ namespace Examine.LuceneEngine
 
         private LuceneSearchResult CreateFromDocumentItem(int i)
         {
-            var docId = _topDocs.ScoreDocs[i].doc;
+            var docId = _topDocs.ScoreDocs[i].Doc;
             var doc = Searcher.Doc(docId);
-            var score = _topDocs.ScoreDocs[i].score;
+            var score = _topDocs.ScoreDocs[i].Score;
             var result = CreateSearchResult(docId, doc, score);
             return result;
         }

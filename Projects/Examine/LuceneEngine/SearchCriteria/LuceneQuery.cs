@@ -15,14 +15,14 @@ namespace Examine.LuceneEngine.SearchCriteria
     {
         private readonly LuceneSearchCriteria _search;
 
-        private readonly BooleanClause.Occur _occurrence;
+        private readonly Occur _occurrence;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LuceneQuery"/> class.
         /// </summary>
         /// <param name="search">The search.</param>
         /// <param name="occurrence">The occurrence.</param>		
-        internal LuceneQuery(LuceneSearchCriteria search, BooleanClause.Occur occurrence)
+        internal LuceneQuery(LuceneSearchCriteria search, Occur occurrence)
         {
             this._search = search;
             this._occurrence = occurrence;

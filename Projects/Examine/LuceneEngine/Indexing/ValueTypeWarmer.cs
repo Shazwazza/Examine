@@ -19,7 +19,7 @@ namespace Examine.LuceneEngine.Indexing
 
         public void Warm(IndexSearcher s)
         {
-            foreach (var reader in s.GetIndexReader().GetAllSubReaders())
+            foreach (var reader in s.IndexReader.GetAllSubReaders())
             {
                 foreach (var type in _searcherContext.ValueTypes )
                 {

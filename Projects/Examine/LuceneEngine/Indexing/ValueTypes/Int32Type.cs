@@ -38,8 +38,8 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
         public Query GetQuery(int? lower, int? upper, bool lowerInclusive = true, bool upperInclusive = true, IManagedQueryParameters parameters = null)
         {
             return NumericRangeQuery.NewIntRange(FieldName,
-                lower != null ? (ValueType)lower.Value : null,
-                upper != null ? (ValueType)upper.Value : null, lowerInclusive, upperInclusive);
+                lower != null ? lower.Value : (int?)null,
+                upper != null ? upper.Value : (int?)null, lowerInclusive, upperInclusive);
         }
     }
 }

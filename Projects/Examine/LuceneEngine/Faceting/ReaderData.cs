@@ -43,18 +43,18 @@ namespace Examine.LuceneEngine.Faceting
         private void ReadExternalIds(IndexReader reader)
         {
             var buffer = new byte[16];
-            ExternalIds = new long[reader.MaxDoc()];
+            ExternalIds = new long[reader.MaxDoc];
 
             var tp = reader.TermPositions(ExternalIdField.Term);
             try
             {
                 while (tp.Next())
                 {
-                    int doc = tp.Doc();
+                    int doc = tp.Doc;
                     tp.NextPosition();
                     tp.GetPayload(buffer, 0);
 
-                    var id = PayloadDataTokenStream.GetLongValue(buffer);
+                    var id = TokenStreamHelper.GetLongValue(buffer);
 
                     ExternalIds[doc] = id;
                 }
@@ -87,7 +87,7 @@ namespace Examine.LuceneEngine.Faceting
             if (config == null) return;
             var unbackedFacets = new HashSet<int>();
 
-            var levels = new List<FacetLevel>[reader.MaxDoc()];
+            var levels = new List<FacetLevel>[reader.MaxDoc];
             var map = config.FacetMap;
             foreach (var fe in config.FacetExtractors)
             {

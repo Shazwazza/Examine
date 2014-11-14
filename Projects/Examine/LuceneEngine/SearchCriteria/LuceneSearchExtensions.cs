@@ -33,9 +33,9 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         internal static IEnumerable<IndexReader> GetAllSubReaders(this IndexReader reader)
         {
-            var readers = new ArrayList();
+            var readers = new List<IndexReader>();
             ReaderUtil.GatherSubReaders(readers, reader);
-            return readers.Cast<IndexReader>();
+            return readers;
         }
 
         internal static IEnumerable<IndexSearcher> GetSubSearchers(this Searchable s)
@@ -192,17 +192,17 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The operation.</param>
         /// <returns>The translated Boolean operation</returns>        
-        public static BooleanClause.Occur ToLuceneOccurrence(this BooleanOperation o)
+        public static Occur ToLuceneOccurrence(this BooleanOperation o)
         {
             switch (o)
             {
                 case BooleanOperation.And:
-                    return BooleanClause.Occur.MUST;
+                    return Occur.MUST;
                 case BooleanOperation.Not:
-                    return BooleanClause.Occur.MUST_NOT;
+                    return Occur.MUST_NOT;
                 case BooleanOperation.Or:
                 default:
-                    return BooleanClause.Occur.SHOULD;
+                    return Occur.SHOULD;
             }
         }
 
@@ -211,13 +211,13 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The occurrence to translate.</param>
         /// <returns>The translated boolean occurrence</returns>
-        public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
+        public static BooleanOperation ToBooleanOperation(this Occur o)
         {
-            if (Equals(o, BooleanClause.Occur.MUST))
+            if (Equals(o, Occur.MUST))
             {
                 return BooleanOperation.And;
             }
-            else if (Equals(o, BooleanClause.Occur.MUST_NOT))
+            else if (Equals(o, Occur.MUST_NOT))
             {
                 return BooleanOperation.Not;
             }

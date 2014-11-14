@@ -17,7 +17,7 @@ namespace Examine.LuceneEngine
 		
         public static ReaderStatus GetReaderStatus(this IndexSearcher searcher)
         {
-            return searcher.GetIndexReader().GetReaderStatus();
+            return searcher.IndexReader.GetReaderStatus();
         }        
 
 		

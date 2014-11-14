@@ -48,12 +48,12 @@ namespace Examine.LuceneEngine.Faceting
         /// <returns></returns>
         public ReaderData GetReaderData(IndexReader reader)
         {
-            return _readerData.GetValue(reader.GetFieldCacheKey(), key => new ReaderData(Configuration, reader));
+            return _readerData.GetValue(reader.FieldCacheKey, key => new ReaderData(Configuration, reader));
         }
 
         void ISearcherWarmer.Warm(IndexSearcher s)
         {
-            foreach (var reader in s.GetIndexReader().GetAllSubReaders())
+            foreach (var reader in s.IndexReader.GetAllSubReaders())
             {
                 AugmentReader(reader);
             }

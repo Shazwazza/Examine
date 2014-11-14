@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Cru
             _currentSearcher = new IndexSearcher(writer.GetReader());
             if (_warmer != null)
             {
-                writer.SetMergedSegmentWarmer(new WarmerWrapper(_warmer));                
+                writer.MergedSegmentWarmer = new WarmerWrapper(_warmer);
             }
         }
 
@@ -30,8 +30,8 @@ namespace Examine.LuceneEngine.Cru
             EnsureOpen();
             if (Monitor.TryEnter(_reopenLock))
             {
-                var currentReader = _currentSearcher.GetIndexReader();
-                var newReader = _currentSearcher.GetIndexReader().Reopen();
+                var currentReader = _currentSearcher.IndexReader;
+                var newReader = _currentSearcher.IndexReader.Reopen();
                 if (newReader != currentReader)
                 {
                     var newSearcher = new IndexSearcher(newReader);
@@ -66,7 +66,7 @@ namespace Examine.LuceneEngine.Cru
                 var searcher = AcquireSearcher();
                 try
                 {
-                    return searcher.GetIndexReader().IsCurrent();
+                    return searcher.IndexReader.IsCurrent();
                 }
                 finally
                 {
@@ -88,13 +88,13 @@ namespace Examine.LuceneEngine.Cru
             {
                 throw new AlreadyClosedException("this SearcherManager is closed");
             }
-            searcher.GetIndexReader().IncRef();
+            searcher.IndexReader.IncRef();
             return searcher;
         }
 
         private void ReleaseSearcher(IndexSearcher searcher)
         {            
-            searcher.GetIndexReader().DecRef();
+            searcher.IndexReader.DecRef();
         }
 
         private void EnsureOpen()

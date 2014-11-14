@@ -48,8 +48,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             if (_docStarts == null)
             {
-                _docStarts = _searcher.GetIndexReader().GetAllSubReaders().Select(r => 
-                    new KeyValuePair<int, IndexReader>(r.MaxDoc(), r)).ToArray();
+                _docStarts = _searcher.IndexReader.GetAllSubReaders().Select(r => 
+                    new KeyValuePair<int, IndexReader>(r.MaxDoc, r)).ToArray();
             }
 
             foreach (var r in _docStarts)

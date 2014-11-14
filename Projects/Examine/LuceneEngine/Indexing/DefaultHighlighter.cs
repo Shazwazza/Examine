@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using Lucene.Net.Analysis;
-using Lucene.Net.Documents;
-using Lucene.Net.Highlight;
-using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Highlight;
 
 namespace Examine.LuceneEngine.Indexing
 {
@@ -26,8 +21,10 @@ namespace Examine.LuceneEngine.Indexing
             _searcher = searcher;
             var fragmenter = new SimpleFragmenter(100);
             var scorer = new QueryScorer(query);
-            _highlighter = new Highlighter(formatter, scorer);
-            _highlighter.SetTextFragmenter(fragmenter);
+            _highlighter = new Highlighter(formatter, scorer)
+            {
+                TextFragmenter = fragmenter
+            };
         }
 
         public string Highlight(int docId)
@@ -35,7 +32,7 @@ namespace Examine.LuceneEngine.Indexing
             var document = _searcher.Doc(docId);
             var text = string.Join("\r\n",
                                    document.GetFields(_fieldName)
-                                           .Select(f => f.StringValue()));
+                                           .Select(f => f.StringValue));
             return _highlighter.GetBestFragment(_analyzer, _fieldName, text);
         }
     }

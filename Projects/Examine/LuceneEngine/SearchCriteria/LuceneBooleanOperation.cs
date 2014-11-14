@@ -47,7 +47,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public LuceneQuery Or()
         {
-            return new LuceneQuery(this._search, BooleanClause.Occur.SHOULD);
+            return new LuceneQuery(this._search, Occur.SHOULD);
         }
 
         public LuceneBooleanOperation Or(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
@@ -57,7 +57,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public LuceneQuery Not()
         {
-            return new LuceneQuery(this._search, BooleanClause.Occur.MUST_NOT);
+            return new LuceneQuery(this._search, Occur.MUST_NOT);
         }
 
         public LuceneBooleanOperation AndNot(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
@@ -67,7 +67,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public LuceneQuery And()
         {
-            return new LuceneQuery(this._search, BooleanClause.Occur.MUST);
+            return new LuceneQuery(this._search, Occur.MUST);
         }
 
         IBooleanOperation IBooleanOperation.And(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
@@ -123,12 +123,12 @@ namespace Examine.LuceneEngine.SearchCriteria
 
                 var query = new BooleanQuery();
 
-                query.Add(_search.Queries.Pop(), BooleanClause.Occur.MUST);
+                query.Add(_search.Queries.Pop(), Occur.MUST);
                 _search.Queries.Push(query);
 
-                //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), BooleanClause.Occur.MUST);
+                //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), Occur.MUST);
 
-                this._search.FieldInternal(LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType.ToString()), BooleanClause.Occur.MUST);
+                this._search.FieldInternal(LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType.ToString()), Occur.MUST);
                 
                 
                 //ensure we don't compile twice!

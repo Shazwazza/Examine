@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.SearchCriteria
@@ -31,31 +32,37 @@ namespace Examine.LuceneEngine.SearchCriteria
             return Wrapped.CreateWeight(searcher);
         }
 
-        public override void ExtractTerms(System.Collections.Hashtable terms)
+        /// <summary>
+        /// Expert: adds all terms occuring in this query to the terms set. Only
+        ///             works if this query is in its <see cref="M:Lucene.Net.Search.Query.Rewrite(Lucene.Net.Index.IndexReader)">rewritten</see> form.
+        /// </summary>
+        /// <throws>UnsupportedOperationException if this query is not yet rewritten </throws>
+        public override void ExtractTerms(ISet<Term> terms)
         {
             Wrapped.ExtractTerms(terms);
         }
 
-        public override float GetBoost()
+        /// <summary>
+        /// Gets or sets the boost for this query clause to <c>b</c>.  Documents
+        ///             matching this clause will (in addition to the normal weightings) have
+        ///             their score multiplied by <c>b</c>.  The boost is 1.0 by default.
+        /// </summary>
+        public override float Boost
         {
-            return Wrapped.GetBoost();
+            get { return Wrapped.Boost; }
+            set { Wrapped.Boost = value; }
         }
 
-        public override Lucene.Net.Search.Similarity GetSimilarity(Searcher searcher)
+        public override Similarity GetSimilarity(Searcher searcher)
         {
             return Wrapped.GetSimilarity(searcher);
         }
 
-        public override Query Rewrite(Lucene.Net.Index.IndexReader reader)
+        public override Query Rewrite(IndexReader reader)
         {
             return Wrapped.Rewrite(reader);
         }
-
-        public override void SetBoost(float b)
-        {
-            Wrapped.SetBoost(b);            
-        }
-
+        
         public override Weight Weight(Searcher searcher)
         {
             return Wrapped.Weight(searcher);

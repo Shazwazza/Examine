@@ -866,7 +866,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     using (var s = sc.GetSearcher())
                     {
-                        return s.Searcher.GetIndexReader().NumDocs() == 0;
+                        return s.Searcher.IndexReader.NumDocs() == 0;
                     }
                 }
                 else
@@ -900,8 +900,8 @@ namespace Examine.LuceneEngine.Providers
         protected bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
         {
             long nodeId = -1;
-            if (indexTerm != null && indexTerm.Field() == "id")
-                long.TryParse(indexTerm.Text(), out nodeId);
+            if (indexTerm != null && indexTerm.Field == "id")
+                long.TryParse(indexTerm.Text, out nodeId);
 
             try
             {
@@ -919,7 +919,7 @@ namespace Examine.LuceneEngine.Providers
                 }
 
 
-                OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm == null ? "" : indexTerm.Field(), indexTerm == null ? "" : indexTerm.Text())));
+                OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm == null ? "" : indexTerm.Field, indexTerm == null ? "" : indexTerm.Text)));
                 return true;
             }
             catch (Exception ee)

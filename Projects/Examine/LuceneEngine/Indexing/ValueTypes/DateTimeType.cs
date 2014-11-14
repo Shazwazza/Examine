@@ -53,8 +53,8 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
         public Query GetQuery(DateTime? lower, DateTime? upper, bool lowerInclusive = true, bool upperInclusive = true, IManagedQueryParameters parameters = null)
         {
             return NumericRangeQuery.NewLongRange(FieldName,
-                lower != null ? (ValueType) DateToLong(lower.Value) : null,
-                upper != null ? (ValueType) DateToLong(upper.Value) : null, lowerInclusive, upperInclusive);
+                lower != null ? DateToLong(lower.Value) : (long?)null,
+                upper != null ? DateToLong(upper.Value) : (long?)null, lowerInclusive, upperInclusive);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine.Config
             KeyAdapters = new List<DirectoryKeyAdapter>
                 {
                     dir=> { var fsDir = dir as FSDirectory;
-                              return fsDir != null ? fsDir.GetDirectory().FullName : null;
+                              return fsDir != null ? fsDir.Directory.FullName : null;
                     },
                     dir=> dir as RAMDirectory
                 };

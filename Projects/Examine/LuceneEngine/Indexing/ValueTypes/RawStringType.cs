@@ -28,7 +28,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
 
         protected override void AddSingleValue(Document doc, object value)
         {
-            var f = value as Fieldable;
+            var f = value as IFieldable;
             if (f != null)
             {                
                 doc.Add(f);

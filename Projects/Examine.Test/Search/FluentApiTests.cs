@@ -1460,7 +1460,7 @@ namespace Examine.Test.Search
                     .Compile();                    
 
                 //Act
-                var results = searcher.Search(filter);
+                var results = searcher.Find(filter);
 
                 //Assert
                 Assert.AreEqual(3, results.TotalItemCount);

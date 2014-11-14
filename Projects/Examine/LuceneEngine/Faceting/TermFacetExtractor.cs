@@ -25,24 +25,24 @@ namespace Examine.LuceneEngine.Faceting
                 var dataBuffer = new byte[4];
                 do
                 {
-                    var t = terms.Term();
-                    if (t == null || t.Field() != FieldName)
+                    var t = terms.Term;
+                    if (t == null || t.Field != FieldName)
                     {
                         break;
                     }
                     tp.Seek(terms);
                     while (tp.Next())
                     {
-                        var docId = tp.Doc();
+                        var docId = tp.Doc;
                         tp.NextPosition();
                         float level = .5f;
-                        if (tp.IsPayloadAvailable())
+                        if (tp.IsPayloadAvailable)
                         {
                             tp.GetPayload(dataBuffer, 0);
-                            level = PayloadDataTokenStream.GetFloatValue(dataBuffer);
+                            level = TokenStreamHelper.GetFloatValue(dataBuffer);
                         }
 
-                        foreach (var df in ExpandTerm(docId, FieldName, t.Text(), level))
+                        foreach (var df in ExpandTerm(docId, FieldName, t.Text, level))
                         {
                             yield return df;
                         }

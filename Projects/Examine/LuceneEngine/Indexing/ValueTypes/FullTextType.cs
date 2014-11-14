@@ -61,7 +61,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
 
         protected virtual IEnumerable<KeyValuePair<string, double>> GetPopularTerms(string term, Searcher searcher, FacetsLoader facetsLoader)
         {
-            var ss = searcher.GetSubSearchers().Select(s => s.GetIndexReader()).ToArray();
+            var ss = searcher.GetSubSearchers().Select(s => s.IndexReader).ToArray();
             if (ss.Length == 1)
             {
                 return GetPopularTerms(term, ss[0], facetsLoader);
@@ -79,15 +79,15 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             {
                 do
                 {
-                    var t = terms.Term();
-                    if (t == null || t.Field() != FieldName || !t.Text().StartsWith(term))
+                    var t = terms.Term;
+                    if (t == null || t.Field != FieldName || !t.Text.StartsWith(term))
                     {
                         break;
                     }
 
-                    if (t.Text() != term)
+                    if (t.Text != term)
                     {
-                        yield return new KeyValuePair<string, double>(t.Text(), terms.DocFreq());
+                        yield return new KeyValuePair<string, double>(t.Text, terms.DocFreq());
                     }
                 } while (terms.Next());
             }
@@ -111,21 +111,21 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             var bq = new BooleanQuery();
             while (tokenStream.IncrementToken())
             {
-                var term = termAttribute.Term();
+                var term = termAttribute.Term;
                 var directMatch = new TermQuery(new Term(FieldName, term));
                 if (term.Length >= 3)
                 {
-                    directMatch.SetBoost(10);
+                    directMatch.Boost = 10;
 
                     var bqInner = new BooleanQuery();
-                    bqInner.Add(directMatch, BooleanClause.Occur.SHOULD);
+                    bqInner.Add(directMatch, Occur.SHOULD);
 
 
                     //var pq = new PrefixQuery(new Term(FieldName, term));
                     //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
                     //foreach (var r in searcher.GetSubSearchers().Select(s => s.GetIndexReader()))
                     //{
-                    //    bqInner.Add(pq.Rewrite(r), BooleanClause.Occur.SHOULD);
+                    //    bqInner.Add(pq.Rewrite(r), Occur.SHOULD);
                     //}
 
                     var pops = GetPopularTerms(term, searcher, facetsLoader).GetTopItems(TermExpansions,
@@ -137,8 +137,8 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
                         foreach (var p in pops)
                         {
                             var pq = new TermQuery(new Term(FieldName, p.Key));
-                            pq.SetBoost((float) (p.Value/max));
-                            bqInner.Add(pq, BooleanClause.Occur.SHOULD);
+                            pq.Boost = ((float) (p.Value/max));
+                            bqInner.Add(pq, Occur.SHOULD);
                         }
                     }
 
@@ -149,25 +149,25 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
 
                     //foreach (var r in searcher.GetSubSearchers().Select(s => s.GetIndexReader()))
                     //{
-                    //    bqInner.Add(pq.Rewrite(r), BooleanClause.Occur.SHOULD);
+                    //    bqInner.Add(pq.Rewrite(r), Occur.SHOULD);
                     //}
 
                     //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
                     //foreach (var ixs in searcher.GetSubSearchers())
                     //{
-                    //    bqInner.Add(pq.Rewrite(ixs.GetIndexReader()), BooleanClause.Occur.SHOULD);                        
+                    //    bqInner.Add(pq.Rewrite(ixs.GetIndexReader()), Occur.SHOULD);                        
                     //}                    
 
 
-                    bq.Add(bqInner, BooleanClause.Occur.MUST);
+                    bq.Add(bqInner, Occur.MUST);
                 }
                 else
                 {
-                    bq.Add(directMatch, BooleanClause.Occur.MUST);
+                    bq.Add(directMatch, Occur.MUST);
                 }
             }
 
-            return bq.Clauses().Count > 0 ? bq : null;
+            return bq.Clauses.Count > 0 ? bq : null;
         }
 
         public override IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader)

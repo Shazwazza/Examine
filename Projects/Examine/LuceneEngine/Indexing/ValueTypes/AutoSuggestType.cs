@@ -52,18 +52,18 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             var bq = new BooleanQuery();
             while (tokenStream.IncrementToken())
             {
-                var term = termAttribute.Term();
+                var term = termAttribute.Term;
                 var bqInner = new BooleanQuery();
                 var directMatch = new TermQuery(new Term(FieldName, term));
-                directMatch.SetBoost(10);
-                bqInner.Add(directMatch, BooleanClause.Occur.SHOULD);                
+                directMatch.Boost = 10;
+                bqInner.Add(directMatch, Occur.SHOULD);                
                 var pq = new TermQuery(new Term(FieldName, term + "*"));
-                bqInner.Add(pq, BooleanClause.Occur.SHOULD);
+                bqInner.Add(pq, Occur.SHOULD);
 
-                bq.Add(bqInner, BooleanClause.Occur.MUST);
+                bq.Add(bqInner, Occur.MUST);
             }
 
-            return bq.Clauses().Count > 0 ? bq : null;
+            return bq.Clauses.Count > 0 ? bq : null;
         }
 
         public override IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader)

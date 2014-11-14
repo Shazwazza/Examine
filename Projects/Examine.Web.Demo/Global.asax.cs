@@ -96,7 +96,7 @@ namespace Examine.Web.Demo
                         args.Document.Add(new Field("RefFacet", new ReferenceFacetValue(f)));
                     }
 
-                    args.Document.Add(new Field("CustomDocField", new PayloadDataTokenStream(v + "_WithLevel").SetValue(.25f)));
+                    args.Document.Add(new Field("CustomDocField", TokenStreamHelper.Create(v + "_WithLevel", .25f)));
 
                     //Here we add a normal field
                     args.Document.Add(new Field("CustomDocField", v + "Test2", Field.Store.NO, Field.Index.NOT_ANALYZED));

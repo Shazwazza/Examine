@@ -187,12 +187,12 @@ namespace UmbracoExamine.SearchCriteria
         //    return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.Then(examineValue, s);
         //}
         [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
-        public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
+        public static BooleanOperation ToBooleanOperation(this Occur o)
         {
             return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.ToBooleanOperation(o);
         }
         [Obsolete("Use the new Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions")]
-        public static BooleanClause.Occur ToLuceneOccurrence(this BooleanOperation o)
+        public static Occur ToLuceneOccurrence(this BooleanOperation o)
         {
             return Examine.LuceneEngine.SearchCriteria.LuceneSearchExtensions.ToLuceneOccurrence(o);
         }
@@ -227,7 +227,7 @@ namespace UmbracoExamine.SearchCriteria
     public class LuceneQuery : Examine.LuceneEngine.SearchCriteria.LuceneQuery
     {
         [Obsolete]
-        public LuceneQuery(LuceneSearchCriteria search, Lucene.Net.Search.BooleanClause.Occur occurrence)
+        public LuceneQuery(LuceneSearchCriteria search, Lucene.Net.Search.Occur occurrence)
             : base(search, occurrence) { }
     }
 }

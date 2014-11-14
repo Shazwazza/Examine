@@ -7,6 +7,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Faceting
 {
+    //TODO: This is not in use, find out what it might be for!?
     internal class MinScoreCollector : Collector
     {
         private readonly Collector _inner;
@@ -38,9 +39,10 @@ namespace Examine.LuceneEngine.Faceting
             _inner.SetNextReader(reader, docBase);
         }
 
-        public override bool AcceptsDocsOutOfOrder()
+        public override bool AcceptsDocsOutOfOrder
         {
-            return _inner.AcceptsDocsOutOfOrder();
+            get { return _inner.AcceptsDocsOutOfOrder; }
+            
         }
     }
 }

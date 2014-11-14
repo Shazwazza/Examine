@@ -34,7 +34,7 @@ namespace Examine.LuceneEngine.Indexing
             var reader = _searcher.GetSubSearchers().FirstOrDefault();
             if (reader != null)
             {
-                return _fvh.GetBestFragment(_fq, reader.GetIndexReader(), docId, _valueType.FieldName, 300);
+                return _fvh.GetBestFragment(_fq, reader.IndexReader, docId, _valueType.FieldName, 300);
             }
 
             return null;

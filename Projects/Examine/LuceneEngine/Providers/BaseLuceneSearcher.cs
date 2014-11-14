@@ -159,6 +159,13 @@ namespace Examine.LuceneEngine.Providers
             return new SearchResultsProxy<LuceneSearchResult>(pagesResults);
         }
 
+        [Obsolete("Use the Find method with MaxCount instead for strongly typed search results")]
+        public ISearchResults Search(ISearchCriteria searchParams, int maxResults)
+        {
+            var pagesResults = Find(searchParams.MaxCount(maxResults));
+            return new SearchResultsProxy<LuceneSearchResult>(pagesResults);
+        }
+
         public override ILuceneSearchResults Find(string searchText, bool useWildcards)
         {
             var sc = this.CreateCriteria();

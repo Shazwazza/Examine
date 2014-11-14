@@ -20,9 +20,10 @@ namespace Examine
     }
 
     //NOTE: This is just for backwards compatibility
-    public interface ISearchResults : ISearchResults<ISearchResult>
+    public interface ISearchResults : IEnumerable<SearchResult>
     {
-        
+        int TotalItemCount { get; }
+        IEnumerable<SearchResult> Skip(int skip);
     }
 
     internal class SearchResultsProxy<T> : ISearchResults
@@ -33,6 +34,12 @@ namespace Examine
         public SearchResultsProxy(ISearchResults<T> realResults)
         {
             _realResults = realResults;
+        }
+
+        //This is for backwards compatibility
+        IEnumerator<SearchResult> IEnumerable<SearchResult>.GetEnumerator()
+        {
+            return _realResults.OfType<SearchResult>().GetEnumerator();
         }
 
         public IEnumerator<ISearchResult> GetEnumerator()
@@ -53,6 +60,11 @@ namespace Examine
         public IEnumerable<ISearchResult> Skip(int skip)
         {
             return _realResults.Skip(skip).Cast<ISearchResult>();
+        }
+
+        IEnumerable<SearchResult> ISearchResults.Skip(int skip)
+        {
+            return _realResults.OfType<SearchResult>().Skip(skip);
         }
     }
 }

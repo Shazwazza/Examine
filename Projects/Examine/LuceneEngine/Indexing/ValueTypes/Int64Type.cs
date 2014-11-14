@@ -38,8 +38,8 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
         public Query GetQuery(long? lower, long? upper, bool lowerInclusive = true, bool upperInclusive = true, IManagedQueryParameters parameters = null)
         {
             return NumericRangeQuery.NewLongRange(FieldName,
-                lower != null ? (ValueType)lower.Value : null,
-                upper != null ? (ValueType)upper.Value : null, lowerInclusive, upperInclusive);
+                lower != null ? lower.Value : (long?)null,
+                upper != null ? upper.Value : (long?)null, lowerInclusive, upperInclusive);
         }
     }
 }

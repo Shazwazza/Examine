@@ -46,7 +46,7 @@ namespace Examine.LuceneEngine.Indexing.Analyzers
 
                     //_termLength = _term.TermLength();
                     _yieldLength = 0;
-                    _start = _offset.StartOffset();
+                    _start = _offset.StartOffset;
                 }
 
                 var t = _termBuffer[_termBufferIndex];
@@ -58,7 +58,7 @@ namespace Examine.LuceneEngine.Indexing.Analyzers
                     
                     _term.SetTermBuffer(spelling);
                     _offset.SetOffset(_start, _start + _yieldLength);
-                    _position.SetPositionIncrement(_termBufferIndex == 0 && _yieldLength == 1 ? 1 : 0);
+                    _position.PositionIncrement = _termBufferIndex == 0 && _yieldLength == 1 ? 1 : 0;
                     return true;
                 }
 
