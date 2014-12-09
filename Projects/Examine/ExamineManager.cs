@@ -19,10 +19,8 @@ namespace Examine
     ///</summary>
     public class ExamineManager : ISearcher, IIndexer
     {
-
         private ExamineManager()
         {
-            LoadProviders();
         }
 
         /// <summary>
@@ -30,10 +28,7 @@ namespace Examine
         /// </summary>
         public static ExamineManager Instance
         {
-            get
-            {
-                return Manager;
-            }
+            get { return Manager; }
         }
 
         private static readonly ExamineManager Manager = new ExamineManager();
@@ -43,21 +38,48 @@ namespace Examine
         ///<summary>
         /// Returns the default search provider
         ///</summary>
-        public BaseSearchProvider DefaultSearchProvider { get; private set; }
+        public BaseSearchProvider DefaultSearchProvider
+        {
+            get
+            {
+                EnsureProviders();
+                return _defaultSearchProvider;
+            }
+        }
 
         /// <summary>
         /// Returns the collection of searchers
         /// </summary>
-        public SearchProviderCollection SearchProviderCollection { get; private set; }
+        public SearchProviderCollection SearchProviderCollection
+        {
+            get
+            {
+                EnsureProviders();
+                return _searchProviderCollection;
+            }            
+        }
 
         /// <summary>
         /// Return the colleciton of indexers
         /// </summary>
-        public IndexProviderCollection IndexProviderCollection { get; private set; }
+        public IndexProviderCollection IndexProviderCollection
+        {
+            get
+            {
+                EnsureProviders();
+                return _indexProviderCollection;
+            }
+        }
 
         private volatile bool _providersInit = false;
+        private BaseSearchProvider _defaultSearchProvider;
+        private SearchProviderCollection _searchProviderCollection;
+        private IndexProviderCollection _indexProviderCollection;
 
-        private void LoadProviders()
+        /// <summary>
+        /// Before any of the index/search collections are accessed, the providers need to be loaded
+        /// </summary>
+        private void EnsureProviders()
         {
             if (!_providersInit)
             {
@@ -68,17 +90,17 @@ namespace Examine
                     {
                         // Load registered providers and point _provider to the default provider	
 
-                        IndexProviderCollection = new IndexProviderCollection();
-                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, IndexProviderCollection, typeof(BaseIndexProvider));
+                        _indexProviderCollection = new IndexProviderCollection();
+                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, _indexProviderCollection, typeof(BaseIndexProvider));
 
-                        SearchProviderCollection = new SearchProviderCollection();
-                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, SearchProviderCollection, typeof(BaseSearchProvider));
+                        _searchProviderCollection = new SearchProviderCollection();
+                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, _searchProviderCollection, typeof(BaseSearchProvider));
 
                         //set the default
                         if (!string.IsNullOrEmpty(ExamineSettings.Instance.SearchProviders.DefaultProvider))
-                             DefaultSearchProvider = SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider];
+                            _defaultSearchProvider = _searchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider];
 
-                        if (DefaultSearchProvider == null)
+                        if (_defaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
 
                         _providersInit = true;
@@ -87,11 +109,16 @@ namespace Examine
                         //check if we need to rebuild on startup
                         if (ExamineSettings.Instance.RebuildOnAppStart)
                         {
-                            foreach (var index in IndexProviderCollection.Cast<IIndexer>())
+                            foreach (var index in _indexProviderCollection.Cast<IIndexer>())
                             {
                                 if (!index.IndexExists())
                                 {
-                                    index.RebuildIndex();
+                                    var args = new BuildingEmptyIndexOnStartupEventArgs(index);
+                                    OnBuildingEmptyIndexOnStartup(args);
+                                    if (!args.Cancel)
+                                    {
+                                        index.RebuildIndex();    
+                                    }
                                 }
                             }    
                         }
@@ -257,5 +284,20 @@ namespace Examine
         }
 
         #endregion
+
+        /// <summary>
+        /// Event is raised when an index is being rebuild on app startup when it is empty, this event is cancelable
+        /// </summary>
+        public event EventHandler<BuildingEmptyIndexOnStartupEventArgs> BuildingEmptyIndexOnStartup;
+
+        /// <summary>
+        /// Raises the BuildingEmptyIndexOnStartup event
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnBuildingEmptyIndexOnStartup(BuildingEmptyIndexOnStartupEventArgs e)
+        {
+            var handler = BuildingEmptyIndexOnStartup;
+            if (handler != null) handler(this, e);
+        }
     }
 }

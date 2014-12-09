@@ -100,6 +100,7 @@
     <Compile Include="..\..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="BuildingEmptyIndexOnStartupEventArgs.cs" />
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\ExamineSettings.cs" />
