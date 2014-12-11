@@ -19,7 +19,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// A provider that allows for searching across multiple indexes
     ///</summary>
-    public class MultiIndexSearcher : BaseLuceneSearcher
+    public class MultiIndexSearcher : BaseLuceneSearcher, IDisposable
     {
 
         #region Constructors
@@ -29,6 +29,7 @@ namespace Examine.LuceneEngine.Providers
 		/// </summary>
         public MultiIndexSearcher()
 		{
+            _disposer = new DisposableSearcher(this);
         }
 
         /// <summary>
@@ -40,6 +41,7 @@ namespace Examine.LuceneEngine.Providers
 		public MultiIndexSearcher(IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
             : base(analyzer)
         {
+            _disposer = new DisposableSearcher(this);
 	        var searchers = new List<LuceneSearcher>();
 			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
 			foreach (var ip in indexPath)
@@ -58,6 +60,7 @@ namespace Examine.LuceneEngine.Providers
 		public MultiIndexSearcher(IEnumerable<Lucene.Net.Store.Directory> luceneDirs, Analyzer analyzer)
 			: base(analyzer)
 		{
+            _disposer = new DisposableSearcher(this);
 			var searchers = new List<LuceneSearcher>();
 			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
 			foreach (var luceneDirectory in luceneDirs)
@@ -145,6 +148,41 @@ namespace Examine.LuceneEngine.Providers
 			return new MultiSearcher(searchables.ToArray());
         }
 
-     
+
+        #region IDisposable Members
+
+        private readonly DisposableSearcher _disposer;
+
+        private class DisposableSearcher : DisposableObject
+        {
+            private readonly MultiIndexSearcher _searcher;
+
+            public DisposableSearcher(MultiIndexSearcher searcher)
+            {
+                _searcher = searcher;
+            }
+
+            /// <summary>
+            /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
+            /// </summary>
+            [SecuritySafeCritical]
+            protected override void DisposeResources()
+            {
+                foreach (var searcher in _searcher.Searchers)
+                {
+                    searcher.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            _disposer.Dispose();
+        }
+
+        #endregion
     }
 }

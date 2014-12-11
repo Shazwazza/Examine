@@ -41,6 +41,7 @@ namespace Examine.LuceneEngine.Providers
         {
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = true;
+            _disposer = new DisposableIndexer(this);
         }
 
         /// <summary>
@@ -50,10 +51,12 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
         /// <param name="async"></param>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, bool async)
             : base(indexerData)
         {
+            _disposer = new DisposableIndexer(this);
+
             //set up our folders based on the index path
             WorkingFolder = workingFolder;
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
@@ -70,38 +73,41 @@ namespace Examine.LuceneEngine.Providers
 
         }
 
-		[SecuritySafeCritical]
-		protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
-			: base(indexerData)
-		{			
-			WorkingFolder = null;
-			LuceneIndexFolder = null;
-			_directory = luceneDirectory;
+        [SecuritySafeCritical]
+        protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
+            : base(indexerData)
+        {
+            _disposer = new DisposableIndexer(this);
 
-			IndexingAnalyzer = analyzer;
+            WorkingFolder = null;
+            LuceneIndexFolder = null;
+            _directory = luceneDirectory;
 
-			//create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-			InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
+            IndexingAnalyzer = analyzer;
 
-			//IndexSecondsInterval = 5;
-			OptimizationCommitThreshold = 100;
-			AutomaticallyOptimize = true;
-			RunAsync = async;
-		}
+            //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
+            InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
+
+            //IndexSecondsInterval = 5;
+            OptimizationCommitThreshold = 100;
+            AutomaticallyOptimize = true;
+            RunAsync = async;
+        }
 
         [SecuritySafeCritical]
         protected LuceneIndexer(IIndexCriteria indexerData, IndexWriter writer, bool async)
             : base(indexerData)
         {
             if (writer == null) throw new ArgumentNullException("writer");
-            _nrtWriter = writer;
+            _disposer = new DisposableIndexer(this);
+            _writer = writer;
             WorkingFolder = null;
             LuceneIndexFolder = null;
 
             IndexingAnalyzer = writer.GetAnalyzer();
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneSearcher(_nrtWriter, IndexingAnalyzer);
+            InternalSearcher = new LuceneSearcher(_writer, IndexingAnalyzer);
 
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
@@ -131,7 +137,7 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -252,7 +258,8 @@ namespace Examine.LuceneEngine.Providers
 
         #region Constants & Fields
 
-        private IndexWriter _nrtWriter;
+        private volatile IndexWriter _writer;
+
 
         /// <summary>
         /// The prefix characters denoting a special field stored in the lucene index for use internally
@@ -277,7 +284,12 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Used to perform thread locking
         /// </summary>
-        private readonly object _indexerLocker = new object();
+        private readonly object _indexingLocker = new object();
+
+        /// <summary>
+        /// Used to aquire the index writer
+        /// </summary>
+        private readonly object _writerLocker = new object();
 
         /// <summary>
         /// used to thread lock calls for creating and verifying folders
@@ -293,7 +305,7 @@ namespace Examine.LuceneEngine.Providers
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
         /// </summary>
-        protected BaseSearchProvider InternalSearcher { get; private set; }
+        protected virtual BaseSearchProvider InternalSearcher { get; private set; }
 
         /// <summary>
         /// This is our threadsafe queue of items which can be read by our background worker to process the queue
@@ -308,7 +320,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Used to cancel the async operation
         /// </summary>
-        private volatile bool _isCancelling = false;
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         private bool _hasIndex = false;
 
@@ -432,16 +444,16 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public int OptimizationCommitThreshold { get; protected internal set; }
 
-	    /// <summary>
-	    /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
-	    /// </summary>
-	    public Analyzer IndexingAnalyzer
-	    {
-			[SecuritySafeCritical]
-		    get;
-			[SecuritySafeCritical]
-			protected set;
-	    }
+        /// <summary>
+        /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
+        /// </summary>
+        public Analyzer IndexingAnalyzer
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            protected set;
+        }
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
@@ -492,11 +504,11 @@ namespace Examine.LuceneEngine.Providers
         /// Occurs when [document writing].
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
-        
+
         #endregion
 
         #region Event handlers
-        
+
         /// <summary>
         /// Called when an indexing error occurs
         /// </summary>
@@ -567,7 +579,7 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Provider implementation
-        
+
 
         /// <summary>
         /// Forces a particular XML node to be reindexed
@@ -575,7 +587,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="node">XML node to reindex</param>
         /// <param name="type">Type of index to use</param>
         public override void ReIndexNode(XElement node, string type)
-        {   
+        {
             //now index the single node
             AddSingleNodeToIndex(node, type);
         }
@@ -583,38 +595,81 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public void EnsureIndex(bool forceOverwrite)
         {
             if (!forceOverwrite && _hasIndex) return;
 
             IndexWriter writer = null;
-            try
-            {
 
-                //check if the index exists and it's locked
-                if (IndexExists() && forceOverwrite && !IndexReady())
+            if (!IndexExists() || forceOverwrite)
+            {
+                //if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
+                // logic to actually execute multiple times
+                if (Monitor.TryEnter(_writerLocker))
                 {
-                    OnIndexingError(new IndexingErrorEventArgs("Cannot create index, the index is currently locked", -1, null));
-                    return;
+                    try
+                    {
+                        //there's already a writer but we're forcing an overwrite, this means that we need to cancel all operations currently in place,
+                        // clear the queue and close the current writer.
+                        if (forceOverwrite && _writer != null)
+                        {
+                            // need to close the current writer
+
+                            //cancel any operation currently in place
+                            _cancellationTokenSource.Cancel();
+
+                            //clear the queue
+                            IndexOperation op;
+                            while (_indexQueue.TryDequeue(out op))
+                            {
+
+                            }
+
+                            _writer.Close();
+                            _writer.Dispose();
+                            _writer = null;
+                            _isIndexing = false;
+
+                        }
+
+                        try
+                        {
+                            //create the writer (this will overwrite old index files)
+                            writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                        }
+                        catch (Exception ex)
+                        {
+                            OnIndexingError(new IndexingErrorEventArgs("An error occurred creating the index", -1, ex));
+                            return;
+                        }
+                        finally
+                        {
+                            if (writer != null)
+                            {
+                                writer.Close();
+                                writer.Dispose();
+                            }
+                            _hasIndex = true;
+
+                            //reset token
+                            _cancellationTokenSource = new CancellationTokenSource();
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(_writerLocker);
+                    }
                 }
 
-                if (!IndexExists() || forceOverwrite)
-                {
-                    //create the writer (this will overwrite old index files)
-                    writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-                }
+
             }
-            catch (Exception ex)
+            else
             {
-                OnIndexingError(new IndexingErrorEventArgs("An error occurred creating the index", -1, ex));
-                return;
+                // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
+                OnIndexingError(new IndexingErrorEventArgs("Could not acquire lock in EnsureIndex so cannot create new index", -1, null));
             }
-            finally
-            {
-                CloseWriter(ref writer);                
-                _hasIndex = true;
-            }
+
 
         }
 
@@ -668,7 +723,7 @@ namespace Examine.LuceneEngine.Providers
                         Item = new IndexItem(null, type, string.Empty)
                     };
                 EnqueueIndexOperation(op);
-                
+
             }
 
             //now do the indexing...
@@ -683,7 +738,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// This can be an expensive operation and should only be called when there is no indexing activity
         /// </remarks>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public void OptimizeIndex()
         {
             IndexWriter writer = null;
@@ -713,13 +768,6 @@ namespace Examine.LuceneEngine.Providers
             {
                 OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
             }
-            finally
-            {
-                if (_nrtWriter == null)
-                {
-                    CloseWriter(ref writer);    
-                }
-            }
 
         }
 
@@ -740,7 +788,7 @@ namespace Examine.LuceneEngine.Providers
                 RebuildIndex();
                 return;
             }
-            
+
             foreach (XElement node in nodes)
             {
                 EnqueueIndexOperation(new IndexOperation()
@@ -783,20 +831,20 @@ namespace Examine.LuceneEngine.Providers
         /// Checks if the index is ready to open/write to.
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected bool IndexReady()
         {
-            return _nrtWriter != null || (!IndexWriter.IsLocked(GetLuceneDirectory()));
+            return _writer != null || (!IndexWriter.IsLocked(GetLuceneDirectory()));
         }
 
         /// <summary>
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public override bool IndexExists()
         {
-            return _nrtWriter != null || IndexReader.IndexExists(GetLuceneDirectory());
+            return _writer != null || IndexReader.IndexExists(GetLuceneDirectory());
         }
 
         /// <summary>
@@ -806,7 +854,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="node">The node to index.</param>
         /// <param name="type">The type to store the node as.</param>
         protected virtual void AddSingleNodeToIndex(XElement node, string type)
-        {   
+        {
             AddNodesToIndex(new XElement[] { node }, type);
         }
 
@@ -818,7 +866,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected bool DeleteFromIndex(Term indexTerm, IndexWriter iw, bool performCommit = true)
         {
             int nodeId = -1;
@@ -835,9 +883,9 @@ namespace Examine.LuceneEngine.Providers
 
                 if (performCommit)
                 {
-                    iw.Commit();    
+                    iw.Commit();
                 }
-                
+
 
                 OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field(), indexTerm.Text())));
                 return true;
@@ -918,8 +966,8 @@ namespace Examine.LuceneEngine.Providers
                     }
                     else
                     {
-                        values.Add(field.Name, val);    
-                    }                    
+                        values.Add(field.Name, val);
+                    }
                 }
 
             }
@@ -945,11 +993,11 @@ namespace Examine.LuceneEngine.Providers
                     else
                     {
                         values.Add(field.Name, value);
-                    }    
+                    }
                 }
             }
 
-            
+
 
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
@@ -1010,7 +1058,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// This will normalize (lowercase) all text before it goes in to the index.
         /// </remarks>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, string type)
         {
             var args = new IndexingNodeEventArgs(nodeId, fields, type);
@@ -1162,7 +1210,7 @@ namespace Examine.LuceneEngine.Providers
             if (docArgs.Cancel)
                 return;
 
-            writer.UpdateDocument(new Term(IndexNodeIdFieldName, nodeId.ToString(CultureInfo.InvariantCulture)), d);    
+            writer.UpdateDocument(new Term(IndexNodeIdFieldName, nodeId.ToString(CultureInfo.InvariantCulture)), d);
 
             OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
         }
@@ -1221,7 +1269,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         protected internal void SafelyProcessQueueItems()
         {
-
             if (!RunAsync)
             {
                 StartIndexing();
@@ -1231,12 +1278,22 @@ namespace Examine.LuceneEngine.Providers
                 if (!_isIndexing)
                 {
                     //don't run the worker if it's currently running since it will just pick up the rest of the queue during its normal operation                    
-                    lock (_indexerLocker)
+                    lock (_indexingLocker)
                     {
                         if (!_isIndexing && (_asyncTask == null || _asyncTask.IsCompleted))
                         {
                             //Debug.WriteLine("Examine: Launching task");
-                            _asyncTask = Task.Factory.StartNew(StartIndexing, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                            _asyncTask = Task.Factory.StartNew(
+                                StartIndexing,
+                                _cancellationTokenSource.Token,  //use our cancellation token
+                                TaskCreationOptions.None,
+                                TaskScheduler.Default).ContinueWith(task =>
+                                {
+                                    if (task.IsCanceled)
+                                    {
+                                        //if this gets cancelled, we need to 
+                                    }
+                                });
                         }
                     }
                 }
@@ -1251,11 +1308,11 @@ namespace Examine.LuceneEngine.Providers
         {
             if (!_isIndexing)
             {
-                lock (_indexerLocker)
+                lock (_indexingLocker)
                 {
-                    if (!_isIndexing)
+                    if (!_isIndexing && !_cancellationTokenSource.IsCancellationRequested)
                     {
-  
+
                         _isIndexing = true;
 
                         //keep processing until it is complete
@@ -1263,7 +1320,7 @@ namespace Examine.LuceneEngine.Providers
                         do
                         {
                             numProcessedItems = ForceProcessQueueItems();
-                        } while (!_isCancelling && numProcessedItems > 0);
+                        } while (numProcessedItems > 0);
 
                         //if there are enough commits, then we'll run an optimization
                         if (CommitCount >= OptimizationCommitThreshold)
@@ -1295,7 +1352,7 @@ namespace Examine.LuceneEngine.Providers
         /// that the correct machine processes the items into the index. SafelyQueueItems calls this method
         /// if it confirms that this machine is the one to process the queue.
         /// </remarks>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected int ForceProcessQueueItems()
         {
             if (!IndexExists())
@@ -1321,13 +1378,13 @@ namespace Examine.LuceneEngine.Providers
                 writer = GetIndexWriter();
 
                 IndexOperation item;
-                while (_indexQueue.TryDequeue(out item))
+                while (_indexQueue.TryDequeue(out item) && !_cancellationTokenSource.IsCancellationRequested)
                 {
 
                     switch (item.Operation)
                     {
                         case IndexOperationType.Add:
-                            
+
                             if (ValidateDocument(item.Item.DataToIndex))
                             {
                                 //var added = ProcessIndexQueueItem(item, inMemoryWriter);
@@ -1352,7 +1409,7 @@ namespace Examine.LuceneEngine.Providers
                 }
 
                 writer.Commit(); //commit the changes (this will process the deletes)
-                
+
                 //this is required to ensure the index is written to during the same thread execution
                 if (!RunAsync)
                 {
@@ -1367,20 +1424,17 @@ namespace Examine.LuceneEngine.Providers
             {
                 OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
             }
-            finally
-            {
-                if (_nrtWriter == null)
-                {
-                    CloseWriter(ref writer);    
-                }
-            }         
+
             return indexedNodes.Count;
-                   
         }
 
         protected void EnqueueIndexOperation(IndexOperation op)
-        {            
-            _indexQueue.Enqueue(op);
+        {
+            //don't queue if there's been a cancellation requested
+            if (!_cancellationTokenSource.IsCancellationRequested)
+            {
+                _indexQueue.Enqueue(op);
+            }
         }
 
         private Lucene.Net.Store.Directory _directory;
@@ -1389,7 +1443,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public virtual Lucene.Net.Store.Directory GetLuceneDirectory()
         {
             if (_directory == null)
@@ -1397,22 +1451,48 @@ namespace Examine.LuceneEngine.Providers
                 //ensure all of the folders are created at startup   
                 VerifyFolder(WorkingFolder);
                 VerifyFolder(LuceneIndexFolder);
-                _directory = new SimpleFSDirectory(LuceneIndexFolder);
+                _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
             }
             return _directory;
+        }
+
+        /// <summary>
+        /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
+        /// </summary>
+        /// <returns></returns>
+        [SecuritySafeCritical]
+        protected virtual IndexWriter CreateIndexWriter()
+        {
+            return new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
         /// <summary>
         /// Returns an index writer for the current directory
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         public virtual IndexWriter GetIndexWriter()
         {
             EnsureIndex(false);
 
-            return _nrtWriter ?? new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
-            
+            if (_writer == null)
+            {
+                Monitor.Enter(_writerLocker);
+                try
+                {
+                    if (_writer == null)
+                    {
+                        _writer = CreateIndexWriter();
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(_writerLocker);
+                }
+               
+            }
+
+            return _writer;
         }
 
 
@@ -1429,7 +1509,7 @@ namespace Examine.LuceneEngine.Providers
                 fields.Add(IndexTypeFieldName, type);
         }
 
-     
+
         /// <summary>
         /// Tries to parse a type using the Type's type converter
         /// </summary>
@@ -1463,7 +1543,7 @@ namespace Examine.LuceneEngine.Providers
         /// - Field.TermVector.NO
         /// </summary>
         /// <param name="d"></param>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private void AddSpecialFieldsToDocument(Document d, Dictionary<string, string> fields)
         {
             var specialFields = GetSpecialFieldsToIndex(fields);
@@ -1482,10 +1562,10 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="op"></param>
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private void ProcessDeleteQueueItem(IndexOperation op, IndexWriter iw, bool performCommit = true)
         {
-           
+
             //if the id is empty then remove the whole type
             if (string.IsNullOrEmpty(op.Item.Id))
             {
@@ -1493,13 +1573,13 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                DeleteFromIndex(new Term(IndexNodeIdFieldName, op.Item.Id), iw, performCommit);    
+                DeleteFromIndex(new Term(IndexNodeIdFieldName, op.Item.Id), iw, performCommit);
             }
 
             CommitCount++;
         }
 
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private IndexedNode ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
         {
             //get the node id
@@ -1513,18 +1593,18 @@ namespace Examine.LuceneEngine.Providers
 
             CommitCount++;
 
-            return new IndexedNode() {NodeId = nodeId, Type = op.Item.IndexType};
+            return new IndexedNode() { NodeId = nodeId, Type = op.Item.IndexType };
         }
 
-        [SecuritySafeCritical]
-        private void CloseWriter(ref IndexWriter writer)
-        {
-            if (writer != null)
-            {
-                writer.Close();
-                writer = null;
-            }
-        }
+        //[SecuritySafeCritical]
+        //private void CloseWriter(ref IndexWriter writer)
+        //{
+        //    if (writer != null)
+        //    {
+        //        writer.Close();
+        //        writer = null;
+        //    }
+        //}
 
         /// <summary>
         /// Creates the folder if it does not exist.
@@ -1551,16 +1631,32 @@ namespace Examine.LuceneEngine.Providers
 
         #region IDisposable Members
 
-        private readonly DisposableIndexer _disposer = new DisposableIndexer();
+        private readonly DisposableIndexer _disposer;
 
         private class DisposableIndexer : DisposableObject
         {
+            private readonly LuceneIndexer _indexer;
+
+            public DisposableIndexer(LuceneIndexer indexer)
+            {
+                _indexer = indexer;
+            }
+
             /// <summary>
             /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
             /// </summary>
+            [SecuritySafeCritical]
             protected override void DisposeResources()
             {
-                //TODO: Do we need to dispose anything?
+                //cancel any operation currently in place
+                _indexer._cancellationTokenSource.Cancel();
+
+                if (_indexer._writer != null)
+                {
+                    _indexer._writer.Dispose();
+                }
+
+                _indexer._cancellationTokenSource.Dispose();
             }
         }
 
@@ -1574,6 +1670,6 @@ namespace Examine.LuceneEngine.Providers
 
         #endregion
 
-        
+
     }
 }

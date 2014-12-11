@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration.Provider;
 using System.Linq;
 using System.Web.Configuration;
+using System.Web.Hosting;
 using System.Xml.Linq;
 using Examine.Config;
 using Examine.LuceneEngine.Providers;
@@ -17,10 +18,11 @@ namespace Examine
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : ISearcher, IIndexer
+    public class ExamineManager : ISearcher, IIndexer, IRegisteredObject
     {
         private ExamineManager()
         {
+            HostingEnvironment.RegisterObject(this);
         }
 
         /// <summary>
@@ -298,6 +300,22 @@ namespace Examine
         {
             var handler = BuildingEmptyIndexOnStartup;
             if (handler != null) handler(this, e);
+        }
+
+        /// <summary>
+        /// Requests a registered object to unregister on app domain unload in a web project
+        /// </summary>
+        /// <param name="immediate">true to indicate the registered object should unregister from the hosting environment before returning; otherwise, false.</param>
+        public void Stop(bool immediate)
+        {
+            foreach (var searcher in SearchProviderCollection.OfType<IDisposable>())
+            {
+                searcher.Dispose();
+            }
+            foreach (var indexer in IndexProviderCollection.OfType<IDisposable>())
+            {
+                indexer.Dispose();
+            }
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// Standard object used to search a Lucene index
     ///</summary>
-    public class LuceneSearcher : BaseLuceneSearcher
+    public class LuceneSearcher : BaseLuceneSearcher, IDisposable
     {
         #region Constructors
 
@@ -30,6 +30,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public LuceneSearcher()
         {
+            _disposer = new DisposableSearcher(this);
         }
 
         /// <summary>
@@ -42,6 +43,7 @@ namespace Examine.LuceneEngine.Providers
             : base(analyzer)
         {
             if (writer == null) throw new ArgumentNullException("writer");
+            _disposer = new DisposableSearcher(this);
             _nrtWriter = writer;
         }
 
@@ -54,6 +56,7 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher(DirectoryInfo workingFolder, Analyzer analyzer)
             : base(analyzer)
         {
+            _disposer = new DisposableSearcher(this);
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
         }
 
@@ -66,6 +69,7 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
             : base(analyzer)
         {
+            _disposer = new DisposableSearcher(this);
             LuceneIndexFolder = null;
             _luceneDirectory = luceneDirectory;
         }
@@ -77,9 +81,10 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private IndexSearcher _searcher;
         private volatile IndexReader _reader;
-        private static readonly object Locker = new object();
+        private readonly object _locker = new object();
         private Lucene.Net.Store.Directory _luceneDirectory;
         private readonly IndexWriter _nrtWriter;
+
         /// <summary>
         /// Do not access this object directly. The public property ensures that the folder state is always up to date
         /// </summary>
@@ -177,7 +182,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (!_hasIndex)
             {
-                lock (Locker)
+                lock (_locker)
                 {
                     //double check
                     if (!_hasIndex)
@@ -278,9 +283,19 @@ namespace Examine.LuceneEngine.Providers
 
             if (_luceneDirectory == null)
             {
-                _luceneDirectory = new SimpleFSDirectory(LuceneIndexFolder);
+                _luceneDirectory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
             }
             return _luceneDirectory;
+        }
+
+        /// <summary>
+        /// Used to open a new reader when first initializing, when forcing a re-open or when the reader becomes stale (new data is in the index)
+        /// </summary>
+        /// <returns></returns>
+        [SecuritySafeCritical]
+        protected virtual IndexReader OpenNewReader()
+        {
+            return IndexReader.Open(GetLuceneDirectory(), true);
         }
 
         /// <summary>
@@ -296,7 +311,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 if (_reader == null)
                 {
-                    lock (Locker)
+                    lock (_locker)
                     {
                         //double check
                         if (_reader == null)
@@ -305,7 +320,7 @@ namespace Examine.LuceneEngine.Providers
                             {
                                 //get a reader - could be NRT or based on directly depending on how this was constructed
                                 _reader = _nrtWriter == null
-                                    ? IndexReader.Open(GetLuceneDirectory(), true)
+                                    ? OpenNewReader()
                                     : _nrtWriter.GetReader();
 
                                 _searcher = new IndexSearcher(_reader);
@@ -324,11 +339,11 @@ namespace Examine.LuceneEngine.Providers
                         case ReaderStatus.Current:
                             break;
                         case ReaderStatus.Closed:
-                            lock (Locker)
+                            lock (_locker)
                             {
                                 //get a reader - could be NRT or based on directly depending on how this was constructed
                                 _reader = _nrtWriter == null
-                                    ? IndexReader.Open(GetLuceneDirectory(), true)
+                                    ? OpenNewReader()
                                     : _nrtWriter.GetReader();
 
                                 _searcher = new IndexSearcher(_reader);
@@ -336,7 +351,7 @@ namespace Examine.LuceneEngine.Providers
                             break;
                         case ReaderStatus.NotCurrent:
 
-                            lock (Locker)
+                            lock (_locker)
                             {
                                 //yes, this is actually the way the Lucene wants you to work...
                                 //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
@@ -369,7 +384,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 if (_reader != null)
                 {
-                    lock (Locker)
+                    lock (_locker)
                     {
                         //double check
                         if (_reader != null)
@@ -395,7 +410,7 @@ namespace Examine.LuceneEngine.Providers
                             {
                                 //get a reader - could be NRT or based on directly depending on how this was constructed
                                 _reader = _nrtWriter == null
-                                    ? IndexReader.Open(GetLuceneDirectory(), true)
+                                    ? OpenNewReader()
                                     : _nrtWriter.GetReader();
 
                                 _searcher = new IndexSearcher(_reader);
@@ -411,6 +426,45 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
+        #region IDisposable Members
+
+        private readonly DisposableSearcher _disposer;
+
+        private class DisposableSearcher : DisposableObject
+        {
+            private readonly LuceneSearcher _searcher;
+
+            public DisposableSearcher(LuceneSearcher searcher)
+            {
+                _searcher = searcher;
+            }
+
+            /// <summary>
+            /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
+            /// </summary>
+            [SecuritySafeCritical]
+            protected override void DisposeResources()
+            {
+                if (_searcher._searcher != null)
+                {
+                    _searcher._searcher.Dispose();
+                }
+                if (_searcher._reader != null)
+                {
+                    _searcher._reader.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            _disposer.Dispose();
+        }
+
+        #endregion
     }
 
 }

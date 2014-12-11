@@ -55,6 +55,73 @@ namespace Examine.Test.Index
         //}
 
         /// <summary>
+        /// Ensures that the cancellation is successful when creating a new index while it's currently indexing
+        /// </summary>
+        [Test]
+        public void Can_Overwrite_Index_During_Indexing_Operation()
+        {
+
+            using (var d = new RAMDirectory())
+            using (var customIndexer = IndexInitializer.GetUmbracoIndexer(d))
+            {
+
+                var isIndexing = false;
+
+                EventHandler operationComplete = (sender, e) =>
+                {
+                    isIndexing = false;
+                };
+
+                //add the handler for optimized since we know it will be optimized last based on the commit count
+                customIndexer.IndexOperationComplete += operationComplete;
+
+                //remove the normal indexing error handler
+                customIndexer.IndexingError -= IndexInitializer.IndexingError;
+
+                //run in async mode
+                customIndexer.RunAsync = true;
+
+                //get a node from the data repo
+                var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+                    .Root
+                    .Elements()
+                    .First();
+
+                //get the id for th node we're re-indexing.
+                var id = (int)node.Attribute("id");
+
+                //set our internal monitoring flag
+                isIndexing = true;
+
+                //reindex the same node a bunch of times - then while this is running we'll overwrite below
+                for (var i = 0; i < 1000; i++)
+                {
+                    customIndexer.ReIndexNode(node, IndexTypes.Content);
+                }
+
+                //overwrite!
+                customIndexer.EnsureIndex(true);
+
+                //we need to check if the indexing is complete
+                while (isIndexing)
+                {
+                    //wait until indexing is done
+                    Thread.Sleep(1000);
+                }
+
+                //reset the async mode and remove event handler
+                customIndexer.IndexOptimized -= operationComplete;
+                customIndexer.IndexingError += IndexInitializer.IndexingError;
+                customIndexer.RunAsync = false;
+
+                //ensure no data since it's a new index
+                var customSearcher = IndexInitializer.GetLuceneSearcher(d);
+                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Id(id).Compile());
+                Assert.AreEqual(0, results.Count());
+            }
+        }
+
+        /// <summary>
         /// This will create a new index queue item for the same ID multiple times to ensure that the 
         /// index does not end up with duplicate entries.
         /// </summary>
@@ -63,8 +130,8 @@ namespace Examine.Test.Index
         {
 
 	        using (var d = new RAMDirectory())
+            using (var customIndexer = IndexInitializer.GetUmbracoIndexer(d))
 	        {
-				var customIndexer = IndexInitializer.GetUmbracoIndexer(d);
 
 				var isIndexing = false;
 
@@ -127,9 +194,9 @@ namespace Examine.Test.Index
             using (var d = new RAMDirectory())
             {
                 using (var writer = new IndexWriter(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), IndexWriter.MaxFieldLength.LIMITED))
-                {
-                    var customIndexer = IndexInitializer.GetUmbracoIndexer(writer);
-                    var customSearcher = IndexInitializer.GetUmbracoSearcher(writer);
+                using (var customIndexer = IndexInitializer.GetUmbracoIndexer(writer))
+                using (var customSearcher = IndexInitializer.GetUmbracoSearcher(writer))
+                {  
 
                     var isIndexing = false;
 
@@ -324,6 +391,8 @@ namespace Examine.Test.Index
         {
             //set back to 100
             _indexer.OptimizationCommitThreshold = 100;
+            _indexer.Dispose();
+            _searcher.Dispose();
 			_luceneDir.Dispose();
         }
 

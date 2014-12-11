@@ -17,24 +17,28 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Simple_Search()
         {
-			var cwsIndexer = IndexInitializer.GetUmbracoIndexer(_cwsDir);
-            cwsIndexer.RebuildIndex();
-			var cwsSearcher = IndexInitializer.GetUmbracoSearcher(_cwsDir);
-            
-            var cwsResult = cwsSearcher.Search("sam", false);
-            var result = _searcher.Search("sam", false);
+            using (var cwsIndexer = IndexInitializer.GetUmbracoIndexer(_cwsDir))
+            {
+                cwsIndexer.RebuildIndex();
+                using (var cwsSearcher = IndexInitializer.GetUmbracoSearcher(_cwsDir))
+                {
+                    var cwsResult = cwsSearcher.Search("sam", false);
+                    var result = _searcher.Search("sam", false);
 
-            //ensure there's more results than just the one index
-            Assert.IsTrue(cwsResult.Count() < result.Count());
-            //there should be 8
-            Assert.AreEqual(8, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");            
+                    //ensure there's more results than just the one index
+                    Assert.IsTrue(cwsResult.Count() < result.Count());
+                    //there should be 8
+                    Assert.AreEqual(8, result.Count(), "Results returned for 'sam' should be equal to 5 with the StandardAnalyzer");  
+                }
+            };
+                      
         }
 
         [Test]
         public void MultiIndex_Field_Count()
         {
             var result = _searcher.GetSearchFields();
-            Assert.AreEqual(24, result.Count(), "The total number for fields between all of the indexes should be ");
+            Assert.AreEqual(26, result.Count(), "The total number for fields between all of the indexes should be ");
         }
 
         #region Initialize and Cleanup
@@ -76,6 +80,7 @@ namespace Examine.Test.Search
 			_pdfDir.Dispose();
 			_simpleDir.Dispose();
 			_conventionDir.Dispose();
+            _searcher.Dispose();
 		}
 
         #endregion

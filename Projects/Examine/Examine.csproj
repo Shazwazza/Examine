@@ -128,6 +128,7 @@
     <Compile Include="LuceneEngine\Config\IndexFieldCollectionExtensions.cs" />
     <Compile Include="LuceneEngine\Config\IndexSet.cs" />
     <Compile Include="LuceneEngine\Config\IndexSetCollection.cs" />
+    <Compile Include="LuceneEngine\DirectoryTracker.cs" />
     <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
     <Compile Include="LuceneEngine\EmptySearchResults.cs" />
     <Compile Include="LuceneEngine\ExamineXmlExtensions.cs" />

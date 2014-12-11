@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlServerCe;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Web.Mvc;
 using Examine.LuceneEngine;
 using Examine.Web.Demo.Models;
@@ -19,6 +20,20 @@ namespace Examine.Web.Demo.Controllers
             ViewBag.Message = "Welcome to ASP.NET MVC!";
 
             return View();
+        }
+
+        [HttpGet]
+        public ActionResult Search(string id)
+        {
+            var criteria = ExamineManager.Instance.CreateSearchCriteria();           
+            var result = ExamineManager.Instance.Search(criteria.RawQuery(id));
+            var sb = new StringBuilder();
+            sb.AppendLine(string.Format("Results :{0}", result.TotalItemCount));
+            foreach (var searchResult in result)
+            {
+                sb.AppendLine(string.Format("Id:{0}, Score:{1}, Vals: {2}", searchResult.Id, searchResult.Score, string.Join(", ", searchResult.Fields.Select(x => x.Value))));
+            }
+            return Content(sb.ToString());
         }
 
         [HttpPost]
