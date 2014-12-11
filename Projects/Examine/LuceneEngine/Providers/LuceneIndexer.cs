@@ -661,14 +661,15 @@ namespace Examine.LuceneEngine.Providers
                         Monitor.Exit(_writerLocker);
                     }
                 }
+                else
+                {
+                    // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
+                    OnIndexingError(new IndexingErrorEventArgs("Could not acquire lock in EnsureIndex so cannot create new index", -1, null));
+                }
 
 
             }
-            else
-            {
-                // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
-                OnIndexingError(new IndexingErrorEventArgs("Could not acquire lock in EnsureIndex so cannot create new index", -1, null));
-            }
+            
 
 
         }
