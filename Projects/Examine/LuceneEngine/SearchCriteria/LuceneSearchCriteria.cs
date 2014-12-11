@@ -934,7 +934,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal protected LuceneBooleanOperation IdInternal(int id, Occur occurrence)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this.QueryParser.GetFieldQuery(LuceneIndexer.IndexNodeIdFieldName, id.ToString(CultureInfo.InvariantCulture)), occurrence);
+            Query.Add(this.QueryParser.GetFieldQueryInternal(LuceneIndexer.IndexNodeIdFieldName, id.ToString(CultureInfo.InvariantCulture)), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
@@ -955,12 +955,12 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.Fuzzy:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFuzzyQuery(fieldName, fieldValue.Value, fieldValue.Level);
+                        queryToAdd = this.QueryParser.GetFuzzyQueryInternal(fieldName, fieldValue.Value, fieldValue.Level);
                     }
                     else
                     {
                         //REFERENCE: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Fuzzy%20Searches
-                        var proxQuery = fieldName + ":" + fieldValue.Value + "~" + Convert.ToInt32(fieldValue.Level).ToString();
+                        var proxQuery = fieldName + ":" + fieldValue.Value + "~" + Convert.ToInt32(fieldValue.Level);
                         queryToAdd = ParseRawQuery(proxQuery);
                     }
                     break;
@@ -968,7 +968,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.ComplexWildcard:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetWildcardQuery(fieldName, fieldValue.Value);
+                        queryToAdd = this.QueryParser.GetWildcardQueryInternal(fieldName, fieldValue.Value);
                     }
                     else
                     {
@@ -981,8 +981,8 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.Boosted:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFieldQuery(fieldName, fieldValue.Value);
-                        queryToAdd.SetBoost(fieldValue.Level);
+                        queryToAdd = this.QueryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd.Boost = fieldValue.Level;
                     }
                     else
                     {
@@ -1031,7 +1031,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 default:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFieldQuery(fieldName, fieldValue.Value);
+                        queryToAdd = this.QueryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
                     }
                     else
                     {
@@ -1075,7 +1075,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         private Query ParseRawQuery(string field, string txt)
         {
             var phraseQuery = new PhraseQuery();
-            phraseQuery.SetSlop(0);
+            phraseQuery.Slop = 0;;
             foreach (var val in txt.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 phraseQuery.Add(new Term(field, val));
@@ -1112,6 +1112,21 @@ namespace Examine.LuceneEngine.SearchCriteria
             }
             public CustomMultiFieldQueryParser(Version matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
             {
+            }
+
+            public Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
+            {
+                return GetFuzzyQuery(field, termStr, minSimilarity);
+            }
+
+            public Query GetWildcardQueryInternal(string field, string termStr)
+            {
+                return GetWildcardQuery(field, termStr);
+            }
+
+            public Query GetFieldQueryInternal(string field, string queryText)
+            {
+                return GetFieldQuery(field, queryText);
             }
         }
     }

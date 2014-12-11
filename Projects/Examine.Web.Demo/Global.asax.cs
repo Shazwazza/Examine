@@ -93,7 +93,7 @@ namespace Examine.Web.Demo
 
                     foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 27000)).Distinct())
                     {
-                        args.Document.Add(new Field("RefFacet", new ReferenceFacetValue(f)));
+                        args.Document.Add(new Field("RefFacet", new ReferenceFacetValue(f).TokenStream));
                     }
 
                     args.Document.Add(new Field("CustomDocField", TokenStreamHelper.Create(v + "_WithLevel", .25f)));

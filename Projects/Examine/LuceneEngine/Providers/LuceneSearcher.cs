@@ -228,7 +228,7 @@ namespace Examine.LuceneEngine.Providers
 
             using (var s = _searcherContext.GetSearcher())
             {
-                var reader = s.Searcher.GetIndexReader();
+                var reader = s.Searcher.IndexReader;
                 var fields = reader.GetFieldNames(IndexReader.FieldOption.ALL);
                 //exclude the special index fields
                 var searchFields = fields

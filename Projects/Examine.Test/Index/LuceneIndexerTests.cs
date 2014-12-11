@@ -36,7 +36,7 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    Assert.AreEqual(100, s.Searcher.GetIndexReader().NumDocs());
+                    Assert.AreEqual(100, s.Searcher.IndexReader.NumDocs());
                 }
             }
         }
@@ -56,7 +56,7 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    Assert.AreEqual(50, s.Searcher.GetIndexReader().NumDocs());
+                    Assert.AreEqual(50, s.Searcher.IndexReader.NumDocs());
                 }
 
                 indexer.IndexAll("category1");
@@ -66,7 +66,7 @@ namespace Examine.Test.Index
                 sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    Assert.AreEqual(100, s.Searcher.GetIndexReader().NumDocs());
+                    Assert.AreEqual(100, s.Searcher.IndexReader.NumDocs());
                 }
             }
         }
@@ -103,7 +103,7 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    Assert.AreEqual(1, s.Searcher.GetIndexReader().NumDocs());
+                    Assert.AreEqual(1, s.Searcher.IndexReader.NumDocs());
                 }
             }
         }
@@ -132,7 +132,7 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    Assert.AreEqual(1, s.Searcher.GetIndexReader().NumDocs());
+                    Assert.AreEqual(1, s.Searcher.IndexReader.NumDocs());
                 }
             }
         }
@@ -160,7 +160,7 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    Assert.AreEqual(10, s.Searcher.GetIndexReader().NumDocs());
+                    Assert.AreEqual(10, s.Searcher.IndexReader.NumDocs());
                 }
             }
         }
@@ -189,7 +189,7 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    Assert.AreEqual(9, s.Searcher.GetIndexReader().NumDocs());
+                    Assert.AreEqual(9, s.Searcher.IndexReader.NumDocs());
                 }
             }
         }
@@ -214,11 +214,11 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    var fields = s.Searcher.Doc(0).GetFields().Cast<Fieldable>().ToArray();
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
-                    Assert.AreEqual("value1", fields.Single(x => x.Name() == "item1").StringValue());
-                    Assert.AreEqual("value2", fields.Single(x => x.Name() == "item2").StringValue());
+                    var fields = s.Searcher.Doc(0).GetFields().ToArray();
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
+                    Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").StringValue);
+                    Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").StringValue);
                 }
             }
         }
@@ -239,11 +239,11 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    var fields = s.Searcher.Doc(0).GetFields().Cast<Fieldable>().ToArray();
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
-                    Assert.AreEqual("value1", fields.Single(x => x.Name() == "item1").StringValue());
-                    Assert.AreEqual("value2", fields.Single(x => x.Name() == "item2").StringValue());
+                    var fields = s.Searcher.Doc(0).GetFields().ToArray();
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
+                    Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").StringValue);
+                    Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").StringValue);
                 }
             }
         }
@@ -272,16 +272,16 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    var fields = s.Searcher.Doc(0).GetFields().Cast<Fieldable>().ToArray();
-                    Assert.AreEqual(2, fields.Count(x => x.Name() == "item1"));
-                    Assert.AreEqual(3, fields.Count(x => x.Name() == "item2"));
+                    var fields = s.Searcher.Doc(0).GetFields().ToArray();
+                    Assert.AreEqual(2, fields.Count(x => x.Name == "item1"));
+                    Assert.AreEqual(3, fields.Count(x => x.Name == "item2"));
 
-                    Assert.AreEqual("subval1", fields.Where(x => x.Name() == "item1").ElementAt(0).StringValue());
-                    Assert.AreEqual("subval2", fields.Where(x => x.Name() == "item1").ElementAt(1).StringValue());
+                    Assert.AreEqual("subval1", fields.Where(x => x.Name == "item1").ElementAt(0).StringValue);
+                    Assert.AreEqual("subval2", fields.Where(x => x.Name == "item1").ElementAt(1).StringValue);
 
-                    Assert.AreEqual("subval1", fields.Where(x => x.Name() == "item2").ElementAt(0).StringValue());
-                    Assert.AreEqual("subval2", fields.Where(x => x.Name() == "item2").ElementAt(1).StringValue());
-                    Assert.AreEqual("subval3", fields.Where(x => x.Name() == "item2").ElementAt(2).StringValue());
+                    Assert.AreEqual("subval1", fields.Where(x => x.Name == "item2").ElementAt(0).StringValue);
+                    Assert.AreEqual("subval2", fields.Where(x => x.Name == "item2").ElementAt(1).StringValue);
+                    Assert.AreEqual("subval3", fields.Where(x => x.Name == "item2").ElementAt(2).StringValue);
                 }
             }
         }
@@ -307,11 +307,11 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    var fields = s.Searcher.Doc(s.Searcher.MaxDoc() - 1).GetFields().Cast<Fieldable>().ToArray();
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
-                    Assert.AreEqual("value3", fields.Single(x => x.Name() == "item1").StringValue());
-                    Assert.AreEqual("value4", fields.Single(x => x.Name() == "item2").StringValue());
+                    var fields = s.Searcher.Doc(s.Searcher.MaxDoc - 1).GetFields().ToArray();
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
+                    Assert.AreEqual("value3", fields.Single(x => x.Name == "item1").StringValue);
+                    Assert.AreEqual("value4", fields.Single(x => x.Name == "item2").StringValue);
                 }
             }
         }
@@ -342,9 +342,9 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    var fields = s.Searcher.Doc(s.Searcher.MaxDoc() - 1).GetFields().Cast<Fieldable>().ToArray();
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item1"));
-                    Assert.IsNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+                    var fields = s.Searcher.Doc(s.Searcher.MaxDoc - 1).GetFields().ToArray();
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
+                    Assert.IsNull(fields.SingleOrDefault(x => x.Name == "item2"));
                 }
             }
             
@@ -375,13 +375,13 @@ namespace Examine.Test.Index
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    var fields = s.Searcher.Doc(s.Searcher.MaxDoc() - 1).GetFields().Cast<Fieldable>().ToArray();
+                    var fields = s.Searcher.Doc(s.Searcher.MaxDoc - 1).GetFields().ToArray();
 
                     var valType = sc.GetValueType("item2");
                     Assert.AreEqual(typeof(Int32Type), valType.GetType());
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == "item2"));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
                     //for a number type there will always be a sort field
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name() == LuceneIndexer.SortedFieldNamePrefix + "item2"));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndexer.SortedFieldNamePrefix + "item2"));
                 }
             }
             

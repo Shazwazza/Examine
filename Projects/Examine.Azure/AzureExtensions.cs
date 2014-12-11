@@ -69,9 +69,9 @@ namespace Examine.Azure
             var writer = new IndexWriter(indexer.GetLuceneDirectory(), indexer.IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 
             writer.SetRAMBufferSizeMB(10.0);
-            writer.SetUseCompoundFile(false);
-            writer.SetMaxMergeDocs(10000);
-            writer.SetMergeFactor(100);
+            writer.UseCompoundFile  = false;
+            writer.MaxMergeDocs = 10000;
+            writer.MergeFactor = 100;
             return writer;
         }
 

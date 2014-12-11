@@ -46,7 +46,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             }
 
             var tokenStream = _queryAnalyzer.TokenStream("SearchText", new StringReader(query));
-            var termAttribute = (TermAttribute)tokenStream.GetAttribute(typeof(TermAttribute));
+            var termAttribute = tokenStream.GetAttribute<TermAttribute>();
 
 
             var bq = new BooleanQuery();

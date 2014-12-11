@@ -15,10 +15,10 @@ namespace Examine.LuceneEngine.Indexing.Analyzers
 
         public PrefixFilter(TokenStream input)
             : base(input)
-        {            
-            _term = (TermAttribute)AddAttribute(typeof(TermAttribute));
-            _offset = (OffsetAttribute)AddAttribute(typeof(OffsetAttribute));
-            _position = (PositionIncrementAttribute)AddAttribute(typeof(PositionIncrementAttribute));
+        {
+            _term = AddAttribute<TermAttribute>();
+            _offset = AddAttribute<OffsetAttribute>();
+            _position = AddAttribute<PositionIncrementAttribute>();
 
         }
 
@@ -41,7 +41,7 @@ namespace Examine.LuceneEngine.Indexing.Analyzers
                     //_termBuffer =  (char[]) _term.TermBuffer().Clone();
                     var term = new string(_term.TermBuffer(), 0, _term.TermLength());
 
-                    _termBuffer = new[] {term};
+                    _termBuffer = new[] { term };
                     _termBufferIndex = 0;
 
                     //_termLength = _term.TermLength();
@@ -55,7 +55,7 @@ namespace Examine.LuceneEngine.Indexing.Analyzers
                 {
                     var spelling = _yieldLength == t.Length + 1
                         ? t : t.Substring(0, _yieldLength) + "*";
-                    
+
                     _term.SetTermBuffer(spelling);
                     _offset.SetOffset(_start, _start + _yieldLength);
                     _position.PositionIncrement = _termBufferIndex == 0 && _yieldLength == 1 ? 1 : 0;

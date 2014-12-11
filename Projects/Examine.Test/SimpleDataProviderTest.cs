@@ -37,7 +37,7 @@ namespace Examine.Test
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    var r = s.Searcher.GetIndexReader();
+                    var r = s.Searcher.IndexReader;
 
                     //there's 7 fields in the index, but 1 sorted fields, 2 are special fields
                     var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -79,7 +79,7 @@ namespace Examine.Test
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
                 {
-                    var r = s.Searcher.GetIndexReader();
+                    var r = s.Searcher.IndexReader;
 
                     //there should be 6 documents now (3 Documents, 3 Pictures)
                     Assert.AreEqual(6, r.NumDocs());    
