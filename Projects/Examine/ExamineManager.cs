@@ -185,8 +185,8 @@ namespace Examine
                         //set the default
                         if (!string.IsNullOrEmpty(ExamineSettings.Instance.SearchProviders.DefaultProvider))
                             _defaultSearchProvider =
-                                SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider] ??
-                                SearchProviderCollection.Cast<BaseSearchProvider>().FirstOrDefault();
+                                _searchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider] ??
+                                _searchProviderCollection.Cast<BaseSearchProvider>().FirstOrDefault();
 
                         if (_defaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
@@ -202,7 +202,7 @@ namespace Examine
                         //check if we need to rebuild on startup
                         if (ExamineSettings.Instance.RebuildOnAppStart)
                         {
-                            foreach (var index in IndexProviderCollection)
+                            foreach (var index in _indexProviderCollection)
                             {
                                 if (index.IsIndexNew())
                                 {
