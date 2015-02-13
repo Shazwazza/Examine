@@ -102,13 +102,15 @@ namespace Examine.LuceneEngine.Providers
 					//check if we can assign the index set by naming convension
 					var set = IndexSets.Instance.Sets.Cast<IndexSet>().SingleOrDefault(x => x.SetName == setNameByConvension);
 
-					if (set != null)
-					{
-						//we've found an index set by naming convensions :)
-						IndexSetName = set.SetName;
-						found = true;
-					}
-				}
+                    if (set != null)
+                    {
+                        set.ReplaceTokensInIndexPath();
+
+                        //we've found an index set by naming convensions :)
+                        IndexSetName = set.SetName;
+                        found = true;
+                    }
+                }
 
 				if (!found)
 					throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration");
@@ -123,8 +125,12 @@ namespace Examine.LuceneEngine.Providers
 
 				IndexSetName = config["indexSet"];
 
-				//get the folder to index
-				LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+                var indexSet = IndexSets.Instance.Sets[IndexSetName];
+
+                indexSet.ReplaceTokensInIndexPath();
+
+                //get the folder to index
+                LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexSet.IndexDirectory.FullName, "Index"));
 			}
 		  		    
 		}

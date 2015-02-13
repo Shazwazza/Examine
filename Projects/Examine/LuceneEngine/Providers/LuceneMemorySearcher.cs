@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Security;
 using Lucene.Net.Analysis;
@@ -27,17 +28,18 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
 		
-        public LuceneMemorySearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
+        public LuceneMemorySearcher(Directory luceneDirectory, Analyzer analyzer)
         {
             _luceneDirectory = new RAMDirectory(luceneDirectory);;
             IndexingAnalyzer = analyzer;
         }
 
 		
-        protected override Lucene.Net.Store.Directory GetLuceneDirectory()
+        protected override Directory GetLuceneDirectory()
         {
             return _luceneDirectory;
         }
               
+            //Debug.WriteLine("LuceneMemorySearcher.GetSearcher");
     }
 }

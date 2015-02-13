@@ -130,6 +130,10 @@ namespace Examine.Providers
         [Obsolete("IIndexCriteria should no longer be used")]
         public IIndexCriteria IndexerData { get; set; }
 
+        /// <summary>
+        /// Check if the index exists
+        /// </summary>
+        /// <returns></returns>
         public abstract bool IndexExists();
 
         /// <summary>

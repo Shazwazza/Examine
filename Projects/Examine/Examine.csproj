@@ -149,11 +149,13 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="CaseInsensitiveKeyReadOnlyDictionary.cs" />
+    <Compile Include="BuildingEmptyIndexOnStartupEventArgs.cs" />
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="DisposableObject.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
     <Compile Include="LuceneEngine\Providers\ILuceneSearcher.cs" />
@@ -172,9 +174,11 @@
     <Compile Include="IndexingNodeDataEventArgs.cs" />
     <Compile Include="IndexingNodeEventArgs.cs" />
     <Compile Include="IndexingNodesEventArgs.cs" />
+    <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Config\IndexSets.cs" />
+    <Compile Include="LuceneEngine\LocalTempStorageIndexer.cs" />
     <Compile Include="LuceneEngine\Config\IndexField.cs" />
     <Compile Include="LuceneEngine\Config\IndexFieldCollection.cs" />
     <Compile Include="LuceneEngine\Config\IndexFieldCollectionExtensions.cs" />
@@ -292,6 +296,7 @@
     <Compile Include="LuceneEngine\LuceneSearchResults.cs" />
     <Compile Include="LuceneEngine\SimpleDataSet.cs" />
     <Compile Include="ObjectExtensions.cs" />
+    <Compile Include="NetworkHelper.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />
     <Compile Include="SearchCriteria\DateResolution.cs" />
     <Compile Include="SearchCriteria\IBooleanOperation.cs" />

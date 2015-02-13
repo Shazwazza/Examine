@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Linq;
-using Examine;
+using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Cru;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
@@ -197,8 +196,13 @@ namespace Examine.LuceneEngine.Providers
                         //we've found an index set by naming conventions :)
                         IndexSetName = set.SetName;
 
+                        var indexSet = IndexSets.Instance.Sets[IndexSetName];
+
+                        //if tokens are declared in the path, then use them (i.e. {machinename} )
+                        indexSet.ReplaceTokensInIndexPath();
+
                         //get the index criteria and ensure folder
-                        IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
+                        IndexerData = GetIndexerData(indexSet);
 
                         //now set the index folders
                         workingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
@@ -224,8 +228,13 @@ namespace Examine.LuceneEngine.Providers
                 {
                     IndexSetName = config["indexSet"];
 
+                    var indexSet = IndexSets.Instance.Sets[IndexSetName];
+
+                    //if tokens are declared in the path, then use them (i.e. {machinename} )
+                    indexSet.ReplaceTokensInIndexPath();
+
                     //get the index criteria and ensure folder
-                    IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
+                    IndexerData = GetIndexerData(indexSet);
 
                     //now set the index folders
                     workingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;

@@ -1,4 +1,4 @@
-![Examine](http://shazwazza.com/Content/Downloads/ExamineLogo.png)
+![Examine](/ExamineLogo.png?raw=true)
 
 ##What is Examine?
 
@@ -30,7 +30,7 @@ Examine allows you to index and search data easily and wraps the Lucene.Net inde
 
 	PM> Install-Package Examine
 
-## [Releases](https://github.com/Shandem/Examine/wiki/Releases)
+## [Releases](https://github.com/Shandem/Examine/releases)
 
 Information and downloads for Examine releases
 

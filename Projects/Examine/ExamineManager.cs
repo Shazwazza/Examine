@@ -31,16 +31,14 @@ namespace Examine
 
         private ExamineManager()
         {
-            LoadProviders();
-            
             AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
-            HostingEnvironment.RegisterObject(this);          
+            HostingEnvironment.RegisterObject(this);
         }
 
         /// <summary>
         /// Returns true if this singleton has been initialized
         /// </summary>
-        public static bool InstanceInitialized { get;private set; }       
+        public static bool InstanceInitialized { get; private set; }       
 
         /// <summary>
         /// Singleton
@@ -64,21 +62,42 @@ namespace Examine
         ///</summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will return null")]
-        public BaseSearchProvider DefaultSearchProvider { get; private set; }
+        public BaseSearchProvider DefaultSearchProvider
+        {
+            get
+            {
+                EnsureProviders();
+                return _defaultSearchProvider;
+            }
+        }
 
         /// <summary>
         /// Returns the collection of searchers
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Searchers should be resolved using the GetSearcher method")]
-        public SearchProviderCollection SearchProviderCollection { get; private set; }
+        public SearchProviderCollection SearchProviderCollection
+        {
+            get
+            {
+                EnsureProviders();
+                return _searchProviderCollection;
+            }
+        }
 
         /// <summary>
         /// Return the colleciton of indexer providers (only the ones registered in config)
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Use the IndexProviders property instead")]
-        public IndexProviderCollection IndexProviderCollection { get; private set; }
+        public IndexProviderCollection IndexProviderCollection
+        {
+            get
+            {
+                EnsureProviders();
+                return _indexProviderCollection;
+            }
+        }
 
         /// <summary>
         /// Returns a lucene search based on the lucene indexer name
@@ -110,7 +129,7 @@ namespace Examine
         {
             get
             {
-                var providerDictionary = IndexProviderCollection.ToDictionary(x => x.Name, x => (IExamineIndexer) x);
+                var providerDictionary = IndexProviderCollection.ToDictionary(x => x.Name, x => (IExamineIndexer)x);
                 foreach (var i in _indexers)
                 {
                     providerDictionary[i.Key] = i.Value;
@@ -139,8 +158,14 @@ namespace Examine
         }
 
         private volatile bool _providersInit = false;
+        private BaseSearchProvider _defaultSearchProvider;
+        private SearchProviderCollection _searchProviderCollection;
+        private IndexProviderCollection _indexProviderCollection;
 
-        private void LoadProviders()
+        /// <summary>
+        /// Before any of the index/search collections are accessed, the providers need to be loaded
+        /// </summary>
+        private void EnsureProviders()
         {
             if (!_providersInit)
             {
@@ -151,26 +176,26 @@ namespace Examine
                     {
                         // Load registered providers and point _provider to the default provider	
 
-                        IndexProviderCollection = new IndexProviderCollection();
-                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, IndexProviderCollection, typeof(BaseIndexProvider));
+                        _indexProviderCollection = new IndexProviderCollection();
+                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, _indexProviderCollection, typeof(BaseIndexProvider));
 
-                        SearchProviderCollection = new SearchProviderCollection();
-                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, SearchProviderCollection, typeof(BaseSearchProvider));
+                        _searchProviderCollection = new SearchProviderCollection();
+                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, _searchProviderCollection, typeof(BaseSearchProvider));
 
                         //set the default
                         if (!string.IsNullOrEmpty(ExamineSettings.Instance.SearchProviders.DefaultProvider))
-                            DefaultSearchProvider =
+                            _defaultSearchProvider =
                                 SearchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider] ??
                                 SearchProviderCollection.Cast<BaseSearchProvider>().FirstOrDefault();
 
-                        if (DefaultSearchProvider == null)
+                        if (_defaultSearchProvider == null)
                             throw new ProviderException("Unable to load default search provider");
 
                         _providersInit = true;
 
 
                         if (ExamineSettings.Instance.ConfigurationAction != null)
-                        {                            
+                        {
                             ExamineSettings.Instance.ConfigurationAction(this);
                         }
 
@@ -182,9 +207,14 @@ namespace Examine
                                 if (index.IsIndexNew())
                                 {
                                     try
-                                    {                                        
-                                        index.RebuildIndex();                                     
+                                    {
+                                        var args = new BuildingEmptyIndexOnStartupEventArgs(index);
+                                        OnBuildingEmptyIndexOnStartup(args);
+                                        if (!args.Cancel)
+                                        {
+                                            index.RebuildIndex();
 
+                                        }
                                     }
                                     catch (Exception ex)
                                     {
@@ -208,8 +238,9 @@ namespace Examine
                                             }
                                         }
                                     }
+
                                 }
-                            }    
+                            }
                         }
 
                     }
@@ -345,7 +376,7 @@ namespace Examine
         public void DeleteFromIndex(string nodeId)
         {
             _DeleteFromIndex(nodeId, IndexProviderCollection);
-        }    
+        }
         private void _DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
         {
             foreach (var provider in providers)
@@ -425,7 +456,22 @@ namespace Examine
         }
 
         #endregion
-        
+
+        /// <summary>
+        /// Event is raised when an index is being rebuild on app startup when it is empty, this event is cancelable
+        /// </summary>
+        public event EventHandler<BuildingEmptyIndexOnStartupEventArgs> BuildingEmptyIndexOnStartup;
+
+        /// <summary>
+        /// Raises the BuildingEmptyIndexOnStartup event
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnBuildingEmptyIndexOnStartup(BuildingEmptyIndexOnStartupEventArgs e)
+        {
+            var handler = BuildingEmptyIndexOnStartup;
+            if (handler != null) handler(this, e);
+        }
+
         /// <summary>
         /// Call this as last thing of the thread or request using Examine.
         /// In web context, this MUST be called add Application_EndRequest. Otherwise horrible memory leaking may occur
@@ -439,7 +485,7 @@ namespace Examine
 
             DisposableCollector.Clean();
         }
-        
+
         /// <summary>
         /// Call this in Application_End.
         /// </summary>
@@ -457,7 +503,7 @@ namespace Examine
             if (!_disposed)
             {
                 if (disposing)
-                {                    
+                {
                     SearcherContextCollection.Instance.Dispose();
                 }
 
@@ -477,7 +523,7 @@ namespace Examine
                 ExamineSession.WaitForChanges();
                 Dispose();
             }
-            HostingEnvironment.UnregisterObject(this); 
+            HostingEnvironment.UnregisterObject(this);
         }
     }
 }

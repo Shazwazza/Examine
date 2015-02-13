@@ -3,13 +3,14 @@
   <metadata>
     <id>Examine.Azure</id>
     <version>0.0.0.0</version>
-    <title />
+    <title>Examine for Azure</title>
     <authors>Shannon Deminick</authors>
     <owners>Shannon Deminick</owners>
-    <projectUrl>http://examine.codeplex.com</projectUrl>
+    <projectUrl>https://github.com/Shazwazza/Examine</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>An Azure abstract implementation for Examine which provides an Azure indexer and searcher based on an AzureDirectory</description>
     <summary>An Azure abstract implementation for Examine</summary>
+    <tags>examine search lucene azure</tags>
     <dependencies>
       <dependency id="AzureDirectory" />
       <dependency id="Examine" />

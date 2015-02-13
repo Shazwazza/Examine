@@ -266,25 +266,30 @@ namespace Examine.LuceneEngine
 
            
             //if there is data children with attributes, we're on the old
-            if (xml.Elements("data").Where(x => x.HasAttributes).Count() > 0)
+            if (xml.Elements("data").Any(x => x.HasAttributes))
             {
-                nodeData = xml.Elements("data").SingleOrDefault(x => ((string)x.Attribute("alias")).ToUpper() == alias.ToUpper());
+                nodeData = xml.Elements("data").SingleOrDefault(x => string.Equals(((string)x.Attribute("alias")), alias, StringComparison.InvariantCultureIgnoreCase));
             }
             else
-            {
-                //find the element with the uppercased name (umbraco camel cases things in xml even if the alias isn't)
-                nodeData = xml.Elements().Where(x => x.Name.ToString().ToUpper() == alias.ToUpper()).FirstOrDefault();
+            {                
+                nodeData = xml.Elements().FirstOrDefault(x => string.Equals(x.Name.ToString(), alias, StringComparison.InvariantCultureIgnoreCase));
             }           
             
             if (nodeData == null)
             {
                 return string.Empty;
             }
-            else
+
+            if (!nodeData.HasElements)
             {
-                return nodeData.Value;
+                return nodeData.Value;    
             }
 
+            //it has sub elements so serialize them
+            var reader = nodeData.CreateReader();
+            reader.MoveToContent();
+            return reader.ReadInnerXml();
+            
         }
 
     }
