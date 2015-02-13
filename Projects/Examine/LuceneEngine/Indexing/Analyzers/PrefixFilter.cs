@@ -9,16 +9,16 @@ namespace Examine.LuceneEngine.Indexing.Analyzers
 {
     public sealed class PrefixFilter : TokenFilter
     {
-        private TermAttribute _term;
-        private OffsetAttribute _offset;
-        private PositionIncrementAttribute _position;
+        private readonly ITermAttribute _term;
+        private readonly IOffsetAttribute _offset;
+        private readonly IPositionIncrementAttribute _position;
 
         public PrefixFilter(TokenStream input)
             : base(input)
         {
-            _term = AddAttribute<TermAttribute>();
-            _offset = AddAttribute<OffsetAttribute>();
-            _position = AddAttribute<PositionIncrementAttribute>();
+            _term = AddAttribute<ITermAttribute>();
+            _offset = AddAttribute<IOffsetAttribute>();
+            _position = AddAttribute<IPositionIncrementAttribute>();
 
         }
 
