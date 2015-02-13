@@ -33,7 +33,15 @@ namespace Examine.LuceneEngine.Indexing
             var text = string.Join("\r\n",
                                    document.GetFields(_fieldName)
                                            .Select(f => f.StringValue));
-            return _highlighter.GetBestFragment(_analyzer, _fieldName, text);
+            try
+            {
+                return _highlighter.GetBestFragment(_analyzer, _fieldName, text);
+            }
+            catch (InvalidTokenOffsetsException)
+            {
+                //TODO: This seems like a bug, happens when there are strange chars
+                return string.Empty;
+            } 
         }
     }
 }
