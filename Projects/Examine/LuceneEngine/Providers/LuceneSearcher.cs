@@ -122,12 +122,12 @@ namespace Examine.LuceneEngine.Providers
                 {
                     var setNameByConvension = name.Remove(name.LastIndexOf("Searcher")) + "IndexSet";
                     //check if we can assign the index set by naming convension
-                    var set = IndexSets.Instance.Sets.Cast<IndexSet>()
-                        .Where(x => x.SetName == setNameByConvension)
-                        .SingleOrDefault();
+                    var set = IndexSets.Instance.Sets.Cast<IndexSet>().SingleOrDefault(x => x.SetName == setNameByConvension);
 
                     if (set != null)
                     {
+                        set.ReplaceTokensInIndexPath();
+
                         //we've found an index set by naming convensions :)
                         IndexSetName = set.SetName;
                         found = true;
@@ -147,8 +147,12 @@ namespace Examine.LuceneEngine.Providers
 
                 IndexSetName = config["indexSet"];
 
+                var indexSet = IndexSets.Instance.Sets[IndexSetName];
+
+                indexSet.ReplaceTokensInIndexPath();
+
                 //get the folder to index
-                LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
+                LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexSet.IndexDirectory.FullName, "Index"));
             }
         }
 

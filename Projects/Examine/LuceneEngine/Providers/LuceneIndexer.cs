@@ -1,29 +1,24 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Examine;
+using Examine.LuceneEngine.Config;
 using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.QueryParsers;
-using Lucene.Net.Store;
-using Examine.LuceneEngine.Config;
-using Lucene.Net.Util;
-using System.ComponentModel;
-using System.Xml;
+using Directory = Lucene.Net.Store.Directory;
+using Version = Lucene.Net.Util.Version;
+
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -35,7 +30,7 @@ namespace Examine.LuceneEngine.Providers
         #region Constructors
 
         /// <summary>
-        /// Default constructor
+        /// Default constructor - used for defining indexes in config
         /// </summary>
         protected LuceneIndexer()
         {
@@ -73,8 +68,15 @@ namespace Examine.LuceneEngine.Providers
 
         }
 
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="luceneDirectory"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="async"></param>
         [SecuritySafeCritical]
-        protected LuceneIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, bool async)
+        protected LuceneIndexer(IIndexCriteria indexerData, Directory luceneDirectory, Analyzer analyzer, bool async)
             : base(indexerData)
         {
             _disposer = new DisposableIndexer(this);
@@ -94,6 +96,12 @@ namespace Examine.LuceneEngine.Providers
             RunAsync = async;
         }
 
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime - using NRT
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="writer"></param>
+        /// <param name="async"></param>
         [SecuritySafeCritical]
         protected LuceneIndexer(IIndexCriteria indexerData, IndexWriter writer, bool async)
             : base(indexerData)
@@ -138,7 +146,7 @@ namespace Examine.LuceneEngine.Providers
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
         [SecuritySafeCritical]
-        public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
+        public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
 
@@ -176,7 +184,7 @@ namespace Examine.LuceneEngine.Providers
                 }
 
             }
-
+            
             //Need to check if the index set or IndexerData is specified...
 
             if (config["indexSet"] == null && IndexerData == null)
@@ -194,8 +202,13 @@ namespace Examine.LuceneEngine.Providers
                         //we've found an index set by naming conventions :)
                         IndexSetName = set.SetName;
 
+                        var indexSet = IndexSets.Instance.Sets[IndexSetName];
+
+                        //if tokens are declared in the path, then use them (i.e. {machinename} )
+                        indexSet.ReplaceTokensInIndexPath();
+
                         //get the index criteria and ensure folder
-                        IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
+                        IndexerData = GetIndexerData(indexSet);
 
                         //now set the index folders
                         WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
@@ -221,8 +234,13 @@ namespace Examine.LuceneEngine.Providers
                 {
                     IndexSetName = config["indexSet"];
 
+                    var indexSet = IndexSets.Instance.Sets[IndexSetName];
+
+                    //if tokens are declared in the path, then use them (i.e. {machinename} )
+                    indexSet.ReplaceTokensInIndexPath();
+
                     //get the index criteria and ensure folder
-                    IndexerData = GetIndexerData(IndexSets.Instance.Sets[IndexSetName]);
+                    IndexerData = GetIndexerData(indexSet);
 
                     //now set the index folders
                     WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
@@ -238,7 +256,7 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+                IndexingAnalyzer = new StandardAnalyzer(Version.LUCENE_29);
             }
 
             //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
@@ -1438,14 +1456,14 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        private Lucene.Net.Store.Directory _directory;
+        private Directory _directory;
 
         /// <summary>
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
         [SecuritySafeCritical]
-        public virtual Lucene.Net.Store.Directory GetLuceneDirectory()
+        public virtual Directory GetLuceneDirectory()
         {
             if (_directory == null)
             {
@@ -1500,6 +1518,8 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Private
+
+        
 
         private void EnsureSpecialFields(Dictionary<string, string> fields, string nodeId, string type)
         {

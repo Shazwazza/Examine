@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security;
 using System.Text;
@@ -12,6 +13,22 @@ namespace Examine
     ///</summary>
     public static class StringExtensions
     {
+        internal static string EnsureEndsWith(this string input, char value)
+        {
+            return input.EndsWith(value.ToString(CultureInfo.InvariantCulture)) ? input : input + value;
+        }
+
+        internal static string ReplaceNonAlphanumericChars(this string input, string replacement)
+        {
+            //any character that is not alphanumeric, convert to a hyphen
+            var mName = input;
+            foreach (var c in mName.ToCharArray().Where(c => !char.IsLetterOrDigit(c)))
+            {
+                mName = mName.Replace(c.ToString(CultureInfo.InvariantCulture), replacement);
+            }
+            return mName;
+        }
+
 		//NOTE: The reason this code is in a separate method is because the Code Analysis barks at us with security concerns for medium trust
 		// when it is inline in the RemoveStopWords method like it used to be.
 		[SecuritySafeCritical]

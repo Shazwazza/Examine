@@ -119,6 +119,7 @@
     <Compile Include="IndexingNodeEventArgs.cs" />
     <Compile Include="IndexingNodesEventArgs.cs" />
     <Compile Include="IIndexer.cs" />
+    <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\AllHitsCollector.cs" />
@@ -155,6 +156,7 @@
     <Compile Include="LuceneEngine\SearchCriteria\SortType.cs" />
     <Compile Include="LuceneEngine\SearchResults.cs" />
     <Compile Include="LuceneEngine\SimpleDataSet.cs" />
+    <Compile Include="NetworkHelper.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />
     <Compile Include="SearchCriteria\DateResolution.cs" />
     <Compile Include="SearchCriteria\IBooleanOperation.cs" />
