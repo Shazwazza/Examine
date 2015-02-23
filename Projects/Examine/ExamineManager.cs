@@ -308,13 +308,20 @@ namespace Examine
         /// <param name="immediate">true to indicate the registered object should unregister from the hosting environment before returning; otherwise, false.</param>
         public void Stop(bool immediate)
         {
-            foreach (var searcher in SearchProviderCollection.OfType<IDisposable>())
+            if (immediate)
             {
-                searcher.Dispose();
+                HostingEnvironment.UnregisterObject(this);
             }
-            foreach (var indexer in IndexProviderCollection.OfType<IDisposable>())
+            else
             {
-                indexer.Dispose();
+                foreach (var searcher in SearchProviderCollection.OfType<IDisposable>())
+                {
+                    searcher.Dispose();
+                }
+                foreach (var indexer in IndexProviderCollection.OfType<IDisposable>())
+                {
+                    indexer.Dispose();
+                }    
             }
         }
     }

@@ -1302,17 +1302,20 @@ namespace Examine.LuceneEngine.Providers
                         if (!_isIndexing && (_asyncTask == null || _asyncTask.IsCompleted))
                         {
                             //Debug.WriteLine("Examine: Launching task");
-                            _asyncTask = Task.Factory.StartNew(
-                                StartIndexing,
-                                _cancellationTokenSource.Token,  //use our cancellation token
-                                TaskCreationOptions.None,
-                                TaskScheduler.Default).ContinueWith(task =>
-                                {
-                                    if (task.IsCanceled)
+                            if (!_cancellationTokenSource.IsCancellationRequested)
+                            {
+                                _asyncTask = Task.Factory.StartNew(
+                                    StartIndexing,
+                                    _cancellationTokenSource.Token,  //use our cancellation token
+                                    TaskCreationOptions.None,
+                                    TaskScheduler.Default).ContinueWith(task =>
                                     {
-                                        //if this gets cancelled, we need to 
-                                    }
-                                });
+                                        if (task.IsCanceled)
+                                        {
+                                            //if this gets cancelled, we need to 
+                                        }
+                                    });    
+                            }
                         }
                     }
                 }
@@ -1671,6 +1674,13 @@ namespace Examine.LuceneEngine.Providers
             {
                 //cancel any operation currently in place
                 _indexer._cancellationTokenSource.Cancel();
+
+                //clear the queue
+                IndexOperation item;
+                while (_indexer._indexQueue.TryDequeue(out item))
+                {
+                    
+                }
 
                 if (_indexer._writer != null)
                 {
