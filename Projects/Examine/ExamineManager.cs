@@ -321,7 +321,9 @@ namespace Examine
                 foreach (var indexer in IndexProviderCollection.OfType<IDisposable>())
                 {
                     indexer.Dispose();
-                }    
+                }
+
+                HostingEnvironment.UnregisterObject(this);
             }
         }
     }

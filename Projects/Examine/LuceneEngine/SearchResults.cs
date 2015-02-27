@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
+using System.Web.Script.Serialization;
 using Examine;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
@@ -147,9 +148,29 @@ namespace Examine.LuceneEngine
             var fields = doc.GetFields();
             
             //ignore our internal fields though
-            foreach (Field field in fields.Cast<Field>())
+
+            var multiFieldResult = new Dictionary<string, List<string>>();
+
+            foreach (var field in fields.Cast<Field>())
             {
-                sr.Fields.Add(field.Name(), doc.Get(field.Name()));
+                var fieldName = field.Name();
+                var values = doc.GetValues(fieldName);
+
+                if (values.Length > 1)
+                {
+                    multiFieldResult[fieldName] = values.ToList();
+                }
+                else if (values.Length > 0)
+                {
+                    sr.Fields.Add(fieldName, values[0]);
+                }
+            }
+
+            var serializer = new JavaScriptSerializer();
+            //now update the multi-value results (if any)
+            foreach (var fieldVals in multiFieldResult)
+            {
+                sr.Fields[fieldVals.Key] = serializer.Serialize(fieldVals.Value);
             }
 
             return sr;
