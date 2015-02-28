@@ -54,6 +54,37 @@ namespace Examine.Test.Index
         //    }
         //}
 
+        [Test]
+        public void Can_Add_Multiple_Values_To_Single_Index_Field()
+        {
+            using (var d = new RAMDirectory())
+            using (var customIndexer = IndexInitializer.GetUmbracoIndexer(d))
+            {
+
+                EventHandler<DocumentWritingEventArgs> handler = (sender, args) =>
+                {
+                    args.Document.Add(new Field("headerText", "another value", Field.Store.YES, Field.Index.ANALYZED));
+                };
+                
+                customIndexer.DocumentWriting += handler;
+
+                customIndexer.RebuildIndex();
+
+                customIndexer.DocumentWriting += handler;
+                
+                var customSearcher = IndexInitializer.GetLuceneSearcher(d);
+                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().NodeName("home").Compile());
+                Assert.Greater(results.TotalItemCount, 0);
+                foreach (var result in results)
+                {
+                    var vals = result.GetValues("headerText");
+                    Assert.AreEqual(2, vals.Count());
+                    Assert.AreEqual("another value", vals.ElementAt(1));
+                }
+            }
+        }
+
+
         /// <summary>
         /// Ensures that the cancellation is successful when creating a new index while it's currently indexing
         /// </summary>
