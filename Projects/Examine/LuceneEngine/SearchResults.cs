@@ -97,16 +97,16 @@ namespace Examine.LuceneEngine
 
 		    maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc();
 
-            if (sortField.Count() == 0)
+            if (!sortField.Any())
             {
                 var topDocs = LuceneSearcher.Search(query, null, maxResults, new Sort());
-                _collector = new AllHitsCollector(topDocs.scoreDocs);
+                _collector = new AllHitsCollector(topDocs.ScoreDocs);
                 topDocs = null;
             }
             else
             {
                 var topDocs = LuceneSearcher.Search(query, null, maxResults, new Sort(sortField.ToArray()));
-                _collector = new AllHitsCollector(topDocs.scoreDocs);
+                _collector = new AllHitsCollector(topDocs.ScoreDocs);
                 topDocs = null;
             }
             TotalItemCount = _collector.Count;
@@ -149,8 +149,6 @@ namespace Examine.LuceneEngine
             
             //ignore our internal fields though
 
-            var multiFieldResult = new Dictionary<string, List<string>>();
-
             foreach (var field in fields.Cast<Field>())
             {
                 var fieldName = field.Name();
@@ -158,19 +156,14 @@ namespace Examine.LuceneEngine
 
                 if (values.Length > 1)
                 {
-                    multiFieldResult[fieldName] = values.ToList();
+                    sr.MultiValueFields[fieldName] = values.ToList();
+                    //ensure the first value is added to the normal fields
+                    sr.Fields[fieldName] = values[0];
                 }
                 else if (values.Length > 0)
                 {
-                    sr.Fields.Add(fieldName, values[0]);
+                    sr.Fields[fieldName] = values[0];
                 }
-            }
-
-            var serializer = new JavaScriptSerializer();
-            //now update the multi-value results (if any)
-            foreach (var fieldVals in multiFieldResult)
-            {
-                sr.Fields[fieldVals.Key] = serializer.Serialize(fieldVals.Value);
             }
 
             return sr;

@@ -6,14 +6,31 @@ namespace Examine
 {
     public class SearchResult
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public SearchResult()
         {
-            this.Fields = new Dictionary<string, string>();
+            Fields = new Dictionary<string, string>();
+            MultiValueFields = new Dictionary<string, List<string>>();
         }
 
         public int Id { get; set; }
         public float Score { get; set; }
         public IDictionary<string, string> Fields { get; protected set; }
+
+        internal IDictionary<string, List<string>> MultiValueFields { get; private set; }
+
+        /// <summary>
+        /// If a single field was indexed with multiple values this will return those values, otherwise it will just return the single 
+        /// value stored for that field. If the field is not found it returns an empty collection.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public IEnumerable<string> GetValues(string key)
+        {
+            return MultiValueFields.ContainsKey(key) ? MultiValueFields[key] : Enumerable.Empty<string>();
+        } 
 
         /// <summary>
         /// Returns the key value pair for the index specified
@@ -22,10 +39,7 @@ namespace Examine
         /// <returns></returns>
         public KeyValuePair<string, string> this[int resultIndex] 
         {
-            get
-            {
-                return Fields.ToArray()[resultIndex];
-            }
+            get { return Fields.ElementAt(resultIndex); }
         }
 
         /// <summary>
