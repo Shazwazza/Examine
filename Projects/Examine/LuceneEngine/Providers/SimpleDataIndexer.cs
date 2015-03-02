@@ -76,17 +76,12 @@ namespace Examine.LuceneEngine.Providers
         protected override void PerformIndexAll(string type)
         {
             //get the data for the index type
-            var data = DataService.GetAllData(type);
-
-            //loop through the data and add it to the index
-            var nodes = new List<XElement>();
-            foreach (var d in data)
+            foreach (var d in DataService.GetAllData(type))
             {
-                nodes.Add(d.RowData.ToExamineXml(d.NodeDefinition.NodeId, d.NodeDefinition.Type));                
+                //Call this one at a time (it will queue things up internally), the ienumerable result might be enormous so it's best we
+                // don't put it all into memory and then into memory again!
+                AddNodesToIndex(new[] { d.RowData.ToExamineXml(d.NodeDefinition.NodeId, d.NodeDefinition.Type) }, type);
             }
-            
-            //now that we have XElement nodes of all of the data, process it as per normal
-            AddNodesToIndex(nodes, type);
         }              
 
         /// <summary>
