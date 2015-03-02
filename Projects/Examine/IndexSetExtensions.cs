@@ -14,7 +14,7 @@ namespace Examine
             if (indexSet == null) return;
             indexSet.IndexPath = indexSet.IndexPath
                 .Replace("{machinename}", NetworkHelper.FileSafeMachineName)
-                .Replace("{appdomainappid}", HttpRuntime.AppDomainAppId.ReplaceNonAlphanumericChars(""))
+                .Replace("{appdomainappid}", (HttpRuntime.AppDomainAppId ?? string.Empty).ReplaceNonAlphanumericChars(""))
                 .EnsureEndsWith('/');
         }
     }
