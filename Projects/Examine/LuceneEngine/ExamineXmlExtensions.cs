@@ -40,11 +40,12 @@ namespace Examine.LuceneEngine
                 //creates the element attributes
                 new XAttribute("id", nodeId),
                 new XAttribute("nodeTypeAlias", nodeType),
-                    //creates the data nodes
-                    data.Select(x => new XElement("data",
+                //creates the data nodes
+                data.Where(x => !string.IsNullOrWhiteSpace(x.Value))
+                    .Select(x => new XElement("data",
                         new XAttribute("alias", x.Key),
                         new XCData(x.Value))).ToList());
-            
+
         }
 
         /// <summary>
@@ -71,7 +72,7 @@ namespace Examine.LuceneEngine
             if (elements.Any())
             {
                 return new XDocument(new XElement("nodes", elements));
-            }            
+            }
             return null;
         }
 
@@ -144,7 +145,7 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public static bool IsExamineElement(this XElement x)
         {
-            var id = (string) x.Attribute("id");
+            var id = (string)x.Attribute("id");
             if (string.IsNullOrEmpty(id))
             {
                 return false;
@@ -205,17 +206,17 @@ namespace Examine.LuceneEngine
 
             XElement nodeData = null;
 
-           
+
             //if there is data children with attributes, we're on the old
             if (xml.Elements("data").Any(x => x.HasAttributes))
             {
                 nodeData = xml.Elements("data").SingleOrDefault(x => string.Equals(((string)x.Attribute("alias")), alias, StringComparison.InvariantCultureIgnoreCase));
             }
             else
-            {                
+            {
                 nodeData = xml.Elements().FirstOrDefault(x => string.Equals(x.Name.ToString(), alias, StringComparison.InvariantCultureIgnoreCase));
-            }           
-            
+            }
+
             if (nodeData == null)
             {
                 return string.Empty;
@@ -223,14 +224,14 @@ namespace Examine.LuceneEngine
 
             if (!nodeData.HasElements)
             {
-                return nodeData.Value;    
+                return nodeData.Value;
             }
 
             //it has sub elements so serialize them
             var reader = nodeData.CreateReader();
             reader.MoveToContent();
             return reader.ReadInnerXml();
-            
+
         }
 
     }
