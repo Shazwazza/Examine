@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -280,6 +281,7 @@ namespace Examine.LuceneEngine.Providers
 
         private volatile IndexWriter _writer;
 
+        private int _activeWrites = 0;
 
         /// <summary>
         /// The prefix characters denoting a special field stored in the lucene index for use internally
@@ -655,7 +657,6 @@ namespace Examine.LuceneEngine.Providers
                             }
 
                             _writer.Close();
-                            _writer.Dispose();
                             _writer = null;
                             _isIndexing = false;
 
@@ -681,7 +682,6 @@ namespace Examine.LuceneEngine.Providers
                             if (writer != null)
                             {
                                 writer.Close();
-                                writer.Dispose();
                             }
                             _hasIndex = true;
 
@@ -1425,10 +1425,12 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //track all of the nodes indexed
-            var indexedNodes = new ConcurrentBag<IndexedNode>();
+            var indexedNodes = new List<IndexedNode>();
 
             try
             {
+                Interlocked.Increment(ref _activeWrites);
+
                 var writer = GetIndexWriter();
 
                 if (block)
@@ -1453,10 +1455,12 @@ namespace Examine.LuceneEngine.Providers
                     }
                 }
 
-                writer.Commit(); //commit the changes (this will process the deletes)
+                //commit the changes (this will process the deletes)
+                writer.Commit();
 
                 //this is required to ensure the index is written to during the same thread execution
-                if (!RunAsync)
+                // if we are in blocking mode, the do the wait
+                if (!RunAsync || block)
                 {
                     writer.WaitForMerges();
                 }
@@ -1469,12 +1473,16 @@ namespace Examine.LuceneEngine.Providers
             {
                 OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
             }
+            finally
+            {
+                Interlocked.Decrement(ref _activeWrites);
+            }
 
             return indexedNodes.Count;
         }
 
         [SecuritySafeCritical]
-        private void ProcessQueueItem(IndexOperation item, ConcurrentBag<IndexedNode> indexedNodes, IndexWriter writer)
+        private void ProcessQueueItem(IndexOperation item, ICollection<IndexedNode> indexedNodes, IndexWriter writer)
         {
             switch (item.Operation)
             {
@@ -1687,16 +1695,6 @@ namespace Examine.LuceneEngine.Providers
             return new IndexedNode() { NodeId = nodeId, Type = op.Item.IndexType };
         }
 
-        //[SecuritySafeCritical]
-        //private void CloseWriter(ref IndexWriter writer)
-        //{
-        //    if (writer != null)
-        //    {
-        //        writer.Close();
-        //        writer = null;
-        //    }
-        //}
-
         /// <summary>
         /// Creates the folder if it does not exist.
         /// </summary>
@@ -1751,12 +1749,32 @@ namespace Examine.LuceneEngine.Providers
                 //dispose it now
                 _indexer._indexQueue.Dispose();
 
+                //Don't close the writer until there are definitely no more writes
+                RetryUntilSuccessOrTimeout(() => _indexer._activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
+
                 if (_indexer._writer != null)
                 {
                     _indexer._writer.Dispose();
                 }
 
                 _indexer._cancellationTokenSource.Dispose();
+            }
+
+            private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)
+            {
+
+                if (pause.TotalMilliseconds < 0)
+                {
+                    throw new ArgumentException("pause must be >= 0 milliseconds");
+                }
+                var stopwatch = Stopwatch.StartNew();
+                do
+                {
+                    if (task()) { return true; }
+                    Thread.Sleep((int)pause.TotalMilliseconds);
+                }
+                while (stopwatch.Elapsed < timeout);
+                return false;
             }
         }
 
