@@ -149,6 +149,8 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
+
+
         #region IDisposable Members
 
         private readonly DisposableSearcher _disposer;
