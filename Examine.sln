@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8F5756F2-7449-400C-BE52-A91F862967B0}"
 	ProjectSection(SolutionItems) = preProject
@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		SolutionInfo.cs = SolutionInfo.cs
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.Azure", "Examine.Azure", "{F5BA4CD4-DAFE-4F97-B342-4DF10E1F76DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768-6ECD-40EF-84BD-5594670EA7A8}"
 	ProjectSection(SolutionItems) = preProject
@@ -46,8 +44,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Projects\Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Projects\Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Azure", "Projects\Examine.Azure\Examine.Azure.csproj", "{B5833B82-4211-459A-8B0C-AA8F68438250}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,16 +66,11 @@ Global
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B5833B82-4211-459A-8B0C-AA8F68438250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B5833B82-4211-459A-8B0C-AA8F68438250}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B5833B82-4211-459A-8B0C-AA8F68438250}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B5833B82-4211-459A-8B0C-AA8F68438250}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{B5833B82-4211-459A-8B0C-AA8F68438250} = {F5BA4CD4-DAFE-4F97-B342-4DF10E1F76DB}
 		{976F400B-2ABA-4C36-8FD6-B0B35D0911D0} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 		{0DAC5325-71DE-4706-A631-FFB8CCC39FE3} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 	EndGlobalSection
