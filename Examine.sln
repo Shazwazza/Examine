@@ -30,12 +30,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine", "Examine", "{976F
 		build\Nuspecs\Examine\web.config.transform = build\Nuspecs\Examine\web.config.transform
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.Azure", "Examine.Azure", "{0DAC5325-71DE-4706-A631-FFB8CCC39FE3}"
-	ProjectSection(SolutionItems) = preProject
-		build\Nuspecs\Examine.Azure\Examine.Azure.nuspec = build\Nuspecs\Examine.Azure\Examine.Azure.nuspec
-		build\Nuspecs\Examine.Azure\web.config.transform = build\Nuspecs\Examine.Azure\web.config.transform
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UmbracoExamine", "Projects\UmbracoExamine\UmbracoExamine.csproj", "{07FBC26B-2927-4A22-8D96-D644C667FECC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Projects\Examine\Examine.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"
@@ -72,7 +66,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{976F400B-2ABA-4C36-8FD6-B0B35D0911D0} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
-		{0DAC5325-71DE-4706-A631-FFB8CCC39FE3} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi
