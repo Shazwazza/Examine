@@ -38,7 +38,7 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer()
         {
             OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = true;
+            AutomaticallyOptimize = false;
             _disposer = new DisposableIndexer(this);
         }
 
@@ -66,7 +66,7 @@ namespace Examine.LuceneEngine.Providers
 
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = true;
+            AutomaticallyOptimize = false;
             RunAsync = async;
 
         }
@@ -95,7 +95,7 @@ namespace Examine.LuceneEngine.Providers
 
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = true;
+            AutomaticallyOptimize = false;
             RunAsync = async;
         }
 
@@ -122,7 +122,7 @@ namespace Examine.LuceneEngine.Providers
 
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = true;
+            AutomaticallyOptimize = false;
             RunAsync = async;
 
         }
@@ -172,7 +172,7 @@ namespace Examine.LuceneEngine.Providers
 
             if (config["autoOptimize"] == null)
             {
-                AutomaticallyOptimize = true;
+                AutomaticallyOptimize = false;
             }
             else
             {
