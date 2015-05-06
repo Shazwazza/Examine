@@ -2,7 +2,11 @@ param (
 	[Parameter(Mandatory=$true)]
 	[ValidatePattern("\d+?\.\d+?\.\d+?\.\d")]
 	[string]
-	$ReleaseVersionNumber
+	$ReleaseVersionNumber,
+	[Parameter(Mandatory=$true)]
+	[string]
+	[AllowEmptyString()]
+	$PreReleaseName
 )
 
 $PSScriptFilePath = (Get-Item $MyInvocation.MyCommand.Path).FullName
@@ -13,7 +17,7 @@ $MSBuild = "$Env:SYSTEMROOT\Microsoft.NET\Framework\v4.0.30319\msbuild.exe"
 
 # Make sure we don't have a release folder for this version already
 $BuildFolder = Join-Path -Path $SolutionRoot -ChildPath "build";
-$ReleaseFolder = Join-Path -Path $BuildFolder -ChildPath "Releases\v$ReleaseVersionNumber";
+$ReleaseFolder = Join-Path -Path $BuildFolder -ChildPath "Releases\v$ReleaseVersionNumber$PreReleaseName";
 if ((Get-Item $ReleaseFolder -ErrorAction SilentlyContinue) -ne $null)
 {
 	Write-Warning "$ReleaseFolder already exists on your local machine. It will now be deleted."
@@ -24,6 +28,14 @@ if ((Get-Item $ReleaseFolder -ErrorAction SilentlyContinue) -ne $null)
 $SolutionInfoPath = Join-Path -Path $SolutionRoot -ChildPath "SolutionInfo.cs"
 (gc -Path $SolutionInfoPath) `
 	-replace "(?<=Version\(`")[.\d]*(?=`"\))", $ReleaseVersionNumber |
+	sc -Path $SolutionInfoPath -Encoding UTF8
+(gc -Path $SolutionInfoPath) `
+	-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", "$ReleaseVersionNumber$PreReleaseName" |
+	sc -Path $SolutionInfoPath -Encoding UTF8
+# Set the copyright
+$Copyright = "Copyright © Shannon Deminick " + (Get-Date).year
+(gc -Path $SolutionInfoPath) `
+	-replace "(?<=AssemblyCopyright\(`").*(?=`"\))", $Copyright |
 	sc -Path $SolutionInfoPath -Encoding UTF8
 
 # Build the solution in release mode
@@ -61,7 +73,7 @@ $CoreNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\Examine\*";
 Copy-Item $CoreNuSpecSource -Destination $CoreExamineFolder
 $CoreNuSpec = Join-Path -Path $CoreExamineFolder -ChildPath "Examine.nuspec";
 $NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
-& $NuGet pack $CoreNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber
+& $NuGet pack $CoreNuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber$PreReleaseName -Properties copyright=$Copyright
 
 
 ""
