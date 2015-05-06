@@ -40,6 +40,6 @@ Documentation on using the Examine API
 
 ## Copyright & Licence
 
-&copy; 2013 by Shannon Deminick
+&copy; 2015 by Shannon Deminick
 
 This is free software and is licensed under the [Microsoft Public License (Ms-PL)](http://opensource.org/licenses/MS-PL)
