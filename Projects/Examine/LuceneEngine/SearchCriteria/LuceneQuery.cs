@@ -377,7 +377,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
-            return this.search.GroupedNotInternal(fields.ToArray(), fieldVals.ToArray(), this.occurance);
+            return this.search.GroupedNotInternal(fields.ToArray(), fieldVals.ToArray());
         }
 
         /// <summary>
@@ -389,7 +389,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		[SecuritySafeCritical]
 		public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
-            return this.search.GroupedNotInternal(fields.ToArray(), query, this.occurance);
+            return this.search.GroupedNotInternal(fields.ToArray(), query);
         }
 
         /// <summary>

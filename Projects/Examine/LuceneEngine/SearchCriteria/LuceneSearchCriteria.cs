@@ -657,17 +657,21 @@ namespace Examine.LuceneEngine.SearchCriteria
             Enforcer.ArgumentNotNull(fields, "fields");
             Enforcer.ArgumentNotNull(query, "query");
 
-            return this.GroupedNotInternal(fields.ToArray(), query, _occurance);
+            return this.GroupedNotInternal(fields.ToArray(), query);
         }
 
 		[SecuritySafeCritical]
-        protected internal IBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals)
         {
             //if there's only 1 query text we want to build up a string like this:
             //(!field1:query !field2:query !field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
             
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.MUST_NOT), occurance);
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, BooleanClause.Occur.MUST_NOT, true), 
+                //NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work. 
+                // for example, it cannot be:  +(-id:1 -id:2 -id:3)
+                // it just needs to be          (-id:1 -id:2 -id:3)
+                BooleanClause.Occur.SHOULD);
 
             return new LuceneBooleanOperation(this);
         }
