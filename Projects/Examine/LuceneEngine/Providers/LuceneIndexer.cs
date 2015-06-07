@@ -1320,7 +1320,10 @@ namespace Examine.LuceneEngine.Providers
                             if (!_cancellationTokenSource.IsCancellationRequested)
                             {
                                 _asyncTask = Task.Factory.StartNew(
-                                    StartIndexing,
+                                    () => {
+					System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+					StartIndexing();
+	                            },
                                     _cancellationTokenSource.Token,  //use our cancellation token
                                     TaskCreationOptions.None,
                                     TaskScheduler.Default).ContinueWith(task =>
