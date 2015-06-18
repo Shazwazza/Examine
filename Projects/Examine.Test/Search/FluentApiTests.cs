@@ -216,6 +216,26 @@ namespace Examine.Test.Search
             Assert.AreEqual(10, results.TotalItemCount);
         }
 
+        [Test]
+        public void FluentApi_Skip_Results()
+        {
+            var searcher = (BaseLuceneSearcher)_searcher;
+            var criteria = searcher.CreateSearchCriteria(BooleanOperation.Or);
+            var filter = criteria
+                .Field(LuceneIndexer.IndexTypeFieldName, "media")
+                .Or()
+                .Field(LuceneIndexer.IndexTypeFieldName, "content")
+                .Compile();
+
+            var results = searcher.Search(filter, 5);
+
+            var skipped = results.Skip(0).Take(3);
+            Assert.AreEqual(3, skipped.Count());
+
+            skipped = results.Skip(3).Take(3);
+            Assert.AreEqual(2, skipped.Count());
+        }
+
 		[Test]
 		public void FluentApi_Find_By_NodeTypeAlias()
 		{
