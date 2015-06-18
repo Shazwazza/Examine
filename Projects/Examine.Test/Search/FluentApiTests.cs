@@ -199,6 +199,23 @@ namespace Examine.Test.Search
 			Assert.AreEqual(2, results.TotalItemCount);
 		}
 
+        [Test]
+        public void FluentApi_Max_Results()
+        {
+            var searcher = (BaseLuceneSearcher) _searcher;
+            var criteria = searcher.CreateSearchCriteria(BooleanOperation.Or);
+            var filter = criteria
+                .Field(LuceneIndexer.IndexTypeFieldName, "media")
+                .Or()
+                .Field(LuceneIndexer.IndexTypeFieldName, "content")
+                .Compile();
+
+            var results = searcher.Search(filter, 3);
+
+            Assert.AreEqual(3, results.Count());
+            Assert.AreEqual(10, results.TotalItemCount);
+        }
+
 		[Test]
 		public void FluentApi_Find_By_NodeTypeAlias()
 		{

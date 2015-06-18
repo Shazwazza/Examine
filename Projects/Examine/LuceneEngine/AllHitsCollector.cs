@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 using Lucene.Net.Index;
@@ -6,6 +7,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine
 {
+    [Obsolete("This is no longer used and will be removed from the codebase in future versions")]
 	[SecurityCritical]
     public class AllHitsCollector : Collector
     {

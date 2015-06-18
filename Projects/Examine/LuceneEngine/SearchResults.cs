@@ -48,8 +48,9 @@ namespace Examine.LuceneEngine
 			private set;
 	    }
 
-
-        private AllHitsCollector _collector;
+        [SecuritySafeCritical]
+        private TopDocs _topDocs;
+        //private AllHitsCollector _collector;
 
 		[SecuritySafeCritical]
         internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
@@ -97,19 +98,25 @@ namespace Examine.LuceneEngine
 
 		    maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc();
 
-            if (!sortField.Any())
+            Collector topDocsCollector;
+            if (sortField.Any())
             {
-                var topDocs = LuceneSearcher.Search(query, null, maxResults, new Sort());
-                _collector = new AllHitsCollector(topDocs.ScoreDocs);
-                topDocs = null;
+                topDocsCollector = TopFieldCollector.create(
+                    new Sort(sortField.ToArray()), maxResults, false, false, false, false);
             }
             else
             {
-                var topDocs = LuceneSearcher.Search(query, null, maxResults, new Sort(sortField.ToArray()));
-                _collector = new AllHitsCollector(topDocs.ScoreDocs);
-                topDocs = null;
+                topDocsCollector = TopScoreDocCollector.create(maxResults, true);
             }
-            TotalItemCount = _collector.Count;
+
+            LuceneSearcher.Search(query, topDocsCollector);
+
+            _topDocs = sortField.Any()
+                ? ((TopFieldCollector)topDocsCollector).TopDocs()
+                : ((TopScoreDocCollector)topDocsCollector).TopDocs();
+
+            TotalItemCount = _topDocs.TotalHits;
+
         }
 
         /// <summary>
@@ -174,12 +181,20 @@ namespace Examine.LuceneEngine
 		[SecuritySafeCritical]
 		private SearchResult CreateFromDocumentItem(int i)
 		{
-			var docId = _collector.GetDocId(i);
-			var doc = LuceneSearcher.Doc(docId);
-			var score = _collector.GetDocScore(i);
-			var result = CreateSearchResult(doc, score);
-			return result;
+            var docId = _topDocs.ScoreDocs[i].doc;
+            var doc = LuceneSearcher.Doc(docId);
+            var score = _topDocs.ScoreDocs[i].score;
+            var result = CreateSearchResult(doc, score);
+            return result;
 		}
+
+        //NOTE: This is totally retarded but it is required for medium trust as I cannot put this code inside the Skip method... wtf
+        [SecuritySafeCritical]
+	    private int GetScoreDocsLength()
+	    {
+            var length = _topDocs.ScoreDocs.Length;
+	        return length;
+	    }
 
         /// <summary>
         /// Skips to a particular point in the search results.
@@ -192,19 +207,20 @@ namespace Examine.LuceneEngine
 		[SecuritySafeCritical]
 		public IEnumerable<SearchResult> Skip(int skip)
         {
-            for (int i = skip; i < this.TotalItemCount; i++)
+
+            for (int i = skip, n = GetScoreDocsLength(); i < n; i++)
             {
                 //first check our own cache to make sure it's not there
                 if (!Docs.ContainsKey(i))
                 {
-	                var r = CreateFromDocumentItem(i);                    
+                    var r = CreateFromDocumentItem(i);
                     Docs.Add(i, r);
                 }
                 //using yield return means if the user breaks out we wont keep going
                 //only load what we need to load!
                 //and we'll get it from our cache, this means you can go 
                 //forward/ backwards without degrading performance
-	            var result = Docs[i];
+                var result = Docs[i];
                 yield return result;
             }
         }
