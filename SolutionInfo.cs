@@ -7,6 +7,6 @@ using System.Security;
 [assembly: AssemblyCulture("")]
 
 
-[assembly: AssemblyVersion("0.1.63.0")]
-[assembly: AssemblyFileVersion("0.1.63.0")]
-[assembly: AssemblyInformationalVersion("0.1.63.0")]
+[assembly: AssemblyVersion("0.1.64.0")]
+[assembly: AssemblyFileVersion("0.1.64.0")]
+[assembly: AssemblyInformationalVersion("0.1.64.0")]
