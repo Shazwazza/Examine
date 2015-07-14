@@ -310,20 +310,27 @@ namespace Examine
         {
             if (immediate)
             {
-                HostingEnvironment.UnregisterObject(this);
-            }
-            else
-            {
+                //This is sort of a hack at the moment. We are disposing the searchers at the last possible point in time because there might
+                // still be pages executing when 'immediate' == false. In which case, when we close the readers, exceptions will occur
+                // if the search results are still being enumerated.
+                // I've tried using DecRef and IncRef to keep track of searchers using readers, however there is no guarantee that DecRef can
+                // be called when a search is finished and since search results are lazy, we don't know when they end unless people dispose them
+                // or always use a foreach loop which can't really be forced. The only alternative to using DecRef and IncRef would be to make the results
+                // not lazy which isn't good.
+
                 foreach (var searcher in SearchProviderCollection.OfType<IDisposable>())
                 {
                     searcher.Dispose();
                 }
+
+                HostingEnvironment.UnregisterObject(this);
+            }
+            else
+            {                
                 foreach (var indexer in IndexProviderCollection.OfType<IDisposable>())
                 {
                     indexer.Dispose();
                 }
-
-                HostingEnvironment.UnregisterObject(this);
             }
         }
     }

@@ -181,20 +181,18 @@ namespace Examine.LuceneEngine
 		[SecuritySafeCritical]
 		private SearchResult CreateFromDocumentItem(int i)
 		{
-            try
-            {
-                var docId = _topDocs.ScoreDocs[i].doc;
-                var doc = LuceneSearcher.Doc(docId);
-                var score = _topDocs.ScoreDocs[i].score;
-                var result = CreateSearchResult(doc, score);
-                return result;
-            }
-            catch (AlreadyClosedException)
-            {
-                //This can happen in some cases when the index is closed while iterating search result,
-                // normally this would only ever occur during app shutdown.
-                throw;
-            }
+            var docId = _topDocs.ScoreDocs[i].doc;
+            var doc = LuceneSearcher.Doc(docId);
+            var score = _topDocs.ScoreDocs[i].score;
+            var result = CreateSearchResult(doc, score);
+            return result;
+
+            
+            //AlreadyClosedException - This can happen in some cases when the index is closed while iterating search result,
+            // normally this would only ever occur during app shutdown.
+            // but we don't want to catch that since it's just masking another issue.... have done lots of shutdown load testing
+            // and am no longer getting errors.
+
 		}
 
         //NOTE: This is totally retarded but it is required for medium trust as I cannot put this code inside the Skip method... wtf
@@ -235,74 +233,16 @@ namespace Examine.LuceneEngine
         }
 
         /// <summary>
-        /// Used to Increment/Decrement the index reader so that when the app is shutdown, a reader doesn't actually
-        /// get closed if one is open still and it will self close at the end of it's process.
-        /// </summary>
-        private struct DecrementReaderResult : IEnumerator<SearchResult>
-        {
-            private readonly IEnumerator<SearchResult> _baseEnumerator;
-            private readonly IndexSearcher _searcher;
-
-            [SecuritySafeCritical]
-            public DecrementReaderResult(IEnumerator<SearchResult> baseEnumerator, Searcher searcher)
-            {
-                _baseEnumerator = baseEnumerator;
-                _searcher = searcher as IndexSearcher;
-
-                if (_searcher != null)
-                {
-                    _searcher.GetIndexReader().IncRef();
-                }
-            }
-
-            [SecuritySafeCritical]
-            public void Dispose()
-            {
-                _baseEnumerator.Dispose();
-
-                if (_searcher != null)
-                {
-                    _searcher.GetIndexReader().DecRef();
-                }
-            }
-
-            public bool MoveNext()
-            {
-                return _baseEnumerator.MoveNext();
-            }
-
-            public void Reset()
-            {
-                _baseEnumerator.Reset();
-            }
-
-            public SearchResult Current
-            {
-                get { return _baseEnumerator.Current; }
-            }
-
-            object IEnumerator.Current
-            {
-                get { return Current; }
-            }
-        }
-
-        #region IEnumerable<SearchResult> Members
-
-        /// <summary>
         /// Gets the enumerator starting at position 0
         /// </summary>
         /// <returns>A collection of the search results</returns>
-        [SecuritySafeCritical]
         public IEnumerator<SearchResult> GetEnumerator()
         {
-            return new DecrementReaderResult(
-                Skip(0).GetEnumerator(),
-                LuceneSearcher);
+            //if we're going to Enumerate from this itself we're not going to be skipping
+            //so unless we made it IQueryable we can't do anything better than start from 0
+            return this.Skip(0).GetEnumerator();
         }
-
-        #endregion
-
+        
         #region IEnumerable Members
 
         /// <summary>
