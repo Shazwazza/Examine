@@ -429,14 +429,13 @@ namespace Examine.LuceneEngine.Providers
             /// </summary>
             [SecuritySafeCritical]
             protected override void DisposeResources()
-            {
-                if (_searcher._searcher != null)
-                {
-                    _searcher._searcher.Dispose();
-                }
+            {              
                 if (_searcher._reader != null)
                 {
-                    _searcher._reader.Dispose();
+                    //this will close if there are no readers remaining, otherwise if there 
+                    // are readers remaining they will be auto-shut down based on the DecrementReaderResult
+                    // that would still have it in use
+                    _searcher._reader.DecRef();
                 }
             }
         }
