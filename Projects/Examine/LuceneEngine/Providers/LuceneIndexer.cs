@@ -1522,6 +1522,12 @@ namespace Examine.LuceneEngine.Providers
             {
                 _indexQueue.Add(op);
             }
+            else
+            {
+                OnIndexingError(
+                    new IndexingErrorEventArgs(
+                        "App is shutting down so index operation is ignored: " + op.Item.Id, -1, new Exception()));
+            }
         }
 
         private Directory _directory;
