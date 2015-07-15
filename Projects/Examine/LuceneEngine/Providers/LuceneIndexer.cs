@@ -282,6 +282,7 @@ namespace Examine.LuceneEngine.Providers
         private volatile IndexWriter _writer;
 
         private int _activeWrites = 0;
+        private int _activeAddsOrDeletes = 0;
 
         /// <summary>
         /// The prefix characters denoting a special field stored in the lucene index for use internally
@@ -702,9 +703,6 @@ namespace Examine.LuceneEngine.Providers
 
 
             }
-            
-
-
         }
 
         /// <summary>
@@ -713,6 +711,12 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>This will completely delete the index and recreate it</remarks>
         public override void RebuildIndex()
         {
+            if (_cancellationTokenSource.IsCancellationRequested)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Cannot rebuild the index, indexing cancelation has been requested", -1, null));
+                return;
+            }
+
             EnsureIndex(true);
 
             //call abstract method
@@ -729,12 +733,21 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="nodeId">ID of the node to delete</param>
         public override void DeleteFromIndex(string nodeId)
         {
-            EnqueueIndexOperation(new IndexOperation()
-                {
-                    Operation = IndexOperationType.Delete,
-                    Item = new IndexItem(null, "", nodeId)
-                });
-            SafelyProcessQueueItems();
+            Interlocked.Increment(ref _activeAddsOrDeletes);
+
+            try
+            {
+                EnqueueIndexOperation(new IndexOperation()
+                   {
+                       Operation = IndexOperationType.Delete,
+                       Item = new IndexItem(null, "", nodeId)
+                   });
+                SafelyProcessQueueItems();
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeAddsOrDeletes);
+            }
         }
 
         /// <summary>
@@ -775,7 +788,12 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public void OptimizeIndex()
         {
-            IndexWriter writer = null;
+            if (_cancellationTokenSource.IsCancellationRequested)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, index cancelation has been requested", -1, null), true);
+                return;
+            }
+
             try
             {
                 if (!IndexExists())
@@ -791,7 +809,7 @@ namespace Examine.LuceneEngine.Providers
                 OnIndexOptimizing(new EventArgs());
 
                 //open the writer for optization
-                writer = GetIndexWriter();
+                var writer = GetIndexWriter();
 
                 //wait for optimization to complete (true)
                 writer.Optimize(true);
@@ -806,7 +824,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         #region Protected
-
+        
         /// <summary>
         /// This will add a number of nodes to the index
         /// </summary>        
@@ -823,17 +841,26 @@ namespace Examine.LuceneEngine.Providers
                 return;
             }
 
-            foreach (XElement node in nodes)
-            {
-                EnqueueIndexOperation(new IndexOperation()
-                {
-                    Operation = IndexOperationType.Add,
-                    Item = new IndexItem(node, type, (string)node.Attribute("id"))
-                });
-            }
+            Interlocked.Increment(ref _activeAddsOrDeletes);
 
-            //run the indexer on all queued files
-            SafelyProcessQueueItems();
+            try
+            {
+                foreach (var node in nodes)
+                {
+                    EnqueueIndexOperation(new IndexOperation()
+                    {
+                        Operation = IndexOperationType.Add,
+                        Item = new IndexItem(node, type, (string)node.Attribute("id"))
+                    });
+                }
+
+                //run the indexer on all queued files
+                SafelyProcessQueueItems();
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeAddsOrDeletes);
+            }
         }
 
         /// <summary>
@@ -1427,10 +1454,10 @@ namespace Examine.LuceneEngine.Providers
             //track all of the nodes indexed
             var indexedNodes = new List<IndexedNode>();
 
+            Interlocked.Increment(ref _activeWrites);
+
             try
             {
-                Interlocked.Increment(ref _activeWrites);
-
                 var writer = GetIndexWriter();
 
                 if (block)
@@ -1526,7 +1553,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 OnIndexingError(
                     new IndexingErrorEventArgs(
-                        "App is shutting down so index operation is ignored: " + op.Item.Id, -1, new Exception()));
+                        "App is shutting down so index operation is ignored: " + op.Item.Id, -1, null));
             }
         }
 
@@ -1743,6 +1770,13 @@ namespace Examine.LuceneEngine.Providers
             [SecuritySafeCritical]
             protected override void DisposeResources()
             {
+                //Before we close everything down, we're going to give one last opportunity for outstanding operations to 
+                // add/remove from the index 
+                Thread.Sleep(500);
+
+                //if there are active adds, lets way/retry (5 seconds)
+                RetryUntilSuccessOrTimeout(() => _indexer._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
+
                 //cancel any operation currently in place
                 _indexer._cancellationTokenSource.Cancel();
 
