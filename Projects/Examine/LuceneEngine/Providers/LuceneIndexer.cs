@@ -713,7 +713,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot rebuild the index, indexing cancelation has been requested", -1, null));
+                OnIndexingError(new IndexingErrorEventArgs("Cannot rebuild the index, indexing cancellation has been requested", -1, null));
                 return;
             }
 
@@ -790,7 +790,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, index cancelation has been requested", -1, null), true);
+                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, index cancellation has been requested", -1, null), true);
                 return;
             }
 
