@@ -112,6 +112,7 @@
     <Compile Include="Enforcer.cs" />
     <Compile Include="IIndexCriteria.cs" />
     <Compile Include="IIndexField.cs" />
+    <Compile Include="IIndexOperation.cs" />
     <Compile Include="IndexCriteria.cs" />
     <Compile Include="IndexedNode.cs" />
     <Compile Include="IndexedNodesEventArgs.cs" />
@@ -124,6 +125,7 @@
     <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
+    <Compile Include="LazyIndexOperation.cs" />
     <Compile Include="LuceneEngine\LocalTempStorageIndexer.cs" />
     <Compile Include="LuceneEngine\AllHitsCollector.cs" />
     <Compile Include="LuceneEngine\Config\ExamineLuceneIndexes.cs" />

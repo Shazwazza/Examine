@@ -3,7 +3,7 @@ namespace Examine
     /// <summary>
     /// Represents an indexing operation (either add/remove)
     /// </summary>
-    public class IndexOperation
+    public class IndexOperation : IIndexOperation
     {
         /// <summary>
         /// Gets the Index item

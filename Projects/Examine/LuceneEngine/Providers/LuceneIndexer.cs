@@ -333,7 +333,10 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// This is our threadsafe queue of items which can be read by our background worker to process the queue
         /// </summary>
-        private readonly BlockingCollection<IndexOperation> _indexQueue = new BlockingCollection<IndexOperation>();
+        /// <remarks>
+        /// Each item in the collection is a collection itself, this allows us to have lazy access to a collection as part of the queue if added in bulk
+        /// </remarks>
+        private readonly BlockingCollection<IEnumerable<IIndexOperation>> _indexQueue = new BlockingCollection<IEnumerable<IIndexOperation>>();
 
         /// <summary>
         /// The async task that runs during an async indexing operation
@@ -651,7 +654,7 @@ namespace Examine.LuceneEngine.Providers
                             _cancellationTokenSource.Cancel();
 
                             //clear the queue
-                            IndexOperation op;
+                            IEnumerable<IIndexOperation> op;
                             while (_indexQueue.TryTake(out op))
                             {
 
@@ -845,14 +848,10 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                foreach (var node in nodes)
-                {
-                    EnqueueIndexOperation(new IndexOperation()
-                    {
-                        Operation = IndexOperationType.Add,
-                        Item = new IndexItem(node, type, (string)node.Attribute("id"))
-                    });
-                }
+                //enqueue the batch, this allows lazy enumeration of the items
+                // when the indexes starts to process
+                EnqueueIndexOperation(
+                    nodes.Select(node => new LazyIndexOperation(() => new IndexItem(node, type, (string) node.Attribute("id")), IndexOperationType.Add)));
 
                 //run the indexer on all queued files
                 SafelyProcessQueueItems();
@@ -1467,18 +1466,24 @@ namespace Examine.LuceneEngine.Providers
                         throw new InvalidOperationException("Cannot block unless the queue is finalized");
                     }
 
-                    foreach (var item in _indexQueue.GetConsumingEnumerable())
+                    foreach (var batch in _indexQueue.GetConsumingEnumerable())
                     {
-                        ProcessQueueItem(item, indexedNodes, writer);
+                        foreach (var item in batch)
+                        {
+                            ProcessQueueItem(item, indexedNodes, writer);
+                        }
                     }
                 }
                 else
                 {
-                    IndexOperation item;
+                    IEnumerable<IIndexOperation> batch;
                     //index while we're not cancelled and while there's items in there
-                    while (!_cancellationTokenSource.IsCancellationRequested && _indexQueue.TryTake(out item))
+                    while (!_cancellationTokenSource.IsCancellationRequested && _indexQueue.TryTake(out batch))
                     {
-                        ProcessQueueItem(item, indexedNodes, writer);
+                        foreach (var item in batch)
+                        {
+                            ProcessQueueItem(item, indexedNodes, writer);
+                        }
                     }
                 }
 
@@ -1509,7 +1514,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [SecuritySafeCritical]
-        private void ProcessQueueItem(IndexOperation item, ICollection<IndexedNode> indexedNodes, IndexWriter writer)
+        private void ProcessQueueItem(IIndexOperation item, ICollection<IndexedNode> indexedNodes, IndexWriter writer)
         {
             switch (item.Operation)
             {
@@ -1542,18 +1547,37 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation
         /// </summary>
         /// <param name="op"></param>
-        protected void EnqueueIndexOperation(IndexOperation op)
+        protected void EnqueueIndexOperation(IIndexOperation op)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested)
             {
-                _indexQueue.Add(op);
+                _indexQueue.Add(new[] { op });
             }
             else
             {
                 OnIndexingError(
                     new IndexingErrorEventArgs(
                         "App is shutting down so index operation is ignored: " + op.Item.Id, -1, null));
+            }
+        }
+
+        /// <summary>
+        /// Queues an indexing operation batch
+        /// </summary>
+        /// <param name="ops"></param>
+        protected void EnqueueIndexOperation(IEnumerable<IIndexOperation> ops)
+        {
+            //don't queue if there's been a cancellation requested
+            if (!_cancellationTokenSource.IsCancellationRequested)
+            {
+                _indexQueue.Add(ops);
+            }
+            else
+            {
+                OnIndexingError(
+                    new IndexingErrorEventArgs(
+                        "App is shutting down so index batch operation is ignored", -1, null));
             }
         }
 
@@ -1695,7 +1719,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         [SecuritySafeCritical]
-        private void ProcessDeleteQueueItem(IndexOperation op, IndexWriter iw, bool performCommit = true)
+        private void ProcessDeleteQueueItem(IIndexOperation op, IndexWriter iw, bool performCommit = true)
         {
 
             //if the id is empty then remove the whole type
@@ -1712,7 +1736,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [SecuritySafeCritical]
-        private IndexedNode ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
+        private IndexedNode ProcessIndexQueueItem(IIndexOperation op, IndexWriter writer)
         {
             //get the node id
             var nodeId = int.Parse(op.Item.Id);
