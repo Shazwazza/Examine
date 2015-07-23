@@ -24,7 +24,7 @@ using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.Providers
 {
-        
+
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
@@ -187,7 +187,7 @@ namespace Examine.LuceneEngine.Providers
                 }
 
             }
-            
+
             //Need to check if the index set or IndexerData is specified...
 
             if (config["indexSet"] == null && IndexerData == null)
@@ -741,10 +741,10 @@ namespace Examine.LuceneEngine.Providers
             try
             {
                 EnqueueIndexOperation(new IndexOperation()
-                   {
-                       Operation = IndexOperationType.Delete,
-                       Item = new IndexItem(null, "", nodeId)
-                   });
+                {
+                    Operation = IndexOperationType.Delete,
+                    Item = new IndexItem(null, "", nodeId)
+                });
                 SafelyProcessQueueItems();
             }
             finally
@@ -768,10 +768,10 @@ namespace Examine.LuceneEngine.Providers
             else
             {
                 var op = new IndexOperation()
-                    {
-                        Operation = IndexOperationType.Delete,
-                        Item = new IndexItem(null, type, string.Empty)
-                    };
+                {
+                    Operation = IndexOperationType.Delete,
+                    Item = new IndexItem(null, type, string.Empty)
+                };
                 EnqueueIndexOperation(op);
 
             }
@@ -827,7 +827,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         #region Protected
-        
+
         /// <summary>
         /// This will add a number of nodes to the index
         /// </summary>        
@@ -851,7 +851,7 @@ namespace Examine.LuceneEngine.Providers
                 //enqueue the batch, this allows lazy enumeration of the items
                 // when the indexes starts to process
                 EnqueueIndexOperation(
-                    nodes.Select(node => new LazyIndexOperation(() => new IndexItem(node, type, (string) node.Attribute("id")), IndexOperationType.Add)));
+                    nodes.Select(node => new LazyIndexOperation(() => new IndexItem(node, type, (string)node.Attribute("id")), IndexOperationType.Add)));
 
                 //run the indexer on all queued files
                 SafelyProcessQueueItems();
@@ -1315,13 +1315,13 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
         {
-            return new Dictionary<string, string>() 
-			{
+            return new Dictionary<string, string>()
+            {
 				//we want to store the nodeId separately as it's the index
 				{IndexNodeIdFieldName, allValuesForIndexing[IndexNodeIdFieldName]},
 				//add the index type first
 				{IndexTypeFieldName, allValuesForIndexing[IndexTypeFieldName]}
-			};
+            };
         }
 
         /// <summary>
@@ -1346,10 +1346,12 @@ namespace Examine.LuceneEngine.Providers
                             if (!_cancellationTokenSource.IsCancellationRequested)
                             {
                                 _asyncTask = Task.Factory.StartNew(
-                                    () => {
-					System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-					StartIndexing();
-	                            },
+                                    () =>
+                                    {
+                                        //Ensure the indexing processes is using an invariant culture
+                                        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+                                        StartIndexing();
+                                    },
                                     _cancellationTokenSource.Token,  //use our cancellation token
                                     TaskCreationOptions.None,
                                     TaskScheduler.Default).ContinueWith(task =>
@@ -1358,7 +1360,7 @@ namespace Examine.LuceneEngine.Providers
                                         {
                                             //if this gets cancelled, we need to 
                                         }
-                                    });    
+                                    });
                             }
                         }
                     }
@@ -1636,7 +1638,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     Monitor.Exit(_writerLocker);
                 }
-               
+
             }
 
             return _writer;
@@ -1647,7 +1649,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Private
 
-        
+
 
         private void EnsureSpecialFields(Dictionary<string, string> fields, string nodeId, string type)
         {
@@ -1676,7 +1678,7 @@ namespace Examine.LuceneEngine.Providers
                 var convertFrom = tc.ConvertFrom(null, CultureInfo.InvariantCulture, val);
                 if (convertFrom != null)
                 {
-                    parsedVal = (T) convertFrom;
+                    parsedVal = (T)convertFrom;
                     return true;
                 }
                 else
