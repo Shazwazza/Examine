@@ -336,7 +336,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// Each item in the collection is a collection itself, this allows us to have lazy access to a collection as part of the queue if added in bulk
         /// </remarks>
-        private readonly BlockingCollection<IEnumerable<IIndexOperation>> _indexQueue = new BlockingCollection<IEnumerable<IIndexOperation>>();
+        private readonly BlockingCollection<IEnumerable<IndexOperation>> _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>();
 
         /// <summary>
         /// The async task that runs during an async indexing operation
@@ -654,7 +654,7 @@ namespace Examine.LuceneEngine.Providers
                             _cancellationTokenSource.Cancel();
 
                             //clear the queue
-                            IEnumerable<IIndexOperation> op;
+                            IEnumerable<IndexOperation> op;
                             while (_indexQueue.TryTake(out op))
                             {
 
@@ -790,7 +790,7 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         [SecuritySafeCritical]
         public void OptimizeIndex()
-        {
+        {            
             if (_cancellationTokenSource.IsCancellationRequested)
             {
                 OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, index cancellation has been requested", -1, null), true);
@@ -851,7 +851,7 @@ namespace Examine.LuceneEngine.Providers
                 //enqueue the batch, this allows lazy enumeration of the items
                 // when the indexes starts to process
                 EnqueueIndexOperation(
-                    nodes.Select(node => new LazyIndexOperation(() => new IndexItem(node, type, (string)node.Attribute("id")), IndexOperationType.Add)));
+                    nodes.Select(node => new IndexOperation(new IndexItem(node, type, (string)node.Attribute("id")), IndexOperationType.Add)));
 
                 //run the indexer on all queued files
                 SafelyProcessQueueItems();
@@ -1391,7 +1391,7 @@ namespace Examine.LuceneEngine.Providers
                         } while (numProcessedItems > 0);
 
                         //if there are enough commits, then we'll run an optimization
-                        if (CommitCount >= OptimizationCommitThreshold)
+                        if (AutomaticallyOptimize && CommitCount >= OptimizationCommitThreshold)
                         {
                             OptimizeIndex();
                             CommitCount = 0; //reset the counter
@@ -1481,7 +1481,7 @@ namespace Examine.LuceneEngine.Providers
                 }
                 else
                 {
-                    IEnumerable<IIndexOperation> batch;
+                    IEnumerable<IndexOperation> batch;
                     //index while we're not cancelled and while there's items in there
                     while (!_cancellationTokenSource.IsCancellationRequested && _indexQueue.TryTake(out batch))
                     {
@@ -1519,7 +1519,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [SecuritySafeCritical]
-        private void ProcessQueueItem(IIndexOperation item, ICollection<IndexedNode> indexedNodes, IndexWriter writer)
+        private void ProcessQueueItem(IndexOperation item, ICollection<IndexedNode> indexedNodes, IndexWriter writer)
         {
             switch (item.Operation)
             {
@@ -1552,7 +1552,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation
         /// </summary>
         /// <param name="op"></param>
-        protected void EnqueueIndexOperation(IIndexOperation op)
+        protected void EnqueueIndexOperation(IndexOperation op)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested)
@@ -1571,7 +1571,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation batch
         /// </summary>
         /// <param name="ops"></param>
-        protected void EnqueueIndexOperation(IEnumerable<IIndexOperation> ops)
+        protected void EnqueueIndexOperation(IEnumerable<IndexOperation> ops)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested)
@@ -1724,7 +1724,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         [SecuritySafeCritical]
-        private void ProcessDeleteQueueItem(IIndexOperation op, IndexWriter iw, bool performCommit = true)
+        private void ProcessDeleteQueueItem(IndexOperation op, IndexWriter iw, bool performCommit = true)
         {
 
             //if the id is empty then remove the whole type
@@ -1741,7 +1741,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [SecuritySafeCritical]
-        private IndexedNode ProcessIndexQueueItem(IIndexOperation op, IndexWriter writer)
+        private IndexedNode ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
         {
             //get the node id
             var nodeId = int.Parse(op.Item.Id);

@@ -3,8 +3,21 @@ namespace Examine
     /// <summary>
     /// Represents an indexing operation (either add/remove)
     /// </summary>
-    public class IndexOperation : IIndexOperation
+    public class IndexOperation
     {
+        public IndexOperation()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:System.Object"/> class.
+        /// </summary>
+        public IndexOperation(IndexItem item, IndexOperationType operation)
+        {
+            Item = item;
+            Operation = operation;
+        }
+
         /// <summary>
         /// Gets the Index item
         /// </summary>
