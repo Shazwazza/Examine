@@ -10,6 +10,7 @@ using Examine.LuceneEngine.Providers;
 using Examine.Providers;
 using Examine.SearchCriteria;
 using System.Web;
+using Examine.LuceneEngine;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
@@ -322,6 +323,8 @@ namespace Examine
                 {
                     searcher.Dispose();
                 }
+
+                OpenReaderTracker.Current.CloseAllReaders();
 
                 HostingEnvironment.UnregisterObject(this);
             }

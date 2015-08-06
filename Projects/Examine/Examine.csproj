@@ -140,6 +140,7 @@
     <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
+    <Compile Include="LuceneEngine\OpenReaderTracker.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
     <Compile Include="IndexItem.cs" />
     <Compile Include="IndexOperation.cs" />

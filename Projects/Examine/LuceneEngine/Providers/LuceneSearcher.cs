@@ -309,6 +309,9 @@ namespace Examine.LuceneEngine.Providers
                                     : _nrtWriter.GetReader();
 
                                 _searcher = new IndexSearcher(_reader);
+                                
+                                //track it!
+                                OpenReaderTracker.Current.AddOpenReader(_reader);
                             }
                             catch (IOException ex)
                             {
@@ -332,6 +335,9 @@ namespace Examine.LuceneEngine.Providers
                                     : _nrtWriter.GetReader();
 
                                 _searcher = new IndexSearcher(_reader);
+
+                                //track it!
+                                OpenReaderTracker.Current.AddOpenReader(_reader);
                             }
                             break;
                         case ReaderStatus.NotCurrent:
@@ -347,8 +353,7 @@ namespace Examine.LuceneEngine.Providers
                                 // but more importantly the old reader might still be in use from another thread! So we can't just 
                                 // close it here because that would cause a YSOD: Lucene.Net.Store.AlreadyClosedException: this IndexReader is closed
                                 // since another thread might be using it. I'm 'hoping' that the GC will just take care of the left over reader's that might
-                                // be currently being used in a search, otherwise there's really no way to now when it's safe to close the reader. A reader is
-                                // IDisposable so I'm pretty sure the GC will do it's thing since there won't be any refs to it once it is done using it.
+                                // be currently being used in a search, otherwise there's really no way to now when it's safe to close the reader. 
 
                                 var newReader = _reader.Reopen();
                                 if (newReader != _reader)
@@ -357,6 +362,12 @@ namespace Examine.LuceneEngine.Providers
                                     // but that will cause problems since the old reader might be in use on another thread.
                                     _reader = newReader;
                                     _searcher = new IndexSearcher(_reader);
+
+                                    //track it!
+                                    OpenReaderTracker.Current.AddOpenReader(_reader);
+
+                                    //get rid of old ones (anything a couple minutes or older)
+                                    OpenReaderTracker.Current.CloseStaleReaders(TimeSpan.FromMinutes(2));
                                 }
                             }
                            
