@@ -25,26 +25,34 @@ namespace Examine.LuceneEngine
         {
             lock (_locker)
             {
-                reader.IncRef();
+                //reader.IncRef();
                 _oldReaders.Add(new Tuple<IndexReader, DateTime>(reader, DateTime.Now));
             }
         }
 
-        public int CloseStaleReaders(TimeSpan ts)
+        public int CloseStaleReaders(Directory dir, TimeSpan ts)
         {
             lock (_locker)
             {
                 var now = DateTime.Now;
 
-                var currReaders = _oldReaders.ToList();
-                var newest = currReaders.OrderByDescending(x => x.Item2).FirstOrDefault();
-                currReaders.Remove(newest);
-                var stale = currReaders.Where(x => now - x.Item2 >= ts).ToArray();
+                var readersForDir = _oldReaders.Where(x => x.Item1.Directory().GetLockID() == dir.GetLockID()).ToList();
+                var newest = readersForDir.OrderByDescending(x => x.Item2).FirstOrDefault();
+                readersForDir.Remove(newest);
+                var stale = readersForDir.Where(x => now - x.Item2 >= ts).ToArray();
 
                 foreach (var reader in stale)
                 {
                     //close reader and remove from list
-                    reader.Item1.DecRef();
+                    try
+                    {
+                        reader.Item1.Close();
+                    }
+                    catch (AlreadyClosedException)
+                    {
+                        //if this happens, more than one instance has decreased referenced, this could occur if this 
+                        //somehow gets called in conjuction with the shutdown code or manually, etc...
+                    }
                     _oldReaders.Remove(reader);
                 }
                 return stale.Length;
@@ -56,15 +64,23 @@ namespace Examine.LuceneEngine
         {
             lock (_locker)
             {
-                var readers = _oldReaders.Where(x => x.Item1.Directory().GetLockID() == dir.GetLockID()).ToArray();
-                foreach (var reader in readers)
+                var readersForDir = _oldReaders.Where(x => x.Item1.Directory().GetLockID() == dir.GetLockID()).ToArray();
+                foreach (var reader in readersForDir)
                 {
                     //close reader and remove from list
-                    //reader.Item1.DecRef();
-                    reader.Item1.Close();
+                    try
+                    {
+                        reader.Item1.Close();
+                    }
+                    catch (AlreadyClosedException)
+                    {
+                        //if this happens, more than one instance has decreased referenced, this could occur if this 
+                        //somehow gets called in conjuction with the shutdown code or manually, etc...
+                    }
+
                     _oldReaders.Remove(reader);
                 }
-                return readers.Length;
+                return readersForDir.Length;
             }
         }
 
@@ -76,8 +92,16 @@ namespace Examine.LuceneEngine
                 foreach (var reader in readers)
                 {
                     //close reader and remove from list
-                    //reader.Item1.DecRef();
-                    reader.Item1.Close();
+                    try
+                    {
+                        reader.Item1.Close();
+                    }
+                    catch (AlreadyClosedException)
+                    {
+                        //if this happens, more than one instance has decreased referenced, this could occur if this 
+                        //somehow gets called in conjuction with the shutdown code or manually, etc...
+                    }
+
                     _oldReaders.Remove(reader);
                 }
                 return readers.Length;

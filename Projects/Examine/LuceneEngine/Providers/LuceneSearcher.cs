@@ -366,8 +366,8 @@ namespace Examine.LuceneEngine.Providers
                                     //track it!
                                     OpenReaderTracker.Current.AddOpenReader(_reader);
 
-                                    //get rid of old ones (anything a couple minutes or older)
-                                    OpenReaderTracker.Current.CloseStaleReaders(TimeSpan.FromMinutes(2));
+                                    //get rid of old ones (anything a minute or older)
+                                    OpenReaderTracker.Current.CloseStaleReaders(GetLuceneDirectory(), TimeSpan.FromMinutes(1));
                                 }
                             }
                            
@@ -440,14 +440,22 @@ namespace Examine.LuceneEngine.Providers
             /// </summary>
             [SecuritySafeCritical]
             protected override void DisposeResources()
-            {
-                if (_searcher._searcher != null)
-                {
-                    _searcher._searcher.Dispose();
-                }
+            {              
                 if (_searcher._reader != null)
                 {
-                    _searcher._reader.Dispose();
+                    try
+                    {
+                        //this will close if there are no readers remaining, otherwise if there 
+                        // are readers remaining they will be auto-shut down based on the DecrementReaderResult
+                        // that would still have it in use (i.e. this actually just called DecRef underneath)
+                        _searcher._reader.Close();
+                    }
+                    catch (AlreadyClosedException)
+                    {
+                        //if this happens, more than one instance has decreased referenced, this could occur if the 
+                        // DecrementReaderResult never disposed, which occurs if people don't actually iterate the 
+                        // result collection.
+                    }
                 }
             }
         }

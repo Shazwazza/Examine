@@ -676,48 +676,24 @@ namespace Examine.LuceneEngine.Providers
                             //cancel any operation currently in place
                             _cancellationTokenSource.Cancel();
 
-                            //clear the queue
-                            IEnumerable<IndexOperation> op;
-                            while (_indexQueue.TryTake(out op))
+                            try
                             {
+                                //clear the queue
+                                IEnumerable<IndexOperation> op;
+                                while (_indexQueue.TryTake(out op))
+                                {
+                                }
 
+                                _writer.DeleteAll();
+                                _writer.Commit();
+
+                                //we're rebuilding so all old readers referencing this dir should be closed
+                                OpenReaderTracker.Current.CloseStaleReaders(dir, TimeSpan.FromMinutes(1));                                
                             }
-
-                            _writer.DeleteAll();
-                            _writer.Commit();
-                            
-                            //CloseInternalSearcher();
-
-                            //we're rebuilding so all readers referencing this dir will need to be closed
-                            //OpenReaderTracker.Current.CloseAllReaders(dir);
-
-                        }
-
-                        try
-                        {
-                            //if (forceOverwrite && IndexWriter.IsLocked(dir))
-                            //{
-                            //    //unlock it!
-                            //    IndexWriter.Unlock(dir);
-                            //}
-                            ////create the writer (this will overwrite old index files)
-                            writer = new IndexWriter(dir, IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-                        }
-                        //catch (Exception ex)
-                        //{
-                        //    OnIndexingError(new IndexingErrorEventArgs("An error occurred creating the index", -1, ex));
-                        //    return;
-                        //}
-                        finally
-                        {
-                            //if (writer != null)
-                            //{
-                            //    writer.Close();
-                            //}
-                            //_hasIndex = true;
-
-                            //reset token
-                            _cancellationTokenSource = new CancellationTokenSource();
+                            finally
+                            {
+                                _cancellationTokenSource = new CancellationTokenSource();
+                            }
                         }
                     }
                     finally
@@ -730,8 +706,6 @@ namespace Examine.LuceneEngine.Providers
                     // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
                     OnIndexingError(new IndexingErrorEventArgs("Could not acquire lock in EnsureIndex so cannot create new index", -1, null));
                 }
-
-
             }
         }
 
