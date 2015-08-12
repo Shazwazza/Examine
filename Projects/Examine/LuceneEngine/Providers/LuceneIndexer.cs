@@ -667,12 +667,27 @@ namespace Examine.LuceneEngine.Providers
 
                     try
                     {
-                        //there's already a writer but we're forcing an overwrite, this means that we need to cancel all operations currently in place,
-                        // clear the queue and close the current writer.
-                        if (forceOverwrite && _writer != null)
+                        //if there's no index, we need to create one
+                        if (!IndexExists())
                         {
-                            // need to close the current writer and all readers
+                            CreateNewIndex(dir);
+                        }
+                        else if (forceOverwrite)
+                        {
+                            if (_writer == null)
+                            {
+                                //This will happen if the writer hasn't been created/initialized yet which
+                                // might occur if a rebuild is triggered before any indexing has been triggered.
+                                //In this case we need to initialize a writer and continue as normal.
+                                //Since we are already inside the writer lock and it is null, we are allowed to 
+                                // make this call with out using GetIndexWriter() to do the initialization.
+                                _writer = CreateIndexWriter();
+                            }
 
+                            //We're forcing an overwrite, 
+                            // this means that we need to cancel all operations currently in place,
+                            // clear the queue and delete all of the data in the index.
+                            
                             //cancel any operation currently in place
                             _cancellationTokenSource.Cancel();
 
@@ -684,17 +699,18 @@ namespace Examine.LuceneEngine.Providers
                                 {
                                 }
 
+                                //remove all of the index data
                                 _writer.DeleteAll();
                                 _writer.Commit();
 
                                 //we're rebuilding so all old readers referencing this dir should be closed
-                                OpenReaderTracker.Current.CloseStaleReaders(dir, TimeSpan.FromMinutes(1));                                
+                                OpenReaderTracker.Current.CloseStaleReaders(dir, TimeSpan.FromMinutes(1));
                             }
                             finally
                             {
                                 _cancellationTokenSource = new CancellationTokenSource();
                             }
-                        }
+                        }                        
                     }
                     finally
                     {
@@ -706,6 +722,38 @@ namespace Examine.LuceneEngine.Providers
                     // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
                     OnIndexingError(new IndexingErrorEventArgs("Could not acquire lock in EnsureIndex so cannot create new index", -1, null));
                 }
+            }
+        }
+
+        /// <summary>
+        /// Used internally to create a brand new index, this is not thread safe
+        /// </summary>
+        [SecuritySafeCritical]
+        private void CreateNewIndex(Directory dir)
+        {
+            IndexWriter writer = null;
+            try
+            {
+                if (IndexWriter.IsLocked(dir))
+                {
+                    //unlock it!
+                    IndexWriter.Unlock(dir);
+                }
+                //create the writer (this will overwrite old index files)
+                writer = new IndexWriter(dir, IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs("An error occurred creating the index", -1, ex));
+                return;
+            }
+            finally
+            {
+                if (writer != null)
+                {
+                    writer.Close();
+                }
+                _hasIndex = true;
             }
         }
 

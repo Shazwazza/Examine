@@ -66,7 +66,15 @@ namespace Examine.Test.Search
                                };            
             foreach (var i in indexers)
             {
-                i.RebuildIndex();
+                try
+                {
+                    i.RebuildIndex();
+                }
+                finally
+                {
+                    var d = i as IDisposable;
+                    if (d != null) d.Dispose();
+                }
             }
 
             //now get the multi index searcher for all indexes
