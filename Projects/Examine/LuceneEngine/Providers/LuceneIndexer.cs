@@ -1855,10 +1855,6 @@ namespace Examine.LuceneEngine.Providers
             [SecuritySafeCritical]
             protected override void DisposeResources()
             {
-                //Before we close everything down, we're going to give one last opportunity for outstanding operations to 
-                // add/remove from the index 
-                Thread.Sleep(500);
-
                 //if there are active adds, lets way/retry (5 seconds)
                 RetryUntilSuccessOrTimeout(() => _indexer._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
 
