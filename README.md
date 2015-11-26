@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/j4o4finsu8xs45r1?svg=true)](https://ci.appveyor.com/project/Shandem/examine)
+
 ![Examine](/ExamineLogo.png?raw=true)
 
 ##What is Examine?
