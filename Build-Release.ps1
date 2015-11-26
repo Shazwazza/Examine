@@ -61,13 +61,13 @@ $include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll','ICSharpCode.SharpZi
 $CoreExamineBinFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine\bin\Release";
 Copy-Item "$CoreExamineBinFolder\*.*" -Destination $CoreExamineFolder -Include $include
 
-$ExamineWebDemoFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine.Web.Demo";
-Copy-Item "$ExamineWebDemoFolder\*" -Destination $WebExamineFolder -Recurse
-$IndexSet = Join-Path $WebExamineFolder -ChildPath "App_Data\SimpleIndexSet2";
-$include = @('*.sdf','SimpleIndexSet2*')
-Remove-Item $IndexSet -Recurse
-$SqlCeDb = Join-Path $WebExamineFolder -ChildPath "App_Data\Database1.sdf";
-Remove-Item $SqlCeDb 
+#$ExamineWebDemoFolder = Join-Path -Path $SolutionRoot -ChildPath "Projects\Examine.Web.Demo";
+#Copy-Item "$ExamineWebDemoFolder\*" -Destination $WebExamineFolder -Recurse
+#$IndexSet = Join-Path $WebExamineFolder -ChildPath "App_Data\SimpleIndexSet2";
+#$include = @('*.sdf','SimpleIndexSet2*')
+#Remove-Item $IndexSet -Recurse
+#$SqlCeDb = Join-Path $WebExamineFolder -ChildPath "App_Data\Database1.sdf";
+#Remove-Item $SqlCeDb 
 
 $CoreNuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\Examine\*";
 Copy-Item $CoreNuSpecSource -Destination $CoreExamineFolder
