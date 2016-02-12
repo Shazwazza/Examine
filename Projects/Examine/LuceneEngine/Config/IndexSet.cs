@@ -15,6 +15,10 @@ namespace Examine.LuceneEngine.Config
             {
                 return (string)this["SetName"];
             }
+            set
+            {
+                this["SetName"] = value;
+            }
         }
 
         private string m_IndexPath = "";
@@ -38,6 +42,7 @@ namespace Examine.LuceneEngine.Config
             }
             set
             {
+                this["IndexPath"] = value;
                 m_IndexPath = value;
             }
         }
