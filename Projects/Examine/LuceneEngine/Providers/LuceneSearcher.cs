@@ -61,12 +61,7 @@ namespace Examine.LuceneEngine.Providers
 		}
 
 		#endregion
-
-		/// <summary>
-		/// Used as a singleton instance
-		/// </summary>
-		//private volatile IndexSearcher _searcher;
-
+        
 		//private static readonly object Locker = new object();
 	    private Lucene.Net.Store.Directory _luceneDirectory;
 

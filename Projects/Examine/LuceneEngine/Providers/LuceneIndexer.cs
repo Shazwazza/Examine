@@ -299,6 +299,19 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private readonly object _folderLocker = new object();
 
+        private SearcherContext _searcherContext;
+        private bool _searcherContextCreated;        
+        private object _searchContextCreateLock = new object();
+
+        /// <summary>
+        /// Indicates that the index was created
+        /// </summary>
+        private bool _indexIsNew;
+
+        private Dictionary<string, List<string>> _fieldMappings;
+        private object _fieldMappingsLock = new object();
+        private bool _fieldMappingCreated;
+
         /// <summary>
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
@@ -626,9 +639,7 @@ namespace Examine.LuceneEngine.Providers
                 });
             }
         }
-
-        private volatile SearcherContext _searcherContext;
-
+        
         /// <summary>
         /// Returns the current SearcherContext
         /// </summary>
@@ -643,17 +654,7 @@ namespace Examine.LuceneEngine.Providers
                 return _searcherContext;
             }
         }
-
-        /// <summary>
-        /// Ensures that only one thread creates the searcher context
-        /// </summary>
-        private readonly object _createLock = new object();
-
-        /// <summary>
-        /// Indicates that the index was created
-        /// </summary>
-        private bool _indexIsNew;
-
+        
         /// <summary>
         /// Returns true if the index has just been created.
         /// On later requests it will return false
@@ -675,30 +676,26 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public void EnsureIndex(bool forceOverwrite)
         {
-            if (_searcherContext == null)
+            LazyInitializer.EnsureInitialized(ref _searcherContext, ref _searcherContextCreated, ref _searchContextCreateLock, () =>
             {
-                lock (_createLock)
+                _indexIsNew = IndexExists();
+
+                //TODO: Test what happens if someone actually wires two indexers to the same index set.
+                var searcherContext = SearcherContextCollection.Instance.GetContext(GetLuceneDirectory());
+                if (searcherContext == null)
                 {
-                    if (_searcherContext == null)
-                    {
-                        _indexIsNew = IndexExists();
+                    SearcherContextCollection.Instance.RegisterContext(
+                        searcherContext =
+                        new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, FacetConfiguration));
 
-                        //TODO: Test what happens if someone actually wires two indexers to the same index set.
-                        _searcherContext = SearcherContextCollection.Instance.GetContext(GetLuceneDirectory());
-                        if (_searcherContext == null)
-                        {
-                            SearcherContextCollection.Instance.RegisterContext(
-                                _searcherContext =
-                                new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, FacetConfiguration));
-
-                            _searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
-                        }
-
-                        InitializeFields();
-                    }
+                    searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
                 }
 
-            }
+                InitializeFields(searcherContext);
+
+                return searcherContext;
+            });
+            
 
             if (forceOverwrite)
             {
@@ -709,7 +706,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// This initializes all of the defined value types on the searcher context for the fields defined on this indexer
         /// </summary>
-        internal void InitializeFields()
+        private void InitializeFields(SearcherContext searcherContext)
         {
             //perform the operation for all new field definitions
             foreach (var field in FieldDefinitions)
@@ -717,14 +714,14 @@ namespace Examine.LuceneEngine.Providers
                 Func<string, IIndexValueType> valueType;
                 if (!string.IsNullOrWhiteSpace(field.Type) && IndexFieldTypes.TryGetValue(field.Type, out valueType))
                 {
-                    _searcherContext.DefineValueType(
+                    searcherContext.DefineValueType(
                         valueType(string.IsNullOrWhiteSpace(field.IndexName) ? field.Name : field.IndexName));
                 }
                 else
                 {
                     //Define the default!
                     var fulltext = IndexFieldTypes["fulltext"];
-                    _searcherContext.DefineValueType(
+                    searcherContext.DefineValueType(
                         fulltext(string.IsNullOrWhiteSpace(field.IndexName) ? field.Name : field.IndexName));
                 }
             }
@@ -736,13 +733,13 @@ namespace Examine.LuceneEngine.Providers
                 Func<string, IIndexValueType> valueType;
                 if (!string.IsNullOrWhiteSpace(field.Type) && IndexFieldTypes.TryGetValue(field.Type, out valueType))
                 {
-                    _searcherContext.DefineValueType(valueType(field.Name));
+                    searcherContext.DefineValueType(valueType(field.Name));
                 }
                 else
                 {
                     //Define the default!
                     var fulltext = IndexFieldTypes["fulltext"];
-                    _searcherContext.DefineValueType(fulltext(field.Name));
+                    searcherContext.DefineValueType(fulltext(field.Name));
                 }
             }
         }
@@ -1099,10 +1096,7 @@ namespace Examine.LuceneEngine.Providers
         {
             return FieldIndexTypes.ANALYZED;
         }
-
-        private volatile Dictionary<string, List<string>> _fieldMappings;
-        private readonly object _fieldMappingsLock = new object();
-
+        
         /// <summary>
         /// Returns the index field names for the source item name
         /// </summary>
@@ -1110,51 +1104,49 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected virtual IEnumerable<string> GetIndexFieldNames(string sourceName)
         {
-            List<string> mappings;
-            if (_fieldMappings == null)
+            LazyInitializer.EnsureInitialized(ref _fieldMappings, ref _fieldMappingCreated, ref _fieldMappingsLock, () =>
             {
-                lock (_fieldMappingsLock)
+                List<string> mappings;
+
+                var fieldMappings = new Dictionary<string, List<string>>();
+
+                //iterate over field definitions
+                foreach (var f in FieldDefinitions)
                 {
-                    if (_fieldMappings == null)
+                    //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
+                    // of resetting the mappings variable with 'out' parmams and how the 'IndexName' get's used.
+
+                    if (!fieldMappings.TryGetValue(f.Name, out mappings))
                     {
-                        _fieldMappings = new Dictionary<string, List<string>>();
-                       
-                        //iterate over field definitions
-                        foreach (var f in FieldDefinitions)
-                        {
-                            //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
-                            // of resetting the mappings variable with 'out' parmams and how the 'IndexName' get's used.
-
-                            if (!_fieldMappings.TryGetValue(f.Name, out mappings))
-                            {
-                                _fieldMappings.Add(f.Name, mappings = new List<string>());
-                            }
-
-                            mappings.Add(
-                                string.IsNullOrWhiteSpace(f.IndexName)
-                                    ? f.Name
-                                    : f.IndexName != f.Name
-                                        ? f.IndexName
-                                        : f.Name);
-                        }
-
-                        //iterate over legacy fields - legacy fields do not have an 'IndexName'
-                        foreach (var f in IndexerData.AllFields())
-                        {
-                            //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
-                            // of resetting the mappings variable with 'out' parmams
-
-                            if (!_fieldMappings.TryGetValue(f.Name, out mappings))
-                            {
-                                _fieldMappings.Add(f.Name, mappings = new List<string>());
-                            }
-                            mappings.Add(f.Name);
-                        }
+                        fieldMappings.Add(f.Name, mappings = new List<string>());
                     }
-                }
-            }
 
-            return _fieldMappings.TryGetValue(sourceName, out mappings) ? (IEnumerable<string>)mappings : new[] { sourceName };
+                    mappings.Add(
+                        string.IsNullOrWhiteSpace(f.IndexName)
+                            ? f.Name
+                            : f.IndexName != f.Name
+                                ? f.IndexName
+                                : f.Name);
+                }
+
+                //iterate over legacy fields - legacy fields do not have an 'IndexName'
+                foreach (var f in IndexerData.AllFields())
+                {
+                    //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
+                    // of resetting the mappings variable with 'out' parmams
+
+                    if (!fieldMappings.TryGetValue(f.Name, out mappings))
+                    {
+                        fieldMappings.Add(f.Name, mappings = new List<string>());
+                    }
+                    mappings.Add(f.Name);
+                }
+
+                return fieldMappings;
+            });
+
+            List<string> mappings2;
+            return _fieldMappings.TryGetValue(sourceName, out mappings2) ? (IEnumerable<string>)mappings2 : new[] { sourceName };
         }
 
         /// <summary>
