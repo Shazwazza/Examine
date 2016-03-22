@@ -199,50 +199,6 @@ namespace Examine
                             ExamineSettings.Instance.ConfigurationAction(this);
                         }
 
-                        //check if we need to rebuild on startup
-                        if (ExamineSettings.Instance.RebuildOnAppStart)
-                        {
-                            foreach (var index in _indexProviderCollection)
-                            {
-                                if (index.IsIndexNew())
-                                {
-                                    try
-                                    {
-                                        var args = new BuildingEmptyIndexOnStartupEventArgs(index);
-                                        OnBuildingEmptyIndexOnStartup(args);
-                                        if (!args.Cancel)
-                                        {
-                                            index.RebuildIndex();
-
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        var li = index as LuceneIndexer;
-                                        try
-                                        {
-                                            HttpContext.Current.Response.Write("Rebuilding index" +
-                                                                               (li != null ? " " + li.Name : "") +
-                                                                               " failed");
-                                            HttpContext.Current.Response.Write(ex.ToString());
-                                        }
-                                        catch
-                                        {
-                                            try
-                                            {
-                                                File.WriteAllText(HostingEnvironment.MapPath("~/App_Data/ExamineError.txt"), ex.ToString());
-                                            }
-                                            catch
-                                            {
-                                                throw;
-                                            }
-                                        }
-                                    }
-
-                                }
-                            }
-                        }
-
                     }
                 }
             }
@@ -456,22 +412,7 @@ namespace Examine
         }
 
         #endregion
-
-        /// <summary>
-        /// Event is raised when an index is being rebuild on app startup when it is empty, this event is cancelable
-        /// </summary>
-        public event EventHandler<BuildingEmptyIndexOnStartupEventArgs> BuildingEmptyIndexOnStartup;
-
-        /// <summary>
-        /// Raises the BuildingEmptyIndexOnStartup event
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnBuildingEmptyIndexOnStartup(BuildingEmptyIndexOnStartupEventArgs e)
-        {
-            var handler = BuildingEmptyIndexOnStartup;
-            if (handler != null) handler(this, e);
-        }
-
+        
         /// <summary>
         /// Call this as last thing of the thread or request using Examine.
         /// In web context, this MUST be called add Application_EndRequest. Otherwise horrible memory leaking may occur
