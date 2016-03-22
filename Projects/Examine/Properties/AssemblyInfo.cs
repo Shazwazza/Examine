@@ -27,5 +27,3 @@ using Examine.Session;
 [assembly: InternalsVisibleTo("UmbracoExamine")]
 [assembly: InternalsVisibleTo("Examine.Azure")]
 [assembly: InternalsVisibleTo("Examine.Test")]
-
-[assembly: PreApplicationStartMethod(typeof(ExamineDisposeModule), "Register")]

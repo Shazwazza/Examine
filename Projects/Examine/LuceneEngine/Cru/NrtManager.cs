@@ -223,7 +223,7 @@ namespace Examine.LuceneEngine.Cru
                     if (setSearchGen)
                     {
                         reference.Generation = newSearcherGen; // update searcher gen
-                        Monitor.PulseAll(_reopenLock); // wake up threads if we have a new generation                    
+                        Monitor.PulseAll(_reopenLock); // wake up threads if we have a new generation
                     }
                     return setSearchGen;
                 }

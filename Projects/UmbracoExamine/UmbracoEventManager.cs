@@ -6,7 +6,6 @@ using System.Security;
 using System.Threading;
 using System.Web;
 using Examine.Config;
-using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Umbraco.Core;
 using Umbraco.Web;
 using umbraco;

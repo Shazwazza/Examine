@@ -1,6 +1,8 @@
 ﻿using System.Web;
 using System.Web.Hosting;
-using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+using Examine.Session;
+
+[assembly: PreApplicationStartMethod(typeof(ExamineDisposeModule), "Register")]
 
 namespace Examine.Session
 {
@@ -15,7 +17,7 @@ namespace Examine.Session
             {
                 if (HostingEnvironment.IsHosted)
                 {
-                    DynamicModuleUtility.RegisterModule(typeof(ExamineDisposeModule));
+                    HttpApplication.RegisterModule(typeof(ExamineDisposeModule));
                 }                
             }
             catch
