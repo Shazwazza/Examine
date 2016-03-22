@@ -186,7 +186,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         public ILuceneSearchResults Search(string searchText, bool useWildcards, string indexType)
         {
-            var sc = CreateSearchCriteria(indexType);
+            var sc = CreateCriteria(indexType);
             return TextSearchAllFields(searchText, useWildcards, sc);
         }
 
@@ -227,7 +227,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns a list of fields to search on
         /// </summary>
         /// <returns></returns>
-        protected override internal string[] GetSearchFields()
+        protected internal override string[] GetSearchFields()
         {
             ValidateSearcher();
 

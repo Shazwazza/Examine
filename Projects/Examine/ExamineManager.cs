@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Configuration.Provider;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Web.Configuration;
 using System.Web.Hosting;
 using System.Xml.Linq;
@@ -54,7 +55,7 @@ namespace Examine
 
         private static readonly ExamineManager Manager = new ExamineManager();
 
-        private readonly object _lock = new object();
+        private object _lock = new object();
         private readonly ConcurrentDictionary<string, IExamineIndexer> _indexers = new ConcurrentDictionary<string, IExamineIndexer>();
 
         ///<summary>
@@ -67,6 +68,8 @@ namespace Examine
             get
             {
                 EnsureProviders();
+                if (_defaultSearchProvider == null)
+                    throw new ProviderException("Unable to load default search provider");
                 return _defaultSearchProvider;
             }
         }
@@ -76,12 +79,14 @@ namespace Examine
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Searchers should be resolved using the GetSearcher method")]
-        public SearchProviderCollection SearchProviderCollection
+        public SearchProviderCollection SearchProviderCollection => SearchProviderCollectionInternal;
+
+        private SearchProviderCollection SearchProviderCollectionInternal
         {
             get
             {
                 EnsureProviders();
-                return _searchProviderCollection;
+                return _providerCollections.Item1;
             }
         }
 
@@ -90,12 +95,14 @@ namespace Examine
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Use the IndexProviders property instead")]
-        public IndexProviderCollection IndexProviderCollection
+        public IndexProviderCollection IndexProviderCollection => IndexProviderCollectionInternal;
+
+        private IndexProviderCollection IndexProviderCollectionInternal
         {
             get
             {
                 EnsureProviders();
-                return _indexProviderCollection;
+                return _providerCollections.Item2;
             }
         }
 
@@ -129,7 +136,7 @@ namespace Examine
         {
             get
             {
-                var providerDictionary = IndexProviderCollection.ToDictionary(x => x.Name, x => (IExamineIndexer)x);
+                var providerDictionary = IndexProviderCollectionInternal.ToDictionary(x => x.Name, x => (IExamineIndexer)x);
                 foreach (var i in _indexers)
                 {
                     providerDictionary[i.Key] = i.Value;
@@ -147,7 +154,7 @@ namespace Examine
         {
             //make sure this name doesn't exist in
 
-            if (IndexProviderCollection[name] != null)
+            if (IndexProviderCollectionInternal[name] != null)
             {
                 throw new InvalidOperationException("The indexer with name " + name + " already exists");
             }
@@ -157,51 +164,39 @@ namespace Examine
             }
         }
 
-        private volatile bool _providersInit = false;
+        private bool _providersInit = false;
         private BaseSearchProvider _defaultSearchProvider;
-        private SearchProviderCollection _searchProviderCollection;
-        private IndexProviderCollection _indexProviderCollection;
+
+        private Tuple<SearchProviderCollection, IndexProviderCollection> _providerCollections;
 
         /// <summary>
         /// Before any of the index/search collections are accessed, the providers need to be loaded
         /// </summary>
         private void EnsureProviders()
         {
-            if (!_providersInit)
+            LazyInitializer.EnsureInitialized(ref _providerCollections, ref _providersInit, ref _lock, () =>
             {
-                lock (_lock)
+                // Load registered providers and point _provider to the default provider	`
+                
+                var indexProviderCollection = new IndexProviderCollection();
+                ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, indexProviderCollection, typeof(BaseIndexProvider));
+
+                var searchProviderCollection = new SearchProviderCollection();
+                ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, searchProviderCollection, typeof(BaseSearchProvider));
+
+                //set the default
+                if (!string.IsNullOrEmpty(ExamineSettings.Instance.SearchProviders.DefaultProvider))
+                    _defaultSearchProvider =
+                        searchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider] ??
+                        searchProviderCollection.Cast<BaseSearchProvider>().FirstOrDefault();
+                
+                if (ExamineSettings.Instance.ConfigurationAction != null)
                 {
-                    // Do this again to make sure _provider is still null
-                    if (!_providersInit)
-                    {
-                        // Load registered providers and point _provider to the default provider	
-
-                        _indexProviderCollection = new IndexProviderCollection();
-                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, _indexProviderCollection, typeof(BaseIndexProvider));
-
-                        _searchProviderCollection = new SearchProviderCollection();
-                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, _searchProviderCollection, typeof(BaseSearchProvider));
-
-                        //set the default
-                        if (!string.IsNullOrEmpty(ExamineSettings.Instance.SearchProviders.DefaultProvider))
-                            _defaultSearchProvider =
-                                _searchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider] ??
-                                _searchProviderCollection.Cast<BaseSearchProvider>().FirstOrDefault();
-
-                        if (_defaultSearchProvider == null)
-                            throw new ProviderException("Unable to load default search provider");
-
-                        _providersInit = true;
-
-
-                        if (ExamineSettings.Instance.ConfigurationAction != null)
-                        {
-                            ExamineSettings.Instance.ConfigurationAction(this);
-                        }
-
-                    }
+                    ExamineSettings.Instance.ConfigurationAction(this);
                 }
-            }
+
+                return new Tuple<SearchProviderCollection, IndexProviderCollection>(searchProviderCollection, indexProviderCollection);
+            });
         }
 
 
@@ -245,19 +240,6 @@ namespace Examine
         #endregion
 
         /// <summary>
-        /// Reindex nodes for the providers specified
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="category"></param>
-        /// <param name="providers"></param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Do not use this, use the IndexItems method instead")]
-        public void ReIndexNode(XElement node, string category, IEnumerable<BaseIndexProvider> providers)
-        {
-            _ReIndexNode(node, category, providers);
-        }
-
-        /// <summary>
         /// Re-indexes items for the providers specified
         /// </summary>
         /// <param name="nodes"></param>
@@ -269,19 +251,7 @@ namespace Examine
                 provider.IndexItems(nodes);
             }
         }
-
-        /// <summary>
-        /// Deletes index for node for the specified providers
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="providers"></param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Do not use this, use the other DeleteFromIndex method instead")]
-        public void DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
-        {
-            _DeleteFromIndex(nodeId, providers);
-        }
-
+        
         /// <summary>
         /// Deletes index for node for the specified providers
         /// </summary>
@@ -293,26 +263,7 @@ namespace Examine
             {
                 provider.DeleteFromIndex(nodeId);
             }
-        }
-
-        /// <summary>
-        /// Reindex nodes for all providers
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="category"></param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Do not use this, use the IndexItems method instead")]
-        public void ReIndexNode(XElement node, string category)
-        {
-            _ReIndexNode(node, category, IndexProviderCollection);
-        }
-        private void _ReIndexNode(XElement node, string type, IEnumerable<BaseIndexProvider> providers)
-        {
-            foreach (var provider in providers)
-            {
-                provider.ReIndexNode(node, type);
-            }
-        }
+        }        
 
         /// <summary>
         /// Reindex nodes for all providers
@@ -322,25 +273,7 @@ namespace Examine
         {
             IndexItems(nodes, IndexProviders.Values);
         }
-
-        /// <summary>
-        /// Deletes index for node for all providers
-        /// </summary>
-        /// <param name="nodeId"></param>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Do not use this, use the other DeleteFromIndex method instead")]
-        public void DeleteFromIndex(string nodeId)
-        {
-            _DeleteFromIndex(nodeId, IndexProviderCollection);
-        }
-        private void _DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
-        {
-            foreach (var provider in providers)
-            {
-                provider.DeleteFromIndex(nodeId);
-            }
-        }
-
+        
         /// <summary>
         /// Deletes index for node for all providers
         /// </summary>

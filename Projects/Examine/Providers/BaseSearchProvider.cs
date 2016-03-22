@@ -40,7 +40,7 @@ namespace Examine.Providers
         /// This is the same as Search but with a typed result
         /// </remarks>
         public abstract TResults Find(ISearchCriteria searchParams);
-        
+
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
@@ -55,28 +55,6 @@ namespace Examine.Providers
     ///</summary>
     public abstract class BaseSearchProvider : ProviderBase, ISearcher
     {
-
-        /// <summary>
-        /// Performs a search with a maximum number of results
-        /// </summary>        
-        public virtual ISearchResults Search(ISearchCriteria searchParams, int maxResults)
-        {
-            //returns base method
-            return Search(searchParams);
-        }
-
-        /// <summary>
-        /// A simple search mechanism to search all fields based on an index type.
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="useWildcards"></param>
-        /// <param name="indexType">By default this doesn't have any affect, it is up to inheritors to make this do something</param>
-        /// <returns></returns>
-        public virtual ISearchResults Search(string searchText, bool useWildcards, string indexType)
-        {
-            return Search(searchText, useWildcards);
-        }
-
         #region ISearcher Members
 
         /// <summary>
@@ -116,7 +94,7 @@ namespace Examine.Providers
         ///<param name="defaultOperation"></param>
         ///<returns></returns>
         [Obsolete("Use the CreateCriteria method on a strongly typed search provider instead for strongly typed search criteria")]
-		public abstract ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
+        public abstract ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
@@ -125,7 +103,7 @@ namespace Examine.Providers
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
         [Obsolete("Use the CreateCriteria method on a strongly typed search provider instead for strongly typed search criteria")]
-		public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
+        public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
 
         #endregion
     }
