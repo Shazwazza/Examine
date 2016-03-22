@@ -20,8 +20,7 @@ using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine.Providers
 {
-    //TODO: TO make this IDisposable or not ?
-
+    
     ///<summary>
 	/// Standard object used to search a Lucene index
 	///</summary>

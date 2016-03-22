@@ -85,41 +85,42 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, MULTI VAL");
                 var criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, MULTI VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3 blahID:1 blahID:2 blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, SINGLE VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, SINGLE VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1)", criteria.Query.ToString());
@@ -139,41 +140,42 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
                 var criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, SINGLE VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
@@ -188,41 +190,42 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");
                 var criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, MULTI VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3 -blahID:1 -blahID:2 -blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, SINGLE VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, SINGLE VAL");
                 criteria = searcher.CreateCriteria();
-                criteria.Field("nodeTypeAlias", "myDocumentTypeAlias");
+                criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1)", criteria.Query.ToString());

@@ -885,7 +885,11 @@ namespace Examine.LuceneEngine.SearchCriteria
             //(!field1:query !field2:query !field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT), occurrence);
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT, true),
+                //NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work. 
+                // for example, it cannot be:  +(-id:1 -id:2 -id:3)
+                // it just needs to be          (-id:1 -id:2 -id:3)
+                Occur.SHOULD);
 
             return new LuceneBooleanOperation(this);
         }
