@@ -1,21 +1,15 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Indexing;
-using Examine.LuceneEngine.Indexing.ValueTypes;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
 using Examine.Session;
-using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
 using NUnit.Framework;
-using UmbracoExamine;
 using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Search
@@ -271,7 +265,7 @@ namespace Examine.Test.Search
 
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
-                new[] { new FieldDefinition(UmbracoContentIndexer.IndexPathFieldName, "raw") },
+                new[] { new FieldDefinition("__Path", "raw") },
                 luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
@@ -281,14 +275,14 @@ namespace Examine.Test.Search
                         {
                             {"nodeName", "my name 1"},
                             {"bodyText", "lorem ipsum"},
-                            {UmbracoContentIndexer.IndexPathFieldName, "-1,123,456,789"}
+                            {"__Path", "-1,123,456,789"}
                         }),
                     new ValueSet(2, "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
                             {"bodyText", "lorem ipsum"},
-                            {UmbracoContentIndexer.IndexPathFieldName, "-1,123,456,987"}
+                            {"__Path", "-1,123,456,987"}
                         })
                     );
 
@@ -298,13 +292,13 @@ namespace Examine.Test.Search
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateCriteria("content");
-                var filter = criteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,123,456,789");
+                var filter = criteria.Field("__Path", "-1,123,456,789");
                 var results1 = searcher.Search(filter.Compile());
                 Assert.AreEqual(0, results1.TotalItemCount);
 
                 //now escape it
                 var exactcriteria = searcher.CreateCriteria("content");
-                var exactfilter = exactcriteria.Field(UmbracoContentIndexer.IndexPathFieldName, "-1,123,456,789".Escape());
+                var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
                 var results2 = searcher.Search(exactfilter.Compile());
                 Assert.AreEqual(1, results2.TotalItemCount);
             }

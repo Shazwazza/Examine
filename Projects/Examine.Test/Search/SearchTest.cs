@@ -1,18 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using Examine.LuceneEngine.Config;
+﻿using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Providers;
-using Examine.LuceneEngine.SearchCriteria;
 using Examine.Session;
-using Examine.Test.DataServices;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
-using UmbracoExamine;
 using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Search
