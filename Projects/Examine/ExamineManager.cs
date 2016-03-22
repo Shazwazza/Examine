@@ -28,6 +28,7 @@ namespace Examine
     ///</summary>
     public class ExamineManager : ISearcher, IDisposable, IRegisteredObject
     {
+
         private ExamineManager()
         {
             AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
@@ -37,15 +38,18 @@ namespace Examine
         /// <summary>
         /// Returns true if this singleton has been initialized
         /// </summary>
-        public static bool InstanceInitialized { get; private set; }       
+        public static bool InstanceInitialized { get; private set; }
 
         /// <summary>
         /// Singleton
         /// </summary>
         public static ExamineManager Instance
         {
-            get { return Manager; }
+            get
+            {
                 InstanceInitialized = true;
+                return Manager;
+            }
         }
 
         private static readonly ExamineManager Manager = new ExamineManager();
@@ -208,10 +212,6 @@ namespace Examine
                                         OnBuildingEmptyIndexOnStartup(args);
                                         if (!args.Cancel)
                                         {
-                                    var args = new BuildingEmptyIndexOnStartupEventArgs(index);
-                                    OnBuildingEmptyIndexOnStartup(args);
-                                    if (!args.Cancel)
-                                    {
                                             index.RebuildIndex();
 
                                         }
@@ -239,9 +239,8 @@ namespace Examine
                                         }
                                     }
 
-                                    }
+                                }
                             }
-                            }    
                         }
 
                     }

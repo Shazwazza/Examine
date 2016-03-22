@@ -13,7 +13,6 @@ using Examine;
 using Examine.Config;
 using Examine.Providers;
 using Lucene.Net.Documents;
-using Lucene.Net.Index;
 using Umbraco.Core;
 using umbraco.cms.businesslogic;
 using UmbracoExamine.DataServices;
@@ -36,7 +35,8 @@ namespace UmbracoExamine
 
         [Obsolete("Do not use this constructor, it does not allow you to specify a lucene directory")]
         public UmbracoContentIndexer()
-            : base() { }
+            : base()
+        { }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -46,8 +46,9 @@ namespace UmbracoExamine
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
         [Obsolete("This constructor should no be used, the async flag has no relevance")]
-		public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
-            : base(indexerData, indexPath, dataService, analyzer, async) { }
+        public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexerData, indexPath, dataService, analyzer, async)
+        { }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -57,23 +58,21 @@ namespace UmbracoExamine
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
         public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer)
-            : base(indexerData, indexPath, dataService, analyzer) { }
+            : base(indexerData, indexPath, dataService, analyzer)
+        { }
 
-		/// <summary>
-		/// Constructor to allow for creating an indexer at runtime
-		/// </summary>
-		/// <param name="indexerData"></param>
-		/// <param name="luceneDirectory"></param>
-		/// <param name="dataService"></param>
-		/// <param name="analyzer"></param>
-		/// <param name="async"></param>
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="indexerData"></param>
+        /// <param name="luceneDirectory"></param>
+        /// <param name="dataService"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="async"></param>
         [Obsolete("This constructor should no be used, the async flag has no relevance")]
-		public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
-			: base(indexerData, luceneDirectory, dataService, analyzer, async) { }
-
-        [SecuritySafeCritical]
-        public UmbracoContentIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
-            : base(indexerData, writer, dataService, async) { }
+        public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexerData, luceneDirectory, dataService, analyzer, async)
+        { }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -83,7 +82,8 @@ namespace UmbracoExamine
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
         public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer)
-            : base(indexerData, luceneDirectory, dataService, analyzer) { }
+            : base(indexerData, luceneDirectory, dataService, analyzer)
+        { }
 
         #endregion
 
@@ -148,10 +148,10 @@ namespace UmbracoExamine
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-        
+
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
-           
+
             //check if there's a flag specifying to support unpublished content,
             //if not, set to false;
             bool supportUnpublished;
@@ -205,19 +205,19 @@ namespace UmbracoExamine
         /// This ensures that the special __Raw_ fields are indexed
         /// </summary>
         /// <param name="docArgs"></param>
-        
+
         protected override void OnDocumentWriting(DocumentWritingEventArgs docArgs)
         {
             var d = docArgs.Document;
             foreach (var f in docArgs.Fields.Where(x => x.Key.StartsWith(RawFieldPrefix)))
-            {                
+            {
                 d.Add(new Field(
                    f.Key,
                    f.Value,
                    Field.Store.YES,
                    Field.Index.NO, //don't index this field, we never want to search by it 
-                   Field.TermVector.NO));   
-            }            
+                   Field.TermVector.NO));
+            }
 
             base.OnDocumentWriting(docArgs);
         }
@@ -244,7 +244,7 @@ namespace UmbracoExamine
 
         #region Public methods
 
-       
+
         /// <summary>
         /// Overridden for logging
         /// </summary>
@@ -257,14 +257,14 @@ namespace UmbracoExamine
 
             if (node.Attribute("id") != null)
             {
-                DataService.LogService.AddVerboseLog((int) node.Attribute("id"), string.Format("ReIndexNode with type: {0}", category));
+                DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("ReIndexNode with type: {0}", category));
                 base.ReIndexNode(node, category);
             }
             else
             {
                 DataService.LogService.AddErrorLog(-1, string.Format("ReIndexNode cannot proceed, the format of the XElement is invalid, the xml has no 'id' attribute. {0}", node));
             }
-            
+
         }
 
         /// <summary>
@@ -290,10 +290,10 @@ namespace UmbracoExamine
             foreach (var r in results)
             {
                 ProcessIndexOperation(new IndexOperation()
-                    {
-                        Operation = IndexOperationType.Delete,
-                        Item = new IndexItem(null, "", r.Id.ToString(CultureInfo.InvariantCulture))
-                    });
+                {
+                    Operation = IndexOperationType.Delete,
+                    Item = new IndexItem(null, "", r.Id.ToString(CultureInfo.InvariantCulture))
+                });
                 //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }
 
@@ -327,7 +327,7 @@ namespace UmbracoExamine
         /// ensure our special Path field is added to the collection
         /// </summary>
         /// <param name="e"></param>
-        
+
         protected override void OnGatheringNodeData(IndexingNodeDataEventArgs e)
         {
             //strip html of all users fields if we detect it has HTML in it. 
@@ -344,7 +344,7 @@ namespace UmbracoExamine
                         //First save the raw value to a raw field, we will change the policy of this field by detecting the prefix later
                         e.Fields[RawFieldPrefix + field.Name] = e.Fields[field.Name];
                         //now replace the original value with the stripped html
-                        e.Fields[field.Name] = DataService.ContentService.StripHtml(e.Fields[field.Name]);    
+                        e.Fields[field.Name] = DataService.ContentService.StripHtml(e.Fields[field.Name]);
                     }
                 }
             }
@@ -399,7 +399,7 @@ namespace UmbracoExamine
             {
                 return base.GetIndexerData(indexSet);
             }
-            
+
         }
 
         /// <summary>

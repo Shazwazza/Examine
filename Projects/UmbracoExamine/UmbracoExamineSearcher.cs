@@ -6,7 +6,6 @@ using Examine;
 using Examine.Providers;
 using Examine.SearchCriteria;
 using Umbraco.Core;
-using Lucene.Net.Index;
 using UmbracoExamine.Config;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
@@ -24,9 +23,9 @@ namespace UmbracoExamine
 
         #region Constructors
 
-		/// <summary>
-		/// Default constructor
-		/// </summary>
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public UmbracoExamineSearcher()
             : base()
         {
@@ -67,30 +66,24 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexPath"></param>
         /// <param name="analyzer"></param>
-		
-		public UmbracoExamineSearcher(DirectoryInfo indexPath, Analyzer analyzer)
+
+        public UmbracoExamineSearcher(DirectoryInfo indexPath, Analyzer analyzer)
             : base(indexPath, analyzer)
         {
         }
 
-		/// <summary>
-		/// Constructor to allow for creating an indexer at runtime
-		/// </summary>
-		/// <param name="luceneDirectory"></param>
-		/// <param name="analyzer"></param>
-		
-		public UmbracoExamineSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
-			: base(luceneDirectory, analyzer)
-		{
-		}
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="luceneDirectory"></param>
+        /// <param name="analyzer"></param>
 
-        [SecuritySafeCritical]
-        public UmbracoExamineSearcher(IndexWriter writer, Analyzer analyzer)
-            : base(writer, analyzer)
+        public UmbracoExamineSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
+            : base(luceneDirectory, analyzer)
         {
         }
 
-		#endregion
+        #endregion
 
         /// <summary>
         /// Used for unit tests
@@ -101,7 +94,7 @@ namespace UmbracoExamine
         /// Returns true if the Umbraco application is in a state that we can initialize the examine indexes
         /// </summary>
         /// <returns></returns>
-        
+
         protected bool CanInitialize()
         {
             //check the DisableInitializationCheck and ensure that it is not set to true
@@ -114,7 +107,7 @@ namespace UmbracoExamine
                 {
                     return false;
                 }
-            }            
+            }
             return true;
         }
 
@@ -142,6 +135,6 @@ namespace UmbracoExamine
                 .Where(x => x != UmbracoContentIndexer.IndexPathFieldName)
                 .Where(x => x != UmbracoContentIndexer.NodeTypeAliasFieldName)
                 .ToArray();
-        }		
+        }
     }
 }

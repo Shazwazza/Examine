@@ -290,11 +290,6 @@ namespace Examine.LuceneEngine
             var reader = nodeData.CreateReader();
             reader.MoveToContent();
             return reader.ReadInnerXml();
-
-            //it has sub elements so serialize them
-            var reader = nodeData.CreateReader();
-            reader.MoveToContent();
-            return reader.ReadInnerXml();
             
         }
 

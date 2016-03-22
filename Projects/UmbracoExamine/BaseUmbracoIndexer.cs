@@ -60,15 +60,8 @@ namespace UmbracoExamine
         }
 
         [Obsolete("This constructor should no be used, the async flag has no relevance")]
-		protected BaseUmbracoIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
-			: base(indexerData, luceneDirectory, analyzer, async)
-		{
-			DataService = dataService;
-		}
-
-        [SecuritySafeCritical]
-        protected BaseUmbracoIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
-            : base(indexerData, writer, async)
+        protected BaseUmbracoIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
+            : base(indexerData, luceneDirectory, analyzer, async)
         {
             DataService = dataService;
         }
@@ -113,9 +106,9 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="name"></param>
         /// <param name="config"></param>
-        
+
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
-        {           
+        {
             if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
             {
                 //this should be a fully qualified type
@@ -139,7 +132,7 @@ namespace UmbracoExamine
                     DataService.LogService.LogLevel = logLevel;
                 }
                 catch (ArgumentException)
-                {                    
+                {
                     //FAILED
                     DataService.LogService.LogLevel = LoggingLevel.Normal;
                 }
@@ -152,10 +145,10 @@ namespace UmbracoExamine
             if (bool.TryParse(config["enableDefaultEventHandler"], out enabled))
             {
                 EnableDefaultEventHandler = enabled;
-            }         
+            }
 
             DataService.LogService.AddVerboseLog(-1, string.Format("{0} indexer initializing", name));
-            
+
             base.Initialize(name, config);
         }
 
@@ -225,7 +218,7 @@ namespace UmbracoExamine
             if (CanInitialize())
             {
                 base.DeleteFromIndex(nodeId);
-            }            
+            }
         }
 
         #region Protected
@@ -234,7 +227,7 @@ namespace UmbracoExamine
         /// Returns true if the Umbraco application is in a state that we can initialize the examine indexes
         /// </summary>
         /// <returns></returns>
-        
+
         protected bool CanInitialize()
         {
             //check the DisableInitializationCheck and ensure that it is not set to true
@@ -246,9 +239,9 @@ namespace UmbracoExamine
                     || !ApplicationContext.Current.DatabaseContext.IsDatabaseConfigured)
                 {
                     return false;
-                }    
+                }
             }
-            
+
             return true;
         }
 
@@ -278,7 +271,7 @@ namespace UmbracoExamine
                 IndexAll(t);
             }
         }
-        
+
         /// <summary>
         /// Builds an xpath statement to query against Umbraco data for the index type specified, then
         /// initiates the re-indexing of the data matched.
@@ -294,7 +287,7 @@ namespace UmbracoExamine
             var sb = new StringBuilder();
 
             //create the xpath statement to match node type aliases if specified
-            if (IndexerData.IncludeNodeTypes.Any())
+            if (IndexerData.IncludeNodeTypes.Count() > 0)
             {
                 sb.Append("(");
                 foreach (var field in IndexerData.IncludeNodeTypes)

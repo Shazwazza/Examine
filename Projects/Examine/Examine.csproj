@@ -176,7 +176,6 @@
     <Compile Include="IndexingNodeEventArgs.cs" />
     <Compile Include="IndexingNodesEventArgs.cs" />
     <Compile Include="IndexSetExtensions.cs" />
-    <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Config\IndexSets.cs" />
