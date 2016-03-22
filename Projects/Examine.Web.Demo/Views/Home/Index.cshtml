@@ -32,10 +32,29 @@
 }
 <hr/>
 
-<h5>Search links</h5>
+<h5>Search Simple2Indexer by Id</h5>
 @using (Html.BeginForm("Search", "Home", FormMethod.Get))
 {
-    <input type="number" name="id"/>
+    <input type="number" name="id" value="2"/>
     <button type="submit">Search</button>
 }
 
+<h5>Search Simple2Indexer with Facets</h5>
+@using (Html.BeginForm("SearchFacets", "Home", FormMethod.Get))
+{
+    <label>q</label><input type="text" name="q" value="test"/>
+    <label>count</label><input type="number" name="count"/>
+    <label>countFacets</label><input type="number" name="countFacets" value="1"/>
+    <label>facetFilter</label><input type="number" name="facetFilter" value="1"/>
+    <label>all</label><input type="number" name="all" value="0"/>
+    <label>likeWeight</label><input type="number" name="likeWeight" value="0" />
+    <button type="submit">Search</button>
+}
+
+<h5>Search RuntimeIndexer1</h5>
+@using (Html.BeginForm("SearchCustom", "Home", FormMethod.Get))
+{
+    <input type="hidden" name="indexName" value="RuntimeIndexer1"/>
+    <input type="text" name="q" value="test1@example.com" />
+    <button type="submit">Search</button>
+}

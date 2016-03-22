@@ -1,0 +1,30 @@
+﻿@model Examine.LuceneEngine.ILuceneSearchResults
+
+<h2>Search results</h2>
+
+<h5>TOTAL: @Model.TotalItemCount</h5>
+
+<ul>
+    @foreach (var result in Model)
+    {
+        <li>
+            Id: @result.LongId<br/>
+            Score: @result.Score<br/>
+            <ul>
+                <li><strong>Id</strong>&nbsp;=&nbsp;<em>@result.LongId</em></li>
+                <li><strong>Column5</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column5")</em></li>
+                <li><strong>Column6</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column6")</em></li>
+                <li>
+                    <strong>Facets</strong>
+                    <ul>
+                        @foreach (var fac in result.Facets)
+                        {
+                            <li><strong>@fac.FacetId</strong>&nbsp;=&nbsp;<em>@fac.Level.ToString("N2")</em></li>
+                        }
+                    </ul>
+                </li>                
+            </ul>
+            
+        </li>
+    }
+</ul>

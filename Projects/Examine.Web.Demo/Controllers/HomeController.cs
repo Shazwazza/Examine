@@ -37,12 +37,7 @@ namespace Examine.Web.Demo.Controllers
             var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
             var criteria = searcher.CreateCriteria();
             var result = searcher.Find(criteria.RawQuery(id));
-            //var sb = new StringBuilder();
-            //sb.AppendLine($"Results :{result.TotalItemCount}");
-            //foreach (var searchResult in result)
-            //{
-            //    sb.AppendLine($"Id:{searchResult.LongId}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Fields.Select(x => x.Value))}");
-            //}
+            
             return View(result);
         }
 
@@ -117,20 +112,14 @@ namespace Examine.Web.Demo.Controllers
             }
             else
             {
-                result = searcher.Find(q, false);    
+                result = searcher.Find(q, false);
             }
 
-            var sb = new StringBuilder();
-            sb.AppendFormat("Total: {0}\n\n", result.TotalItemCount);
-            foreach (var r in result)
-            {
-                sb.AppendFormat("{0} - {1} - {2}\n", r.LongId, r.Fields["Name"], r.Fields["Email"]);
-            }
-            return Content(sb.ToString(), "text/plain");
+            return View("Search", result);
         }
 
         [HttpGet]
-        public ActionResult Search(string q = null, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false, double likeWeight = 0)
+        public ActionResult SearchFacets(string q = null, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false, double likeWeight = 0)
         {
             var sw = new Stopwatch();
             sw.Start();
@@ -178,10 +167,11 @@ namespace Examine.Web.Demo.Controllers
             
             //Get search results
             var searchResults = searcher.Find(criteria);
-            
+
+            return View(searchResults);
+
             sb.Append("Total hits: " + searchResults.TotalItemCount + "\r\n");
-
-
+            
             //Show the results (limited by criteria.MaxCount(...) or SearchOptions.Default.MaxCount)
             foreach (var res in searchResults)
             {
