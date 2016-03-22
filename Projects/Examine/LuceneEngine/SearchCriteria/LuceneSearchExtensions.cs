@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Security;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Providers;
@@ -26,6 +27,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="mgr"></param>
         /// <param name="searcherName"></param>
         /// <returns></returns>
+        [Obsolete("Use GetSearcher instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static ILuceneSearcher GetLuceneSearcher(this ExamineManager mgr, string searcherName)
         {
             return (ILuceneSearcher)mgr.SearchProviderCollection[searcherName];

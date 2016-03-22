@@ -1,0 +1,24 @@
+﻿@model Examine.LuceneEngine.ILuceneSearchResults
+
+<h2>Search results</h2>
+
+<h5>TOTAL: @Model.TotalItemCount</h5>
+
+<ul>
+    @foreach (var result in Model)
+    {
+        <li>
+            Id: @result.LongId<br/>
+            Score: @result.Score<br/>
+            <ul>
+                @foreach (var field in result.Fields)
+                {
+                    <li>
+                        <strong>@field.Key</strong>&nbsp;=&nbsp;<em>@field.Value</em>
+                    </li>
+                }
+            </ul>
+            
+        </li>
+    }
+</ul>

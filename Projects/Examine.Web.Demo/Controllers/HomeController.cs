@@ -28,8 +28,6 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult Index()
         {
-            ViewBag.Message = "Welcome to ASP.NET MVC!";
-
             return View();
         }
 
@@ -39,13 +37,13 @@ namespace Examine.Web.Demo.Controllers
             var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
             var criteria = searcher.CreateCriteria();
             var result = searcher.Find(criteria.RawQuery(id));
-            var sb = new StringBuilder();
-            sb.AppendLine($"Results :{result.TotalItemCount}");
-            foreach (var searchResult in result)
-            {
-                sb.AppendLine($"Id:{searchResult.LongId}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Fields.Select(x => x.Value))}");
-            }
-            return Content(sb.ToString());
+            //var sb = new StringBuilder();
+            //sb.AppendLine($"Results :{result.TotalItemCount}");
+            //foreach (var searchResult in result)
+            //{
+            //    sb.AppendLine($"Id:{searchResult.LongId}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Fields.Select(x => x.Value))}");
+            //}
+            return View(result);
         }
 
         [HttpPost]
@@ -107,6 +105,7 @@ namespace Examine.Web.Demo.Controllers
 
         }
 
+        [HttpGet]
         public ActionResult SearchCustom(string indexName, string q = null, int count = 10, bool all = false)
         {
             var searcher = ExamineManager.Instance.GetSearcher(indexName);
@@ -130,11 +129,12 @@ namespace Examine.Web.Demo.Controllers
             return Content(sb.ToString(), "text/plain");
         }
 
+        [HttpGet]
         public ActionResult Search(string q = null, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false, double likeWeight = 0)
         {
             var sw = new Stopwatch();
             sw.Start();
-            var searcher = ExamineManager.Instance.GetLuceneSearcher("Simple2Searcher");
+            var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
 
             //This is for text/plain output
             var sb = new StringBuilder();
