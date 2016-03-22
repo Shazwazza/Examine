@@ -60,10 +60,10 @@ namespace Examine
 							if (!IsStandardAnalyzerStopWord(t))
 		                    {
 			                    innerBuilder.Append(t);
-			                    innerBuilder.Append(" ");
+                                innerBuilder.Append(" ");
 		                    }
 	                    }
-	                    b.Append(innerBuilder.ToString().TrimEnd(' '));
+	                    b.Append(innerBuilder.ToString());
                     };
 
             var builder = new StringBuilder();
@@ -75,9 +75,18 @@ namespace Examine
                 {
                     //move to next quote
                     carrat = searchText.IndexOf("\"", quoteIndex + 1) + 1;
-                    //add phrase to builder
-                    builder.Append(searchText.Substring(quoteIndex, carrat - quoteIndex));
-                    //builder.Append(' ');
+
+                    if (carrat > 0)
+                    {
+                        //add phrase to builder
+                        var phraseWithoutQuotes = searchText.Substring(quoteIndex + 1, carrat - quoteIndex - 2);
+                        builder.Append("\"" + phraseWithoutQuotes.Trim() + "\" ");
+                    }
+                    else
+                    {
+                        //there are not more quotes
+                        carrat = quoteIndex + 1;
+                    }
                 }
                 else
                 {
@@ -87,9 +96,11 @@ namespace Examine
                     {
                         nextCarrat = searchText.Length;
                     }
-                    var terms = searchText.Substring(carrat, nextCarrat - carrat);
-                    removeWords(terms, builder);
-                    if (terms.EndsWith(" ")) builder.Append(' ');
+                    var terms = searchText.Substring(carrat, nextCarrat - carrat).Trim();
+                    if (!string.IsNullOrWhiteSpace(terms))
+                    {
+                        removeWords(terms, builder);    
+                    }
                     carrat = nextCarrat;
                 }
             }

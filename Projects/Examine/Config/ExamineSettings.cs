@@ -15,11 +15,11 @@ namespace Examine.Config
 
         #region Singleton definition
 
-        private static readonly ExamineSettings m_Examine;
+        private static readonly ExamineSettings Examine;
         private ExamineSettings() { }
         static ExamineSettings()
         {
-            m_Examine = ConfigurationManager.GetSection(SectionName) as ExamineSettings;
+            Examine = ConfigurationManager.GetSection(SectionName) as ExamineSettings;
 
         }
         /// <summary>
@@ -28,7 +28,7 @@ namespace Examine.Config
         /// <value>The instance.</value>
         public static ExamineSettings Instance
         {
-            get { return m_Examine; }
+            get { return Examine; }
         }
 
         public Action<ExamineManager> ConfigurationAction { get; set; }

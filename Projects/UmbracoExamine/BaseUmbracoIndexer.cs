@@ -66,6 +66,13 @@ namespace UmbracoExamine
 			DataService = dataService;
 		}
 
+        [SecuritySafeCritical]
+        protected BaseUmbracoIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
+            : base(indexerData, writer, async)
+        {
+            DataService = dataService;
+        }
+
         #endregion
 
         /// <summary>
@@ -287,7 +294,7 @@ namespace UmbracoExamine
             var sb = new StringBuilder();
 
             //create the xpath statement to match node type aliases if specified
-            if (IndexerData.IncludeNodeTypes.Count() > 0)
+            if (IndexerData.IncludeNodeTypes.Any())
             {
                 sb.Append("(");
                 foreach (var field in IndexerData.IncludeNodeTypes)

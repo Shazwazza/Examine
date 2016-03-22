@@ -54,7 +54,8 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>SecurityRules.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <DocumentationFile>bin\Debug\Examine.xml</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
     <Prefer32Bit>false</Prefer32Bit>
@@ -174,6 +175,7 @@
     <Compile Include="IndexingNodeDataEventArgs.cs" />
     <Compile Include="IndexingNodeEventArgs.cs" />
     <Compile Include="IndexingNodesEventArgs.cs" />
+    <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
@@ -342,7 +344,6 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

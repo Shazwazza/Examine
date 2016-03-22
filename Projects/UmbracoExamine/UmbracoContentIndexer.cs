@@ -13,6 +13,7 @@ using Examine;
 using Examine.Config;
 using Examine.Providers;
 using Lucene.Net.Documents;
+using Lucene.Net.Index;
 using Umbraco.Core;
 using umbraco.cms.businesslogic;
 using UmbracoExamine.DataServices;
@@ -69,6 +70,10 @@ namespace UmbracoExamine
         [Obsolete("This constructor should no be used, the async flag has no relevance")]
 		public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
 			: base(indexerData, luceneDirectory, dataService, analyzer, async) { }
+
+        [SecuritySafeCritical]
+        public UmbracoContentIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
+            : base(indexerData, writer, dataService, async) { }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime

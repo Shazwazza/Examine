@@ -32,6 +32,20 @@ namespace Examine.Web.Demo.Controllers
             return View();
         }
 
+        [HttpGet]
+        public ActionResult Search(string id)
+        {
+            var criteria = ExamineManager.Instance.CreateSearchCriteria();           
+            var result = ExamineManager.Instance.Search(criteria.RawQuery(id));
+            var sb = new StringBuilder();
+            sb.AppendLine(string.Format("Results :{0}", result.TotalItemCount));
+            foreach (var searchResult in result)
+            {
+                sb.AppendLine(string.Format("Id:{0}, Score:{1}, Vals: {2}", searchResult.Id, searchResult.Score, string.Join(", ", searchResult.Fields.Select(x => x.Value))));
+            }
+            return Content(sb.ToString());
+        }
+
         [HttpPost]
         public ActionResult Populate()
         {

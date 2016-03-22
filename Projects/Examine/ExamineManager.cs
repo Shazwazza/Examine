@@ -28,7 +28,6 @@ namespace Examine
     ///</summary>
     public class ExamineManager : ISearcher, IDisposable, IRegisteredObject
     {
-
         private ExamineManager()
         {
             AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
@@ -45,11 +44,8 @@ namespace Examine
         /// </summary>
         public static ExamineManager Instance
         {
-            get
-            {
+            get { return Manager; }
                 InstanceInitialized = true;
-                return Manager;
-            }
         }
 
         private static readonly ExamineManager Manager = new ExamineManager();
@@ -212,6 +208,10 @@ namespace Examine
                                         OnBuildingEmptyIndexOnStartup(args);
                                         if (!args.Cancel)
                                         {
+                                    var args = new BuildingEmptyIndexOnStartupEventArgs(index);
+                                    OnBuildingEmptyIndexOnStartup(args);
+                                    if (!args.Cancel)
+                                    {
                                             index.RebuildIndex();
 
                                         }
@@ -239,8 +239,9 @@ namespace Examine
                                         }
                                     }
 
-                                }
+                                    }
                             }
+                            }    
                         }
 
                     }

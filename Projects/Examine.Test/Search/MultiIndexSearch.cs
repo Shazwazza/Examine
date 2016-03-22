@@ -59,6 +59,9 @@ namespace Examine.Test.Search
 
                 Assert.AreEqual(4, result.TotalItemCount);
             }
+                }
+            };
+                      
         }
 
         [Test]

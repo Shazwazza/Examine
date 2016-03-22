@@ -5,6 +5,19 @@ namespace Examine
     /// </summary>
     public class IndexOperation
     {
+        public IndexOperation()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:System.Object"/> class.
+        /// </summary>
+        public IndexOperation(IndexItem item, IndexOperationType operation)
+        {
+            Item = item;
+            Operation = operation;
+        }
+
         /// <summary>
         /// Gets the Index item
         /// </summary>

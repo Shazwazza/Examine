@@ -12,6 +12,7 @@
     <description>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it. You can either use the Fluent API that the library comes with or use raw Lucene query syntax. The indexing is configurable and will allow both synchronous and asynchronous indexing and everything works happily in web projects too.</description>
     <summary>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it</summary>
     <tags>lucene search fluentapi index</tags>
+    <copyright>$copyright$</copyright>
     <dependencies>
       <dependency id="Lucene.Net" version="3.0.3" />
       <dependency id="Lucene.Net.Contrib" version="3.0.3" />

@@ -39,7 +39,7 @@ namespace Examine.Web.Demo
             );
 
         }
-
+        
         protected void Application_Start()
         {
             AreaRegistration.RegisterAllAreas();

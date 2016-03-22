@@ -17,5 +17,29 @@ namespace Examine.Test
             var result = iterator.ToXDocument();
             Assert.AreEqual(null, result);
         }
+        [Test]
+        public void Select_Examine_Value_Normal()
+        {
+            var xml = "<someNode id='1234'><blah>Hello world</blah><xmlVal><some><xml><structure></structure></xml></some></xmlVal></someNode>";
+
+            var xNode = XElement.Parse(xml);
+
+            var result = xNode.SelectExamineDataValue("blah");
+
+            Assert.AreEqual("Hello world", result);
+        }
+
+        [Test]
+        public void Select_Examine_Value_Xml_Fragment()
+        {
+            var xml = "<someNode id='1234'><blah>Hello world</blah><xmlVal><some><xml><structure></structure></xml></some></xmlVal></someNode>";
+
+            var xNode = XElement.Parse(xml);
+
+            var result = xNode.SelectExamineDataValue("xmlVal");
+
+            Assert.AreEqual("<some><xml><structure></structure></xml></some>", result);
+        }
+
     }
 }

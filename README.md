@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/j4o4finsu8xs45r1?svg=true)](https://ci.appveyor.com/project/Shandem/examine)
+
 ![Examine](/ExamineLogo.png?raw=true)
 
 ##What is Examine?
@@ -40,6 +42,6 @@ Documentation on using the Examine API
 
 ## Copyright & Licence
 
-&copy; 2013 by Shannon Deminick
+&copy; 2015 by Shannon Deminick
 
 This is free software and is licensed under the [Microsoft Public License (Ms-PL)](http://opensource.org/licenses/MS-PL)

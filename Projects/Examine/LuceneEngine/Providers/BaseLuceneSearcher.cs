@@ -160,7 +160,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [Obsolete("Use the Find method with MaxCount instead for strongly typed search results")]
-        public ISearchResults Search(ISearchCriteria searchParams, int maxResults)
+        public override ISearchResults Search(ISearchCriteria searchParams, int maxResults)
         {
             var pagesResults = Find(searchParams.MaxCount(maxResults));
             return new SearchResultsProxy<LuceneSearchResult>(pagesResults);
@@ -171,7 +171,6 @@ namespace Examine.LuceneEngine.Providers
             var sc = this.CreateCriteria();
             return TextSearchAllFields(searchText, useWildcards, sc);
         }
-
         /// <summary>
         /// Performs a search with a typed result
         /// </summary>
@@ -227,6 +226,26 @@ namespace Examine.LuceneEngine.Providers
             //}
 
             return pagesResults;
+        }
+
+        /// <summary>
+        /// A simple search mechanism to search all fields based on an index type.
+        /// </summary>
+        /// <remarks>
+        /// This can be used to do a simple search against an index type instead of the entire index.
+        /// 
+        /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
+        /// in a wild card search too.
+        /// 
+        /// </remarks>
+        /// <param name="searchText"></param>
+        /// <param name="useWildcards"></param>
+        /// <param name="indexType"></param>
+        /// <returns></returns>
+        public override ISearchResults Search(string searchText, bool useWildcards, string indexType)
+        {
+            var sc = CreateSearchCriteria(indexType);
+            return TextSearchAllFields(searchText, useWildcards, sc);
         }
 
         /// <summary>

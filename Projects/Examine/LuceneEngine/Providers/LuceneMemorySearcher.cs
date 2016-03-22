@@ -41,5 +41,6 @@ namespace Examine.LuceneEngine.Providers
         }
               
             //Debug.WriteLine("LuceneMemorySearcher.GetSearcher");
+            //Debug.WriteLine("LuceneMemorySearcher.GetSearcher");
     }
 }

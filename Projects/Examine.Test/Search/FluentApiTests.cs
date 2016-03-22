@@ -81,9 +81,135 @@ namespace Examine.Test.Search
         }
 
         [Test]
+        public void FluentApi_Grouped_Or_Query_Output()
+        {
+            Console.WriteLine("GROUPED OR - SINGLE FIELD, MULTI VAL");
+            var criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED OR - MULTI FIELD, MULTI VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED OR - MULTI FIELD, EQUAL MULTI VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedOr(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3 blahID:1 blahID:2 blahID:3)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED OR - MULTI FIELD, SINGLE VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 parentID:1)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED OR - SINGLE FIELD, SINGLE VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1)", criteria.Query.ToString());
+        }
+
+        /// <summary>
+        /// Grouped AND is a special case as well since NOT and OR include all values, it doesn't make
+        /// logic sense that AND includes all fields and values because nothing would actually match. 
+        /// i.e. +id:1 +id2    --> Nothing matches
+        /// </summary>
+        [Test]
+        public void FluentApi_Grouped_And_Query_Output()
+        {
+            Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
+            var criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:1)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED AND - SINGLE FIELD, SINGLE VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
+        }
+
+        /// <summary>
+        /// CANNOT BE A MUST WITH NOT i.e. +(-id:1 -id:2 -id:3)  --> That will not work with the "+"
+        /// </summary>
+        [Test]
+        [TestOnlyInFullTrust]
+        public void FluentApi_Grouped_Not_Query_Output()
+        {
+            Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");
+            var criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED NOT - MULTI FIELD, MULTI VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED NOT - MULTI FIELD, EQUAL MULTI VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedNot(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3 -blahID:1 -blahID:2 -blahID:3)", criteria.Query.ToString());
+            
+            Console.WriteLine("GROUPED NOT - MULTI FIELD, SINGLE VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1" });            
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -parentID:1)", criteria.Query.ToString());
+
+            Console.WriteLine("GROUPED NOT - SINGLE FIELD, SINGLE VAL");
+            criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+            criteria.NodeTypeAlias("myDocumentTypeAlias");
+            criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1" });            
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1)", criteria.Query.ToString());
+        }
+
+        [Test]
         public void Grouped_Or_With_Not()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+        var analyzer = new StandardAnalyzer(Version.LUCENE_29);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
 
@@ -103,13 +229,13 @@ namespace Examine.Test.Search
                 ExamineSession.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
-
-                //paths contain punctuation, we'll escape it and ensure an exact match
+        
+            //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateCriteria("content");
                 var filter = criteria.GroupedOr(new[] { "nodeName", "bodyText", "headerText" }, "ipsum").Not().Field("umbracoNaviHide", "1");
                 var results = searcher.Search(filter.Compile());
                 Assert.AreEqual(1, results.TotalItemCount);
-            }
+                }
         }
 
         [Test]
@@ -190,6 +316,42 @@ namespace Examine.Test.Search
 
                 Assert.AreEqual(2, results.TotalItemCount);
             }
+        }
+        [Test]
+        public void FluentApi_Max_Results()
+        {
+            var searcher = (BaseLuceneSearcher) _searcher;
+            var criteria = searcher.CreateSearchCriteria(BooleanOperation.Or);
+            var filter = criteria
+                .Field(LuceneIndexer.IndexTypeFieldName, "media")
+                .Or()
+                .Field(LuceneIndexer.IndexTypeFieldName, "content")
+                .Compile();
+
+            var results = searcher.Search(filter, 3);
+
+            Assert.AreEqual(3, results.Count());
+            Assert.AreEqual(10, results.TotalItemCount);
+        }
+
+        [Test]
+        public void FluentApi_Skip_Results()
+        {
+            var searcher = (BaseLuceneSearcher)_searcher;
+            var criteria = searcher.CreateSearchCriteria(BooleanOperation.Or);
+            var filter = criteria
+                .Field(LuceneIndexer.IndexTypeFieldName, "media")
+                .Or()
+                .Field(LuceneIndexer.IndexTypeFieldName, "content")
+                .Compile();
+
+            var results = searcher.Search(filter, 5);
+
+            var skipped = results.Skip(0).Take(3);
+            Assert.AreEqual(3, skipped.Count());
+
+            skipped = results.Skip(3).Take(3);
+            Assert.AreEqual(2, skipped.Count());
         }
 
         [Test]
