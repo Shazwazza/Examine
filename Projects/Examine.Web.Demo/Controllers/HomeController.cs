@@ -9,6 +9,7 @@ using System.Text;
 using System.Web.Mvc;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Indexing;
 using Examine.Session;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.Scoring;
@@ -35,13 +36,14 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult Search(string id)
         {
-            var criteria = ExamineManager.Instance.CreateSearchCriteria();           
-            var result = ExamineManager.Instance.Search(criteria.RawQuery(id));
+            var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
+            var criteria = searcher.CreateCriteria();
+            var result = searcher.Find(criteria.RawQuery(id));
             var sb = new StringBuilder();
-            sb.AppendLine(string.Format("Results :{0}", result.TotalItemCount));
+            sb.AppendLine($"Results :{result.TotalItemCount}");
             foreach (var searchResult in result)
             {
-                sb.AppendLine(string.Format("Id:{0}, Score:{1}, Vals: {2}", searchResult.Id, searchResult.Score, string.Join(", ", searchResult.Fields.Select(x => x.Value))));
+                sb.AppendLine($"Id:{searchResult.LongId}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Fields.Select(x => x.Value))}");
             }
             return Content(sb.ToString());
         }
@@ -108,7 +110,7 @@ namespace Examine.Web.Demo.Controllers
         public ActionResult SearchCustom(string indexName, string q = null, int count = 10, bool all = false)
         {
             var searcher = ExamineManager.Instance.GetSearcher(indexName);
-
+            
             ILuceneSearchResults result;
             if (all)
             {
@@ -257,11 +259,10 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult RebuildIndex()
         {
-            //try
-            //{
             var timer = new Stopwatch();
             timer.Start();
-            ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"].RebuildIndex();
+            var index = ExamineManager.Instance.IndexProviders["Simple2Indexer"];
+            index.RebuildIndex();
             timer.Stop();
 
             //rebuild our non-config index
@@ -269,12 +270,6 @@ namespace Examine.Web.Demo.Controllers
 
 
             return View(timer.Elapsed.TotalSeconds);
-            //}
-            //catch (Exception ex)
-            //{
-            //    this.ModelState.AddModelError("DataError", ex.Message + (ex.InnerException != null ? " - " + ex.InnerException : ""));
-            //    return View(0.0);
-            //}
         }
 
         [HttpPost]
@@ -287,8 +282,7 @@ namespace Examine.Web.Demo.Controllers
                 var ds = new TableDirectReaderDataService();
                 foreach (var i in ds.GetAllData("TestType"))
                 {
-                    ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"]
-                        .ReIndexNode(i.RowData.ToExamineXml(i.NodeDefinition.NodeId, i.NodeDefinition.Type), "TestType");
+                    ExamineManager.Instance.IndexProviders["Simple2Indexer"].IndexItems(i);                        
                 }
                 timer.Stop();
                 

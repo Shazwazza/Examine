@@ -8,6 +8,7 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// The data source for the SimpleDataIndexer
     /// </summary>
+    [Obsolete("Use ValueSetIndexer with IValueSetService instead")]
     public interface ISimpleDataService
     {
         /// <summary>

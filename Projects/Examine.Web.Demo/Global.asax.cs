@@ -57,13 +57,32 @@ namespace Examine.Web.Demo
 
             var customIndexer = new ValueSetIndexer(
                 new[] {new FieldDefinition("Email", FieldDefinitionTypes.Raw)},
-                new TestDataService(), new[] {"Type1", "Type2"}, 
-                new DirectoryInfo(HostingEnvironment.MapPath("~/App_Data/RuntimeIndex1")),
-                new StandardAnalyzer(Version.LUCENE_29));
+                new TestDataService(), 
+                new[] {"Type1", "Type2"}, 
+                new DirectoryInfo(Context.Server.MapPath("~/App_Data/{machinename}/RuntimeIndex1")),
+                new StandardAnalyzer(Version.LUCENE_30));
             
             ExamineManager.Instance.AddIndexProvider("RuntimeIndexer1", customIndexer);
 
-            //This is how to create a config from code. This allows your own termfacetextractors to be used.
+            var sqlIndexer = new ValueSetIndexer(
+                new[]
+                {
+                    new FieldDefinition("Column1", FieldDefinitionTypes.Raw),
+                    new FieldDefinition("Column2", FieldDefinitionTypes.Facet),
+                    new FieldDefinition("Column3", FieldDefinitionTypes.Raw),
+                    new FieldDefinition("Column4", FieldDefinitionTypes.FacetPath),
+                    new FieldDefinition("Column5", FieldDefinitionTypes.FullText),
+                    new FieldDefinition("Column6", FieldDefinitionTypes.AutoSuggest)
+                },
+                new TableDirectReaderDataService(), 
+                new[] { "TestType" },
+                new DirectoryInfo(Context.Server.MapPath("~/App_Data/{machinename}/SimpleIndexSet2")),
+                new StandardAnalyzer(Version.LUCENE_30));
+
+            ExamineManager.Instance.AddIndexProvider("Simple2Indexer", sqlIndexer);
+
+            //This is how to create a config from code if you had indexes declared in with configuration.
+            //This allows your own termfacetextractors to be used.
             //Note that this must be added to index sets BEFORE ExamineManager.Instance is accessed.
 
             //var indexSet = IndexSets.Instance.Sets["Simple2IndexSet"];
@@ -77,7 +96,7 @@ namespace Examine.Web.Demo
             
             //And we're ready.
 
-            var indexer = ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"] as LuceneIndexer;
+            var indexer = ExamineManager.Instance.IndexProviders["Simple2Indexer"] as LuceneIndexer;
             
             var r = new Random();
             //Here custom fields are written directly to the document regardsless of Examine's config

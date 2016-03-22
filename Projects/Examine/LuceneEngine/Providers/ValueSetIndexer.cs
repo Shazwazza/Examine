@@ -65,7 +65,9 @@ namespace Examine.LuceneEngine.Providers
             Analyzer defaultAnalyzer,
             FacetConfiguration facetConfiguration = null,
             IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
-            : this(fieldDefinitions, dataService, indexCategories, new SimpleFSDirectory(indexDirectory), defaultAnalyzer, facetConfiguration, indexValueTypes)
+            : this(fieldDefinitions, dataService, indexCategories, 
+                  new SimpleFSDirectory(indexDirectory.ReplaceTokensInPath()), 
+                  defaultAnalyzer, facetConfiguration, indexValueTypes)
         {
         }
 

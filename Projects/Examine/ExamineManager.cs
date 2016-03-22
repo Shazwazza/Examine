@@ -1,26 +1,20 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Configuration.Provider;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Web.Configuration;
 using System.Web.Hosting;
-using System.Xml.Linq;
 using Examine.Config;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Providers;
 using Examine.Providers;
 using Examine.SearchCriteria;
-using System.Web;
 using Examine.Session;
 using Lucene.Net.Analysis;
-using Lucene.Net.Index;
-using Lucene.Net.Store;
 
 namespace Examine
 {
@@ -79,9 +73,9 @@ namespace Examine
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Searchers should be resolved using the GetSearcher method")]
-        public SearchProviderCollection SearchProviderCollection => SearchProviderCollectionInternal;
+        public SearchProviderCollection SearchProviderCollection => ConfigBasedSearchProviders;
 
-        private SearchProviderCollection SearchProviderCollectionInternal
+        private SearchProviderCollection ConfigBasedSearchProviders
         {
             get
             {
@@ -95,9 +89,9 @@ namespace Examine
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Use the IndexProviders property instead")]
-        public IndexProviderCollection IndexProviderCollection => IndexProviderCollectionInternal;
+        public IndexProviderCollection IndexProviderCollection => ConfigBasedIndexProviders;
 
-        private IndexProviderCollection IndexProviderCollectionInternal
+        private IndexProviderCollection ConfigBasedIndexProviders
         {
             get
             {
@@ -136,12 +130,12 @@ namespace Examine
         {
             get
             {
-                var providerDictionary = IndexProviderCollectionInternal.ToDictionary(x => x.Name, x => (IExamineIndexer)x);
+                var providerDictionary = ConfigBasedIndexProviders.ToDictionary(x => x.Name, x => (IExamineIndexer)x);
                 foreach (var i in _indexers)
                 {
                     providerDictionary[i.Key] = i.Value;
                 }
-                return new CaseInsensitiveKeyReadOnlyDictionary<IExamineIndexer>(providerDictionary);
+                return new Dictionary<string, IExamineIndexer>(providerDictionary, StringComparer.OrdinalIgnoreCase);
             }
         }
 
@@ -154,7 +148,7 @@ namespace Examine
         {
             //make sure this name doesn't exist in
 
-            if (IndexProviderCollectionInternal[name] != null)
+            if (ConfigBasedIndexProviders[name] != null)
             {
                 throw new InvalidOperationException("The indexer with name " + name + " already exists");
             }

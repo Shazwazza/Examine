@@ -6,10 +6,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
 using System.Xml.Linq;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Cru;
@@ -23,12 +20,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.QueryParsers;
 using Lucene.Net.Store;
-using Examine.LuceneEngine.Config;
-using Lucene.Net.Util;
-using System.ComponentModel;
-using System.Xml;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -75,10 +67,7 @@ namespace Examine.LuceneEngine.Providers
             FacetConfiguration = facetConfiguration ?? new FacetConfiguration();
 
             IndexingAnalyzer = defaultAnalyzer;
-
-            //Create the legacy searcher
-            InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
-
+            
             EnsureIndex(false);
         }
 
@@ -114,9 +103,6 @@ namespace Examine.LuceneEngine.Providers
 
             IndexingAnalyzer = analyzer;
 
-            //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneSearcher(workingFolder, IndexingAnalyzer);
-
             EnsureIndex(false);
         }
 
@@ -144,10 +130,7 @@ namespace Examine.LuceneEngine.Providers
             _directory = luceneDirectory;
 
             IndexingAnalyzer = analyzer;
-
-            //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneSearcher(luceneDirectory, IndexingAnalyzer);
-
+            
             EnsureIndex(false);
         }
 
@@ -263,10 +246,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
             }
-
-            //create our internal searcher, this is useful for inheritors to be able to search their own indexes inside of their indexer
-            InternalSearcher = new LuceneSearcher(workingFolder, IndexingAnalyzer);
-
+            
             EnsureIndex(false);
         }
 
@@ -311,15 +291,7 @@ namespace Examine.LuceneEngine.Providers
         private Dictionary<string, List<string>> _fieldMappings;
         private object _fieldMappingsLock = new object();
         private bool _fieldMappingCreated;
-
-        /// <summary>
-        /// We need an internal searcher used to search against our own index.
-        /// This is used for finding all descendant nodes of a current node when deleting indexes.
-        /// </summary>
-        [Obsolete("This should no longer be used, use the SearcherContext instead to perform any internal searching")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected BaseLuceneSearcher InternalSearcher { get; private set; }
-
+        
         #endregion
 
         #region Static Helpers

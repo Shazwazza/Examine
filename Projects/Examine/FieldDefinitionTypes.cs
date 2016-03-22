@@ -20,6 +20,10 @@
         public const string Facet = "facet";
         public const string FacetPath = "facetpath";
         public const string AutoSuggest = "autosuggest";
+
+        /// <summary>
+        /// This is the default field type
+        /// </summary>
         public const string FullText = "fulltext";
         public const string FullTextSortable = "fulltextsortable";
 

@@ -149,14 +149,12 @@
     <Compile Include="..\..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="CaseInsensitiveKeyReadOnlyDictionary.cs" />
-    <Compile Include="BuildingEmptyIndexOnStartupEventArgs.cs" />
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="DisposableObject.cs" />
+    <Compile Include="DirectoryInfoExtensions.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
     <Compile Include="LuceneEngine\Providers\ILuceneSearcher.cs" />
