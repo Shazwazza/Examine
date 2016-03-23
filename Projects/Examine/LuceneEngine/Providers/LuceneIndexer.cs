@@ -65,7 +65,8 @@ namespace Examine.LuceneEngine.Providers
             LuceneIndexFolder = null;
             _directory = luceneDirectory;
 
-            FacetConfiguration = facetConfiguration ?? new FacetConfiguration();
+            FacetConfiguration = facetConfiguration ?? FacetConfigurationHelpers.GetFacetConfiguration(fieldDefinitions);
+            
 
             IndexingAnalyzer = defaultAnalyzer;
             
@@ -245,7 +246,7 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+                IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
             }
             
             EnsureIndex(false);

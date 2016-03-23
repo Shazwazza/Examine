@@ -28,7 +28,7 @@ namespace Examine.Test.Search
         [Test]
         public void Grouped_Or_Examiness()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -77,7 +77,7 @@ namespace Examine.Test.Search
         [Test]
         public void FluentApi_Grouped_Or_Query_Output()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -132,7 +132,7 @@ namespace Examine.Test.Search
         [Test]
         public void FluentApi_Grouped_And_Query_Output()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -182,7 +182,7 @@ namespace Examine.Test.Search
         [Test]
         public void FluentApi_Grouped_Not_Query_Output()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -229,7 +229,7 @@ namespace Examine.Test.Search
         [Test]
         public void Grouped_Or_With_Not()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
 
@@ -261,7 +261,7 @@ namespace Examine.Test.Search
         [Test]
         public void Exact_Match_By_Escaped_Path()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
 
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
@@ -309,7 +309,7 @@ namespace Examine.Test.Search
         [Test]
         public void Find_By_ParentId()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 new[] { new FieldDefinition("parentID", "number") },
@@ -341,7 +341,7 @@ namespace Examine.Test.Search
         [Test]
         public void Find_By_NodeTypeAlias()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 new[] { new FieldDefinition("nodeTypeAlias", "raw") },
@@ -389,7 +389,7 @@ namespace Examine.Test.Search
         [Test]
         public void Search_With_Stop_Words()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -420,7 +420,7 @@ namespace Examine.Test.Search
         [Test]
         public void Search_Raw_Query()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -467,7 +467,7 @@ namespace Examine.Test.Search
         [Test]
         public void Find_Only_Image_Media()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -497,7 +497,7 @@ namespace Examine.Test.Search
         [Test]
         public void Find_Both_Media_And_Content()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -533,7 +533,7 @@ namespace Examine.Test.Search
         [Test]
         public void Sort_Result_By_Number_Field()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a number, otherwise it's not sortable
@@ -575,7 +575,7 @@ namespace Examine.Test.Search
         [Test]
         public void Sort_Result_By_Date_Field()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a date, otherwise it's not sortable
@@ -619,7 +619,7 @@ namespace Examine.Test.Search
         [Test]
         public void Sort_Result_By_Single_Field()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
@@ -663,7 +663,7 @@ namespace Examine.Test.Search
         [Test]
         public void Standard_Results_Sorted_By_Score()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -707,7 +707,7 @@ namespace Examine.Test.Search
         [Test]
         public void Skip_Results_Returns_Different_Results()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -745,7 +745,7 @@ namespace Examine.Test.Search
         [Test]
         public void Escaping_Includes_All_Words()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -785,7 +785,7 @@ namespace Examine.Test.Search
         [Test]
         public void Grouped_And_Examiness()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -827,7 +827,7 @@ namespace Examine.Test.Search
         [Test]
         public void Examiness_Proximity()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -871,7 +871,7 @@ namespace Examine.Test.Search
         public void Float_Range_SimpleIndexSet()
         {
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a float
@@ -920,7 +920,7 @@ namespace Examine.Test.Search
         [Test]
         public void Number_Range_SimpleIndexSet()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a float
@@ -967,7 +967,7 @@ namespace Examine.Test.Search
         [Test]
         public void Double_Range_SimpleIndexSet()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a float
@@ -1014,7 +1014,7 @@ namespace Examine.Test.Search
         [Test]
         public void Long_Range_SimpleIndexSet()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
                 //Ensure it's set to a float
@@ -1063,7 +1063,7 @@ namespace Examine.Test.Search
         {
             var reIndexDateTime = DateTime.Now.AddMinutes(-2);
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
 
@@ -1114,7 +1114,7 @@ namespace Examine.Test.Search
         {
             var reIndexDateTime = DateTime.Now.AddHours(-2);
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
 
@@ -1162,7 +1162,7 @@ namespace Examine.Test.Search
         {
             var reIndexDateTime = DateTime.Now.AddDays(-2);
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
 
@@ -1211,7 +1211,7 @@ namespace Examine.Test.Search
         {
             var reIndexDateTime = DateTime.Now.AddMonths(-2);
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
 
@@ -1261,7 +1261,7 @@ namespace Examine.Test.Search
         {
             var reIndexDateTime = DateTime.Now.AddYears(-2);
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
 
@@ -1310,7 +1310,7 @@ namespace Examine.Test.Search
         {
             var reIndexDateTime = DateTime.Now;
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(
 
@@ -1355,7 +1355,7 @@ namespace Examine.Test.Search
         [Test]
         public void Fuzzy_Search()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -1398,7 +1398,7 @@ namespace Examine.Test.Search
         [Test]
         public void Max_Count()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -1442,7 +1442,7 @@ namespace Examine.Test.Search
         [Test]
         public void Inner_Or_Query()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -1483,7 +1483,7 @@ namespace Examine.Test.Search
         [Test]
         public void Inner_And_Query()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -1526,7 +1526,7 @@ namespace Examine.Test.Search
         [Test]
         public void Inner_Not_Query()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -1569,7 +1569,7 @@ namespace Examine.Test.Search
         [Test]
         public void Complex_Or_Group_Nested_Query()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)

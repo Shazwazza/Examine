@@ -26,7 +26,7 @@ namespace Examine.LuceneEngine.Faceting
         /// <summary>
         /// Gets the list of facet keys for this map
         /// </summary>
-        public List<FacetKey> Keys { get; private set; }
+        internal List<FacetKey> Keys { get; }
         
         private readonly ConcurrentDictionary<FacetKey, int> _indices = new ConcurrentDictionary<FacetKey, int>();
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Indexing;
@@ -36,13 +37,37 @@ namespace Examine.LuceneEngine.Faceting
                             var fe = valueType(f.Name).CreateFacetExtractor();
                             if (fe != null)
                             {
-                                config.FacetExtractors.Add(fe);
+                                config.AddExtractor(fe);
                             }
                         }
                     }
                 }
             }
 
+            return config;
+        }
+
+        /// <summary>
+        /// This is used to create a facet configuration based on the field definitions
+        /// </summary>
+        /// <param name="fieldDefinitions"></param>
+        /// <returns></returns>
+        public static FacetConfiguration GetFacetConfiguration(IEnumerable<FieldDefinition> fieldDefinitions)
+        {
+            var config = new FacetConfiguration();
+            var defaultIndexTypes = LuceneIndexer.GetDefaultIndexValueTypes();
+            foreach (var f in fieldDefinitions)
+            {
+                Func<string, IIndexValueType> valueType;
+                if (defaultIndexTypes.TryGetValue(f.Type, out valueType))
+                {
+                    var fe = valueType(f.Name).CreateFacetExtractor();
+                    if (fe != null)
+                    {
+                        config.AddExtractor(fe);
+                    }
+                }
+            }
             return config;
         }
     }

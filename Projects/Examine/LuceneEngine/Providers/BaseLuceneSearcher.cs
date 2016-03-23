@@ -86,7 +86,7 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+                IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
             }
 
             if (config["enableLeadingWildcard"] != null)

@@ -1,6 +1,7 @@
 ﻿namespace Examine.LuceneEngine.Faceting
 {
-    public interface IExternalDataProvider
+    //TODO: We need to investigate this
+    internal interface IExternalDataProvider
     {
         object GetData(long id);
     }

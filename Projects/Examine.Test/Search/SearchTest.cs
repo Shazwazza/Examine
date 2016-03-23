@@ -25,7 +25,7 @@ namespace Examine.Test.Search
         [Test]
         public void Search_All_Fields_No_Wildcards()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -43,7 +43,7 @@ namespace Examine.Test.Search
         [Test]
         public void Search_All_Fields_Wildcards()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -61,7 +61,7 @@ namespace Examine.Test.Search
         [Test]
         public void Search_On_Stop_Word_No_Result()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)

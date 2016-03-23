@@ -5,7 +5,8 @@ using Examine.LuceneEngine.Faceting;
 
 namespace Examine.Web.Demo.Models
 {
-    public class TestExternalDataProvider : IExternalDataProvider
+    //TODO: We need to investigate this
+    internal class TestExternalDataProvider : IExternalDataProvider
     {
         public static TestExternalDataProvider Instance = new TestExternalDataProvider();
 

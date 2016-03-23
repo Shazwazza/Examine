@@ -82,6 +82,7 @@ namespace Examine.Web.Demo
                 new[]
                 {
                     new FieldDefinition("Column1", FieldDefinitionTypes.Raw),
+                    new FieldDefinition("Column1", "Column1_Facet", FieldDefinitionTypes.Facet),
                     new FieldDefinition("Column2", FieldDefinitionTypes.Facet),
                     new FieldDefinition("Column3", FieldDefinitionTypes.Raw),
                     new FieldDefinition("Column4", FieldDefinitionTypes.FacetPath),

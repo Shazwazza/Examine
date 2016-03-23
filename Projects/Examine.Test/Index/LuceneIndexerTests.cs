@@ -24,7 +24,7 @@ namespace Examine.Test.Index
         public void Rebuild_Index()
         {
             using (var luceneDir = new RAMDirectory())            
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
                 indexer.RebuildIndex();
@@ -43,7 +43,7 @@ namespace Examine.Test.Index
         public void Reindex_Item_Type()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -73,7 +73,7 @@ namespace Examine.Test.Index
         public void Index_Exists()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -85,7 +85,7 @@ namespace Examine.Test.Index
         public void Can_Add_One_Document()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -110,7 +110,7 @@ namespace Examine.Test.Index
         public void Can_Add_Same_Document_Twice_Without_Duplication()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -139,7 +139,7 @@ namespace Examine.Test.Index
         public void Can_Add_Multiple_Docs()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -167,7 +167,7 @@ namespace Examine.Test.Index
         public void Can_Delete()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -196,7 +196,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Fields()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -225,7 +225,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Easy_Fields()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -250,7 +250,7 @@ namespace Examine.Test.Index
         public void Can_Have_Multiple_Values_In_Fields()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -288,7 +288,7 @@ namespace Examine.Test.Index
         public void Can_Update_Document()
         {
             using (var luceneDir = new RAMDirectory())      
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_29)))
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
 
@@ -325,7 +325,7 @@ namespace Examine.Test.Index
                     new StaticField("item3", false)
                 }, Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null),
                 luceneDir,
-                new StandardAnalyzer(Version.LUCENE_29)))
+                new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(new ValueSet(1, "content",
@@ -358,7 +358,7 @@ namespace Examine.Test.Index
                     new FieldDefinition("item2", "number")
                 },
                 luceneDir,
-                new StandardAnalyzer(Version.LUCENE_29)))
+                new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
                 indexer.IndexItems(new ValueSet(1, "content",

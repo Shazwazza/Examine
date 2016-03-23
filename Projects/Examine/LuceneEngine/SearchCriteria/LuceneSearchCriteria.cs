@@ -32,20 +32,15 @@ namespace Examine.LuceneEngine.SearchCriteria
         private readonly CustomMultiFieldQueryParser _queryParser;
 
         internal Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
-        internal BooleanQuery Query { get { return Queries.Peek(); } }
+        internal BooleanQuery Query => Queries.Peek();
         internal List<SortField> SortFields = new List<SortField>();
 
         public ICriteriaContext CriteriaContext { get; private set; }
-
-        /// <summary>
-        /// Used to inject the lucene searcher for facet filters etc. Set the value by SearcherContext.
-        /// </summary>
-        internal Func<ICriteriaContext> LateBoundSearcherContext;
-
+        
         private Occur _occurrence;
         private BooleanOperation _boolOp;
 
-        private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
+        private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_30;
         private int _maxResults = int.MaxValue;
 
         /// <summary>

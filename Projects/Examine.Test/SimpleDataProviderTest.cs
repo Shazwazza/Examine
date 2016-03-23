@@ -25,7 +25,7 @@ namespace Examine.Test
         [Test]
         public void SimpleData_RebuildIndex()
         {    
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, new TestSimpleDataProvider()))
             using (SearcherContextCollection.Instance)
@@ -58,7 +58,7 @@ namespace Examine.Test
         public void SimpleData_Reindex_Node()
         {
             var dataProvider = new TestSimpleDataProvider();
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, dataProvider))
             using (SearcherContextCollection.Instance)
@@ -92,7 +92,7 @@ namespace Examine.Test
         public void SimpleDataProviderTest_Range_Search_On_Year()
         {
             var dataProvider = new TestSimpleDataProvider();
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, dataProvider))
             using (SearcherContextCollection.Instance)

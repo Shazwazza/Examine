@@ -25,5 +25,5 @@ using Examine.Session;
 [assembly: Guid("427aeb03-603e-4fbb-9ab0-6b764521e92a")]
 
 [assembly: InternalsVisibleTo("UmbracoExamine")]
-[assembly: InternalsVisibleTo("Examine.Azure")]
+[assembly: InternalsVisibleTo("Examine.Web.Demo")]
 [assembly: InternalsVisibleTo("Examine.Test")]

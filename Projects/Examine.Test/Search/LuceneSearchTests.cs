@@ -34,7 +34,7 @@ namespace Examine.Test.Search
         [Test]
         public void Can_Get_Lucene_Search_Result()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
@@ -65,11 +65,13 @@ namespace Examine.Test.Search
             //TODO: I'm not sure about passing the facet config into the indexer on ctor? 
             // in theory shouldn't we be able to specify this config when we search?
 
-            var config = new FacetConfiguration();
-            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
-            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
+            var config = new FacetConfiguration(new []
+            {
+                new TermFacetExtractor("manufacturer") ,
+                new TermFacetExtractor("resolution")
+            });
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
@@ -123,13 +125,15 @@ namespace Examine.Test.Search
             //TODO: After some investigation, you cannot declare runtime facets, the thing that loads the facets is in ReaderData.ReadFacets which is
             // only called once when ReaderData is ctor'd which is lazily called on the first call to FacetsLoader.GetReaderData
 
-            var config = new FacetConfiguration();
-            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
-            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
-            config.FacetExtractors.Add(new TermFacetExtractor("similar", true));
-            config.FacetExtractors.Add(new TermFacetExtractor("recommended", true));
+            var config = new FacetConfiguration(new[]
+            {
+                new TermFacetExtractor("manufacturer"),
+                new TermFacetExtractor("resolution"),
+                new TermFacetExtractor("similar", true),
+                new TermFacetExtractor("recommended", true)
+            });
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
@@ -197,14 +201,16 @@ namespace Examine.Test.Search
 
         [Test]
         public void Search_By_Facet_Filter()
-        {           
-            var config = new FacetConfiguration();
-            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
-            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
-            config.FacetExtractors.Add(new TermFacetExtractor("similar", true));
-            config.FacetExtractors.Add(new TermFacetExtractor("recommended", true));
+        {
+            var config = new FacetConfiguration(new[]
+            {
+                new TermFacetExtractor("manufacturer"),
+                new TermFacetExtractor("resolution"),
+                new TermFacetExtractor("similar", true),
+                new TermFacetExtractor("recommended", true)
+            });
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
@@ -268,11 +274,13 @@ namespace Examine.Test.Search
         [Test]
         public void Facet_Count_Is_Null_When_Disabled()
         {
-            var config = new FacetConfiguration();
-            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
-            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
+            var config = new FacetConfiguration(new[]
+            {
+                new TermFacetExtractor("manufacturer"),
+                new TermFacetExtractor("resolution")
+            });
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
@@ -308,11 +316,13 @@ namespace Examine.Test.Search
         [Test]
         public void Facet_Count_On_Result_Is_Null_When_Disabled()
         {
-            var config = new FacetConfiguration();
-            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
-            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
+            var config = new FacetConfiguration(new[]
+            {
+                new TermFacetExtractor("manufacturer"),
+                new TermFacetExtractor("resolution")
+            });
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
@@ -352,11 +362,13 @@ namespace Examine.Test.Search
             //TODO: I'm not sure about passing the facet config into the indexer on ctor? 
             // in theory shouldn't we be able to specify this config when we search?
 
-            var config = new FacetConfiguration();
-            config.FacetExtractors.Add(new TermFacetExtractor("manufacturer"));
-            config.FacetExtractors.Add(new TermFacetExtractor("resolution"));
+            var config = new FacetConfiguration(new[]
+            {
+                new TermFacetExtractor("manufacturer"),
+                new TermFacetExtractor("resolution")
+            });
 
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
@@ -386,15 +398,15 @@ namespace Examine.Test.Search
                 var results = searcher.Find(filter.Compile());
                 
                  //:: RESULT :: <em>hello</em> world
-                Assert.IsTrue(results.ElementAt(0).GetHighlight("description").Contains("<em>hello</em>"));
+                Assert.IsTrue(results.ElementAt(0).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
                 //:: RESULT :: <em>hello</em> something or other
-                Assert.IsTrue(results.ElementAt(1).GetHighlight("description").Contains("<em>hello</em>"));
+                Assert.IsTrue(results.ElementAt(1).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
                 //:: RESULT :: <em>hello</em> you guys
-                Assert.IsTrue(results.ElementAt(2).GetHighlight("description").Contains("<em>hello</em>"));
+                Assert.IsTrue(results.ElementAt(2).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
                 //:: RESULT :: <em>hello</em> you cruel world
-                Assert.IsTrue(results.ElementAt(3).GetHighlight("description").Contains("<em>hello</em>"));
+                Assert.IsTrue(results.ElementAt(3).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
                 //:: RESULT :: hi there, <em>hello</em> world
-                Assert.IsTrue(results.ElementAt(4).GetHighlight("description").Contains("<em>hello</em>"));
+                Assert.IsTrue(results.ElementAt(4).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
                 
                 DebutOutputResults(results);
             }

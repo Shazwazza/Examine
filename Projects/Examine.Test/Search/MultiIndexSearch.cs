@@ -28,7 +28,7 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Simple_Search()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
 
             using (var luceneDir1 = new RAMDirectory())
             using (var luceneDir2 = new RAMDirectory())
@@ -64,7 +64,7 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Field_Count()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_29);
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
 
             using (var luceneDir1 = new RAMDirectory())
             using (var luceneDir2 = new RAMDirectory())
