@@ -93,7 +93,7 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
             }
             finally
             {
-                terms.Close();
+                terms.Dispose();
             }
         }
 
@@ -172,8 +172,10 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
 
         public override IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader)
         {
-            //return new FastVectorHighlighterWrapper(query, this, searcher);
-            return new DefaultHighlighter(query, _analyzer, FieldName, searcher);
+            return new FastVectorHighlighterWrapper(query, this, searcher);
+            
+            //TODO: I cannot make this one work even though there is nothing special going on in it
+            //return new DefaultHighlighter(query, _analyzer, FieldName, searcher);
         }
     }
 }

@@ -86,7 +86,7 @@ namespace Examine.Web.Demo
                     new FieldDefinition("Column3", FieldDefinitionTypes.Raw),
                     new FieldDefinition("Column4", FieldDefinitionTypes.FacetPath),
                     new FieldDefinition("Column5", FieldDefinitionTypes.FullText),
-                    new FieldDefinition("Column6", FieldDefinitionTypes.AutoSuggest)
+                    new FieldDefinition("Column6", FieldDefinitionTypes.FullText)
                 },
                 new TableDirectReaderDataService(), 
                 new[] { "TestType" },

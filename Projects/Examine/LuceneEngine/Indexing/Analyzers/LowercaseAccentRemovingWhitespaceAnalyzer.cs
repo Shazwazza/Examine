@@ -17,8 +17,7 @@ namespace Examine.LuceneEngine.Indexing.Analyzers
             return new LowerCaseFilter(new Tokenizer(tr));
         }
 
-
-        public class Tokenizer : WhitespaceTokenizer
+        private class Tokenizer : WhitespaceTokenizer
         {
             public Tokenizer(TextReader tr)
                 : base(tr)

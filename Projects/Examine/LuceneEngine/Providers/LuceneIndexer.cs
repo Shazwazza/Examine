@@ -321,7 +321,8 @@ namespace Examine.LuceneEngine.Providers
                 {FieldDefinitionTypes.RawFacet.ToLowerInvariant(), name => new FacetType(name)},
                 {FieldDefinitionTypes.Facet.ToLowerInvariant(), name => new FacetType(name).SetSeparator(",")},
                 {FieldDefinitionTypes.FacetPath.ToLowerInvariant(), name => new FacetType(name, extractorFactory: () => new TermFacetPathExtractor(name)).SetSeparator(",")},
-                {FieldDefinitionTypes.AutoSuggest.ToLowerInvariant(), name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() }},
+                //TODO: What does this do? I'm disabling this for now
+                //{FieldDefinitionTypes.AutoSuggest.ToLowerInvariant(), name => new AutoSuggestType(name) { ValueFilter = new HtmlFilter() }},
                 {FieldDefinitionTypes.FullText.ToLowerInvariant(), name => new FullTextType(name) { ValueFilter = new HtmlFilter() }},
                 {FieldDefinitionTypes.FullTextSortable.ToLowerInvariant(), name => new FullTextType(name, true) { ValueFilter = new HtmlFilter() }}
             };
