@@ -7,11 +7,11 @@ namespace Examine.LuceneEngine.Faceting
 {
     public class FacetFilter : Filter
     {
-        private readonly Func<ICriteriaContext> _criteriaContext;
+        private readonly ICriteriaContext _criteriaContext;
         private readonly FacetKey _key;
 
         
-        public FacetFilter(Func<ICriteriaContext> criteriaContext, FacetKey key)
+        public FacetFilter(ICriteriaContext criteriaContext, FacetKey key)
         {
             _criteriaContext = criteriaContext;
             _key = key;
@@ -20,13 +20,13 @@ namespace Examine.LuceneEngine.Faceting
 
         public override DocIdSet GetDocIdSet(IndexReader reader)
         {
-            var context = _criteriaContext();
+            var context = _criteriaContext;
 
             var readerData = context.GetReaderData(reader);
 
             if (readerData != null)
             {                
-                if (context != null && context.FacetsLoader.FacetMap != null)
+                if (context.FacetsLoader.FacetMap != null)
                 {
                     var facet = context.FacetMap.GetIndex(_key);
                     if (facet > -1)

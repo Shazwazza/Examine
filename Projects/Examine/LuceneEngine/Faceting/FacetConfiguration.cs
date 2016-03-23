@@ -34,10 +34,7 @@ namespace Examine.LuceneEngine.Faceting
         /// <summary>
         /// Returns true if there are no defined facet extractors
         /// </summary>
-        public bool IsEmpty
-        {
-            get { return FacetExtractors.Count == 0; }
-        }
+        public bool IsEmpty => FacetExtractors.Count == 0;
 
         //TODO: Make this immutable or lock it after initialization since you cannot add more extractors after the index is 'warmed'
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Faceting;
@@ -107,8 +108,10 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
                     parsedVal = (T) converted;
                     return true;
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
+                    Trace.TraceError("An error occurred in {0}.{1} inputConverter.ConvertTo(val, typeof(T)) : {2}", nameof(IndexValueTypeBase), nameof(TryConvert), ex);
+
                     parsedVal = default(T);
                     return false;
                 }
@@ -123,8 +126,10 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
                     parsedVal = (T)converted;
                     return true;
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
+                    Trace.TraceError("An error occurred in {0}.{1} outputConverter.ConvertFrom(val) : {2}", nameof(IndexValueTypeBase), nameof(TryConvert), ex);
+
                     parsedVal = default(T);
                     return false;
                 }
@@ -136,8 +141,10 @@ namespace Examine.LuceneEngine.Indexing.ValueTypes
                 parsedVal = (T)casted;
                 return true;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
+                Trace.TraceError("An error occurred in {0}.{1} Convert.ChangeType(val, typeof(T)) : {2}", nameof(IndexValueTypeBase), nameof(TryConvert), ex);
+
                 parsedVal = default(T);
                 return false;
             }

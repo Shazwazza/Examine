@@ -12,24 +12,23 @@ namespace Examine.LuceneEngine.Scoring
 {
     public abstract class ReaderDataScoreQuery : CustomScoreQuery
     {
-        private readonly Func<ICriteriaContext> _contextResolver;
+        private readonly ICriteriaContext _context;
         protected ScoreOperation ScoreOperation { get; set; }
 
-        public ReaderDataScoreQuery(Query subQuery, Func<ICriteriaContext> contextResolver, ScoreOperation scoreOperation, ValueSourceQuery[] valSrcQueries)
+        public ReaderDataScoreQuery(Query subQuery, ICriteriaContext context, ScoreOperation scoreOperation, ValueSourceQuery[] valSrcQueries)
             : base(subQuery, valSrcQueries)
         {
-            if (contextResolver == null) throw new ArgumentNullException("contextResolver");
+            if (context == null) throw new ArgumentNullException("context");
             if (scoreOperation == null) throw new ArgumentNullException("scoreOperation");
 
-            _contextResolver = contextResolver;
+            _context = context;
             ScoreOperation = scoreOperation;
         }
 
 
         protected override CustomScoreProvider GetCustomScoreProvider(IndexReader reader)
         {
-            var context = _contextResolver();
-            return GetCustomScoreProvider(reader, context.GetReaderData(reader), ScoreOperation, context);
+            return GetCustomScoreProvider(reader, _context.GetReaderData(reader), ScoreOperation, _context);
         }
 
         protected abstract CustomScoreProvider GetCustomScoreProvider(IndexReader reader, ReaderData data, ScoreOperation scoreOperation, ICriteriaContext context);

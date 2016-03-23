@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -1019,8 +1020,9 @@ namespace Examine.LuceneEngine.Providers
             {
                 intId = Convert.ToInt32(valueSet.Id);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Trace.TraceError("An error occurred in {0}.{1} Convert.ToInt32(valueSet.Id) : {2}", nameof(LuceneIndexer), nameof(HandleLegacyFieldEvent), ex);
                 //if that cannot be converted we'll just skip it
                 return;
             }

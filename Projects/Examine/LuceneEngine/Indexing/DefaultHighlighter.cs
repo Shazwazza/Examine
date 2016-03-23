@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.Linq;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Highlight;
@@ -10,7 +11,7 @@ namespace Examine.LuceneEngine.Indexing
         private readonly Analyzer _analyzer;
         private readonly string _fieldName;
         private readonly Searcher _searcher;
-        private Highlighter _highlighter;
+        private readonly Highlighter _highlighter;
 
         public DefaultHighlighter(Query query, Analyzer analyzer, string fieldName, Searcher searcher)
         {
@@ -37,9 +38,10 @@ namespace Examine.LuceneEngine.Indexing
             {
                 return _highlighter.GetBestFragment(_analyzer, _fieldName, text);
             }
-            catch (InvalidTokenOffsetsException)
+            catch (InvalidTokenOffsetsException ex)
             {
-                //TODO: This seems like a bug, happens when there are strange chars
+                Trace.TraceError("An error occurred in {0}.{1} _highlighter.GetBestFragment: {2}", nameof(DefaultHighlighter), nameof(Highlight), ex);
+
                 return string.Empty;
             } 
         }

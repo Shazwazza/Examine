@@ -42,11 +42,11 @@
 <h5>Search Simple2Indexer with Facets</h5>
 @using (Html.BeginForm("SearchFacets", "Home", FormMethod.Get))
 {
-    <label>q</label><input type="text" name="q" value="test"/>
-    <label>count</label><input type="number" name="count"/>
-    <label>countFacets</label><input type="number" name="countFacets" value="1"/>
-    <label>facetFilter</label><input type="number" name="facetFilter" value="1"/>
-    <label>all</label><input type="number" name="all" value="0"/>
+    <label>q</label><input type="text" name="q" value="Kühnel"/>
+    <label>count</label><input type="number" name="count" value="100"/>
+    <label>countFacets</label><input type="text" name="countFacets" value="true"/>
+    <label>facetFilter</label><input type="text" name="facetFilter" value="false"/>
+    <label>all</label><input type="text" name="all" value="false"/>
     <label>likeWeight</label><input type="number" name="likeWeight" value="0" />
     <button type="submit">Search</button>
 }

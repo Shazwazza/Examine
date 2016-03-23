@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security;
+using Examine.LuceneEngine.Indexing.ValueTypes;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
@@ -105,7 +107,8 @@ namespace Examine.LuceneEngine
                         }
                         catch (IOException ex)
                         {
-                            //TODO: Return some info?
+                            Trace.TraceError("An error occurred in {0}.{1} : {2}", nameof(LuceneIndexCopy), nameof(Copy), ex);
+                            
                             //quit here
                             return false;
                         }

@@ -15,8 +15,8 @@ namespace Examine.LuceneEngine.Scoring
     {
         private readonly Func<TData, float> _scorer;
 
-        public ExternalDataScoreQuery(Query subQuery, Func<ICriteriaContext> contextResolver, ScoreOperation scoreOperation, Func<TData, float> scorer) 
-            : base(subQuery, contextResolver, scoreOperation, null)
+        public ExternalDataScoreQuery(Query subQuery, ICriteriaContext context, ScoreOperation scoreOperation, Func<TData, float> scorer) 
+            : base(subQuery, context, scoreOperation, null)
         {
             _scorer = scorer;
         }

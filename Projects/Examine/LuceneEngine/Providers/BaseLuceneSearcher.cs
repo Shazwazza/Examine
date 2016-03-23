@@ -104,14 +104,12 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
         public abstract Searcher GetSearcher();
-
         
         /// <summary>
         /// Gets the CriteriaContext
         /// </summary>
         /// <returns></returns>
-        public abstract ICriteriaContext GetCriteriaContext();        
-    
+        public abstract ICriteriaContext GetCriteriaContext();
 
         /// <summary>
         /// Simple search method which defaults to searching content nodes
@@ -124,6 +122,7 @@ namespace Examine.LuceneEngine.Providers
         /// in a wild card search too.
         /// </remarks>
         [Obsolete("Use the Find method instead for strongly typed search results")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
             var result = Find(searchText, useWildcards);
@@ -153,6 +152,7 @@ namespace Examine.LuceneEngine.Providers
         /// Performs a search with a standard result
         /// </summary>        
         [Obsolete("Use the Find method instead for strongly typed search results")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
             var pagesResults = Find(searchParams);
@@ -160,6 +160,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [Obsolete("Use the Find method with MaxCount instead for strongly typed search results")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public ISearchResults Search(ISearchCriteria searchParams, int maxResults)
         {
             var pagesResults = Find(searchParams.MaxCount(maxResults));
@@ -184,7 +185,7 @@ namespace Examine.LuceneEngine.Providers
             if (luceneParams == null)
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
-            luceneParams.CriteriaContext = GetCriteriaContext();
+            //luceneParams.CriteriaContext = GetCriteriaContext();
 
             luceneParams.SearchOptions.MaxCount = searchParams.MaxResults;
 
@@ -275,7 +276,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (type == null) type = string.Empty;
 
-            return new LuceneSearchCriteria(this, type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
+            return new LuceneSearchCriteria(this, type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation, GetCriteriaContext());
         }
 
 

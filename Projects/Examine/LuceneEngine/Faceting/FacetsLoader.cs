@@ -31,15 +31,7 @@ namespace Examine.LuceneEngine.Faceting
         /// <summary>
         /// Returns the FacetMap associated with this instance
         /// </summary>
-        public FacetMap FacetMap
-        {
-            get
-            {
-                return (Configuration != null && !Configuration.IsEmpty)
-                    ? Configuration.FacetMap 
-                    : null;
-            }
-        }        
+        public FacetMap FacetMap => Configuration.FacetMap;
 
         /// <summary>
         /// Gets the reader data

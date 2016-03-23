@@ -14,8 +14,8 @@ namespace Examine.LuceneEngine.Scoring
     {
         private readonly FacetCounts _counts;
 
-        public FacetReferenceCountScorer(Query subQuery, Func<ICriteriaContext> contextResolver, ScoreOperation op, FacetCounts counts)
-            : base(subQuery, contextResolver, op, null)
+        public FacetReferenceCountScorer(Query subQuery, ICriteriaContext context, ScoreOperation op, FacetCounts counts)
+            : base(subQuery, context, op, null)
         {
             _counts = counts;
         }

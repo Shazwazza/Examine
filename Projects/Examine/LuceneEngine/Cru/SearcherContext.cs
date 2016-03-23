@@ -79,8 +79,8 @@ namespace Examine.LuceneEngine.Cru
         /// <param name="facetConfiguration"></param>
         public SearcherContext(Directory dir, Analyzer defaultAnalyzer,
                         TimeSpan targetMinStale, TimeSpan targetMaxStale,
-                        TimeSpan commitInterval, TimeSpan optimizeInterval
-                        , FacetConfiguration facetConfiguration = null)
+                        TimeSpan commitInterval, TimeSpan optimizeInterval, 
+                        FacetConfiguration facetConfiguration = null)
         {
             Directory = dir;
             Analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer);

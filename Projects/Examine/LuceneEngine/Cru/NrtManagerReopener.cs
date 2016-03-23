@@ -69,8 +69,10 @@ namespace Examine.LuceneEngine.Cru
                         {
                             _waitHandle.Wait(new TimeSpan(sleep));
                         }
-                        catch (ThreadInterruptedException)
+                        catch (ThreadInterruptedException ex)
                         {
+                            Trace.TraceError("An error occurred in {0}.{1} _waitHandle.Wait: {2}", nameof(NrtManagerReopener), nameof(Start), ex);
+
                             Thread.CurrentThread.Interrupt();
                             //System.out.println("NRT: set finish on interrupt");
                             _finish = true;

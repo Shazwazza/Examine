@@ -14,8 +14,7 @@ namespace Examine.LuceneEngine.Indexing.Analyzers
         public override TokenStream TokenStream(string fieldName, TextReader tr)
         {
             tr = new StringReader(RemoveAccents(tr.ReadToEnd()));
-            return new LowerCaseFilter(
-                new Tokenizer(tr));
+            return new LowerCaseFilter(new Tokenizer(tr));
         }
 
 

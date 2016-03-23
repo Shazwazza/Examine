@@ -146,22 +146,24 @@ namespace Examine.Web.Demo.Controllers
                     criteria.Facets(new FacetKey("Column1_Facet", q))
                         .Compile()
                         //Here, zero means that we don't case about Lucene's score. We only want to know how well the results compare to the facets
-                        .WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1))
+                        .WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1));
 
-                        //Score by the like count we have in the external in-memory data.
-                        //The value is normalized. Here we know that we can't have more than 1000 likes. 
-                        //Generally be careful about the scale of the scores you combine. 
-                        //If you compare large numbers to small numbers use a logarithmic transform on the large one (e.g. comparing likes to number of comments)
-                        .WrapExternalDataScore<TestExternalData>(new ScoreAdder(1 - likeWeight), d => d.Likes / 1000f); 
+                        //TODO: Determine if this is working as it should, I think Niels K said it might not be, can't remember
+                        ////Score by the like count we have in the external in-memory data.
+                        ////The value is normalized. Here we know that we can't have more than 1000 likes. 
+                        ////Generally be careful about the scale of the scores you combine. 
+                        ////If you compare large numbers to small numbers use a logarithmic transform on the large one (e.g. comparing likes to number of comments)
+                        //.WrapExternalDataScore<TestExternalData>(new ScoreAdder(1 - likeWeight), d => d.Likes / 1000f); 
                 }
                 else
                 {
                     //Add column1 filter as normal field query
                     //criteria.Field("Column1", q);
-                    criteria.ManagedQuery(q, fields: new[]{"Column5", "Column6"})
+                    criteria.ManagedQuery(q, fields: new[] {"Column5", "Column6"})
                         //.Or().Field("Column6", "test")
-                        .Compile()
-                        .WrapExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes / 1000f); 
+                        .Compile();
+                        //TODO: Determine if this is working as it should, I think Niels K said it might not be, can't remember
+                        //.WrapExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes / 1000f); 
                 }
             }
             
@@ -169,8 +171,6 @@ namespace Examine.Web.Demo.Controllers
             var searchResults = searcher.Find(criteria);
 
             return View(searchResults);
-
-            sb.Append("Total hits: " + searchResults.TotalItemCount + "\r\n");
             
             //Show the results (limited by criteria.MaxCount(...) or SearchOptions.Default.MaxCount)
             foreach (var res in searchResults)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Examine.LuceneEngine.Cru
@@ -21,6 +22,7 @@ namespace Examine.LuceneEngine.Cru
                 }
                 catch (Exception ex)
                 {
+                    Trace.TraceError("An error occurred in {0}.{1}: {2}", nameof(DisposeUtil), nameof(PostponeExceptions), ex);
                     firstException = firstException ?? ex;
                 }
             }

@@ -13,8 +13,8 @@ namespace Examine.LuceneEngine.Scoring
     {
         private readonly IFacetLevel[] _levels;
 
-        public FacetLevelScoreQuery(Query subQuery, Func<ICriteriaContext> contextResolver, ScoreOperation op, params IFacetLevel[] levels)
-            : base(subQuery, contextResolver, op, null)
+        public FacetLevelScoreQuery(Query subQuery, ICriteriaContext context, ScoreOperation op, params IFacetLevel[] levels)
+            : base(subQuery, context, op, null)
         {
             _levels = levels ?? new IFacetLevel[0];
         }

@@ -8,23 +8,44 @@
     @foreach (var result in Model)
     {
         <li>
-            Id: @result.LongId<br/>
-            Score: @result.Score<br/>
+            Id: @result.LongId<br />
+            Score: @result.Score<br />
             <ul>
                 <li><strong>Id</strong>&nbsp;=&nbsp;<em>@result.LongId</em></li>
-                <li><strong>Column5</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column5")</em></li>
-                <li><strong>Column6</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column6")</em></li>
-                <li>
-                    <strong>Facets</strong>
-                    <ul>
-                        @foreach (var fac in result.Facets)
-                        {
-                            <li><strong>@fac.FacetId</strong>&nbsp;=&nbsp;<em>@fac.Level.ToString("N2")</em></li>
-                        }
-                    </ul>
-                </li>                
+                @foreach (var field in result.Fields)
+                {
+                    <li>
+                        <strong>@field.Key</strong>&nbsp;=&nbsp;<em>@field.Value</em>
+                    </li>
+                }
+                <li><strong>Column5 Highlight</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column5")</em></li>
+                <li><strong>Column6 Highlight</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column6")</em></li>
+                @if (result.Facets != null && result.Facets.Length > 0)
+                {
+                    <li>
+                        <strong>Facets</strong>
+                        <ul>
+                            @foreach (var fac in result.Facets)
+                            {
+                                <li><strong>@fac.FacetId</strong>&nbsp;=&nbsp;<em>@fac.Level.ToString("N2")</em></li>
+                            }
+                        </ul>
+                    </li>
+                }
+                @if (result.FacetCounts != null && result.FacetCounts.Length > 0)
+                {
+                    <li>
+                        <strong>Facet Counts</strong>
+                        <ul>
+                            @foreach (var fc in result.FacetCounts)
+                            {
+                                <li><strong>@fc.FieldName</strong>&nbsp;=&nbsp;<em>@fc.Count</em></li>
+                            }
+                        </ul>
+                    </li>
+                }
             </ul>
-            
+
         </li>
     }
 </ul>

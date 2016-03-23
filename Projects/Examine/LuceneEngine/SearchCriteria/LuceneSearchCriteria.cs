@@ -29,13 +29,13 @@ namespace Examine.LuceneEngine.SearchCriteria
     public class LuceneSearchCriteria : ISearchCriteria<LuceneBooleanOperation, LuceneSearchCriteria, LuceneSearchCriteria>
     {
         internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
-        private CustomMultiFieldQueryParser QueryParser;
+        private readonly CustomMultiFieldQueryParser _queryParser;
 
         internal Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
         internal BooleanQuery Query { get { return Queries.Peek(); } }
         internal List<SortField> SortFields = new List<SortField>();
 
-        internal ICriteriaContext CriteriaContext;
+        public ICriteriaContext CriteriaContext { get; private set; }
 
         /// <summary>
         /// Used to inject the lucene searcher for facet filters etc. Set the value by SearcherContext.
@@ -56,21 +56,22 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </value>
         public BaseLuceneSearcher Searcher { get; set; }
         
-        internal LuceneSearchCriteria(BaseLuceneSearcher searcher, string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurrence)
+        internal LuceneSearchCriteria(
+            BaseLuceneSearcher searcher, string type, 
+            Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurrence,
+            ICriteriaContext criteriaContext)
         {
             Enforcer.ArgumentNotNull(fields, "fields");
-
-            //This is how the lucene searcher is injected into filters.
-            LateBoundSearcherContext = () => CriteriaContext;
 
             SearchOptions = new SearchOptions();
 
             SearchIndexType = type;
             Queries.Push(new BooleanQuery());
             this.BooleanOperation = occurrence;
+            CriteriaContext = criteriaContext;
             Searcher = searcher;
-            this.QueryParser = new CustomMultiFieldQueryParser(_luceneVersion, fields, analyzer);
-            this.QueryParser.AllowLeadingWildcard = allowLeadingWildcards;
+            this._queryParser = new CustomMultiFieldQueryParser(_luceneVersion, fields, analyzer);
+            this._queryParser.AllowLeadingWildcard = allowLeadingWildcards;
         }
 
         ///// <summary>
@@ -531,7 +532,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         public LuceneSearchCriteria RawQuery(string query)
         {
-            this.Query.Add(this.QueryParser.Parse(query), this._occurrence);
+            this.Query.Add(this._queryParser.Parse(query), this._occurrence);
             return this;
         }
 
@@ -614,7 +615,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 foreach (var key in keys)
                 {
-                    this.Query.Add(new ConstantScoreQuery(new FacetFilter(this.LateBoundSearcherContext, key)), this.BooleanOperation.ToLuceneOccurrence());
+                    this.Query.Add(new ConstantScoreQuery(new FacetFilter(CriteriaContext, key)), this.BooleanOperation.ToLuceneOccurrence());
                 }
             }
             return new LuceneBooleanOperation(this);
@@ -622,7 +623,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public LuceneSearchCriteria WrapRelevanceScore(ScoreOperation op, params IFacetLevel[] levels)
         {
-            this.WrapScoreQuery(q => new FacetLevelScoreQuery(q, this.LateBoundSearcherContext, op, levels));
+            this.WrapScoreQuery(q => new FacetLevelScoreQuery(q, CriteriaContext, op, levels));
 
             return this;
         }
@@ -630,7 +631,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public LuceneSearchCriteria WrapExternalDataScore<TData>(ScoreOperation op, Func<TData, float> scorer)
             where TData : class
         {
-            this.WrapScoreQuery(q => new ExternalDataScoreQuery<TData>(q, this.LateBoundSearcherContext, op, scorer));
+            this.WrapScoreQuery(q => new ExternalDataScoreQuery<TData>(q, CriteriaContext, op, scorer));
 
             return this;
         }
@@ -938,7 +939,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal protected LuceneBooleanOperation IdInternal(int id, Occur occurrence)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this.QueryParser.GetFieldQueryInternal(LuceneIndexer.IndexNodeIdFieldName, id.ToString(CultureInfo.InvariantCulture)), occurrence);
+            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndexer.IndexNodeIdFieldName, id.ToString(CultureInfo.InvariantCulture)), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
@@ -959,7 +960,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.Fuzzy:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFuzzyQueryInternal(fieldName, fieldValue.Value, fieldValue.Level);
+                        queryToAdd = this._queryParser.GetFuzzyQueryInternal(fieldName, fieldValue.Value, fieldValue.Level);
                     }
                     else
                     {
@@ -972,7 +973,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.ComplexWildcard:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetWildcardQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = this._queryParser.GetWildcardQueryInternal(fieldName, fieldValue.Value);
                     }
                     else
                     {
@@ -985,7 +986,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.Boosted:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = this._queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
                         queryToAdd.Boost = fieldValue.Level;
                     }
                     else
@@ -1012,7 +1013,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                     var qry = fieldName + ":\"" + fieldValue.Value + "\"~" + Convert.ToInt32(fieldValue.Level);
                     if (useQueryParser)
                     {
-                        queryToAdd = QueryParser.Parse(qry);
+                        queryToAdd = _queryParser.Parse(qry);
                     }
                     else
                     {
@@ -1035,7 +1036,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 default:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = this._queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
                     }
                     else
                     {
