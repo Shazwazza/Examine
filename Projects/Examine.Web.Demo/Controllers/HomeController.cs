@@ -119,7 +119,13 @@ namespace Examine.Web.Demo.Controllers
         }
 
         [HttpGet]
-        public ActionResult SearchFacets(string q = null, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false, double likeWeight = 0)
+        public ActionResult SearchFacets(
+            string q = null, int count = 10, 
+            bool countFacets = true, 
+            bool facetFilter = true, string facetFilterField = "Column1_Facet",
+            bool all = false, 
+            //TODO: Not used right now
+            double likeWeight = 0)
         {
             var model = new FacetSearchModel();
 
@@ -144,7 +150,7 @@ namespace Examine.Web.Demo.Controllers
                 {
                     //Add column1 filter as facet filter
                     criteria
-                        .Facets(new FacetKey("Column1_Facet", q))                        
+                        .Facets(new FacetKey(facetFilterField, q))
                         .Compile();
                         //Here, zero means that we don't case about Lucene's score. We only want to know how well the results compare to the facets
                         //.WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1));

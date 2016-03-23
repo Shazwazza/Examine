@@ -52,11 +52,29 @@
 
 @if (Model.CountFacets)
 {
-    <h3>Facet Counts</h3>
+    <h3>Top 10 Facet Counts</h3>
     <ul>
         @foreach (var res in Model.SearchResult.FacetCounts.GetTopFacets(10))
         {
-            <li><strong>@res.Key.FieldName</strong>&nbsp;:&nbsp;<span>@res.Key.Value</span>&nbsp;count=&nbsp;<em>@res.Count</em></li>
+            <li>
+                @using (Html.BeginForm("SearchFacets", "Home", FormMethod.Get))
+                {
+                    <button type="submit" class="link">
+                        <strong>@res.Key.FieldName</strong>
+                    </button>
+                    <span>&nbsp;:&nbsp;</span>
+                    <span>@res.Key.Value</span>
+                    <span>&nbsp; count = &nbsp;</span>
+                    <em>@res.Count</em>
+
+                    <input type="hidden" name="q" value="@res.Key.Value" />
+                    <input type="hidden" name="count" value="@Request.QueryString["count"]" />
+                    <input type="hidden" name="countFacets" value="@Request.QueryString["countFacets"]" />
+                    <input type="hidden" name="facetFilter" value="true"/>
+                    <input type="hidden" name="facetFilterField" value="@res.Key.FieldName" />
+                    <input type="hidden" name="all" value="false" />
+                }
+            </li>
         }
     </ul>
 }
