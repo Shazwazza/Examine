@@ -1,11 +1,11 @@
-﻿@model Examine.LuceneEngine.ILuceneSearchResults
+﻿@model Examine.Web.Demo.Models.FacetSearchModel
 
 <h2>Search results</h2>
 
-<h5>TOTAL: @Model.TotalItemCount</h5>
+<h5>TOTAL: @Model.SearchResult.TotalItemCount</h5>
 
 <ul>
-    @foreach (var result in Model)
+    @foreach (var result in Model.SearchResult)
     {
         <li>
             Id: @result.LongId<br />
@@ -49,3 +49,39 @@
         </li>
     }
 </ul>
+
+@if (Model.CountFacets)
+{
+    <h3>Facet Counts</h3>
+    <ul>
+        @foreach (var res in Model.SearchResult.FacetCounts.GetTopFacets(10))
+        {
+            <li><strong>@res.Key.FieldName</strong>&nbsp;:&nbsp;<span>@res.Key.Value</span>&nbsp;count=&nbsp;<em>@res.Count</em></li>
+        }
+    </ul>
+}
+
+@if (Model.FacetMap != null)
+{
+    <h3>Field names</h3>
+    <ul>
+        @foreach (var f in Model.FacetMap.FieldNames)
+        {
+            <li>
+                <strong>@f</strong>
+                @foreach (var val in Model.FacetMap.GetByFieldNames(f))
+                {
+                    <br/>
+                    <span>@val.Key</span><span>&nbsp;=&nbsp;</span><em>@val.Value</em>
+                }
+            </li>
+        }
+    </ul>
+}
+
+<hr/>
+
+@{
+    Model.Watch.Stop();
+}
+<div>@string.Format("Elapsed {0:N2} ms.", Model.Watch.Elapsed.TotalMilliseconds)</div>

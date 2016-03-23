@@ -121,6 +121,8 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult SearchFacets(string q = null, int count = 10, bool countFacets = true, bool facetFilter = true, bool all = false, double likeWeight = 0)
         {
+            var model = new FacetSearchModel();
+
             var sw = new Stopwatch();
             sw.Start();
             var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
@@ -170,80 +172,13 @@ namespace Examine.Web.Demo.Controllers
             //Get search results
             var searchResults = searcher.Find(criteria);
 
-            return View(searchResults);
+            model.SearchResult = searchResults;
+            model.CountFacets = countFacets;
+            model.Watch = sw;
+            model.FacetMap = searchResults.CriteriaContext.FacetMap;
             
-            //Show the results (limited by criteria.MaxCount(...) or SearchOptions.Default.MaxCount)
-            foreach (var res in searchResults)
-            {
-                sb.AppendLine();
-                sb.AppendLine("ID: " + res.LongId);
-                sb.AppendLine(res.GetHighlight("Column5"));
-                sb.AppendLine(res.GetHighlight("Column6"));
-                sb.Append("   Facets: ");
-                sb.AppendLine(string.Join(", ", res.Facets.Select(l => l.FacetId + ":" + l.Level.ToString("N2"))));
-                sb.AppendLine("   Likes: " + ((TestExternalData) TestExternalDataProvider.Instance.GetData(res.LongId)).Likes);
+            return View(model);
 
-                if (res.FacetCounts != null)
-                {
-                    foreach (var fc in res.FacetCounts)
-                    {
-                        sb.AppendLine(fc.FieldName + ": " + fc.Count);
-                    }
-                }
-            }
-
-            sw.Stop();
-
-            var map = searchResults.CriteriaContext.FacetMap;
-
-            if (countFacets) //If false FacetCounts is null
-            {
-                TextWriter output;
-                //Iterate all facets and show their key and count.
-                foreach (var res in searchResults.FacetCounts.GetTopFacets(10))
-                {
-                    sb.Append(res.Key.FieldName + ":" + res.Key.Value + ", count = " + res.Count + ", ");                    
-                }
-            }
-
-
-
-
-            //var ls = (LuceneSearcher) searcher;
-            //var ctx = ls.GetSearcherContext();
-            //var map = ctx.Searcher.FacetConfiguration.FacetMap;
-            //foreach( var f in ctx.Searcher.FacetConfiguration.FacetMap.Keys)
-            //{
-            //    sb.Append(f.ToString() + ": " + map.GetIndex(f) + "\r\n");
-            //}
-
-            //foreach( var d in ctx.ReaderData)
-            //{
-            //    sb.Append(d.Value.FacetLevels.Length + "\r\n");
-            //}
-
-
-            
-
-            sb.AppendFormat("Elapsed {0:N2} ms.", sw.Elapsed.TotalMilliseconds);
-
-
-            if (map != null)
-            {
-                sb.Append("\r\n\r\nField names:\r\n");
-                foreach (var f in map.FieldNames)
-                {
-                    sb.Append(f);
-
-                    foreach (var val in map.GetByFieldNames(f))
-                    {
-                        sb.Append(val.Value + ",  ");
-                    }
-
-                    sb.Append("\r\n\r\n");
-                }
-            }
-            return Content(sb.ToString(), "text/plain");
         }
 
         [HttpPost]
