@@ -207,7 +207,6 @@
     <Compile Include="OrmReaderDataService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\Database1.sdf" />
     <Content Include="EFCodeFirstReadMe.txt" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
@@ -266,6 +265,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="_bin_deployableAssemblies\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>

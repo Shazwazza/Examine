@@ -51,8 +51,8 @@ namespace Examine.LuceneEngine.Faceting
             }
             finally
             {
-                terms.Close();
-                tp.Close();
+                terms.Dispose();
+                tp.Dispose();
             }
         }
 

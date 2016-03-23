@@ -18,12 +18,12 @@
                         <strong>@field.Key</strong>&nbsp;=&nbsp;<em>@field.Value</em>
                     </li>
                 }
-                <li><strong>Column5 Highlight</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column5")</em></li>
-                <li><strong>Column6 Highlight</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column6")</em></li>
+                <li><strong style="color: orange;">Column5 Highlight</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column5")</em></li>
+                <li><strong style="color: orange;">Column6 Highlight</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column6")</em></li>
                 @if (result.Facets != null && result.Facets.Length > 0)
                 {
                     <li>
-                        <strong>Facets</strong>
+                        <strong style="color: blue;">Facets</strong>
                         <ul>
                             @foreach (var fac in result.Facets)
                             {
@@ -35,7 +35,7 @@
                 @if (result.FacetCounts != null && result.FacetCounts.Length > 0)
                 {
                     <li>
-                        <strong>Facet Counts</strong>
+                        <strong style="color: green;">Facet Counts</strong>
                         <ul>
                             @foreach (var fc in result.FacetCounts)
                             {

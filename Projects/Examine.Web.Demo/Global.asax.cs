@@ -75,7 +75,6 @@ namespace Examine.Web.Demo
                 new[] {"Type1", "Type2"}, 
                 new DirectoryInfo(Context.Server.MapPath("~/App_Data/{machinename}/RuntimeIndex1")),
                 new StandardAnalyzer(Version.LUCENE_30));
-            
             ExamineManager.Instance.AddIndexProvider("RuntimeIndexer1", customIndexer);
 
             var sqlIndexer = new ValueSetIndexer(
@@ -92,8 +91,16 @@ namespace Examine.Web.Demo
                 new TableDirectReaderDataService(), 
                 new[] { "TestType" },
                 new DirectoryInfo(Context.Server.MapPath("~/App_Data/{machinename}/SimpleIndexSet2")),
-                new StandardAnalyzer(Version.LUCENE_30));
-
+                new StandardAnalyzer(Version.LUCENE_30),
+                //NOTE: IF we omit this, it will try to setu pthe facet config based on the field value types above,
+                // but we want to setup some reference types
+                new FacetConfiguration(new []
+                {
+                    new TermFacetExtractor("Column1_Facet"),
+                    new TermFacetExtractor("Column2", true),
+                    new TermFacetPathExtractor("Column4"),
+                }));
+            
             ExamineManager.Instance.AddIndexProvider("Simple2Indexer", sqlIndexer);
 
             //This is how to create a config from code if you had indexes declared in with configuration.

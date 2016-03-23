@@ -74,7 +74,7 @@ namespace Examine.Web.Demo.Controllers
                                     }
 
                                     rec.SetString(1, "a" + r.Next(0, 10));
-                                    rec.SetString(2, "b" + r.Next(0, 100));
+                                    rec.SetString(2, r.Next(1000, 1200).ToString());
                                     rec.SetString(3, "c" + i);
                                     rec.SetString(4, string.Join("/", path));
                                     rec.SetString(5, LipsumGenerator.GenerateHtml(r.Next(1, 5)));
@@ -126,9 +126,7 @@ namespace Examine.Web.Demo.Controllers
             var sw = new Stopwatch();
             sw.Start();
             var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
-
-            //This is for text/plain output
-            var sb = new StringBuilder();
+            
             
             //Create a basic criteria with the options from the query string
             var criteria = searcher.CreateCriteria()
@@ -145,10 +143,11 @@ namespace Examine.Web.Demo.Controllers
                 if (facetFilter)
                 {
                     //Add column1 filter as facet filter
-                    criteria.Facets(new FacetKey("Column1_Facet", q))
-                        .Compile()
+                    criteria
+                        .Facets(new FacetKey("Column1_Facet", q))                        
+                        .Compile();
                         //Here, zero means that we don't case about Lucene's score. We only want to know how well the results compare to the facets
-                        .WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1));
+                        //.WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1));
 
                         //TODO: Determine if this is working as it should, I think Niels K said it might not be, can't remember
                         ////Score by the like count we have in the external in-memory data.
