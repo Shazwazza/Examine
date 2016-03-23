@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -19,6 +20,8 @@ namespace Examine.LuceneEngine.Cru
         {
             _warmer = warmer;
             _currentSearcher = new IndexSearcher(writer.GetReader());
+
+            Trace.WriteLine("SearcherManager created IndexSearcher");
             if (_warmer != null)
             {
                 writer.MergedSegmentWarmer = new WarmerWrapper(_warmer);

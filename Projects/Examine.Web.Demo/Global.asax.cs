@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -14,6 +15,7 @@ using Examine.Session;
 using Examine.Web.Demo.Models;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
+using Serilog;
 using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Web.Demo
@@ -42,6 +44,18 @@ namespace Examine.Web.Demo
         
         protected void Application_Start()
         {
+            var log = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.ColoredConsole()
+                .WriteTo.RollingFile(Context.Server.MapPath("~/App_Data/Logs/") + "Log-{Date}.txt")
+                .CreateLogger();
+
+            var traceListener = new SerilogTraceListener.SerilogTraceListener(log);
+            Trace.Listeners.Add(traceListener);
+
+            log.Debug("Application Starting (serilog)");
+            Trace.WriteLine("Application Starting");
+
             AreaRegistration.RegisterAllAreas();
 
             RegisterGlobalFilters(GlobalFilters.Filters);
@@ -128,21 +142,10 @@ namespace Examine.Web.Demo
             ////    };
         }
 
-        //a-HA! These are wired automatically from Examine.
-        //protected void Application_EndRequest(object sender, EventArgs e)
-        //{
-        //    if (ExamineManager.InstanceInitialized)
-        //    {
-        //        ExamineManager.Instance.EndRequest();
-        //    }
-        //}
 
-        //protected void Application_End()
-        //{
-        //    if (ExamineManager.InstanceInitialized)
-        //    {
-        //        ExamineManager.Instance.Dispose();
-        //    }
-        //}
+        protected void Application_End()
+        {
+            Trace.WriteLine("Application Ended");
+        }
     }
 }

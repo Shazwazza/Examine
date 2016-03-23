@@ -1250,14 +1250,7 @@ namespace Examine.LuceneEngine.Providers
             }
             return _directory;
         }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Do not use this method, though it will return an IndexWriter, it should never be used directly with the new NrtManager")]
-        public virtual IndexWriter GetIndexWriter()
-        {
-            return SearcherContext.GetWriter();
-        }
-
+        
         #endregion
 
         #region Private

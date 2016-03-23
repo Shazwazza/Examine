@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
@@ -258,6 +259,9 @@ namespace Examine.LuceneEngine.Cru
         public void Dispose()
         {
             if (_disposed) return;
+
+            Trace.WriteLine("NrtManager.Dispose");
+
             _disposed = true;
             lock (_reopenLock)
             {

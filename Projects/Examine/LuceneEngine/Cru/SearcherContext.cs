@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Examine.LuceneEngine.Faceting;
@@ -39,19 +40,14 @@ namespace Examine.LuceneEngine.Cru
         public FacetsLoader FacetsLoader { get; private set; }
 
         private readonly IndexWriter _writer;
-
-        /// <summary>
-        /// This should never be used, it is exposed purely for legacy purposes
-        /// </summary>
-        /// <returns></returns>
-        [Obsolete("Marked obsolete because it should never be used, it is exposed purely for legacy purposes")]
-        internal IndexWriter GetWriter()
-        {
-            return _writer;
-        }
-
+        
         private readonly NrtManagerReopener _reopener;
         internal Committer Committer { get; private set; }
+        
+        /// <summary>
+        /// Used for debugging purposes
+        /// </summary>
+        internal Guid SearcherContextId { get; } = Guid.NewGuid();
 
         private readonly List<Thread> _threads = new List<Thread>();
 
@@ -105,9 +101,12 @@ namespace Examine.LuceneEngine.Cru
             }
 
             foreach (var t in _threads)
-            {
+            {                
                 t.Start();
+                Trace.WriteLine($"thread {t.ManagedThreadId} Started");
             }
+
+            Trace.WriteLine($"SearcherContext {SearcherContextId} Created");
         }
 
         internal Func<string, IIndexValueType> DefaultValueTypeFactory = name => new FullTextType(name);
@@ -169,8 +168,10 @@ namespace Examine.LuceneEngine.Cru
         {
             if (_disposed) return;
             _disposed = true;
-            
+
             //TODO: Should dispose the Lucene Directory ?
+
+            Trace.WriteLine($"SearcherContext {SearcherContextId} Dispose");
 
             var disposeActions = new List<Action>
                 {
@@ -178,10 +179,18 @@ namespace Examine.LuceneEngine.Cru
                     _reopener.Dispose,
                     Committer.Dispose,
                     Manager.Dispose,
-                    () => _writer.Close(true)
+                    () =>
+                    {
+                        Trace.WriteLine("_writer.Dispose");
+                        _writer.Dispose(true);
+                    }
                 };
 
-            disposeActions.AddRange(_threads.Select(t => (Action)t.Join));
+            disposeActions.AddRange(_threads.Select(t =>
+            {                
+                Trace.WriteLine($"thread {t.ManagedThreadId} Dispose");
+                return (Action) t.Join;
+            }));
 
             DisposeUtil.PostponeExceptions(disposeActions.ToArray());
         }

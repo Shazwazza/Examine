@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration.Provider;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Web.Configuration;
@@ -372,6 +373,7 @@ namespace Examine
             {
                 if (disposing)
                 {
+                    Trace.WriteLine("ExamineManager.Dispose");
                     SearcherContextCollection.Instance.Dispose();
                 }
 
