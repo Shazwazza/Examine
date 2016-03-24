@@ -95,6 +95,7 @@ namespace Examine.Web.Demo.Controllers
                     criteria
                         .Facets(new FacetKey(field, q))
                         .Compile();
+                        //TODO: I think we need to score like this for facet filter/search    
                         //Here, zero means that we don't case about Lucene's score. We only want to know how well the results compare to the facets
                         //.WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1));
 
