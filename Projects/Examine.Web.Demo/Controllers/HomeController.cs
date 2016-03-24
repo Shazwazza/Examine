@@ -140,7 +140,17 @@ namespace Examine.Web.Demo.Controllers
                 index.RebuildIndex();
                 timer.Stop();
             }
-            return View(timer.Elapsed.TotalSeconds);
+
+            ExamineSession.WaitForChanges();
+
+            var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
+            var result = searcher.Find(searcher.CreateCriteria().All().Compile());
+
+            return View(new RebuildModel
+            {
+                TotalIndexed = result.TotalItemCount,
+                TotalSeconds = timer.Elapsed.TotalSeconds
+            });
         }
 
         [HttpPost]

@@ -10,8 +10,8 @@ namespace Examine.Web.Demo.Models
     
     public class BogusIndexDataService : IValueSetService
     {
-        public static string[] IndexCategories = new[] {"SLR", "DSLR", "Compact"};
-
+        public static string[] IndexCategories = new[] { "SLR", "DSLR", "Compact" };
+     
         public static IDisposable PrefetchData(string[] categories)
         {
             Prefetch.Build(categories);
@@ -26,7 +26,7 @@ namespace Examine.Web.Demo.Models
             {   
                 var dataService = new BogusIndexDataService();
                 DataSet = categories
-                    .Select(x => new KeyValuePair<string, ValueSet[]>(x, dataService.CreateData(x).ToArray()))
+                    .Select((x, i) => new KeyValuePair<string, ValueSet[]>(x, dataService.CreateData(x, i).ToArray()))
                     .ToDictionary(x => x.Key, x => x.Value);     
             }
 
@@ -46,9 +46,9 @@ namespace Examine.Web.Demo.Models
             return Prefetch.DataSet[indexCategory];
         }
 
-        public IEnumerable<ValueSet> CreateData(string indexCategory)
+        private IEnumerable<ValueSet> CreateData(string indexCategory, int categoryIndex)
         {
-            var ids = 0;
+            var ids = 9000 * categoryIndex;
             var manufacturer = new[] { "Canon", "Sony", "Nikon", "Pentax", "Fuji", "Kodak", "Olympus", "Casio" };
             var color = new[] {"black", "white", "blue", "green", "yellow", "orange", "green", "purple", "grey", "pink", "magenta", "teal", "taupe", "beige", "lavendar"};
 

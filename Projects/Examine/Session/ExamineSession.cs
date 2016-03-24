@@ -16,7 +16,7 @@ namespace Examine.Session
     /// This will only work when then NrtManager.Tracker property is set to use the TrackGeneration method, otherwise
     /// the ExamineSession instance performs no function.
     /// </remarks>
-    public static class ExamineSession
+    internal static class ExamineSession
     {
         private static readonly RequestScoped<Dictionary<NrtManager, long>> CurrentGeneration =
             new RequestScoped<Dictionary<NrtManager, long>>(()=>new Dictionary<NrtManager, long>());
