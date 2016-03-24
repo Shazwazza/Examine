@@ -66,7 +66,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                    new { item1 = "value1", item2 = "here we go into the darkness" }));
 
                 ExamineSession.WaitForChanges();

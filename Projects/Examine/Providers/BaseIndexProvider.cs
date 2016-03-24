@@ -89,14 +89,14 @@ namespace Examine.Providers
         [EditorBrowsable(EditorBrowsableState.Never)]
         public virtual void ReIndexNode(XElement node, string category)
         {
-            IndexItems(node.ToValueSet(category, node.ExamineNodeTypeAlias()));
+            IndexItems(new[] {node.ToValueSet(category, node.ExamineNodeTypeAlias())});
         }
 
         /// <summary>
         /// Re-indexes an item
         /// </summary>
         /// <param name="nodes"></param>
-        public abstract void IndexItems(params ValueSet[] nodes);
+        public abstract void IndexItems(IEnumerable<ValueSet> nodes);
         
         /// <summary>
         /// Deletes a node from the index

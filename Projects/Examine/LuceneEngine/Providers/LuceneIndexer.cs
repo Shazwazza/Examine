@@ -595,7 +595,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Provider implementation
 
-        public override void IndexItems(params ValueSet[] nodes)
+        public override void IndexItems(IEnumerable<ValueSet> nodes)
         {
             //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
             //particular node

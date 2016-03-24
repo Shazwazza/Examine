@@ -35,3 +35,4 @@ packages/*
 .Examine.boltdata/*
 Projects/Examine.Web.Demo/_bin_deployableAssemblies/*
 Projects/Examine.Web.Demo/Scripts/*
+Projects/Examine.Web.Demo/bower_components/*

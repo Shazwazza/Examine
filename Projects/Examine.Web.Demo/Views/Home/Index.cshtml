@@ -1,59 +1,93 @@
 ﻿@{
-    ViewBag.Title = "Home Page";    
+    ViewBag.Title = "Home Page";
 }
-<h2>Examine web tester</h2>
+<div class="page-header">
+    <h1>Examine web tester</h1>
+</div>
 
-@using (Html.BeginForm("Populate", "Home"))
-{    
-    <p>
-        Click to populate db with 27000 rows
-        <br />
-        <button id="populate" name="populate">
-            Populate</button>
-    </p>
-}
-@using (Html.BeginForm("RebuildIndex", "Home"))
-{    
-    <p>
-        Click to rebuild the index with 27000 rows into Examine
-        <br />
-        <button id="index" name="index">
-            Index Data</button>
-    </p>
-}
-@using (Html.BeginForm("ReIndexEachItemIndividually", "Home"))
-{    
-    <p>
-        Click to re-index the 27000 rows individually into Examine
-        <br />
-        <button id="index" name="index">
-            Index Data</button>
-    </p>
-}
-<hr/>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">Rebuild index</h3>
+            </div>
+            <div class="panel-body">
+                <p>Rebuild the index with 27000 rows into Examine</p>
+                @using (Html.BeginForm("RebuildIndex", "Home"))
+                {
+                    <button id="index" name="index" class="btn btn-lg btn-default">
+                        Index Data
+                    </button>
+                }
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Search by Id</h3>
+            </div>
+            <div class="panel-body">
+                @using (Html.BeginForm("Search", "Home", FormMethod.Get))
+                {
+                    <div class="input-group">
+                        <input type="number" class="form-control" name="id" placeholder="Id...">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="submit">Go!</button>
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Raw Lucene search</h3>
+            </div>
+            <div class="panel-body">
+                @using (Html.BeginForm("SearchLucene", "Home", FormMethod.Get))
+                {
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="query" placeholder="Lucene query...">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="submit">Go!</button>
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 
-<h5>Search Simple2Indexer by Id</h5>
-@using (Html.BeginForm("Search", "Home", FormMethod.Get))
-{
-    <input type="number" name="id" value="2"/>
-    <button type="submit">Search</button>
-}
-
-<h5>Search Simple2Indexer with Facets</h5>
-@using (Html.BeginForm("SearchFacets", "Home", FormMethod.Get))
-{
-    <label>q</label><input type="text" name="q" value="Kühnel"/>
-    <label>count</label><input type="number" name="count" value="5"/>
-    <label>countFacets</label><input type="text" name="countFacets" value="true"/>
-    <label>facetFilter</label><input type="text" name="facetFilter" value="false"/>
-    <label>all</label><input type="text" name="all" value="false"/>
-    <button type="submit">Search</button>
-}
-
-<h5>Search RuntimeIndexer1</h5>
-@using (Html.BeginForm("SearchCustom", "Home", FormMethod.Get))
-{
-    <input type="hidden" name="indexName" value="RuntimeIndexer1"/>
-    <input type="text" name="q" value="test1@example.com" />
-    <button type="submit">Search</button>
-}
+    <div class="col-sm-6">        
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Advanced search</h3>
+            </div>
+            <div class="panel-body">
+                @using (Html.BeginForm("SearchFacets", "Home", FormMethod.Get))
+                {
+                    <div class="form-group">
+                        <input type="text" name="q" class="form-control" placeholder="search text"/>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" name="count" class="form-control" placeholder="Max results (10)"/>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="countFacets" checked="checked" value="true"> Count facets?
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="facetFilter" value="true"> Facet filter?
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="all" value="true"> All?
+                        </label>
+                    </div>
+                    
+                    <button class="btn btn-default" type="submit">Search</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>

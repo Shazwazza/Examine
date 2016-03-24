@@ -1,20 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Web;
-using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Providers;
-using Examine.Session;
 using Examine.Web.Demo.Models;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Documents;
 using Serilog;
 using Version = Lucene.Net.Util.Version;
 
@@ -61,47 +52,42 @@ namespace Examine.Web.Demo
             RegisterGlobalFilters(GlobalFilters.Filters);
             RegisterRoutes(RouteTable.Routes);
 
-            //Database.SetInitializer<MyDbContext>(null);
-
             ConfigureExamine();
         }
 
         protected void ConfigureExamine()
         {
-
             var customIndexer = new ValueSetIndexer(
-                new[] {new FieldDefinition("Email", FieldDefinitionTypes.Raw)},
-                new TestDataService(), 
-                new[] {"Type1", "Type2"}, 
-                new DirectoryInfo(Context.Server.MapPath("~/App_Data/{machinename}/RuntimeIndex1")),
-                new StandardAnalyzer(Version.LUCENE_30));
-            ExamineManager.Instance.AddIndexProvider("RuntimeIndexer1", customIndexer);
-
-            var sqlIndexer = new ValueSetIndexer(
                 new[]
                 {
-                    new FieldDefinition("Column1", FieldDefinitionTypes.Raw),
-                    new FieldDefinition("Column1", "Column1_Facet", FieldDefinitionTypes.Facet),
-                    new FieldDefinition("Column2", FieldDefinitionTypes.Facet),
-                    new FieldDefinition("Column3", FieldDefinitionTypes.Raw),
-                    new FieldDefinition("Column4", FieldDefinitionTypes.FacetPath),
-                    new FieldDefinition("Column5", FieldDefinitionTypes.FullText),
-                    new FieldDefinition("Column6", FieldDefinitionTypes.FullText)
+                    new FieldDefinition("Category", FieldDefinitionTypes.FullText),
+                    new FieldDefinition("Manufacturer", FieldDefinitionTypes.FullText),
+                    new FieldDefinition("Manufacturer", "Manufacturer_Facet", FieldDefinitionTypes.RawFacet),
+                    new FieldDefinition("MegaPixels", FieldDefinitionTypes.Integer),
+                    new FieldDefinition("MegaPixels", "MegaPixels_Facet", FieldDefinitionTypes.RawFacet),
+                    new FieldDefinition("Model", FieldDefinitionTypes.FullText),
+                    new FieldDefinition("Description", FieldDefinitionTypes.FullText),
+                    new FieldDefinition("Price", FieldDefinitionTypes.Float),
+                    new FieldDefinition("ReleaseDate", FieldDefinitionTypes.DateTime),
+                    new FieldDefinition("Color", FieldDefinitionTypes.Raw),
+                    new FieldDefinition("Color", "Color_Facet", FieldDefinitionTypes.RawFacet),
+                    new FieldDefinition("InStock", FieldDefinitionTypes.Integer)
                 },
-                new TableDirectReaderDataService(), 
-                new[] { "TestType" },
+                new BogusIndexDataService(),
+                //categories
+                BogusIndexDataService.IndexCategories,
                 new DirectoryInfo(Context.Server.MapPath("~/App_Data/{machinename}/SimpleIndexSet2")),
                 new StandardAnalyzer(Version.LUCENE_30),
                 //NOTE: IF we omit this, it will try to setu pthe facet config based on the field value types above,
                 // but we want to setup some reference types
                 new FacetConfiguration(new []
                 {
-                    new TermFacetExtractor("Column1_Facet"),
-                    new TermFacetExtractor("Column2", true),
-                    new TermFacetPathExtractor("Column4"),
+                    new TermFacetExtractor("Manufacturer_Facet"),
+                    new TermFacetExtractor("MegaPixels_Facet"),
+                    new TermFacetExtractor("Color_Facet")                    
                 }));
             
-            ExamineManager.Instance.AddIndexProvider("Simple2Indexer", sqlIndexer);
+            ExamineManager.Instance.AddIndexProvider("Simple2Indexer", customIndexer);
 
             //This is how to create a config from code if you had indexes declared in with configuration.
             //This allows your own termfacetextractors to be used.
@@ -118,36 +104,31 @@ namespace Examine.Web.Demo
             
             //And we're ready.
 
-            var indexer = ExamineManager.Instance.IndexProviders["Simple2Indexer"] as LuceneIndexer;
+            //var indexer = (LuceneIndexer)ExamineManager.Instance.IndexProviders["Simple2Indexer"];
             
-            var r = new Random();
-            //Here custom fields are written directly to the document regardsless of Examine's config
-            indexer.DocumentWriting += (sender, args) =>
-            {
-                string v;
-                if (args.Fields.TryGetValue("Column1", out v))
-                {
-                    //Here the umbraco value of a tag picker could be split into individual tags  
+            //var r = new Random();
+            ////Here custom fields are written directly to the document regardsless of Examine's config
+            //indexer.DocumentWriting += (sender, args) =>
+            //{
+            //    string v;
+            //    if (args.Fields.TryGetValue("Column1", out v))
+            //    {
+            //        //Here the umbraco value of a tag picker could be split into individual tags  
                     
-                    //This is how to add a facet with level (i.e. size/importance)
-                    //Remember to use a float value. Not int.
+            //        //This is how to add a facet with level (i.e. size/importance)
+            //        //Remember to use a float value. Not int.
 
-                    foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 27000)).Distinct())
-                    {
-                        args.Document.Add(new Field("RefFacet", new ReferenceFacetValue(f).TokenStream));
-                    }
+            //        foreach (var f in Enumerable.Range(0, r.Next(1, 5)).Select(i => r.Next(1, 27000)).Distinct())
+            //        {
+            //            args.Document.Add(new Field("RefFacet", new ReferenceFacetValue(f).TokenStream));
+            //        }
 
-                    args.Document.Add(new Field("CustomDocField", TokenStreamHelper.Create(v + "_WithLevel", .25f)));
+            //        args.Document.Add(new Field("CustomDocField", TokenStreamHelper.Create(v + "_WithLevel", .25f)));
 
-                    //Here we add a normal field
-                    args.Document.Add(new Field("CustomDocField", v + "Test2", Field.Store.NO, Field.Index.NOT_ANALYZED));
-                }
-            };
-
-            //searcher.FacetConfiguration = new FacetConfiguration
-            ////    { 
-            ////        FacetExtractors = new List<IFacetExtractor> {new TermFacetExtractor("Column1")}
-            ////    };
+            //        //Here we add a normal field
+            //        args.Document.Add(new Field("CustomDocField", v + "Test2", Field.Store.NO, Field.Index.NOT_ANALYZED));
+            //    }
+            //};            
         }
 
 

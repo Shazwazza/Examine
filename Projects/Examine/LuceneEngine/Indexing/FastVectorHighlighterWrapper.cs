@@ -24,7 +24,7 @@ namespace Examine.LuceneEngine.Indexing
             _valueType = valueType;
             _searcher = searcher;
             _fvh = new FastVectorHighlighter(FastVectorHighlighter.DEFAULT_PHRASE_HIGHLIGHT, FastVectorHighlighter.DEFAULT_FIELD_MATCH,
-                    new SimpleFragListBuilder(), new SimpleFragmentsBuilder(new []{ "<span class='search-highlight'>" }, new []{ "</span>" }));
+                    new SimpleFragListBuilder(), new SimpleFragmentsBuilder(new []{ "<mark>" }, new []{ "</mark>" }));
 
             _fq = _fvh.GetFieldQuery(query);
 

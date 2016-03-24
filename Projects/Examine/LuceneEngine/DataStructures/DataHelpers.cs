@@ -14,16 +14,7 @@ namespace Examine.LuceneEngine.DataStructures
             {
                 yield return doc;
             }
-        }
-
-        public static bool IsNullOrEmpty(this IEnumerable e)
-        {
-            if( e != null )
-            {
-                foreach (var el in e) return true;
-            }
-            return true;
-        }
+        }      
 
 
         /// <summary>

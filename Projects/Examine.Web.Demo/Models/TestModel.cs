@@ -1,20 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
 
 namespace Examine.Web.Demo.Models
 {
     public class TestModel
     {
-        [Key]
-        public int MyId { get; set; }
-        public string Column1 { get; set; }
-        public string Column2 { get; set; }
-        public string Column3 { get; set; }
-        public string Column4 { get; set; }        
-        [Column(TypeName = "ntext")]
-        [MaxLength]
-        public string Column5 { get; set; }
-        public string Column6 { get; set; }
+        public int Id { get; set; }
+        public string Category { get; set; }
+        public string Manufacturer { get; set; }
+        public int MegaPixels { get; set; }
+        public string Model { get; set; }
+        public string Description { get; set; }
 
+        public decimal Price { get; set; }
+        public DateTime ReleaseDate { get; set; }
+
+        public string Color { get; set; }
+
+        public int InStock { get; set; }
     }
 }

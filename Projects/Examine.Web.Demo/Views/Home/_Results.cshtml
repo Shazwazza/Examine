@@ -1,0 +1,70 @@
+﻿@model Examine.LuceneEngine.ILuceneSearchResults
+
+
+<h5>TOTAL: @Model.TotalItemCount</h5>
+
+@if (Model.TotalItemCount > 0)
+{
+    <table class="table table-condensed">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Score</th>
+                @foreach (var field in Model.First().Fields.Keys.Where(x => !x.Contains("_")))
+                {
+                    <th>@field</th>
+                }
+                <th>Facets</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var result in Model)
+            {
+                <tr>
+                    <th>@result.LongId</th>
+                    <td>@result.Score</td>
+                    @foreach (var field in result.Fields.Where(x => !x.Key.Contains("_")))
+                    {
+                        <td>
+                            @if (field.Key == "Description")
+                        {
+                                <p>@field.Value</p>
+                                <p>@result.GetHighlight("Description")</p>
+                            }
+                            else if (result.Fields.Keys.Any(x => x.Contains("_") && x.Contains(field.Key)))
+                            {
+                                //has metadata
+                                <em>@field.Value</em>
+                            }
+                            else
+                            {
+                                <span>@field.Value</span>
+                            }
+                        </td>
+                    }
+                    <td>
+                        @if (result.Facets != null && result.Facets.Length > 0)
+                    {
+                            <ul class="list-unstyled">
+                                @foreach (var fac in result.Facets)
+                                {
+                                    <li><small>@fac.FacetId</small>&nbsp;=&nbsp;<small><em>@fac.Level.ToString("N2")</em></small></li>
+                                }
+                            </ul>
+                        }
+                        @if (result.FacetCounts != null && result.FacetCounts.Length > 0)
+                    {
+                            <strong style="color: green;">Facet Counts</strong>
+                            <ul class="list-unstyled">
+                                @foreach (var fc in result.FacetCounts)
+                                {
+                                    <li><strong>@fc.FieldName</strong>&nbsp;=&nbsp;<em>@fc.Count</em></li>
+                                }
+                            </ul>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -89,7 +89,7 @@ namespace Examine.Test.Index
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                     new Dictionary<string, List<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
@@ -121,10 +121,10 @@ namespace Examine.Test.Index
                         {"item2", new List<object>(new[] {"value2"})}
                     });
 
-                indexer.IndexItems(value);
+                indexer.IndexItem(value);
                 ExamineSession.WaitForChanges();
 
-                indexer.IndexItems(value);
+                indexer.IndexItem(value);
                 ExamineSession.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
@@ -145,7 +145,7 @@ namespace Examine.Test.Index
 
                 for (var i = 0; i < 10; i++)
                 {
-                    indexer.IndexItems(new ValueSet(i, "content",
+                    indexer.IndexItem(new ValueSet(i, "content",
                         new Dictionary<string, List<object>>
                         {
                             {"item1", new List<object>(new[] {"value1"})},
@@ -173,7 +173,7 @@ namespace Examine.Test.Index
 
                 for (var i = 0; i < 10; i++)
                 {
-                    indexer.IndexItems(new ValueSet(i, "content",
+                    indexer.IndexItem(new ValueSet(i, "content",
                         new Dictionary<string, List<object>>
                         {
                             {"item1", new List<object>(new[] {"value1"})},
@@ -200,7 +200,7 @@ namespace Examine.Test.Index
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                     new Dictionary<string, List<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
@@ -229,7 +229,7 @@ namespace Examine.Test.Index
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                     new {item1 = "value1", item2 = "value2"}));
 
                 ExamineSession.WaitForChanges();
@@ -254,7 +254,7 @@ namespace Examine.Test.Index
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                     new Dictionary<string, List<object>>
                     {
                         {
@@ -292,12 +292,12 @@ namespace Examine.Test.Index
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                     new {item1 = "value1", item2 = "value2"}));
 
                 ExamineSession.WaitForChanges();
 
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                     new {item1 = "value3", item2 = "value4"}));
 
                 ExamineSession.WaitForChanges();
@@ -328,7 +328,7 @@ namespace Examine.Test.Index
                 new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
                 {
                     {"item1", new List<object>(new[] {"value1"})},
@@ -361,7 +361,7 @@ namespace Examine.Test.Index
                 new StandardAnalyzer(Version.LUCENE_30)))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
                 {
                     {"item1", new List<object>(new[] {"value1"})},

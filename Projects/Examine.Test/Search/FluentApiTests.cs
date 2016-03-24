@@ -33,7 +33,8 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[]
+                {
                     new ValueSet(1, "content",
                         new
                         {
@@ -55,7 +56,7 @@ namespace Examine.Test.Search
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Page"
                         })
-                    );
+                });
 
                 ExamineSession.WaitForChanges();
 
@@ -239,12 +240,12 @@ namespace Examine.Test.Search
                 luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", headerText = "header 1", umbracoNaviHide = "1" }),
                     new ValueSet(2, "content",
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -269,7 +270,7 @@ namespace Examine.Test.Search
                 luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new Dictionary<string, object>
                         {
@@ -284,7 +285,7 @@ namespace Examine.Test.Search
                             {"bodyText", "lorem ipsum"},
                             {"__Path", "-1,123,456,987"}
                         })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -316,14 +317,14 @@ namespace Examine.Test.Search
                 luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", parentID = "1235" }),
                     new ValueSet(2, "content",
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", parentID = "1139" }),
                     new ValueSet(3, "content",
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -348,7 +349,7 @@ namespace Examine.Test.Search
                 luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new Dictionary<string, object>
                         {
@@ -370,7 +371,7 @@ namespace Examine.Test.Search
                             {"nodeTypeAlias", "CWS_Page"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Page"}
                         })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -394,14 +395,14 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "into 1", bodyText = "It was one thing to bring Carmen into it, but Jonathan was another story." }),
                     new ValueSet(2, "content",
                         new { nodeName = "my name 2", bodyText = "Hands shoved backwards into his back pockets, he took slow deliberate steps, as if he had something on his mind." }),
                     new ValueSet(3, "content",
                         new { nodeName = "my name 3", bodyText = "Slowly carrying the full cups into the living room, she handed one to Alex." })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -425,7 +426,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new Dictionary<string, object>
                         {
@@ -447,7 +448,7 @@ namespace Examine.Test.Search
                             {"nodeTypeAlias", "CWS_Page"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Page"}
                         })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -472,14 +473,14 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "media",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
                     new ValueSet(2, "media",
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
                     new ValueSet(3, "media",
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -502,7 +503,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "media",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
                     new ValueSet(2, "media",
@@ -511,7 +512,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", nodeTypeAlias = "file" }),
                     new ValueSet(4, "other",
                         new { nodeName = "my name 4", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -541,7 +542,7 @@ namespace Examine.Test.Search
                 luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "my name 1", sortOrder = "3", parentID = "1143" }),
                     new ValueSet(2, "content",
@@ -550,7 +551,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 3", sortOrder = "2", parentID = "1143" }),
                     new ValueSet(4, "content",
                         new { nodeName = "my name 4", bodyText = "lorem ipsum", parentID = "2222" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -585,7 +586,7 @@ namespace Examine.Test.Search
             {
                 var now = DateTime.Now;
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "my name 1", updateDate = now.AddDays(2).ToString("yyyy-MM-dd"), parentID = "1143" }),
                     new ValueSet(2, "content",
@@ -594,7 +595,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 3", updateDate = now.AddDays(1).ToString("yyyy-MM-dd"), parentID = 1143 }),
                     new ValueSet(4, "content",
                         new { nodeName = "my name 4", updateDate = now, parentID = "2222" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -628,7 +629,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "my name 1", writerName = "administrator", parentID = "1143" }),
                     new ValueSet(2, "content",
@@ -637,7 +638,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 3", writerName = "administrator", parentID = "1143" }),
                     new ValueSet(4, "content",
                         new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -669,7 +670,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "umbraco", headerText = "world", bodyText = "blah" }),
                     new ValueSet(2, "content",
@@ -678,7 +679,7 @@ namespace Examine.Test.Search
                         new { nodeName = "umbraco", headerText = "umbraco", bodyText = "umbraco" }),
                     new ValueSet(4, "content",
                         new { nodeName = "hello", headerText = "world", bodyText = "blah" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -713,7 +714,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
                     new ValueSet(2, "content",
@@ -722,7 +723,7 @@ namespace Examine.Test.Search
                         new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
                     new ValueSet(4, "content",
                         new { nodeName = "hello", headerText = "world", writerName = "blah" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -751,7 +752,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "codegarden09", headerText = "world", writerName = "administrator" }),
                     new ValueSet(2, "content",
@@ -760,7 +761,7 @@ namespace Examine.Test.Search
                         new { nodeName = "codegarden  09", headerText = "umbraco", writerName = "administrator" }),
                     new ValueSet(4, "content",
                         new { nodeName = "codegarden 090", headerText = "world", writerName = "blah" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -791,7 +792,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "Aloha", nodeTypeAlias = "CWS_Hello" }),
                     new ValueSet(2, "content",
@@ -800,7 +801,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Another node", nodeTypeAlias = "SomethingElse" }),
                     new ValueSet(4, "content",
                         new { nodeName = "Always consider this", nodeTypeAlias = "CWS_World" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -833,7 +834,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "Aloha", metaKeywords = "Warren is likely to be creative" }),
                     new ValueSet(2, "content",
@@ -842,7 +843,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Another node", metaKeywords = "If Warren were creative... well, he actually is" }),
                     new ValueSet(4, "content",
                         new { nodeName = "Always consider this", metaKeywords = "Warren is a very talented individual and quite creative" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -880,7 +881,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "Aloha", SomeFloat = 1 }),
                     new ValueSet(2, "content",
@@ -889,7 +890,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Another node", SomeFloat = 12 }),
                     new ValueSet(4, "content",
                         new { nodeName = "Always consider this", SomeFloat = 25 })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -929,7 +930,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "Aloha", SomeNumber = 1 }),
                     new ValueSet(2, "content",
@@ -938,7 +939,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Another node", SomeNumber = 12 }),
                     new ValueSet(4, "content",
                         new { nodeName = "Always consider this", SomeNumber = 25 })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -976,7 +977,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "Aloha", SomeDouble = 1d }),
                     new ValueSet(2, "content",
@@ -985,7 +986,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Another node", SomeDouble = 12d }),
                     new ValueSet(4, "content",
                         new { nodeName = "Always consider this", SomeDouble = 25d })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1023,7 +1024,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { nodeName = "Aloha", SomeLong = 1L }),
                     new ValueSet(2, "content",
@@ -1032,7 +1033,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Another node", SomeLong = 12L }),
                     new ValueSet(4, "content",
                         new { nodeName = "Always consider this", SomeLong = 25L })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1072,7 +1073,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { MinuteCreated = reIndexDateTime }),
                     new ValueSet(2, "content",
@@ -1081,7 +1082,7 @@ namespace Examine.Test.Search
                         new { MinuteCreated = reIndexDateTime.AddMinutes(-10) }),
                     new ValueSet(4, "content",
                         new { MinuteCreated = reIndexDateTime })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1123,7 +1124,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { HourCreated = reIndexDateTime }),
                     new ValueSet(2, "content",
@@ -1132,7 +1133,7 @@ namespace Examine.Test.Search
                         new { HourCreated = reIndexDateTime.AddHours(-10) }),
                     new ValueSet(4, "content",
                         new { HourCreated = reIndexDateTime })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1171,7 +1172,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { DayCreated = reIndexDateTime }),
                     new ValueSet(2, "content",
@@ -1180,7 +1181,7 @@ namespace Examine.Test.Search
                         new { DayCreated = reIndexDateTime.AddDays(-10) }),
                     new ValueSet(4, "content",
                         new { DayCreated = reIndexDateTime })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1220,7 +1221,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { MonthCreated = reIndexDateTime }),
                     new ValueSet(2, "content",
@@ -1229,7 +1230,7 @@ namespace Examine.Test.Search
                         new { MonthCreated = reIndexDateTime.AddMonths(-10) }),
                     new ValueSet(4, "content",
                         new { MonthCreated = reIndexDateTime })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1270,7 +1271,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { YearCreated = reIndexDateTime }),
                     new ValueSet(2, "content",
@@ -1279,7 +1280,7 @@ namespace Examine.Test.Search
                         new { YearCreated = reIndexDateTime.AddMonths(-10) }),
                     new ValueSet(4, "content",
                         new { YearCreated = reIndexDateTime })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1319,7 +1320,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { DateCreated = reIndexDateTime }),
                     new ValueSet(2, "content",
@@ -1328,7 +1329,7 @@ namespace Examine.Test.Search
                         new { DateCreated = reIndexDateTime.AddMonths(-10) }),
                     new ValueSet(4, "content",
                         new { DateCreated = reIndexDateTime })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1361,7 +1362,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { Content = "I'm thinking here" }),
                     new ValueSet(2, "content",
@@ -1370,7 +1371,7 @@ namespace Examine.Test.Search
                         new { Content = "I am pretty thoughtful" }),
                     new ValueSet(4, "content",
                         new { Content = "I thought you were cool" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1404,7 +1405,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { Content = "hello world" }),
                     new ValueSet(2, "content",
@@ -1413,7 +1414,7 @@ namespace Examine.Test.Search
                         new { Content = "hello you cruel world" }),
                     new ValueSet(4, "content",
                         new { Content = "hi there, hello world" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1448,7 +1449,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { Content = "hello world", Type = "type1" }),
                     new ValueSet(2, "content",
@@ -1457,7 +1458,7 @@ namespace Examine.Test.Search
                         new { Content = "hello you cruel world", Type = "type2" }),
                     new ValueSet(4, "content",
                         new { Content = "hi there, hello world", Type = "type2" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1489,7 +1490,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { Content = "hello world", Type = "type1" }),
                     new ValueSet(2, "content",
@@ -1500,7 +1501,7 @@ namespace Examine.Test.Search
                         new { Content = "hello you cruel world", Type = "type2" }),
                     new ValueSet(4, "content",
                         new { Content = "hi there, hello world", Type = "type2" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1532,7 +1533,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { Content = "hello world", Type = "type1" }),
                     new ValueSet(2, "content",
@@ -1543,7 +1544,7 @@ namespace Examine.Test.Search
                         new { Content = "hello you cruel world", Type = "type2" }),
                     new ValueSet(4, "content",
                         new { Content = "hi there, hello world", Type = "type2" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -1575,7 +1576,7 @@ namespace Examine.Test.Search
             using (SearcherContextCollection.Instance)
             {
 
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { Content = "hello world", Type = "type1" }),
                     new ValueSet(2, "content",
@@ -1586,7 +1587,7 @@ namespace Examine.Test.Search
                         new { Content = "hello you cruel world", Type = "type2" }),
                     new ValueSet(4, "content",
                         new { Content = "hi there, hello world", Type = "type2" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 

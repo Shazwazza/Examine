@@ -54,7 +54,7 @@ namespace Examine.LuceneEngine.Indexing
         /// An anonymous object converted to a dictionary
         /// </param>
         public ValueSet(long id, string indexCategory, string itemType, object values)
-            : this(id, indexCategory, itemType, values.ToDictionary<object>()) { }
+            : this(id, indexCategory, itemType, ObjectExtensions.ConvertObjectToDictionary(values)) { }
 
         /// <summary>
         /// Constructor
@@ -67,7 +67,7 @@ namespace Examine.LuceneEngine.Indexing
         /// An anonymous object converted to a dictionary
         /// </param>
         public ValueSet(long id, string indexCategory, object values)
-            : this(id, indexCategory, string.Empty, values.ToDictionary<object>()) { }
+            : this(id, indexCategory, string.Empty, ObjectExtensions.ConvertObjectToDictionary(values)) { }
 
         /// <summary>
         /// Constructor

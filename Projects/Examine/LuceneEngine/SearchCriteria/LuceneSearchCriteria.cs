@@ -346,7 +346,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public LuceneBooleanOperation Id(int id)
         {
-            throw new NotImplementedException();
+            return IdInternal(id, _occurrence);
         }
 
         IBooleanOperation IQuery.Field<T>(string fieldName, T fieldValue)

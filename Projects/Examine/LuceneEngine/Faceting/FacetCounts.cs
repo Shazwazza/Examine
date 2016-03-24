@@ -48,7 +48,8 @@ namespace Examine.LuceneEngine.Faceting
         
         public IEnumerable<FacetCount> GetTopFacets(int count, params string[] fieldNames)
         {
-            var facets = fieldNames.IsNullOrEmpty() ? GetNonEmpty()
+            var facets = fieldNames.All(x => !string.IsNullOrWhiteSpace(x))
+                ? GetNonEmpty()
                 : FacetMap.GetByFieldNames(fieldNames).Select(f => new FacetCount(f.Value, Counts[f.Key]));
 
             return facets.GetTopItems(count, 

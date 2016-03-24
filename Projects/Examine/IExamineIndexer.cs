@@ -1,7 +1,21 @@
-﻿using Examine.LuceneEngine.Indexing;
+﻿using System.Collections.Generic;
+using Examine.LuceneEngine.Indexing;
 
 namespace Examine
 {
+    public static class ExamineIndexerExtensions
+    {
+        /// <summary>
+        /// Method to re-index specific data
+        /// </summary>
+        /// <param name="indexer"></param>
+        /// <param name="node"></param>
+        public static void IndexItem(this IExamineIndexer indexer, ValueSet node)
+        {
+            indexer.IndexItems(new[] {node});
+        }
+    }
+
     /// <summary>
     /// Interface for indexing
     /// </summary>
@@ -11,7 +25,7 @@ namespace Examine
         /// Method to re-index specific data
         /// </summary>
         /// <param name="nodes"></param>
-        void IndexItems(params ValueSet[] nodes);
+        void IndexItems(IEnumerable<ValueSet> nodes);
 
         /// <summary>
         /// Deletes a node from the index

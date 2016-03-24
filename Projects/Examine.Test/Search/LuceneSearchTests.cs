@@ -39,7 +39,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItem(
                     new ValueSet(1, "content",
                         new
                         {
@@ -76,7 +76,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { description = "hello world", manufacturer = "Canon", resolution = "2MP" }),
                     new ValueSet(2, "content",
@@ -87,7 +87,7 @@ namespace Examine.Test.Search
                         new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP" }),
                     new ValueSet(5, "content",
                         new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -138,7 +138,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { description = "hello world", manufacturer = "Canon", resolution = "2MP", similar = 5F, recommended = 5F }),
                     new ValueSet(2, "content",
@@ -158,7 +158,7 @@ namespace Examine.Test.Search
                         }),
                     new ValueSet(6, "content",
                         new { description = "hello, yo, whats up", manufacturer = "Pentax", resolution = "4MP" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -215,7 +215,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { description = "hello world", manufacturer = "Canon", resolution = "2MP", similar = 5F, recommended = 5F }),
                     new ValueSet(2, "content",
@@ -235,7 +235,7 @@ namespace Examine.Test.Search
                         }),
                     new ValueSet(6, "content",
                         new { description = "hello, yo, whats up", manufacturer = "Pentax", resolution = "4MP" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -285,7 +285,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { description = "hello world", manufacturer = "Canon", resolution = "2MP" }),
                     new ValueSet(2, "content",
@@ -296,7 +296,7 @@ namespace Examine.Test.Search
                         new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP" }),
                     new ValueSet(5, "content",
                         new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -327,7 +327,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { description = "hello world", manufacturer = "Canon", resolution = "2MP" }),
                     new ValueSet(2, "content",
@@ -338,7 +338,7 @@ namespace Examine.Test.Search
                         new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP" }),
                     new ValueSet(5, "content",
                         new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 
@@ -373,7 +373,7 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
             using (SearcherContextCollection.Instance)
             {
-                indexer.IndexItems(
+                indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
                         new { description = "hello world", manufacturer = "Canon", resolution = "2MP" }),
                     new ValueSet(2, "content",
@@ -384,7 +384,7 @@ namespace Examine.Test.Search
                         new { description = "hello you cruel world", manufacturer = "Pentax", resolution = "4MP" }),
                     new ValueSet(5, "content",
                         new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
-                    );
+                    });
 
                 ExamineSession.WaitForChanges();
 

@@ -83,7 +83,7 @@ namespace Examine.LuceneEngine.Providers
 
         protected override void PerformIndexAll(string category)
         {
-            IndexItems(DataService.GetAllData(category).ToArray());
+            IndexItems(DataService.GetAllData(category));
         }
 
         protected override void PerformIndexRebuild()

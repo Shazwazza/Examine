@@ -16,7 +16,7 @@ namespace Examine.LuceneEngine.Indexing
 
     //    public DefaultHighlighter(Query query, Analyzer analyzer, string fieldName, Searcher searcher)
     //    {
-    //        var formatter = new SimpleHTMLFormatter("<span class='search-highlight'>", "</span>");
+    //        var formatter = new SimpleHTMLFormatter("<mark>", "</mark>");
 
     //        _analyzer = analyzer;
     //        _fieldName = fieldName;

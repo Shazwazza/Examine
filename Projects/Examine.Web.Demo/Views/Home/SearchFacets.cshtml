@@ -1,105 +1,81 @@
 ﻿@model Examine.Web.Demo.Models.FacetSearchModel
 
-<h2>Search results</h2>
+<div class="page-header">
+    <h1>Search results</h1>
+</div>
 
-<h5>TOTAL: @Model.SearchResult.TotalItemCount</h5>
+@Html.Partial("_Results", Model.SearchResult)
 
-<ul>
-    @foreach (var result in Model.SearchResult)
-    {
-        <li>
-            Id: @result.LongId<br />
-            Score: @result.Score<br />
-            <ul>
-                <li><strong>Id</strong>&nbsp;=&nbsp;<em>@result.LongId</em></li>
-                @foreach (var field in result.Fields)
-                {
-                    <li>
-                        <strong>@field.Key</strong>&nbsp;=&nbsp;<em>@field.Value</em>
-                    </li>
-                }
-                <li><strong style="color: orange;">Column5 Highlight</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column5")</em></li>
-                <li><strong style="color: orange;">Column6 Highlight</strong>&nbsp;=&nbsp;<em>@result.GetHighlight("Column6")</em></li>
-                @if (result.Facets != null && result.Facets.Length > 0)
-                {
-                    <li>
-                        <strong style="color: blue;">Facets</strong>
-                        <ul>
-                            @foreach (var fac in result.Facets)
-                            {
-                                <li><strong>@fac.FacetId</strong>&nbsp;=&nbsp;<em>@fac.Level.ToString("N2")</em></li>
-                            }
-                        </ul>
-                    </li>
-                }
-                @if (result.FacetCounts != null && result.FacetCounts.Length > 0)
-                {
-                    <li>
-                        <strong style="color: green;">Facet Counts</strong>
-                        <ul>
-                            @foreach (var fc in result.FacetCounts)
-                            {
-                                <li><strong>@fc.FieldName</strong>&nbsp;=&nbsp;<em>@fc.Count</em></li>
-                            }
-                        </ul>
-                    </li>
-                }
-            </ul>
-
-        </li>
-    }
-</ul>
-
-@if (Model.CountFacets)
-{
-    <h3>Top 10 Facet Counts</h3>
-    <ul>
-        @foreach (var res in Model.SearchResult.FacetCounts.GetTopFacets(10))
+<div class="row">
+    <div class="col-sm-6">
+        @if (Model.CountFacets)
         {
-            <li>
-                @using (Html.BeginForm("SearchFacets", "Home", FormMethod.Get))
-                {
-                    <button type="submit" class="link">
-                        <strong>@res.Key.FieldName</strong>
-                    </button>
-                    <span>&nbsp;:&nbsp;</span>
-                    <span>@res.Key.Value</span>
-                    <span>&nbsp; count = &nbsp;</span>
-                    <em>@res.Count</em>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Top 10 Facet Counts</h3>
+                </div>
+                <div class="panel-body">
+                    <ul class="list-unstyled">
+                        @foreach (var res in Model.SearchResult.FacetCounts.GetTopFacets(10))
+                        {
+                            <li>
+                                @using (Html.BeginForm("SearchFacets", "Home", FormMethod.Get))
+                                {
+                                    <button type="submit" class="btn btn-link">
+                                        @res.Key.Value&nbsp;<em>(@res.Count)</em>
+                                    </button>
+                                    <small class="pull-right">@res.Key.FieldName</small>
+                                    
 
-                    <input type="hidden" name="q" value="@res.Key.Value" />
-                    <input type="hidden" name="count" value="@Request.QueryString["count"]" />
-                    <input type="hidden" name="countFacets" value="@Request.QueryString["countFacets"]" />
-                    <input type="hidden" name="facetFilter" value="true"/>
-                    <input type="hidden" name="facetFilterField" value="@res.Key.FieldName" />
-                    <input type="hidden" name="all" value="false" />
-                }
-            </li>
+                                    <input type="hidden" name="q" value="@res.Key.Value"/>
+                                    <input type="hidden" name="count" value="@Request.QueryString["count"]"/>
+                                    <input type="hidden" name="countFacets" value="@Request.QueryString["countFacets"]"/>
+                                    <input type="hidden" name="facetFilter" value="true"/>
+                                    <input type="hidden" name="field" value="@res.Key.FieldName"/>
+                                    <input type="hidden" name="all" value="false"/>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
         }
-    </ul>
-}
+    </div>
 
-@if (Model.FacetMap != null)
-{
-    <h3>Field names</h3>
-    <ul>
-        @foreach (var f in Model.FacetMap.FieldNames)
+    <div class="col-sm-6">
+        @if (Model.FacetMap != null)
         {
-            <li>
-                <strong>@f</strong>
-                @foreach (var val in Model.FacetMap.GetByFieldNames(f))
-                {
-                    <br/>
-                    <span>@val.Key</span><span>&nbsp;=&nbsp;</span><em>@val.Value</em>
-                }
-            </li>
-        }
-    </ul>
-}
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Facet field names</h3>
+                </div>
+                <ul class="list-unstyled">
+                    @foreach (var f in Model.FacetMap.FieldNames)
+                    {
+                        <li>
+                            <strong>@f</strong>
+                            <ul>
+                                @foreach (var val in Model.FacetMap.GetByFieldNames(f))
+                                {
+                                    <li>
+                                        <span>@val.Key</span>
+                                        <span>&nbsp;=&nbsp;</span>
+                                        <em>@val.Value</em>
+                                    </li>
+                                }
+                            </ul>
 
-<hr/>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</div>
 
 @{
     Model.Watch.Stop();
 }
-<div>@string.Format("Elapsed {0:N2} ms.", Model.Watch.Elapsed.TotalMilliseconds)</div>
+<p>
+    @string.Format("Elapsed {0:N2} ms.", Model.Watch.Elapsed.TotalMilliseconds)
+</p>
