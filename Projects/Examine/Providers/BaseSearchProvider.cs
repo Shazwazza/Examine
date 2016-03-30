@@ -55,6 +55,29 @@ namespace Examine.Providers
     ///</summary>
     public abstract class BaseSearchProvider : ProviderBase, ISearcher
     {
+        /// <summary>
+        /// Performs a search with a maximum number of results
+        /// </summary>        
+        [Obsolete("Use the Find method on a strongly typed search provider instead for strongly typed search results")]
+        public virtual ISearchResults Search(ISearchCriteria searchParams, int maxResults)
+        {
+            //returns base method
+            return Search(searchParams);
+        }
+
+        /// <summary>
+        /// A simple search mechanism to search all fields based on an index type.
+        /// </summary>
+        /// <param name="searchText"></param>
+        /// <param name="useWildcards"></param>
+        /// <param name="indexType">By default this doesn't have any affect, it is up to inheritors to make this do something</param>
+        /// <returns></returns>
+        [Obsolete("Use the Find method on a strongly typed search provider instead for strongly typed search results")]
+        public virtual ISearchResults Search(string searchText, bool useWildcards, string indexType)
+        {
+            return Search(searchText, useWildcards);
+        }
+
         #region ISearcher Members
 
         /// <summary>

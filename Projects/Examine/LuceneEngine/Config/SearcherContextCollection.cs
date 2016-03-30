@@ -12,16 +12,19 @@ namespace Examine.LuceneEngine.Config
     /// <summary>
     /// Manages a list of SearcherContext objects
     /// </summary>
-    public class SearcherContextCollection : IDisposable
+    /// <remarks>
+    /// We mostly need this due to legacy reasons for when using the Examine configuration method to manage indexers and searchers
+    /// </remarks>
+    internal class SearcherContextCollection : IDisposable
     {
         internal delegate object DirectoryKeyAdapter(Directory dir);
 
-        private static readonly SearcherContextCollection _instance = new SearcherContextCollection();
-        
+        private static readonly Lazy<SearcherContextCollection> InternalInstance = new Lazy<SearcherContextCollection>(() => new SearcherContextCollection());
+
         /// <summary>
         /// Singleton accessor
         /// </summary>
-        public static SearcherContextCollection Instance { get { return _instance; } }
+        public static SearcherContextCollection Instance { get; } = InternalInstance.Value;
 
         internal IEnumerable<DirectoryKeyAdapter> KeyAdapters { get; private set; }
 

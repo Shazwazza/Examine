@@ -22,7 +22,7 @@ namespace Examine
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : ISearcher, IDisposable, IRegisteredObject
+    public class ExamineManager : IDisposable, IRegisteredObject
     {
 
         private ExamineManager()
@@ -102,6 +102,29 @@ namespace Examine
         }
 
         /// <summary>
+        /// Returns a search based on the indexer name
+        /// </summary>
+        /// <param name="indexerName"></param>        
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>       
+        public ISearcher<TResults, TResult, TSearchCriteria> GetSearcher<TResults, TResult, TSearchCriteria>(string indexerName) 
+            where TSearchCriteria : ISearchCriteria
+            where TResults : ISearchResults<TResult>
+            where TResult : ISearchResult
+        {
+            if (IndexProviders.ContainsKey(indexerName))
+            {
+                var indexer = IndexProviders[indexerName] as ISearchableExamineIndex<TResults, TResult, TSearchCriteria>;
+                if (indexer == null)
+                {
+                    throw new InvalidOperationException("The indexer is not of type " + typeof(ISearchableExamineIndex<TResults, TResult, TSearchCriteria>));
+                }
+                return indexer.GetSearcher();
+            }
+            throw new KeyNotFoundException("No indexer defined by name " + indexerName);
+        }
+
+        /// <summary>
         /// Returns a lucene search based on the lucene indexer name
         /// </summary>
         /// <param name="indexerName"></param>
@@ -109,17 +132,17 @@ namespace Examine
         /// A custom analyzer to use for searching, if not specified then the analyzer defined on the indexer will be used.
         /// </param>
         /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>       
         public ILuceneSearcher GetSearcher(string indexerName, Analyzer searchAnalyzer = null)
         {
             if (IndexProviders.ContainsKey(indexerName))
             {
-                var indexer = IndexProviders[indexerName] as LuceneIndexer;
+                var indexer = IndexProviders[indexerName] as ISearchableLuceneExamineIndex;
                 if (indexer == null)
                 {
-                    throw new InvalidOperationException("Cannot create an ILuceneSearcher based on a non LuceneIndexer indexer");
+                    throw new InvalidOperationException("The indexer is not of type " + typeof(ISearchableLuceneExamineIndex));
                 }
-                return new LuceneSearcher(indexer.GetLuceneDirectory(), searchAnalyzer ?? indexer.IndexingAnalyzer);
+                return indexer.GetSearcher(searchAnalyzer);
             }
             throw new KeyNotFoundException("No indexer defined by name " + indexerName);
         }
@@ -193,46 +216,6 @@ namespace Examine
                 return new Tuple<SearchProviderCollection, IndexProviderCollection>(searchProviderCollection, indexProviderCollection);
             });
         }
-
-
-        #region ISearcher Members
-
-        /// <summary>
-        /// Uses the default provider specified to search
-        /// </summary>
-        /// <param name="searchParameters"></param>
-        /// <returns></returns>
-        /// <remarks>This is just a wrapper for the default provider</remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will throw an exception")]
-        public ISearchResults Search(ISearchCriteria searchParameters)
-        {
-            if (DefaultSearchProvider == null)
-            {
-                throw new InvalidOperationException("ExamineManager.Search should not be used, get a searcher using the GetSearcher method");
-            }
-            return DefaultSearchProvider.Search(searchParameters);
-        }
-
-        /// <summary>
-        /// Uses the default provider specified to search
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="useWildcards"></param>
-        /// <returns></returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("This method shouldn't be used, searchers should be resolved using the GetSearcher method and if no searchers are defined in the legacy config this will throw an exception")]
-        public ISearchResults Search(string searchText, bool useWildcards)
-        {
-            if (DefaultSearchProvider == null)
-            {
-                throw new InvalidOperationException("ExamineManager.Search should not be used, get a searcher using the GetSearcher method");
-            }
-            return DefaultSearchProvider.Search(searchText, useWildcards);
-        }
-
-
-        #endregion
 
         /// <summary>
         /// Re-indexes items for the providers specified

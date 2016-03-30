@@ -28,7 +28,7 @@ namespace Examine.Test
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, new TestSimpleDataProvider()))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.RebuildIndex();
 
@@ -61,7 +61,7 @@ namespace Examine.Test
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, dataProvider))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.RebuildIndex();
 
@@ -95,7 +95,7 @@ namespace Examine.Test
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, dataProvider))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.RebuildIndex();
 

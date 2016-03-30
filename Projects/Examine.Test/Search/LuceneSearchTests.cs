@@ -37,7 +37,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItem(
                     new ValueSet(1, "content",
@@ -74,7 +74,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -136,7 +136,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -213,7 +213,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -283,7 +283,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -325,7 +325,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -371,7 +371,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -398,15 +398,15 @@ namespace Examine.Test.Search
                 var results = searcher.Find(filter.Compile());
                 
                  //:: RESULT :: <em>hello</em> world
-                Assert.IsTrue(results.ElementAt(0).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
+                Assert.IsTrue(results.ElementAt(0).GetHighlight("description").Contains("<mark>hello</mark>"));
                 //:: RESULT :: <em>hello</em> something or other
-                Assert.IsTrue(results.ElementAt(1).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
+                Assert.IsTrue(results.ElementAt(1).GetHighlight("description").Contains("<mark>hello</mark>"));
                 //:: RESULT :: <em>hello</em> you guys
-                Assert.IsTrue(results.ElementAt(2).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
+                Assert.IsTrue(results.ElementAt(2).GetHighlight("description").Contains("<mark>hello</mark>"));
                 //:: RESULT :: <em>hello</em> you cruel world
-                Assert.IsTrue(results.ElementAt(3).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
+                Assert.IsTrue(results.ElementAt(3).GetHighlight("description").Contains("<mark>hello</mark>"));
                 //:: RESULT :: hi there, <em>hello</em> world
-                Assert.IsTrue(results.ElementAt(4).GetHighlight("description").Contains("<span class='search-highlight'>hello</span>"));
+                Assert.IsTrue(results.ElementAt(4).GetHighlight("description").Contains("<mark>hello</mark>"));
                 
                 DebutOutputResults(results);
             }

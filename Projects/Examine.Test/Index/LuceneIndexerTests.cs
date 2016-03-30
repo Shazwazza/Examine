@@ -25,7 +25,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())            
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.RebuildIndex();
 
@@ -44,7 +44,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 indexer.IndexAll("category0");
@@ -74,7 +74,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 Assert.IsTrue(indexer.IndexExists());
@@ -86,7 +86,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
@@ -111,7 +111,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 var value = new ValueSet(1, "content",
@@ -140,7 +140,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 for (var i = 0; i < 10; i++)
@@ -168,7 +168,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 for (var i = 0; i < 10; i++)
@@ -197,7 +197,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
@@ -226,7 +226,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
@@ -251,7 +251,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
@@ -289,7 +289,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
@@ -326,7 +326,7 @@ namespace Examine.Test.Index
                 }, Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null),
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItem(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
@@ -359,7 +359,7 @@ namespace Examine.Test.Index
                 },
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_30)))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItem(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>

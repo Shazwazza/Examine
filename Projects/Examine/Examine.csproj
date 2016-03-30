@@ -156,8 +156,11 @@
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="DirectoryInfoExtensions.cs" />
     <Compile Include="Enforcer.cs" />
+    <Compile Include="ExamineIndexerExtensions.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
+    <Compile Include="ISearchableExamineIndex.cs" />
     <Compile Include="LuceneEngine\Providers\ILuceneSearcher.cs" />
+    <Compile Include="LegacyExtensions.cs" />
     <Compile Include="Session\ExamineDisposeModule.cs" />
     <Compile Include="FacetReferenceCount.cs" />
     <Compile Include="IExamineIndexer.cs" />

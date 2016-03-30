@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Web.Mvc;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.DataStructures;
@@ -91,12 +92,19 @@ namespace Examine.Web.Demo.Controllers
             {
                 if (facetFilter)
                 {
-                    //Add column1 filter as facet filter
+                    //filter based on facets
+
+                    var searchTxts = q.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+                    var fields = field.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+                    if (searchTxts.Length != fields.Length) throw new InvalidOperationException("Search texts and field counts must match");
+
+                    var facetKeys = fields.Select((x, i) => new FacetKey(x, searchTxts[i])).ToArray();
+
                     criteria
-                        .Facets(new FacetKey(field, q))
+                        .Facets(facetKeys)
                         .Compile();
                         //TODO: I think we need to score like this for facet filter/search    
-                        //Here, zero means that we don't case about Lucene's score. We only want to know how well the results compare to the facets
+                        //Here, zero means that we don't care about Lucene's score. We only want to know how well the results compare to the facets
                         //.WrapRelevanceScore(0, new FacetKeyLevel("Column4", "Root/Tax1/Tax2", 1));
 
                         //TODO: Determine if this is working as it should, I think Niels K said it might not be, can't remember
@@ -111,7 +119,6 @@ namespace Examine.Web.Demo.Controllers
                     //Add column1 filter as normal field query
                     //criteria.Field("Column1", q);
                     criteria.ManagedQuery(q, fields: field.Split(new [] {','}, StringSplitOptions.RemoveEmptyEntries))
-                        //.Or().Field("Column6", "test")
                         .Compile();
                         //TODO: Determine if this is working as it should, I think Niels K said it might not be, can't remember
                         //.WrapExternalDataScore<TestExternalData>(1 - likeWeight, d => d.Likes / 1000f); 

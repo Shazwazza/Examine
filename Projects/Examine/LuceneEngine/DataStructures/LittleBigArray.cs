@@ -9,7 +9,8 @@ namespace Examine.LuceneEngine.DataStructures
     /// </summary>
     internal class LittleBigArray : IEnumerable<KeyValuePair<int, int>>
     {
-        //@nielskuhnel: This code is originally from http://blogs.msdn.com/b/joshwil/archive/2005/08/10/450202.aspx but changed so that it will not be allocated on the Large object heap (LOH) (if less than 40M items). 
+        //@nielskuhnel: This code is originally from http://blogs.msdn.com/b/joshwil/archive/2005/08/10/450202.aspx but 
+        //changed so that it will not be allocated on the Large object heap (LOH) (if less than 40M items). 
         //And also improved with respect to iteration performance
 
         //private OpenBitSet _mainArraysIndicies;

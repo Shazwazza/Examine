@@ -1,6 +1,6 @@
 param (
 	[Parameter(Mandatory=$true)]
-	[ValidatePattern("\d+?\.\d+?\.\d+?\.\d")]
+	[ValidatePattern("^\d+\.\d+\.(?:\d+\.\d+$|\d+$)")]
 	[string]
 	$ReleaseVersionNumber,
 	[Parameter(Mandatory=$true)]
@@ -13,9 +13,8 @@ $PSScriptFilePath = (Get-Item $MyInvocation.MyCommand.Path).FullName
 
 $SolutionRoot = Split-Path -Path $PSScriptFilePath -Parent
 
-#This detects 64 bit vs 32 bit and returns the correct path
-$MSBuildPath = (${env:ProgramFiles(x86)}, ${env:ProgramFiles} -ne $null)[0]
-$MSBuild = "$MSBuildPath\MSBuild\12.0\Bin\msbuild.exe"
+$ProgFiles86 = [Environment]::GetEnvironmentVariable("ProgramFiles(x86)");
+$MSBuild = "$ProgFiles86\MSBuild\14.0\Bin\MSBuild.exe"
 
 # Make sure we don't have a release folder for this version already
 $BuildFolder = Join-Path -Path $SolutionRoot -ChildPath "build";
@@ -35,7 +34,7 @@ $SolutionInfoPath = Join-Path -Path $SolutionRoot -ChildPath "SolutionInfo.cs"
 	-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", "$ReleaseVersionNumber$PreReleaseName" |
 	sc -Path $SolutionInfoPath -Encoding UTF8
 # Set the copyright
-$Copyright = "Copyright © Shannon Deminick " + (Get-Date).year
+$Copyright = "Copyright ï¿½ Shannon Deminick " + (Get-Date).year
 (gc -Path $SolutionInfoPath) `
 	-replace "(?<=AssemblyCopyright\(`").*(?=`"\))", $Copyright |
 	sc -Path $SolutionInfoPath -Encoding UTF8

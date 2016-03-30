@@ -128,6 +128,7 @@ namespace Examine.Providers
         /// Gets/sets the index criteria to create the index with
         /// </summary>
         [Obsolete("IIndexCriteria should no longer be used")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public IIndexCriteria IndexerData { get; set; }
 
         /// <summary>

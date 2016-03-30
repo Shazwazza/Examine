@@ -15,7 +15,9 @@ using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Indexing.Filters;
 using Examine.LuceneEngine.Indexing.ValueTypes;
+using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
+using Examine.SearchCriteria;
 using Examine.Session;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
@@ -28,7 +30,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>    
-    public abstract class LuceneIndexer : BaseIndexProvider, IDisposable
+    public abstract class LuceneIndexer : BaseIndexProvider, IDisposable, ISearchableLuceneExamineIndex
     {
         #region Constructors
 
@@ -594,6 +596,33 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Provider implementation
+
+        /// <summary>
+        /// Returns a searcher for the indexer
+        /// </summary>
+        /// <returns></returns>
+        public ILuceneSearcher GetSearcher()
+        {
+            return GetSearcher(null);
+        }
+
+        /// <summary>
+        /// Returns a searcher for the indexer
+        /// </summary>
+        /// <returns></returns>
+        public ILuceneSearcher GetSearcher(Analyzer searchAnalyzer)
+        {
+            return new LuceneSearcher(GetLuceneDirectory(), searchAnalyzer ?? IndexingAnalyzer);
+        }
+
+        /// <summary>
+        /// Returns a searcher for the indexer
+        /// </summary>        
+        /// <returns></returns>
+        ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria> ISearchableExamineIndex<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>.GetSearcher()
+        {
+            return GetSearcher();
+        }
 
         public override void IndexItems(IEnumerable<ValueSet> nodes)
         {
@@ -1375,11 +1404,10 @@ namespace Examine.LuceneEngine.Providers
             this.CheckDisposed();
             if (disposing)
             {
-                //TODO: Should we dispose anything ?
-                // the SearcherContext basically contains all elements but what disposes that apart from the Examine Manager? what about tests?
-
-                //_isCancelling = true;
-                //this._fileWatcher.Dispose();
+                if (_searcherContext != null)
+                {
+                    _searcherContext.Dispose();
+                }
             }
 
         }

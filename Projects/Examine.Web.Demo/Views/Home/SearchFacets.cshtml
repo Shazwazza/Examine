@@ -12,7 +12,7 @@
         {
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Top 10 Facet Counts</h3>
+                    <h3 class="panel-title">Top 10 Facet Counts for search results</h3>
                 </div>
                 <div class="panel-body">
                     <ul class="list-unstyled">
@@ -28,8 +28,8 @@
                                     
 
                                     <input type="hidden" name="q" value="@res.Key.Value"/>
-                                    <input type="hidden" name="count" value="@Request.QueryString["count"]"/>
-                                    <input type="hidden" name="countFacets" value="@Request.QueryString["countFacets"]"/>
+                                    <input type="hidden" name="count" value="@Request.QueryString["count"].Split(',')[0]"/>
+                                    <input type="hidden" name="countFacets" value="@Request.QueryString["countFacets"].Split(',')[0]"/>
                                     <input type="hidden" name="facetFilter" value="true"/>
                                     <input type="hidden" name="field" value="@res.Key.FieldName"/>
                                     <input type="hidden" name="all" value="false"/>

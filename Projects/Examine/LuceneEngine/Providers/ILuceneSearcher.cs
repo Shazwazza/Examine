@@ -1,4 +1,5 @@
 using Examine.LuceneEngine.SearchCriteria;
+using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -7,6 +8,6 @@ namespace Examine.LuceneEngine.Providers
     /// </summary>
     public interface ILuceneSearcher : ISearcher<ILuceneSearchResults, LuceneSearchResult, LuceneSearchCriteria>
     {
-        
+        Searcher GetSearcher();
     }
 }

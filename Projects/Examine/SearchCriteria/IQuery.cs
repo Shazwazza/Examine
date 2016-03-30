@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Examine.LuceneEngine.Indexing;
+using Examine.LuceneEngine.SearchCriteria;
 
 namespace Examine.SearchCriteria
-{
+{   
 
     /// <summary>
     /// Defines the chainable query methods for the fluent search API

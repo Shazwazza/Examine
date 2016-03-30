@@ -28,7 +28,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.RebuildIndex();
                 ExamineSession.WaitForChanges();
@@ -46,7 +46,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.RebuildIndex();
                 ExamineSession.WaitForChanges();
@@ -64,7 +64,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            using (SearcherContextCollection.Instance)
+            
             {
                 indexer.IndexItem(new ValueSet(1, "content",
                    new { item1 = "value1", item2 = "here we go into the darkness" }));
