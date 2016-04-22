@@ -553,12 +553,7 @@ namespace Examine.LuceneEngine.Providers
             base.OnIndexingError(e);
 
             //TODO: Maybe this exception shouldn't propagate to the user directly.
-
-            var msg = "Indexing Error Occurred: " + e.Message;
-            if (e.InnerException != null)
-                msg += ". ERROR: " + e.InnerException.Message;
-            throw new Exception(msg, e.InnerException);
-
+            throw e.Exception;
         }
 
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
@@ -834,6 +829,8 @@ namespace Examine.LuceneEngine.Providers
         /// Overrideable method used to get the indexer data during provider initialization
         /// </summary>
         /// <param name="indexSet"></param>
+        [Obsolete("IIndexCriteria is obsolete, this method is used only for configuration based indexes it is recommended to configure indexes on startup with code instead of config")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual IIndexCriteria GetIndexerData(IndexSet indexSet)
         {
             return new IndexCriteria(
@@ -934,7 +931,10 @@ namespace Examine.LuceneEngine.Providers
             }
             catch (Exception ee)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", (int)(nodeId > int.MaxValue ? int.MaxValue : nodeId), ee));
+                OnIndexingError(new IndexingErrorEventArgs(
+                    string.Format("Error deleting Lucene index {0}", (int) (nodeId > int.MaxValue ? int.MaxValue : nodeId)),
+                    ee));
+
                 return false;
             }
         }

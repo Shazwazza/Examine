@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Linq;
+using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
 using Examine.SearchCriteria;
+using Lucene.Net.Index;
 
 namespace Examine
 {
@@ -12,6 +14,13 @@ namespace Examine
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class LegacyExtensions
     {
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This is only exposed for backward compatibility reasons, it should not be used directly")]
+        public static IndexWriter GetIndexWriter(this LuceneIndexer luceneIndexer)
+        {
+            return luceneIndexer.SearcherContext.Writer;
+        }
+
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Do not use this, use the other DeleteFromIndex method instead")]
         public static void DeleteFromIndex(this ExamineManager manager, string nodeId, IEnumerable<BaseIndexProvider> providers)

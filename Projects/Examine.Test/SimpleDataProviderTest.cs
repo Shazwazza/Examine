@@ -144,7 +144,7 @@ namespace Examine.Test
 
         internal void IndexingError(object sender, IndexingErrorEventArgs e)
         {
-            throw new ApplicationException(e.Message, e.InnerException);
+            throw e.Exception;
         }
 
         //private static SimpleDataIndexer _indexer;

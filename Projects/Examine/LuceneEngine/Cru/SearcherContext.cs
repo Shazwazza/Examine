@@ -39,7 +39,13 @@ namespace Examine.LuceneEngine.Cru
         /// </summary>
         public FacetsLoader FacetsLoader { get; private set; }
 
-        private readonly IndexWriter _writer;
+        /// <summary>
+        /// Returns the Lucene Index Writer
+        /// </summary>
+        /// <remarks>
+        /// This is only exposed to allow for exposing on extension methods for backward compat reasons - however it should not be used.
+        /// </remarks>
+        internal IndexWriter Writer { get; private set; }
         
         private readonly NrtManagerReopener _reopener;
         internal Committer Committer { get; private set; }
@@ -86,12 +92,12 @@ namespace Examine.LuceneEngine.Cru
 
             var warmer = new CompositeSearcherWarmer(new[] {(ISearcherWarmer) FacetsLoader, new ValueTypeWarmer(this)});
 
-            _writer = new IndexWriter(dir, Analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
+            Writer = new IndexWriter(dir, Analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
 
 
-            Manager = new NrtManager(_writer, warmer);
+            Manager = new NrtManager(Writer, warmer);
             _reopener = new NrtManagerReopener(Manager, targetMaxStale, targetMinStale);
-            Committer = new Committer(_writer, commitInterval, optimizeInterval);
+            Committer = new Committer(Writer, commitInterval, optimizeInterval);
 
             _threads.AddRange(new[] { new Thread(_reopener.Start), new Thread(Committer.Start) });
 
@@ -182,7 +188,7 @@ namespace Examine.LuceneEngine.Cru
                     () =>
                     {
                         Trace.WriteLine("_writer.Dispose");
-                        _writer.Dispose(true);
+                        Writer.Dispose(true);
                     }
                 };
 

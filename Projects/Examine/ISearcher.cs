@@ -12,7 +12,7 @@ namespace Examine
     /// <typeparam name="TResults"></typeparam>
     /// <typeparam name="TResult"></typeparam>
     /// <typeparam name="TSearchCriteria"></typeparam>
-    public interface ISearcher<out TResults, TResult, out TSearchCriteria>
+    public interface ISearcher<out TResults, TResult, out TSearchCriteria> : ISearcher
         where TResults : ISearchResults<TResult>
         where TResult : ISearchResult
         where TSearchCriteria : ISearchCriteria
@@ -49,6 +49,10 @@ namespace Examine
     /// <summary>
     /// An interface representing an Examine Searcher
     /// </summary>
+    /// <remarks>
+    /// NOTE: This basically exists as a marker interface only since all methods in it are obsolete and will be removed
+    /// in future versions, all searchers are strongly typed / generic
+    /// </remarks>
     public interface ISearcher
     {
         /// <summary>
@@ -72,6 +76,7 @@ namespace Examine
         /// Creates a search criteria instance as required by the implementation
         /// </summary>
         /// <returns></returns>
+        [Obsolete("Use the CreateCriteria method instead for strongly typed search criteria")]
         ISearchCriteria CreateSearchCriteria();
 
         /// <summary>

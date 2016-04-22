@@ -53,6 +53,7 @@ namespace Examine.Providers
     ///<summary>
     /// Abstract search provider object
     ///</summary>
+    [Obsolete("This exists for backwards compatibility only")]
     public abstract class BaseSearchProvider : ProviderBase, ISearcher
     {
         /// <summary>
@@ -77,9 +78,7 @@ namespace Examine.Providers
         {
             return Search(searchText, useWildcards);
         }
-
-        #region ISearcher Members
-
+        
         /// <summary>
         /// Simple search method which should default to searching content nodes
         /// </summary>
@@ -127,7 +126,6 @@ namespace Examine.Providers
         /// <returns>A blank SearchCriteria</returns>
         [Obsolete("Use the CreateCriteria method on a strongly typed search provider instead for strongly typed search criteria")]
         public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
-
-        #endregion
+        
     }
 }

@@ -5,23 +5,17 @@ using System.Text;
 
 namespace Examine
 {
-    public class IndexingErrorEventArgs : EventArgs, INodeEventArgs
+    public class IndexingErrorEventArgs : EventArgs
     {
 
-        public IndexingErrorEventArgs(string message, int nodeId, Exception innerException)
+        public IndexingErrorEventArgs(string message, Exception exception)
         {
-            this.NodeId = nodeId;
-            this.Message = message;
-            this.InnerException = innerException;
+            Message = message;
+            Exception = exception;
         }
 
-        public Exception InnerException { get; private set; }
         public string Message { get; private set; }
-
-        #region INodeEventArgs Members
-
-        public int NodeId { get; private set; }
-
-        #endregion
+        public Exception Exception { get; private set; }
+        
     }
 }
