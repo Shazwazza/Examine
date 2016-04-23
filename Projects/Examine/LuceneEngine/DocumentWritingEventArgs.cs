@@ -35,12 +35,14 @@ namespace Examine.LuceneEngine
         /// Fields of the indexer
         /// </summary>
         [Obsolete("Use ValueSet instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public Dictionary<string, string> Fields { get; private set; }
         
         /// <summary>
         /// NodeId of the document being written
         /// </summary>
-        [Obsolete("Use ValueSet instead")]        
+        [Obsolete("Use ValueSet instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public int NodeId { get; private set; }
 
         /// <summary>
@@ -66,6 +68,7 @@ namespace Examine.LuceneEngine
         /// <param name="d"></param>
         /// <param name="fields"></param>		
         [Obsolete("Do not use this constructor, it does not contain enough information to create a ValueSet")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public DocumentWritingEventArgs(int nodeId, Document d, Dictionary<string, string> fields)
             :this(d, ValueSet.FromLegacyFields(nodeId, null, null, fields))
         {            

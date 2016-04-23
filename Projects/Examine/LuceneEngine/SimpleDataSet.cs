@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
 namespace Examine.LuceneEngine
 {
-    /// <summary>
-    /// Used for the ISimpleDataService
-    /// </summary>
+    [Obsolete("Use ValueSetIndexer with IValueSetService instead")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class SimpleDataSet
     {
         /// <summary>

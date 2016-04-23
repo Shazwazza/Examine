@@ -107,6 +107,100 @@ namespace Examine.Test.Index
         }
 
         [Test]
+        public void Can_Cancel_Indexing_Document()
+        {
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+
+            {
+                EventHandler<TransformingIndexDataEventArgs> indexerOnTransformingIndexValues = (sender, args) =>
+                {
+                    if (args.IndexItem.ValueSet.Values.ContainsKey("blah"))
+                    {
+                        args.Cancel = true;
+                    }
+                };
+
+                try
+                {                    
+                    indexer.TransformingIndexValues += indexerOnTransformingIndexValues;
+
+                    indexer.IndexItem(new ValueSet(1, "content",
+                        new Dictionary<string, List<object>>
+                        {
+                            {"blah", new List<object>(new[] {"value1"})},
+                            {"item2", new List<object>(new[] {"value2"})}
+                        }));
+
+                    indexer.IndexItem(new ValueSet(2, "content",
+                        new Dictionary<string, List<object>>
+                        {
+                            {"item2", new List<object>(new[] {"value2"})}
+                        }));
+
+                    ExamineSession.WaitForChanges();
+
+                    var sc = indexer.SearcherContext;
+                    using (var s = sc.GetSearcher())
+                    {
+                        Assert.AreEqual(1, s.Searcher.IndexReader.NumDocs());
+                    }
+                }
+                finally
+                {
+                    indexer.TransformingIndexValues -= indexerOnTransformingIndexValues;
+                }
+            }
+        }
+
+        [Test]
+        public void Can_Cancel_Indexing_Document_Legacy_Event()
+        {
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+
+            {
+                EventHandler<IndexingNodeEventArgs> indexerOnNodeIndexing = (sender, args) =>
+                {
+                    if (args.Fields.ContainsKey("blah"))
+                    {
+                        args.Cancel = true;
+                    }
+                };
+
+                try
+                {   
+                    indexer.NodeIndexing += indexerOnNodeIndexing;
+
+                    indexer.IndexItem(new ValueSet(1, "content",
+                        new Dictionary<string, List<object>>
+                        {
+                            {"blah", new List<object>(new[] {"value1"})},
+                            {"item2", new List<object>(new[] {"value2"})}
+                        }));
+
+                    indexer.IndexItem(new ValueSet(2, "content",
+                        new Dictionary<string, List<object>>
+                        {
+                            {"item2", new List<object>(new[] {"value2"})}
+                        }));
+
+                    ExamineSession.WaitForChanges();
+
+                    var sc = indexer.SearcherContext;
+                    using (var s = sc.GetSearcher())
+                    {
+                        Assert.AreEqual(1, s.Searcher.IndexReader.NumDocs());
+                    }
+                }
+                finally
+                {
+                    indexer.NodeIndexing -= indexerOnNodeIndexing;
+                }
+            }
+        }
+
+        [Test]
         public void Can_Add_Same_Document_Twice_Without_Duplication()
         {
             using (var luceneDir = new RAMDirectory())      

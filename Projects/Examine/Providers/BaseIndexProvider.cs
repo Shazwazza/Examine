@@ -18,17 +18,22 @@ namespace Examine.Providers
     /// </summary>
     public abstract class BaseIndexProvider : ProviderBase, IExamineIndexer
     {
+        private readonly IEnumerable<FieldDefinition> _fieldDefinitions;
+
         /// <summary>
         /// Gets the defined field definitions
         /// </summary>
-        public IEnumerable<FieldDefinition> FieldDefinitions { get; private set; }
-        
+        /// <remarks>
+        /// This will concat any legacy IndexerData into the FieldDefinitions since the Legacy IndexerData property is not used anywhere else.
+        /// </remarks>
+        public IEnumerable<FieldDefinition> FieldDefinitions => IndexerData != null ? _fieldDefinitions.Union(IndexerData.ToFieldDefinitions()) : _fieldDefinitions;
+
         /// <summary>
         /// Constructor used for provider instantiation
         /// </summary>
         protected BaseIndexProvider()
         {
-            FieldDefinitions = Enumerable.Empty<FieldDefinition>();
+            _fieldDefinitions = Enumerable.Empty<FieldDefinition>();
         }
 
 
@@ -38,7 +43,7 @@ namespace Examine.Providers
         /// <param name="fieldDefinitions"></param>
         protected BaseIndexProvider(IEnumerable<FieldDefinition> fieldDefinitions)
         {
-            FieldDefinitions = fieldDefinitions;
+            _fieldDefinitions = fieldDefinitions;
 
             //for legacy, all empty collections means it will be ignored
             IndexerData = new IndexCriteria(Enumerable.Empty<IIndexField>(), Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), -1);
@@ -49,9 +54,10 @@ namespace Examine.Providers
         /// </summary>
         /// <param name="indexerData">The indexer data.</param>
         [Obsolete("IIndexCriteria should no longer be used")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected BaseIndexProvider(IIndexCriteria indexerData)
         {
-            FieldDefinitions = Enumerable.Empty<FieldDefinition>();
+            _fieldDefinitions = Enumerable.Empty<FieldDefinition>();
             IndexerData = indexerData;
         }
 
@@ -154,22 +160,22 @@ namespace Examine.Providers
         /// </summary>
         public event EventHandler<IndexingErrorEventArgs> IndexingError;
 
-        /// <summary>
-        /// Occurs when a node is in its Indexing phase
-        /// </summary>
+        [Obsolete("Use the TransformIndexValues event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public event EventHandler<IndexingNodeEventArgs> NodeIndexing;
-        /// <summary>
-        /// Occurs when a node is in its Indexed phase
-        /// </summary>
+
+        [Obsolete("Use the ItemIndexed event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public event EventHandler<IndexedNodeEventArgs> NodeIndexed;
-        /// <summary>
-        /// Occurs when a collection of nodes are in their Indexing phase (before a single node is processed)
-        /// </summary>
-        public event EventHandler<IndexingNodesEventArgs> NodesIndexing;
+
+        [Obsolete("Use the ItemIndexed event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public event EventHandler<IndexedNodesEventArgs> NodesIndexed;
+
         /// <summary>
         /// Occurs when the collection of nodes have been indexed
         /// </summary>
-        public event EventHandler<IndexedNodesEventArgs> NodesIndexed;
+        public event EventHandler<IndexItemEventArgs> ItemIndexed;
 
         /// <summary>
         /// Occurs when the indexer is gathering the fields and their associated data for the index
@@ -187,28 +193,52 @@ namespace Examine.Providers
         /// Occurs when a node is deleted from the index
         /// </summary>
         public event EventHandler<DeleteIndexEventArgs> IndexDeleted;
-        /// <summary>
-        /// Occurs when a particular field is having its data obtained
-        /// </summary>
+        
         [Obsolete("Use the TransformIndexValues event instead")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public event EventHandler<IndexingFieldDataEventArgs> GatheringFieldData;
-        /// <summary>
-        /// Occurs when node is found but outside the supported node set
-        /// </summary>
+        
+        [Obsolete("Use the IgnoringValueSet event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public event EventHandler<IndexingNodeDataEventArgs> IgnoringNode;
 
-        
+        /// <summary>
+        /// Occurs when validation of the value set fails
+        /// </summary>
+        public event EventHandler<IndexItemEventArgs> IgnoringValueSet;
 
         #endregion
-      
+
 
         #region Protected Event callers
 
-        /// <summary>
-        /// Called when a node is ignored by the ValidateDocument method.
-        /// </summary>
-        /// <param name="e"></param>
+        protected virtual void OnItemIndexed(IndexItemEventArgs e)
+        {
+            if (ItemIndexed != null)
+                ItemIndexed(this, e);
+
+            //raise the legacy event
+#pragma warning disable CS0618 // Type or member is obsolete
+            OnNodeIndexed(new IndexedNodeEventArgs(e.IndexItem.ValueSet.Id));
+            OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, new[] { new IndexedNode { NodeId = Convert.ToInt32(e.IndexItem.ValueSet.Id), Type = e.IndexItem.IndexType} }));
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        }
+
+        protected virtual void OnIgnoringIndexItem(IndexItemEventArgs e)
+        {
+            if (IgnoringValueSet != null)
+                IgnoringValueSet(this, e);
+
+            //raise the legacy event
+#pragma warning disable CS0618 // Type or member is obsolete
+            OnIgnoringNode(new IndexingNodeDataEventArgs(e.IndexItem.ValueSet));
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        }
+
+        [Obsolete("Use OnIgnoringValueSet instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnIgnoringNode(IndexingNodeDataEventArgs e)
         {
             if (IgnoringNode != null)
@@ -225,20 +255,16 @@ namespace Examine.Providers
                 IndexingError(this, e);
         }
 
-        /// <summary>
-        /// Raises the <see cref="E:NodeIndexed"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexedNodeEventArgs"/> instance containing the event data.</param>
+        [Obsolete("Use OnItemIndexed instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnNodeIndexed(IndexedNodeEventArgs e)
         {
             if (NodeIndexed != null)
                 NodeIndexed(this, e);
         }
 
-        /// <summary>
-        /// Raises the <see cref="E:NodeIndexing"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingNodeEventArgs"/> instance containing the event data.</param>
+        [Obsolete("Use the OnTransformIndexValues event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnNodeIndexing(IndexingNodeEventArgs e)
         {
             if (NodeIndexing != null)
@@ -255,10 +281,8 @@ namespace Examine.Providers
                 IndexDeleted(this, e);
         }
 
-        /// <summary>
-        /// Raises the <see cref="E:GatheringNodeData"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingNodeDataEventArgs"/> instance containing the event data.</param>
+        [Obsolete("Use the OnTransformIndexValues event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnGatheringNodeData(IndexingNodeDataEventArgs e)
         {
             if (GatheringNodeData != null)
@@ -269,36 +293,34 @@ namespace Examine.Providers
         {
             if (TransformingIndexValues != null)
                 TransformingIndexValues(this, e);
+
+            if (!e.Cancel)
+            {
+                //legacy events
+                var args = new IndexingNodeEventArgs(e.IndexItem.ValueSet);
+                OnNodeIndexing(args);
+                if (args.Cancel)
+                {
+                    e.Cancel = args.Cancel;
+                }
+            }
+            
         }
-        
-        /// <summary>
-        /// Raises the <see cref="E:GatheringFieldData"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingFieldDataEventArgs"/> instance containing the event data.</param>
+
+        [Obsolete("Use the OnTransformIndexValues event instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnGatheringFieldData(IndexingFieldDataEventArgs e)
         {
             if (GatheringFieldData != null)
                 GatheringFieldData(this, e);
         }
 
-        /// <summary>
-        /// Raises the <see cref="E:NodesIndexed"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexedNodesEventArgs"/> instance containing the event data.</param>
+        [Obsolete("Use OnItemIndexed instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void OnNodesIndexed(IndexedNodesEventArgs e)
         {
             if (NodesIndexed != null)
                 NodesIndexed(this, e);
-        }
-
-        /// <summary>
-        /// Raises the <see cref="E:NodesIndexing"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingNodesEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnNodesIndexing(IndexingNodesEventArgs e)
-        {
-            if (NodesIndexing != null)
-                NodesIndexing(this, e);
         }
 
         #endregion

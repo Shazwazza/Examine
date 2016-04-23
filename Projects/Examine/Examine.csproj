@@ -158,6 +158,7 @@
     <Compile Include="Enforcer.cs" />
     <Compile Include="ExamineIndexerExtensions.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
+    <Compile Include="IndexItemEventArgs.cs" />
     <Compile Include="ISearchableExamineIndex.cs" />
     <Compile Include="LuceneEngine\Providers\ILuceneSearcher.cs" />
     <Compile Include="LegacyExtensions.cs" />
@@ -175,7 +176,6 @@
     <Compile Include="IndexingFieldDataEventArgs.cs" />
     <Compile Include="IndexingNodeDataEventArgs.cs" />
     <Compile Include="IndexingNodeEventArgs.cs" />
-    <Compile Include="IndexingNodesEventArgs.cs" />
     <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />

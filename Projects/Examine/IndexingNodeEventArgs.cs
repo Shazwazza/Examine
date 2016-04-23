@@ -6,9 +6,8 @@ using System.Linq;
 
 namespace Examine
 {
-    /// <summary>
-    /// Event arguments for when an item is indexing
-    /// </summary>
+    [Obsolete("Use the TransformIndexValues event with TransformingIndexDataEventArgs instead")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class IndexingNodeEventArgs : CancelEventArgs, INodeEventArgs
     {
         private Dictionary<string, string> _fields;
@@ -38,6 +37,7 @@ namespace Examine
         /// <param name="fields"></param>
         /// <param name="indexCategory"></param>
         [Obsolete("Do not use this constructor, it doesn't contain enough information to creaet a ValueSet")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public IndexingNodeEventArgs(int nodeId, Dictionary<string, string> fields, string indexCategory)
             //This ctor doesn't contain the item type!
             : this( ValueSet.FromLegacyFields(nodeId, indexCategory, "", fields))
@@ -53,6 +53,7 @@ namespace Examine
         /// <param name="indexCategory"></param>
         /// <param name="itemType"></param>
         [Obsolete("Use ValueSet instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public IndexingNodeEventArgs(int nodeId, Dictionary<string, string> fields, string indexCategory, string itemType)
             : this(ValueSet.FromLegacyFields(nodeId, indexCategory, itemType, fields))
         {
@@ -71,12 +72,14 @@ namespace Examine
         /// The node id being indexed
         /// </summary>
         [Obsolete("Use ValueSet instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public int NodeId { get; private set; }
 
         /// <summary>
         /// The values being indexed
         /// </summary>
         [Obsolete("Use ValueSet instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public Dictionary<string, string> Fields
         {
             get { InitializeLegacyData(); return _fields; }            
@@ -86,6 +89,7 @@ namespace Examine
         /// The index category
         /// </summary>
         [Obsolete("Use ValueSet instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public string IndexType { get; private set; }
     }
 }

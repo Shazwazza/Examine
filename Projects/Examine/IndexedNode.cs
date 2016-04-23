@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -7,9 +8,8 @@ using System.Xml.Linq;
 namespace Examine
 {
 
-    /// <summary>
-    /// Simple class to store the definition of an indexed node
-    /// </summary>
+    [Obsolete("This class is no longer used and will be removed in future versions")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class IndexedNode
     {
         /// <summary>

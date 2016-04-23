@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
+using System.Threading;
 using Examine.LuceneEngine.Indexing;
 
 namespace Examine
@@ -7,14 +8,14 @@ namespace Examine
     /// <summary>
     /// Aguments for the TransformIndexValues event
     /// </summary>
-    public class TransformingIndexDataEventArgs : EventArgs
+    public class TransformingIndexDataEventArgs : CancelEventArgs
     {
-        public ValueSet ValueSet { get; private set; }
+        public IndexItem IndexItem { get; private set; }
         public IDictionary<string, IEnumerable<object>> OriginalValues { get; private set; }
 
-        public TransformingIndexDataEventArgs(ValueSet valueSet, IDictionary<string, IEnumerable<object>> originalValues)
+        public TransformingIndexDataEventArgs(IndexItem indexItem, IDictionary<string, IEnumerable<object>> originalValues)
         {
-            ValueSet = valueSet;
+            IndexItem = indexItem;
             OriginalValues = originalValues;
         }
     }

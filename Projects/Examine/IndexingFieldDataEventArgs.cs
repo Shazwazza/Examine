@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -8,7 +9,8 @@ using Examine.LuceneEngine;
 
 namespace Examine
 {
-    [Obsolete("This is used for legacy events which should no longer be used")]
+    [Obsolete("Use the TransformIndexValues event with TransformingIndexDataEventArgs instead")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class IndexingFieldDataEventArgs : EventArgs, INodeEventArgs
     {
         

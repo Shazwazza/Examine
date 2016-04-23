@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.IO;
@@ -11,6 +12,7 @@ namespace Examine
     /// a data structure for storing indexing/searching instructions
     /// </summary>
     [Obsolete("This shouldn't be used anymore but exists for legacy reasons")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class IndexCriteria : IIndexCriteria
     {
 

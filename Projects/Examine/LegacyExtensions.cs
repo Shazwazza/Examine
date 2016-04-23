@@ -14,6 +14,16 @@ namespace Examine
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class LegacyExtensions
     {
+        public static IEnumerable<FieldDefinition> ToFieldDefinitions(this IIndexCriteria indexCriteria)
+        {
+            var d = new HashSet<FieldDefinition>();
+            foreach (var field in indexCriteria.AllFields())
+            {                
+                d.Add(new FieldDefinition(field.Name, field.Type));
+            }
+            return d;
+        }
+
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("This is only exposed for backward compatibility reasons, it should not be used directly")]
         public static IndexWriter GetIndexWriter(this LuceneIndexer luceneIndexer)

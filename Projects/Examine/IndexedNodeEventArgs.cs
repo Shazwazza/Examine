@@ -1,7 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace Examine
 {
+    [Obsolete("Use the ItemIndexed event with ItemIndexedEventArgs instead")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class IndexedNodeEventArgs : EventArgs
     {
         public IndexedNodeEventArgs(long nodeId)

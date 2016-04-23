@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
@@ -9,6 +10,7 @@ namespace Examine.LuceneEngine
     /// The data source for the SimpleDataIndexer
     /// </summary>
     [Obsolete("Use ValueSetIndexer with IValueSetService instead")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public interface ISimpleDataService
     {
         /// <summary>

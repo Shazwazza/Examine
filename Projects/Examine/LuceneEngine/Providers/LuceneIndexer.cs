@@ -723,24 +723,7 @@ namespace Examine.LuceneEngine.Providers
                     searcherContext.DefineValueType(
                         fulltext(string.IsNullOrWhiteSpace(field.IndexName) ? field.Name : field.IndexName));
                 }
-            }
-            
-            //perform the operation for all legacy declared fields - We don't have the 'IndexName' 
-            // on legacy field types
-            foreach (var field in IndexerData.AllFields())
-            {
-                Func<string, IIndexValueType> valueType;
-                if (!string.IsNullOrWhiteSpace(field.Type) && IndexFieldTypes.TryGetValue(field.Type, out valueType))
-                {
-                    searcherContext.DefineValueType(valueType(field.Name));
-                }
-                else
-                {
-                    //Define the default!
-                    var fulltext = IndexFieldTypes["fulltext"];
-                    searcherContext.DefineValueType(fulltext(field.Name));
-                }
-            }
+            }                    
         }
 
         /// <summary>
@@ -944,8 +927,11 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        protected virtual bool ValidateDocument(ValueSet node)
+        protected virtual bool ValidateValueSet(ValueSet node)
         {
+            //TODO: This needs to change - we cannot use these properties on IndexerData!
+            // Perhaps we need to inject an optional IDocumentValidator?
+
             //check if this document is of a correct type of node type alias
             if (IndexerData.IncludeNodeTypes.Any())
                 if (!IndexerData.IncludeNodeTypes.Contains(node.ItemType))
@@ -964,31 +950,36 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        [Obsolete("This method is no longer used and will be removed in future versions, do not call this method")]
+        [Obsolete("This method is no longer used and will be removed in future versions, do not call this method use ValidateValueSet instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual bool ValidateDocument(XElement node)
         {
-            return ValidateDocument(node.ToValueSet(null, node.ExamineNodeTypeAlias()));
+            return ValidateValueSet(node.ToValueSet(null, node.ExamineNodeTypeAlias()));
         }
 
         /// <summary>
-        /// Called before the item is put into the index and filters/formats the data
+        /// Called before the item is put into the index and filters/formats the data - this deals with legacy logic
         /// </summary>
         /// <param name="indexItem"></param>
-        protected internal virtual void TransformDataToIndex(IndexItem indexItem)
+        private bool TransformDataToIndex(IndexItem indexItem)
         {
+            //NOTE: This is basically all legacy logic...
+
             //copy all original valus here so we can give them to the transform values event
             var originalValues = new Dictionary<string, IEnumerable<object>>(
                 indexItem.ValueSet.Values.ToDictionary(pair => pair.Key, pair => (IEnumerable<object>)pair.Value));
 
             var valueSet = indexItem.ValueSet;
 
+            var allFields = IndexerData.AllFields().ToArray();
+
             //if the index critera does not list any fields whatsoever, than we will let
             // all fields be indexed.
-            if (IndexerData.AllFields().Any())
+            if (allFields.Any())
             {
                 //remove any field that is not declared
                 var toRemove = valueSet.Values.Keys.Except(
-                    IndexerData.AllFields().Select(x => x.Name))
+                    allFields.Select(x => x.Name))
                     .ToArray();
                 foreach (var r in toRemove)
                 {
@@ -997,7 +988,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             // handle legacy field event for all fields
-            foreach (var field in IndexerData.AllFields())
+            foreach (var field in allFields)
             {
                 if (valueSet.Values.ContainsKey(field.Name))
                 {
@@ -1030,8 +1021,12 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //Ok, now that the legacy stuff is done, we can emit our new events
-            OnTransformingIndexValues(new TransformingIndexDataEventArgs(indexItem.ValueSet, originalValues));
+            var args = new TransformingIndexDataEventArgs(indexItem, originalValues);
+            OnTransformingIndexValues(args);
+            return args.Cancel == false;
+
         }
+        
 
         /// <summary>
         /// Used to deal with the legacy events
@@ -1134,19 +1129,6 @@ namespace Examine.LuceneEngine.Providers
                                 : f.Name);
                 }
 
-                //iterate over legacy fields - legacy fields do not have an 'IndexName'
-                foreach (var f in IndexerData.AllFields())
-                {
-                    //TODO: This here is some zany logic, still trying to figure out what it is doing, the purpose
-                    // of resetting the mappings variable with 'out' parmams
-
-                    if (!fieldMappings.TryGetValue(f.Name, out mappings))
-                    {
-                        fieldMappings.Add(f.Name, mappings = new List<string>());
-                    }
-                    mappings.Add(f.Name);
-                }
-
                 return fieldMappings;
             });
 
@@ -1160,11 +1142,6 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="values"></param>
         protected virtual void AddDocument(ValueSet values)
         {
-            var args = new IndexingNodeEventArgs(values);
-            OnNodeIndexing(args);
-            if (args.Cancel)
-                return;
-
             var d = new Document();
 
             d.Add(new ExternalIdField(values.Id));
@@ -1189,9 +1166,7 @@ namespace Examine.LuceneEngine.Providers
             if (docArgs.Cancel)
                 return;
 
-            SearcherContext.Manager.UpdateDocument(new Term(IndexNodeIdFieldName, values.Id.ToString(CultureInfo.InvariantCulture)), d);
-
-            OnNodeIndexed(new IndexedNodeEventArgs(values.Id));
+            SearcherContext.Manager.UpdateDocument(new Term(IndexNodeIdFieldName, values.Id.ToString(CultureInfo.InvariantCulture)), d);            
         }
 
 
@@ -1238,14 +1213,17 @@ namespace Examine.LuceneEngine.Providers
             switch (item.Operation)
             {
                 case IndexOperationType.Add:
-                    if (ValidateDocument(item.Item.ValueSet))
+                    if (ValidateValueSet(item.Item.ValueSet))
                     {
                         var node = ProcessIndexItem(item.Item);
-                        OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, new[] { node }));
+                        if (node != null)
+                        {
+                            OnItemIndexed(new IndexItemEventArgs(item.Item));                            
+                        }
                     }
                     else
                     {
-                        OnIgnoringNode(new IndexingNodeDataEventArgs(item.Item.ValueSet));
+                        OnIgnoringIndexItem(new IndexItemEventArgs(item.Item));                        
                     }
                     break;
                 case IndexOperationType.Delete:
@@ -1257,6 +1235,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [Obsolete("This is no longer used, use ProcessIndexOperation instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected void EnqueueIndexOperation(IndexOperation op)
         {
             ProcessIndexOperation(op);
@@ -1321,20 +1300,17 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        private IndexedNode ProcessIndexItem(IndexItem item)
+        private IndexItem ProcessIndexItem(IndexItem item)
         {
-            //get the node id
-            //TODO: Fix this - it might not be int?
-            var nodeId = int.Parse(item.Id);
-
             //transform the data
-            TransformDataToIndex(item);
+            var proceed = TransformDataToIndex(item);
+            if (!proceed) return null;
 
             var values = item.ValueSet;
 
             AddDocument(values);
 
-            return new IndexedNode() { NodeId = nodeId, Type = item.IndexType };
+            return item;
         }
 
         /// <summary>
