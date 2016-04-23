@@ -78,6 +78,7 @@ namespace Examine.Web.Demo
                 BogusIndexDataService.IndexCategories,
                 new DirectoryInfo(Context.Server.MapPath("~/App_Data/{machinename}/SimpleIndexSet2")),
                 new StandardAnalyzer(Version.LUCENE_30),
+                null,
                 //NOTE: IF we omit this, it will try to setu pthe facet config based on the field value types above,
                 // but we want to setup some reference types
                 new FacetConfiguration(new []

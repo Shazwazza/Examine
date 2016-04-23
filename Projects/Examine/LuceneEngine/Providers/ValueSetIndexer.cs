@@ -21,6 +21,7 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor to create an indexer at runtime
         /// </summary>
         /// <param name="fieldDefinitions"></param>
+        /// <param name="validator"></param>
         /// <param name="facetConfiguration"></param>
         /// <param name="dataService"></param>
         /// <param name="indexCategories"></param>
@@ -36,9 +37,10 @@ namespace Examine.LuceneEngine.Providers
             IEnumerable<string> indexCategories,
             Directory luceneDirectory,
             Analyzer defaultAnalyzer,
+            IValueSetValidator validator = null,
             FacetConfiguration facetConfiguration = null,
             IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
-            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, facetConfiguration, indexValueTypes)
+            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, validator, facetConfiguration, indexValueTypes)
         {
             DataService = dataService;
             IndexCategories = indexCategories;
@@ -48,6 +50,7 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor to create an indexer at runtime
         /// </summary>
         /// <param name="fieldDefinitions"></param>
+        /// <param name="validator"></param>
         /// <param name="facetConfiguration"></param>
         /// <param name="dataService"></param>
         /// <param name="indexCategories"></param>
@@ -63,11 +66,12 @@ namespace Examine.LuceneEngine.Providers
             IEnumerable<string> indexCategories,
             DirectoryInfo indexDirectory,
             Analyzer defaultAnalyzer,
+            IValueSetValidator validator = null,
             FacetConfiguration facetConfiguration = null,
             IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
             : this(fieldDefinitions, dataService, indexCategories, 
                   new SimpleFSDirectory(indexDirectory.ReplaceTokensInPath()), 
-                  defaultAnalyzer, facetConfiguration, indexValueTypes)
+                  defaultAnalyzer, validator, facetConfiguration, indexValueTypes)
         {
         }
 

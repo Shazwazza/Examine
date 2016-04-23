@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -17,6 +18,7 @@ namespace Examine.LuceneEngine.Providers
     /// An index provider that can be used to index simple data structures such as those from a database, dictionary or array.
     /// </summary>
     [Obsolete("Use ValueSetIndexer instead")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class SimpleDataIndexer : LuceneIndexer
     {
 

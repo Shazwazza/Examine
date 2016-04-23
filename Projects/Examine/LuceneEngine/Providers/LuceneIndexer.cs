@@ -47,6 +47,7 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor to create an indexer at runtime
         /// </summary>
         /// <param name="fieldDefinitions"></param>
+        /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
         /// <param name="facetConfiguration"></param>
         /// <param name="luceneDirectory"></param>
         /// <param name="defaultAnalyzer">Specifies the default analyzer to use per field</param>
@@ -58,10 +59,13 @@ namespace Examine.LuceneEngine.Providers
             IEnumerable<FieldDefinition> fieldDefinitions,             
             Lucene.Net.Store.Directory luceneDirectory, 
             Analyzer defaultAnalyzer,
+            IValueSetValidator validator = null,
             FacetConfiguration facetConfiguration = null, 
             IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
             : base(fieldDefinitions)
         {
+            ValueSetValidator = validator;
+
             InitFieldTypes(indexValueTypes ?? GetDefaultIndexValueTypes());
 
             LuceneIndexFolder = null;
@@ -100,6 +104,24 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer)
             : base(indexerData)
         {
+            //This is using the legacy IIndexCriteria so we'll use the old validation logic
+            ValueSetValidator = new ValueSetValidatorDelegate(set =>
+            {
+                //Here is the legacy validation logic...
+
+                //check if this document is of a correct type of node type alias
+                if (IndexerData.IncludeNodeTypes.Any())
+                    if (!IndexerData.IncludeNodeTypes.Contains(set.ItemType))
+                        return false;
+
+                //if this node type is part of our exclusion list, do not validate
+                if (IndexerData.ExcludeNodeTypes.Any())
+                    if (IndexerData.ExcludeNodeTypes.Contains(set.ItemType))
+                        return false;
+
+                return true;
+            });
+
             InitFieldTypes(GetDefaultIndexValueTypes());
 
             //set up our folders based on the index path
@@ -437,6 +459,20 @@ namespace Examine.LuceneEngine.Providers
         #region Properties
 
         /// <summary>
+        /// A validator to validate a value set before it's indexed
+        /// </summary>
+        protected IValueSetValidator ValueSetValidator { get; private set; }
+
+        /// <summary>
+        /// Defines the field types such as number, fulltext, etc...
+        /// </summary>
+        /// <remarks>
+        /// Makes concurrent dictionary becaues this is a singleton - though I don't think this collection is ever modified
+        /// after construction but we'll leave it like this anyways.
+        /// </remarks>
+        internal ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
+
+        /// <summary>
         /// Gets the facet configuration.
         /// </summary>
         /// <value>
@@ -589,9 +625,7 @@ namespace Examine.LuceneEngine.Providers
         protected virtual void OnDuplicateFieldWarning(int nodeId, string indexSetName, string fieldName) { }
 
         #endregion
-
-        #region Provider implementation
-
+      
         /// <summary>
         /// Returns a searcher for the indexer
         /// </summary>
@@ -766,8 +800,7 @@ namespace Examine.LuceneEngine.Providers
             //now do the indexing...
             PerformIndexAll(type);
         }
-
-        #endregion
+        
 
         /// <summary>
         /// This wil optimize the index for searching, this gets executed when this class instance is instantiated.
@@ -782,9 +815,7 @@ namespace Examine.LuceneEngine.Providers
             SearcherContext.Committer.OptimizeNow();
 
             //TODO: Hook into searchcontexts comitter thread to optimize
-        }
-
-        #region Protected
+        }        
 
         /// <summary>
         /// This will add a number of nodes to the index
@@ -865,7 +896,7 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            return baseNew;
+            return true;
         }
 
         /// <summary>
@@ -929,19 +960,10 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected virtual bool ValidateValueSet(ValueSet node)
         {
-            //TODO: This needs to change - we cannot use these properties on IndexerData!
-            // Perhaps we need to inject an optional IDocumentValidator?
-
-            //check if this document is of a correct type of node type alias
-            if (IndexerData.IncludeNodeTypes.Any())
-                if (!IndexerData.IncludeNodeTypes.Contains(node.ItemType))
-                    return false;
-
-            //if this node type is part of our exclusion list, do not validate
-            if (IndexerData.ExcludeNodeTypes.Any())
-                if (IndexerData.ExcludeNodeTypes.Contains(node.ItemType))
-                    return false;
-
+            if (ValueSetValidator != null)
+            {
+                return ValueSetValidator.Validate(node);
+            }
             return true;
         }
 
@@ -1260,10 +1282,7 @@ namespace Examine.LuceneEngine.Providers
             }
             return _directory;
         }
-        
-        #endregion
-
-        #region Private
+      
 
         /// <summary>
         /// Adds 'special' fields to the Lucene index for use internally.
@@ -1336,17 +1355,6 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        #endregion
-
-        /// <summary>
-        /// Defines the field types such as number, fulltext, etc...
-        /// </summary>
-        /// <remarks>
-        /// Makes concurrent dictionary becaues this is a singleton - though I don't think this collection is ever modified
-        /// after construction but we'll leave it like this anyways.
-        /// </remarks>
-        internal ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
-        
         #region IDisposable Members
 
         protected bool Disposed;

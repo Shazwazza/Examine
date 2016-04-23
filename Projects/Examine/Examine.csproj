@@ -162,6 +162,8 @@
     <Compile Include="ISearchableExamineIndex.cs" />
     <Compile Include="LuceneEngine\Providers\ILuceneSearcher.cs" />
     <Compile Include="LegacyExtensions.cs" />
+    <Compile Include="LuceneEngine\Providers\IValueSetValidator.cs" />
+    <Compile Include="LuceneEngine\Providers\ValueSetValidatorDelegate.cs" />
     <Compile Include="Session\ExamineDisposeModule.cs" />
     <Compile Include="FacetReferenceCount.cs" />
     <Compile Include="IExamineIndexer.cs" />
@@ -246,7 +248,7 @@
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IManagedQueryParameters.cs" />
-    <Compile Include="LuceneEngine\Indexing\ValueSet.cs" />
+    <Compile Include="ValueSet.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\AutoSuggestType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\DateTimeType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\DoubleType.cs" />
