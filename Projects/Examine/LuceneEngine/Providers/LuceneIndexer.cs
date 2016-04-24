@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -986,7 +987,7 @@ namespace Examine.LuceneEngine.Providers
             //NOTE: This is basically all legacy logic...
 
             //copy all original valus here so we can give them to the transform values event
-            var originalValues = new Dictionary<string, IEnumerable<object>>(
+            var originalValues = new ReadOnlyDictionary<string, IEnumerable<object>>(
                 indexItem.ValueSet.Values.ToDictionary(pair => pair.Key, pair => (IEnumerable<object>)pair.Value));
 
             var valueSet = indexItem.ValueSet;
