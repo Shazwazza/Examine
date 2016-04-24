@@ -5,6 +5,7 @@ using System.Web.Mvc;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.DataStructures;
 using Examine.LuceneEngine.Faceting;
+using Examine.LuceneEngine.Providers;
 using Examine.Session;
 using Examine.Web.Demo.Models;
 
@@ -140,49 +141,59 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult RebuildIndex()
         {
-            var timer = new Stopwatch();            
-            using (BogusIndexDataService.PrefetchData(BogusIndexDataService.IndexCategories))
+            var index = ExamineManager.Instance.GetIndexer<LuceneIndexer>("Simple2Indexer");
+
+            using (var session = new RequestScopedIndexSession(HttpContext, index.SearcherContext))
             {
-                timer.Start();
-                var index = ExamineManager.Instance.IndexProviders["Simple2Indexer"];
-                index.RebuildIndex();
-                timer.Stop();
+                var timer = new Stopwatch();
+                using (BogusIndexDataService.PrefetchData(BogusIndexDataService.IndexCategories))
+                {
+                    timer.Start();
+
+                    index.RebuildIndex();
+                    timer.Stop();
+                }
+
+                session.WaitForChanges();
+
+                var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
+                var result = searcher.Find(searcher.CreateCriteria().All().Compile());
+
+                return View(new RebuildModel
+                {
+                    TotalIndexed = result.TotalItemCount,
+                    TotalSeconds = timer.Elapsed.TotalSeconds
+                });
             }
-
-            ExamineSession.WaitForChanges();
-
-            var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
-            var result = searcher.Find(searcher.CreateCriteria().All().Compile());
-
-            return View(new RebuildModel
-            {
-                TotalIndexed = result.TotalItemCount,
-                TotalSeconds = timer.Elapsed.TotalSeconds
-            });
+            
         }
 
         [HttpPost]
         public ActionResult ReIndexEachItemIndividually()
         {
-            try
+            var index = ExamineManager.Instance.GetIndexer<LuceneIndexer>("Simple2Indexer");
+            using (var session = new RequestScopedIndexSession(HttpContext, index.SearcherContext))
             {
-                var timer = new Stopwatch();
-                timer.Start();
-                var ds = new BogusIndexDataService();
-                foreach (var i in ds.GetAllData("TestType"))
+                try
                 {
-                    ExamineManager.Instance.IndexProviders["Simple2Indexer"].IndexItem(i);                        
-                }
-                timer.Stop();
-                
-                ExamineSession.WaitForChanges();
+                    var timer = new Stopwatch();
+                    timer.Start();
+                    var ds = new BogusIndexDataService();
+                    foreach (var i in ds.GetAllData("TestType"))
+                    {
+                        index.IndexItem(i);
+                    }
+                    timer.Stop();
 
-                return View(timer.Elapsed.TotalSeconds);
-            }
-            catch (Exception ex)
-            {
-                this.ModelState.AddModelError("DataError", ex.Message);
-                return View(0d);
+                    session.WaitForChanges();
+
+                    return View(timer.Elapsed.TotalSeconds);
+                }
+                catch (Exception ex)
+                {
+                    this.ModelState.AddModelError("DataError", ex.Message);
+                    return View(0d);
+                }
             }
         }
 

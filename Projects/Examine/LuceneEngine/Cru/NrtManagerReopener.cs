@@ -49,8 +49,7 @@ namespace Examine.LuceneEngine.Cru
                 var hasWaiting = false;
 
                 _waitHandle.Reset();
-                // TODO: try to guestimate how long reopen might
-                // take based on past data?
+                // TODO: try to guestimate how long reopen might take based on past data?
 
                 while (!_finish)
                 {

@@ -37,7 +37,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItem(
                     new ValueSet(1, "content",
@@ -47,7 +48,7 @@ namespace Examine.Test.Search
                         })
                     );
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -74,7 +75,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -89,7 +91,7 @@ namespace Examine.Test.Search
                         new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -136,7 +138,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -160,7 +163,7 @@ namespace Examine.Test.Search
                         new { description = "hello, yo, whats up", manufacturer = "Pentax", resolution = "4MP" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -213,7 +216,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -237,7 +241,7 @@ namespace Examine.Test.Search
                         new { description = "hello, yo, whats up", manufacturer = "Pentax", resolution = "4MP" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -283,7 +287,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -298,7 +303,7 @@ namespace Examine.Test.Search
                         new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -325,7 +330,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -340,7 +346,7 @@ namespace Examine.Test.Search
                         new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -371,7 +377,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer, config))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -386,7 +393,7 @@ namespace Examine.Test.Search
                         new { description = "hi there, hello world", manufacturer = "Canon", resolution = "12MP" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 

@@ -269,9 +269,9 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            if (ExamineSession.RequireImmediateConsistency)
+            if (DefaultExamineSession.RequireImmediateConsistency)
             {
-               ExamineSession.WaitForChanges(_searcherContext.Manager);
+               DefaultExamineSession.WaitForChanges(_searcherContext.Manager);
             }
 
         }

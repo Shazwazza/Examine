@@ -1,4 +1,5 @@
 ﻿using Examine.LuceneEngine;
+using Examine.LuceneEngine.Cru;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
@@ -10,6 +11,7 @@ namespace Examine
     {
         new ILuceneSearcher GetSearcher();
         ILuceneSearcher GetSearcher(Analyzer searchAnalyzer);
+        SearcherContext SearcherContext { get; }
     }
 
     public interface ISearchableExamineIndex<out TResults, TResult, out TSearchCriteria>

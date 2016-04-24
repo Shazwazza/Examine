@@ -28,11 +28,12 @@ namespace Examine.Test
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, new TestSimpleDataProvider()))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.RebuildIndex();
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -61,11 +62,12 @@ namespace Examine.Test
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, dataProvider))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.RebuildIndex();
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 //now we'll index one new node:
 
@@ -74,7 +76,7 @@ namespace Examine.Test
 
                 indexer.ReIndexNode(xml, "Documents");
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -95,11 +97,12 @@ namespace Examine.Test
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = GetSimpleIndexer(luceneDir, analyzer, dataProvider))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.RebuildIndex();
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 

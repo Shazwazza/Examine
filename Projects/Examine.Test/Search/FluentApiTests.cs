@@ -31,7 +31,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[]
                 {
@@ -58,7 +59,7 @@ namespace Examine.Test.Search
                         })
                 });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -238,7 +239,8 @@ namespace Examine.Test.Search
                 //new[] { new FieldDefinition("umbracoNaviHide", "number") }, 
 
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -247,7 +249,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -268,7 +270,8 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(
                 new[] { new FieldDefinition("__Path", "raw") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -287,7 +290,7 @@ namespace Examine.Test.Search
                         })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -315,7 +318,8 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(
                 new[] { new FieldDefinition("parentID", "number") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -326,7 +330,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -347,7 +351,8 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(
                 new[] { new FieldDefinition("nodeTypeAlias", "raw") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -373,7 +378,7 @@ namespace Examine.Test.Search
                         })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -393,7 +398,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -404,7 +410,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 3", bodyText = "Slowly carrying the full cups into the living room, she handed one to Alex." })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -424,7 +430,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -450,7 +457,7 @@ namespace Examine.Test.Search
                         })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -471,7 +478,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "media",
@@ -482,7 +490,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -501,7 +509,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "media",
@@ -514,7 +523,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 4", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -540,7 +549,8 @@ namespace Examine.Test.Search
                 //Ensure it's set to a number, otherwise it's not sortable
                 new[] { new FieldDefinition("sortOrder", "number"), new FieldDefinition("parentID", "number") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1, "content",
@@ -553,7 +563,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 4", bodyText = "lorem ipsum", parentID = "2222" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -582,7 +592,8 @@ namespace Examine.Test.Search
                 //Ensure it's set to a date, otherwise it's not sortable
                 new[] { new FieldDefinition("updateDate", "date"), new FieldDefinition("parentID", "number") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 var now = DateTime.Now;
 
@@ -597,7 +608,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 4", updateDate = now, parentID = "2222" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -626,7 +637,8 @@ namespace Examine.Test.Search
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 new[] { new FieldDefinition("nodeName", "fulltextsortable") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -640,7 +652,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -667,7 +679,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -681,7 +694,7 @@ namespace Examine.Test.Search
                         new { nodeName = "hello", headerText = "world", bodyText = "blah" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -711,7 +724,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -725,7 +739,7 @@ namespace Examine.Test.Search
                         new { nodeName = "hello", headerText = "world", writerName = "blah" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -749,7 +763,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -763,7 +778,7 @@ namespace Examine.Test.Search
                         new { nodeName = "codegarden 090", headerText = "world", writerName = "blah" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -789,7 +804,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -803,7 +819,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Always consider this", nodeTypeAlias = "CWS_World" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -831,7 +847,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -845,7 +862,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Always consider this", metaKeywords = "Warren is a very talented individual and quite creative" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -878,7 +895,8 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new[] { new FieldDefinition("SomeFloat", "float") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -892,7 +910,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Always consider this", SomeFloat = 25 })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -927,7 +945,8 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new[] { new FieldDefinition("SomeNumber", "number") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -941,7 +960,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Always consider this", SomeNumber = 25 })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -974,7 +993,8 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new[] { new FieldDefinition("SomeDouble", "double") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -988,7 +1008,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Always consider this", SomeDouble = 25d })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1021,7 +1041,8 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new[] { new FieldDefinition("SomeLong", "long") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1035,7 +1056,7 @@ namespace Examine.Test.Search
                         new { nodeName = "Always consider this", SomeLong = 25L })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1070,7 +1091,8 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("MinuteCreated", "date.minute") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1084,7 +1106,7 @@ namespace Examine.Test.Search
                         new { MinuteCreated = reIndexDateTime })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1121,7 +1143,8 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("HourCreated", "date.hour") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1135,7 +1158,7 @@ namespace Examine.Test.Search
                         new { HourCreated = reIndexDateTime })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1169,7 +1192,8 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("DayCreated", "date.day") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1183,7 +1207,7 @@ namespace Examine.Test.Search
                         new { DayCreated = reIndexDateTime })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1218,7 +1242,8 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("MonthCreated", "date.month") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1232,7 +1257,7 @@ namespace Examine.Test.Search
                         new { MonthCreated = reIndexDateTime })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1268,7 +1293,8 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("YearCreated", "date.year") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1282,7 +1308,7 @@ namespace Examine.Test.Search
                         new { YearCreated = reIndexDateTime })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1317,7 +1343,8 @@ namespace Examine.Test.Search
 
                 new[] { new FieldDefinition("DateCreated", "datetime") },
                 luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1331,7 +1358,7 @@ namespace Examine.Test.Search
                         new { DateCreated = reIndexDateTime })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1359,7 +1386,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1373,7 +1401,7 @@ namespace Examine.Test.Search
                         new { Content = "I thought you were cool" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1402,7 +1430,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1416,7 +1445,7 @@ namespace Examine.Test.Search
                         new { Content = "hi there, hello world" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1446,7 +1475,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1460,7 +1490,7 @@ namespace Examine.Test.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1487,7 +1517,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1503,7 +1534,7 @@ namespace Examine.Test.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1530,7 +1561,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1546,7 +1578,7 @@ namespace Examine.Test.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 
@@ -1573,7 +1605,8 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItems(new[] {
@@ -1589,7 +1622,7 @@ namespace Examine.Test.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
 

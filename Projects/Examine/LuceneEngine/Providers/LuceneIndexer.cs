@@ -719,9 +719,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     SearcherContextCollection.Instance.RegisterContext(
                         searcherContext =
-                        new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, FacetConfiguration));
-
-                    searcherContext.Manager.Tracker = ExamineSession.TrackGeneration;
+                        new SearcherContext(GetLuceneDirectory(), IndexingAnalyzer, FacetConfiguration));                    
                 }
 
                 InitializeFields(searcherContext);
@@ -1219,7 +1217,7 @@ namespace Examine.LuceneEngine.Providers
         /// The dictionary object containing all name/value pairs that are to be put into the index
         /// </param>
         /// <returns></returns>
-        [Obsolete("Every field is special in its own way. Don't use this method.")]
+        [Obsolete("Every field is special in its own way. Don't use this method it will not be called, use OnTransformIndexValues instead", true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
         {

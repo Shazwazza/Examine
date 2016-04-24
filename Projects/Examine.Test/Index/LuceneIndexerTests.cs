@@ -25,11 +25,11 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())            
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
             {
                 indexer.RebuildIndex();
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -44,12 +44,12 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
             {
 
                 indexer.IndexAll("category0");
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -59,7 +59,7 @@ namespace Examine.Test.Index
 
                 indexer.IndexAll("category1");
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -74,9 +74,8 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
             {
-
                 Assert.IsTrue(indexer.IndexExists());
             }
         }
@@ -86,7 +85,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
@@ -96,7 +95,7 @@ namespace Examine.Test.Index
                         {"item2", new List<object>(new[] {"value2"})}
                     }));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -111,7 +110,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
             {
                 EventHandler<TransformingIndexDataEventArgs> indexerOnTransformingIndexValues = (sender, args) =>
                 {
@@ -138,7 +137,7 @@ namespace Examine.Test.Index
                             {"item2", new List<object>(new[] {"value2"})}
                         }));
 
-                    ExamineSession.WaitForChanges();
+                    session.WaitForChanges();
 
                     var sc = indexer.SearcherContext;
                     using (var s = sc.GetSearcher())
@@ -158,7 +157,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
             {
                 EventHandler<IndexingNodeEventArgs> indexerOnNodeIndexing = (sender, args) =>
                 {
@@ -185,7 +184,7 @@ namespace Examine.Test.Index
                             {"item2", new List<object>(new[] {"value2"})}
                         }));
 
-                    ExamineSession.WaitForChanges();
+                    session.WaitForChanges();
 
                     var sc = indexer.SearcherContext;
                     using (var s = sc.GetSearcher())
@@ -205,7 +204,8 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 var value = new ValueSet(1, "content",
@@ -216,10 +216,10 @@ namespace Examine.Test.Index
                     });
 
                 indexer.IndexItem(value);
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 indexer.IndexItem(value);
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -234,7 +234,8 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 for (var i = 0; i < 10; i++)
@@ -247,7 +248,7 @@ namespace Examine.Test.Index
                         }));
                 }
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -262,7 +263,8 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 for (var i = 0; i < 10; i++)
@@ -276,7 +278,7 @@ namespace Examine.Test.Index
                 }
                 indexer.DeleteFromIndex("9");
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -291,7 +293,8 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
@@ -301,7 +304,7 @@ namespace Examine.Test.Index
                         {"item2", new List<object>(new[] {"value2"})}
                     }));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -320,13 +323,14 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
                     new {item1 = "value1", item2 = "value2"}));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -345,7 +349,8 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
@@ -359,7 +364,7 @@ namespace Examine.Test.Index
                         }
                     }));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -383,18 +388,19 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
 
                 indexer.IndexItem(new ValueSet(1, "content",
                     new {item1 = "value1", item2 = "value2"}));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 indexer.IndexItem(new ValueSet(1, "content",
                     new {item1 = "value3", item2 = "value4"}));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -420,7 +426,8 @@ namespace Examine.Test.Index
                 }, Enumerable.Empty<IIndexField>(), Enumerable.Empty<string>(), Enumerable.Empty<string>(), null),
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItem(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
@@ -429,7 +436,7 @@ namespace Examine.Test.Index
                     {"item2", new List<object>(new[] {"value2"})}
                 }));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())
@@ -453,7 +460,8 @@ namespace Examine.Test.Index
                 },
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_30)))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItem(new ValueSet(1, "content",
                 new Dictionary<string, List<object>>
@@ -462,7 +470,7 @@ namespace Examine.Test.Index
                     {"item2", new List<object>(new object[] {123456})}
                 }));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var sc = indexer.SearcherContext;
                 using (var s = sc.GetSearcher())

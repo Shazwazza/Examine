@@ -28,10 +28,11 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())      
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.RebuildIndex();
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
                 var result = searcher.Search("value1", false);
@@ -46,10 +47,11 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.RebuildIndex();
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
                 var result = searcher.Search("value", true);
@@ -64,12 +66,13 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, analyzer))
-            
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
             {
                 indexer.IndexItem(new ValueSet(1, "content",
                    new { item1 = "value1", item2 = "here we go into the darkness" }));
 
-                ExamineSession.WaitForChanges();
+                session.WaitForChanges();
 
                 var searcher = new LuceneSearcher(luceneDir, analyzer);
                 var result = searcher.Search("into", false);

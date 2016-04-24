@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Cru;
+using Examine.Session;
 using Lucene.Net.Analysis;
 using Lucene.Net.Store;
 
@@ -57,6 +58,9 @@ namespace Examine.LuceneEngine.Config
             {
                 throw new InvalidOperationException("Context with the same directory is already added");
             }
+
+            //set the track generation method
+            ctx.Manager.Tracker = DefaultExamineSession.TrackGeneration;
 
             return ctx;
         }

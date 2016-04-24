@@ -147,6 +147,12 @@ namespace Examine
             throw new KeyNotFoundException("No indexer defined by name " + indexerName);
         }
 
+        public TIndexer GetIndexer<TIndexer>(string indexerName)
+            where TIndexer : class, IExamineIndexer
+        {
+            return IndexProviders[indexerName] as TIndexer;
+        }
+
         /// <summary>
         /// Gets a list of all index providers
         /// </summary>
@@ -284,7 +290,7 @@ namespace Examine
             }
         }
 
-        #region ISearcher Members
+        #region Obsolete ISearcher Members
 
         /// <summary>
         /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
@@ -330,9 +336,9 @@ namespace Examine
         /// </summary>
         public void EndRequest()
         {
-            if (ExamineSession.RequireImmediateConsistency)
+            if (DefaultExamineSession.RequireImmediateConsistency)
             {
-                ExamineSession.WaitForChanges();
+                DefaultExamineSession.WaitForChanges();
             }
 
             DisposableCollector.Clean();
@@ -373,7 +379,7 @@ namespace Examine
         {
             if (!immediate)
             {
-                ExamineSession.WaitForChanges();
+                DefaultExamineSession.WaitForChanges();
                 Dispose();
             }
             HostingEnvironment.UnregisterObject(this);

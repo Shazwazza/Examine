@@ -248,6 +248,8 @@
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IManagedQueryParameters.cs" />
+    <Compile Include="Session\RequestScopedIndexSession.cs" />
+    <Compile Include="Session\ThreadScopedIndexSession.cs" />
     <Compile Include="ValueSet.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\AutoSuggestType.cs" />
     <Compile Include="LuceneEngine\Indexing\ValueTypes\DateTimeType.cs" />
@@ -319,7 +321,7 @@
     <Compile Include="Providers\SearchProviderCollection.cs" />
     <Compile Include="Session\DisposableCollector.cs" />
     <Compile Include="Session\RequestScoped.cs" />
-    <Compile Include="Session\ExamineSession.cs" />
+    <Compile Include="Session\DefaultExamineSession.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="TransformingIndexDataEventArgs.cs" />
   </ItemGroup>
