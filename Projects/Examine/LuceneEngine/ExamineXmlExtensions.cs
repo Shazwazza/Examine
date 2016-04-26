@@ -153,6 +153,7 @@ namespace Examine.LuceneEngine
         [Obsolete("Use Value Sets, don't use xml structures for Examine anymore")]
         public static bool IsExamineElement(this XElement x)
         {
+            if (x == null) return false;
             var id = (string)x.Attribute("id");
             if (string.IsNullOrEmpty(id))
             {
@@ -219,8 +220,10 @@ namespace Examine.LuceneEngine
         public static ValueSet ToValueSet(this XElement node, string indexCategory, string itemType, long? id = null)
         {
             id = id ?? long.Parse((string)node.Attribute("id"));
-            var set = new ValueSet(id.Value, indexCategory, node.ExamineNodeTypeAlias()) { OriginalNode = node};
-            
+            var set = new ValueSet(id.Value, indexCategory, node?.ExamineNodeTypeAlias()) { OriginalNode = node};
+
+            if (node == null) return set;
+
             foreach (var attr in node.Attributes())
             {
                 if (attr.Name != "id")

@@ -81,9 +81,51 @@ namespace Examine.Test.Index
         }
 
         [Test]
-        public void Can_Add_One_Document()
+        public void Ensures_Doc_Is_Removed_If_Validation_Fails()
         {
             using (var luceneDir = new RAMDirectory())      
+            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30), 
+                //custom validator
+                validator: new ValueSetValidatorDelegate(set => !set.Values.ContainsKey("invalid"))))
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+            {
+
+                var sc = indexer.SearcherContext;
+
+                indexer.IndexItem(new ValueSet(1, "content",
+                    new Dictionary<string, List<object>>
+                    {
+                        {"item1", new List<object>(new[] {"value1"})},
+                        {"item2", new List<object>(new[] {"value2"})}
+                    }));
+                session.WaitForChanges();
+                
+                using (var s = sc.GetSearcher())
+                {
+                    Assert.AreEqual(1, s.Searcher.IndexReader.NumDocs());
+                }
+
+                //re-index with a value that will be invalid for the indexer - thus it should be removed from the index
+                indexer.IndexItem(new ValueSet(1, "content",
+                    new Dictionary<string, List<object>>
+                    {
+                        {"item1", new List<object>(new[] {"value1"})},
+                        {"item2", new List<object>(new[] {"value2"})},
+                        {"invalid", new List<object>(new[] {"this is invalid!"})}
+                    }));
+                session.WaitForChanges();
+
+                using (var s = sc.GetSearcher())
+                {
+                    Assert.AreEqual(0, s.Searcher.IndexReader.NumDocs());
+                }
+            }
+        }
+
+        [Test]
+        public void Can_Add_One_Document()
+        {
+            using (var luceneDir = new RAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
             {

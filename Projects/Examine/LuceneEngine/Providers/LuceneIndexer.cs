@@ -971,7 +971,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        [Obsolete("This method is no longer used and will be removed in future versions, do not call this method use ValidateValueSet instead")]
+        [Obsolete("This method is no longer used and will be removed in future versions, do not call this method use ValidateValueSet instead", true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual bool ValidateDocument(XElement node)
         {
@@ -1244,7 +1244,9 @@ namespace Examine.LuceneEngine.Providers
                     }
                     else
                     {
-                        OnIgnoringIndexItem(new IndexItemEventArgs(item.Item));                        
+                        OnIgnoringIndexItem(new IndexItemEventArgs(item.Item));
+                        //if it's ignored, ensure that it's also removed!
+                        goto case IndexOperationType.Delete;
                     }
                     break;
                 case IndexOperationType.Delete:

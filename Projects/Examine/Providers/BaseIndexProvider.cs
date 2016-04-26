@@ -18,15 +18,24 @@ namespace Examine.Providers
     /// </summary>
     public abstract class BaseIndexProvider : ProviderBase, IExamineIndexer
     {
-        private readonly IEnumerable<FieldDefinition> _fieldDefinitions;
+        private IEnumerable<FieldDefinition> _fieldDefinitions;
+        private bool _fieldDefsInit = false;
 
         /// <summary>
         /// Gets the defined field definitions
-        /// </summary>
-        /// <remarks>
-        /// This will concat any legacy IndexerData into the FieldDefinitions since the Legacy IndexerData property is not used anywhere else.
-        /// </remarks>
-        public IEnumerable<FieldDefinition> FieldDefinitions => IndexerData != null ? _fieldDefinitions.Union(IndexerData.ToFieldDefinitions()) : _fieldDefinitions;
+        /// </summary>        
+        public IEnumerable<FieldDefinition> FieldDefinitions
+        {
+            get
+            {
+                if (!_fieldDefsInit)
+                {
+                    _fieldDefsInit = true;
+                    _fieldDefinitions = InitializeFieldDefinitions(_fieldDefinitions);
+                }
+                return _fieldDefinitions;
+            }
+        }
 
         /// <summary>
         /// Constructor used for provider instantiation
@@ -82,6 +91,22 @@ namespace Examine.Providers
             
         }
 
+        /// <summary>
+        /// Used to initialize the field definition collection
+        /// </summary>
+        /// <param name="originalDefinitions">
+        /// The field definitions passed in via the contructor
+        /// </param>
+        /// <returns>
+        /// The resulting field definitions that will be used by the indexer
+        /// </returns>
+        /// <remarks>
+        /// This will concat any legacy IndexerData into the FieldDefinitions since the Legacy IndexerData property is not used anywhere else.
+        /// </remarks>
+        protected virtual IEnumerable<FieldDefinition> InitializeFieldDefinitions(IEnumerable<FieldDefinition> originalDefinitions)
+        {
+            return IndexerData != null ? originalDefinitions.Union(IndexerData.ToFieldDefinitions()) : originalDefinitions;
+        }
         
         #region IIndexer members
         

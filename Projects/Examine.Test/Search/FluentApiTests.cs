@@ -311,6 +311,39 @@ namespace Examine.Test.Search
         }
 
         [Test]
+        [Ignore("I guess this was never meant to work... Compile() is the only thing that takes the index type into account")]
+        public void Find_By_Type_With_Ctor()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(
+                new[] { new FieldDefinition("parentID", "number") },
+                luceneDir, analyzer))
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+
+            {
+                indexer.IndexItems(new[] {
+                    new ValueSet(1, "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ipsum", parentID = "1235" }),
+                    new ValueSet(2, "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", parentID = "1139" }),
+                    new ValueSet(3, "content",
+                        new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
+                    });
+
+                session.WaitForChanges();
+
+                var searcher = new LuceneSearcher(luceneDir, analyzer);
+
+                var criteria = searcher.CreateCriteria("content");                
+
+                var results = searcher.Find(criteria);
+
+                Assert.AreEqual(3, results.TotalItemCount);
+            }
+        }
+
+        [Test]
         public void Find_By_ParentId()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);

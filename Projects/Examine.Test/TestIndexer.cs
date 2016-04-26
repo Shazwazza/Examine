@@ -11,18 +11,18 @@ namespace Examine.Test
 {
     public class TestIndexer : LuceneIndexer
     {
-        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration, Directory luceneDirectory, Analyzer defaultAnalyzer, IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
-            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, null, facetConfiguration, indexValueTypes)
+        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, FacetConfiguration facetConfiguration, Directory luceneDirectory, Analyzer defaultAnalyzer, IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null, IValueSetValidator validator = null)
+            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, validator, facetConfiguration, indexValueTypes)
         {
         }
 
-        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer defaultAnalyzer, IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null)
-            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, null, new FacetConfiguration(), indexValueTypes)
+        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer defaultAnalyzer, IDictionary<string, Func<string, IIndexValueType>> indexValueTypes = null, IValueSetValidator validator = null)
+            : base(fieldDefinitions, luceneDirectory, defaultAnalyzer, validator, new FacetConfiguration(), indexValueTypes)
         {
         }
 
-        public TestIndexer(Directory luceneDirectory, Analyzer defaultAnalyzer, FacetConfiguration facetConfiguration = null)
-            : base(new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer, null, facetConfiguration)
+        public TestIndexer(Directory luceneDirectory, Analyzer defaultAnalyzer, FacetConfiguration facetConfiguration = null, IValueSetValidator validator = null)
+            : base(new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer, validator, facetConfiguration)
         {
         }
 
