@@ -1110,13 +1110,6 @@ namespace Examine.LuceneEngine.Providers
 
             return values;
         }
-
-        [Obsolete("This is no longer used")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected virtual FieldIndexTypes GetPolicy(string fieldName)
-        {
-            return FieldIndexTypes.ANALYZED;
-        }
         
         /// <summary>
         /// Returns the index field names for the source item name

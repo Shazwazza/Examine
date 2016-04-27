@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Providers;
+using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 

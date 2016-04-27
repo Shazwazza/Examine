@@ -26,6 +26,164 @@ namespace Examine.Test.Search
         //TODO: Finish these
 
         [Test]
+        public void Managed_Range_Date()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(new[]
+                {
+                    new FieldDefinition("created", "datetime")
+                }, luceneDir, analyzer))
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+            {
+
+                indexer.IndexItems(new[]
+                {
+                    new ValueSet(123, "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    new ValueSet(2, "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    new ValueSet(3, "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+                session.WaitForChanges();
+
+                var searcher = indexer.GetSearcher();
+
+                var numberSortedCriteria = searcher.CreateCriteria()
+                    .ManagedRangeQuery<DateTime>(new DateTime(2000, 01, 02), new DateTime(2000, 01, 05), new[] { "created" }, maxInclusive: false);
+
+                var compiled = numberSortedCriteria.Compile();
+
+                var numberSortedResult = searcher.Find(compiled);
+
+                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Managed_Range_Int()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(new[]
+                {
+                    new FieldDefinition("parentID", "number")
+                }, luceneDir, analyzer))
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+            {
+
+                indexer.IndexItems(new[]
+                {
+                    new ValueSet(123, "content",
+                        new
+                        {
+                            parentID = 121,
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    new ValueSet(2, "content",
+                        new
+                        {
+                            parentID = 123,
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    new ValueSet(3, "content",
+                        new
+                        {
+                            parentID = 124,
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+                session.WaitForChanges();
+
+                var searcher = indexer.GetSearcher();
+
+                var numberSortedCriteria = searcher.CreateCriteria()
+                    .ManagedRangeQuery<int>(122, 124, new[] {"parentID"});
+                    
+                var compiled = numberSortedCriteria.Compile();
+
+                var numberSortedResult = searcher.Find(compiled);
+
+                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Legacy_ParentId()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RAMDirectory())
+            using (var indexer = new TestIndexer(new[]
+                {
+                    new FieldDefinition("parentID", "number")
+                }, luceneDir, analyzer))
+            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
+            {
+
+                indexer.IndexItems(new[]
+                {
+                    new ValueSet(123, "content",
+                        new
+                        {
+                            nodeName = "my name 1",
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    new ValueSet(2, "content",
+                        new
+                        {
+                            parentID = 123,
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    new ValueSet(3, "content",
+                        new
+                        {
+                            parentID = 123,
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+                session.WaitForChanges();
+
+                var searcher = indexer.GetSearcher();
+                
+                var numberSortedCriteria = searcher.CreateSearchCriteria()
+                    .ParentId(123).And()
+                    .OrderBy(new SortableField("sortOrder", SortType.Int));
+                var compiled = numberSortedCriteria.Compile();
+
+                var numberSortedResult = searcher.Search(compiled);
+
+                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+            }
+                
+
+        }
+
+        [Test]
         public void Grouped_Or_Examiness()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);

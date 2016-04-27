@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Lucene.Net.Index;
@@ -7,6 +8,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
+    
     internal class LateBoundQuery : Query
     {
         private readonly Func<Query> _factory;

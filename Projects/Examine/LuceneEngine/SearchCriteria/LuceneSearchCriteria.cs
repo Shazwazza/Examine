@@ -25,6 +25,9 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// <summary>
     /// This class is used to query against Lucene.Net. Not thread safe.
     /// </summary>
+    /// <remarks>
+    /// NOTE: The debugger display will not show any result for any query that is LateBound because the query needs to be compiled first
+    /// </remarks>
     [DebuggerDisplay("SearchIndexType: {SearchIndexType}, LuceneQuery: {Query}")]
     public class LuceneSearchCriteria : ISearchCriteria<LuceneBooleanOperation, LuceneSearchCriteria, LuceneSearchCriteria>
     {
@@ -335,6 +338,10 @@ namespace Examine.LuceneEngine.SearchCriteria
                             //CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
                             bq.Add(q, Occur.SHOULD);
                         }
+                    }
+                    else
+                    {
+                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, CriteriaContext.GetValueType(f).GetType());
                     }
                 }
                 return bq;

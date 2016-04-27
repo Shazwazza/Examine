@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Examine.LuceneEngine.Faceting;
 using Examine.LuceneEngine.Indexing.Filters;
+using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;

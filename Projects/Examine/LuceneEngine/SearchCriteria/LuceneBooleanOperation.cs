@@ -118,9 +118,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>		
         public LuceneSearchCriteria Compile()
         {
-            if (!_hasCompiled && !string.IsNullOrEmpty(this._search.SearchIndexType))
+            if (!_hasCompiled)
             {                
-
                 var query = new BooleanQuery();
 
                 query.Add(_search.Queries.Pop(), Occur.MUST);
@@ -128,8 +127,10 @@ namespace Examine.LuceneEngine.SearchCriteria
 
                 //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), Occur.MUST);
 
-                this._search.FieldInternal(LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType.ToString()), Occur.MUST);
-                
+                if (!string.IsNullOrEmpty(this._search.SearchIndexType))
+                {
+                    this._search.FieldInternal(LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType.ToString()), Occur.MUST);
+                }
                 
                 //ensure we don't compile twice!
                 _hasCompiled = true;
