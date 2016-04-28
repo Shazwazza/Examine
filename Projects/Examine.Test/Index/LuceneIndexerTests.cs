@@ -339,7 +339,7 @@ namespace Examine.Test.Index
 
             {
 
-                indexer.IndexItem(new ValueSet(1, "content",
+                indexer.IndexItem(new ValueSet(1, "content", "test",
                     new Dictionary<string, List<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
@@ -354,8 +354,15 @@ namespace Examine.Test.Index
                     var fields = s.Searcher.Doc(0).GetFields().ToArray();
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndexer.NodeTypeAliasFieldName));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndexer.IndexNodeIdFieldName));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndexer.IndexTypeFieldName));
+
                     Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").StringValue);
                     Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").StringValue);
+                    Assert.AreEqual("test", fields.Single(x => x.Name == LuceneIndexer.NodeTypeAliasFieldName).StringValue);
+                    Assert.AreEqual("1", fields.Single(x => x.Name == LuceneIndexer.IndexNodeIdFieldName).StringValue);
+                    Assert.AreEqual("content", fields.Single(x => x.Name == LuceneIndexer.IndexTypeFieldName).StringValue);
                 }
             }
         }

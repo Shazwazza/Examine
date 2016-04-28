@@ -292,9 +292,14 @@ namespace Examine.LuceneEngine.Providers
         public const string SortedFieldNamePrefix = "__Sort_";
 
         /// <summary>
-        /// Used to store a non-tokenized key for the document
+        /// Used to store a non-tokenized key for the ValueSet.IndexCategory
         /// </summary>
         public const string IndexTypeFieldName = "__IndexType";
+
+        /// <summary>
+        /// Used to store a non-tokenized key for the ValueSet.ItemType
+        /// </summary>
+        public const string NodeTypeAliasFieldName = "__NodeTypeAlias";
 
         /// <summary>
         /// Used to store a non-tokenized type for the document
@@ -821,7 +826,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>        
         /// <param name="nodes"></param>
         /// <param name="type"></param>
-        [Obsolete("Do not use this, use the ValueSet override instead")]
+        [Obsolete("Do not use this, use IndexItems instead")]
         protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
         {
             IndexItems(nodes.Select(n => n.ToValueSet(type, n.ExamineNodeTypeAlias())).ToArray());
@@ -904,7 +909,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="node">The node to index.</param>
         /// <param name="type">The type to store the node as.</param>
-        [Obsolete("Use ValueSets instead")]
+        [Obsolete("Use IndexItems instead")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected virtual void AddSingleNodeToIndex(XElement node, string type)
         {
@@ -1293,9 +1298,13 @@ namespace Examine.LuceneEngine.Providers
 
             d.Add(new Field(IndexNodeIdFieldName, values.Id + "", Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
             d.Add(new Field(IndexTypeFieldName, values.IndexCategory.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+            if (!string.IsNullOrWhiteSpace(values.ItemType))
+            {
+                d.Add(new Field(NodeTypeAliasFieldName, values.ItemType.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+            }            
         }
 
-        private void ProcessDeleteItem(IndexItem item, bool performCommit = true)
+        private void ProcessDeleteItem(IndexItem item, bool performCommit = true) 
         {
             //if type and id are empty remove it all
             if (string.IsNullOrEmpty(item.Id) && string.IsNullOrEmpty(item.IndexType))
