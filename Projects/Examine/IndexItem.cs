@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Xml.Linq;
 using Examine.LuceneEngine.Indexing;
@@ -25,6 +26,7 @@ namespace Examine
         /// <param name="indexCategory">The type.</param>
         /// <param name="id">The id.</param>
         [Obsolete("Use ValueSets instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public IndexItem(XElement data, string indexCategory, string id)
            : this(data.ToValueSet(indexCategory, data.ExamineNodeTypeAlias(), long.Parse(id)))
         {
@@ -53,6 +55,7 @@ namespace Examine
         public IndexItem(ValueSet valueSet)
         {
             ValueSet = valueSet;
+
             IndexType = ValueSet.IndexCategory;
             Id = ValueSet.Id.ToString(CultureInfo.InvariantCulture);            
         }
@@ -64,23 +67,19 @@ namespace Examine
         /// The data.
         /// </value>
         [Obsolete("Use ValueSets instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public XElement DataToIndex
         {
             get { InitializeLegacyFields(); return _dataToIndex; }
             private set { _dataToIndex = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the type of the index.
-        /// </summary>
-        /// <value>
-        /// The type of the index.
-        /// </value>        
-        public string IndexType { get; private set; }        
+        [Obsolete("Use ValueSet.IndexCategory instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public string IndexType { get; private set; }
 
-        /// <summary>
-        /// Gets the id.
-        /// </summary>        
+        [Obsolete("Use ValueSet.Id")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public string Id { get; private set; }        
     }
 }
