@@ -41,5 +41,10 @@ namespace Examine
         /// </summary>
         /// <returns></returns>
         bool IsIndexNew();
+
+        /// <summary>
+        /// Returns the indexers field definitions
+        /// </summary>
+        IEnumerable<FieldDefinition> FieldDefinitions { get; }
     }
 }

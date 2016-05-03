@@ -38,13 +38,12 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal BooleanQuery Query => Queries.Peek();
         internal List<SortField> SortFields = new List<SortField>();
 
-        public ICriteriaContext CriteriaContext { get; private set; }
+        public ICriteriaContext CriteriaContext { get; }
         
         private Occur _occurrence;
         private BooleanOperation _boolOp;
 
-        private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_30;
-        private int _maxResults = int.MaxValue;
+        private readonly Version _luceneVersion = Version.LUCENE_30;
 
         /// <summary>
         /// Gets or sets the searcher.
@@ -91,7 +90,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public BooleanOperation BooleanOperation
         {
             get { return _boolOp; }
-            internal protected set
+            protected internal set
             {
                 _boolOp = value;
                 _occurrence = _boolOp.ToLuceneOccurrence();
@@ -106,7 +105,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </returns>        
         public override string ToString()
         {
-            return string.Format("{{ SearchIndexType: {0}, LuceneQuery: {1} }}", this.SearchIndexType, this.Query.ToString());
+            return $"{{ SearchIndexType: {this.SearchIndexType}, LuceneQuery: {Query} }}";
         }
 
         //private static void ValidateIExamineValue(IExamineValue v)
@@ -125,10 +124,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <summary>
         /// Get the maximum number of results to be easy
         /// </summary>
-        public int MaxResults
-        {
-            get { return _maxResults; }
-        }
+        public int MaxResults { get; private set; } = int.MaxValue;
 
         /// <summary>
         /// Get the search index type set for the search
@@ -545,7 +541,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public LuceneSearchCriteria MaxCount(int maxCount)
         {
-            _maxResults = maxCount;
+            MaxResults = maxCount;
             return this;
         }
 

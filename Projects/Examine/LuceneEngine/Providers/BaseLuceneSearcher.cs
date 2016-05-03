@@ -82,7 +82,15 @@ namespace Examine.LuceneEngine.Providers
             {
                 //this should be a fully qualified type
                 var analyzerType = Type.GetType(config["analyzer"]);
-                IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+                if (analyzerType == typeof(Lucene.Net.Analysis.Standard.StandardAnalyzer))
+                {
+                    //there is no empty ctor for this so we'll just contruct with defaults
+                    IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
+                }
+                else
+                {
+                    IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+                }
             }
             else
             {

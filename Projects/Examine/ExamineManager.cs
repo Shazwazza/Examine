@@ -187,6 +187,9 @@ namespace Examine
                 throw new InvalidOperationException("The indexer with name " + name + " already exists");
             }
         }
+        
+        //TODO: Do we need one for searchers in case people want to register multi index searchers or similar?
+
 
         private bool _providersInit = false;
         private BaseSearchProvider _defaultSearchProvider;

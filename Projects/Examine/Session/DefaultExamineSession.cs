@@ -15,8 +15,10 @@ namespace Examine.Session
     /// This is the default session that is used which will attempt to automatically scope the session depending on
     /// if this is in a web context or not.
     /// </remarks>
-    internal static class DefaultExamineSession
+    public static class DefaultExamineSession
     {
+        //TODO: We might look to publicize this to allow for the RequireImmediateConsistency flag to be set ... but is this the right place to set that flag?
+
         private static readonly RequestScoped<Dictionary<NrtManager, long>> CurrentGeneration =
             new RequestScoped<Dictionary<NrtManager, long>>(()=>new Dictionary<NrtManager, long>());
 

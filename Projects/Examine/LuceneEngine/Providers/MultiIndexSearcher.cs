@@ -52,7 +52,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
 		/// <summary>
-		/// Constructor to allow for creating an indexer at runtime
+		/// Constructor to allow for creating a searcher at runtime
 		/// </summary>
 		/// <param name="luceneDirs"></param>
 		/// <param name="analyzer"></param>
@@ -69,19 +69,13 @@ namespace Examine.LuceneEngine.Providers
 		}
 
 		#endregion
-        
-	    ///<summary>
-	    /// The underlying LuceneSearchers that will be searched across
-	    ///</summary>
-	    public IEnumerable<LuceneSearcher> Searchers
-		{
-			
-		    get;
-			
-			private set;
-	    }
 
-        
+        ///<summary>
+        /// The underlying LuceneSearchers that will be searched across
+        ///</summary>
+        public IEnumerable<LuceneSearcher> Searchers { get; private set; }
+
+
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -120,7 +114,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns a list of fields to search on based on all distinct fields found in the sub searchers
         /// </summary>
         /// <returns></returns>
-        protected override internal string[] GetSearchFields()
+        protected internal override string[] GetSearchFields()
         {
             var searchableFields = new List<string>();
             foreach (var searcher in Searchers)
