@@ -24,16 +24,14 @@
             Index Data</button>
     </p>
 }
-@using (Html.BeginForm("ReIndexEachItemIndividually", "Home"))
-{    
+
+@using (Html.BeginForm("TestIndex", "Home"))
+{
     <p>
-        Click to re-index the 27000 rows individually into Examine. This will take a VERY long time when running in non-async mode
-        because when processing one node at a time, it commits the changes to the index on each iteration, then after 100 iterations it will re-optimize the index and by default
-        Lucene will have the merge count reasonably low so about every 20 iterations the files will be merged to one. Each of these operations is
-        an expensive operation so it is advised to never bulk re-index many nodes at a time individually when running non-async.
-        When running in async mode it will be much fast, the operation runs in parellel and will only take a few minutes.
+        Click to check what is in the index
         <br />
         <button id="index" name="index">
-            Index Data</button>
+            Test index
+        </button>
     </p>
 }

@@ -14,7 +14,7 @@ namespace Examine.Test.Search
 {
     
     [TestFixture]
-	public class FluentApiTests : AbstractPartialTrustFixture<FluentApiTests>
+	public class FluentApiTests //: AbstractPartialTrustFixture<FluentApiTests>
     {
         //[Test]
         //public void FluentApiTests_Grouped_Or_Examiness()
@@ -484,8 +484,8 @@ namespace Examine.Test.Search
         #region Initialize and Cleanup
 
 
-
-		public override void TestSetup()
+        [TestFixtureSetUp]
+        public void TestSetup()
         {
 			_luceneDir = new RAMDirectory();
 
@@ -496,8 +496,8 @@ namespace Examine.Test.Search
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
-
-		public override void TestTearDown()
+        [TestFixtureTearDown]
+        public void TestTearDown()
 		{
 			_luceneDir.Dispose();	
 		}

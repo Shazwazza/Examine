@@ -143,7 +143,9 @@ namespace Examine.LuceneEngine.Providers
 			//NOTE: Do not convert this to Linq as it will fail the Code Analysis because Linq screws with it.
 			foreach(var s in Searchers)
 			{
-				searchables.Add(s.GetSearcher());
+			    var searcher = s.GetSearcher();
+                if (searcher != null)
+                    searchables.Add(searcher);
 			}
 			return new MultiSearcher(searchables.ToArray());
         }

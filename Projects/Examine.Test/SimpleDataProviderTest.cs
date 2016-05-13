@@ -15,7 +15,7 @@ using NUnit.Framework;
 namespace Examine.Test
 {
     [TestFixture]
-	public class SimpleDataProviderTest : AbstractPartialTrustFixture<SimpleDataProviderTest>
+	public class SimpleDataProviderTest //: AbstractPartialTrustFixture<SimpleDataProviderTest>
     {
         [Test]
         public void SimpleData_RebuildIndex()
@@ -46,7 +46,7 @@ namespace Examine.Test
 
             //now we'll index one new node:
 
-            var dataSet =  ((TestSimpleDataProvider)_indexer.DataService).CreateNewDocument();
+            var dataSet =  ((TestSimpleDataProvider)_indexer.DataService).CreateNewDocument(DateTime.Now);
             var xml = dataSet.RowData.ToExamineXml(dataSet.NodeDefinition.NodeId, dataSet.NodeDefinition.Type);
 
             _indexer.ReIndexNode(xml, "Documents");
@@ -74,7 +74,8 @@ namespace Examine.Test
         private static LuceneSearcher _searcher;
 		private Lucene.Net.Store.Directory _luceneDir;
 
-		public override void TestSetup()
+        [TestFixtureSetUp]
+        public void TestSetup()
 		{
 			_luceneDir = new RAMDirectory();
 			_indexer = IndexInitializer.GetSimpleIndexer(_luceneDir);
@@ -82,7 +83,8 @@ namespace Examine.Test
 			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
 		}
 
-		public override void TestTearDown()
+        [TestFixtureTearDown]
+        public void TestTearDown()
 		{
 			_luceneDir.Dispose();
 		}

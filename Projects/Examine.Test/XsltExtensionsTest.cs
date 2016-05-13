@@ -15,7 +15,7 @@ namespace Examine.Test
     ///to contain all XsltExtensionsTest Unit Tests
     ///</summary>
     [TestFixture]
-	public class XsltExtensionsTest : AbstractPartialTrustFixture<XsltExtensionsTest>
+	public class XsltExtensionsTest //: AbstractPartialTrustFixture<XsltExtensionsTest>
     {
         
         private static LuceneSearcher _searcher;
@@ -23,8 +23,9 @@ namespace Examine.Test
 		private Lucene.Net.Store.Directory _luceneDir;
 
         #region Initialize and Cleanup
-        
-		public override void TestSetup()
+
+        [TestFixtureSetUp]
+        public void TestSetup()
         {
 			_luceneDir = new RAMDirectory();
             _indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
@@ -32,7 +33,8 @@ namespace Examine.Test
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
-		public override void TestTearDown()
+        [TestFixtureTearDown]
+        public void TestTearDown()
 		{
 			_luceneDir.Dispose();
 		}

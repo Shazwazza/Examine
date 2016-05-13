@@ -35,8 +35,9 @@ namespace Examine.Test.DataServices
                 case "Documents":
                     return new List<SimpleDataSet>()
                     {
-                        CreateNewDocument(),
-                        CreateNewDocument()
+                        CreateNewDocument(DateTime.Now),
+                        
+                        CreateNewDocument(DateTime.Now.AddYears(-2))
                     };
                 default:
                     throw new ArgumentException("The indexType specified is invalid");
@@ -73,7 +74,7 @@ namespace Examine.Test.DataServices
         /// Create a new Document data set with a newly incremented id
         /// </summary>
         /// <returns></returns>
-        public SimpleDataSet CreateNewDocument()
+        public SimpleDataSet CreateNewDocument(DateTime created)
         {
             lock (m_Locker)
             {
@@ -83,12 +84,12 @@ namespace Examine.Test.DataServices
                     RowData = new Dictionary<string, string>() 
                     {
                             { "Author", Guid.NewGuid().ToString()},
-                            { "DateCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
-                            { "YearCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
-                            { "MonthCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
-                            { "DayCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
-                            { "HourCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
-                            { "MinuteCreated", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "DateCreated", created.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "YearCreated", created.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "MonthCreated", created.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "DayCreated", created.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "HourCreated", created.ToString("yyyy-MM-dd HH:mm:ss")},
+                            { "MinuteCreated", created.ToString("yyyy-MM-dd HH:mm:ss")},
                             { "SomeNumber", new Random().Next(1, 100).ToString()},
                             { "SomeFloat", new Random().Next(1, 100).ToString()},
                             { "SomeDouble", new Random().Next(1, 100).ToString()},

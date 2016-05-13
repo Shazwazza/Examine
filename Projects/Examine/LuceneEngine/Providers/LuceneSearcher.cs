@@ -14,6 +14,7 @@ using Examine.LuceneEngine;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Analysis;
+using Directory = Lucene.Net.Store.Directory;
 
 
 namespace Examine.LuceneEngine.Providers
@@ -28,11 +29,13 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Default constructor
         /// </summary>
+        [SecuritySafeCritical]
         public LuceneSearcher()
         {
             _disposer = new DisposableSearcher(this);
+            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
         }
-
+        
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
@@ -58,6 +61,8 @@ namespace Examine.LuceneEngine.Providers
         {
             _disposer = new DisposableSearcher(this);
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
+            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
+            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
         }
 
         /// <summary>
@@ -71,10 +76,23 @@ namespace Examine.LuceneEngine.Providers
         {
             _disposer = new DisposableSearcher(this);
             LuceneIndexFolder = null;
-            _luceneDirectory = luceneDirectory;
+            _directoryExplicit = luceneDirectory;
+            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
         }
 
-        #endregion
+        #endregion      
+
+        /// <summary>
+        /// NOTE: This is all to do with stupid medium trust
+        /// </summary>
+        /// <returns></returns>
+        [SecuritySafeCritical]
+        private Directory InitializeDirectory()
+        {
+            if (_directoryExplicit != null)
+                return _directoryExplicit;
+            return DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, true);
+        }
 
         /// <summary>
         /// Used as a singleton instance
@@ -82,15 +100,14 @@ namespace Examine.LuceneEngine.Providers
         private IndexSearcher _searcher;
         private volatile IndexReader _reader;
         private readonly object _locker = new object();
-        private Lucene.Net.Store.Directory _luceneDirectory;
+        private readonly Lazy<Lucene.Net.Store.Directory> _directoryLazy;
+        private readonly Lucene.Net.Store.Directory _directoryExplicit;
         private readonly IndexWriter _nrtWriter;
 
         /// <summary>
         /// Do not access this object directly. The public property ensures that the folder state is always up to date
         /// </summary>
         private DirectoryInfo _indexFolder;
-        
-        private volatile bool _hasIndex = false;
         
         /// <summary>
         /// Initializes the provider.
@@ -114,7 +131,7 @@ namespace Examine.LuceneEngine.Providers
             //need to check if the index set is specified, if it's not, we'll see if we can find one by convension
             //if the folder is not null and the index set is null, we'll assume that this has been created at runtime.
             //NOTE: Don't proceed if the _luceneDirectory is set since we already know where to look.
-            if (config["indexSet"] == null && (LuceneIndexFolder == null && _luceneDirectory == null))
+            if (config["indexSet"] == null && (LuceneIndexFolder == null && _directoryExplicit == null))
             {
                 //if we don't have either, then we'll try to set the index set by naming convensions
                 var found = false;
@@ -140,7 +157,7 @@ namespace Examine.LuceneEngine.Providers
                 //get the folder to index
                 LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
             }
-            else if (config["indexSet"] != null && _luceneDirectory == null)
+            else if (config["indexSet"] != null && _directoryExplicit == null)
             {
                 if (IndexSets.Instance.Sets[config["indexSet"]] == null)
                     throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
@@ -182,44 +199,10 @@ namespace Examine.LuceneEngine.Providers
         /// Ensures the index exists
         /// </summary>
         [SecuritySafeCritical]
+        [Obsolete("This is not used and performs no operation, if no index directory exists for the searcher the searcher should just return empty results", true)]
         public virtual void EnsureIndex()
         {
-            if (!_hasIndex)
-            {
-                lock (_locker)
-                {
-                    //double check
-                    if (!_hasIndex)
-                    {
-
-                        if (_nrtWriter != null)
-                        {
-                            _hasIndex = true;
-                            return;
-                        }
-
-                        IndexWriter writer = null;
-                        try
-                        {
-                            if (!IndexReader.IndexExists(GetLuceneDirectory()))
-                            {
-                                //create the writer (this will overwrite old index files)
-                                writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-                            }
-                        }
-                        finally
-                        {
-                            if (writer != null)
-                            {
-                                writer.Close();
-                            }
-                            _hasIndex = true;
-                        }
-                    }
-                }
-            }
         }
-
 
         /// <summary>
         /// Name of the Lucene.NET index set
@@ -229,11 +212,13 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// Returns null if the underlying index doesn't exist
+        /// </returns>
         [SecuritySafeCritical]
         public override Searcher GetSearcher()
         {
-            ValidateSearcher(false);
+            if (!ValidateSearcher(false)) return null;
 
             //ensure scoring is turned on for sorting
             _searcher.SetDefaultFieldSortScoring(true, true);
@@ -245,9 +230,9 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
         [SecuritySafeCritical]
-        protected override internal string[] GetSearchFields()
+        protected internal override string[] GetSearchFields()
         {
-            ValidateSearcher(false);
+            if (!ValidateSearcher(false)) return new string[] {};
 
             //var reader = _searcher.GetIndexReader();
             var fields = _reader.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -265,12 +250,8 @@ namespace Examine.LuceneEngine.Providers
             {
                 return _nrtWriter.GetDirectory();
             }
-
-            if (_luceneDirectory == null)
-            {
-                _luceneDirectory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
-            }
-            return _luceneDirectory;
+            
+            return _directoryLazy.Value;
         }
 
         /// <summary>
@@ -288,9 +269,9 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="forceReopen"></param>
         [SecuritySafeCritical]
-        private void ValidateSearcher(bool forceReopen)
+        private bool ValidateSearcher(bool forceReopen)
         {
-            EnsureIndex();
+            if (!IndexReader.IndexExists(GetLuceneDirectory())) return false;
 
             if (!forceReopen)
             {
@@ -420,6 +401,8 @@ namespace Examine.LuceneEngine.Providers
                     }
                 }
             }
+
+            return true;
         }
 
         #region IDisposable Members

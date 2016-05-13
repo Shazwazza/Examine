@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Examine.Test.Search
 {
     [TestFixture]
-	public class StringTests : AbstractPartialTrustFixture<StringTests>
+	public class StringTests //: AbstractPartialTrustFixture<StringTests>
     {
         [Test]
         public void Search_Remove_Stop_Words()
@@ -31,16 +31,6 @@ namespace Examine.Test.Search
             Assert.AreEqual("hello my name \"Shannon Deminick\" I like code , here stop word two", parsed1);
 
         }
-
-
-	    public override void TestSetup()
-	    {
-		    
-	    }
-
-	    public override void TestTearDown()
-	    {
-		    
-	    }
+        
     }
 }

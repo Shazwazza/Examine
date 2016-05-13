@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using Lucene.Net.Store;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine
 {
@@ -24,9 +25,24 @@ namespace Examine.LuceneEngine
             get { return Instance; }
         }
 
-        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir)
+        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir, bool throwIfEmpty = false)
         {
+            if (throwIfEmpty)
+            {
+                Directory d;
+                if (!_directories.TryGetValue(dir.FullName, out d))
+                {
+                    throw new NullReferenceException("No directory was added with path " + dir.FullName);
+                }
+                return d;
+            }
             var resolved = _directories.GetOrAdd(dir.FullName, s => new SimpleFSDirectory(dir));
+            return resolved;
+        }
+
+        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir, Func<string, Directory> factory)
+        {
+            var resolved = _directories.GetOrAdd(dir.FullName, factory);
             return resolved;
         }
     }

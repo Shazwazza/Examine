@@ -21,5 +21,10 @@ namespace Examine.Web.Demo.Models
         public DbSet<TestModel> TestModels { get; set; }
     }
 
+    public class IndexInfo
+    {
+        public int Docs { get; set; }
+        public int Fields { get; set; }
+    }
 
 }

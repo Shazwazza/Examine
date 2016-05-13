@@ -75,13 +75,10 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type"></param>
         protected override void PerformIndexAll(string type)
         {
-            //get the data for the index type
-            foreach (var d in DataService.GetAllData(type))
-            {
-                //Call this one at a time (it will queue things up internally), the ienumerable result might be enormous so it's best we
-                // don't put it all into memory and then into memory again!
-                AddNodesToIndex(new[] { d.RowData.ToExamineXml(d.NodeDefinition.NodeId, d.NodeDefinition.Type) }, type);
-            }
+            AddNodesToIndex(
+                //put the enumerable collection into the index
+                DataService.GetAllData(type).Select(d => d.RowData.ToExamineXml(d.NodeDefinition.NodeId, d.NodeDefinition.Type)), 
+                type);            
         }              
 
         /// <summary>

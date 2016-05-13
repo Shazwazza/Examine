@@ -12,7 +12,7 @@ using NUnit.Framework;
 namespace Examine.Test.Search
 {
     [TestFixture]
-	public class DataTypeTests : AbstractPartialTrustFixture<DataTypeTests>
+	public class DataTypeTests //: AbstractPartialTrustFixture<DataTypeTests>
     {
         /// <summary>
         /// Test range query with a DateTime structure
@@ -256,7 +256,8 @@ namespace Examine.Test.Search
         private static DateTime _reIndexDateTime;
 		private Lucene.Net.Store.Directory _luceneDir;
 
-		public override void TestSetup()
+        [TestFixtureSetUp]
+        public void TestSetup()
         {
 
 			_luceneDir = new RAMDirectory();
@@ -270,7 +271,8 @@ namespace Examine.Test.Search
 			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
         }
 
-		public override void TestTearDown()
+        [TestFixtureTearDown]
+        public void TestTearDown()
 		{
 			_luceneDir.Dispose();
 		}

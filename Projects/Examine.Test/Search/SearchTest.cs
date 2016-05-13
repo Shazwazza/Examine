@@ -17,7 +17,7 @@ namespace Examine.Test.Search
     /// Summary description for UnitTest1
     /// </summary>
     [TestFixture]
-	public class SearchTest : AbstractPartialTrustFixture<SearchTest>
+	public class SearchTest //: AbstractPartialTrustFixture<SearchTest>
     {
 
         [Test]
@@ -68,7 +68,8 @@ namespace Examine.Test.Search
 
         #region Initialize and Cleanup
 
-		public override void TestSetup()
+        [TestFixtureSetUp]
+        public void TestSetup()
         {
 			_luceneDir = new RAMDirectory();
 			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
@@ -76,7 +77,8 @@ namespace Examine.Test.Search
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
-		public override void TestTearDown()
+        [TestFixtureTearDown]
+        public void TestTearDown()
 		{
 			_luceneDir.Dispose();	
 		}

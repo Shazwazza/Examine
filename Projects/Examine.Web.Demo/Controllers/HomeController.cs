@@ -6,7 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Web.Mvc;
 using Examine.LuceneEngine;
+using Examine.LuceneEngine.Providers;
 using Examine.Web.Demo.Models;
+using Lucene.Net.Index;
 
 namespace Examine.Web.Demo.Controllers
 {
@@ -107,27 +109,20 @@ namespace Examine.Web.Demo.Controllers
         }
 
         [HttpPost]
-        public ActionResult ReIndexEachItemIndividually()
+        public ActionResult TestIndex()
         {
-            try
-            {
-                var timer = new Stopwatch();
-                timer.Start();
-                var ds = new TableDirectReaderDataService();
-                foreach (var i in ds.GetAllData("TestType"))
-                {                    
-                    ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"]
-                        .ReIndexNode(i.RowData.ToExamineXml(i.NodeDefinition.NodeId, i.NodeDefinition.Type), "TestType");  
-                }                
-                timer.Stop();
 
-                return View(timer.Elapsed.TotalSeconds);
-            }
-            catch (Exception ex)
+            var indexer = (LuceneIndexer)ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"];
+            var writer = indexer.GetIndexWriter();
+
+            var model = new IndexInfo
             {
-                this.ModelState.AddModelError("DataError", ex.Message);
-                return View(0);
-            }
+                Docs = writer.MaxDoc(),
+                Fields = writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL).Count
+            };
+
+            return View(model);
+            
         }
 
 

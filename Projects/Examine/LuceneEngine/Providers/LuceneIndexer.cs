@@ -24,7 +24,6 @@ using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.Providers
 {
-
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
@@ -35,11 +34,14 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Default constructor - used for defining indexes in config
         /// </summary>
+        [SecuritySafeCritical]
         protected LuceneIndexer()
         {
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = false;
             _disposer = new DisposableIndexer(this);
+            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
+            _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
         }
 
         /// <summary>
@@ -66,6 +68,8 @@ namespace Examine.LuceneEngine.Providers
             AutomaticallyOptimize = false;
             RunAsync = async;
 
+            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
+            _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
         }
 
         /// <summary>
@@ -82,8 +86,7 @@ namespace Examine.LuceneEngine.Providers
             _disposer = new DisposableIndexer(this);
 
             WorkingFolder = null;
-            LuceneIndexFolder = null;
-            _directory = luceneDirectory;
+            LuceneIndexFolder = null;            
 
             IndexingAnalyzer = analyzer;
 
@@ -91,7 +94,11 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = false;
             RunAsync = async;
-        }
+
+            _directoryExplicit = luceneDirectory;
+            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
+            _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
+        }        
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
@@ -115,7 +122,7 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             AutomaticallyOptimize = false;
             RunAsync = async;
-
+            _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
         }
 
         #endregion
@@ -143,6 +150,14 @@ namespace Examine.LuceneEngine.Providers
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
+
+            if (config["directoryFactory"] != null)
+            {
+                //this should be a fully qualified type
+                var factoryType = Type.GetType(config["directoryFactory"]);
+                if (factoryType == null) throw new NullReferenceException("No directory type found for value: " + config["directoryFactory"]);
+                _directoryFactory = (IDirectoryFactory)Activator.CreateInstance(factoryType);
+            }
 
             if (config["autoOptimizeCommitThreshold"] == null)
             {
@@ -301,12 +316,7 @@ namespace Examine.LuceneEngine.Providers
         /// Used to aquire the index writer
         /// </summary>
         private readonly object _writerLocker = new object();
-
-        /// <summary>
-        /// Used to aquire the internal searcher
-        /// </summary>
-        private readonly object _internalSearcherLocker = new object();
-
+        
         /// <summary>
         /// used to thread lock calls for creating and verifying folders
         /// </summary>
@@ -317,39 +327,17 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private volatile bool _isIndexing = false;
 
+        private readonly Lazy<LuceneSearcher> _internalSearcher;
+
         /// <summary>
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
-        /// </summary>        
+        /// </summary>       
         protected virtual BaseSearchProvider InternalSearcher
         {
             [SecuritySafeCritical]
-            get
-            {
-                if (_internalSearcher == null)
-                {
-                    lock (_internalSearcherLocker)
-                    {
-                        if (_internalSearcher == null)
-                        {
-                            //create our internal searcher, this is created as an NRT searcher with our writer.
-                            _internalSearcher = new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer);
-                        }
-                    }
-                }
-                return _internalSearcher;
-            }
-        }
-
-        //[SecuritySafeCritical]
-        //protected virtual void CloseInternalSearcher()
-        //{
-        //    if (_internalSearcher != null)
-        //    {
-        //        _internalSearcher.Dispose();
-        //        _internalSearcher = null;
-        //    }
-        //}
+            get { return _internalSearcher.Value; }
+        }        
 
         /// <summary>
         /// This is our threadsafe queue of items which can be read by our background worker to process the queue
@@ -893,21 +881,30 @@ namespace Examine.LuceneEngine.Providers
                 return;
             }
 
-            Interlocked.Increment(ref _activeAddsOrDeletes);
-
+            //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
+            Monitor.Enter(_writerLocker);
             try
             {
-                //enqueue the batch, this allows lazy enumeration of the items
-                // when the indexes starts to process
-                EnqueueIndexOperation(
-                    nodes.Select(node => new IndexOperation(new IndexItem(node, type, (string)node.Attribute("id")), IndexOperationType.Add)));
+                Interlocked.Increment(ref _activeAddsOrDeletes);
 
-                //run the indexer on all queued files
-                SafelyProcessQueueItems();
+                try
+                {
+                    //enqueue the batch, this allows lazy enumeration of the items
+                    // when the indexes starts to process
+                    EnqueueIndexOperation(
+                        nodes.Select(node => new IndexOperation(new IndexItem(node, type, (string)node.Attribute("id")), IndexOperationType.Add)));
+
+                    //run the indexer on all queued files
+                    SafelyProcessQueueItems();
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _activeAddsOrDeletes);
+                }
             }
             finally
             {
-                Interlocked.Decrement(ref _activeAddsOrDeletes);
+                Monitor.Exit(_writerLocker);
             }
         }
 
@@ -1541,19 +1538,21 @@ namespace Examine.LuceneEngine.Providers
                     }
                 }
 
-                //commit the changes (this will process the deletes)
-                writer.Commit();
-
-                //this is required to ensure the index is written to during the same thread execution
-                // if we are in blocking mode, the do the wait
-                if (!RunAsync || block)
+                if (indexedNodes.Count > 0)
                 {
-                    writer.WaitForMerges();
+                    //commit the changes (this will process the deletes)
+                    writer.Commit();
+
+                    //this is required to ensure the index is written to during the same thread execution
+                    // if we are in blocking mode, the do the wait
+                    if (!RunAsync || block)
+                    {
+                        writer.WaitForMerges();
+                    }
+
+                    //raise the completed event
+                    OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
                 }
-
-                //raise the completed event
-                OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
-
             }
             catch (Exception ex)
             {
@@ -1604,7 +1603,7 @@ namespace Examine.LuceneEngine.Providers
         protected void EnqueueIndexOperation(IndexOperation op)
         {
             //don't queue if there's been a cancellation requested
-            if (!_cancellationTokenSource.IsCancellationRequested)
+            if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
             {
                 _indexQueue.Add(new[] { op });
             }
@@ -1623,7 +1622,7 @@ namespace Examine.LuceneEngine.Providers
         protected void EnqueueIndexOperation(IEnumerable<IndexOperation> ops)
         {
             //don't queue if there's been a cancellation requested
-            if (!_cancellationTokenSource.IsCancellationRequested)
+            if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
             {
                 _indexQueue.Add(ops);
             }
@@ -1635,7 +1634,36 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        private Directory _directory;
+        [SecuritySafeCritical]
+        private Directory InitializeDirectory()
+        {
+            if (_directoryExplicit != null)
+                return _directoryExplicit;
+            if (_directoryFactory == null)
+            {
+                //ensure all of the folders are created at startup   
+                VerifyFolder(WorkingFolder);
+                VerifyFolder(LuceneIndexFolder);
+                return DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
+            }
+            return DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, DirectoryFactory);
+        }
+
+        /// <summary>
+        /// Purely to do with stupid medium trust
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        [SecuritySafeCritical]
+        private Directory DirectoryFactory(string s)
+        {
+            return _directoryFactory.CreateDirectory(this, s);
+        }
+
+        [SecuritySafeCritical]
+        private readonly Lazy<Directory> _directoryLazy;
+        private readonly Directory _directoryExplicit;
+        private IDirectoryFactory _directoryFactory;
 
         /// <summary>
         /// Returns the Lucene Directory used to store the index
@@ -1644,14 +1672,7 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public virtual Directory GetLuceneDirectory()
         {
-            if (_directory == null)
-            {
-                //ensure all of the folders are created at startup   
-                VerifyFolder(WorkingFolder);
-                VerifyFolder(LuceneIndexFolder);
-                _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
-            }
-            return _directory;
+            return _directoryLazy.Value;
         }
 
         /// <summary>
@@ -1663,6 +1684,7 @@ namespace Examine.LuceneEngine.Providers
         {
             var writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
             
+            //if we wanted to log lucene output
             //var memStream = new MemoryStream();
             //var w = new StreamWriter()
             //writer.SetInfoStream(w);
@@ -1838,7 +1860,6 @@ namespace Examine.LuceneEngine.Providers
         #region IDisposable Members
 
         private readonly DisposableIndexer _disposer;
-        private volatile LuceneSearcher _internalSearcher;
 
         private class DisposableIndexer : DisposableObject
         {
@@ -1904,7 +1925,11 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public void Dispose()
         {
-            _disposer.Dispose();
+            if (_internalSearcher.IsValueCreated)
+            {
+                _internalSearcher.Value.Dispose();
+            }
+            _disposer.Dispose();            
         }
 
         #endregion
