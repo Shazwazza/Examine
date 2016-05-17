@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.AccessControl;
@@ -9,15 +10,27 @@ using System.Threading.Tasks;
 
 namespace Examine.Directory.Sync
 {
-    internal static class SyncMutexManager
+    /// <summary>
+    /// A class to manage mutex locks per directory instance (ID)
+    /// </summary>
+    public class SyncMutexManager
     {
-        public static Mutex GrabMutex(string name)
+        private readonly string _id;
+        private static readonly ConcurrentDictionary<Lucene.Net.Store.Directory, SyncMutexManager> MutexManagers = new ConcurrentDictionary<Lucene.Net.Store.Directory, SyncMutexManager>();
+
+        public SyncMutexManager(string id)
         {
-            var mutexName = "examineSyncSegmentMutex_" + name;
+            if (id == null) throw new ArgumentNullException(nameof(id));
+            _id = id;
+        }
+
+        private Mutex CreateMutex(string name)
+        {
+            var mutexName = string.Concat("examineSegmentMutex_", _id, "_", name);
 
             Mutex mutex;
             var notExisting = false;
-            
+
             if (Mutex.TryOpenExisting(mutexName, MutexRights.Synchronize | MutexRights.Modify, out mutex))
             {
                 return mutex;
@@ -50,6 +63,12 @@ namespace Examine.Directory.Sync
 
                 return Mutex.OpenExisting(mutexName);
             }
+        }
+
+        public static Mutex GrabMutex(Lucene.Net.Store.Directory directory, string name)
+        {
+            var mgr = MutexManagers.GetOrAdd(directory, d => new SyncMutexManager(d.GetLockID()));
+            return mgr.CreateMutex(name);
         }
     }
 }

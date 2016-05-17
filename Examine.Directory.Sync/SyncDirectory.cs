@@ -89,13 +89,8 @@ namespace Examine.Directory.Sync
 
         /// <summary>Set the modified time of an existing file to now. </summary>
         public override void TouchFile(System.String name)
-        {
-            //BlobProperties props = _blobContainer.GetBlobProperties(_rootFolder + name);
-            //_blobContainer.UpdateBlobMetadata(props);
-            // I have no idea what the semantics of this should be...hmmmm...
-            // we never seem to get called
+        {            
             _cacheDirectory.TouchFile(name);
-            //SetCachedBlobProperties(props);
         }
 
         /// <summary>Removes an existing file in the directory. </summary>

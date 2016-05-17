@@ -24,7 +24,7 @@ namespace Examine.Directory.Sync
             return new SyncDirectory(new SimpleFSDirectory(master), new SimpleFSDirectory(tempFolder));
         }
 
-        public DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
+        private DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {
             var appDomainHash = ToMd5(HttpRuntime.AppDomainAppId);
             var cachePath = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "LuceneDir",

@@ -21,19 +21,20 @@ namespace Examine.Directory.Sync
         public Lucene.Net.Store.Directory CacheDirectory { get { return _syncDirectory.CacheDirectory; } }
         public Lucene.Net.Store.Directory MasterDirectory { get { return _syncDirectory.MasterDirectory; } }
 
-        public SyncIndexInput(SyncDirectory azuredirectory, string name)
+        public SyncIndexInput(SyncDirectory directory, string name)
         {
+            if (directory == null) throw new ArgumentNullException(nameof(directory));
+
             _name = name;
+            _syncDirectory = directory;
 
 #if FULLDEBUG
             Trace.WriteLine(String.Format("opening {0} ", _name));
 #endif
-            _fileMutex = SyncMutexManager.GrabMutex(_name);
+            _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
             _fileMutex.WaitOne();
             try
-            {
-                _syncDirectory = azuredirectory;
-
+            {                
                 var fileName = _name;
 
                 var fFileNeeded = false;
@@ -62,7 +63,11 @@ namespace Examine.Directory.Sync
                         if (cachedLastModifiedUTC != masterLastModifiedUTC)
                         {
                             var timeSpan = masterLastModifiedUTC.Subtract(cachedLastModifiedUTC);
-                            if (timeSpan.TotalSeconds > 1)
+
+                            //NOTE: This heavily depends on TouchFile in SyncIndexOutput which sets both the 
+                            //master and slave files to be 'Now', in theory this operation shouldn't
+                            //make the file times any bigger than 1 second
+                            if (timeSpan.TotalSeconds > 2)
                                 fFileNeeded = true;
                             else
                             {
@@ -111,7 +116,7 @@ namespace Examine.Directory.Sync
 
         public SyncIndexInput(SyncIndexInput cloneInput)
         {
-            _fileMutex = SyncMutexManager.GrabMutex(cloneInput._name);
+            _fileMutex = SyncMutexManager.GrabMutex(cloneInput._syncDirectory, cloneInput._name);
             _fileMutex.WaitOne();
 
             try

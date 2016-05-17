@@ -7,7 +7,7 @@ namespace Examine.Directory.Sync
     /// <summary>
     /// Stream wrapper around an IndexOutput
     /// </summary>
-    internal class StreamOutput : Stream
+    public class StreamOutput : Stream
     {
         public IndexOutput Output { get; set; }
 

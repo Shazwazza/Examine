@@ -21,16 +21,16 @@ namespace Examine.Directory.Sync
 
         public SyncIndexOutput(SyncDirectory syncDirectory, string name)
         {
+            if (syncDirectory == null) throw new ArgumentNullException(nameof(syncDirectory));
+
             //TODO: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19
             // I have changed this to be correct now
             _name = name;
-
-            _fileMutex = SyncMutexManager.GrabMutex(_name);
+            _syncDirectory = syncDirectory;
+            _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
             _fileMutex.WaitOne();
             try
-            {
-                _syncDirectory = syncDirectory;
-
+            {                
                 // create the local cache one we will operate against...
                 _indexOutput = CacheDirectory.CreateOutput(_name);
             }            
