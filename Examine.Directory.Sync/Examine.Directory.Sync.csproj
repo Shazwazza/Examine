@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AspNetCodeGenSyncDirectoryFactory.cs" />
+    <Compile Include="EnvironmentTempLocationDirectoryFactory.cs" />
     <Compile Include="MultiIndexLock.cs" />
     <Compile Include="MultiIndexLockFactory.cs" />
     <Compile Include="SyncDirectory.cs" />
