@@ -16,6 +16,9 @@ namespace Examine.LuceneEngine
         /// Translates a dictionary object, node id, and node type into the property xml structure used by the examine indexer
         /// </summary>
         /// <param name="?"></param>
+        /// <param name="data"></param>
+        /// <param name="nodeId"></param>
+        /// <param name="nodeType"></param>
         /// <returns>
         /// returns an XElement with the default Examine XML structure
         /// </returns>
@@ -36,15 +39,22 @@ namespace Examine.LuceneEngine
         /// </example>
         public static XElement ToExamineXml(this Dictionary<string, string> data, int nodeId, string nodeType)
         {
+            var nodes = new List<XElement>();
+            foreach (var x in data)
+            {
+                if (!string.IsNullOrWhiteSpace(x.Value))
+                {
+                    nodes.Add(new XElement("data",
+                        new XAttribute("alias", x.Key),
+                        new XCData(x.Value)));
+                }
+            }
+
             return new XElement("node",
                 //creates the element attributes
                 new XAttribute("id", nodeId),
                 new XAttribute("nodeTypeAlias", nodeType),
-                //creates the data nodes
-                data.Where(x => !string.IsNullOrWhiteSpace(x.Value))
-                    .Select(x => new XElement("data",
-                        new XAttribute("alias", x.Key),
-                        new XCData(x.Value))).ToList());
+                nodes);
 
         }
 

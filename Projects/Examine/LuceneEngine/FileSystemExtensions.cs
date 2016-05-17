@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using System.Text;
 using System.IO;
 
@@ -20,12 +20,11 @@ namespace Examine.LuceneEngine
             di.Refresh();
             if (di.Exists)
             {
-                di.GetFiles().ToList()
-                .ForEach(x =>
+                foreach (var x in di.GetFiles())
                 {
                     x.Delete();
                     count++;
-                });
+                }                
             }
             return count;
         }

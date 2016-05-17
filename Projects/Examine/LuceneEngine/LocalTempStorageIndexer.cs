@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security;
 using Lucene.Net.Analysis;
@@ -44,17 +45,15 @@ namespace Examine.LuceneEngine
                 {
                     //var basePath = IOHelper.MapPath(configuredPath);
 
+                    var allSnapshotFiles = new HashSet<string>();
                     var commit = _snapshotter.Snapshot();
-                    var allSnapshotFiles = commit.GetFileNames()
-                        .Concat(new[]
-                            {
-                                commit.GetSegmentsFileName(), 
-                                //we need to manually include the segments.gen file
-                                "segments.gen"
-                            })
-                        .Distinct()
-                        .ToArray();
-
+                    foreach (var fileName in commit.GetFileNames())
+                    {
+                        allSnapshotFiles.Add(fileName);
+                    }
+                    allSnapshotFiles.Add(commit.GetSegmentsFileName());
+                    //we need to manually include the segments.gen file
+                    allSnapshotFiles.Add("segments.gen");
 
                     //Get all files in the temp storage that don't exist in the snapshot collection, we want to remove these
                     var toRemove = targetPath.GetFiles()

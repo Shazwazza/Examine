@@ -29,11 +29,11 @@ namespace Examine.Directory.Sync
             _fileMutex.WaitOne();
             try
             {
-                _syncDirectory = syncDirectory;                
+                _syncDirectory = syncDirectory;
 
                 // create the local cache one we will operate against...
                 _indexOutput = CacheDirectory.CreateOutput(_name);
-            }
+            }            
             finally
             {
                 _fileMutex.ReleaseMutex();
@@ -53,30 +53,37 @@ namespace Examine.Directory.Sync
                 string fileName = _name;
 
                 // make sure it's all written out
-                _indexOutput.Flush();
-                _indexOutput.Close();
-
-                //open stream to read cache file
-                using(var cacheStream = new StreamInput(CacheDirectory.OpenInput(fileName)))
-                // push the blobStream up to the master
-                using (var masterStream = new StreamOutput(MasterDirectory.CreateOutput(fileName)))
+                if (_indexOutput != null)
                 {
-                    cacheStream.CopyTo(masterStream);
-
-                    masterStream.Flush();                    
-                    Trace.WriteLine(string.Format("PUT {1} bytes to {0} in cloud", _name, cacheStream.Length));
+                    _indexOutput.Flush();
+                    _indexOutput.Close();
                 }
 
-                //sync the last file write times - at least get them close.
-                //TODO: The alternative would be to force both directory instances to be FSDirectory, 
-                // or try casting the master directory to FSDirectory to get the raw FileInfo and manually
-                // set the lastmodified time - this should work though
-                MasterDirectory.TouchFile(fileName);
-                CacheDirectory.TouchFile(fileName);
+                if (CacheDirectory.FileExists(fileName))
+                {
+                    //open stream to read cache file
+                    using (var cacheStream = new StreamInput(CacheDirectory.OpenInput(fileName)))
+                    // push the blobStream up to the master
+                    using (var masterStream = new StreamOutput(MasterDirectory.CreateOutput(fileName)))
+                    {
+                        cacheStream.CopyTo(masterStream);
+
+                        masterStream.Flush();
+                        Trace.WriteLine(string.Format("PUT {1} bytes to {0} in cloud", _name, cacheStream.Length));
+                    }
+
+                    //sync the last file write times - at least get them close.
+                    //TODO: The alternative would be to force both directory instances to be FSDirectory, 
+                    // or try casting the master directory to FSDirectory to get the raw FileInfo and manually
+                    // set the lastmodified time - this should work though
+                    MasterDirectory.TouchFile(fileName);
+                    CacheDirectory.TouchFile(fileName);
 
 #if FULLDEBUG
-                Debug.WriteLine(string.Format("CLOSED WRITESTREAM {0}", _name));
-#endif
+                      Debug.WriteLine(string.Format("CLOSED WRITESTREAM {0}", _name));
+#endif    
+                }
+
                 // clean up
                 _indexOutput = null;
                 GC.SuppressFinalize(this);

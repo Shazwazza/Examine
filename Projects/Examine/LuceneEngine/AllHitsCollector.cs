@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using System.Security;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -86,7 +86,7 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public int GetDocId(int index)
         {
-            return hits.ElementAt(index).DocId;
+            return hits[index].DocId;
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public float GetDocScore(int index)
         {
-            return hits.ElementAt(index).Score;
+            return hits[index].Score;
         }
 
         public int Count

@@ -39,7 +39,9 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AspNetCodeGenSyncDirectoryFactory.cs" />
     <Compile Include="MultiIndexLock.cs" />
     <Compile Include="MultiIndexLockFactory.cs" />
     <Compile Include="SyncDirectory.cs" />
@@ -60,6 +63,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Projects\Examine\Examine.csproj">
+      <Project>{da5e35c3-89ba-4a2e-a559-32cf7b23cbff}</Project>
+      <Name>Examine</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
