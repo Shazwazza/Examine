@@ -1051,7 +1051,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
-            var values = new Dictionary<string, string>();
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             var nodeId = int.Parse(node.Attribute("id").Value);
 
