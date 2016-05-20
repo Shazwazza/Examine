@@ -38,7 +38,6 @@ namespace Examine.LuceneEngine.Providers
         protected LuceneIndexer()
         {
             OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = false;
             _disposer = new DisposableIndexer(this);
             _directoryLazy = new Lazy<Directory>(InitializeDirectory);
             _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
@@ -65,7 +64,6 @@ namespace Examine.LuceneEngine.Providers
             
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = false;
             RunAsync = async;
 
             _directoryLazy = new Lazy<Directory>(InitializeDirectory);
@@ -92,7 +90,6 @@ namespace Examine.LuceneEngine.Providers
 
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = false;
             RunAsync = async;
 
             _directoryExplicit = luceneDirectory;
@@ -120,7 +117,6 @@ namespace Examine.LuceneEngine.Providers
             
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
-            AutomaticallyOptimize = false;
             RunAsync = async;
             _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
         }
@@ -175,25 +171,7 @@ namespace Examine.LuceneEngine.Providers
                     throw new FormatException("Could not parse autoCommitThreshold value into an integer");
                 }
             }
-
-            if (config["autoOptimize"] == null)
-            {
-                AutomaticallyOptimize = false;
-            }
-            else
-            {
-                bool autoOptimize;
-                if (bool.TryParse(config["autoOptimize"], out autoOptimize))
-                {
-                    AutomaticallyOptimize = autoOptimize;
-                }
-                else
-                {
-                    throw new FormatException("Could not parse autoOptimize value into a boolean");
-                }
-
-            }
-
+            
             //Need to check if the index set or IndexerData is specified...
 
             if (config["indexSet"] == null && IndexerData == null)
@@ -469,9 +447,8 @@ namespace Examine.LuceneEngine.Providers
         #region Properties
 
 
-        ///<summary>
-        /// This will automatically optimize the index every 'AutomaticCommitThreshold' commits
-        ///</summary>
+        [Obsolete("This is no longer used and will be removed in future versions")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public bool AutomaticallyOptimize { get; protected set; }
 
         /// <summary>
@@ -642,9 +619,7 @@ namespace Examine.LuceneEngine.Providers
         public void EnsureIndex(bool forceOverwrite)
         {
             if (!forceOverwrite && _hasIndex) return;
-
-            //IndexWriter writer = null;
-
+            
             if (!IndexExists() || forceOverwrite)
             {
                 //if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
@@ -662,6 +637,9 @@ namespace Examine.LuceneEngine.Providers
                         }
                         else if (forceOverwrite)
                         {
+                            Trace.WriteLine("Initializing new index");
+                            Debug.WriteLine("Initializing new index");
+
                             if (_writer == null)
                             {
                                 //This will happen if the writer hasn't been created/initialized yet which
@@ -796,22 +774,13 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type"></param>
         public override void IndexAll(string type)
         {
-            //check if the index doesn't exist, and if so, create it and reindex everything
-            if (!IndexExists())
+            //remove this index type
+            var op = new IndexOperation()
             {
-                RebuildIndex();
-                return;
-            }
-            else
-            {
-                var op = new IndexOperation()
-                {
-                    Operation = IndexOperationType.Delete,
-                    Item = new IndexItem(null, type, string.Empty)
-                };
-                EnqueueIndexOperation(op);
-
-            }
+                Operation = IndexOperationType.Delete,
+                Item = new IndexItem(null, type, string.Empty)
+            };
+            EnqueueIndexOperation(op);
 
             //now do the indexing...
             PerformIndexAll(type);
@@ -871,15 +840,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="nodes"></param>
         /// <param name="type"></param>
         protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
-        {
-
-            //check if the index doesn't exist, and if so, create it and reindex everything, this will obviously index this
-            //particular node
-            if (!IndexExists())
-            {
-                RebuildIndex();
-                return;
-            }
+        {           
 
             //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             Monitor.Enter(_writerLocker);
@@ -1404,7 +1365,7 @@ namespace Examine.LuceneEngine.Providers
                                     {
                                         if (task.IsCanceled)
                                         {
-                                            //if this gets cancelled, we need to 
+                                            //if this gets cancelled, we need to ... ?
                                         }
                                     });
                             }
@@ -1434,14 +1395,7 @@ namespace Examine.LuceneEngine.Providers
                         do
                         {
                             numProcessedItems = ForceProcessQueueItems();
-                        } while (numProcessedItems > 0);
-
-                        //if there are enough commits, then we'll run an optimization
-                        if (AutomaticallyOptimize && CommitCount >= OptimizationCommitThreshold)
-                        {
-                            OptimizeIndex();
-                            CommitCount = 0; //reset the counter
-                        }
+                        } while (numProcessedItems > 0);                       
 
                         //reset the flag
                         _isIndexing = false;
@@ -1488,9 +1442,7 @@ namespace Examine.LuceneEngine.Providers
         private int ForceProcessQueueItems(bool block)
         {
             if (!IndexExists())
-            {
-                //this shouldn't happen!
-                OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, the index doesn't exist!", -1, null));
+            {               
                 return 0;
             }
 
@@ -1672,7 +1624,7 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public virtual Directory GetLuceneDirectory()
         {
-            return _directoryLazy.Value;
+            return _writer != null ? _writer.GetDirectory() : _directoryLazy.Value;
         }
 
         /// <summary>

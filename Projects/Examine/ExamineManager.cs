@@ -112,7 +112,7 @@ namespace Examine
                         //check if we need to rebuild on startup
                         if (ExamineSettings.Instance.RebuildOnAppStart)
                         {
-                            foreach (var index in _indexProviderCollection.Cast<IIndexer>())
+                            foreach (IIndexer index in _indexProviderCollection)
                             {
                                 if (!index.IndexExists())
                                 {

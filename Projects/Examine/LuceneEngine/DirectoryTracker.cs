@@ -25,7 +25,12 @@ namespace Examine.LuceneEngine
             get { return Instance; }
         }
 
-        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir, bool throwIfEmpty = false)
+        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir)
+        {
+            return GetDirectory(dir, false);
+        }
+
+        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir, bool throwIfEmpty)
         {
             if (throwIfEmpty)
             {
