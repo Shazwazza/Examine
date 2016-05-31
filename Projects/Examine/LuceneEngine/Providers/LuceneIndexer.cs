@@ -40,7 +40,7 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             _disposer = new DisposableIndexer(this);
             _directoryLazy = new Lazy<Directory>(InitializeDirectory);
-            _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
+            _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Examine.LuceneEngine.Providers
             RunAsync = async;
 
             _directoryLazy = new Lazy<Directory>(InitializeDirectory);
-            _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
+            _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Examine.LuceneEngine.Providers
 
             _directoryExplicit = luceneDirectory;
             _directoryLazy = new Lazy<Directory>(InitializeDirectory);
-            _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
+            _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
         }        
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Examine.LuceneEngine.Providers
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
             RunAsync = async;
-            _internalSearcher = new Lazy<LuceneSearcher>(() => new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer));
+            _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
         }
 
         #endregion
@@ -1678,7 +1678,15 @@ namespace Examine.LuceneEngine.Providers
 
         #region Private
 
-
+        /// <summary>
+        /// Stupid medium trust - that is the only reason this method exists
+        /// </summary>
+        /// <returns></returns>
+        [SecuritySafeCritical]
+        private LuceneSearcher GetSearcher()
+        {
+            return new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer);
+        }
 
         private void EnsureSpecialFields(Dictionary<string, string> fields, string nodeId, string type)
         {
