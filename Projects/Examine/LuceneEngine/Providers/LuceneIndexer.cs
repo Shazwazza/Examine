@@ -1043,28 +1043,25 @@ namespace Examine.LuceneEngine.Providers
             foreach (var field in IndexerData.UserFields)
             {
                 // Get the value of the data                
-                string value = node.SelectExamineDataValue(field.Name);
+                var userFieldValues = node.SelectExamineDataValues(field.Name);
+                
+                foreach(var valuePair in userFieldValues)
+                { 
+                    //raise the event and assign the value to the returned data from the event
+                    var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, valuePair.Item1, valuePair.Item2, false, nodeId);
+                    OnGatheringFieldData(indexingFieldDataArgs);
+                    var value = indexingFieldDataArgs.FieldValue;
 
-                //raise the event and assign the value to the returned data from the event
-                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, field.Name, value, false, nodeId);
-                OnGatheringFieldData(indexingFieldDataArgs);
-                value = indexingFieldDataArgs.FieldValue;
-
-                //don't add if the value is empty/null
-                if (!string.IsNullOrEmpty(value))
-                {
-                    if (values.ContainsKey(field.Name))
+                    //don't add if the value is empty/null
+                    if (!string.IsNullOrEmpty(value))
                     {
-                        OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
-                    }
-                    else
-                    {
-                        values.Add(field.Name, value);
+                        if (values.ContainsKey(valuePair.Item1))
+                            values[valuePair.Item1] = values[valuePair.Item1] + " " + value;
+                        else
+                            values.Add(valuePair.Item1, value);
                     }
                 }
             }
-
-
 
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);

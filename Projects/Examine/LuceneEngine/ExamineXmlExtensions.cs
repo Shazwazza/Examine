@@ -244,5 +244,44 @@ namespace Examine.LuceneEngine
 
         }
 
+        /// <summary>
+        /// Returns umbraco values for a data element with the specified alias or subvalues prefixed by a dot.
+        /// </summary>
+        /// <param name="xml"></param>
+        /// <param name="alias"></param>
+        /// <returns></returns>
+        public static IEnumerable<Tuple<string, string>> SelectExamineDataValues(this XElement xml, string alias)
+        {
+            if (!xml.IsExamineElement())
+                return new List<Tuple<string, string>>();
+
+            var values = new List<Tuple<string, string>>();
+
+            IEnumerable<XElement> nodes = null;
+
+
+            //if there is data children with attributes, we're on the old
+            if (xml.Elements("data").Any(x => x.HasAttributes))
+            {
+                nodes = xml.Elements("data").Where(x => string.Equals(((string)x.Attribute("alias")), alias, StringComparison.InvariantCultureIgnoreCase));
+            }
+            else
+            {
+                nodes = xml.Elements().Where(x =>
+                    x.Name.LocalName.Equals(alias, StringComparison.InvariantCultureIgnoreCase) ||
+                    x.Name.LocalName.StartsWith(alias + ".", StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            if (!nodes.Any())
+            {
+                return values;
+            }
+
+            foreach(XElement element in nodes)
+                values.Add(new Tuple<string, string>(element.Name.LocalName, element.Value));
+
+            return values;
+        }
+
     }
 }
