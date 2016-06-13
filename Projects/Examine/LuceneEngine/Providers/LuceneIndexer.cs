@@ -337,6 +337,8 @@ namespace Examine.LuceneEngine.Providers
 
         private bool _hasIndex = false;
 
+        private Dictionary<string, FieldOperation> fieldOperations;
+
         #endregion
 
         #region Static Helpers
@@ -1013,6 +1015,7 @@ namespace Examine.LuceneEngine.Providers
         protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
         {
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            fieldOperations = new Dictionary<string, FieldOperation>();
 
             var nodeId = int.Parse(node.Attribute("id").Value);
 
@@ -1045,20 +1048,23 @@ namespace Examine.LuceneEngine.Providers
                 // Get the value of the data                
                 var userFieldValues = node.SelectExamineDataValues(field.Name);
                 
-                foreach(var valuePair in userFieldValues)
+                foreach(var dataValue in userFieldValues)
                 { 
                     //raise the event and assign the value to the returned data from the event
-                    var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, valuePair.Item1, valuePair.Item2, false, nodeId);
+                    var value = dataValue.Value;
+                    var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, dataValue.FieldName, value, false, nodeId);
                     OnGatheringFieldData(indexingFieldDataArgs);
-                    var value = indexingFieldDataArgs.FieldValue;
+
+                    if (!fieldOperations.ContainsKey(dataValue.FieldName))
+                        fieldOperations.Add(dataValue.FieldName, dataValue.FieldOperation);
 
                     //don't add if the value is empty/null
                     if (!string.IsNullOrEmpty(value))
                     {
-                        if (values.ContainsKey(valuePair.Item1))
-                            values[valuePair.Item1] = values[valuePair.Item1] + " " + value;
+                        if (values.ContainsKey(dataValue.FieldName))
+                            values[dataValue.FieldName] = values[dataValue.FieldName] + " " + value;
                         else
-                            values.Add(valuePair.Item1, value);
+                            values.Add(dataValue.FieldName, value);
                     }
                 }
             }
@@ -1079,6 +1085,30 @@ namespace Examine.LuceneEngine.Providers
         protected virtual FieldIndexTypes GetPolicy(string fieldName)
         {
             return FieldIndexTypes.ANALYZED;
+        }
+
+        /// <summary>
+        /// Since derived indexers might override the policy, we'll just return not analyzed if the xml specifies so.
+        /// Otherwise, default is Analyzed, and might be overridden in the config file.
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        private FieldIndexTypes GetAnalyzingPolicy(string fieldName)
+        {
+            if (fieldOperations.ContainsKey(fieldName) && !fieldOperations[fieldName].Analyze)
+                return FieldIndexTypes.NOT_ANALYZED;
+
+            return GetPolicy(fieldName);
+        }
+
+        [SecuritySafeCritical]
+        private Field.Store GetStoragePolicy(string key)
+        {
+            if (fieldOperations.ContainsKey(key))
+                return fieldOperations[key].Store
+                    ? Field.Store.YES
+                    : Field.Store.NO;
+            return Field.Store.YES;
         }
 
         /// <summary>
@@ -1140,8 +1170,9 @@ namespace Examine.LuceneEngine.Providers
 
             foreach (var x in validFields)
             {
-                var ourPolicyType = GetPolicy(x.Key);
-                var lucenePolicy = TranslateFieldIndexTypeToLuceneType(ourPolicyType);
+                var ourPolicyType = GetAnalyzingPolicy(x.Key);
+                var analyzingPolicy = TranslateFieldIndexTypeToLuceneType(ourPolicyType);
+                var storagePolicy = GetStoragePolicy(x.Key);
 
                 //copy local
                 var x1 = x;
@@ -1151,11 +1182,13 @@ namespace Examine.LuceneEngine.Providers
                 {
                     //TODO: Decide if we should support non-strings in here too
                     d.Add(
-                    new Field(x.Key,
-                        x.Value,
-                        Field.Store.YES,
-                        lucenePolicy,
-                              Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES));
+                        new Field(x.Key,
+                            x.Value,
+                            storagePolicy,
+                            analyzingPolicy,
+                            Equals(analyzingPolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES
+                        )
+                    );
                 }
 
                 else
@@ -1174,77 +1207,78 @@ namespace Examine.LuceneEngine.Providers
                     Fieldable sortedField = null;
                     object parsedVal = null;
                     if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
+                    var store = storagePolicy;
                     switch (indexField.Type.ToUpper())
                     {
                         case "NUMBER":
                         case "INT":
                             if (!TryConvert<int>(x.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetIntValue((int)parsedVal);
+                            field = new NumericField(x.Key, store, !Equals(analyzingPolicy, Field.Index.NO)).SetIntValue((int)parsedVal);
                             sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetIntValue((int)parsedVal);
                             break;
                         case "FLOAT":
                             if (!TryConvert<float>(x.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetFloatValue((float)parsedVal);
+                            field = new NumericField(x.Key, store, !Equals(analyzingPolicy, Field.Index.NO)).SetFloatValue((float)parsedVal);
                             sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetFloatValue((float)parsedVal);
                             break;
                         case "DOUBLE":
                             if (!TryConvert<double>(x.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetDoubleValue((double)parsedVal);
+                            field = new NumericField(x.Key, store, !Equals(analyzingPolicy, Field.Index.NO)).SetDoubleValue((double)parsedVal);
                             sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetDoubleValue((double)parsedVal);
                             break;
                         case "LONG":
                             if (!TryConvert<long>(x.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetLongValue((long)parsedVal);
+                            field = new NumericField(x.Key, store, !Equals(analyzingPolicy, Field.Index.NO)).SetLongValue((long)parsedVal);
                             sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetLongValue((long)parsedVal);
                             break;
                         case "DATE":
                         case "DATETIME":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MILLISECOND, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MILLISECOND, analyzingPolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.YEAR":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.YEAR, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.YEAR, analyzingPolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.MONTH":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MONTH, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MONTH, analyzingPolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.DAY":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.DAY, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.DAY, analyzingPolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.HOUR":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.HOUR, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.HOUR, analyzingPolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.MINUTE":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MINUTE, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MINUTE, analyzingPolicy, ref field, ref sortedField);
                                 break;
                             }
                         default:
                             field =
                                 new Field(x.Key,
                                     x.Value,
-                                    Field.Store.YES,
-                                    lucenePolicy,
-                                          Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES
+                                    store,
+                                    analyzingPolicy,
+                                    Equals(analyzingPolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES
                                 );
                             sortedField = new Field(SortedFieldNamePrefix + x.Key,
-                                                    x.Value,
-                                                    Field.Store.NO, //we don't want to store the field because we're only using it to sort, not return data
-                                                    Field.Index.NOT_ANALYZED,
-                                                    Field.TermVector.NO
+                                    x.Value,
+                                    Field.Store.NO, //we don't want to store the field because we're only using it to sort, not return data
+                                    Field.Index.NOT_ANALYZED,
+                                    Field.TermVector.NO
                                 );
                             break;
                     }

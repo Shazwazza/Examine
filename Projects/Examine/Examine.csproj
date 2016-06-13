@@ -146,6 +146,7 @@
     <Compile Include="IndexItem.cs" />
     <Compile Include="IndexOperation.cs" />
     <Compile Include="IndexOperationType.cs" />
+    <Compile Include="LuceneEngine\ExamineDataValue.cs" />
     <Compile Include="LuceneEngine\Providers\IDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndexer.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneMemorySearcher.cs" />

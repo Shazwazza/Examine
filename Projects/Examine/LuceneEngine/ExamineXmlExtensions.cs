@@ -250,15 +250,14 @@ namespace Examine.LuceneEngine
         /// <param name="xml"></param>
         /// <param name="alias"></param>
         /// <returns></returns>
-        public static IEnumerable<Tuple<string, string>> SelectExamineDataValues(this XElement xml, string alias)
+        public static IEnumerable<ExamineDataValue> SelectExamineDataValues(this XElement xml, string alias)
         {
-            if (!xml.IsExamineElement())
-                return new List<Tuple<string, string>>();
+            var values = new List<ExamineDataValue>();
 
-            var values = new List<Tuple<string, string>>();
+            if (!xml.IsExamineElement())
+                return values;
 
             IEnumerable<XElement> nodes = null;
-
 
             //if there is data children with attributes, we're on the old
             if (xml.Elements("data").Any(x => x.HasAttributes))
@@ -278,7 +277,12 @@ namespace Examine.LuceneEngine
             }
 
             foreach(XElement element in nodes)
-                values.Add(new Tuple<string, string>(element.Name.LocalName, element.Value));
+                values.Add(new ExamineDataValue(
+                    element.Name.LocalName, 
+                    element.Value,
+                    element.Attribute("analyze") == null || element.Attribute("analyze").Value == "true",
+                    element.Attribute("store") == null || element.Attribute("store").Value == "true"
+                ));
 
             return values;
         }
