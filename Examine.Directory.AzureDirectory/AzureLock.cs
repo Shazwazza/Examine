@@ -26,7 +26,7 @@ namespace Examine.Directory.AzureDirectory
         #region Lock methods
         override public bool IsLocked()
         {
-            var blob = _azureDirectory.BlobContainer.GetBlobReferenceFromServer(_lockFile);
+            var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(_lockFile);
             try
             {
                 Debug.Print("IsLocked() : {0}", _leaseid);
