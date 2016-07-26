@@ -18,26 +18,26 @@ namespace Examine.LuceneEngine
     {
         private static readonly DirectoryTracker Instance = new DirectoryTracker();
        
-        private readonly ConcurrentDictionary<string, Lucene.Net.Store.Directory> _directories = new ConcurrentDictionary<string, Lucene.Net.Store.Directory>();
+        private readonly ConcurrentDictionary<string, Directory> _directories = new ConcurrentDictionary<string, Directory>();
    
         public static DirectoryTracker Current
         {
             get { return Instance; }
         }
 
-        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir)
+        public Directory GetDirectory(DirectoryInfo dir)
         {
             return GetDirectory(dir, false);
         }
 
-        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir, bool throwIfEmpty)
+        public Directory GetDirectory(DirectoryInfo dir, bool throwIfEmpty)
         {
             if (throwIfEmpty)
             {
                 Directory d;
                 if (!_directories.TryGetValue(dir.FullName, out d))
                 {
-                    throw new NullReferenceException("No directory was added with path " + dir.FullName);
+                    throw new NullReferenceException("No directory was added with path " + dir.FullName + ", maybe an indexer hasn't been initialized?");
                 }
                 return d;
             }
@@ -45,7 +45,7 @@ namespace Examine.LuceneEngine
             return resolved;
         }
 
-        public Lucene.Net.Store.Directory GetDirectory(DirectoryInfo dir, Func<string, Directory> factory)
+        public Directory GetDirectory(DirectoryInfo dir, Func<string, Directory> factory)
         {
             var resolved = _directories.GetOrAdd(dir.FullName, factory);
             return resolved;

@@ -122,7 +122,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns a list of fields to search on based on all distinct fields found in the sub searchers
         /// </summary>
         /// <returns></returns>
-        protected override internal string[] GetSearchFields()
+        protected internal override string[] GetSearchFields()
         {
             var searchableFields = new List<string>();
             foreach (var searcher in Searchers)

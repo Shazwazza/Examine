@@ -39,7 +39,6 @@ namespace Examine.LuceneEngine.Providers
         {
             OptimizationCommitThreshold = 100;
             _disposer = new DisposableIndexer(this);
-            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
         }
 
@@ -66,7 +65,7 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             RunAsync = async;
 
-            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
+            InitializeDirectory();
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
         }
 
@@ -92,8 +91,7 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             RunAsync = async;
 
-            _directoryExplicit = luceneDirectory;
-            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
+            _directory = luceneDirectory;
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
         }        
 
@@ -234,6 +232,8 @@ namespace Examine.LuceneEngine.Providers
                     LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
                 }
             }
+
+            InitializeDirectory();
 
             if (config["analyzer"] != null)
             {
@@ -1586,19 +1586,22 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
+        /// <summary>
+        /// Initialize the directory
+        /// </summary>
         [SecuritySafeCritical]
-        private Directory InitializeDirectory()
+        private void InitializeDirectory()
         {
-            if (_directoryExplicit != null)
-                return _directoryExplicit;
+            if (_directory != null) return;
+
             if (_directoryFactory == null)
             {
                 //ensure all of the folders are created at startup   
                 VerifyFolder(WorkingFolder);
                 VerifyFolder(LuceneIndexFolder);
-                return DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
+                _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
             }
-            return DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, DirectoryFactory);
+            _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, DirectoryFactory);
         }
 
         /// <summary>
@@ -1613,8 +1616,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [SecuritySafeCritical]
-        private readonly Lazy<Directory> _directoryLazy;
-        private readonly Directory _directoryExplicit;
+        private Directory _directory;
         private IDirectoryFactory _directoryFactory;
 
         /// <summary>
@@ -1624,7 +1626,7 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public virtual Directory GetLuceneDirectory()
         {
-            return _writer != null ? _writer.GetDirectory() : _directoryLazy.Value;
+            return _writer != null ? _writer.GetDirectory() : _directory;
         }
 
         /// <summary>

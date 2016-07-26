@@ -33,7 +33,6 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher()
         {
             _disposer = new DisposableSearcher(this);
-            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
         }
         
         /// <summary>
@@ -61,8 +60,7 @@ namespace Examine.LuceneEngine.Providers
         {
             _disposer = new DisposableSearcher(this);
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
-            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
-            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
+            InitializeDirectory();
         }
 
         /// <summary>
@@ -76,22 +74,26 @@ namespace Examine.LuceneEngine.Providers
         {
             _disposer = new DisposableSearcher(this);
             LuceneIndexFolder = null;
-            _directoryExplicit = luceneDirectory;
-            _directoryLazy = new Lazy<Directory>(InitializeDirectory);
+            _directory = luceneDirectory;
         }
 
         #endregion      
 
         /// <summary>
-        /// NOTE: This is all to do with stupid medium trust
+        /// Initialize the directory
         /// </summary>
         /// <returns></returns>
+        /// <exception cref="NullReferenceException">
+        /// this will throw if a Directory instance is not found at the specified location</exception>
+        /// <remarks>
+        /// It is assumed that the indexer for the searcher will always be initialized first and therefore a directory would be available
+        /// </remarks>
         [SecuritySafeCritical]
-        private Directory InitializeDirectory()
+        private void InitializeDirectory()
         {
-            if (_directoryExplicit != null)
-                return _directoryExplicit;
-            return DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, true);
+            if (_directory != null) return;
+
+            _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, true);
         }
 
         /// <summary>
@@ -100,8 +102,7 @@ namespace Examine.LuceneEngine.Providers
         private IndexSearcher _searcher;
         private volatile IndexReader _reader;
         private readonly object _locker = new object();
-        private readonly Lazy<Lucene.Net.Store.Directory> _directoryLazy;
-        private readonly Lucene.Net.Store.Directory _directoryExplicit;
+        private Directory _directory;
         private readonly IndexWriter _nrtWriter;
 
         /// <summary>
@@ -131,7 +132,7 @@ namespace Examine.LuceneEngine.Providers
             //need to check if the index set is specified, if it's not, we'll see if we can find one by convension
             //if the folder is not null and the index set is null, we'll assume that this has been created at runtime.
             //NOTE: Don't proceed if the _luceneDirectory is set since we already know where to look.
-            if (config["indexSet"] == null && (LuceneIndexFolder == null && _directoryExplicit == null))
+            if (config["indexSet"] == null && (LuceneIndexFolder == null && _directory == null))
             {
                 //if we don't have either, then we'll try to set the index set by naming convensions
                 var found = false;
@@ -157,7 +158,7 @@ namespace Examine.LuceneEngine.Providers
                 //get the folder to index
                 LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
             }
-            else if (config["indexSet"] != null && _directoryExplicit == null)
+            else if (config["indexSet"] != null && _directory == null)
             {
                 if (IndexSets.Instance.Sets[config["indexSet"]] == null)
                     throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
@@ -171,6 +172,8 @@ namespace Examine.LuceneEngine.Providers
                 //get the folder to index
                 LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexSet.IndexDirectory.FullName, "Index"));
             }
+
+            InitializeDirectory();
         }
 
         /// <summary>
@@ -244,14 +247,14 @@ namespace Examine.LuceneEngine.Providers
         }
 
         [SecuritySafeCritical]
-        protected virtual Lucene.Net.Store.Directory GetLuceneDirectory()
+        protected virtual Directory GetLuceneDirectory()
         {
             if (_nrtWriter != null)
             {
                 return _nrtWriter.GetDirectory();
             }
             
-            return _directoryLazy.Value;
+            return _directory;
         }
 
         /// <summary>
