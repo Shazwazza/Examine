@@ -31,43 +31,30 @@ namespace Examine.LuceneEngine.SearchCriteria
         private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
 
         #region Field Name properties
-        private string _NodeTypeAliasField = "nodeTypeAlias";
 
         /// <summary>
         /// Defines the field name to use for the node type alias query
         /// </summary>
-        public string NodeTypeAliasField
-        {
-            get { return _NodeTypeAliasField; }
-            set { _NodeTypeAliasField = value; }
-        }
-
-        private string _NodeNameField = "nodeName";
+        public string NodeTypeAliasField { get; set; } = "nodeTypeAlias";
 
         /// <summary>
         /// Defines the field name to use for the node name query
         /// </summary>
-        public string NodeNameField
-        {
-            get { return _NodeNameField; }
-            set { _NodeNameField = value; }
-        }
-
-        private string _ParentIdField = "parentID";
+        public string NodeNameField { get; set; } = "nodeName";
 
         /// <summary>
         /// Defines the field name to use for the parent id query
         /// </summary>
-        public string ParentIdField
-        {
-            get { return _ParentIdField; }
-            set { _ParentIdField = value; }
-        } 
+        public string ParentIdField { get; set; } = "parentID";
+
         #endregion
 
 		[SecuritySafeCritical]
         internal LuceneSearchCriteria(string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurance)
         {
+            //TODO: It would be nice to be able to pass in the existing field definitions here so 
+            // we'd know what fields have sorting enabled so we don't have to use the special sorting syntax for field types
+
             Enforcer.ArgumentNotNull(fields, "fields");
 
             SearchIndexType = type;
@@ -97,7 +84,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		[SecuritySafeCritical]
         public override string ToString()
         {
-            return string.Format("{{ SearchIndexType: {0}, LuceneQuery: {1} }}", this.SearchIndexType, this.Query.ToString());
+            return $"{{ SearchIndexType: {this.SearchIndexType}, LuceneQuery: {this.Query} }}";
         }
 
         private static void ValidateIExamineValue(IExamineValue v)
@@ -145,7 +132,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
 		[SecuritySafeCritical]
-        internal protected IBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation IdInternal(int id, BooleanClause.Occur occurance)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
             Query.Add(this.QueryParser.GetFieldQuery(LuceneIndexer.IndexNodeIdFieldName, id.ToString()), occurance);
@@ -177,7 +164,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
 		[SecuritySafeCritical]
-        internal protected IBooleanOperation NodeNameInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation NodeNameInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
         {
             return this.FieldInternal(NodeNameField, examineValue, occurance);
         }
@@ -206,7 +193,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
 		[SecuritySafeCritical]
-        internal protected IBooleanOperation NodeTypeAliasInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation NodeTypeAliasInternal(IExamineValue examineValue, BooleanClause.Occur occurance)
         {
             //force lower case
             var eVal = new ExamineValue(examineValue.Examineness, examineValue.Value.ToLower(), examineValue.Level);
@@ -226,7 +213,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
 		[SecuritySafeCritical]
-        internal protected IBooleanOperation ParentIdInternal(int id, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation ParentIdInternal(int id, BooleanClause.Occur occurance)
         {
             Query.Add(this.QueryParser.GetFieldQuery(ParentIdField, id.ToString()), occurance);
 
@@ -269,7 +256,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
 		[SecuritySafeCritical]
-		internal protected Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
+		protected internal Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
             Query queryToAdd;
 
@@ -376,20 +363,20 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="rawQuery"></param>
         /// <returns></returns>
 		[SecuritySafeCritical]
-		internal protected Query ParseRawQuery(string rawQuery)
+		protected internal Query ParseRawQuery(string rawQuery)
         {
             var qry = new QueryParser(_luceneVersion, "", new KeywordAnalyzer());
             return qry.Parse(rawQuery);
         }
 
 		[SecuritySafeCritical]
-        internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
+        protected internal IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance)
         {
             return FieldInternal(fieldName, fieldValue, occurance, true);
         }
 
 		[SecuritySafeCritical]
-        internal protected IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance, bool useQueryParser)
+        protected internal IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, BooleanClause.Occur occurance, bool useQueryParser)
         {
             Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);            
             
@@ -830,6 +817,16 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             this.Query.Add(this.QueryParser.Parse(query), this._occurance);            
             return this;
+        }
+
+        /// <summary>
+        /// Adds a custom Lucene query to use for the search
+        /// </summary>
+		[SecuritySafeCritical]
+        public IBooleanOperation LuceneQuery(Query query)
+        {
+            Query.Add(query, _occurance);
+            return new LuceneBooleanOperation(this);
         }
 
         /// <summary>

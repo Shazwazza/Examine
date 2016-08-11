@@ -111,6 +111,9 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
 		public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
+            //TODO: It would be nice to be able to pass in the existing field definitions here so 
+            // we'd know what fields have sorting enabled so we don't have to use the special sorting syntax for field types
+
             return new LuceneSearchCriteria(type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
         }
 

@@ -1164,7 +1164,7 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     //checks if there's duplicates fields, if not check if the field needs to be sortable...
-                    if (indexedFields.Count() > 1)
+                    if (indexedFields.Length > 1)
                     {
                         //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field                        
                         OnDuplicateFieldWarning(nodeId, IndexSetName, x.Key);

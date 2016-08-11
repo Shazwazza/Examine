@@ -5,6 +5,7 @@ using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
 using Examine.Test.PartialTrust;
+using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
 using UmbracoExamine;
@@ -35,6 +36,19 @@ namespace Examine.Test.Search
         //    ////Assert
         //    Assert.IsTrue(results.TotalItemCount > 0);
         //}
+
+        [Test]
+        public void FluentApi_Custom_Lucene_Query_With_Raw()
+        {
+            var criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
+
+            //combine a custom lucene query with raw lucene query
+            criteria = (LuceneSearchCriteria)criteria.RawQuery("hello:world");
+            criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
+
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
+        }
 
         [Test]
         public void FluentApi_Grouped_Or_Query_Output()
