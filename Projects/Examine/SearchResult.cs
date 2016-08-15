@@ -29,7 +29,11 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<string> GetValues(string key)
         {
-            return MultiValueFields.ContainsKey(key) ? MultiValueFields[key] : Enumerable.Empty<string>();
+            return MultiValueFields.ContainsKey(key)
+                ? MultiValueFields[key]
+                : Fields.ContainsKey(key)
+                    ? new[] {Fields[key]}
+                    : Enumerable.Empty<string>();
         } 
 
         /// <summary>
