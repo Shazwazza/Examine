@@ -1490,18 +1490,18 @@ namespace Examine.LuceneEngine.Providers
                     }
                 }
 
-                if (indexedNodes.Count > 0)
+                //commit the changes (this will process the deletes)
+                writer.Commit();
+
+                //this is required to ensure the index is written to during the same thread execution
+                // if we are in blocking mode, the do the wait
+                if (!RunAsync || block)
                 {
-                    //commit the changes (this will process the deletes)
-                    writer.Commit();
+                    writer.WaitForMerges();
+                }
 
-                    //this is required to ensure the index is written to during the same thread execution
-                    // if we are in blocking mode, the do the wait
-                    if (!RunAsync || block)
-                    {
-                        writer.WaitForMerges();
-                    }
-
+                if (indexedNodes.Count > 0)
+                {                    
                     //raise the completed event
                     OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
                 }
