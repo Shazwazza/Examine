@@ -68,7 +68,11 @@ namespace Examine.LuceneEngine.SearchCriteria
 
                 //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), BooleanClause.Occur.MUST);
 
-                this._search.FieldInternal(LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType.ToString()), BooleanClause.Occur.MUST);
+                this._search.FieldInternal(
+                    LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType), BooleanClause.Occur.MUST,
+                    //Don't use the QueryParser to create this query, this is an explit query and Depending on the Query Parser used this could muck things up:
+                    // https://github.com/Shazwazza/Examine/issues/54
+                    false);
                 
                 //ensure we don't compile twice!
                 _hasCompiled = true;

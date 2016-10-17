@@ -365,6 +365,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		[SecuritySafeCritical]
 		protected internal Query ParseRawQuery(string rawQuery)
         {
+            //TODO: We should just reuse this query parser instead of creating new instances each time
             var qry = new QueryParser(_luceneVersion, "", new KeywordAnalyzer());
             return qry.Parse(rawQuery);
         }
