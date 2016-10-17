@@ -24,8 +24,21 @@ namespace Examine.LuceneEngine.SearchCriteria
     public class LuceneSearchCriteria : ISearchCriteria
     {
         internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
-        public MultiFieldQueryParser QueryParser { get; private set; }
-        public BooleanQuery Query { get; internal set; }
+
+        public MultiFieldQueryParser QueryParser
+        {
+            [SecuritySafeCritical]
+            get; private set;
+        }
+
+
+        public BooleanQuery Query
+        {
+            [SecuritySafeCritical]
+            get;
+            internal set;
+        }
+
         internal List<SortField> SortFields = new List<SortField>();
         private readonly BooleanClause.Occur _occurance;
         private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
