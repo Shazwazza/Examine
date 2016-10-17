@@ -28,7 +28,9 @@ namespace Examine.LuceneEngine.SearchCriteria
         public MultiFieldQueryParser QueryParser
         {
             [SecuritySafeCritical]
-            get; private set;
+            get;
+            [SecuritySafeCritical]
+            private set;
         }
 
 
@@ -36,6 +38,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             [SecuritySafeCritical]
             get;
+            [SecuritySafeCritical]
             internal set;
         }
 
