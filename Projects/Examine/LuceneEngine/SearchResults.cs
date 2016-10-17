@@ -190,11 +190,14 @@ namespace Examine.LuceneEngine
 
         //NOTE: This is totally retarded but it is required for medium trust as I cannot put this code inside the Skip method... wtf
         [SecuritySafeCritical]
-	    private int GetScoreDocsLength()
-	    {
+        private int GetScoreDocsLength()
+        {
+            if (_topDocs == null || _topDocs.ScoreDocs == null)
+                return 0;
+
             var length = _topDocs.ScoreDocs.Length;
-	        return length;
-	    }
+            return length;
+        }
 
         /// <summary>
         /// Skips to a particular point in the search results.
