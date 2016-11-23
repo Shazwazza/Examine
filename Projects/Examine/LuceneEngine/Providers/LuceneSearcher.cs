@@ -268,7 +268,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// This checks if the singleton IndexSearcher is initialized and up to date.
+        /// This checks if the IndexSearcher is initialized and up to date.
         /// </summary>
         /// <param name="forceReopen"></param>
         [SecuritySafeCritical]
@@ -306,6 +306,8 @@ namespace Examine.LuceneEngine.Providers
                 }
                 else
                 {
+                    
+
                     switch (_reader.GetReaderStatus())
                     {
                         case ReaderStatus.Current:

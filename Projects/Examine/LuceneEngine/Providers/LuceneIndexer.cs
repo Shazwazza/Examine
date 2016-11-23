@@ -39,6 +39,7 @@ namespace Examine.LuceneEngine.Providers
         {
             OptimizationCommitThreshold = 100;
             _disposer = new DisposableIndexer(this);
+            _committer = new IndexCommiter(this);
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
         }
 
@@ -54,6 +55,7 @@ namespace Examine.LuceneEngine.Providers
             : base(indexerData)
         {
             _disposer = new DisposableIndexer(this);
+            _committer = new IndexCommiter(this);
 
             //set up our folders based on the index path
             WorkingFolder = workingFolder;
@@ -81,6 +83,7 @@ namespace Examine.LuceneEngine.Providers
             : base(indexerData)
         {
             _disposer = new DisposableIndexer(this);
+            _committer = new IndexCommiter(this);
 
             WorkingFolder = null;
             LuceneIndexFolder = null;            
@@ -107,6 +110,8 @@ namespace Examine.LuceneEngine.Providers
         {
             if (writer == null) throw new ArgumentNullException("writer");
             _disposer = new DisposableIndexer(this);
+            _committer = new IndexCommiter(this);
+
             _writer = writer;
             WorkingFolder = null;
             LuceneIndexFolder = null;
@@ -1489,15 +1494,19 @@ namespace Examine.LuceneEngine.Providers
                         }
                     }
                 }
-
-                //commit the changes (this will process the deletes)
-                writer.Commit();
-
+                
                 //this is required to ensure the index is written to during the same thread execution
                 // if we are in blocking mode, the do the wait
                 if (!RunAsync || block)
                 {
+                    //commit the changes (this will process the deletes too)
+                    writer.Commit();
+
                     writer.WaitForMerges();
+                }
+                else
+                {
+                    _committer.ScheduleCommit();
                 }
 
                 if (indexedNodes.Count > 0)
@@ -1516,6 +1525,77 @@ namespace Examine.LuceneEngine.Providers
             }
 
             return indexedNodes.Count;
+        }
+
+        /// <summary>
+        /// This queues up a commit for the index so that a commit doesn't happen on every individual write since that is quite expensive
+        /// </summary>
+        private class IndexCommiter : DisposableObject
+        {
+            private readonly LuceneIndexer _indexer;
+            private DateTime _timestamp;
+            private Timer _timer;
+            private readonly object _locker = new object();
+            private const int WaitMilliseconds = 2000;
+
+            public IndexCommiter(LuceneIndexer indexer)
+            {
+                _indexer = indexer;
+            }
+
+            [SecuritySafeCritical]
+            public void ScheduleCommit()
+            {
+                lock (_locker)
+                {
+                    if (_timer == null)
+                    {
+                        //It's the initial call to this at the beginning or after successful commit
+                        _timestamp = DateTime.Now;
+                        _timer = new Timer(_ => TimerRelease());
+                        _timer.Change(WaitMilliseconds, 0);
+                    }
+                    else
+                    {
+                        if (DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(WaitMilliseconds))
+                        {                          
+                            //Delay  
+                            _timer.Change(WaitMilliseconds, 0);
+                        }
+                        else
+                        {
+                            //Cannot delay! the callback will execute on the pending timeout
+                        }
+                    }
+                }                
+            }
+
+            [SecuritySafeCritical]
+            private void TimerRelease()
+            {
+                lock (_locker)
+                {
+                    //if the timer is not null then a commit has been scheduled
+                    if (_timer != null)
+                    {
+                        //Stop the timer
+                        _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                        _timer.Dispose();
+                        _timer = null;
+
+                        //perform the commit
+                        if (_indexer._writer != null)
+                        {
+                            _indexer._writer.Commit();
+                        }
+                    }                    
+                }
+            }
+
+            protected override void DisposeResources()
+            {
+                TimerRelease();
+            }
         }
 
         [SecuritySafeCritical]
@@ -1822,6 +1902,7 @@ namespace Examine.LuceneEngine.Providers
         #region IDisposable Members
 
         private readonly DisposableIndexer _disposer;
+        private readonly IndexCommiter _committer;
 
         private class DisposableIndexer : DisposableObject
         {
@@ -1855,6 +1936,9 @@ namespace Examine.LuceneEngine.Providers
 
                 //Don't close the writer until there are definitely no more writes
                 RetryUntilSuccessOrTimeout(() => _indexer._activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
+
+                //close the committer, this will ensure a final commit is made if one has been queued
+                _indexer._committer.Dispose();
 
                 if (_indexer._writer != null)
                 {
