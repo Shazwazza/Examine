@@ -103,7 +103,7 @@ namespace Examine.LuceneEngine.Providers
         private volatile IndexReader _reader;
         private readonly object _locker = new object();
         private Directory _directory;
-        private readonly IndexWriter _nrtWriter;
+        private IndexWriter _nrtWriter;
 
         /// <summary>
         /// Do not access this object directly. The public property ensures that the folder state is always up to date
@@ -264,7 +264,34 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         protected virtual IndexReader OpenNewReader()
         {
+            //If a writer was resolved, we can now operate in NRT mode
+            // this will be successful only if the index writer has been initialized
+            // on the associated indexer before this method is called
+            if (TryEstablishNrtReader())
+            {
+                _nrtWriter.GetReader();
+            }
+
+            //If we cannot resolve an existing writer, we'll fallback to opening a normal
+            // non-nrt reader. When this reader becomes stale, the above will check again 
+            // if an NRT reader can be resolved.
             return IndexReader.Open(GetLuceneDirectory(), true);
+        }
+
+        /// <summary>
+        /// This will check if a writer exists for the current directory to see if we can establish an NRT reader in the future
+        /// </summary>
+        /// <returns></returns>
+        [SecuritySafeCritical]
+        private bool TryEstablishNrtReader()
+        {
+            //Try to resolve an existing IndexWriter for the current directory
+            if (_nrtWriter == null)
+            {
+                _nrtWriter = WriterTracker.Current.GetWriter(GetLuceneDirectory());
+            }
+
+            return _nrtWriter != null;
         }
 
         /// <summary>
@@ -330,18 +357,32 @@ namespace Examine.LuceneEngine.Providers
 
                             lock (_locker)
                             {
-                                //yes, this is actually the way the Lucene wants you to work...
-                                //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
-                                //here's references: 
-                                // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
-                                // http://gist.github.com/173978 
-                                //Also note that when a new reader is returned from Reopen() the old reader is not actually closed - 
-                                // but more importantly the old reader might still be in use from another thread! So we can't just 
-                                // close it here because that would cause a YSOD: Lucene.Net.Store.AlreadyClosedException: this IndexReader is closed
-                                // since another thread might be using it. I'm 'hoping' that the GC will just take care of the left over reader's that might
-                                // be currently being used in a search, otherwise there's really no way to now when it's safe to close the reader. 
+                                IndexReader newReader;
+                                
+                                //Here we'll check if we are not running in NRT mode, this will be the case
+                                // if the indexer hasn't created a writer. But if it has, we want to become NRT so 
+                                // we'll check if we can.
+                                if (_nrtWriter == null && TryEstablishNrtReader())
+                                {
+                                    //the new reader will now be an NRT reader
+                                    newReader = _nrtWriter.GetReader();
+                                }
+                                else
+                                {
+                                    //yes, this is actually the way the Lucene wants you to work...
+                                    //normally, i would have thought just calling Reopen() on the underlying reader would suffice... but it doesn't.
+                                    //here's references: 
+                                    // http://stackoverflow.com/questions/1323779/lucene-indexreader-reopen-doesnt-seem-to-work-correctly
+                                    // http://gist.github.com/173978 
+                                    //Also note that when a new reader is returned from Reopen() the old reader is not actually closed - 
+                                    // but more importantly the old reader might still be in use from another thread! So we can't just 
+                                    // close it here because that would cause a YSOD: Lucene.Net.Store.AlreadyClosedException: this IndexReader is closed
+                                    // since another thread might be using it. I'm 'hoping' that the GC will just take care of the left over reader's that might
+                                    // be currently being used in a search, otherwise there's really no way to now when it's safe to close the reader. 
 
-                                var newReader = _reader.Reopen();
+                                    newReader = _reader.Reopen();
+                                }
+                                
                                 if (newReader != _reader)
                                 {
                                     //if it's changed, then re-assign, note: the above, before we used to close the old one here

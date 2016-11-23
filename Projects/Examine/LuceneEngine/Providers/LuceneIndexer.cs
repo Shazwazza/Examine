@@ -1716,7 +1716,9 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         protected virtual IndexWriter CreateIndexWriter()
         {
-            var writer = new IndexWriter(GetLuceneDirectory(), IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            var writer = WriterTracker.Current.GetWriter(
+                GetLuceneDirectory(),
+                WriterFactory);
             
             //if we wanted to log lucene output
             //var memStream = new MemoryStream();
@@ -1724,6 +1726,17 @@ namespace Examine.LuceneEngine.Providers
             //writer.SetInfoStream(w);
 
             return writer;
+        }
+
+        /// <summary>
+        /// Purely to do with stupid medium trust
+        /// </summary>
+        /// <param name="d"></param>
+        /// <returns></returns>
+        [SecuritySafeCritical]
+        private IndexWriter WriterFactory(Directory d)
+        {
+            return new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
         /// <summary>
