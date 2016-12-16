@@ -1538,6 +1538,11 @@ namespace Examine.LuceneEngine.Providers
             private readonly object _locker = new object();
             private const int WaitMilliseconds = 2000;
 
+            /// <summary>
+            /// The maximum time period that will elapse until we must commit (5 mins)
+            /// </summary>
+            private const int MaxWaitMilliseconds = 300000;
+
             public IndexCommiter(LuceneIndexer indexer)
             {
                 _indexer = indexer;
@@ -1550,14 +1555,38 @@ namespace Examine.LuceneEngine.Providers
                 {
                     if (_timer == null)
                     {
-                        //It's the initial call to this at the beginning or after successful commit
-                        _timestamp = DateTime.Now;
-                        _timer = new Timer(_ => TimerRelease());
-                        _timer.Change(WaitMilliseconds, 0);
+                        //if we've been cancelled then be sure to commit now
+                        if (_indexer._cancellationTokenSource.IsCancellationRequested)
+                        {
+                            //perform the commit
+                            _indexer._writer?.Commit();
+                        }
+                        else
+                        {
+                            //It's the initial call to this at the beginning or after successful commit
+                            _timestamp = DateTime.Now;
+                            _timer = new Timer(_ => TimerRelease());
+                            _timer.Change(WaitMilliseconds, 0);
+                        }
                     }
                     else
                     {
-                        if (DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(WaitMilliseconds))
+                        //if we've been cancelled then be sure to cancel the timer and commit now
+                        if (_indexer._cancellationTokenSource.IsCancellationRequested)
+                        {
+                            //Stop the timer
+                            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                            _timer.Dispose();
+                            _timer = null;
+
+                            //perform the commit
+                            _indexer._writer?.Commit();
+                        }
+                        else if (
+                            // must be less than the max
+                            DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(MaxWaitMilliseconds) &&
+                            // and less than the delay
+                            DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(WaitMilliseconds))
                         {                          
                             //Delay  
                             _timer.Change(WaitMilliseconds, 0);
@@ -1584,10 +1613,7 @@ namespace Examine.LuceneEngine.Providers
                         _timer = null;
 
                         //perform the commit
-                        if (_indexer._writer != null)
-                        {
-                            _indexer._writer.Commit();
-                        }
+                        _indexer._writer?.Commit();
                     }                    
                 }
             }
