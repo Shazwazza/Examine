@@ -9,7 +9,7 @@ $buildXmlFile = (Join-Path $SolutionRoot "build.xml")
 
 # Make sure we don't have a release folder for this version already
 $BuildFolder = Join-Path -Path $SolutionRoot -ChildPath "build";
-$ReleaseFolder = Join-Path -Path $BuildFolder -ChildPath "Releases\v$ReleaseVersionNumber$PreReleaseName";
+$ReleaseFolder = Join-Path -Path $BuildFolder -ChildPath "Release";
 if ((Get-Item $ReleaseFolder -ErrorAction SilentlyContinue) -ne $null)
 {
 	Write-Warning "$ReleaseFolder already exists on your local machine. It will now be deleted."
@@ -26,23 +26,24 @@ $Copyright = "Copyright © Shannon Deminick " + (Get-Date).year
 	sc -Path $SolutionInfoPath -Encoding UTF8
 
 # Iterate projects and update their versions
-[System.Xml.XmlElement] $root = $PROJECTS.get_DocumentElement()
+[System.Xml.XmlElement] $root = $buildXml.get_DocumentElement()
 [System.Xml.XmlElement] $project = $null
 foreach($project in $root.ChildNodes) {
 
-	$projectPath = Join-Path -Path $SolutionRoot -ChildPath "src\" + $project.name
+	$projectPath = Join-Path -Path $SolutionRoot -ChildPath ("src\" + $project.id)
 	$projectAssemblyInfo = Join-Path -Path $projectPath -ChildPath "Properties\AssemblyInfo.cs"
 	$projectVersion = $project.version.Split("-")[0];
 
+	Write-Host "Updating verion for $projectPath to $($project.version) ($projectVersion)"
 
 	#update assembly infos with correct version
 
 	(gc -Path $projectAssemblyInfo) `
-		-replace "(?<=Version\(`")[.\d]*(?=`"\))", $projectVersion + ".0" |
+		-replace "(?<=Version\(`")[.\d]*(?=`"\))", "$projectVersion.0" |
 		sc -Path $projectAssemblyInfo -Encoding UTF8
 
 	(gc -Path $projectAssemblyInfo) `
-		-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", "$project.version" |
+		-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", $project.version |
 		sc -Path $projectAssemblyInfo -Encoding UTF8
 }
 
@@ -63,17 +64,17 @@ if (-not $?)
 $NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
 $include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
 foreach($project in $root.ChildNodes) {
-	$projectRelease = Join-Path -Path $ReleaseFolder -ChildPath $project.name;
+	$projectRelease = Join-Path -Path $ReleaseFolder -ChildPath "$($project.id)";
 	New-Item $projectRelease -Type directory
 
-	$projectBin = Join-Path -Path $SolutionRoot -ChildPath "src\" + $project.name + "\bin\Release";
+	$projectBin = Join-Path -Path $SolutionRoot -ChildPath "src\$($project.id)\bin\Release";
 	Copy-Item "$projectBin\*.*" -Destination $projectRelease -Include $include
 
-	$nuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\" + $project.name + "\*";
+	$nuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\$($project.id)\*";
 	Copy-Item $nuSpecSource -Destination $projectRelease
-	$nuSpec = Join-Path -Path $projectRelease -ChildPath $project.name + ".nuspec";	
-	
-	& $NuGet pack $nuSpec -OutputDirectory $ReleaseFolder -Version $ReleaseVersionNumber$PreReleaseName -Properties copyright=$Copyright
+	$nuSpec = Join-Path -Path $projectRelease -ChildPath "$($project.id).nuspec";
+		
+	& $NuGet pack $nuSpec -OutputDirectory $ReleaseFolder -Version $project.version -Properties copyright=$Copyright
 }
 
 
