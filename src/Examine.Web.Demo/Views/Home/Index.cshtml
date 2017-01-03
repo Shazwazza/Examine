@@ -1,0 +1,37 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+<h2>@ViewBag.Message</h2>
+<p>
+    To learn more about ASP.NET MVC visit <a href="http://asp.net/mvc" title="ASP.NET MVC Website">
+        http://asp.net/mvc</a>.
+</p>
+@using (Html.BeginForm("Populate", "Home"))
+{    
+    <p>
+        Click to populate db with 27000 rows
+        <br />
+        <button id="populate" name="populate">
+            Populate</button>
+    </p>
+}
+@using (Html.BeginForm("RebuildIndex", "Home"))
+{    
+    <p>
+        Click to rebuild the index with 27000 rows into Examine
+        <br />
+        <button id="index" name="index">
+            Index Data</button>
+    </p>
+}
+
+@using (Html.BeginForm("TestIndex", "Home"))
+{
+    <p>
+        Click to check what is in the index
+        <br />
+        <button id="index" name="index">
+            Test index
+        </button>
+    </p>
+}

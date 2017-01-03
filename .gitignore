@@ -18,3 +18,5 @@ Projects/Examine.Web.Demo/App_Data/SimpleIndexSet2/Index/*
 NDepend/*
 *.orig
 .Examine.boltdata/*
+src/Examine.Web.Demo/App_Data/SimpleIndexSet2/*
+src/Examine.Web.Demo/App_Data/Database1.sdf
