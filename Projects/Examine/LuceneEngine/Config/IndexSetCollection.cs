@@ -44,6 +44,11 @@ namespace Examine.LuceneEngine.Config
             {
                 return (IndexSet)this.BaseGet(setName);
             }
+            set
+            {
+                LockItem = false;
+                this.BaseAdd(value);
+            }
         }
     }
 }
