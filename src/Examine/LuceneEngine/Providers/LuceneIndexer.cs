@@ -1739,6 +1739,8 @@ namespace Examine.LuceneEngine.Providers
             return _writer != null ? _writer.GetDirectory() : _directory;
         }
 
+        private FileStream _logOutput;
+
         /// <summary>
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
@@ -1749,11 +1751,15 @@ namespace Examine.LuceneEngine.Providers
             var writer = WriterTracker.Current.GetWriter(
                 GetLuceneDirectory(),
                 WriterFactory);
-            
-            //if we wanted to log lucene output
-            //var memStream = new MemoryStream();
-            //var w = new StreamWriter()
-            //writer.SetInfoStream(w);
+
+#if FULLDEBUG
+            //If we want to enable logging of lucene output....
+            //It is also possible to set a default InfoStream on the static IndexWriter class            
+            _logOutput?.Close();
+            _logOutput = new FileStream(Path.Combine(this.LuceneIndexFolder.FullName, DateTime.Now.Ticks + ".log"), FileMode.Create);
+            var w = new StreamWriter(_logOutput);
+            writer.SetInfoStream(w);
+#endif
 
             return writer;
         }
@@ -1799,9 +1805,9 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        #endregion
+#endregion
 
-        #region Private
+#region Private
 
         /// <summary>
         /// Stupid medium trust - that is the only reason this method exists
@@ -1940,9 +1946,9 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        #endregion
+#endregion
 
-        #region IDisposable Members
+#region IDisposable Members
 
         private readonly DisposableIndexer _disposer;
         private readonly IndexCommiter _committer;
@@ -1989,6 +1995,8 @@ namespace Examine.LuceneEngine.Providers
                 }
 
                 _indexer._cancellationTokenSource.Dispose();
+
+                _indexer._logOutput?.Close();
             }
 
             private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)
@@ -2021,7 +2029,7 @@ namespace Examine.LuceneEngine.Providers
             _disposer.Dispose();            
         }
 
-        #endregion
+#endregion
 
 
     }

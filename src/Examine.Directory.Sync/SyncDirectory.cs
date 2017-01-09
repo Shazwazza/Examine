@@ -112,12 +112,29 @@ namespace Examine.Directory.Sync
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(System.String name)
         {
-            _masterDirectory.DeleteFile(name);
-
-            if (_cacheDirectory.FileExists(name))
+            //We're going to try to remove this from the cache directory first,
+            // when _cacheDirectory.DeleteFile(name); is called it magically somehow calls in to our
+            // own FileExists method, I cannot figure out why that happens but if we remove the file
+            // from the master folder first, then the FileExists will return false because that queries
+            // the master folder and if it returns false then it will not be removed from the cache folder.
+            try
             {
-                _cacheDirectory.DeleteFile(name);
+                if (_cacheDirectory.FileExists(name))
+                {
+                    _cacheDirectory.DeleteFile(name);
+                }
             }
+            catch (IOException ex)
+            {
+                //This will occur because this file is locked, when this is the case, we don't really want to delete it from the master either because
+                // if we do that then this file will never get removed from the cache folder either! This is based on the Deletion Policy which the
+                // IndexFileDeleter uses. We could implement our own one of those to deal with this scenario too but it seems the easiest way it to just 
+                // let this throw so Lucene will retry when it can and when that is successful we'll also clear it from the master
+                throw;
+            }
+
+            //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
+            _masterDirectory.DeleteFile(name);
         }
 
 
