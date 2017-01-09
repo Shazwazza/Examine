@@ -211,8 +211,9 @@ namespace Examine.Directory.AzureDirectory
                 if (_cacheDirectory.FileExists(from + ".blob"))
                     _cacheDirectory.DeleteFile(from + ".blob");
             }
-            catch
+            catch(Exception ex)
             {
+                Debug.WriteLine("Could not rename file; " + ex);
             }
         }
 

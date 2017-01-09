@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using Lucene.Net.Store;
 
@@ -27,7 +28,7 @@ namespace Examine.Directory.Sync
             _cacheDirectory = cacheDirectory;
             _lockFactory = new MultiIndexLockFactory(_masterDirectory, _cacheDirectory);
         }
-        
+
         public void ClearCache()
         {
             foreach (string file in _cacheDirectory.ListAll())
@@ -41,7 +42,7 @@ namespace Examine.Directory.Sync
             get
             {
                 return _cacheDirectory;
-            }            
+            }
         }
 
         public Lucene.Net.Store.Directory MasterDirectory
@@ -49,14 +50,29 @@ namespace Examine.Directory.Sync
             get
             {
                 return _masterDirectory;
-            }            
+            }
         }
 
         /// <summary>Returns an array of strings, one for each file in the directory. </summary>
         [Obsolete("For some Directory implementations (FSDirectory}, and its subclasses), this method silently filters its results to include only index files.  Please use ListAll instead, which does no filtering. ")]
         public override String[] List()
         {
-            return _masterDirectory.List();
+            //proxy to the underlying non obsolete ListAll
+            return _masterDirectory.ListAll();
+        }
+
+        /// <summary>Returns an array of strings, one for each file in the
+        /// directory.  Unlike <see cref="M:Lucene.Net.Store.Directory.List" /> this method does no
+        /// filtering of the contents in a directory, and it will
+        /// never return null (throws <see cref="NoSuchDirectoryException"/> instead).
+        /// </summary>
+        /// <exception cref="NoSuchDirectoryException">
+        /// This will throw a <see cref="NoSuchDirectoryException"/> which is expected by lucene when the directory doesn't exist yet
+        /// </exception>
+        public override string[] ListAll()
+        {
+            //proxy to the underlying non obsolete ListAll
+            return _masterDirectory.ListAll();
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
@@ -89,7 +105,7 @@ namespace Examine.Directory.Sync
 
         /// <summary>Set the modified time of an existing file to now. </summary>
         public override void TouchFile(System.String name)
-        {            
+        {
             _cacheDirectory.TouchFile(name);
         }
 
@@ -97,11 +113,6 @@ namespace Examine.Directory.Sync
         public override void DeleteFile(System.String name)
         {
             _masterDirectory.DeleteFile(name);
-            
-            if (_cacheDirectory.FileExists(name + ".blob"))
-            {
-                _cacheDirectory.DeleteFile(name + ".blob");
-            }
 
             if (_cacheDirectory.FileExists(name))
             {
@@ -121,8 +132,9 @@ namespace Examine.Directory.Sync
             {
                 _masterDirectory.RenameFile(from, to);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine("Could not rename file on master index; " + ex);
             }
 
             try
@@ -130,13 +142,10 @@ namespace Examine.Directory.Sync
                 // we delete and force a redownload, since we can't do this in an atomic way
                 if (_cacheDirectory.FileExists(from))
                     _cacheDirectory.RenameFile(from, to);
-
-                // drop old cached data as it's wrong now
-                if (_cacheDirectory.FileExists(from + ".blob"))
-                    _cacheDirectory.DeleteFile(from + ".blob");
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine("Could not rename file on local index; " + ex);
             }
         }
 
@@ -166,7 +175,7 @@ namespace Examine.Directory.Sync
                 throw new FileNotFoundException(name, err);
             }
         }
-        
+
         /// <summary>Construct a {@link Lock}.</summary>
         /// <param name="name">the name of the lock file
         /// </param>

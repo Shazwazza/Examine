@@ -27,16 +27,35 @@ namespace Examine.Directory.Sync
         private DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {
             var appDomainHash = ToMd5(HttpRuntime.AppDomainAppId);
+            var indexPathHash = GetIndexPathName(indexPath);
             var cachePath = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "LuceneDir",
                 //include the appdomain hash is just a safety check, for example if a website is moved from worker A to worker B and then back
                 // to worker A again, in theory the %temp%  folder should already be empty but we really want to make sure that its not
                 // utilizing an old index
-                appDomainHash, "App_Data", "TEMP", "ExamineIndexes", indexPath.Name);
+                appDomainHash, "App_Data", "TEMP", "ExamineIndexes", indexPathHash);
             var azureDir = new DirectoryInfo(cachePath);
             if (azureDir.Exists == false)
                 azureDir.Create();
             return azureDir;
-        }        
+        }
+
+        /// <summary>
+        /// Gets the index path name from the Dir Info object. By default Examine will store the index files into a folder like:
+        /// "External/Index" but we want to exact the "External" part. We cannot guarantee that this is how the index files are stored
+        /// so we'll try to extract it and if we can't we'll have to hash the whole path
+        /// </summary>
+        /// <param name="indexPath"></param>
+        /// <returns></returns>
+        private string GetIndexPathName(DirectoryInfo indexPath)
+        {
+            var parts = indexPath.FullName.Split(new[] {Path.DirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length > 0 && string.Equals(parts[parts.Length - 1], "Index", StringComparison.OrdinalIgnoreCase))
+            {
+                //in theory this would be the Index name
+                return parts[parts.Length - 2];
+            }
+            return ToMd5(indexPath.FullName);
+        }
 
         /// <summary>
         /// Converts the string to MD5

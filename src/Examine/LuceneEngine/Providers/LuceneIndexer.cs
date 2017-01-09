@@ -155,7 +155,7 @@ namespace Examine.LuceneEngine.Providers
                 //this should be a fully qualified type
                 var factoryType = Type.GetType(config["directoryFactory"]);
                 if (factoryType == null) throw new NullReferenceException("No directory type found for value: " + config["directoryFactory"]);
-                _directoryFactory = (IDirectoryFactory)Activator.CreateInstance(factoryType);
+                DirectoryFactory = (IDirectoryFactory)Activator.CreateInstance(factoryType);
             }
 
             if (config["autoOptimizeCommitThreshold"] == null)
@@ -1700,14 +1700,14 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_directory != null) return;
 
-            if (_directoryFactory == null)
+            if (DirectoryFactory == null)
             {
                 //ensure all of the folders are created at startup   
                 VerifyFolder(WorkingFolder);
                 VerifyFolder(LuceneIndexFolder);
                 _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
             }
-            _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, DirectoryFactory);
+            _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, InvokeDirectoryFactory);
         }
 
         /// <summary>
@@ -1716,14 +1716,18 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="s"></param>
         /// <returns></returns>
         [SecuritySafeCritical]
-        private Directory DirectoryFactory(string s)
+        private Directory InvokeDirectoryFactory(string s)
         {
-            return _directoryFactory.CreateDirectory(this, s);
+            return DirectoryFactory.CreateDirectory(this, s);
         }
 
         [SecuritySafeCritical]
         private Directory _directory;
-        private IDirectoryFactory _directoryFactory;
+
+        /// <summary>
+        /// Gets the <see cref="IDirectoryFactory"/> if one is being used
+        /// </summary>
+        public IDirectoryFactory DirectoryFactory { get; private set; }
 
         /// <summary>
         /// Returns the Lucene Directory used to store the index
