@@ -333,6 +333,8 @@ namespace Examine.LuceneEngine.Providers
             //can't proceed if there's no index
             if (!IndexExistsImpl()) return false;
 
+            //TODO: Would be nicer if this used LazyInitializer instead of double check locking
+
             //if there isn't a reader yet, we need to create one for this index
             if (_reader == null)
             {
@@ -384,6 +386,13 @@ namespace Examine.LuceneEngine.Providers
         /// 
         /// http://blog.mikemccandless.com/2011/11/near-real-time-readers-with-lucenes.html
         /// http://blog.mikemccandless.com/2011/09/lucenes-searchermanager-simplifies.html
+        /// 
+        /// The last remarks here is that once a reader becomes NRT, we don't really have to worry about the timers, it's also
+        /// interesting to note that until a reader becomes NRT it means that in theory nothing has been written to the index
+        /// and therefore a lot of this timer stuff is unecessary... BUT! The timer stuff does guarantee that the reader becomes
+        /// NRT quicker and doesn't have to wait for a stale reader to execute so we'll leave the timer stuff in here since
+        /// once a writer is created and an index is updated, the current reader won't become NRT immediately without these
+        /// timers.
         /// </remarks>
         private class ReaderReopener : DisposableObject
         {
