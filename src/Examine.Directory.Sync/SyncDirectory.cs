@@ -62,7 +62,7 @@ namespace Examine.Directory.Sync
         [Obsolete("For some Directory implementations (FSDirectory}, and its subclasses), this method silently filters its results to include only index files.  Please use ListAll instead, which does no filtering. ")]
         public override String[] List()
         {
-            //proxy to the underlying non obsolete ListAll
+            //proxy to the non obsolete ListAll
             return ListAll();
         }
 
@@ -95,14 +95,37 @@ namespace Examine.Directory.Sync
         /// <summary>Returns true if a file with the given name exists. </summary>
         public override bool FileExists(String name)
         {
-            // this always comes from the server
-            try
+            CheckDirty();
+
+            if (_inSync)
             {
-                return _masterDirectory.FileExists(name);
+                try
+                {
+                    return _cacheDirectory.FileExists(name);
+                }
+                catch (Exception)
+                {
+                    //revert to checking the master - what implications would this have?
+                    try
+                    {
+                        return _masterDirectory.FileExists(name);
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                }
             }
-            catch (Exception)
+            else
             {
-                return false;
+                try
+                {
+                    return _masterDirectory.FileExists(name);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
         }
 

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Examine.Directory.Sync;
+using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -12,8 +13,12 @@ namespace Examine.Directory.AzureDirectory
 {
     public class AzureDirectory : Lucene.Net.Store.Directory
     {
-        private string _containerName;
-        private string _rootFolder;
+        private volatile bool _dirty = true;
+        private bool _inSync = false;
+        private readonly object _locker = new object();
+
+        private readonly string _containerName;
+        private readonly string _rootFolder;
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
         private Lucene.Net.Store.Directory _cacheDirectory;
@@ -24,6 +29,7 @@ namespace Examine.Directory.AzureDirectory
         /// <param name="storageAccount">storage account to use</param>
         /// <param name="containerName">name of container (folder in blob storage)</param>
         /// <param name="cacheDirectory">local Directory object to use for local cache</param>
+        /// <param name="compressBlobs"></param>
         /// <param name="rootFolder">path of the root folder inside the container</param>
         public AzureDirectory(
             CloudStorageAccount storageAccount,
@@ -124,6 +130,19 @@ namespace Examine.Directory.AzureDirectory
         [Obsolete("For some Directory implementations (FSDirectory}, and its subclasses), this method silently filters its results to include only index files.  Please use ListAll instead, which does no filtering. ")]
         public override String[] List()
         {
+            //proxy to the non obsolete ListAll
+            return ListAll();
+        }
+
+        public override string[] ListAll()
+        {
+            CheckDirty();
+
+            return _inSync ? _cacheDirectory.ListAll() : GetAllBlobFiles();
+        }
+
+        private string[] GetAllBlobFiles()
+        {
             var results = from blob in _blobContainer.ListBlobs(_rootFolder)
                           select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
             return results.ToArray<string>();
@@ -132,30 +151,61 @@ namespace Examine.Directory.AzureDirectory
         /// <summary>Returns true if a file with the given name exists. </summary>
         public override bool FileExists(String name)
         {
-            // this always comes from the server
-            try
+            CheckDirty();
+
+            if (_inSync)
             {
-                return _blobContainer.GetBlockBlobReference(_rootFolder + name).Exists();
+                try
+                {
+                    return _cacheDirectory.FileExists(name);
+                }
+                catch (Exception)
+                {
+                    //revert to checking the master - what implications would this have?
+                    try
+                    {
+                        return _blobContainer.GetBlockBlobReference(_rootFolder + name).Exists();
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                }
             }
-            catch (Exception)
+            else
             {
-                return false;
+                try
+                {
+                    return _blobContainer.GetBlockBlobReference(_rootFolder + name).Exists();
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
             }
         }
 
         /// <summary>Returns the time the named file was last modified. </summary>
         public override long FileModified(String name)
         {
-            // this always has to come from the server
-            try
+            CheckDirty();
+
+            if (_inSync)
             {
-                var blob = _blobContainer.GetBlockBlobReference(_rootFolder + name);
-                blob.FetchAttributes();
-                return blob.Properties.LastModified.Value.UtcDateTime.ToFileTimeUtc();
+                return _cacheDirectory.FileModified(name);
             }
-            catch
+            else
             {
-                return 0;
+                try
+                {
+                    var blob = _blobContainer.GetBlockBlobReference(_rootFolder + name);
+                    blob.FetchAttributes();
+                    return blob.Properties.LastModified.Value.UtcDateTime.ToFileTimeUtc();
+                }
+                catch
+                {
+                    return 0;
+                }
             }
         }
 
@@ -241,19 +291,28 @@ namespace Examine.Directory.AzureDirectory
         /// <summary>Returns the length of a file in the directory. </summary>
         public override long FileLength(String name)
         {
-            var blob = _blobContainer.GetBlockBlobReference(_rootFolder + name);
-            blob.FetchAttributes();
+            CheckDirty();
 
-            // index files may be compressed so the actual length is stored in metatdata
-            string blobLegthMetadata;
-            bool hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out blobLegthMetadata);
-
-            long blobLength;
-            if (hasMetadataValue && long.TryParse(blobLegthMetadata, out blobLength))
+            if (_inSync)
             {
-                return blobLength;
+                return _cacheDirectory.FileLength(name);
             }
-            return blob.Properties.Length; // fall back to actual blob size
+            else
+            {
+                var blob = _blobContainer.GetBlockBlobReference(_rootFolder + name);
+                blob.FetchAttributes();
+
+                // index files may be compressed so the actual length is stored in metatdata
+                string blobLegthMetadata;
+                bool hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out blobLegthMetadata);
+
+                long blobLength;
+                if (hasMetadataValue && long.TryParse(blobLegthMetadata, out blobLength))
+                {
+                    return blobLength;
+                }
+                return blob.Properties.Length; // fall back to actual blob size
+            }
         }
 
         /// <summary>Creates a new, empty file in the directory with the given name.
@@ -368,6 +427,37 @@ namespace Examine.Directory.AzureDirectory
             return new StreamOutput(CacheDirectory.CreateOutput(name));
         }
 
+
+        private void CheckDirty()
+        {
+            if (_dirty)
+            {
+                lock (_locker)
+                {
+                    //double check locking
+                    if (_dirty)
+                    {
+                        //these methods don't throw exceptions, will return -1 if something has gone wrong
+                        // in which case we'll consider them not in sync
+                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(GetAllBlobFiles());
+                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(_cacheDirectory);
+                        _inSync = masterSeg == localSeg && masterSeg != -1;
+                        _dirty = false;
+                    }
+                }
+            }
+        }
+
+        private void SetDirty()
+        {
+            if (!_dirty)
+            {
+                lock (_locker)
+                {
+                    _dirty = true;
+                }
+            }
+        }
     }
 
 }
