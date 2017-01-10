@@ -312,6 +312,8 @@ namespace Examine.LuceneEngine.Providers
 
         private readonly Lazy<LuceneSearcher> _internalSearcher;
 
+        private bool? _exists;
+
         /// <summary>
         /// We need an internal searcher used to search against our own index.
         /// This is used for finding all descendant nodes of a current node when deleting indexes.
@@ -916,7 +918,30 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         public override bool IndexExists()
         {
-            return _writer != null || IndexReader.IndexExists(GetLuceneDirectory());
+            return _writer != null || IndexExistsImpl();
+        }
+
+        /// <summary>
+        /// This will check one time if the index exists, we don't want to keep using IndexReader.IndexExists because that will literally go list
+        /// every file in the index folder and we don't need any more IO ops
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// If the index does not exist, it will not store the value so subsequent calls to this will re-evaulate
+        /// </remarks>
+        [SecuritySafeCritical]
+        private bool IndexExistsImpl()
+        {
+            //if it's been set and it's true, return true
+            if (_exists.HasValue && _exists.Value) return true;
+
+            //if it's not been set or it just doesn't exist, re-read the lucene files
+            if (!_exists.HasValue || !_exists.Value)
+            {
+                _exists = IndexReader.IndexExists(GetLuceneDirectory());
+            }
+
+            return _exists.Value;
         }
 
         /// <summary>

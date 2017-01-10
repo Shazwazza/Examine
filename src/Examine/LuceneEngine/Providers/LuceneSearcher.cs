@@ -306,8 +306,11 @@ namespace Examine.LuceneEngine.Providers
         /// every file in the index folder and we don't need any more IO ops
         /// </summary>
         /// <returns></returns>
+        /// <remarks>
+        /// If the index does not exist, it will not store the value so subsequent calls to this will re-evaulate
+        /// </remarks>
         [SecuritySafeCritical]
-        private bool IndexExists()
+        private bool IndexExistsImpl()
         {
             //if it's been set and it's true, return true
             if (_exists.HasValue && _exists.Value) return true;
@@ -328,7 +331,7 @@ namespace Examine.LuceneEngine.Providers
         private bool ValidateSearcher()
         {
             //can't proceed if there's no index
-            if (!IndexExists()) return false;
+            if (!IndexExistsImpl()) return false;
 
             //if there isn't a reader yet, we need to create one for this index
             if (_reader == null)
