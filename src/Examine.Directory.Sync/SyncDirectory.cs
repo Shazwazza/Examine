@@ -113,10 +113,13 @@ namespace Examine.Directory.Sync
         public override void DeleteFile(System.String name)
         {
             //We're going to try to remove this from the cache directory first,
-            // when _cacheDirectory.DeleteFile(name); is called it magically somehow calls in to our
-            // own FileExists method, I cannot figure out why that happens but if we remove the file
-            // from the master folder first, then the FileExists will return false because that queries
-            // the master folder and if it returns false then it will not be removed from the cache folder.
+            // because the IndexFileDeleter will call this file to remove files 
+            // but since some files will be in use still, it will retry when a reader/searcher
+            // is refreshed until the file is no longer locked. So we need to try to remove 
+            // from local storage first and if it fails, let it keep throwing the IOExpception
+            // since that is what Lucene is expecting in order for it to retry.
+            //If we remove the main storage file first, then this will never retry to clean out
+            // local storage because the FileExist method will always return false.
             try
             {
                 if (_cacheDirectory.FileExists(name))

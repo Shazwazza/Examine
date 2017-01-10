@@ -173,19 +173,40 @@ namespace Examine.Directory.AzureDirectory
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(System.String name)
         {
+            //We're going to try to remove this from the cache directory first,
+            // because the IndexFileDeleter will call this file to remove files 
+            // but since some files will be in use still, it will retry when a reader/searcher
+            // is refreshed until the file is no longer locked. So we need to try to remove 
+            // from local storage first and if it fails, let it keep throwing the IOExpception
+            // since that is what Lucene is expecting in order for it to retry.
+            //If we remove the main storage file first, then this will never retry to clean out
+            // local storage because the FileExist method will always return false.
+            try
+            {
+                if (_cacheDirectory.FileExists(name + ".blob"))
+                {
+                    _cacheDirectory.DeleteFile(name + ".blob");
+                }
+
+                if (_cacheDirectory.FileExists(name))
+                {
+                    _cacheDirectory.DeleteFile(name);
+                }
+            }
+            catch (IOException ex)
+            {
+                //This will occur because this file is locked, when this is the case, we don't really want to delete it from the master either because
+                // if we do that then this file will never get removed from the cache folder either! This is based on the Deletion Policy which the
+                // IndexFileDeleter uses. We could implement our own one of those to deal with this scenario too but it seems the easiest way it to just 
+                // let this throw so Lucene will retry when it can and when that is successful we'll also clear it from the master
+                throw;
+            }
+
+            //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
+            
             var blob = _blobContainer.GetBlockBlobReference(_rootFolder + name);
             blob.DeleteIfExists();
             Debug.WriteLine(String.Format("DELETE {0}/{1}", _blobContainer.Uri.ToString(), name));
-
-            if (_cacheDirectory.FileExists(name + ".blob"))
-            {
-                _cacheDirectory.DeleteFile(name + ".blob");
-            }
-
-            if (_cacheDirectory.FileExists(name))
-            {
-                _cacheDirectory.DeleteFile(name);
-            }
         }
 
         
