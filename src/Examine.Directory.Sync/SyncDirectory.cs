@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using Lucene.Net.Index;
 using Lucene.Net.Store;
 
 namespace Examine.Directory.Sync
@@ -11,6 +13,9 @@ namespace Examine.Directory.Sync
         private readonly Lucene.Net.Store.Directory _masterDirectory;
         private readonly Lucene.Net.Store.Directory _cacheDirectory;
         private readonly MultiIndexLockFactory _lockFactory;
+        private volatile bool _dirty = true;
+        private bool _inSync = false;
+        private readonly object _locker = new object();
 
 
         /// <summary>
@@ -58,7 +63,7 @@ namespace Examine.Directory.Sync
         public override String[] List()
         {
             //proxy to the underlying non obsolete ListAll
-            return _masterDirectory.ListAll();
+            return ListAll();
         }
 
         /// <summary>Returns an array of strings, one for each file in the
@@ -69,10 +74,22 @@ namespace Examine.Directory.Sync
         /// <exception cref="NoSuchDirectoryException">
         /// This will throw a <see cref="NoSuchDirectoryException"/> which is expected by lucene when the directory doesn't exist yet
         /// </exception>
+        /// <remarks>
+        /// Since the master directory is "Slow" we don't want to always list all from the master since ListAll is used in various
+        /// scenarios like: IndexReader.IsCurrent and IndexReader.IndexExists. IsCurrent is used very often to check if the reader needs
+        /// to be refreshed especially when an NRT reader is not being used (i.e. when no writing has been initialized) So what if we could 
+        /// figure out a 'fast' way to check if the 2 directories are out of sync and when they are, we read from the master but when they 
+        /// are in sync we read from the local disk. We could use this same logic for the FileExists, FileModified, FileLength methods too.
+        /// A proposal would be to:
+        /// * track when the master/local is dirty and set a dirty flag
+        /// * when this flag is set and one of these methods is called, we need to re-calculate the hash (or whatever) of if these dirs are in sync
+        /// * when the hash matches and the dirty flag is null, for these methods we'll use the local disk
+        /// </remarks>
         public override string[] ListAll()
         {
-            //proxy to the underlying non obsolete ListAll
-            return _masterDirectory.ListAll();
+            CheckDirty();
+
+            return _inSync ? _cacheDirectory.ListAll() : _masterDirectory.ListAll();
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
@@ -92,21 +109,16 @@ namespace Examine.Directory.Sync
         /// <summary>Returns the time the named file was last modified. </summary>
         public override long FileModified(String name)
         {
-            // this always has to come from the server
-            try
-            {
-                return _masterDirectory.FileModified(name);
-            }
-            catch
-            {
-                return 0;
-            }
+            CheckDirty();
+
+            return _inSync ? _cacheDirectory.FileModified(name) : _masterDirectory.FileModified(name);            
         }
 
         /// <summary>Set the modified time of an existing file to now. </summary>
         public override void TouchFile(System.String name)
         {
             _cacheDirectory.TouchFile(name);
+            SetDirty();
         }
 
         /// <summary>Removes an existing file in the directory. </summary>
@@ -125,6 +137,7 @@ namespace Examine.Directory.Sync
                 if (_cacheDirectory.FileExists(name))
                 {
                     _cacheDirectory.DeleteFile(name);
+                    SetDirty();
                 }
             }
             catch (IOException ex)
@@ -138,6 +151,7 @@ namespace Examine.Directory.Sync
 
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
             _masterDirectory.DeleteFile(name);
+            SetDirty();
         }
 
 
@@ -151,6 +165,7 @@ namespace Examine.Directory.Sync
             try
             {
                 _masterDirectory.RenameFile(from, to);
+                SetDirty();
             }
             catch (Exception ex)
             {
@@ -161,7 +176,10 @@ namespace Examine.Directory.Sync
             {
                 // we delete and force a redownload, since we can't do this in an atomic way
                 if (_cacheDirectory.FileExists(from))
+                {
                     _cacheDirectory.RenameFile(from, to);
+                    SetDirty();
+                }
             }
             catch (Exception ex)
             {
@@ -172,7 +190,9 @@ namespace Examine.Directory.Sync
         /// <summary>Returns the length of a file in the directory. </summary>
         public override long FileLength(String name)
         {
-            return _masterDirectory.FileLength(name);
+            CheckDirty();
+
+            return _inSync ? _cacheDirectory.FileLength(name) : _masterDirectory.FileLength(name);
         }
 
         /// <summary>Creates a new, empty file in the directory with the given name.
@@ -180,6 +200,7 @@ namespace Examine.Directory.Sync
         /// </summary>
         public override IndexOutput CreateOutput(System.String name)
         {
+            SetDirty();
             return new SyncIndexOutput(this, name);
         }
 
@@ -251,5 +272,35 @@ namespace Examine.Directory.Sync
             return new StreamOutput(CacheDirectory.CreateOutput(name));
         }
 
+        private void CheckDirty()
+        {
+            if (_dirty)
+            {
+                lock (_locker)
+                {
+                    //double check locking
+                    if (_dirty)
+                    {
+                        //these methods don't throw exceptions, will return -1 if something has gone wrong
+                        // in which case we'll consider them not in sync
+                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(_masterDirectory);
+                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(_cacheDirectory);
+                        _inSync = masterSeg == localSeg && masterSeg != -1;
+                        _dirty = false;
+                    }
+                }
+            }
+        }
+
+        private void SetDirty()
+        {
+            if (!_dirty)
+            {
+                lock (_locker)
+                {
+                    _dirty = true;
+                }
+            }
+        }
     }
 }
