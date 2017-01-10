@@ -58,7 +58,7 @@ namespace Examine.Test.Index
         [Test]
         public void Can_Add_Multiple_Values_To_Single_Index_Field()
         {
-            using (var d = new RAMDirectory())
+            using (var d = new CustomRAMDirectory())
             using (var customIndexer = IndexInitializer.GetUmbracoIndexer(d))
             {
 
@@ -92,7 +92,7 @@ namespace Examine.Test.Index
         [Test]
         public void Can_Overwrite_Index_During_Indexing_Operation()
         {
-            using (var d = new RAMDirectory())
+            using (var d = new CustomRAMDirectory())
             using (var writer = new IndexWriter(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = IndexInitializer.GetUmbracoIndexer(writer))
             using (var customSearcher = IndexInitializer.GetUmbracoSearcher(writer))
@@ -187,7 +187,7 @@ namespace Examine.Test.Index
         [Test]
         public void Index_Ensure_No_Duplicates_In_Async()
         {
-            using (var d = new RAMDirectory())
+            using (var d = new CustomRAMDirectory())
             using (var writer = new IndexWriter(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = IndexInitializer.GetUmbracoIndexer(writer))
             using (var customSearcher = IndexInitializer.GetUmbracoSearcher(writer))
@@ -253,7 +253,7 @@ namespace Examine.Test.Index
         [Test]
         public void Index_Read_And_Write_Ensure_No_Errors_In_Async()
         {
-            using (var d = new RAMDirectory())
+            using (var d = new CustomRAMDirectory())
             using (var writer = new IndexWriter(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = IndexInitializer.GetUmbracoIndexer(writer))
             using (var customSearcher = IndexInitializer.GetUmbracoSearcher(writer))
@@ -391,7 +391,7 @@ namespace Examine.Test.Index
         [Test]
         public void Index_Ensure_No_Duplicates_In_Non_Async()
         {
-            using (var d = new RAMDirectory())
+            using (var d = new CustomRAMDirectory())
             using (var indexer = IndexInitializer.GetUmbracoIndexer(d))
             {
                 indexer.RebuildIndex();
@@ -426,7 +426,7 @@ namespace Examine.Test.Index
         [Test]
         public void Index_Rebuild_Index()
         {
-            using (var d = new RAMDirectory())
+            using (var d = new CustomRAMDirectory())
             using (var indexer = IndexInitializer.GetUmbracoIndexer(d))
             {
                 indexer.RebuildIndex();

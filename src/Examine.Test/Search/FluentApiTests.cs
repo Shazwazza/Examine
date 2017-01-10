@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
@@ -17,6 +18,7 @@ namespace Examine.Test.Search
     [TestFixture]
 	public class FluentApiTests //: AbstractPartialTrustFixture<FluentApiTests>
     {
+
         //[Test]
         //public void FluentApiTests_Grouped_Or_Examiness()
         //{
@@ -501,7 +503,7 @@ namespace Examine.Test.Search
         [TestFixtureSetUp]
         public void TestSetup()
         {
-			_luceneDir = new RAMDirectory();
+			_luceneDir = new CustomRAMDirectory();
 
             //_luceneDir = new SimpleFSDirectory(new DirectoryInfo(Path.Combine(TestHelper.AssemblyDirectory, Guid.NewGuid().ToString())));
 

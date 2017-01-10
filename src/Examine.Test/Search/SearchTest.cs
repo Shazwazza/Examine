@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Examine.LuceneEngine;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Test.DataServices;
 using Examine.Test.PartialTrust;
@@ -71,7 +72,7 @@ namespace Examine.Test.Search
         [TestFixtureSetUp]
         public void TestSetup()
         {
-			_luceneDir = new RAMDirectory();
+			_luceneDir = new CustomRAMDirectory();
 			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);

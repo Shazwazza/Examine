@@ -9,14 +9,17 @@ namespace Examine.LuceneEngine
     [SecuritySafeCritical]
     public sealed class WriterTracker
     {
-        private static readonly WriterTracker Instance = new WriterTracker();
+        /// <summary>
+        /// Used for tests
+        /// </summary>
+        internal void Reset()
+        {
+            _writers.Clear();
+        }
 
         private readonly ConcurrentDictionary<string, IndexWriter> _writers = new ConcurrentDictionary<string, IndexWriter>();
 
-        public static WriterTracker Current
-        {
-            get { return Instance; }
-        }
+        public static WriterTracker Current { get; } = new WriterTracker();
 
         public IndexWriter GetWriter(Directory dir)
         {

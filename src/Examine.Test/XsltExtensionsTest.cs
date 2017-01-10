@@ -27,7 +27,7 @@ namespace Examine.Test
         [TestFixtureSetUp]
         public void TestSetup()
         {
-			_luceneDir = new RAMDirectory();
+			_luceneDir = new CustomRAMDirectory();
             _indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);

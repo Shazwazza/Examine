@@ -1756,9 +1756,20 @@ namespace Examine.LuceneEngine.Providers
             //If we want to enable logging of lucene output....
             //It is also possible to set a default InfoStream on the static IndexWriter class            
             _logOutput?.Close();
-            _logOutput = new FileStream(Path.Combine(this.LuceneIndexFolder.FullName, DateTime.Now.Ticks + ".log"), FileMode.Create);
-            var w = new StreamWriter(_logOutput);
-            writer.SetInfoStream(w);
+            if (LuceneIndexFolder != null)
+            {
+                try
+                {
+                    _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.Now.Ticks + ".log"), FileMode.Create);
+                    var w = new StreamWriter(_logOutput);
+                    writer.SetInfoStream(w);
+                }
+                catch (Exception)
+                {
+                    //if an exception is thrown here we won't worry about it, it will mean we cannot create the log file
+                }
+            }
+            
 #endif
 
             return writer;
