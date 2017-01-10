@@ -5,7 +5,6 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8F5756F2-7449-400C-BE52-A91F862967B0}"
 	ProjectSection(SolutionItems) = preProject
-		Build-Release.ps1 = Build-Release.ps1
 		Examine.vsmdi = Examine.vsmdi
 		Local.testsettings = Local.testsettings
 		README.md = README.md
@@ -43,6 +42,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Directory.Sync", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Directory.AzureDirectory", "src\Examine.Directory.AzureDirectory\Examine.Directory.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.Directory.Sync", "Examine.Directory.Sync", "{A1415F80-83DA-4E6D-B9B0-426D4770A0E2}"
+	ProjectSection(SolutionItems) = preProject
+		build\Nuspecs\Examine.Directory.Sync\Examine.Directory.Sync.nuspec = build\Nuspecs\Examine.Directory.Sync\Examine.Directory.Sync.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.Directory.AzureDirectory", "Examine.Directory.AzureDirectory", "{925EA1CE-542E-442E-A8C3-F34FEBE3F81A}"
+	ProjectSection(SolutionItems) = preProject
+		build\Nuspecs\Examine.Directory.AzureDirectory\Examine.Directory.AzureDirectory.nuspec = build\Nuspecs\Examine.Directory.AzureDirectory\Examine.Directory.AzureDirectory.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +88,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{976F400B-2ABA-4C36-8FD6-B0B35D0911D0} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
+		{A1415F80-83DA-4E6D-B9B0-426D4770A0E2} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
+		{925EA1CE-542E-442E-A8C3-F34FEBE3F81A} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Examine.vsmdi

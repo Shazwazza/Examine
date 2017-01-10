@@ -62,7 +62,7 @@ namespace Examine.LuceneEngine.Providers
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
 
             IndexingAnalyzer = analyzer;
-            
+
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
             RunAsync = async;
@@ -86,7 +86,7 @@ namespace Examine.LuceneEngine.Providers
             _committer = new IndexCommiter(this);
 
             WorkingFolder = null;
-            LuceneIndexFolder = null;            
+            LuceneIndexFolder = null;
 
             IndexingAnalyzer = analyzer;
 
@@ -96,7 +96,7 @@ namespace Examine.LuceneEngine.Providers
 
             _directory = luceneDirectory;
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
-        }        
+        }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
@@ -117,7 +117,7 @@ namespace Examine.LuceneEngine.Providers
             LuceneIndexFolder = null;
 
             IndexingAnalyzer = writer.GetAnalyzer();
-            
+
             //IndexSecondsInterval = 5;
             OptimizationCommitThreshold = 100;
             RunAsync = async;
@@ -174,7 +174,7 @@ namespace Examine.LuceneEngine.Providers
                     throw new FormatException("Could not parse autoCommitThreshold value into an integer");
                 }
             }
-            
+
             //Need to check if the index set or IndexerData is specified...
 
             if (config["indexSet"] == null && IndexerData == null)
@@ -299,7 +299,7 @@ namespace Examine.LuceneEngine.Providers
         /// Used to aquire the index writer
         /// </summary>
         private readonly object _writerLocker = new object();
-        
+
         /// <summary>
         /// used to thread lock calls for creating and verifying folders
         /// </summary>
@@ -320,7 +320,7 @@ namespace Examine.LuceneEngine.Providers
         {
             [SecuritySafeCritical]
             get { return _internalSearcher.Value; }
-        }        
+        }
 
         /// <summary>
         /// This is our threadsafe queue of items which can be read by our background worker to process the queue
@@ -624,7 +624,7 @@ namespace Examine.LuceneEngine.Providers
         public void EnsureIndex(bool forceOverwrite)
         {
             if (!forceOverwrite && _hasIndex) return;
-            
+
             if (!IndexExists() || forceOverwrite)
             {
                 //if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
@@ -658,7 +658,7 @@ namespace Examine.LuceneEngine.Providers
                             //We're forcing an overwrite, 
                             // this means that we need to cancel all operations currently in place,
                             // clear the queue and delete all of the data in the index.
-                            
+
                             //cancel any operation currently in place
                             _cancellationTokenSource.Cancel();
 
@@ -681,7 +681,7 @@ namespace Examine.LuceneEngine.Providers
                             {
                                 _cancellationTokenSource = new CancellationTokenSource();
                             }
-                        }                        
+                        }
                     }
                     finally
                     {
@@ -801,7 +801,7 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         [SecuritySafeCritical]
         public void OptimizeIndex()
-        {            
+        {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
                 OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, index cancellation has been requested", -1, null), true);
@@ -845,7 +845,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="nodes"></param>
         /// <param name="type"></param>
         protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
-        {           
+        {
 
             //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             Monitor.Enter(_writerLocker);
@@ -1400,7 +1400,7 @@ namespace Examine.LuceneEngine.Providers
                         do
                         {
                             numProcessedItems = ForceProcessQueueItems();
-                        } while (numProcessedItems > 0);                       
+                        } while (numProcessedItems > 0);
 
                         //reset the flag
                         _isIndexing = false;
@@ -1447,7 +1447,7 @@ namespace Examine.LuceneEngine.Providers
         private int ForceProcessQueueItems(bool block)
         {
             if (!IndexExists())
-            {               
+            {
                 return 0;
             }
 
@@ -1494,7 +1494,7 @@ namespace Examine.LuceneEngine.Providers
                         }
                     }
                 }
-                
+
                 //this is required to ensure the index is written to during the same thread execution
                 // if we are in blocking mode, the do the wait
                 if (!RunAsync || block)
@@ -1510,7 +1510,7 @@ namespace Examine.LuceneEngine.Providers
                 }
 
                 if (indexedNodes.Count > 0)
-                {                    
+                {
                     //raise the completed event
                     OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
                 }
@@ -1587,7 +1587,7 @@ namespace Examine.LuceneEngine.Providers
                             DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(MaxWaitMilliseconds) &&
                             // and less than the delay
                             DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(WaitMilliseconds))
-                        {                          
+                        {
                             //Delay  
                             _timer.Change(WaitMilliseconds, 0);
                         }
@@ -1596,7 +1596,7 @@ namespace Examine.LuceneEngine.Providers
                             //Cannot delay! the callback will execute on the pending timeout
                         }
                     }
-                }                
+                }
             }
 
             [SecuritySafeCritical]
@@ -1614,7 +1614,7 @@ namespace Examine.LuceneEngine.Providers
 
                         //perform the commit
                         _indexer._writer?.Commit();
-                    }                    
+                    }
                 }
             }
 
@@ -1805,9 +1805,9 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-#endregion
+        #endregion
 
-#region Private
+        #region Private
 
         /// <summary>
         /// Stupid medium trust - that is the only reason this method exists
@@ -1946,9 +1946,9 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-#endregion
+        #endregion
 
-#region IDisposable Members
+        #region IDisposable Members
 
         private readonly DisposableIndexer _disposer;
         private readonly IndexCommiter _committer;
@@ -2026,10 +2026,10 @@ namespace Examine.LuceneEngine.Providers
             {
                 _internalSearcher.Value.Dispose();
             }
-            _disposer.Dispose();            
+            _disposer.Dispose();
         }
 
-#endregion
+        #endregion
 
 
     }

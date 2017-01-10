@@ -54,7 +54,7 @@ if (-not $?)
 {
 	throw "The MSBuild process returned an error code."
 }
-& $MSBuild "$SolutionPath" /p:Configuration=Release /maxcpucount
+& $MSBuild "$SolutionPath" /p:Configuration=Release /maxcpucount /t:Rebuild
 if (-not $?)
 {
 	throw "The MSBuild process returned an error code."
