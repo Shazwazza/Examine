@@ -14,7 +14,8 @@
     <tags>examine search lucene</tags>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="Examine.Directory.Sync" version="1.0.0-beta" />
+      <dependency id="Examine.Directory.Sync" version="1.0.0-beta02" />
+      <dependency id="WindowsAzure.Storage" version="8.0.0" />
     </dependencies>
   </metadata>
   <files>

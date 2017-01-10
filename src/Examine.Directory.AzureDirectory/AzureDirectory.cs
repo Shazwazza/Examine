@@ -271,7 +271,7 @@ namespace Examine.Directory.AzureDirectory
             {
                 var blobFrom = _blobContainer.GetBlockBlobReference(from);
                 var blobTo = _blobContainer.GetBlockBlobReference(to);
-                blobTo.StartCopyFromBlob(blobFrom);
+                blobTo.StartCopy(blobFrom);
                 blobFrom.DeleteIfExists();
 
                 // we delete and force a redownload, since we can't do this in an atomic way
