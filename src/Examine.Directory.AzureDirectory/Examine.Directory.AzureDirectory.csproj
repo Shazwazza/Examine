@@ -67,11 +67,13 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Spatial, Version=5.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Spatial.5.7.0\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -84,6 +86,7 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="AzureDirectory.cs" />
+    <Compile Include="AzureDirectoryFactory.cs" />
     <Compile Include="AzureIndexInput.cs" />
     <Compile Include="AzureIndexOutput.cs" />
     <Compile Include="AzureLock.cs" />
@@ -97,6 +100,10 @@
     <ProjectReference Include="..\Examine.Directory.Sync\Examine.Directory.Sync.csproj">
       <Project>{a09331bf-c809-4a58-a03f-d16f17b6ec79}</Project>
       <Name>Examine.Directory.Sync</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Examine\Examine.csproj">
+      <Project>{da5e35c3-89ba-4a2e-a559-32cf7b23cbff}</Project>
+      <Name>Examine</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

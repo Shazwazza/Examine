@@ -16,7 +16,7 @@ namespace Examine.Directory.Sync
     /// </remarks>
     public class EnvironmentTempLocationDirectoryFactory : IDirectoryFactory
     {
-        public Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
+        public virtual Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);
             var tempFolder = GetLocalStorageDirectory(indexFolder);
@@ -24,15 +24,15 @@ namespace Examine.Directory.Sync
             return new SyncDirectory(new SimpleFSDirectory(master), new SimpleFSDirectory(tempFolder));
         }
 
-        private DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
+        protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {
             var appDomainHash = ToMd5(HttpRuntime.AppDomainAppId);
-            var indexPathHash = GetIndexPathName(indexPath);
-            var cachePath = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "LuceneDir",
+            var indexPathName = GetIndexPathName(indexPath);
+            var cachePath = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "ExamineIndexes",
                 //include the appdomain hash is just a safety check, for example if a website is moved from worker A to worker B and then back
                 // to worker A again, in theory the %temp%  folder should already be empty but we really want to make sure that its not
                 // utilizing an old index
-                appDomainHash, "App_Data", "TEMP", "ExamineIndexes", indexPathHash);
+                appDomainHash, indexPathName);
             var azureDir = new DirectoryInfo(cachePath);
             if (azureDir.Exists == false)
                 azureDir.Create();
