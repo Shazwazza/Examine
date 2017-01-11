@@ -1,5 +1,5 @@
 <build>
   <project id="Examine" version="0.1.80-beta02"/>
-  <project id="Examine.Directory.Sync" version="1.0.0-beta02"/>
-  <project id="Examine.Directory.AzureDirectory" version="1.0.0-beta02"/>  
+  <project id="Examine.Directory.Sync" version="1.0.0-beta03"/>
+  <project id="Examine.Directory.AzureDirectory" version="1.0.0-beta03"/>  
 </build>
