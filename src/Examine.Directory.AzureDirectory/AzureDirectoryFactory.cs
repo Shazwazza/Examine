@@ -17,12 +17,12 @@ namespace Examine.Directory.AzureDirectory
         /// <summary>
         /// Get/set the config storage key
         /// </summary>
-        public static string ConfigStorageKey = "azure:StorageConnectionString";
+        public static string ConfigStorageKey = "examine:AzureStorageConnString";
 
         /// <summary>
         /// Get/set the config container key
         /// </summary>
-        public static string ConfigContainerKey = "examine:AzureStorageContainerName";
+        public static string ConfigContainerKey = "examine:AzureStorageContainer";
 
         /// <summary>
         /// Return the AzureDirectory.
