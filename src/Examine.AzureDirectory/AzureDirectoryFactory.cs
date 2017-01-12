@@ -10,7 +10,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// The azure umbraco content indexer.
     /// </summary>
-    public class AzureDirectoryFactory : EnvironmentTempLocationDirectoryFactory
+    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory
     {
         /// <summary>
         /// Get/set the config storage key

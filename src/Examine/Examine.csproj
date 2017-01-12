@@ -111,8 +111,8 @@
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="LuceneEngine\Directories\AspNetCodeGenSyncDirectoryFactory.cs" />
-    <Compile Include="LuceneEngine\Directories\EnvironmentTempLocationDirectoryFactory.cs" />
+    <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
+    <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\MultiIndexLock.cs" />
     <Compile Include="LuceneEngine\Directories\MultiIndexLockFactory.cs" />
     <Compile Include="LuceneEngine\Directories\StreamInput.cs" />

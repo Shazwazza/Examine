@@ -9,7 +9,7 @@ namespace Examine.LuceneEngine.Directories
     /// <summary>
     /// A directory factory used to create an instance of SyncDirectory that uses AspNet codegen as the cache directory
     /// </summary>
-    public class AspNetCodeGenSyncDirectoryFactory : IDirectoryFactory
+    public class SyncAspNetCodeGenDirectoryFactory : IDirectoryFactory
     {
         [SecuritySafeCritical]
         public Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)

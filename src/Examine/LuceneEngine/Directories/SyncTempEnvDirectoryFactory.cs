@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine.Directories
     /// <remarks>
     /// This works well for Azure Web Apps directory sync
     /// </remarks>
-    public class EnvironmentTempLocationDirectoryFactory : IDirectoryFactory
+    public class SyncTempEnvDirectoryFactory : IDirectoryFactory
     {
         [SecuritySafeCritical]
         public virtual Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
