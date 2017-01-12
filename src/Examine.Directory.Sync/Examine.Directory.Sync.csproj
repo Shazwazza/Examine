@@ -53,16 +53,6 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="AspNetCodeGenSyncDirectoryFactory.cs" />
-    <Compile Include="EnvironmentTempLocationDirectoryFactory.cs" />
-    <Compile Include="MultiIndexLock.cs" />
-    <Compile Include="MultiIndexLockFactory.cs" />
-    <Compile Include="SyncDirectory.cs" />
-    <Compile Include="SyncIndexOutput.cs" />
-    <Compile Include="StreamInput.cs" />
-    <Compile Include="StreamOutput.cs" />
-    <Compile Include="SyncIndexInput.cs" />
-    <Compile Include="SyncMutexManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

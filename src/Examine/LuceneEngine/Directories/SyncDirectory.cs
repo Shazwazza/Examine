@@ -1,13 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
+using System.Security;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
-namespace Examine.Directory.Sync
+namespace Examine.LuceneEngine.Directories
 {
+    [SecurityCritical]
     public class SyncDirectory : Lucene.Net.Store.Directory
     {
         private readonly Lucene.Net.Store.Directory _masterDirectory;
@@ -33,7 +33,7 @@ namespace Examine.Directory.Sync
             _cacheDirectory = cacheDirectory;
             _lockFactory = new MultiIndexLockFactory(_masterDirectory, _cacheDirectory);
         }
-
+        
         public void ClearCache()
         {
             foreach (string file in _cacheDirectory.ListAll())
@@ -41,9 +41,9 @@ namespace Examine.Directory.Sync
                 _cacheDirectory.DeleteFile(file);
             }
         }
-
+        
         public Lucene.Net.Store.Directory CacheDirectory
-        {
+        {         
             get
             {
                 return _cacheDirectory;
@@ -60,6 +60,7 @@ namespace Examine.Directory.Sync
 
         /// <summary>Returns an array of strings, one for each file in the directory. </summary>
         [Obsolete("For some Directory implementations (FSDirectory}, and its subclasses), this method silently filters its results to include only index files.  Please use ListAll instead, which does no filtering. ")]
+        [SecurityCritical]
         public override String[] List()
         {
             //proxy to the non obsolete ListAll
@@ -85,6 +86,7 @@ namespace Examine.Directory.Sync
         /// * when this flag is set and one of these methods is called, we need to re-calculate the hash (or whatever) of if these dirs are in sync
         /// * when the hash matches and the dirty flag is null, for these methods we'll use the local disk
         /// </remarks>
+        [SecurityCritical]
         public override string[] ListAll()
         {
             CheckDirty();
@@ -93,6 +95,7 @@ namespace Examine.Directory.Sync
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
+        [SecurityCritical]
         public override bool FileExists(String name)
         {
             CheckDirty();
@@ -130,6 +133,7 @@ namespace Examine.Directory.Sync
         }
 
         /// <summary>Returns the time the named file was last modified. </summary>
+        [SecurityCritical]
         public override long FileModified(String name)
         {
             CheckDirty();
@@ -139,6 +143,7 @@ namespace Examine.Directory.Sync
 
         /// <summary>Set the modified time of an existing file to now. </summary>
         [Obsolete("This is actually never used")]
+        [SecurityCritical]
         public override void TouchFile(System.String name)
         {
             //just update the cache file - the Lucene source actually never calls this method!
@@ -147,6 +152,7 @@ namespace Examine.Directory.Sync
         }
 
         /// <summary>Removes an existing file in the directory. </summary>
+        [SecurityCritical]
         public override void DeleteFile(System.String name)
         {
             //We're going to try to remove this from the cache directory first,
@@ -185,6 +191,7 @@ namespace Examine.Directory.Sync
         /// This replacement should be atomic. 
         /// </summary>
         [Obsolete("This is actually never used")]
+        [SecurityCritical]
         public override void RenameFile(System.String from, System.String to)
         {
             try
@@ -213,6 +220,7 @@ namespace Examine.Directory.Sync
         }
 
         /// <summary>Returns the length of a file in the directory. </summary>
+        [SecurityCritical]
         public override long FileLength(String name)
         {
             CheckDirty();
@@ -223,6 +231,7 @@ namespace Examine.Directory.Sync
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
         /// </summary>
+        [SecurityCritical]
         public override IndexOutput CreateOutput(System.String name)
         {
             SetDirty();
@@ -230,6 +239,7 @@ namespace Examine.Directory.Sync
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
+        [SecurityCritical]
         public override IndexInput OpenInput(System.String name)
         {
             try
@@ -245,16 +255,19 @@ namespace Examine.Directory.Sync
         /// <summary>Construct a {@link Lock}.</summary>
         /// <param name="name">the name of the lock file
         /// </param>
+        [SecurityCritical]
         public override Lock MakeLock(System.String name)
         {
             return _lockFactory.MakeLock(name);
         }
 
+        [SecurityCritical]
         public override void ClearLock(string name)
         {
             _lockFactory.ClearLock(name);
         }
 
+        [SecurityCritical]
         public override LockFactory GetLockFactory()
         {
             return _lockFactory;
@@ -269,12 +282,14 @@ namespace Examine.Directory.Sync
         ///             "scopes" to the right index.
         /// 
         /// </summary>
+        [SecurityCritical]
         public override string GetLockID()
         {
             return string.Concat(_masterDirectory.GetLockID(), _cacheDirectory.GetLockID());
         }
 
         /// <summary>Closes the store. </summary>
+        [SecurityCritical]
         public override void Close()
         {
             _masterDirectory.Close();
@@ -282,6 +297,7 @@ namespace Examine.Directory.Sync
         }
 
         /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
+        [SecuritySafeCritical]
         public override void Dispose()
         {
             this.Close();
@@ -296,7 +312,7 @@ namespace Examine.Directory.Sync
         {
             return new StreamOutput(CacheDirectory.CreateOutput(name));
         }
-
+        
         private void CheckDirty()
         {
             if (_dirty)

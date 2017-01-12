@@ -1,12 +1,13 @@
 using System;
 using System.IO;
+using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 
-namespace Examine.Directory.Sync
+namespace Examine.LuceneEngine.Directories
 {
     /// <summary>
     /// A directory factory used to create an instance of SyncDirectory that uses the current %temp% environment variable
@@ -16,6 +17,7 @@ namespace Examine.Directory.Sync
     /// </remarks>
     public class EnvironmentTempLocationDirectoryFactory : IDirectoryFactory
     {
+        [SecuritySafeCritical]
         public virtual Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);

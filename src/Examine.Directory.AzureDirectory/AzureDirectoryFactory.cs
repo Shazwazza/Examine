@@ -2,7 +2,7 @@ using System;
 using System.Configuration;
 using System.IO;
 using System.Web;
-using Examine.Directory.Sync;
+using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage;
@@ -45,7 +45,7 @@ namespace Examine.Directory.AzureDirectory
             var tempFolder = GetLocalStorageDirectory(indexFolder);
 
             return new AzureDirectory(
-                CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),
+                CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),                
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 new SimpleFSDirectory(tempFolder),
                 rootFolder: indexer.IndexSetName);

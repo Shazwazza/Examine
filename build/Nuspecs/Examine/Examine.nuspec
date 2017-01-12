@@ -18,7 +18,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Examine.dll" target="lib\Examine.dll" />
-    <file src="Examine.pdb" target="lib\Examine.pdb" />
+    <file src="Examine.dll" target="lib\net45\Examine.dll" />
+    <file src="Examine.pdb" target="lib\net45\Examine.pdb" />
   </files>
 </package>

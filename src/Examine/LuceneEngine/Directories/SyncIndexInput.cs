@@ -1,26 +1,26 @@
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
+using System.Security;
 using System.Threading;
 using Lucene.Net.Store;
 
-namespace Examine.Directory.Sync
+namespace Examine.LuceneEngine.Directories
 {
     /// <summary>
     /// Implements IndexInput semantics for a read only blob
     /// </summary>
+    [SecurityCritical]
     internal class SyncIndexInput : IndexInput
     {
         private SyncDirectory _syncDirectory;
-        private string _name;
+        private readonly string _name;
 
         private IndexInput _indexInput;
-        private Mutex _fileMutex;
+        private readonly Mutex _fileMutex;
 
-        public Lucene.Net.Store.Directory CacheDirectory { get { return _syncDirectory.CacheDirectory; } }
-        public Lucene.Net.Store.Directory MasterDirectory { get { return _syncDirectory.MasterDirectory; } }
-
+        public Directory CacheDirectory { get { return _syncDirectory.CacheDirectory; } }
+        public Directory MasterDirectory { get { return _syncDirectory.MasterDirectory; } }
+        
         public SyncIndexInput(SyncDirectory directory, string name)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
@@ -29,7 +29,7 @@ namespace Examine.Directory.Sync
             _syncDirectory = directory;
 
 #if FULLDEBUG
-            Trace.WriteLine(String.Format("opening {0} ", _name));
+            Trace.WriteLine($"opening {_name} ");
 #endif
             _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
             _fileMutex.WaitOne();
@@ -113,7 +113,7 @@ namespace Examine.Directory.Sync
                 _fileMutex.ReleaseMutex();
             }
         }
-
+        
         public SyncIndexInput(SyncIndexInput cloneInput)
         {
             _fileMutex = SyncMutexManager.GrabMutex(cloneInput._syncDirectory, cloneInput._name);
@@ -139,26 +139,31 @@ namespace Examine.Directory.Sync
             }
         }
 
+        [SecurityCritical]
         public override byte ReadByte()
         {
             return _indexInput.ReadByte();
         }
 
+        [SecurityCritical]
         public override void ReadBytes(byte[] b, int offset, int len)
         {
             _indexInput.ReadBytes(b, offset, len);
         }
 
+        [SecurityCritical]
         public override long GetFilePointer()
         {
             return _indexInput.GetFilePointer();
         }
 
+        [SecurityCritical]
         public override void Seek(long pos)
         {
             _indexInput.Seek(pos);
         }
 
+        [SecurityCritical]
         public override void Close()
         {
             _fileMutex.WaitOne();
@@ -178,11 +183,13 @@ namespace Examine.Directory.Sync
             }
         }
 
+        [SecurityCritical]
         public override long Length()
         {
             return _indexInput.Length();
         }
 
+        [SecuritySafeCritical]
         public override System.Object Clone()
         {
             IndexInput clone = null;

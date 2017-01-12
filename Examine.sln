@@ -38,18 +38,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "src\Examine
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "src\Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Directory.Sync", "src\Examine.Directory.Sync\Examine.Directory.Sync.csproj", "{A09331BF-C809-4A58-A03F-D16F17B6EC79}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Directory.AzureDirectory", "src\Examine.Directory.AzureDirectory\Examine.Directory.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.Directory.Sync", "Examine.Directory.Sync", "{A1415F80-83DA-4E6D-B9B0-426D4770A0E2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.AzureDirectory", "Examine.AzureDirectory", "{925EA1CE-542E-442E-A8C3-F34FEBE3F81A}"
 	ProjectSection(SolutionItems) = preProject
-		build\Nuspecs\Examine.Directory.Sync\Examine.Directory.Sync.nuspec = build\Nuspecs\Examine.Directory.Sync\Examine.Directory.Sync.nuspec
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.Directory.AzureDirectory", "Examine.Directory.AzureDirectory", "{925EA1CE-542E-442E-A8C3-F34FEBE3F81A}"
-	ProjectSection(SolutionItems) = preProject
-		build\Nuspecs\Examine.Directory.AzureDirectory\Examine.Directory.AzureDirectory.nuspec = build\Nuspecs\Examine.Directory.AzureDirectory\Examine.Directory.AzureDirectory.nuspec
+		build\Nuspecs\Examine.Directory.AzureDirectory\Examine.AzureDirectory.nuspec = build\Nuspecs\Examine.Directory.AzureDirectory\Examine.AzureDirectory.nuspec
 	EndProjectSection
 EndProject
 Global
@@ -74,10 +67,6 @@ Global
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A09331BF-C809-4A58-A03F-D16F17B6EC79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A09331BF-C809-4A58-A03F-D16F17B6EC79}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A09331BF-C809-4A58-A03F-D16F17B6EC79}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A09331BF-C809-4A58-A03F-D16F17B6EC79}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -88,7 +77,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{976F400B-2ABA-4C36-8FD6-B0B35D0911D0} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
-		{A1415F80-83DA-4E6D-B9B0-426D4770A0E2} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 		{925EA1CE-542E-442E-A8C3-F34FEBE3F81A} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution

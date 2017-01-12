@@ -1,16 +1,25 @@
 using System;
 using System.IO;
+using System.Security;
 using Lucene.Net.Store;
 
-namespace Examine.Directory.Sync
+namespace Examine.LuceneEngine.Directories
 {
     /// <summary>
     /// Stream wrapper around IndexInput
     /// </summary>
+    [SecuritySafeCritical]
     public class StreamInput : Stream
     {
-        public IndexInput Input { get; set; }
+        public IndexInput Input
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            set;
+        }
 
+        [SecuritySafeCritical]
         public StreamInput(IndexInput input)
         {
             Input = input;
@@ -20,14 +29,22 @@ namespace Examine.Directory.Sync
         public override bool CanSeek { get { return true; ; } }
         public override bool CanWrite { get { return false; } }
         public override void Flush() { }
-        public override long Length { get { return Input.Length(); } }
+
+        public override long Length
+        {
+            [SecuritySafeCritical]
+            get { return Input.Length(); }
+        }
 
         public override long Position
         {
+            [SecuritySafeCritical]
             get { return Input.GetFilePointer(); }
+            [SecuritySafeCritical]
             set { Input.Seek(value); }
         }
 
+        [SecuritySafeCritical]
         public override int Read(byte[] buffer, int offset, int count)
         {
             var pos = Input.GetFilePointer();
@@ -42,6 +59,7 @@ namespace Examine.Directory.Sync
             return (int)(Input.GetFilePointer() - pos);
         }
 
+        [SecuritySafeCritical]
         public override long Seek(long offset, SeekOrigin origin)
         {
             switch (origin)
@@ -68,6 +86,7 @@ namespace Examine.Directory.Sync
             throw new NotImplementedException();
         }
 
+        [SecuritySafeCritical]
         public override void Close()
         {
             Input.Close();

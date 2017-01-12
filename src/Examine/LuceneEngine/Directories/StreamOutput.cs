@@ -1,16 +1,25 @@
 using System;
 using System.IO;
+using System.Security;
 using Lucene.Net.Store;
 
-namespace Examine.Directory.Sync
+namespace Examine.LuceneEngine.Directories
 {
     /// <summary>
     /// Stream wrapper around an IndexOutput
     /// </summary>
+    [SecuritySafeCritical]
     public class StreamOutput : Stream
     {
-        public IndexOutput Output { get; set; }
+        public IndexOutput Output
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            set;
+        }
 
+        [SecuritySafeCritical]
         public StreamOutput(IndexOutput output)
         {
             Output = output;
@@ -31,6 +40,7 @@ namespace Examine.Directory.Sync
             get { return true; }
         }
 
+        [SecuritySafeCritical]
         public override void Flush()
         {
             Output.Flush();
@@ -38,15 +48,18 @@ namespace Examine.Directory.Sync
 
         public override long Length
         {
+            [SecuritySafeCritical]
             get { return Output.Length(); }
         }
 
         public override long Position
         {
+            [SecuritySafeCritical]
             get
             {
                 return Output.GetFilePointer();
             }
+            [SecuritySafeCritical]
             set
             {
                 Output.Seek(value);
@@ -58,6 +71,7 @@ namespace Examine.Directory.Sync
             throw new NotImplementedException();
         }
 
+        [SecuritySafeCritical]
         public override long Seek(long offset, SeekOrigin origin)
         {
             switch (origin)
@@ -79,11 +93,13 @@ namespace Examine.Directory.Sync
             throw new NotImplementedException();
         }
 
+        [SecuritySafeCritical]
         public override void Write(byte[] buffer, int offset, int count)
         {
             Output.WriteBytes(buffer, offset, count);
         }
 
+        [SecuritySafeCritical]
         public override void Close()
         {
             Output.Flush();

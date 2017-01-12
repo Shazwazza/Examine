@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
-using Examine.Directory.Sync;
+using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage.Blob;
 

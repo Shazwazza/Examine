@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System.Security;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
-namespace Examine.Directory.Sync
+namespace Examine.LuceneEngine.Directories
 {
     /// <summary>
     /// A class to manage mutex locks per directory instance (ID)
     /// </summary>
+    [SecuritySafeCritical]
     public class SyncMutexManager
     {
         private readonly string _id;
+
+        [SecuritySafeCritical]
         private static readonly ConcurrentDictionary<Lucene.Net.Store.Directory, SyncMutexManager> MutexManagers = new ConcurrentDictionary<Lucene.Net.Store.Directory, SyncMutexManager>();
 
+        [SecuritySafeCritical]
         public SyncMutexManager(string id)
         {
             if (id == null) throw new ArgumentNullException(nameof(id));

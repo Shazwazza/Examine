@@ -13,7 +13,7 @@ namespace Examine.LuceneEngine.Providers
     /// </summary>
     public class LuceneMemorySearcher : LuceneSearcher
     {
-        private readonly Directory _luceneDirectory;
+        private readonly Lucene.Net.Store.Directory _luceneDirectory;
 
         /// <summary>
         /// Default constructor
@@ -28,7 +28,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
 		[SecuritySafeCritical]
-        public LuceneMemorySearcher(Directory luceneDirectory, Analyzer analyzer)
+        public LuceneMemorySearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
         {
             _luceneDirectory = new RAMDirectory(luceneDirectory);;
             IndexingAnalyzer = analyzer;

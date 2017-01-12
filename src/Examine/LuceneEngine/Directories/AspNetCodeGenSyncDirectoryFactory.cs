@@ -1,16 +1,17 @@
-using System;
 using System.IO;
+using System.Security;
 using System.Web;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 
-namespace Examine.Directory.Sync
+namespace Examine.LuceneEngine.Directories
 {
     /// <summary>
     /// A directory factory used to create an instance of SyncDirectory that uses AspNet codegen as the cache directory
     /// </summary>
     public class AspNetCodeGenSyncDirectoryFactory : IDirectoryFactory
     {
+        [SecuritySafeCritical]
         public Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);

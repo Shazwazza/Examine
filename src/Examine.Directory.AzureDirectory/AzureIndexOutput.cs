@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
-using Examine.Directory.Sync;
+using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -14,18 +14,21 @@ namespace Examine.Directory.AzureDirectory
     /// </summary>
     public class AzureIndexOutput : IndexOutput
     {
-        private AzureDirectory _azureDirectory;
+        private readonly AzureDirectory _azureDirectory;
         private CloudBlobContainer _blobContainer;
-        private string _name;
+        private readonly string _name;
         private IndexOutput _indexOutput;
-        private Mutex _fileMutex;
+        private readonly Mutex _fileMutex;
         private ICloudBlob _blob;
-        public Lucene.Net.Store.Directory CacheDirectory { get { return _azureDirectory.CacheDirectory; } }
+        public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexOutput(AzureDirectory azureDirectory, ICloudBlob blob)
+        public AzureIndexOutput(AzureDirectory azureDirectory, ICloudBlob blob, string name)
         {
             if (azureDirectory == null) throw new ArgumentNullException(nameof(azureDirectory));
 
+            //TODO: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19
+            // I have changed this to be correct now
+            _name = name;
             _azureDirectory = azureDirectory;
             _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name); 
             _fileMutex.WaitOne();

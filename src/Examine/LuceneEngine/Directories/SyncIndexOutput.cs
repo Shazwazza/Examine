@@ -1,24 +1,32 @@
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
+using System.Security;
 using System.Threading;
 using Lucene.Net.Store;
 
-namespace Examine.Directory.Sync
+namespace Examine.LuceneEngine.Directories
 {
     /// <summary>
     /// Implements IndexOutput semantics for a write/append only file
     /// </summary>
+    [SecurityCritical]
     internal class SyncIndexOutput : IndexOutput
     {
         private readonly SyncDirectory _syncDirectory;
         private readonly string _name;
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
-        public Lucene.Net.Store.Directory CacheDirectory { get { return _syncDirectory.CacheDirectory; } }
-        public Lucene.Net.Store.Directory MasterDirectory { get { return _syncDirectory.MasterDirectory; } }
 
+        public Lucene.Net.Store.Directory CacheDirectory
+        {
+            get { return _syncDirectory.CacheDirectory; }
+        }
+
+        public Lucene.Net.Store.Directory MasterDirectory
+        {
+            get { return _syncDirectory.MasterDirectory; }
+        }
+        
         public SyncIndexOutput(SyncDirectory syncDirectory, string name)
         {
             if (syncDirectory == null) throw new ArgumentNullException(nameof(syncDirectory));
@@ -40,11 +48,13 @@ namespace Examine.Directory.Sync
             }
         }
 
+        [SecurityCritical]
         public override void Flush()
         {
             _indexOutput.Flush();
         }
 
+        [SecurityCritical]
         public override void Close()
         {
             _fileMutex.WaitOne();
@@ -94,31 +104,37 @@ namespace Examine.Directory.Sync
             }
         }
 
+        [SecurityCritical]
         public override long Length()
         {
             return _indexOutput.Length();
         }
 
+        [SecurityCritical]
         public override void WriteByte(byte b)
         {
             _indexOutput.WriteByte(b);
         }
 
+        [SecurityCritical]
         public override void WriteBytes(byte[] b, int length)
         {
             _indexOutput.WriteBytes(b, length);
         }
 
+        [SecurityCritical]
         public override void WriteBytes(byte[] b, int offset, int length)
         {
             _indexOutput.WriteBytes(b, offset, length);
         }
 
+        [SecurityCritical]
         public override long GetFilePointer()
         {
             return _indexOutput.GetFilePointer();
         }
 
+        [SecurityCritical]
         public override void Seek(long pos)
         {
             _indexOutput.Seek(pos);

@@ -202,10 +202,6 @@
     <Content Include="Views\Home\RebuildIndex.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine.Directory.Sync\Examine.Directory.Sync.csproj">
-      <Project>{a09331bf-c809-4a58-a03f-d16f17b6ec79}</Project>
-      <Name>Examine.Directory.Sync</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>

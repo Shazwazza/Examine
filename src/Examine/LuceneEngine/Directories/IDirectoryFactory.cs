@@ -1,7 +1,8 @@
 using System.Security;
+using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 
-namespace Examine.LuceneEngine.Providers
+namespace Examine.LuceneEngine.Directories
 {
     public interface IDirectoryFactory
     {
