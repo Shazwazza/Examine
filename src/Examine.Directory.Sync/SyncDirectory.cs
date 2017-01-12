@@ -138,8 +138,10 @@ namespace Examine.Directory.Sync
         }
 
         /// <summary>Set the modified time of an existing file to now. </summary>
+        [Obsolete("This is actually never used")]
         public override void TouchFile(System.String name)
         {
+            //just update the cache file - the Lucene source actually never calls this method!
             _cacheDirectory.TouchFile(name);
             SetDirty();
         }
@@ -182,7 +184,7 @@ namespace Examine.Directory.Sync
         /// If a file already exists with the new name, then it is replaced.
         /// This replacement should be atomic. 
         /// </summary>
-        [Obsolete]
+        [Obsolete("This is actually never used")]
         public override void RenameFile(System.String from, System.String to)
         {
             try
