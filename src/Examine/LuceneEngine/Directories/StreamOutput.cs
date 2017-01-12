@@ -25,20 +25,11 @@ namespace Examine.LuceneEngine.Directories
             Output = output;
         }
 
-        public override bool CanRead
-        {
-            get { return false; }
-        }
+        public override bool CanRead => false;
 
-        public override bool CanSeek
-        {
-            get { return true; }
-        }
+        public override bool CanSeek => true;
 
-        public override bool CanWrite
-        {
-            get { return true; }
-        }
+        public override bool CanWrite => true;
 
         [SecuritySafeCritical]
         public override void Flush()

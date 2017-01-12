@@ -42,26 +42,14 @@ namespace Examine.LuceneEngine.Directories
             }
         }
         
-        public Lucene.Net.Store.Directory CacheDirectory
-        {         
-            get
-            {
-                return _cacheDirectory;
-            }
-        }
+        public Lucene.Net.Store.Directory CacheDirectory => _cacheDirectory;
 
-        public Lucene.Net.Store.Directory MasterDirectory
-        {
-            get
-            {
-                return _masterDirectory;
-            }
-        }
+        public Lucene.Net.Store.Directory MasterDirectory => _masterDirectory;
 
         /// <summary>Returns an array of strings, one for each file in the directory. </summary>
         [Obsolete("For some Directory implementations (FSDirectory}, and its subclasses), this method silently filters its results to include only index files.  Please use ListAll instead, which does no filtering. ")]
         [SecurityCritical]
-        public override String[] List()
+        public override string[] List()
         {
             //proxy to the non obsolete ListAll
             return ListAll();
@@ -96,7 +84,7 @@ namespace Examine.LuceneEngine.Directories
 
         /// <summary>Returns true if a file with the given name exists. </summary>
         [SecurityCritical]
-        public override bool FileExists(String name)
+        public override bool FileExists(string name)
         {
             CheckDirty();
 
@@ -134,7 +122,7 @@ namespace Examine.LuceneEngine.Directories
 
         /// <summary>Returns the time the named file was last modified. </summary>
         [SecurityCritical]
-        public override long FileModified(String name)
+        public override long FileModified(string name)
         {
             CheckDirty();
 
@@ -144,7 +132,7 @@ namespace Examine.LuceneEngine.Directories
         /// <summary>Set the modified time of an existing file to now. </summary>
         [Obsolete("This is actually never used")]
         [SecurityCritical]
-        public override void TouchFile(System.String name)
+        public override void TouchFile(string name)
         {
             //just update the cache file - the Lucene source actually never calls this method!
             _cacheDirectory.TouchFile(name);
@@ -153,7 +141,7 @@ namespace Examine.LuceneEngine.Directories
 
         /// <summary>Removes an existing file in the directory. </summary>
         [SecurityCritical]
-        public override void DeleteFile(System.String name)
+        public override void DeleteFile(string name)
         {
             //We're going to try to remove this from the cache directory first,
             // because the IndexFileDeleter will call this file to remove files 
@@ -192,7 +180,7 @@ namespace Examine.LuceneEngine.Directories
         /// </summary>
         [Obsolete("This is actually never used")]
         [SecurityCritical]
-        public override void RenameFile(System.String from, System.String to)
+        public override void RenameFile(string from, string to)
         {
             try
             {
@@ -221,7 +209,7 @@ namespace Examine.LuceneEngine.Directories
 
         /// <summary>Returns the length of a file in the directory. </summary>
         [SecurityCritical]
-        public override long FileLength(String name)
+        public override long FileLength(string name)
         {
             CheckDirty();
 
@@ -232,7 +220,7 @@ namespace Examine.LuceneEngine.Directories
         /// Returns a stream writing this file. 
         /// </summary>
         [SecurityCritical]
-        public override IndexOutput CreateOutput(System.String name)
+        public override IndexOutput CreateOutput(string name)
         {
             SetDirty();
             return new SyncIndexOutput(this, name);
@@ -240,7 +228,7 @@ namespace Examine.LuceneEngine.Directories
 
         /// <summary>Returns a stream reading an existing file. </summary>
         [SecurityCritical]
-        public override IndexInput OpenInput(System.String name)
+        public override IndexInput OpenInput(string name)
         {
             try
             {
@@ -256,7 +244,7 @@ namespace Examine.LuceneEngine.Directories
         /// <param name="name">the name of the lock file
         /// </param>
         [SecurityCritical]
-        public override Lock MakeLock(System.String name)
+        public override Lock MakeLock(string name)
         {
             return _lockFactory.MakeLock(name);
         }

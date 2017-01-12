@@ -18,9 +18,9 @@ namespace Examine.LuceneEngine.Directories
         private IndexInput _indexInput;
         private readonly Mutex _fileMutex;
 
-        public Directory CacheDirectory { get { return _syncDirectory.CacheDirectory; } }
-        public Directory MasterDirectory { get { return _syncDirectory.MasterDirectory; } }
-        
+        public Directory CacheDirectory => _syncDirectory.CacheDirectory;
+        public Directory MasterDirectory => _syncDirectory.MasterDirectory;
+
         public SyncIndexInput(SyncDirectory directory, string name)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
@@ -92,7 +92,7 @@ namespace Examine.LuceneEngine.Directories
                         masterStream.CopyTo(cacheStream);
 
                         cacheStream.Flush();
-                        Debug.WriteLine(string.Format("GET {0} RETREIVED {1} bytes", _name, cacheStream.Length));
+                        Debug.WriteLine($"GET {_name} RETREIVED {cacheStream.Length} bytes");
                     }                    
 
                     // and open it as an input 
@@ -101,7 +101,7 @@ namespace Examine.LuceneEngine.Directories
                 else
                 {
 #if FULLDEBUG
-                    Debug.WriteLine(String.Format("Using cached file for {0}", _name));
+                    Debug.WriteLine($"Using cached file for {_name}");
 #endif
 
                     // open the file in read only mode
@@ -122,7 +122,7 @@ namespace Examine.LuceneEngine.Directories
             try
             {
 #if FULLDEBUG
-                Debug.WriteLine(String.Format("Creating clone for {0}", cloneInput._name));
+                Debug.WriteLine($"Creating clone for {cloneInput._name}");
 #endif
                 _syncDirectory = cloneInput._syncDirectory;                
                 _indexInput = cloneInput._indexInput.Clone() as IndexInput;
@@ -131,7 +131,7 @@ namespace Examine.LuceneEngine.Directories
             {
                 // sometimes we get access denied on the 2nd stream...but not always. I haven't tracked it down yet
                 // but this covers our tail until I do
-                Trace.Fail(String.Format("Dagnabbit, falling back to memory clone for {0}", cloneInput._name));
+                Trace.Fail($"Dagnabbit, falling back to memory clone for {cloneInput._name}");
             }
             finally
             {
@@ -170,7 +170,7 @@ namespace Examine.LuceneEngine.Directories
             try
             {
 #if FULLDEBUG
-                Trace.WriteLine(String.Format("CLOSED READSTREAM local {0}", _name));
+                Trace.WriteLine($"CLOSED READSTREAM local {_name}");
 #endif
                 _indexInput.Close();
                 _indexInput = null;
@@ -190,7 +190,7 @@ namespace Examine.LuceneEngine.Directories
         }
 
         [SecuritySafeCritical]
-        public override System.Object Clone()
+        public override object Clone()
         {
             IndexInput clone = null;
             try
@@ -199,7 +199,7 @@ namespace Examine.LuceneEngine.Directories
                 SyncIndexInput input = new SyncIndexInput(this);
                 clone = (IndexInput)input;
             }
-            catch (System.Exception err)
+            catch (Exception err)
             {
                 Trace.WriteLine(err.ToString());
             }

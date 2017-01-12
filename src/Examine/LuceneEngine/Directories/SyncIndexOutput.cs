@@ -17,16 +17,10 @@ namespace Examine.LuceneEngine.Directories
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
 
-        public Lucene.Net.Store.Directory CacheDirectory
-        {
-            get { return _syncDirectory.CacheDirectory; }
-        }
+        public Directory CacheDirectory => _syncDirectory.CacheDirectory;
 
-        public Lucene.Net.Store.Directory MasterDirectory
-        {
-            get { return _syncDirectory.MasterDirectory; }
-        }
-        
+        public Directory MasterDirectory => _syncDirectory.MasterDirectory;
+
         public SyncIndexOutput(SyncDirectory syncDirectory, string name)
         {
             if (syncDirectory == null) throw new ArgumentNullException(nameof(syncDirectory));
@@ -79,7 +73,7 @@ namespace Examine.LuceneEngine.Directories
                         cacheStream.CopyTo(masterStream);
 
                         masterStream.Flush();
-                        Trace.WriteLine(string.Format("PUT {1} bytes to {0} in cloud", _name, cacheStream.Length));
+                        Trace.WriteLine($"PUT {cacheStream.Length} bytes to {_name} in cloud");
                     }
 
                     //sync the last file write times - at least get them close.
@@ -90,7 +84,7 @@ namespace Examine.LuceneEngine.Directories
                     CacheDirectory.TouchFile(fileName);
 
 #if FULLDEBUG
-                      Debug.WriteLine(string.Format("CLOSED WRITESTREAM {0}", _name));
+                      Debug.WriteLine($"CLOSED WRITESTREAM {_name}");
 #endif    
                 }
 
