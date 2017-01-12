@@ -1,13 +1,11 @@
-using System;
 using System.Configuration;
 using System.IO;
-using System.Web;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage;
 
-namespace Examine.Directory.AzureDirectory
+namespace Examine.AzureDirectory
 {
     /// <summary>
     /// The azure umbraco content indexer.

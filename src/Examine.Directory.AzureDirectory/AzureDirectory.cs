@@ -8,7 +8,7 @@ using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace Examine.Directory.AzureDirectory
+namespace Examine.AzureDirectory
 {
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage

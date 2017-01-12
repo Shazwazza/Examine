@@ -7,7 +7,7 @@ using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace Examine.Directory.AzureDirectory
+namespace Examine.AzureDirectory
 {
     /// <summary>
     /// Implements IndexOutput semantics for a write/append only file

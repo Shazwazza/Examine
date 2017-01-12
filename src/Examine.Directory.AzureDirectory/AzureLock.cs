@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using Lucene.Net.Store;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 
-namespace Examine.Directory.AzureDirectory
+namespace Examine.AzureDirectory
 {
     /// <summary>
     /// Implements lock semantics on AzureDirectory via a lock file - just like SimpleFSLock

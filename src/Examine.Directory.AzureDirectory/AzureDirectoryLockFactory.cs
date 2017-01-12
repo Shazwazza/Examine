@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using Lucene.Net.Store;
 
-namespace Examine.Directory.AzureDirectory
+namespace Examine.AzureDirectory
 {
     /// <summary>
     /// A lock factory used for azure blob storage
