@@ -61,7 +61,15 @@ if (-not $?)
 }
 
 # Iterate projects and output them
-$NuGet = Join-Path $SolutionRoot -ChildPath ".nuget\NuGet.exe" 
+
+# Go get nuget.exe if we don't hae it
+$NuGet = "$BuildFolder\nuget.exe"
+$FileExists = Test-Path $NuGet 
+If ($FileExists -eq $False) {
+	$SourceNugetExe = "http://nuget.org/nuget.exe"
+	Invoke-WebRequest $SourceNugetExe -OutFile $NuGet
+}
+
 $include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
 foreach($project in $root.ChildNodes) {
 	$projectRelease = Join-Path -Path $ReleaseFolder -ChildPath "$($project.id)";
