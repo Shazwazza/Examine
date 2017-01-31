@@ -50,18 +50,34 @@ namespace Examine.LuceneEngine.Config
             }
         }
 
-        public override bool Equals(object compareTo)
+        public bool Equals(IndexField other)
         {
-            if (compareTo is IndexField)
-            {
-                return this.Name.Equals(((IndexField)compareTo).Name);
-            }
-            return false;
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return string.Equals(Name, other.Name);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((IndexField)obj);
         }
 
         public override int GetHashCode()
         {
-            return this.Name.GetHashCode();
+            return Name.GetHashCode();
+        }
+
+        public static bool operator ==(IndexField left, IndexField right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(IndexField left, IndexField right)
+        {
+            return !Equals(left, right);
         }
     }
 }

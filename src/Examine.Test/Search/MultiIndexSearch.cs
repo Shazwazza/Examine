@@ -17,10 +17,10 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Simple_Search()
         {
-            using (var cwsDir = new CustomRAMDirectory())
-            using (var pdfDir = new CustomRAMDirectory())
-            using (var simpleDir = new CustomRAMDirectory())
-            using (var conventionDir = new CustomRAMDirectory())
+            using (var cwsDir = new RandomIdRAMDirectory())
+            using (var pdfDir = new RandomIdRAMDirectory())
+            using (var simpleDir = new RandomIdRAMDirectory())
+            using (var conventionDir = new RandomIdRAMDirectory())
             {
                 //get all of the indexers and rebuild them all first
                 var indexers = new IIndexer[]
@@ -60,10 +60,10 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Field_Count()
         {
-            using (var cwsDir = new CustomRAMDirectory())
-            using (var pdfDir = new CustomRAMDirectory())
-            using (var simpleDir = new CustomRAMDirectory())
-            using (var conventionDir = new CustomRAMDirectory())
+            using (var cwsDir = new RandomIdRAMDirectory())
+            using (var pdfDir = new RandomIdRAMDirectory())
+            using (var simpleDir = new RandomIdRAMDirectory())
+            using (var conventionDir = new RandomIdRAMDirectory())
             {
                 //get all of the indexers and rebuild them all first
                 var indexers = new IIndexer[]

@@ -2,19 +2,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using Lucene.Net.Store;
 
 namespace Examine.Test
 {
-    public class CustomRAMDirectory : RAMDirectory
-    {
-        private readonly string _lockId = Guid.NewGuid().ToString();
-        public override string GetLockID()
-        {
-            return _lockId;
-        }
-    }
-
     public static class TestHelper
     {
         static public string AssemblyDirectory

@@ -503,7 +503,7 @@ namespace Examine.Test.Search
         [TestFixtureSetUp]
         public void TestSetup()
         {
-			_luceneDir = new CustomRAMDirectory();
+			_luceneDir = new RandomIdRAMDirectory();
 
             //_luceneDir = new SimpleFSDirectory(new DirectoryInfo(Path.Combine(TestHelper.AssemblyDirectory, Guid.NewGuid().ToString())));
 

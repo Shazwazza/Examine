@@ -634,10 +634,10 @@ namespace Examine.LuceneEngine.Providers
                 // logic to actually execute multiple times
                 if (Monitor.TryEnter(_writerLocker))
                 {
-                    var dir = GetLuceneDirectory();
-
                     try
                     {
+                        var dir = GetLuceneDirectory();
+
                         //if there's no index, we need to create one
                         if (!IndexExists())
                         {
@@ -1047,6 +1047,13 @@ namespace Examine.LuceneEngine.Providers
 
             var nodeId = int.Parse(node.Attribute("id").Value);
 
+
+
+            //TODO: There's a hotspot for the SelectExamineDataValue - we could enhance the lookup of this and the SelectExaminePropertyValue
+            // the hotspot is in the method when it is looking up FirstOrDefault string.Equals(x.Name.ToString(), alias, StringComparison.InvariantCultureIgnoreCase)
+            // we could reduce the list of XElement when one is found so on each next iteration there are less lookups
+
+
             // Add umbraco node properties 
             foreach (var field in IndexerData.StandardFields)
             {
@@ -1054,7 +1061,7 @@ namespace Examine.LuceneEngine.Providers
                 var args = new IndexingFieldDataEventArgs(node, field.Name, val, true, nodeId);
                 OnGatheringFieldData(args);
                 val = args.FieldValue;
-
+                
                 //don't add if the value is empty/null                
                 if (!string.IsNullOrEmpty(val))
                 {
@@ -1165,28 +1172,27 @@ namespace Examine.LuceneEngine.Providers
                 return;
 
             var d = new Document();
-
-            //get all index set fields that are defined
-            var indexSetFields = IndexerData.UserFields.Concat(IndexerData.StandardFields.ToList()).ToArray();
-
+            
             //add all of our fields to the document index individually, don't include the special fields if they exists            
-            var validFields = fields.Where(x => !x.Key.StartsWith(SpecialFieldPrefix)).ToArray();
+            var validFields = fields.Where(x => !x.Key.StartsWith(SpecialFieldPrefix));
 
-            foreach (var x in validFields)
+            foreach (var validField in validFields)
             {
-                var ourPolicyType = GetPolicy(x.Key);
+                var ourPolicyType = GetPolicy(validField.Key);
                 var lucenePolicy = TranslateFieldIndexTypeToLuceneType(ourPolicyType);
 
-                //copy local
-                var x1 = x;
-                var indexedFields = indexSetFields.Where(o => o.Name == x1.Key).ToArray();
+                IReadOnlyList<IIndexField> indexedFields;
+                if (!CombinedIndexerDataFields.TryGetValue(validField.Key, out indexedFields))
+                {
+                    indexedFields = new List<IIndexField>();
+                }
 
-                if (!indexedFields.Any())
+                if (indexedFields.Count == 0)
                 {
                     //TODO: Decide if we should support non-strings in here too
                     d.Add(
-                    new Field(x.Key,
-                        x.Value,
+                    new Field(validField.Key,
+                        validField.Value,
                         Field.Store.YES,
                         lucenePolicy,
                               Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES));
@@ -1195,14 +1201,14 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     //checks if there's duplicates fields, if not check if the field needs to be sortable...
-                    if (indexedFields.Length > 1)
+                    if (indexedFields.Count > 1)
                     {
                         //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field                        
-                        OnDuplicateFieldWarning(nodeId, IndexSetName, x.Key);
+                        OnDuplicateFieldWarning(nodeId, IndexSetName, validField.Key);
                     }
 
                     //take the first one and continue!
-                    var indexField = indexedFields.First();
+                    var indexField = indexedFields[0];
 
                     Fieldable field = null;
                     Fieldable sortedField = null;
@@ -1212,70 +1218,70 @@ namespace Examine.LuceneEngine.Providers
                     {
                         case "NUMBER":
                         case "INT":
-                            if (!TryConvert<int>(x.Value, out parsedVal))
+                            if (!TryConvert<int>(validField.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetIntValue((int)parsedVal);
-                            sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetIntValue((int)parsedVal);
+                            field = new NumericField(validField.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetIntValue((int)parsedVal);
+                            sortedField = new NumericField(SortedFieldNamePrefix + validField.Key, Field.Store.NO, true).SetIntValue((int)parsedVal);
                             break;
                         case "FLOAT":
-                            if (!TryConvert<float>(x.Value, out parsedVal))
+                            if (!TryConvert<float>(validField.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetFloatValue((float)parsedVal);
-                            sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetFloatValue((float)parsedVal);
+                            field = new NumericField(validField.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetFloatValue((float)parsedVal);
+                            sortedField = new NumericField(SortedFieldNamePrefix + validField.Key, Field.Store.NO, true).SetFloatValue((float)parsedVal);
                             break;
                         case "DOUBLE":
-                            if (!TryConvert<double>(x.Value, out parsedVal))
+                            if (!TryConvert<double>(validField.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetDoubleValue((double)parsedVal);
-                            sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetDoubleValue((double)parsedVal);
+                            field = new NumericField(validField.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetDoubleValue((double)parsedVal);
+                            sortedField = new NumericField(SortedFieldNamePrefix + validField.Key, Field.Store.NO, true).SetDoubleValue((double)parsedVal);
                             break;
                         case "LONG":
-                            if (!TryConvert<long>(x.Value, out parsedVal))
+                            if (!TryConvert<long>(validField.Value, out parsedVal))
                                 break;
-                            field = new NumericField(x.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetLongValue((long)parsedVal);
-                            sortedField = new NumericField(SortedFieldNamePrefix + x.Key, Field.Store.NO, true).SetLongValue((long)parsedVal);
+                            field = new NumericField(validField.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetLongValue((long)parsedVal);
+                            sortedField = new NumericField(SortedFieldNamePrefix + validField.Key, Field.Store.NO, true).SetLongValue((long)parsedVal);
                             break;
                         case "DATE":
                         case "DATETIME":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MILLISECOND, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(validField.Key, validField.Value, DateTools.Resolution.MILLISECOND, lucenePolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.YEAR":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.YEAR, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(validField.Key, validField.Value, DateTools.Resolution.YEAR, lucenePolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.MONTH":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MONTH, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(validField.Key, validField.Value, DateTools.Resolution.MONTH, lucenePolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.DAY":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.DAY, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(validField.Key, validField.Value, DateTools.Resolution.DAY, lucenePolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.HOUR":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.HOUR, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(validField.Key, validField.Value, DateTools.Resolution.HOUR, lucenePolicy, ref field, ref sortedField);
                                 break;
                             }
                         case "DATE.MINUTE":
                             {
-                                SetDateTimeField(x.Key, x.Value, DateTools.Resolution.MINUTE, lucenePolicy, ref field, ref sortedField);
+                                SetDateTimeField(validField.Key, validField.Value, DateTools.Resolution.MINUTE, lucenePolicy, ref field, ref sortedField);
                                 break;
                             }
                         default:
                             field =
-                                new Field(x.Key,
-                                    x.Value,
+                                new Field(validField.Key,
+                                    validField.Value,
                                     Field.Store.YES,
                                     lucenePolicy,
                                           Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES
                                 );
-                            sortedField = new Field(SortedFieldNamePrefix + x.Key,
-                                                    x.Value,
+                            sortedField = new Field(SortedFieldNamePrefix + validField.Key,
+                                                    validField.Value,
                                                     Field.Store.NO, //we don't want to store the field because we're only using it to sort, not return data
                                                     Field.Index.NOT_ANALYZED,
                                                     Field.TermVector.NO
@@ -1286,7 +1292,7 @@ namespace Examine.LuceneEngine.Providers
                     //if the parsed value is null, this means it couldn't parse and we should log this error
                     if (field == null)
                     {
-                        OnIndexingError(new IndexingErrorEventArgs("Could not parse value: " + x.Value + "into the type: " + indexField.Type, nodeId, null));
+                        OnIndexingError(new IndexingErrorEventArgs("Could not parse value: " + validField.Value + "into the type: " + indexField.Type, nodeId, null));
                     }
                     else
                     {

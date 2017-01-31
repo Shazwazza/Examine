@@ -72,7 +72,7 @@ namespace Examine.Test.Search
         [TestFixtureSetUp]
         public void TestSetup()
         {
-			_luceneDir = new CustomRAMDirectory();
+			_luceneDir = new RandomIdRAMDirectory();
 			_indexer = IndexInitializer.GetUmbracoIndexer(_luceneDir);
             _indexer.RebuildIndex();
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);

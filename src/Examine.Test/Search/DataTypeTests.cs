@@ -262,7 +262,7 @@ namespace Examine.Test.Search
         public void TestSetup()
         {
 
-			_luceneDir = new CustomRAMDirectory();
+			_luceneDir = new RandomIdRAMDirectory();
 			_indexer = IndexInitializer.GetSimpleIndexer(_luceneDir);
             
             _reIndexDateTime = DateTime.Now;

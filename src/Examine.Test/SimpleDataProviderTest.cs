@@ -77,7 +77,7 @@ namespace Examine.Test
         [TestFixtureSetUp]
         public void TestSetup()
 		{
-			_luceneDir = new CustomRAMDirectory();
+			_luceneDir = new RandomIdRAMDirectory();
 			_indexer = IndexInitializer.GetSimpleIndexer(_luceneDir);
 			_indexer.RebuildIndex();
 			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);

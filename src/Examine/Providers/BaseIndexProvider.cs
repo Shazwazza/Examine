@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration.Provider;
+using System.Linq;
 using System.Security;
 using Examine;
 using System.Xml.Linq;
@@ -76,7 +78,28 @@ namespace Examine.Providers
         /// <summary>
         /// Gets/sets the index criteria to create the index with
         /// </summary>
-        public IIndexCriteria IndexerData { get; set; }
+        public IIndexCriteria IndexerData
+        {
+            get { return _indexerData; }
+            set
+            {
+                _indexerData = value;
+                //reset the combined data 
+                _combinedIndexerDataFields = null;
+            }
+        }
+
+        private CombinedIndexerDataFields _combinedIndexerDataFields;
+        private IIndexCriteria _indexerData;
+
+        internal CombinedIndexerDataFields CombinedIndexerDataFields
+        {
+            get
+            {
+                return _combinedIndexerDataFields 
+                    ?? (_combinedIndexerDataFields = new CombinedIndexerDataFields(IndexerData.UserFields.Concat(IndexerData.StandardFields.ToList())));
+            }
+        }
 
         /// <summary>
         /// Check if the index exists
@@ -225,5 +248,18 @@ namespace Examine.Providers
 
     }
 
-   
+    /// <summary>
+    /// The dictionary will be for keys but each key could contain multiple IIndexField
+    /// </summary>
+    internal class CombinedIndexerDataFields : Dictionary<string, IReadOnlyList<IIndexField>>
+    {
+        public CombinedIndexerDataFields(IEnumerable<IIndexField> allFields)
+        {
+            foreach (var f in allFields.GroupBy(x => x.Name))
+            {
+                Add(f.Key, f.ToList());
+            }
+        }
+        
+    }
 }
