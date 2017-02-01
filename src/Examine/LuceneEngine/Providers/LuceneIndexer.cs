@@ -1359,7 +1359,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
         {
-            return new Dictionary<string, string>()
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
 				//we want to store the nodeId separately as it's the index
 				{IndexNodeIdFieldName, allValuesForIndexing[IndexNodeIdFieldName]},
