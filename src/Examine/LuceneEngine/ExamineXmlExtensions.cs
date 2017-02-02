@@ -140,7 +140,7 @@ namespace Examine.LuceneEngine
         public static bool IsExamineProperty(this XElement x, string alias)
         {
             if ((x.Name == alias) //this will match if its the new schema
-                || (x.Name == "data" && (string)x.Attribute("nodeTypeAlias") == alias)) //this will match old schema
+                || (x.Name == "data" && (string) x.Attribute("nodeTypeAlias") == alias)) //this will match old schema
             {
                 return true;
             }
@@ -155,7 +155,7 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public static bool IsExamineElement(this XElement x)
         {
-            var id = (string)x.Attribute("id");
+            var id = (string) x.Attribute("id");
             if (string.IsNullOrEmpty(id))
             {
                 return false;
@@ -179,9 +179,9 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public static string ExamineNodeTypeAlias(this XElement x)
         {
-            return !x.IsExamineElement() ? string.Empty
-                : string.IsNullOrEmpty(((string)x.Attribute("nodeTypeAlias"))) ? x.Name.LocalName
-                : (string)x.Attribute("nodeTypeAlias");
+            return string.IsNullOrEmpty(((string) x.Attribute("nodeTypeAlias")))
+                ? x.Name.LocalName
+                : (string) x.Attribute("nodeTypeAlias");
         }
 
         /// <summary>
@@ -199,7 +199,21 @@ namespace Examine.LuceneEngine
             }
             else
             {
-                return (string)x.Attribute(alias);
+                return (string) x.Attribute(alias);
+            }
+        }
+
+        internal static string SelectExaminePropertyValue(this XElement x, IDictionary<string, string> attributeValues, string alias)
+        {
+            if (alias == "nodeTypeAlias")
+            {
+                return x.ExamineNodeTypeAlias();
+            }
+            else
+            {
+                string result;
+                attributeValues.TryGetValue(alias, out result);
+                return result;
             }
         }
 
@@ -211,16 +225,12 @@ namespace Examine.LuceneEngine
         /// <returns></returns>
         public static string SelectExamineDataValue(this XElement xml, string alias)
         {
-            if (!xml.IsExamineElement())
-                return string.Empty;
-
             XElement nodeData = null;
-
 
             //if there is data children with attributes, we're on the old
             if (xml.Elements("data").Any(x => x.HasAttributes))
             {
-                nodeData = xml.Elements("data").SingleOrDefault(x => string.Equals(((string)x.Attribute("alias")), alias, StringComparison.InvariantCultureIgnoreCase));
+                nodeData = xml.Elements("data").SingleOrDefault(x => string.Equals(((string) x.Attribute("alias")), alias, StringComparison.InvariantCultureIgnoreCase));
             }
             else
             {
@@ -241,8 +251,44 @@ namespace Examine.LuceneEngine
             var reader = nodeData.CreateReader();
             reader.MoveToContent();
             return reader.ReadInnerXml();
-
         }
 
+        internal static Dictionary<string, string> SelectExamineDataValues(this XElement xml)
+        {
+            //resolve all element data at once since it is much faster to do this than to relookup all of the XML data
+            //using Linq and the node.Elements() methods re-gets all of them.
+            var elementValues = new Dictionary<string, string>();
+            foreach (var x in xml.Elements())
+            {
+                string key;
+                if (x.Name.LocalName == "data")
+                {
+                    //it's the legacy schema
+                    key = (string)x.Attribute("alias");
+                }
+                else
+                {
+                    key = x.Name.LocalName;
+                }
+
+                if (string.IsNullOrEmpty(key))
+                    continue;
+
+                if (!x.HasElements)
+                {
+                    elementValues[key] = x.Value;
+                }
+                else
+                {
+                    //it has sub elements so serialize them
+                    using (var reader = x.CreateReader())
+                    {
+                        reader.MoveToContent();
+                        elementValues[key] = reader.ReadInnerXml();
+                    }
+                }
+            }
+            return elementValues;
+        }
     }
 }
