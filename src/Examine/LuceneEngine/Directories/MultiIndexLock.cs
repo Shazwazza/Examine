@@ -28,13 +28,15 @@ namespace Examine.LuceneEngine.Directories
         [SecurityCritical]
         public override bool Obtain()
         {
-            return _dirMaster.Obtain() && _dirChild.Obtain();
+            return _dirMaster.Obtain() 
+                && _dirChild.Obtain();
         }
 
         [SecurityCritical]
         public override bool Obtain(long lockWaitTimeout)
         {
-            return _dirMaster.Obtain(lockWaitTimeout) && _dirChild.Obtain(lockWaitTimeout);
+            return _dirMaster.Obtain(lockWaitTimeout) 
+                && _dirChild.Obtain(lockWaitTimeout);
         }
 
         /// <summary>

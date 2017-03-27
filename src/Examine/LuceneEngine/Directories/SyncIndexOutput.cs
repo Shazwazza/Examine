@@ -1,13 +1,15 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Security;
 using System.Threading;
 using Lucene.Net.Store;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Directories
 {
     /// <summary>
-    /// Implements IndexOutput semantics for a write/append only file
+    /// Implements "Copy on write" semantics for Lucene IndexInput
     /// </summary>
     [SecurityCritical]
     internal class SyncIndexOutput : IndexOutput
@@ -25,17 +27,17 @@ namespace Examine.LuceneEngine.Directories
         {
             if (syncDirectory == null) throw new ArgumentNullException(nameof(syncDirectory));
 
-            //TODO: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19
+            //NOTE: _name was null here https://github.com/azure-contrib/AzureDirectory/issues/19
             // I have changed this to be correct now
             _name = name;
             _syncDirectory = syncDirectory;
             _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
             _fileMutex.WaitOne();
             try
-            {                
+            {
                 // create the local cache one we will operate against...
                 _indexOutput = CacheDirectory.CreateOutput(_name);
-            }            
+            }
             finally
             {
                 _fileMutex.ReleaseMutex();
@@ -48,48 +50,59 @@ namespace Examine.LuceneEngine.Directories
             _indexOutput.Flush();
         }
 
+        /// <summary>
+        /// When the IndexOutput is closed we ensure that the file is flushed and written locally and also persisted to master storage
+        /// </summary>
         [SecurityCritical]
         public override void Close()
         {
             _fileMutex.WaitOne();
             try
             {
-                string fileName = _name;
+                var fileName = _name;
 
-                // make sure it's all written out
+                //make sure it's all written out
+                //we are only checking for null here in case Close is called multiple times
                 if (_indexOutput != null)
                 {
                     _indexOutput.Flush();
                     _indexOutput.Close();
-                }
 
-                if (CacheDirectory.FileExists(fileName))
-                {
-                    //open stream to read cache file
-                    using (var cacheStream = new StreamInput(CacheDirectory.OpenInput(fileName)))
-                    // push the blobStream up to the master
-                    using (var masterStream = new StreamOutput(MasterDirectory.CreateOutput(fileName)))
+                    IndexInput cacheInput = null;
+                    try
                     {
-                        cacheStream.CopyTo(masterStream);
-
-                        masterStream.Flush();
-                        Trace.WriteLine($"PUT {cacheStream.Length} bytes to {_name} in cloud");
+                        cacheInput = CacheDirectory.OpenInput(fileName);
+                    }
+                    catch (IOException e)
+                    {
+                        //This would occur if the file doesn't exist! we previously threw when that happens so we'll keep
+                        //doing that for now but this is quicker than first checking if it exists and then opening it.
+                        throw;
                     }
 
-                    //sync the last file write times - at least get them close.
-                    //TODO: The alternative would be to force both directory instances to be FSDirectory, 
-                    // or try casting the master directory to FSDirectory to get the raw FileInfo and manually
-                    // set the lastmodified time - this should work though
-                    MasterDirectory.TouchFile(fileName);
-                    CacheDirectory.TouchFile(fileName);
+                    if (cacheInput != null)
+                    {                        
+                        IndexOutput masterOutput = null;
+                        try
+                        {
+                            masterOutput = MasterDirectory.CreateOutput(fileName);
+                            cacheInput.CopyTo(masterOutput, fileName);
+                        }
+                        finally
+                        {
+                            masterOutput?.Close();
+                            cacheInput?.Close();
+                        }
+                    }
 
 #if FULLDEBUG
-                      Debug.WriteLine($"CLOSED WRITESTREAM {_name}");
-#endif    
+                    Trace.WriteLine($"CLOSED WRITESTREAM {_name}");
+#endif
+
+                    // clean up
+                    _indexOutput = null;
                 }
 
-                // clean up
-                _indexOutput = null;
                 GC.SuppressFinalize(this);
             }
             finally
@@ -97,6 +110,7 @@ namespace Examine.LuceneEngine.Directories
                 _fileMutex.ReleaseMutex();
             }
         }
+
 
         [SecurityCritical]
         public override long Length()

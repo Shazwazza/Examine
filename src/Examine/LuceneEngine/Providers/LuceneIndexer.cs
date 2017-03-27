@@ -1857,12 +1857,12 @@ namespace Examine.LuceneEngine.Providers
 
         #endregion
 
-        #region Private
+            #region Private
 
-        /// <summary>
-        /// Stupid medium trust - that is the only reason this method exists
-        /// </summary>
-        /// <returns></returns>
+            /// <summary>
+            /// Stupid medium trust - that is the only reason this method exists
+            /// </summary>
+            /// <returns></returns>
         [SecuritySafeCritical]
         private LuceneSearcher GetSearcher()
         {
@@ -2027,8 +2027,11 @@ namespace Examine.LuceneEngine.Providers
                 //ensure nothing more can be added
                 _indexer._indexQueue.CompleteAdding();
 
-                //process remaining items and block until complete
-                _indexer.ForceProcessQueueItems(true);
+                if (_indexer._writer != null)
+                {
+                    //process remaining items and block until complete
+                    _indexer.ForceProcessQueueItems(true);
+                }
 
                 //dispose it now
                 _indexer._indexQueue.Dispose();
@@ -2039,10 +2042,7 @@ namespace Examine.LuceneEngine.Providers
                 //close the committer, this will ensure a final commit is made if one has been queued
                 _indexer._committer.Dispose();
 
-                if (_indexer._writer != null)
-                {
-                    _indexer._writer.Dispose();
-                }
+                _indexer._writer?.Dispose();
 
                 _indexer._cancellationTokenSource.Dispose();
 

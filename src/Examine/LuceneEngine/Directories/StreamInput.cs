@@ -48,14 +48,14 @@ namespace Examine.LuceneEngine.Directories
         public override int Read(byte[] buffer, int offset, int count)
         {
             var pos = Input.GetFilePointer();
-            try
-            {
+            //try
+            //{
                 var len = Input.Length();
                 if (count > (len - pos))
                     count = (int)(len - pos);
                 Input.ReadBytes(buffer, offset, count);
-            }
-            catch (Exception) { }
+            //}
+            //catch (Exception) { }
             return (int)(Input.GetFilePointer() - pos);
         }
 

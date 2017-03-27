@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security;
@@ -7,6 +8,26 @@ using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine.Directories
 {
+    /// <summary>
+    /// A custom Lucene directory that allows for a slow master file directory and a fast cache directory
+    /// </summary>
+    /// <remarks>
+    /// This directory is needed in circumstances where the website is hosted on a remote file share or the index exists on a slower
+    /// file server. This will allow for the master index copy to be copied to a local fast cache directory which all reads will be 
+    /// done through. All writes will then be to both of these directories.
+    /// This can be called Copy-on-read and Copy-on-write.
+    /// 
+    /// Shans notes: 
+    /// After some research into an error we were getting it turns out there's a java implementation similar to this called jackrabbit.
+    /// They've approached this slightly differently but the end result is very similar. Here's the source code for the interesting parts:
+    /// 
+    /// CopyOnRead directory:  http://svn.apache.org/viewvc/jackrabbit/oak/branches/1.6/oak-lucene/src/main/java/org/apache/jackrabbit/oak/plugins/index/lucene/directory/CopyOnReadDirectory.java?view=markup
+    /// CopyOnWrite directory: http://svn.apache.org/viewvc/jackrabbit/oak/branches/1.6/oak-lucene/src/main/java/org/apache/jackrabbit/oak/plugins/index/lucene/directory/CopyOnWriteDirectory.java?view=markup
+    /// 
+    /// Whats quite interesting is that they keep an in memory file map of the slow directory which would improve performance if we did that as well since
+    /// there would be less IO especially for things like ListAll, FileExists
+    /// 
+    /// </remarks>
     [SecurityCritical]
     public class SyncDirectory : Lucene.Net.Store.Directory
     {
@@ -16,6 +37,8 @@ namespace Examine.LuceneEngine.Directories
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
+
+        private static readonly HashSet<string> RemoteOnly = new HashSet<string> {"segments.gen"};
 
 
         /// <summary>
@@ -90,34 +113,23 @@ namespace Examine.LuceneEngine.Directories
 
             if (_inSync)
             {
-                try
-                {
-                    return _cacheDirectory.FileExists(name);
-                }
-                catch (Exception)
-                {
-                    //revert to checking the master - what implications would this have?
-                    try
-                    {
-                        return _masterDirectory.FileExists(name);
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-                }
+                //Any exception that is thrown would be based on the ctor of a FileInfo which would indicate security issues or similar
+                //see exceptions: https://msdn.microsoft.com/en-us/library/system.io.fileinfo.fileinfo(v=vs.110).aspx
+                //Lucene uses a new FileInfo(...).Exists for this check which itself doesn't throw exceptions
+                //we used to catch this but it seems counter intuitive since the normal FSDirectory already catches and it seems that
+                //if we catch and return null we're covering up an underlying issue.
+
+                var cacheExists = _cacheDirectory.FileExists(name);
+
+                //revert to checking the master - what implications would this have?
+
+                //TODO: If the master does in fact have the file, we should sync it to the cache dir
+
+                return cacheExists || _masterDirectory.FileExists(name);
             }
-            else
-            {
-                try
-                {
-                    return _masterDirectory.FileExists(name);
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
+
+            //not in sync so return from the master
+            return _masterDirectory.FileExists(name);
         }
 
         /// <summary>Returns the time the named file was last modified. </summary>
@@ -189,7 +201,7 @@ namespace Examine.LuceneEngine.Directories
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Could not rename file on master index; " + ex);
+                Trace.TraceError("Could not rename file on master index; " + ex);
             }
 
             try
@@ -203,7 +215,7 @@ namespace Examine.LuceneEngine.Directories
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Could not rename file on local index; " + ex);
+                Trace.TraceError("Could not rename file on local index; " + ex);
             }
         }
 
@@ -223,13 +235,40 @@ namespace Examine.LuceneEngine.Directories
         public override IndexOutput CreateOutput(string name)
         {
             SetDirty();
+
+            //This is what enables "Copy on write" semantics
             return new SyncIndexOutput(this, name);
+
+            //If we returned this instead, this essentially becomes only "Copy on read" and not "Copy on write"
+            //return _masterDirectory.CreateOutput(name);
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
         [SecurityCritical]
         public override IndexInput OpenInput(string name)
         {
+            //There's a project called Jackrabbit which performs a copy on read/copy on write semantics as well and it appears
+            //that they also experienced the file not found issue. I noticed that their implementation only ever reads the segments.gen
+            //file from the remote file system. 
+
+            //The Lucene docs reveal a bit more info - since the segments.gen file is not 'write once' we'd have to deal with that accordingly:
+
+            //"As of 2.1, there is also a file segments.gen. This file contains the current generation (the _N in segments_N) of the index. 
+            //This is used only as a fallback in case the current generation cannot be accurately determined by directory listing alone 
+            //(as is the case for some NFS clients with time-based directory cache expiraation). 
+            //This file simply contains an Int32 version header (SegmentInfos.FORMAT_LOCKLESS = -2), followed by the 
+            //generation recorded as Int64, written twice."
+
+            //"As of version 2.1 (lock-less commits), file names are never re-used (there is one exception, "segments.gen", see below). 
+            //That is, when any file is saved to the Directory it is given a never before used filename. This is achieved using a simple 
+            //generations approach. For example, the first segments file is segments_1, then segments_2, etc. 
+            //The generation is a sequential long integer represented in alpha-numeric (base 36) form."
+
+            if (RemoteOnly.Contains(name))
+            {
+                return _masterDirectory.OpenInput(name);
+            }
+
             try
             {
                 return new SyncIndexInput(this, name);
@@ -323,12 +362,9 @@ namespace Examine.LuceneEngine.Directories
 
         private void SetDirty()
         {
-            if (!_dirty)
+            lock (_locker)
             {
-                lock (_locker)
-                {
-                    _dirty = true;
-                }
+                _dirty = true;
             }
         }
     }

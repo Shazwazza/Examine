@@ -12,6 +12,8 @@ namespace Examine.LuceneEngine.Directories
     {
         private readonly LockFactory _master;
         private readonly LockFactory _child;
+
+        private static readonly object Locker = new object();
         
         public MultiIndexLockFactory(Directory master, Directory child)
         {
@@ -25,21 +27,30 @@ namespace Examine.LuceneEngine.Directories
         {
             if (master == null) throw new ArgumentNullException("master");
             if (child == null) throw new ArgumentNullException("child");
-            _master = master;
-            _child = child;
+            lock (Locker)
+            {
+                _master = master;
+                _child = child;
+            }
         }
 
         [SecurityCritical]
         public override Lock MakeLock(string lockName)
         {
-            return new MultiIndexLock(_master.MakeLock(lockName), _child.MakeLock(lockName));
+            lock (Locker)
+            {
+                return new MultiIndexLock(_master.MakeLock(lockName), _child.MakeLock(lockName));
+            }
         }
 
         [SecurityCritical]
         public override void ClearLock(string lockName)
         {
-            _master.ClearLock(lockName);
-            _child.ClearLock(lockName);
+            lock (Locker)
+            {
+                _master.ClearLock(lockName);
+                _child.ClearLock(lockName);
+            }
         }
     }
 }
