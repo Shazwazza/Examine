@@ -35,3 +35,14 @@
         </button>
     </p>
 }
+
+@using (Html.BeginForm("ReIndexItems", "Home"))
+{
+    <p>
+        Click to re-index a few items
+        <br />
+        <button id="index" name="index">
+            Re-index items
+        </button>
+    </p>
+}

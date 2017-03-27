@@ -49,7 +49,7 @@ namespace Examine.LuceneEngine.Providers
 		[SecuritySafeCritical]
         public override Searcher GetSearcher()
         {
-            //Debug.WriteLine("LuceneMemorySearcher.GetSearcher");
+            //Trace.WriteLine("LuceneMemorySearcher.GetSearcher");
             if (_searcher == null)
             {
                  _searcher = new IndexSearcher(GetLuceneDirectory(), true);

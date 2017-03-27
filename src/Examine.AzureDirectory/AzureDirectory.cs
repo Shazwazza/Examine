@@ -46,7 +46,7 @@ namespace Examine.AzureDirectory
 
             _cacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
-            _lockFactory = new MultiIndexLockFactory(new AzureDirectoryLockFactory(this), _cacheDirectory.GetLockFactory());
+            _lockFactory = new MultiIndexLockFactory(new AzureDirectoryNativeLockFactory(this), _cacheDirectory.GetLockFactory());
 
             if (string.IsNullOrEmpty(rootFolder))
                 RootFolder = string.Empty;
@@ -212,7 +212,7 @@ namespace Examine.AzureDirectory
             blob.DeleteIfExists();            
             SetDirty();
 
-            Debug.WriteLine($"DELETE {_blobContainer.Uri.ToString()}/{name}");
+            Trace.WriteLine($"DELETE {_blobContainer.Uri.ToString()}/{name}");
         }
 
         
@@ -233,7 +233,7 @@ namespace Examine.AzureDirectory
             }
             catch(Exception ex)
             {
-                Debug.WriteLine("Could not rename file on master index; " + ex);
+                Trace.TraceError("Could not rename file on master index; " + ex);
             }
 
             try
@@ -371,11 +371,13 @@ namespace Examine.AzureDirectory
                     return false;
             };
         }
-        public StreamInput OpenCachedInputAsStream(string name)
-        {
-            return new StreamInput(CacheDirectory.OpenInput(name));
-        }
 
+        //public StreamInput OpenCachedInputAsStream(string name)
+        //{
+        //    return new StreamInput(CacheDirectory.OpenInput(name));
+        //}
+
+        //TODO: Get rid of this
         public StreamOutput CreateCachedOutputAsStream(string name)
         {
             return new StreamOutput(CacheDirectory.CreateOutput(name));

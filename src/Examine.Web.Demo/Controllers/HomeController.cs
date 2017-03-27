@@ -32,10 +32,10 @@ namespace Examine.Web.Demo.Controllers
             var result = multi.Search(criteria.RawQuery(query));
 
             var sb = new StringBuilder();
-            sb.AppendLine(string.Format("Results :{0}", result.TotalItemCount));
+            sb.AppendLine($"Results :{result.TotalItemCount}");
             foreach (var searchResult in result)
             {
-                sb.AppendLine(string.Format("Id:{0}, Score:{1}, Vals: {2}", searchResult.Id, searchResult.Score, string.Join(", ", searchResult.Fields.Select(x => x.Value))));
+                sb.AppendLine($"Id:{searchResult.Id}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Fields.Select(x => x.Value))}");
             }
             return Content(sb.ToString());
         }
@@ -46,10 +46,10 @@ namespace Examine.Web.Demo.Controllers
             var criteria = ExamineManager.Instance.CreateSearchCriteria();
             var result = ExamineManager.Instance.Search(criteria.RawQuery(id));
             var sb = new StringBuilder();
-            sb.AppendLine(string.Format("Results :{0}", result.TotalItemCount));
+            sb.AppendLine($"Results :{result.TotalItemCount}");
             foreach (var searchResult in result)
             {
-                sb.AppendLine(string.Format("Id:{0}, Score:{1}, Vals: {2}", searchResult.Id, searchResult.Score, string.Join(", ", searchResult.Fields.Select(x => x.Value))));
+                sb.AppendLine($"Id:{searchResult.Id}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Fields.Select(x => x.Value))}");
             }
             return Content(sb.ToString());
         }
@@ -125,6 +125,25 @@ namespace Examine.Web.Demo.Controllers
         }
 
         [HttpPost]
+        public ActionResult ReIndexItems()
+        {
+            var total = 0;
+            var dataService = new TableDirectReaderDataService();
+            foreach (var simpleDataSet in dataService.GetRandomItems())
+            {
+                ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"]
+                    .ReIndexNode(
+                        simpleDataSet.RowData.ToExamineXml(
+                            simpleDataSet.NodeDefinition.NodeId,
+                            simpleDataSet.NodeDefinition.Type),
+                        "TestType");
+                total++;
+            }            
+
+            return View(total);
+        }
+
+        [HttpPost]
         public ActionResult TestIndex()
         {
 
@@ -133,7 +152,7 @@ namespace Examine.Web.Demo.Controllers
 
             var model = new IndexInfo
             {
-                Docs = writer.MaxDoc(),
+                Docs = writer.NumDocs(),
                 Fields = writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL).Count
             };
 

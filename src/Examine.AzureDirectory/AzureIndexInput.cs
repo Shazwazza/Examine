@@ -31,7 +31,7 @@ namespace Examine.AzureDirectory
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
             _azureDirectory = azuredirectory;
 #if FULLDEBUG
-            Debug.WriteLine(String.Format("opening {0} ", _name));
+            Trace.WriteLine($"opening {_name} ");
 #endif
             _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name);
             _fileMutex.WaitOne();
@@ -81,7 +81,7 @@ namespace Examine.AzureDirectory
                             else
                             {
 #if FULLDEBUG
-                                Debug.WriteLine(timeSpan.TotalSeconds);
+                                Trace.WriteLine(timeSpan.TotalSeconds);
 #endif
                                 // file not needed
                             }
@@ -105,7 +105,9 @@ namespace Examine.AzureDirectory
                             _blob.DownloadToStream(fileStream);
 
                             fileStream.Flush();
-                            Debug.WriteLine(string.Format("GET {0} RETREIVED {1} bytes", _name, fileStream.Length));
+#if FULLDEBUG
+                            Trace.WriteLine($"GET {_name} RETREIVED {fileStream.Length} bytes");
+#endif
                         }
                     }
 
@@ -115,7 +117,7 @@ namespace Examine.AzureDirectory
                 else
                 {
 #if FULLDEBUG
-                    Debug.WriteLine(String.Format("Using cached file for {0}", _name));
+                    Trace.WriteLine($"Using cached file for {_name}");
 #endif
 
                     // open the file in read only mode
@@ -137,7 +139,9 @@ namespace Examine.AzureDirectory
                 // get the deflated blob
                 _blob.DownloadToStream(deflatedStream);
 
-                Debug.WriteLine(string.Format("GET {0} RETREIVED {1} bytes", _name, deflatedStream.Length));
+#if FULLDEBUG
+                Trace.WriteLine($"GET {_name} RETREIVED {deflatedStream.Length} bytes");
+#endif 
 
                 // seek back to begininng
                 deflatedStream.Seek(0, SeekOrigin.Begin);
@@ -160,24 +164,31 @@ namespace Examine.AzureDirectory
 
         public AzureIndexInput(AzureIndexInput cloneInput)
         {
+            _name = cloneInput._name;
+            _azureDirectory = cloneInput._azureDirectory;
+            _blobContainer = cloneInput._blobContainer;
+            _blob = cloneInput._blob;
+
+            if (string.IsNullOrWhiteSpace(_name)) throw new ArgumentNullException(nameof(cloneInput._name));
+            if (_azureDirectory == null) throw new ArgumentNullException(nameof(cloneInput._azureDirectory));
+            if (_blobContainer == null) throw new ArgumentNullException(nameof(cloneInput._blobContainer));
+            if (_blob == null) throw new ArgumentNullException(nameof(cloneInput._blob));
+
             _fileMutex = SyncMutexManager.GrabMutex(cloneInput._azureDirectory, cloneInput._name);
             _fileMutex.WaitOne();
 
             try
             {
 #if FULLDEBUG
-                Debug.WriteLine(String.Format("Creating clone for {0}", cloneInput._name));
-#endif
-                _azureDirectory = cloneInput._azureDirectory;
-                _blobContainer = cloneInput._blobContainer;
-                _blob = cloneInput._blob;
+                Trace.WriteLine($"Creating clone for {cloneInput._name}");
+#endif                
                 _indexInput = cloneInput._indexInput.Clone() as IndexInput;
             }
             catch (Exception)
             {
                 // sometimes we get access denied on the 2nd stream...but not always. I haven't tracked it down yet
                 // but this covers our tail until I do
-                Debug.WriteLine(String.Format("Dagnabbit, falling back to memory clone for {0}", cloneInput._name));
+                Trace.TraceError($"Dagnabbit, falling back to memory clone for {cloneInput._name}");
             }
             finally
             {
@@ -211,7 +222,7 @@ namespace Examine.AzureDirectory
             try
             {
 #if FULLDEBUG
-                Debug.WriteLine(String.Format("CLOSED READSTREAM local {0}", _name));
+                Trace.WriteLine($"CLOSED READSTREAM local {_name}");
 #endif
                 _indexInput.Close();
                 _indexInput = null;
@@ -231,18 +242,18 @@ namespace Examine.AzureDirectory
             return _indexInput.Length();
         }
 
-        public override System.Object Clone()
+        public override object Clone()
         {
             IndexInput clone = null;
             try
             {
                 _fileMutex.WaitOne();
-                AzureIndexInput input = new AzureIndexInput(this);
-                clone = (IndexInput)input;
+                var input = new AzureIndexInput(this);
+                clone = input;
             }
-            catch (System.Exception err)
+            catch (Exception err)
             {
-                Debug.WriteLine(err.ToString());
+                Trace.TraceError(err.ToString());
             }
             finally
             {

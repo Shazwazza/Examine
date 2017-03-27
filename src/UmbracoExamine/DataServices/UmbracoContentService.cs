@@ -139,8 +139,7 @@ namespace UmbracoExamine.DataServices
                     //we don't want to crash the app because of this so we'll actually swallow this
                     //exception... Unfortunately logging probably won't work in this situation either :(
 
-                    Debug.WriteLine("EXCEPTION OCCURRED reading GetAllUserPropertyNames: " + ex.Message, "Error");
-                    Trace.WriteLine("EXCEPTION OCCURRED reading GetAllUserPropertyNames: " + ex.Message, "Error");
+                    Trace.TraceError("EXCEPTION OCCURRED reading GetAllUserPropertyNames: " + ex.Message, "Error");
                 }
                 else
                 {

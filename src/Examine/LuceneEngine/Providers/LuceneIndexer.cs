@@ -561,6 +561,10 @@ namespace Examine.LuceneEngine.Providers
         {
             base.OnIndexingError(e);
 
+#if FULLDEBUG
+            Trace.TraceError("Indexing Error Occurred: " + (e.InnerException == null ?  e.Message : e.Message + " -- " + e.InnerException));
+#endif
+
             if (!RunAsync)
             {
                 var msg = "Indexing Error Occurred: " + e.Message;
@@ -646,7 +650,6 @@ namespace Examine.LuceneEngine.Providers
                         else if (forceOverwrite)
                         {
                             Trace.WriteLine("Initializing new index");
-                            Debug.WriteLine("Initializing new index");
 
                             if (_writer == null)
                             {
@@ -1393,7 +1396,7 @@ namespace Examine.LuceneEngine.Providers
                     {
                         if (!_isIndexing && (_asyncTask == null || _asyncTask.IsCompleted))
                         {
-                            //Debug.WriteLine("Examine: Launching task");
+                            //Trace.WriteLine("Examine: Launching task");
                             if (!_cancellationTokenSource.IsCancellationRequested)
                             {
                                 _asyncTask = Task.Factory.StartNew(
@@ -1799,7 +1802,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 try
                 {
-                    _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.Now.Ticks + ".log"), FileMode.Create);
+                    _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), FileMode.Append);
                     var w = new StreamWriter(_logOutput);
                     writer.SetInfoStream(w);
                 }
@@ -1853,7 +1856,6 @@ namespace Examine.LuceneEngine.Providers
 
             return _writer;
         }
-
 
         #endregion
 

@@ -86,8 +86,9 @@ namespace Examine.AzureDirectory
                     _blob.Metadata["CachedLength"] = originalLength.ToString();
                     _blob.Metadata["CachedLastModified"] = CacheDirectory.FileModified(fileName).ToString();
                     _blob.SetMetadata();
-
-                    Debug.WriteLine(string.Format("PUT {1} bytes to {0} in cloud", _name, blobStream.Length));
+#if FULLDEBUG
+                    Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
+#endif
                 }
                 finally
                 {
@@ -95,7 +96,7 @@ namespace Examine.AzureDirectory
                 }
 
 #if FULLDEBUG
-                Debug.WriteLine(string.Format("CLOSED WRITESTREAM {0}", _name));
+                Trace.WriteLine($"CLOSED WRITESTREAM {_name}");
 #endif
                 // clean up
                 _indexOutput = null;
@@ -129,12 +130,9 @@ namespace Examine.AzureDirectory
 
                 // seek back to beginning of comrpessed stream
                 compressedStream.Seek(0, SeekOrigin.Begin);
-
-                Debug.WriteLine(string.Format("COMPRESSED {0} -> {1} {2}% to {3}",
-                    originalLength,
-                    compressedStream.Length,
-                    ((float) compressedStream.Length/(float) originalLength)*100,
-                    _name));
+#if FULLDEBUG
+                Trace.WriteLine($"COMPRESSED {originalLength} -> {compressedStream.Length} {((float) compressedStream.Length / (float) originalLength) * 100}% to {_name}");
+#endif
             }
             catch
             {
