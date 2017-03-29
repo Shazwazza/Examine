@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Directories
         private SyncDirectory _syncDirectory;
         private readonly string _name;
 
-        private IndexInput _indexInput;
+        private IndexInput _cacheDirIndexInput;
         private readonly Mutex _fileMutex;
 
         public Directory CacheDirectory => _syncDirectory.CacheDirectory;
@@ -75,8 +75,7 @@ namespace Examine.LuceneEngine.Directories
                 if (fileNeeded)
                 {
                     SyncLocally(fileName);
-
-                    _indexInput = CacheDirectory.OpenInput(fileName);
+                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName);
                 }
                 else
                 {
@@ -84,7 +83,7 @@ namespace Examine.LuceneEngine.Directories
                     Trace.WriteLine($"Using cached file for {_name}");
 #endif
 
-                    _indexInput = CacheDirectory.OpenInput(fileName);
+                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName);
                 }
             }
             finally
@@ -113,7 +112,7 @@ namespace Examine.LuceneEngine.Directories
 #if FULLDEBUG
                 Trace.WriteLine($"Creating clone for {cloneInput._name}");
 #endif          
-                _indexInput = (IndexInput)cloneInput._indexInput.Clone();
+                _cacheDirIndexInput = (IndexInput)cloneInput._cacheDirIndexInput.Clone();
             }
             catch (Exception)
             {
@@ -148,7 +147,10 @@ namespace Examine.LuceneEngine.Directories
                 // we need to check if the master is being written frist before the sync dir. And if the file does not exist in the master, 
                 // or the sync dir, then something has gone wrong, that shouldn't happen and we'll need to deal with that differently
                 // because the index will be in a state where it's just not readable.
-                //Hrmmm what to do?
+                //Hrmmm what to do?  There's actually nothing that can be done :/ if we return false here then the instance of this item would be null
+                //which will then cause exceptions further on and take down the app pool anyways. I've looked through the Lucene source and there 
+                //is no safety net to check against this situation, it just happily throws exceptions on a background thread.
+
                 throw ex;
             }
 
@@ -159,6 +161,7 @@ namespace Examine.LuceneEngine.Directories
                 {
                     cacheOutput = CacheDirectory.CreateOutput(fileName);
                     masterInput.CopyTo(cacheOutput, fileName);
+
                 }
                 finally
                 {
@@ -166,6 +169,7 @@ namespace Examine.LuceneEngine.Directories
                     masterInput?.Close();
                 }
             }
+            
         }
 
         /// <summary>
@@ -225,25 +229,25 @@ namespace Examine.LuceneEngine.Directories
         [SecurityCritical]
         public override byte ReadByte()
         {
-            return _indexInput.ReadByte();
+            return _cacheDirIndexInput.ReadByte();
         }
 
         [SecurityCritical]
         public override void ReadBytes(byte[] b, int offset, int len)
         {
-            _indexInput.ReadBytes(b, offset, len);
+            _cacheDirIndexInput.ReadBytes(b, offset, len);
         }
 
         [SecurityCritical]
         public override long GetFilePointer()
         {
-            return _indexInput.GetFilePointer();
+            return _cacheDirIndexInput.GetFilePointer();
         }
 
         [SecurityCritical]
         public override void Seek(long pos)
         {
-            _indexInput.Seek(pos);
+            _cacheDirIndexInput.Seek(pos);
         }
 
         [SecurityCritical]
@@ -255,8 +259,8 @@ namespace Examine.LuceneEngine.Directories
 #if FULLDEBUG
                 Trace.WriteLine($"CLOSED READSTREAM local {_name}");
 #endif
-                _indexInput.Close();
-                _indexInput = null;
+                _cacheDirIndexInput.Close();
+                _cacheDirIndexInput = null;
                 _syncDirectory = null;
                 GC.SuppressFinalize(this);
             }
@@ -269,7 +273,7 @@ namespace Examine.LuceneEngine.Directories
         [SecurityCritical]
         public override long Length()
         {
-            return _indexInput.Length();
+            return _cacheDirIndexInput.Length();
         }
 
         [SecuritySafeCritical]

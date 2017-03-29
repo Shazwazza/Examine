@@ -16,7 +16,7 @@ namespace Examine.LuceneEngine.Directories
     {
         private readonly SyncDirectory _syncDirectory;
         private readonly string _name;
-        private IndexOutput _indexOutput;
+        private IndexOutput _cacheDirIndexOutput;
         private readonly Mutex _fileMutex;
 
         public Directory CacheDirectory => _syncDirectory.CacheDirectory;
@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine.Directories
             try
             {
                 // create the local cache one we will operate against...
-                _indexOutput = CacheDirectory.CreateOutput(_name);
+                _cacheDirIndexOutput = CacheDirectory.CreateOutput(_name);
             }
             finally
             {
@@ -47,7 +47,7 @@ namespace Examine.LuceneEngine.Directories
         [SecurityCritical]
         public override void Flush()
         {
-            _indexOutput.Flush();
+            _cacheDirIndexOutput.Flush();
         }
 
         /// <summary>
@@ -56,17 +56,18 @@ namespace Examine.LuceneEngine.Directories
         [SecurityCritical]
         public override void Close()
         {
-            _fileMutex.WaitOne();
+            _fileMutex.WaitOne();            
+
             try
             {
                 var fileName = _name;
 
                 //make sure it's all written out
                 //we are only checking for null here in case Close is called multiple times
-                if (_indexOutput != null)
+                if (_cacheDirIndexOutput != null)
                 {
-                    _indexOutput.Flush();
-                    _indexOutput.Close();
+                    _cacheDirIndexOutput.Flush();
+                    _cacheDirIndexOutput.Close();
 
                     IndexInput cacheInput = null;
                     try
@@ -100,7 +101,7 @@ namespace Examine.LuceneEngine.Directories
 #endif
 
                     // clean up
-                    _indexOutput = null;
+                    _cacheDirIndexOutput = null;
                 }
 
                 GC.SuppressFinalize(this);
@@ -115,37 +116,37 @@ namespace Examine.LuceneEngine.Directories
         [SecurityCritical]
         public override long Length()
         {
-            return _indexOutput.Length();
+            return _cacheDirIndexOutput.Length();
         }
 
         [SecurityCritical]
         public override void WriteByte(byte b)
         {
-            _indexOutput.WriteByte(b);
+            _cacheDirIndexOutput.WriteByte(b);
         }
 
         [SecurityCritical]
         public override void WriteBytes(byte[] b, int length)
         {
-            _indexOutput.WriteBytes(b, length);
+            _cacheDirIndexOutput.WriteBytes(b, length);
         }
 
         [SecurityCritical]
         public override void WriteBytes(byte[] b, int offset, int length)
         {
-            _indexOutput.WriteBytes(b, offset, length);
+            _cacheDirIndexOutput.WriteBytes(b, offset, length);
         }
 
         [SecurityCritical]
         public override long GetFilePointer()
         {
-            return _indexOutput.GetFilePointer();
+            return _cacheDirIndexOutput.GetFilePointer();
         }
 
         [SecurityCritical]
         public override void Seek(long pos)
         {
-            _indexOutput.Seek(pos);
+            _cacheDirIndexOutput.Seek(pos);
         }
     }
 }
