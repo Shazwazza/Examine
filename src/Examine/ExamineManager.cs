@@ -114,9 +114,23 @@ namespace Examine
                         {
                             foreach (IIndexer index in _indexProviderCollection)
                             {
-                                if (!index.IndexExists())
+                                var rebuild = false;
+                                var healthy = true;
+                                Exception unhealthyEx = null;
+                                var exists = index.IndexExists();
+                                if (!exists)
+                                    rebuild = true;
+                                if (!rebuild)
                                 {
-                                    var args = new BuildingEmptyIndexOnStartupEventArgs(index);
+                                    healthy = IsIndexHealthy(index, out unhealthyEx);
+                                    if (!healthy)
+                                        rebuild = true;
+                                }
+                                //if it doesn't exist ... or if it's unhealthy/corrupt
+                                
+                                if (rebuild)
+                                {
+                                    var args = new BuildingEmptyIndexOnStartupEventArgs(index, healthy, unhealthyEx);
                                     OnBuildingEmptyIndexOnStartup(args);
                                     if (!args.Cancel)
                                     {
@@ -129,6 +143,20 @@ namespace Examine
                     }
                 }
             }
+        }
+
+        private bool IsIndexHealthy(IIndexer index, out Exception e)
+        {
+            var luceneIndex = index as LuceneIndexer;
+            if (luceneIndex == null)
+            {
+                e = null;
+                return true;
+            }
+            Exception ex;
+            var readable = luceneIndex.IsReadable(out ex);
+            e = ex;
+            return readable;
         }
 
 

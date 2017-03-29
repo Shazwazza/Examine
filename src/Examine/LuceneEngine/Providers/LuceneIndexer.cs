@@ -926,6 +926,45 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
+        /// Check if the index is readable/healthy
+        /// </summary>
+        /// <returns></returns>
+        [SecuritySafeCritical]
+        internal bool IsReadable(out Exception ex)
+        {
+            if (_writer != null)
+            {
+                try
+                {
+                    using (_writer.GetReader())
+                    {
+                        ex = null;
+                        return true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    ex = e;
+                    return false;
+                }
+            }
+
+            try
+            {
+                using (IndexReader.Open(GetLuceneDirectory(), true))
+                {                    
+                }
+                ex = null;
+                return true;
+            }
+            catch (Exception e)
+            {
+                ex = e;
+                return false;
+            }
+        }
+
+        /// <summary>
         /// This will check one time if the index exists, we don't want to keep using IndexReader.IndexExists because that will literally go list
         /// every file in the index folder and we don't need any more IO ops
         /// </summary>
