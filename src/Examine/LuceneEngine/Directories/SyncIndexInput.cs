@@ -32,6 +32,10 @@ namespace Examine.LuceneEngine.Directories
         /// </summary>
         /// <param name="directory"></param>
         /// <param name="name"></param>
+        /// <remarks>
+        /// This will not work for the segments.gen file because it doesn't compare to master and segments.gen is not write-once!
+        /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
+        /// </remarks>
         public SyncIndexInput(SyncDirectory directory, string name)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));

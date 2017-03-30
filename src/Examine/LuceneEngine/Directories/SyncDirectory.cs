@@ -38,7 +38,7 @@ namespace Examine.LuceneEngine.Directories
         private bool _inSync = false;
         private readonly object _locker = new object();
 
-        private static readonly HashSet<string> RemoteOnly = new HashSet<string> {"segments.gen"};
+        internal static readonly HashSet<string> RemoteOnlyFiles = new HashSet<string> {"segments.gen"};
 
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace Examine.LuceneEngine.Directories
             //generations approach. For example, the first segments file is segments_1, then segments_2, etc. 
             //The generation is a sequential long integer represented in alpha-numeric (base 36) form."
 
-            if (RemoteOnly.Contains(name))
+            if (RemoteOnlyFiles.Contains(name))
             {
                 return _masterDirectory.OpenInput(name);
             }
