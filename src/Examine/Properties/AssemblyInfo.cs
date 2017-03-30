@@ -28,4 +28,4 @@ using System.Security;
 
 [assembly: AssemblyVersion("0.1.82.0")]
 [assembly: AssemblyFileVersion("0.1.82.0")]
-[assembly: AssemblyInformationalVersion("0.1.82-beta1")]
+[assembly: AssemblyInformationalVersion("0.1.82")]
