@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Security;
+using System.Security.Cryptography;
 using System.Text;
 using Lucene.Net.Analysis.Standard;
 
@@ -13,6 +14,64 @@ namespace Examine
     ///</summary>
     public static class StringExtensions
     {
+        /// <summary>
+        /// Generates a hash of a string based on the FIPS compliance setting.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static string GenerateHash(this string str)
+        {
+            return CryptoConfig.AllowOnlyFipsAlgorithms
+                ? str.GenerateSha1Hash()
+                : str.GenerateMd5();
+        }
+
+        /// <summary>
+        /// Generate a SHA1 hash of a string
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static string GenerateSha1Hash(this string str)
+        {
+            return str.GenerateHash("SHA1");
+        }
+
+        /// <summary>Generate a MD5 hash of a string
+        /// </summary>
+        public static string GenerateMd5(this string str)
+        {
+            return str.GenerateHash("MD5");
+        }
+
+        /// <summary>Generate a MD5 hash of a string
+        /// </summary>
+        private static string GenerateHash(this string str, string hashType)
+        {
+            var hasher = HashAlgorithm.Create(hashType);
+            if (hasher == null) throw new InvalidOperationException("No hashing type found by name " + hashType);
+            using (hasher)
+            {
+                //convert our string into byte array
+                var byteArray = Encoding.UTF8.GetBytes(str);
+
+                //get the hashed values created by our SHA1CryptoServiceProvider
+                var hashedByteArray = hasher.ComputeHash(byteArray);
+
+                //create a StringBuilder object
+                var stringBuilder = new StringBuilder();
+
+                //loop to each each byte
+                foreach (var b in hashedByteArray)
+                {
+                    //append it to our StringBuilder
+                    stringBuilder.Append(b.ToString("x2").ToLower());
+                }
+
+                //return the hashed value
+                return stringBuilder.ToString();
+            }
+        }
+
         internal static string EnsureEndsWith(this string input, char value)
         {
             return input.EndsWith(value.ToString(CultureInfo.InvariantCulture)) ? input : input + value;
