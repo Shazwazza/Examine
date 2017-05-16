@@ -136,6 +136,7 @@
     <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="INodeEventArgs.cs" />
     <Compile Include="ISearchResults.cs" />
+    <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\LocalTempStorageIndexer.cs" />
     <Compile Include="LuceneEngine\AllHitsCollector.cs" />
     <Compile Include="LuceneEngine\Config\ExamineLuceneIndexes.cs" />
