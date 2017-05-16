@@ -1956,7 +1956,7 @@ namespace Examine.LuceneEngine.Providers
 
         /// <summary>
         /// Adds 'special' fields to the Lucene index for use internally.
-        /// By default this will add the __IndexType & __NodeId fields to the Lucene Index both specified by:
+        /// By default this will add the __IndexType and __NodeId fields to the Lucene Index both specified by:
         /// - Field.Store.YES
         /// - Field.Index.NOT_ANALYZED_NO_NORMS
         /// - Field.TermVector.NO

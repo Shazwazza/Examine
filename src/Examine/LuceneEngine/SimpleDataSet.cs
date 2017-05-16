@@ -8,7 +8,7 @@ namespace Examine.LuceneEngine
     public class SimpleDataSet
     {
         /// <summary>
-        /// The definition of the node: NodeId & Node type
+        /// The definition of the node: NodeId and Node type
         /// </summary>
         public IndexedNode NodeDefinition { get; set; }
 
