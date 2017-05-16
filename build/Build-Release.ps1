@@ -46,11 +46,13 @@ $SolutionPath = Join-Path -Path $SolutionRoot -ChildPath "Examine.sln"
 $NuGet = "$BuildFolder\nuget.exe"
 $FileExists = Test-Path $NuGet 
 If ($FileExists -eq $False) {
+	Write-Host "Retrieving nuget.exe..."
 	$SourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 	Invoke-WebRequest $SourceNugetExe -OutFile $NuGet
 }
 
 #restore nuget packages
+Write-Host "Restoring nuget packages..."
 & $NuGet restore $SolutionPath
 
 # Iterate projects and update their versions
