@@ -7,12 +7,12 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// Implements lock semantics on AzureDirectory via a lock file - just like SimpleFSLock
     /// </summary>
-    public class AzureLock : Lock
+    public class AzureSimpleLock : Lock
     {
         private readonly string _lockFile;
         private readonly AzureDirectory _azureDirectory;
 
-        public AzureLock(string lockFile, AzureDirectory directory)
+        public AzureSimpleLock(string lockFile, AzureDirectory directory)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
             if (string.IsNullOrWhiteSpace(lockFile)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
@@ -61,5 +61,6 @@ namespace Examine.AzureDirectory
                
 
     }
+
 
 }
