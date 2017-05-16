@@ -7,7 +7,7 @@ param (
 $PSScriptFilePath = (Get-Item $MyInvocation.MyCommand.Path).FullName
 $SolutionRoot = Split-Path -Path $PSScriptFilePath -Parent
 
-if ($IsBuildServer -eq 1) {
+if ($IsBuildServer -eq 1) { 
 	$MSBuild = "MSBuild.exe"
 }
 else {
