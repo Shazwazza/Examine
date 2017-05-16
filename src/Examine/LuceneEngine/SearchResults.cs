@@ -49,10 +49,16 @@ namespace Examine.LuceneEngine
 			private set;
 	    }
 
-        [SecuritySafeCritical]
-        private TopDocs _topDocs;
+        
+        public TopDocs TopDocs
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            private set;
+        }
 
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
         {
             LuceneQuery = query;
@@ -111,11 +117,11 @@ namespace Examine.LuceneEngine
 
             LuceneSearcher.Search(query, topDocsCollector);
 
-            _topDocs = sortField.Any()
+            TopDocs = sortField.Any()
                 ? ((TopFieldCollector)topDocsCollector).TopDocs()
                 : ((TopScoreDocCollector)topDocsCollector).TopDocs();
 
-            TotalItemCount = _topDocs.TotalHits;
+            TotalItemCount = TopDocs.TotalHits;
 
         }
 
@@ -181,9 +187,9 @@ namespace Examine.LuceneEngine
 		[SecuritySafeCritical]
 		private SearchResult CreateFromDocumentItem(int i)
 		{
-            var docId = _topDocs.ScoreDocs[i].doc;
+            var docId = TopDocs.ScoreDocs[i].doc;
             var doc = LuceneSearcher.Doc(docId);
-            var score = _topDocs.ScoreDocs[i].score;
+            var score = TopDocs.ScoreDocs[i].score;
             var result = CreateSearchResult(doc, score);
             return result;
         }
@@ -192,10 +198,10 @@ namespace Examine.LuceneEngine
         [SecuritySafeCritical]
         private int GetScoreDocsLength()
         {
-            if (_topDocs == null || _topDocs.ScoreDocs == null)
+            if (TopDocs?.ScoreDocs == null)
                 return 0;
 
-            var length = _topDocs.ScoreDocs.Length;
+            var length = TopDocs.ScoreDocs.Length;
             return length;
         }
 
