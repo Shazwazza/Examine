@@ -78,7 +78,7 @@ namespace Examine.LuceneEngine.Providers
             if (config["analyzer"] != null)
             {
                 //this should be a fully qualified type
-                var analyzerType = Type.GetType(config["analyzer"]);
+                var analyzerType = TypeHelper.FindType(config["analyzer"]);
                 IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
             }
             else

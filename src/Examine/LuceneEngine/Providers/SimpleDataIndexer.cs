@@ -111,7 +111,7 @@ namespace Examine.LuceneEngine.Providers
             if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
             {
                 //this should be a fully qualified type
-                var serviceType = Type.GetType(config["dataService"]);
+                var serviceType = TypeHelper.FindType(config["dataService"]);
                 DataService = (ISimpleDataService)Activator.CreateInstance(serviceType);
             }
             else

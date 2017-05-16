@@ -104,7 +104,7 @@ namespace UmbracoExamine
             if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))
             {
                 //this should be a fully qualified type
-                var serviceType = Type.GetType(config["dataService"]);
+                var serviceType = TypeHelper.FindType(config["dataService"]);
                 DataService = (IDataService)Activator.CreateInstance(serviceType);
             }
             else if (DataService == null)

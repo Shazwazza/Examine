@@ -154,7 +154,7 @@ namespace Examine.LuceneEngine.Providers
             if (config["directoryFactory"] != null)
             {
                 //this should be a fully qualified type
-                var factoryType = Type.GetType(config["directoryFactory"]);
+                var factoryType = TypeHelper.FindType(config["directoryFactory"]);
                 if (factoryType == null) throw new NullReferenceException("No directory type found for value: " + config["directoryFactory"]);
                 DirectoryFactory = (IDirectoryFactory)Activator.CreateInstance(factoryType);
             }
@@ -244,7 +244,7 @@ namespace Examine.LuceneEngine.Providers
             if (config["analyzer"] != null)
             {
                 //this should be a fully qualified type
-                var analyzerType = Type.GetType(config["analyzer"]);
+                var analyzerType = TypeHelper.FindType(config["analyzer"]);
                 IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
             }
             else
