@@ -1,7 +1,19 @@
+param (
+	[Parameter(Mandatory=$false)]
+	[int]
+	$IsBuildServer = 0
+)
+
 $PSScriptFilePath = (Get-Item $MyInvocation.MyCommand.Path).FullName
 $SolutionRoot = Split-Path -Path $PSScriptFilePath -Parent
-$ProgFiles86 = [Environment]::GetEnvironmentVariable("ProgramFiles(x86)");
-$MSBuild = "$ProgFiles86\MSBuild\14.0\Bin\MSBuild.exe"
+
+if ($IsBuildServer -eq 1) {
+	$MSBuild = "MSBuild.exe"
+}
+else {
+	$ProgFiles86 = [Environment]::GetEnvironmentVariable("ProgramFiles(x86)");
+	$MSBuild = "$ProgFiles86\MSBuild\14.0\Bin\MSBuild.exe"
+}
 
 # Read XML
 $buildXmlFile = (Join-Path $SolutionRoot "build.xml")

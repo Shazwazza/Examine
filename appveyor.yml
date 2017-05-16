@@ -1,0 +1,8 @@
+version: 0.1.83
+skip_non_tags: true
+image: Visual Studio 2017
+build_script:
+- ps: .\Build-Release.ps1 1
+artifacts:
+- path: build\Release\*.nupkg
+  name: Nuget Package

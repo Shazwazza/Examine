@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8F5756F2-7449-400C-BE52-A91F862967B0}"
 	ProjectSection(SolutionItems) = preProject
@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768-6ECD-40EF-84BD-5594670EA7A8}"
 	ProjectSection(SolutionItems) = preProject
+		appveyor.build.yml = appveyor.build.yml
+		appveyor.yml = appveyor.yml
 		Build-Release.ps1 = Build-Release.ps1
 		build.xml = build.xml
 	EndProjectSection
