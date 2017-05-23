@@ -139,19 +139,23 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
         /// </summary>
+        /// <param name="docId">The doc id of the lucene document.</param>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
 		[SecuritySafeCritical]
-        protected SearchResult CreateSearchResult(Document doc, float score)
+        protected SearchResult CreateSearchResult(int docId, Document doc, float score)
         {
             string id = doc.Get("id");
+
             if (string.IsNullOrEmpty(id))
             {
-				id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
+                id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
             }
-            var sr = new SearchResult()
+
+            var sr = new SearchResult
             {
+                DocId = docId,
                 Id = int.Parse(id),
                 Score = score
             };
@@ -190,7 +194,7 @@ namespace Examine.LuceneEngine
             var docId = TopDocs.ScoreDocs[i].doc;
             var doc = LuceneSearcher.Doc(docId);
             var score = TopDocs.ScoreDocs[i].score;
-            var result = CreateSearchResult(doc, score);
+            var result = CreateSearchResult(docId, doc, score);
             return result;
         }
 
