@@ -794,9 +794,9 @@ namespace Examine.LuceneEngine.SearchCriteria
             //(field1:query field2:query field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            var flags = new BooleanClause.Occur[operations.Count()];
+            var flags = new BooleanClause.Occur[operations.Length];
             for (int i = 0; i < flags.Length; i++)
-                flags[i] = operations.ElementAt(i).ToLuceneOccurance();
+                flags[i] = operations[i].ToLuceneOccurance();
 
             var queryVals = new IExamineValue[fields.Length];
             if (fieldVals.Length == 1)

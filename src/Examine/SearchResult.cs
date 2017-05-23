@@ -1,25 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace Examine
 {
     public class SearchResult
     {
+        private readonly OrderedDictionary<string, string> _fields;
+
         /// <summary>
         /// Constructor
         /// </summary>
         public SearchResult()
         {
-            Fields = new Dictionary<string, string>();
+            _fields = new OrderedDictionary<string, string>();
             MultiValueFields = new Dictionary<string, List<string>>();
         }
 
         public int Id { get; set; }
         public float Score { get; set; }
-        public IDictionary<string, string> Fields { get; protected set; }
 
-        internal IDictionary<string, List<string>> MultiValueFields { get; private set; }
+        //TODO: This should have been IReadOnlyDictionary
+        public IDictionary<string, string> Fields
+        {
+            get => _fields;
+            //TODO: This was a mistake and should have never allowed setting
+            protected set => throw new NotSupportedException("Setting the Fields property is not supported");
+        }
+
+        internal IDictionary<string, List<string>> MultiValueFields { get; }
 
         /// <summary>
         /// If a single field was indexed with multiple values this will return those values, otherwise it will just return the single 
@@ -29,11 +39,17 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<string> GetValues(string key)
         {
-            return MultiValueFields.ContainsKey(key)
-                ? MultiValueFields[key]
-                : Fields.ContainsKey(key)
-                    ? new[] {Fields[key]}
-                    : Enumerable.Empty<string>();
+            if (MultiValueFields.TryGetValue(key, out List<string> found))
+            {
+                return found;
+            }
+
+            if (Fields.TryGetValue(key, out string single))
+            {
+                return new[] { single };
+            }
+
+            return Enumerable.Empty<string>();
         } 
 
         /// <summary>
@@ -41,10 +57,7 @@ namespace Examine
         /// </summary>
         /// <param name="resultIndex"></param>
         /// <returns></returns>
-        public KeyValuePair<string, string> this[int resultIndex] 
-        {
-            get { return Fields.ElementAt(resultIndex); }
-        }
+        public KeyValuePair<string, string> this[int resultIndex] => _fields[resultIndex];
 
         /// <summary>
         /// Returns the value for the key specified
@@ -55,7 +68,11 @@ namespace Examine
         {
             get
             {
-                return Fields[key];
+                if (Fields.TryGetValue(key, out string single))
+                {
+                    return single;
+                }
+                return null;
             }
         }
         
