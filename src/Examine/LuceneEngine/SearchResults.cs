@@ -3,21 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
-using System.Web.Script.Serialization;
-using Examine;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
-using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine
 {
-	/// <summary>
+    /// <summary>
     /// An implementation of the search results returned from Lucene.Net
     /// </summary>
     public class SearchResults : ISearchResults
     {
-
         ///<summary>
         /// Returns an empty search result
         ///</summary>
@@ -27,29 +23,28 @@ namespace Examine.LuceneEngine
             return new EmptySearchResults();
         }
 
-	    /// <summary>
-	    /// Exposes the internal Lucene searcher
-	    /// </summary>
-	    public Searcher LuceneSearcher
-	    {
-			[SecuritySafeCritical]
-			get;
-			[SecuritySafeCritical]
-			private set;
-	    }
+        /// <summary>
+        /// Exposes the internal Lucene searcher
+        /// </summary>
+        public Searcher LuceneSearcher
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            private set;
+        }
 
-	    /// <summary>
-	    /// Exposes the internal lucene query to run the search
-	    /// </summary>
-	    public Query LuceneQuery
-	    {
-			[SecuritySafeCritical]
-			get;
-			[SecuritySafeCritical]
-			private set;
-	    }
+        /// <summary>
+        /// Exposes the internal lucene query to run the search
+        /// </summary>
+        public Query LuceneQuery
+        {
+            [SecuritySafeCritical]
+            get;
+            [SecuritySafeCritical]
+            private set;
+        }
 
-        
         public TopDocs TopDocs
         {
             [SecuritySafeCritical]
@@ -76,7 +71,7 @@ namespace Examine.LuceneEngine
             DoSearch(query, sortField, maxResults);
         }
 
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
         {
             //This try catch is because analyzers strip out stop words and sometimes leave the query
@@ -92,7 +87,7 @@ namespace Examine.LuceneEngine
             }
             catch (NullReferenceException)
             {
-                //this means that an analyzer has stipped out stop words and now there are 
+                //this means that an analyzer has stipped out stop words and now there are
                 //no words left to search on
                 TotalItemCount = 0;
                 return;
@@ -102,7 +97,7 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-		    maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc();
+            maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc();
 
             Collector topDocsCollector;
             if (sortField.Any())
@@ -122,7 +117,6 @@ namespace Examine.LuceneEngine
                 : ((TopScoreDocCollector)topDocsCollector).TopDocs();
 
             TotalItemCount = TopDocs.TotalHits;
-
         }
 
         /// <summary>
@@ -136,14 +130,14 @@ namespace Examine.LuceneEngine
         /// </summary>
         protected Dictionary<int, SearchResult> Docs = new Dictionary<int, SearchResult>();
 
-        /// <summary>
+        // <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
         /// </summary>
         /// <param name="docId">The doc id of the lucene document.</param>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-		[SecuritySafeCritical]
+        [SecuritySafeCritical]
         protected SearchResult CreateSearchResult(int docId, Document doc, float score)
         {
             string id = doc.Get("id");
@@ -160,10 +154,43 @@ namespace Examine.LuceneEngine
                 Score = score
             };
 
+            var searchResult = PrepareSearchResult(sr, doc);
+            return searchResult;
+        }
+
+        /// <summary>
+        /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
+        /// </summary>
+        /// <param name="doc">The doc to convert.</param>
+        /// <param name="score">The score.</param>
+        /// <returns>A populated search result object</returns>
+        [SecuritySafeCritical]
+        protected SearchResult CreateSearchResult(Document doc, float score)
+        {
+            string id = doc.Get("id");
+
+            if (string.IsNullOrEmpty(id))
+            {
+                id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
+            }
+
+            var sr = new SearchResult
+            {
+                Id = int.Parse(id),
+                Score = score
+            };
+
+            var searchResult = PrepareSearchResult(sr, doc);
+            return searchResult;
+        }
+
+        [SecuritySafeCritical]
+        private SearchResult PrepareSearchResult(SearchResult sr, Document doc)
+        {
             //we can use lucene to find out the fields which have been stored for this particular document
             //I'm not sure if it'll return fields that have null values though
             var fields = doc.GetFields();
-            
+
             //ignore our internal fields though
 
             foreach (var field in fields.Cast<Field>())
@@ -186,11 +213,11 @@ namespace Examine.LuceneEngine
             return sr;
         }
 
-		//NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
-		// at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
-		[SecuritySafeCritical]
-		private SearchResult CreateFromDocumentItem(int i)
-		{
+        //NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
+        // at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
+        [SecuritySafeCritical]
+        private SearchResult CreateFromDocumentItem(int i)
+        {
             var docId = TopDocs.ScoreDocs[i].doc;
             var doc = LuceneSearcher.Doc(docId);
             var score = TopDocs.ScoreDocs[i].score;
@@ -218,9 +245,8 @@ namespace Examine.LuceneEngine
         /// <param name="skip">The number of items in the results to skip.</param>
         /// <returns>A collection of the search results</returns>
 		[SecuritySafeCritical]
-		public IEnumerable<SearchResult> Skip(int skip)
+        public IEnumerable<SearchResult> Skip(int skip)
         {
-
             for (int i = skip, n = GetScoreDocsLength(); i < n; i++)
             {
                 //first check our own cache to make sure it's not there
@@ -231,7 +257,7 @@ namespace Examine.LuceneEngine
                 }
                 //using yield return means if the user breaks out we wont keep going
                 //only load what we need to load!
-                //and we'll get it from our cache, this means you can go 
+                //and we'll get it from our cache, this means you can go
                 //forward/ backwards without degrading performance
                 var result = Docs[i];
                 yield return result;
@@ -302,7 +328,7 @@ namespace Examine.LuceneEngine
                 Skip(0).GetEnumerator(),
                 LuceneSearcher);
         }
-        
+
         #region IEnumerable Members
 
         /// <summary>
@@ -316,6 +342,6 @@ namespace Examine.LuceneEngine
             return this.GetEnumerator();
         }
 
-        #endregion
+        #endregion IEnumerable Members
     }
 }
