@@ -18,6 +18,7 @@ namespace Examine
             MultiValueFields = new Dictionary<string, List<string>>();
         }
 
+        public int DocId { get; set; }
         public int Id { get; set; }
         public float Score { get; set; }
 
