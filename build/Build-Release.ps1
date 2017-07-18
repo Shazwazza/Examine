@@ -8,16 +8,6 @@ $PSScriptFilePath = (Get-Item $MyInvocation.MyCommand.Path).FullName
 $RepoRoot = (get-item $PSScriptFilePath).Directory.Parent.FullName;
 $SolutionRoot = Join-Path -Path $RepoRoot "src";
 
-if ($IsBuildServer -eq 1) { 
-	$MSBuild = "MSBuild.exe"
-}
-else {
-	$ProgFiles86 = [Environment]::GetEnvironmentVariable("ProgramFiles(x86)");
-	$MSBuild = "$ProgFiles86\MSBuild\14.0\Bin\MSBuild.exe"
-}
-
-Write-Host "MSBUILD = $MSBuild"
-
 # Make sure we don't have a release folder for this version already
 $BuildFolder = Join-Path -Path $RepoRoot -ChildPath "build";
 $ReleaseFolder = Join-Path -Path $BuildFolder -ChildPath "Release";
@@ -26,6 +16,43 @@ if ((Get-Item $ReleaseFolder -ErrorAction SilentlyContinue) -ne $null)
 	Write-Warning "$ReleaseFolder already exists on your local machine. It will now be deleted."
 	Remove-Item $ReleaseFolder -Recurse
 }
+
+# Go get nuget.exe if we don't hae it
+$NuGet = "$BuildFolder\nuget.exe"
+$FileExists = Test-Path $NuGet 
+If ($FileExists -eq $False) {
+	Write-Host "Retrieving nuget.exe..."
+	$SourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+	Invoke-WebRequest $SourceNugetExe -OutFile $NuGet
+}
+
+if ($IsBuildServer -eq 1) { 
+	$MSBuild = "MSBuild.exe"
+}
+else {
+	# ensure we have vswhere
+	New-Item "$BuildFolder\vswhere" -type directory -force
+	$vswhere = "$BuildFolder\vswhere.exe"
+	if (-not (test-path $vswhere))
+	{
+	   Write-Host "Download VsWhere..."
+	   $path = "$BuildFolder\tmp"
+	   &$nuget install vswhere -OutputDirectory $path -Verbosity quiet
+	   $dir = ls "$path\vswhere.*" | sort -property Name -descending | select -first 1
+	   $file = ls -path "$dir" -name vswhere.exe -recurse
+	   mv "$dir\$file" $vswhere   
+	 }
+
+	$MSBuild = &$vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+	if ($MSBuild) {
+	  $MSBuild = join-path $MSBuild 'MSBuild\15.0\Bin\MSBuild.exe'
+	  if (-not (test-path $msbuild)) {
+		throw "MSBuild not found!"
+	  }
+	}
+}
+
+Write-Host "MSBUILD = $MSBuild"
 
 # Read XML
 $buildXmlFile = (Join-Path $BuildFolder "build.xml")
@@ -41,15 +68,6 @@ $Copyright = "Copyright © Shannon Deminick " + (Get-Date).year
 	sc -Path $SolutionInfoPath -Encoding UTF8
 
 $SolutionPath = Join-Path -Path $SolutionRoot -ChildPath "Examine.sln"
-
-# Go get nuget.exe if we don't hae it
-$NuGet = "$BuildFolder\nuget.exe"
-$FileExists = Test-Path $NuGet 
-If ($FileExists -eq $False) {
-	Write-Host "Retrieving nuget.exe..."
-	$SourceNugetExe = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
-	Invoke-WebRequest $SourceNugetExe -OutFile $NuGet
-}
 
 #restore nuget packages
 Write-Host "Restoring nuget packages..."
