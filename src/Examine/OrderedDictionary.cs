@@ -78,7 +78,8 @@ namespace Examine
         {
             get
             {
-                if (base.Dictionary.TryGetValue(key, out KeyValuePair<TKey, TVal> found))
+                if (base.Dictionary != null && 
+                    base.Dictionary.TryGetValue(key, out KeyValuePair<TKey, TVal> found))
                 {
                     return found.Value;
                 }
@@ -86,7 +87,8 @@ namespace Examine
             }
             set
             {
-                if (base.Dictionary.TryGetValue(key, out KeyValuePair<TKey, TVal> found))
+                if (base.Dictionary != null && 
+                    base.Dictionary.TryGetValue(key, out KeyValuePair<TKey, TVal> found))
                 {
                     var index = base.Items.IndexOf(found);
                     base.SetItem(index, new KeyValuePair<TKey, TVal>(key, value));
@@ -98,11 +100,11 @@ namespace Examine
             }
         }
 
-        public ICollection<TKey> Keys => base.Dictionary.Keys;
+        private static readonly ICollection<TKey> EmptyCollection = new List<TKey>();
+        private static readonly ICollection<TVal> EmptyValues = new List<TVal>();
 
-        public ICollection<TVal> Values
-        {
-            get { return base.Dictionary.Values.Select(x => x.Value).ToArray(); }
-        }
+        public ICollection<TKey> Keys => base.Dictionary != null ? base.Dictionary.Keys : EmptyCollection;
+
+        public ICollection<TVal> Values => base.Dictionary != null ? base.Dictionary.Values.Select(x => x.Value).ToArray() : EmptyValues;
     }
 }
