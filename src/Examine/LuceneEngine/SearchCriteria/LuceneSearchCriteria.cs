@@ -78,10 +78,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             this.BooleanOperation = occurance;
             this.QueryParser = new MultiFieldQueryParser(_luceneVersion, fields, analyzer);
             this.QueryParser.SetAllowLeadingWildcard(allowLeadingWildcards);
-
-            //see https://lists.gt.net/lucene/java-user/92194
-            QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-
+            
             this._occurance = occurance.ToLuceneOccurance();
         }
 

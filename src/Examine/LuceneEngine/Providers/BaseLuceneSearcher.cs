@@ -142,7 +142,7 @@ namespace Examine.LuceneEngine.Providers
                 sc = sc.GroupedOr(GetSearchFields(),
                     splitSearch.Select(x =>
                         new ExamineValue(Examineness.ComplexWildcard, x.MultipleCharacterWildcard().Value)).Cast<IExamineValue>().ToArray()
-                    ).Compile();
+                    ).Compile();                
             }
             else
             {
@@ -174,6 +174,14 @@ namespace Examine.LuceneEngine.Providers
             var luceneParams = searchParams as LuceneSearchCriteria;
             if (luceneParams == null)
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
+            
+            //check if we are sorting on Score, if so we'll need to set a lucene config switch
+            if (luceneParams.SortFields.Count == 0)
+            {
+                //see https://github.com/Shazwazza/Examine/pull/89
+                //see https://lists.gt.net/lucene/java-user/92194
+                luceneParams.QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+            }
 
             var searcher = GetSearcher();
             if (searcher == null) return new EmptySearchResults();
