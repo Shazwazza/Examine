@@ -208,11 +208,14 @@ namespace Examine.LuceneEngine.Providers
         {
             if (query is MultiTermQuery mtq)
             {
-                mtq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-            }
-            if (query is FuzzyQuery trq)
-            {
-                trq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+                try
+                {
+                    mtq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+                }
+                catch (NotSupportedException)
+                {
+                    //swallow this, some implementations of MultiTermQuery don't support this like FuzzyQuery
+                }
             }
             if (query is BooleanQuery bq)
             {
