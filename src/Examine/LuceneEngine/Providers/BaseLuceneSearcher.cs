@@ -177,10 +177,8 @@ namespace Examine.LuceneEngine.Providers
             
             //check if we are sorting on Score, if so we'll need to set a lucene config switch
             if (luceneParams.SortFields.Count == 0)
-            {
-                //see https://github.com/Shazwazza/Examine/pull/89
-                //see https://lists.gt.net/lucene/java-user/92194
-                luceneParams.QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+            {                
+                SetScoringBooleanQueryRewriteMethod(luceneParams.Query);
             }
 
             var searcher = GetSearcher();
@@ -188,6 +186,43 @@ namespace Examine.LuceneEngine.Providers
 
             var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);
             return pagesResults;
+        }
+
+        /// <summary>
+        /// This is used to recursively set any query type that supports <see cref="MultiTermQuery.RewriteMethod"/> parameters for rewriting
+        /// before the search executes.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <remarks>
+        /// Normally this is taken care of with QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE) however
+        /// that would need to be set eagerly before any query parsing takes place but we don't have that luxury. So we need to manually update
+        /// any query within the outer boolean query with the correct rewrite method, then the underlying LuceneSearcher will call rewrite
+        /// to update everything.
+        /// 
+        /// see https://github.com/Shazwazza/Examine/pull/89
+        /// see https://lists.gt.net/lucene/java-user/92194
+        /// 
+        /// </remarks>
+        [SecuritySafeCritical]
+        protected void SetScoringBooleanQueryRewriteMethod(Query query)
+        {
+            if (query is MultiTermQuery mtq)
+            {
+                mtq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+            }
+            if (query is FuzzyQuery trq)
+            {
+                trq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+            }
+            if (query is BooleanQuery bq)
+            {
+                foreach (BooleanClause clause in bq.Clauses())
+                {
+                    var q = clause.GetQuery();
+                    //recurse
+                    SetScoringBooleanQueryRewriteMethod(q);
+                }
+            }
         }
 
         /// <summary>

@@ -383,7 +383,32 @@ namespace Examine.Test.Search
                 if (next == null)
                     break;
 
-                Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
+                Assert.IsTrue(curr.Score > next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
+            }
+        }
+
+        [Test]
+        public void FluentApi_Wildcard_Results_Sorted_By_Score()
+        {
+            //Arrange
+            var sc = _searcher.CreateSearchCriteria("content", SearchCriteria.BooleanOperation.Or);
+            sc = sc.NodeName("umbrac".MultipleCharacterWildcard())
+                .Or().Field("headerText", "umbrac".MultipleCharacterWildcard())
+                .Or().Field("bodyText", "umbrac".MultipleCharacterWildcard()).Compile();
+
+            //Act
+            var results = _searcher.Search(sc);
+
+            //Assert
+            for (int i = 0; i < results.TotalItemCount - 1; i++)
+            {
+                var curr = results.ElementAt(i);
+                var next = results.ElementAtOrDefault(i + 1);
+
+                if (next == null)
+                    break;
+
+                Assert.IsTrue(curr.Score > next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
             }
         }
 
