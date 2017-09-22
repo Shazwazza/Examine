@@ -8,9 +8,21 @@ namespace Examine.LuceneEngine.Providers
     /// <summary>
     /// This is a work around for the TooManyClauses exception when rewriting wildcard queries
     /// </summary>
+    /// <remarks>
+    /// If a user wishes to turn on rewriting for wildcard queries and doesn't care about performance implications
+    /// and to automatically just ignore these exceptions and use the default rewriter (non scoring), this syntax can be used:    
+    /// <example>
+    /// <![CDATA[
+    /// var criteria = searcher.CreateSearchCriteria(); 
+    /// var luceneCriteria = (LuceneSearchCriteria)criteria;
+    /// luceneCriteria.QueryParser.SetMultiTermRewriteMethod(BaseLuceneSearcher.ErrorCheckingScoringBooleanQueryRewriteInstance);
+    /// //Continue using the 'criteria' object to build up the query
+    /// ]]>
+    /// </example>
+    /// </remarks>
     [SecurityCritical]
     [Serializable]
-    internal class ErrorCheckingScoringBooleanQueryRewrite : MultiTermQuery.RewriteMethod
+    public class ErrorCheckingScoringBooleanQueryRewrite : MultiTermQuery.RewriteMethod
     {
         [SecurityCritical]
         public override Query Rewrite(IndexReader reader, MultiTermQuery query)

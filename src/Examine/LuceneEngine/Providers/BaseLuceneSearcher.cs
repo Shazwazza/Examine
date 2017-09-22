@@ -183,14 +183,16 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
+        /// This is NOT used! however I'm leaving this here as example code
+        /// 
         /// This is used to recursively set any query type that supports <see cref="MultiTermQuery.RewriteMethod"/> parameters for rewriting
         /// before the search executes.
         /// </summary>
         /// <param name="query"></param>
         /// <remarks>
         /// Normally this is taken care of with QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE) however
-        /// that would need to be set eagerly before any query parsing takes place but we don't have that luxury. So we need to manually update
-        /// any query within the outer boolean query with the correct rewrite method, then the underlying LuceneSearcher will call rewrite
+        /// that would need to be set eagerly before any query parsing takes place but if we want to do it lazily here's how.
+        /// So we need to manually update any query within the outer boolean query with the correct rewrite method, then the underlying LuceneSearcher will call rewrite
         /// to update everything.
         /// 
         /// see https://github.com/Shazwazza/Examine/pull/89
@@ -200,14 +202,13 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         protected void SetScoringBooleanQueryRewriteMethod(Query query)
         {
-            if (_errorCheckingScoringBooleanQueryRewriteInstance == null)
-                _errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite();
+            
 
             if (query is MultiTermQuery mtq)
             {
                 try
                 {
-                    mtq.SetRewriteMethod(_errorCheckingScoringBooleanQueryRewriteInstance);
+                    mtq.SetRewriteMethod(ErrorCheckingScoringBooleanQueryRewriteInstance);
                 }
                 catch (NotSupportedException)
                 {
@@ -227,7 +228,13 @@ namespace Examine.LuceneEngine.Providers
         
         //do not try to set this here as a readonly field - the stupid medium trust transparency rules will throw up all over the place
         private static MultiTermQuery.RewriteMethod _errorCheckingScoringBooleanQueryRewriteInstance;
-        
+
+        public static MultiTermQuery.RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance
+        {
+            [SecuritySafeCritical]
+            get { return _errorCheckingScoringBooleanQueryRewriteInstance ?? (_errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite()); }
+        }
+
         /// <summary>
         /// A simple search mechanism to search all fields based on an index type.
         /// </summary>
