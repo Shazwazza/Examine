@@ -394,6 +394,11 @@ namespace Examine.Test.Search
         {
             //Arrange
             var sc = _searcher.CreateSearchCriteria("content", SearchCriteria.BooleanOperation.Or);
+
+            //set the rewrite method before adding queries
+            var lsc = (LuceneSearchCriteria)sc;
+            lsc.QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+
             sc = sc.NodeName("umbrac".MultipleCharacterWildcard())
                 .Or().Field("headerText", "umbrac".MultipleCharacterWildcard())
                 .Or().Field("bodyText", "umbrac".MultipleCharacterWildcard()).Compile();
@@ -427,16 +432,19 @@ namespace Examine.Test.Search
             {
                 //Arrange
                 var sc = _searcher.CreateSearchCriteria("content", SearchCriteria.BooleanOperation.Or);
+
+                //set the rewrite method before adding queries
+                var lsc = (LuceneSearchCriteria)sc;
+                lsc.QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+
                 sc = sc.NodeName("lo".MultipleCharacterWildcard())
                     .Or().Field("headerText", "lo".MultipleCharacterWildcard())
                     .Or().Field("bodyText", "lo".MultipleCharacterWildcard()).Compile();
 
                 //Act
-                var results = _searcher.Search(sc);
 
-                Assert.Greater(results.TotalItemCount, 0);
-
-                //this will fail if it throws      
+                Assert.Throws<BooleanQuery.TooManyClauses>(() => _searcher.Search(sc));
+                
             }
             finally
             {

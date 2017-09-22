@@ -174,12 +174,6 @@ namespace Examine.LuceneEngine.Providers
             var luceneParams = searchParams as LuceneSearchCriteria;
             if (luceneParams == null)
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
-            
-            //check if we are sorting on Score, if so we'll need to set a lucene config switch
-            if (luceneParams.SortFields.Count == 0)
-            {                
-                SetScoringBooleanQueryRewriteMethod(luceneParams.Query);
-            }
 
             var searcher = GetSearcher();
             if (searcher == null) return new EmptySearchResults();
