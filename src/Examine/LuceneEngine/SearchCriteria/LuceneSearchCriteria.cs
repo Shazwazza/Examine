@@ -103,16 +103,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             return $"{{ SearchIndexType: {this.SearchIndexType}, LuceneQuery: {this.Query} }}";
         }
-
-        private static void ValidateIExamineValue(IExamineValue v)
-        {
-            var ev = v as ExamineValue;
-            if (ev == null)
-            {
-                throw new ArgumentException("IExamineValue was not created from this provider. Ensure that it is created from the ISearchCriteria this provider exposes");
-            }
-        }
-
+        
         #region ISearchCriteria Members
 
         public string SearchIndexType

@@ -374,6 +374,8 @@ namespace Examine.Test.Search
             //Act
             var results = _searcher.Search(sc);
 
+            Assert.Greater(results.TotalItemCount, 0);
+
             //Assert
             for (int i = 0; i < results.TotalItemCount - 1; i++)
             {
@@ -399,6 +401,8 @@ namespace Examine.Test.Search
             //Act
             var results = _searcher.Search(sc);
 
+            Assert.Greater(results.TotalItemCount, 0);
+
             //Assert
             for (int i = 0; i < results.TotalItemCount - 1; i++)
             {
@@ -408,8 +412,37 @@ namespace Examine.Test.Search
                 if (next == null)
                     break;
 
-                Assert.IsTrue(curr.Score > next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
+                Assert.IsTrue(curr.Score > next.Score, $"Result at index {i} must have a higher score than result at index {i + 1}");
             }
+        }
+
+        [Test]
+        public void FluentApi_Wildcard_Results_Sorted_By_Score_TooManyClauses_Exception()
+        {
+            //this will throw during rewriting because 'lo*' matches too many things but with the work around in place this shouldn't throw
+            // but it will use a constant score rewrite
+            BooleanQuery.SetMaxClauseCount(3);
+
+            try
+            {
+                //Arrange
+                var sc = _searcher.CreateSearchCriteria("content", SearchCriteria.BooleanOperation.Or);
+                sc = sc.NodeName("lo".MultipleCharacterWildcard())
+                    .Or().Field("headerText", "lo".MultipleCharacterWildcard())
+                    .Or().Field("bodyText", "lo".MultipleCharacterWildcard()).Compile();
+
+                //Act
+                var results = _searcher.Search(sc);
+
+                Assert.Greater(results.TotalItemCount, 0);
+
+                //this will fail if it throws      
+            }
+            finally
+            {
+                //reset
+                BooleanQuery.SetMaxClauseCount(1024);
+            }      
         }
 
         [Test]

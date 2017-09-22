@@ -206,11 +206,14 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         protected void SetScoringBooleanQueryRewriteMethod(Query query)
         {
+            if (_errorCheckingScoringBooleanQueryRewriteInstance == null)
+                _errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite();
+
             if (query is MultiTermQuery mtq)
             {
                 try
                 {
-                    mtq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+                    mtq.SetRewriteMethod(_errorCheckingScoringBooleanQueryRewriteInstance);
                 }
                 catch (NotSupportedException)
                 {
@@ -227,7 +230,10 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
         }
-
+        
+        //do not try to set this here as a readonly field - the stupid medium trust transparency rules will throw up all over the place
+        private static MultiTermQuery.RewriteMethod _errorCheckingScoringBooleanQueryRewriteInstance;
+        
         /// <summary>
         /// A simple search mechanism to search all fields based on an index type.
         /// </summary>
