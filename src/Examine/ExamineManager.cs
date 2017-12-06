@@ -21,8 +21,23 @@ namespace Examine
     ///</summary>
     public class ExamineManager : ISearcher, IIndexer, IRegisteredObject
     {
+        //tracks if the ExamineManager should register itself with the HostingEnvironment
+        private static volatile bool _defaultRegisteration = true;
+
+        /// <summary>
+        /// By default the <see cref="ExamineManager"/> will use itself to to register against the HostingEnvironment for tracking
+        /// app domain shutdown. In some cases a library may wish to manage this shutdown themselves in which case this can be called
+        /// on startup to disable the default registration.
+        /// </summary>        
+        /// <returns></returns>
+        public static void DisableDefaultHostingEnvironmentRegistration()
+        {
+            _defaultRegisteration = false;
+        }
+
         private ExamineManager()
         {
+            if (!_defaultRegisteration) return;
             HostingEnvironment.RegisterObject(this);
         }
 
@@ -339,28 +354,43 @@ namespace Examine
         {
             if (immediate)
             {
-                //This is sort of a hack at the moment. We are disposing the searchers at the last possible point in time because there might
-                // still be pages executing when 'immediate' == false. In which case, when we close the readers, exceptions will occur
-                // if the search results are still being enumerated.
-                // I've tried using DecRef and IncRef to keep track of searchers using readers, however there is no guarantee that DecRef can
-                // be called when a search is finished and since search results are lazy, we don't know when they end unless people dispose them
-                // or always use a foreach loop which can't really be forced. The only alternative to using DecRef and IncRef would be to make the results
-                // not lazy which isn't good.
-
-                foreach (var searcher in SearchProviderCollection.OfType<IDisposable>())
+                try
                 {
-                    searcher.Dispose();
+                    //This is sort of a hack at the moment. We are disposing the searchers at the last possible point in time because there might
+                    // still be pages executing when 'immediate' == false. In which case, when we close the readers, exceptions will occur
+                    // if the search results are still being enumerated.
+                    // I've tried using DecRef and IncRef to keep track of searchers using readers, however there is no guarantee that DecRef can
+                    // be called when a search is finished and since search results are lazy, we don't know when they end unless people dispose them
+                    // or always use a foreach loop which can't really be forced. The only alternative to using DecRef and IncRef would be to make the results
+                    // not lazy which isn't good.
+
+                    foreach (var searcher in SearchProviderCollection.OfType<IDisposable>())
+                    {
+                        searcher.Dispose();
+                    }
+
+                    OpenReaderTracker.Current.CloseAllReaders();
                 }
-
-                OpenReaderTracker.Current.CloseAllReaders();
-
-                HostingEnvironment.UnregisterObject(this);
+                finally
+                {
+                    //unregister if the default registration was used
+                    if (_defaultRegisteration)
+                        HostingEnvironment.UnregisterObject(this);
+                }
             }
             else
-            {                
-                foreach (var indexer in IndexProviderCollection.OfType<IDisposable>())
+            {
+                try
                 {
-                    indexer.Dispose();
+                    foreach (var indexer in IndexProviderCollection.OfType<IDisposable>())
+                    {
+                        indexer.Dispose();
+                    }
+                }
+                catch (Exception)
+                {
+                    //an exception shouldn't occur but if so we need to terminate
+                    Stop(true);
                 }
             }
         }

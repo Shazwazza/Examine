@@ -23,7 +23,11 @@ namespace Examine.LuceneEngine.Directories
             var indexFolder = new DirectoryInfo(luceneIndexFolder);
             var tempFolder = GetLocalStorageDirectory(indexFolder);
             var master = new DirectoryInfo(luceneIndexFolder);
-            return new SyncDirectory(new SimpleFSDirectory(master), new SimpleFSDirectory(tempFolder));
+            var masterDir = new SimpleFSDirectory(master);
+            var cacheDir = new SimpleFSDirectory(tempFolder);
+            masterDir.SetLockFactory(DirectoryTracker.DefaultLockFactory(master));
+            cacheDir.SetLockFactory(DirectoryTracker.DefaultLockFactory(tempFolder));
+            return new SyncDirectory(masterDir, cacheDir);
         }
         
     }

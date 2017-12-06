@@ -16,6 +16,21 @@ namespace Examine.LuceneEngine
     [SecuritySafeCritical]
     public sealed class DirectoryTracker
     {
+        static DirectoryTracker()
+        {
+            DefaultLockFactory = d =>
+            {
+                var nativeFsLockFactory = new NativeFSLockFactory(d);
+                nativeFsLockFactory.SetLockPrefix(null);
+                return nativeFsLockFactory;
+            };
+        }
+
+        /// <summary>
+        /// This can be changed on startup to use a different lock factory than the default which is <see cref="NativeFSLockFactory"/>
+        /// </summary>
+        public static Func<DirectoryInfo, LockFactory> DefaultLockFactory { get; set; }
+
         private static readonly DirectoryTracker Instance = new DirectoryTracker();
        
         private readonly ConcurrentDictionary<string, Directory> _directories = new ConcurrentDictionary<string, Directory>();
@@ -41,7 +56,12 @@ namespace Examine.LuceneEngine
                 }
                 return d;
             }
-            var resolved = _directories.GetOrAdd(dir.FullName, s => new SimpleFSDirectory(dir));
+            var resolved = _directories.GetOrAdd(dir.FullName, s =>
+            {
+                var simpleFsDirectory = new SimpleFSDirectory(dir);
+                simpleFsDirectory.SetLockFactory(DirectoryTracker.DefaultLockFactory(dir));
+                return simpleFsDirectory;
+            });
             return resolved;
         }
 

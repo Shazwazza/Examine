@@ -21,7 +21,9 @@ namespace Examine.LuceneEngine.Directories
             var indexFolder = new DirectoryInfo(luceneIndexFolder);
             var tempFolder = GetLocalStorageDirectory(indexFolder);
 
-            return new SimpleFSDirectory(tempFolder);
+            var simpleFsDirectory = new SimpleFSDirectory(tempFolder);
+            simpleFsDirectory.SetLockFactory(DirectoryTracker.DefaultLockFactory(tempFolder));
+            return simpleFsDirectory;
         }
 
         protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)

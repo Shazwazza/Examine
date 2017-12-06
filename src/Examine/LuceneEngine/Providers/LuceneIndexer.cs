@@ -19,6 +19,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 using Version = Lucene.Net.Util.Version;
 
@@ -42,6 +43,7 @@ namespace Examine.LuceneEngine.Providers
             _disposer = new DisposableIndexer(this);
             _committer = new IndexCommiter(this);
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
+            WaitForIndexQueueOnShutdown = true;
         }
 
         /// <summary>
@@ -70,6 +72,7 @@ namespace Examine.LuceneEngine.Providers
 
             InitializeDirectory();
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
+            WaitForIndexQueueOnShutdown = true;
         }
 
         /// <summary>
@@ -97,6 +100,7 @@ namespace Examine.LuceneEngine.Providers
 
             _directory = luceneDirectory;
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
+            WaitForIndexQueueOnShutdown = true;
         }
 
         /// <summary>
@@ -123,6 +127,7 @@ namespace Examine.LuceneEngine.Providers
             OptimizationCommitThreshold = 100;
             RunAsync = async;
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
+            WaitForIndexQueueOnShutdown = true;
         }
 
         #endregion
@@ -454,7 +459,15 @@ namespace Examine.LuceneEngine.Providers
 
         #region Properties
 
-
+        /// <summary>
+        /// this flag indicates if Examine should wait for the current index queue to be fully processed during appdomain shutdown
+        /// </summary>
+        /// <remarks>
+        /// By default this is true but in some cases a user may wish to disable this since this can block an appdomain from shutting down
+        /// within a reasonable time which can cause problems with overlapping appdomains.
+        /// </remarks>
+        public bool WaitForIndexQueueOnShutdown { get; set; }
+        
         [Obsolete("This is no longer used and will be removed in future versions")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool AutomaticallyOptimize { get; protected set; }
@@ -1864,7 +1877,9 @@ namespace Examine.LuceneEngine.Providers
         [SecuritySafeCritical]
         private IndexWriter WriterFactory(Directory d)
         {
-            return new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            if (d == null) throw new ArgumentNullException(nameof(d));
+            var writer = new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            return writer;
         }
 
         /// <summary>
@@ -2059,8 +2074,12 @@ namespace Examine.LuceneEngine.Providers
             [SecuritySafeCritical]
             protected override void DisposeResources()
             {
-                //if there are active adds, lets way/retry (5 seconds)
-                RetryUntilSuccessOrTimeout(() => _indexer._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
+                
+                if (_indexer.WaitForIndexQueueOnShutdown)
+                {
+                    //if there are active adds, lets way/retry (5 seconds)
+                    RetryUntilSuccessOrTimeout(() => _indexer._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
+                }
 
                 //cancel any operation currently in place
                 _indexer._cancellationTokenSource.Cancel();
@@ -2070,14 +2089,19 @@ namespace Examine.LuceneEngine.Providers
 
                 if (_indexer._writer != null)
                 {
-                    //process remaining items and block until complete
-                    _indexer.ForceProcessQueueItems(true);
+                    if (_indexer.WaitForIndexQueueOnShutdown)
+                    {
+                        //process remaining items and block until complete
+                        _indexer.ForceProcessQueueItems(true);
+                    }
                 }
 
                 //dispose it now
                 _indexer._indexQueue.Dispose();
 
                 //Don't close the writer until there are definitely no more writes
+                //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
+                //we are not terminating Lucene while it is actively writing to the index.
                 RetryUntilSuccessOrTimeout(() => _indexer._activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
 
                 //close the committer, this will ensure a final commit is made if one has been queued
