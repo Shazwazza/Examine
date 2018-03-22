@@ -11,7 +11,7 @@ namespace Examine.LuceneEngine.Directories
     /// </summary>
     public class SyncAspNetCodeGenDirectoryFactory : IDirectoryFactory
     {
-        [SecuritySafeCritical]
+        
         public Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);

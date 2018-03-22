@@ -27,14 +27,14 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
         public LuceneMemorySearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
         {
             _luceneDirectory = new RAMDirectory(luceneDirectory);;
             IndexingAnalyzer = analyzer;
         }
 
-		[SecuritySafeCritical]
+		
         protected override Directory GetLuceneDirectory()
         {
             return _luceneDirectory;
@@ -46,7 +46,7 @@ namespace Examine.LuceneEngine.Providers
         /// Gets the searcher for this instance
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         public override Searcher GetSearcher()
         {
             //Trace.WriteLine("LuceneMemorySearcher.GetSearcher");

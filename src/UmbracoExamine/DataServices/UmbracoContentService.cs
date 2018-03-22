@@ -26,7 +26,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public string StripHtml(string value)
         {
             return library.StripHtml(value);
@@ -37,7 +37,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="xpath"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public XDocument GetPublishedContentByXPath(string xpath)
         {
             return library.GetXmlNodeByXPath(xpath).ToXDocument();
@@ -50,7 +50,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="xpath"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public XDocument GetLatestContentByXPath(string xpath)
         {   
 
@@ -83,7 +83,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="documentId"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		private XmlNode GetPage(int documentId)
         {
             XmlNode x = Access.AccessXml.SelectSingleNode("/access/page [@id=" + documentId.ToString() + "]");
@@ -114,7 +114,7 @@ namespace UmbracoExamine.DataServices
         /// Returns a list of all of the user defined property names in Umbraco
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public IEnumerable<string> GetAllUserPropertyNames()
         {
             //this is how umb codebase 4.0 does this... booo, should be in the data layer, will fix in 4.1

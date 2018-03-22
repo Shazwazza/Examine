@@ -46,7 +46,7 @@ namespace Examine.AzureDirectory
 
             _cacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
-            _lockFactory = new MultiIndexLockFactory(new AzureDirectoryNativeLockFactory(this), _cacheDirectory.GetLockFactory());
+            _lockFactory = new MultiIndexLockFactory(new AzureDirectoryNativeLockFactory(this), _cacheDirectory.LockFactory);
 
             if (string.IsNullOrEmpty(rootFolder))
                 RootFolder = string.Empty;
@@ -80,15 +80,7 @@ namespace Examine.AzureDirectory
             _blobContainer = _blobClient.GetContainerReference(_containerName);
             _blobContainer.CreateIfNotExists();
         }
-
-        /// <summary>Returns an array of strings, one for each file in the directory. </summary>
-        [Obsolete("For some Directory implementations (FSDirectory}, and its subclasses), this method silently filters its results to include only index files.  Please use ListAll instead, which does no filtering. ")]
-        public override String[] List()
-        {
-            //proxy to the non obsolete ListAll
-            return ListAll();
-        }
-
+        
         public override string[] ListAll()
         {
             CheckDirty();
@@ -216,44 +208,6 @@ namespace Examine.AzureDirectory
         }
 
         
-        /// <summary>Renames an existing file in the directory.
-        /// If a file already exists with the new name, then it is replaced.
-        /// This replacement should be atomic. 
-        /// </summary>
-        [Obsolete("This is actually never used")]
-        public override void RenameFile(string from, string to)
-        {
-            try
-            {
-                var blobFrom = _blobContainer.GetBlockBlobReference(from);
-                var blobTo = _blobContainer.GetBlockBlobReference(to);
-                blobTo.StartCopy(blobFrom);
-                blobFrom.DeleteIfExists();
-                SetDirty();               
-            }
-            catch(Exception ex)
-            {
-                Trace.TraceError("Could not rename file on master index; " + ex);
-            }
-
-            try
-            {
-                // we delete and force a redownload, since we can't do this in an atomic way
-                if (_cacheDirectory.FileExists(from))
-                    _cacheDirectory.RenameFile(from, to);
-
-                // drop old cached data as it's wrong now
-                if (_cacheDirectory.FileExists(from + ".blob"))
-                    _cacheDirectory.DeleteFile(from + ".blob");
-
-                SetDirty();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Could not rename file on local index; " + ex);
-            }
-        }
-
         /// <summary>Returns the length of a file in the directory. </summary>
         public override long FileLength(string name)
         {
@@ -317,22 +271,12 @@ namespace Examine.AzureDirectory
             _lockFactory.ClearLock(name);            
         }
 
-        public override LockFactory GetLockFactory()
-        {
-            return _lockFactory;
-        }
+        public override LockFactory LockFactory => _lockFactory;
 
-        /// <summary>Closes the store. </summary>
-        public override void Close()
+        protected override void Dispose(bool disposing)
         {
             _blobContainer = null;
             _blobClient = null;
-        }
-
-        /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
-        public override void Dispose()
-        {
-            this.Close();
         }
 
         /// <summary> Return a string identifier that uniquely differentiates
@@ -342,9 +286,9 @@ namespace Examine.AzureDirectory
         /// are considered "the same index".  This is how locking
         /// "scopes" to the right index.
         /// </summary>
-        public override string GetLockID()
+        public override string GetLockId()
         {
-            return string.Concat(base.GetLockID(), _cacheDirectory.GetLockID());
+            return string.Concat(base.GetLockId(), _cacheDirectory.GetLockId());
         }
 
         public virtual bool ShouldCompressFile(string path)

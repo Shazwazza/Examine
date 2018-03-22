@@ -42,21 +42,21 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-        [SecuritySafeCritical]
+        
         protected BaseUmbracoIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, analyzer, async)
         {
             DataService = dataService;
         }
 
-		[SecuritySafeCritical]
+		
 		protected BaseUmbracoIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
 			: base(indexerData, luceneDirectory, analyzer, async)
 		{
 			DataService = dataService;
 		}
 
-        [SecuritySafeCritical]
+        
         protected BaseUmbracoIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
             : base(indexerData, writer, async)
         {
@@ -98,7 +98,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="name"></param>
         /// <param name="config"></param>
-        [SecuritySafeCritical]
+        
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             if (config["dataService"] != null && !string.IsNullOrEmpty(config["dataService"]))

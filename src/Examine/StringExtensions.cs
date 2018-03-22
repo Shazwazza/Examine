@@ -90,7 +90,7 @@ namespace Examine
 
 		//NOTE: The reason this code is in a separate method is because the Code Analysis barks at us with security concerns for medium trust
 		// when it is inline in the RemoveStopWords method like it used to be.
-		[SecuritySafeCritical]
+		
 		private static bool IsStandardAnalyzerStopWord(string stringToCheck)
 		{
 			if (StandardAnalyzer.STOP_WORDS_SET.Contains(stringToCheck.ToLower()))
@@ -105,7 +105,7 @@ namespace Examine
         ///</summary>
         ///<param name="searchText"></param>
         ///<returns></returns>
-		[SecuritySafeCritical]
+		
         public static string RemoveStopWords(this string searchText)
         {
             Action<string, StringBuilder> removeWords = (str, b) =>

@@ -26,37 +26,37 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// Sets the next operation to be AND
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         public IQuery And()
         {
-            return new LuceneQuery(this._search, BooleanClause.Occur.MUST);
+            return new LuceneQuery(this._search, Occur.MUST);
         }
 
         /// <summary>
         /// Sets the next operation to be OR
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         public IQuery Or()
         {
-            return new LuceneQuery(this._search, BooleanClause.Occur.SHOULD);
+            return new LuceneQuery(this._search, Occur.SHOULD);
         }
 
         /// <summary>
         /// Sets the next operation to be NOT
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         public IQuery Not()
         {
-            return new LuceneQuery(this._search, BooleanClause.Occur.MUST_NOT);
+            return new LuceneQuery(this._search, Occur.MUST_NOT);
         }
 
         /// <summary>
         /// Compiles this instance for fluent API conclusion
         /// </summary>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
         public ISearchCriteria Compile()
         {
             if (!_hasCompiled && !string.IsNullOrEmpty(this._search.SearchIndexType))
@@ -64,12 +64,12 @@ namespace Examine.LuceneEngine.SearchCriteria
                 var query = this._search.Query;
 
                 this._search.Query = new BooleanQuery();
-                this._search.Query.Add(query, BooleanClause.Occur.MUST);
+                this._search.Query.Add(query, Occur.MUST);
 
-                //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), BooleanClause.Occur.MUST);
+                //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), Occur.MUST);
 
                 this._search.FieldInternal(
-                    LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType), BooleanClause.Occur.MUST,
+                    LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType), Occur.MUST,
                     //Don't use the QueryParser to create this query, this is an explit query and Depending on the Query Parser used this could muck things up:
                     // https://github.com/Shazwazza/Examine/issues/54
                     false);

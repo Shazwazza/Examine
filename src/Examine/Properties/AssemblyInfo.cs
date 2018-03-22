@@ -24,8 +24,6 @@ using System.Security;
 [assembly: InternalsVisibleTo("Examine.Azure")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
-[assembly: AllowPartiallyTrustedCallers]
-
 [assembly: AssemblyVersion("0.1.89.0")]
 [assembly: AssemblyFileVersion("0.1.89.0")]
 [assembly: AssemblyInformationalVersion("0.1.89")]

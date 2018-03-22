@@ -52,7 +52,7 @@ namespace Examine.AzureDirectory
             _indexOutput.Flush();
         }
 
-        public override void Close()
+        protected override void Dispose(bool isDisposing)
         {
             _fileMutex.WaitOne();
             try
@@ -62,8 +62,8 @@ namespace Examine.AzureDirectory
                 // make sure it's all written out
                 _indexOutput.Flush();
 
-                long originalLength = _indexOutput.Length();
-                _indexOutput.Close();
+                long originalLength = _indexOutput.Length;
+                _indexOutput.Dispose();
 
                 Stream blobStream;
 
@@ -148,10 +148,7 @@ namespace Examine.AzureDirectory
             return compressedStream;
         }
 
-        public override long Length()
-        {
-            return _indexOutput.Length();
-        }
+        public override long Length => _indexOutput.Length;
 
         public override void WriteByte(byte b)
         {
@@ -168,10 +165,7 @@ namespace Examine.AzureDirectory
             _indexOutput.WriteBytes(b, offset, length);
         }
 
-        public override long GetFilePointer()
-        {
-            return _indexOutput.GetFilePointer();
-        }
+        public override long FilePointer => _indexOutput.FilePointer;
 
         public override void Seek(long pos)
         {

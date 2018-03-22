@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine.Directories
     /// </remarks>
     public class TempEnvDirectoryFactory : IDirectoryFactory
     {
-        [SecuritySafeCritical]
+        
         public virtual Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);

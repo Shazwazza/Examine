@@ -11,19 +11,19 @@ namespace UmbracoExamine.DataServices
     {
         public string ProviderName { get; set; }
 
-		[SecuritySafeCritical]
+		
         public void AddInfoLog(int nodeId, string msg)
         {
             Log.Add(LogTypes.Custom, nodeId, "[UmbracoExamine] (" + ProviderName + ")" + msg);
         }
 
-		[SecuritySafeCritical]
+		
         public void AddErrorLog(int nodeId, string msg)
         {
             Log.Add(LogTypes.Error, nodeId, "[UmbracoExamine] (" + ProviderName + ")" + msg);
         }
 
-		[SecuritySafeCritical]
+		
         public void AddVerboseLog(int nodeId, string msg)
         {
             if (LogLevel == LoggingLevel.Verbose)

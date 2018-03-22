@@ -7,7 +7,7 @@ using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine
 {
-    [SecuritySafeCritical]
+    
     internal class OpenReaderTracker
     {
         private static readonly OpenReaderTracker Instance = new OpenReaderTracker();
@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine
             {
                 var now = DateTime.Now;
 
-                var readersForDir = _oldReaders.Where(x => x.Item1.Directory().GetLockID() == dir.GetLockID()).ToList();
+                var readersForDir = _oldReaders.Where(x => x.Item1.Directory().GetLockId() == dir.GetLockId()).ToList();
                 var newest = readersForDir.OrderByDescending(x => x.Item2).FirstOrDefault();
                 readersForDir.Remove(newest);
                 var stale = readersForDir.Where(x => now - x.Item2 >= ts).ToArray();
@@ -64,7 +64,7 @@ namespace Examine.LuceneEngine
         {
             lock (_locker)
             {
-                var readersForDir = _oldReaders.Where(x => x.Item1.Directory().GetLockID() == dir.GetLockID()).ToArray();
+                var readersForDir = _oldReaders.Where(x => x.Item1.Directory().GetLockId() == dir.GetLockId()).ToArray();
                 foreach (var reader in readersForDir)
                 {
                     //close reader and remove from list

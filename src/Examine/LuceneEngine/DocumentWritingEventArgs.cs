@@ -19,9 +19,9 @@ namespace Examine.LuceneEngine
 	    /// </summary>        
 	    public Document Document
 	    {
-			[SecuritySafeCritical]
+			
 			get;
-			[SecuritySafeCritical]
+			
 			private set;
 	    }
         /// <summary>
@@ -39,7 +39,7 @@ namespace Examine.LuceneEngine
         /// <param name="nodeId"></param>
         /// <param name="d"></param>
         /// <param name="fields"></param>
-		[SecuritySafeCritical]
+		
         public DocumentWritingEventArgs(int nodeId, Document d, Dictionary<string, string> fields)
         {
             this.NodeId = nodeId;

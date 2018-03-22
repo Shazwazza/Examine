@@ -8,18 +8,18 @@ namespace Examine.LuceneEngine.Directories
     /// <summary>
     /// Stream wrapper around IndexInput
     /// </summary>
-    [SecuritySafeCritical]
+    
     public class StreamInput : Stream
     {
         public IndexInput Input
         {
-            [SecuritySafeCritical]
+            
             get;
-            [SecuritySafeCritical]
+            
             set;
         }
 
-        [SecuritySafeCritical]
+        
         public StreamInput(IndexInput input)
         {
             Input = input;
@@ -32,22 +32,22 @@ namespace Examine.LuceneEngine.Directories
 
         public override long Length
         {
-            [SecuritySafeCritical]
+            
             get { return Input.Length(); }
         }
 
         public override long Position
         {
-            [SecuritySafeCritical]
-            get { return Input.GetFilePointer(); }
-            [SecuritySafeCritical]
+            
+            get { return Input.FilePointer; }
+            
             set { Input.Seek(value); }
         }
 
-        [SecuritySafeCritical]
+        
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var pos = Input.GetFilePointer();
+            var pos = Input.FilePointer;
             //try
             //{
                 var len = Input.Length();
@@ -56,10 +56,10 @@ namespace Examine.LuceneEngine.Directories
                 Input.ReadBytes(buffer, offset, count);
             //}
             //catch (Exception) { }
-            return (int)(Input.GetFilePointer() - pos);
+            return (int)(Input.FilePointer - pos);
         }
 
-        [SecuritySafeCritical]
+        
         public override long Seek(long offset, SeekOrigin origin)
         {
             switch (origin)
@@ -68,12 +68,12 @@ namespace Examine.LuceneEngine.Directories
                     Input.Seek(offset);
                     break;
                 case SeekOrigin.Current:
-                    Input.Seek(Input.GetFilePointer() + offset);
+                    Input.Seek(Input.FilePointer + offset);
                     break;
                 case SeekOrigin.End:
                     throw new System.NotImplementedException();
             }
-            return Input.GetFilePointer();
+            return Input.FilePointer;
         }
 
         public override void SetLength(long value)
@@ -86,7 +86,7 @@ namespace Examine.LuceneEngine.Directories
             throw new NotImplementedException();
         }
 
-        [SecuritySafeCritical]
+        
         public override void Close()
         {
             Input.Close();

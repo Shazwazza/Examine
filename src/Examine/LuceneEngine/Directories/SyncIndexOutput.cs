@@ -11,7 +11,7 @@ namespace Examine.LuceneEngine.Directories
     /// <summary>
     /// Implements "Copy on write" semantics for Lucene IndexInput
     /// </summary>
-    [SecurityCritical]
+    
     internal class SyncIndexOutput : IndexOutput
     {
         private readonly SyncDirectory _syncDirectory;
@@ -44,19 +44,35 @@ namespace Examine.LuceneEngine.Directories
             }
         }
 
-        [SecurityCritical]
+        
         public override void Flush()
         {
             _cacheDirIndexOutput.Flush();
         }
 
+        public override void WriteByte(byte b)
+        {
+            _cacheDirIndexOutput.WriteByte(b);
+        }
+
+        
+        public override void WriteBytes(byte[] b, int length)
+        {
+            _cacheDirIndexOutput.WriteBytes(b, length);
+        }
+
+        
+        public override void WriteBytes(byte[] b, int offset, int length)
+        {
+            _cacheDirIndexOutput.WriteBytes(b, offset, length);
+        }
+
         /// <summary>
         /// When the IndexOutput is closed we ensure that the file is flushed and written locally and also persisted to master storage
         /// </summary>
-        [SecurityCritical]
-        public override void Close()
+        protected override void Dispose(bool disposing)
         {
-            _fileMutex.WaitOne();            
+            _fileMutex.WaitOne();
 
             try
             {
@@ -67,7 +83,7 @@ namespace Examine.LuceneEngine.Directories
                 if (_cacheDirIndexOutput != null)
                 {
                     _cacheDirIndexOutput.Flush();
-                    _cacheDirIndexOutput.Close();
+                    _cacheDirIndexOutput.Dispose();
 
                     IndexInput cacheInput = null;
                     try
@@ -82,7 +98,7 @@ namespace Examine.LuceneEngine.Directories
                     }
 
                     if (cacheInput != null)
-                    {                        
+                    {
                         IndexOutput masterOutput = null;
                         try
                         {
@@ -91,8 +107,8 @@ namespace Examine.LuceneEngine.Directories
                         }
                         finally
                         {
-                            masterOutput?.Close();
-                            cacheInput?.Close();
+                            masterOutput?.Dispose();
+                            cacheInput?.Dispose();
                         }
                     }
 
@@ -112,41 +128,13 @@ namespace Examine.LuceneEngine.Directories
             }
         }
 
-
-        [SecurityCritical]
-        public override long Length()
-        {
-            return _cacheDirIndexOutput.Length();
-        }
-
-        [SecurityCritical]
-        public override void WriteByte(byte b)
-        {
-            _cacheDirIndexOutput.WriteByte(b);
-        }
-
-        [SecurityCritical]
-        public override void WriteBytes(byte[] b, int length)
-        {
-            _cacheDirIndexOutput.WriteBytes(b, length);
-        }
-
-        [SecurityCritical]
-        public override void WriteBytes(byte[] b, int offset, int length)
-        {
-            _cacheDirIndexOutput.WriteBytes(b, offset, length);
-        }
-
-        [SecurityCritical]
-        public override long GetFilePointer()
-        {
-            return _cacheDirIndexOutput.GetFilePointer();
-        }
-
-        [SecurityCritical]
         public override void Seek(long pos)
         {
             _cacheDirIndexOutput.Seek(pos);
         }
+
+        public override long FilePointer => _cacheDirIndexOutput.FilePointer;
+
+        public override long Length => _cacheDirIndexOutput.Length;
     }
 }

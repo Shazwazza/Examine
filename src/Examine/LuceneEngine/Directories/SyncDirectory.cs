@@ -28,7 +28,7 @@ namespace Examine.LuceneEngine.Directories
     /// there would be less IO especially for things like ListAll, FileExists
     /// 
     /// </remarks>
-    [SecurityCritical]
+    
     public class SyncDirectory : Lucene.Net.Store.Directory
     {
         private readonly Lucene.Net.Store.Directory _masterDirectory;
@@ -68,16 +68,7 @@ namespace Examine.LuceneEngine.Directories
         public Lucene.Net.Store.Directory CacheDirectory => _cacheDirectory;
 
         public Lucene.Net.Store.Directory MasterDirectory => _masterDirectory;
-
-        /// <summary>Returns an array of strings, one for each file in the directory. </summary>
-        [Obsolete("For some Directory implementations (FSDirectory}, and its subclasses), this method silently filters its results to include only index files.  Please use ListAll instead, which does no filtering. ")]
-        [SecurityCritical]
-        public override string[] List()
-        {
-            //proxy to the non obsolete ListAll
-            return ListAll();
-        }
-
+        
         /// <summary>Returns an array of strings, one for each file in the
         /// directory.  Unlike <see cref="M:Lucene.Net.Store.Directory.List" /> this method does no
         /// filtering of the contents in a directory, and it will
@@ -97,7 +88,7 @@ namespace Examine.LuceneEngine.Directories
         /// * when this flag is set and one of these methods is called, we need to re-calculate the hash (or whatever) of if these dirs are in sync
         /// * when the hash matches and the dirty flag is null, for these methods we'll use the local disk
         /// </remarks>
-        [SecurityCritical]
+        
         public override string[] ListAll()
         {
             CheckDirty();
@@ -106,7 +97,7 @@ namespace Examine.LuceneEngine.Directories
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
-        [SecurityCritical]
+        
         public override bool FileExists(string name)
         {
             CheckDirty();
@@ -133,7 +124,7 @@ namespace Examine.LuceneEngine.Directories
         }
 
         /// <summary>Returns the time the named file was last modified. </summary>
-        [SecurityCritical]
+        
         public override long FileModified(string name)
         {
             CheckDirty();
@@ -143,7 +134,7 @@ namespace Examine.LuceneEngine.Directories
 
         /// <summary>Set the modified time of an existing file to now. </summary>
         [Obsolete("This is actually never used")]
-        [SecurityCritical]
+        
         public override void TouchFile(string name)
         {
             //just update the cache file - the Lucene source actually never calls this method!
@@ -152,7 +143,7 @@ namespace Examine.LuceneEngine.Directories
         }
 
         /// <summary>Removes an existing file in the directory. </summary>
-        [SecurityCritical]
+        
         public override void DeleteFile(string name)
         {
             //We're going to try to remove this from the cache directory first,
@@ -184,43 +175,8 @@ namespace Examine.LuceneEngine.Directories
             _masterDirectory.DeleteFile(name);
             SetDirty();
         }
-
-
-        /// <summary>Renames an existing file in the directory.
-        /// If a file already exists with the new name, then it is replaced.
-        /// This replacement should be atomic. 
-        /// </summary>
-        [Obsolete("This is actually never used")]
-        [SecurityCritical]
-        public override void RenameFile(string from, string to)
-        {
-            try
-            {
-                _masterDirectory.RenameFile(from, to);
-                SetDirty();
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceError("Could not rename file on master index; " + ex);
-            }
-
-            try
-            {
-                // we delete and force a redownload, since we can't do this in an atomic way
-                if (_cacheDirectory.FileExists(from))
-                {
-                    _cacheDirectory.RenameFile(from, to);
-                    SetDirty();
-                }
-            }
-            catch (Exception ex)
-            {
-                Trace.TraceError("Could not rename file on local index; " + ex);
-            }
-        }
-
+        
         /// <summary>Returns the length of a file in the directory. </summary>
-        [SecurityCritical]
         public override long FileLength(string name)
         {
             CheckDirty();
@@ -231,7 +187,7 @@ namespace Examine.LuceneEngine.Directories
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
         /// </summary>
-        [SecurityCritical]
+        
         public override IndexOutput CreateOutput(string name)
         {
             SetDirty();
@@ -244,7 +200,7 @@ namespace Examine.LuceneEngine.Directories
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
-        [SecurityCritical]
+        
         public override IndexInput OpenInput(string name)
         {
             //There's a project called Jackrabbit which performs a copy on read/copy on write semantics as well and it appears
@@ -282,52 +238,29 @@ namespace Examine.LuceneEngine.Directories
         /// <summary>Construct a {@link Lock}.</summary>
         /// <param name="name">the name of the lock file
         /// </param>
-        [SecurityCritical]
+        
         public override Lock MakeLock(string name)
         {
             return _lockFactory.MakeLock(name);
         }
 
-        [SecurityCritical]
+        
         public override void ClearLock(string name)
         {
             _lockFactory.ClearLock(name);
         }
 
-        [SecurityCritical]
-        public override LockFactory GetLockFactory()
-        {
-            return _lockFactory;
-        }
+        public override LockFactory LockFactory => _lockFactory;
 
-        /// <summary>
-        /// Return a string identifier that uniquely differentiates
-        ///             this Directory instance from other Directory instances.
-        ///             This ID should be the same if two Directory instances
-        ///             (even in different JVMs and/or on different machines)
-        ///             are considered "the same index".  This is how locking
-        ///             "scopes" to the right index.
-        /// 
-        /// </summary>
-        [SecurityCritical]
-        public override string GetLockID()
+        public override string GetLockId()
         {
-            return string.Concat(_masterDirectory.GetLockID(), _cacheDirectory.GetLockID());
+            return string.Concat(_masterDirectory.GetLockId(), _cacheDirectory.GetLockId());
         }
-
-        /// <summary>Closes the store. </summary>
-        [SecurityCritical]
-        public override void Close()
+        
+        protected override void Dispose(bool disposing)
         {
-            _masterDirectory.Close();
-            _cacheDirectory.Close();
-        }
-
-        /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
-        [SecuritySafeCritical]
-        public override void Dispose()
-        {
-            this.Close();
+            _masterDirectory.Dispose();
+            _cacheDirectory.Dispose();
         }
 
         internal StreamInput OpenCachedInputAsStream(string name)

@@ -6,7 +6,7 @@ namespace Examine.LuceneEngine.Directories
 {
     public interface IDirectoryFactory
     {
-        [SecuritySafeCritical]
+        
         Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder);
     }
 }

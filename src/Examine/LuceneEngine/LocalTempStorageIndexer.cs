@@ -16,14 +16,14 @@ namespace Examine.LuceneEngine
     {
         private readonly SnapshotDeletionPolicy _snapshotter;
 
-        [SecuritySafeCritical]
+        
         public LuceneIndexCopy()
         {
             IndexDeletionPolicy policy = new KeepOnlyLastCommitDeletionPolicy();
             _snapshotter = new SnapshotDeletionPolicy(policy);
         }
 
-        [SecuritySafeCritical]
+        
         public bool Copy(SimpleFSDirectory sourceLuceneDirectory, Analyzer analyzer, DirectoryInfo targetPath)
         {
             if (targetPath.Exists == false)
@@ -47,11 +47,11 @@ namespace Examine.LuceneEngine
 
                     var allSnapshotFiles = new HashSet<string>();
                     var commit = _snapshotter.Snapshot();
-                    foreach (var fileName in commit.GetFileNames())
+                    foreach (var fileName in commit.FileNames)
                     {
                         allSnapshotFiles.Add(fileName);
                     }
-                    allSnapshotFiles.Add(commit.GetSegmentsFileName());
+                    allSnapshotFiles.Add(commit.SegmentsFileName);
                     //we need to manually include the segments.gen file
                     allSnapshotFiles.Add("segments.gen");
 
@@ -100,7 +100,7 @@ namespace Examine.LuceneEngine
                         try
                         {
                             File.Copy(
-                                Path.Combine(sourceLuceneDirectory.GetDirectory().FullName, "Index", fileName),
+                                Path.Combine(sourceLuceneDirectory.Directory.FullName, "Index", fileName),
                                 destination);
                         }
                         catch (IOException ex)

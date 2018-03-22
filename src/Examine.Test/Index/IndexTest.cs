@@ -433,7 +433,7 @@ namespace Examine.Test.Index
                 var searcher = IndexInitializer.GetUmbracoSearcher(d);
 
                 //get searcher and reader to get stats
-                var r = ((IndexSearcher)searcher.GetSearcher()).GetIndexReader();
+                var r = ((IndexSearcher)searcher.GetSearcher()).IndexReader;
 
                 //there's 16 fields in the index, but 3 sorted fields
                 var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);

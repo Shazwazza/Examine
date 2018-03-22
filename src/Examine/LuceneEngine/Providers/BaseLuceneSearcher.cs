@@ -32,7 +32,7 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
         protected BaseLuceneSearcher(Analyzer analyzer)
 		{           
             IndexingAnalyzer = analyzer;
@@ -50,9 +50,9 @@ namespace Examine.LuceneEngine.Providers
 	    /// </summary>
 	    public Analyzer IndexingAnalyzer
 	    {
-			[SecuritySafeCritical]
+			
 		    get;
-			[SecuritySafeCritical]
+			
 			protected internal set;
 	    }
 
@@ -70,7 +70,7 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-		[SecuritySafeCritical]
+		
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -99,7 +99,7 @@ namespace Examine.LuceneEngine.Providers
         /// returns the underlying Lucene searcher
         ///</summary>
         ///<returns></returns>
-		[SecuritySafeCritical]
+		
         public abstract Searcher GetSearcher();
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
-		[SecuritySafeCritical]
+		
 		public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             //TODO: It would be nice to be able to pass in the existing field definitions here so 
@@ -157,7 +157,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="searchParams"></param>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         public override ISearchResults Search(ISearchCriteria searchParams)
         {
             return Search(searchParams, 0);
@@ -166,7 +166,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Performs a search with a maximum number of results
         /// </summary>        
-        [SecuritySafeCritical]
+        
         public override ISearchResults Search(ISearchCriteria searchParams, int maxResults)
         {
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
@@ -199,7 +199,7 @@ namespace Examine.LuceneEngine.Providers
         /// see https://lists.gt.net/lucene/java-user/92194
         /// 
         /// </remarks>
-        [SecuritySafeCritical]
+        
         protected void SetScoringBooleanQueryRewriteMethod(Query query)
         {
             
@@ -208,7 +208,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 try
                 {
-                    mtq.SetRewriteMethod(ErrorCheckingScoringBooleanQueryRewriteInstance);
+                    mtq.RewriteMethod = ErrorCheckingScoringBooleanQueryRewriteInstance;
                 }
                 catch (NotSupportedException)
                 {
@@ -217,9 +217,9 @@ namespace Examine.LuceneEngine.Providers
             }
             if (query is BooleanQuery bq)
             {
-                foreach (BooleanClause clause in bq.Clauses())
+                foreach (BooleanClause clause in bq.Clauses)
                 {
-                    var q = clause.GetQuery();
+                    var q = clause.Query;
                     //recurse
                     SetScoringBooleanQueryRewriteMethod(q);
                 }
@@ -227,13 +227,9 @@ namespace Examine.LuceneEngine.Providers
         }
         
         //do not try to set this here as a readonly field - the stupid medium trust transparency rules will throw up all over the place
-        private static MultiTermQuery.RewriteMethod _errorCheckingScoringBooleanQueryRewriteInstance;
+        private static RewriteMethod _errorCheckingScoringBooleanQueryRewriteInstance;
 
-        public static MultiTermQuery.RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance
-        {
-            [SecuritySafeCritical]
-            get { return _errorCheckingScoringBooleanQueryRewriteInstance ?? (_errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite()); }
-        }
+        public static RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance => _errorCheckingScoringBooleanQueryRewriteInstance ?? (_errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite());
 
         /// <summary>
         /// A simple search mechanism to search all fields based on an index type.
@@ -259,7 +255,7 @@ namespace Examine.LuceneEngine.Providers
         /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         public override ISearchCriteria CreateSearchCriteria()
         {
             return CreateSearchCriteria(string.Empty, BooleanOperation.And);
@@ -273,7 +269,7 @@ namespace Examine.LuceneEngine.Providers
             return CreateSearchCriteria(type, BooleanOperation.And);
         }
 
-		[SecuritySafeCritical]
+		
         public override ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
         {
             return CreateSearchCriteria(string.Empty, defaultOperation);

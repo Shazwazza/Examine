@@ -128,7 +128,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="s">The string to wildcard.</param>
         /// <returns>An IExamineValue for the required operation</returns>
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
-        [SecuritySafeCritical]
+        
         public static IExamineValue Escape(this string s)
         {
             if (String.IsNullOrEmpty(s))
@@ -166,18 +166,18 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The operation.</param>
         /// <returns>The translated Boolean operation</returns>
-        [SecuritySafeCritical]
-        public static BooleanClause.Occur ToLuceneOccurance(this BooleanOperation o)
+        
+        public static Occur ToLuceneOccurance(this BooleanOperation o)
         {
             switch (o)
             {
                 case BooleanOperation.And:
-                    return BooleanClause.Occur.MUST;
+                    return Occur.MUST;
                 case BooleanOperation.Not:
-                    return BooleanClause.Occur.MUST_NOT;
+                    return Occur.MUST_NOT;
                 case BooleanOperation.Or:
                 default:
-                    return BooleanClause.Occur.SHOULD;
+                    return Occur.SHOULD;
             }
         }
 
@@ -186,14 +186,14 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The occurrence to translate.</param>
         /// <returns>The translated boolean occurrence</returns>
-        [SecuritySafeCritical]
-        public static BooleanOperation ToBooleanOperation(this BooleanClause.Occur o)
+        
+        public static BooleanOperation ToBooleanOperation(this Occur o)
         {
-            if (o == BooleanClause.Occur.MUST)
+            if (o == Occur.MUST)
             {
                 return BooleanOperation.And;
             }
-            else if (o == BooleanClause.Occur.MUST_NOT)
+            else if (o == Occur.MUST_NOT)
             {
                 return BooleanOperation.Not;
             }

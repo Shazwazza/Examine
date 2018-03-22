@@ -28,7 +28,7 @@ namespace UmbracoExamine
         /// <summary>
         /// Creates a new instance of the class
         /// </summary>
-		[SecuritySafeCritical]
+		
 		public UmbracoEventManager()
         {
             var registeredProviders = ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
@@ -60,7 +60,7 @@ namespace UmbracoExamine
         //This does work, however we need to lock down the httphandler and thats an issue... so i've removed this
         //if people don't want to rebuild on app startup then they can disable it and reindex manually.
 
-		[SecuritySafeCritical]
+		
         private void Member_AfterSave(Member sender, SaveEventArgs e)
         {
             //ensure that only the providers are flagged to listen execute
@@ -70,7 +70,7 @@ namespace UmbracoExamine
             ExamineManager.Instance.ReIndexNode(xml, IndexTypes.Member, providers);
         }
 
-		[SecuritySafeCritical]
+		
         private void Member_AfterDelete(Member sender, DeleteEventArgs e)
         {
             var nodeId = sender.Id.ToString();
@@ -86,7 +86,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-		[SecuritySafeCritical]
+		
 		private void Document_AfterSave(Document sender, SaveEventArgs e)
         {
             //ensure that only the providers that have unpublishing support enabled     
@@ -136,7 +136,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-		[SecuritySafeCritical]
+		
 		private void Document_AfterDelete(Document sender, DeleteEventArgs e)
         {
             var nodeId = sender.Id.ToString();
@@ -149,7 +149,7 @@ namespace UmbracoExamine
                         && x.EnableDefaultEventHandler));
         }
 
-		[SecuritySafeCritical]
+		
         private void Media_AfterDelete(Media sender, DeleteEventArgs e)
         {
             var nodeId = sender.Id.ToString();
@@ -207,7 +207,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-		[SecuritySafeCritical]
+		
 		private void content_AfterClearDocumentCache(Document sender, DocumentCacheEventArgs e)
         {
             var nodeId = sender.Id.ToString();

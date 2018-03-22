@@ -34,7 +34,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="dataService"></param>
         /// <param name="indexTypes"></param>
         /// <param name="async"></param>
-		[SecuritySafeCritical]
+		
 		public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
             : base(indexerData, workingFolder, analyzer, async)
         {
@@ -51,7 +51,7 @@ namespace Examine.LuceneEngine.Providers
 		/// <param name="dataService"></param>
 		/// <param name="indexTypes"></param>
 		/// <param name="async"></param>
-		[SecuritySafeCritical]
+		
 		public SimpleDataIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
 			: base(indexerData, luceneDirectory, analyzer, async)
 		{
@@ -97,7 +97,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="config"></param>
-        [SecuritySafeCritical]
+        
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);

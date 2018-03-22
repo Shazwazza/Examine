@@ -44,7 +44,7 @@ namespace UmbracoExamine
         /// <param name="indexPath"></param>
         /// <param name="dataService"></param>
         /// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
 		public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
             : base(indexerData, indexPath, dataService, analyzer, async) { }
 
@@ -56,11 +56,11 @@ namespace UmbracoExamine
 		/// <param name="dataService"></param>
 		/// <param name="analyzer"></param>
 		/// <param name="async"></param>
-		[SecuritySafeCritical]
+		
 		public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
 			: base(indexerData, luceneDirectory, dataService, analyzer, async) { }
 
-        [SecuritySafeCritical]
+        
         public UmbracoContentIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
             : base(indexerData, writer, dataService, async) { }
 
@@ -122,7 +122,7 @@ namespace UmbracoExamine
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-        [SecuritySafeCritical]
+        
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
 

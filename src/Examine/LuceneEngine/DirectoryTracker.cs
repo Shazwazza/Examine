@@ -13,7 +13,7 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// Used to retrieve/track the same lucene directory instance for a given DirectoryInfo object
     /// </summary>
-    [SecuritySafeCritical]
+    
     public sealed class DirectoryTracker
     {
         static DirectoryTracker()
@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine
             DefaultLockFactory = d =>
             {
                 var nativeFsLockFactory = new NativeFSLockFactory(d);
-                nativeFsLockFactory.SetLockPrefix(null);
+                nativeFsLockFactory.LockPrefix = null;
                 return nativeFsLockFactory;
             };
         }
@@ -35,10 +35,7 @@ namespace Examine.LuceneEngine
        
         private readonly ConcurrentDictionary<string, Directory> _directories = new ConcurrentDictionary<string, Directory>();
    
-        public static DirectoryTracker Current
-        {
-            get { return Instance; }
-        }
+        public static DirectoryTracker Current => Instance;
 
         public Directory GetDirectory(DirectoryInfo dir)
         {

@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine.Directories
     /// When a file is requested for reading, we need to ensure that file exists locally in the cache folder if it's not 
     /// already there. This is synced from the main master directory.
     /// </remarks>
-    [SecurityCritical]
+    
     internal class SyncIndexInput : IndexInput
     {
         private SyncDirectory _syncDirectory;
@@ -230,32 +230,19 @@ namespace Examine.LuceneEngine.Directories
             return false;
         }
 
-        [SecurityCritical]
+        
         public override byte ReadByte()
         {
             return _cacheDirIndexInput.ReadByte();
         }
 
-        [SecurityCritical]
+        
         public override void ReadBytes(byte[] b, int offset, int len)
         {
             _cacheDirIndexInput.ReadBytes(b, offset, len);
         }
-
-        [SecurityCritical]
-        public override long GetFilePointer()
-        {
-            return _cacheDirIndexInput.GetFilePointer();
-        }
-
-        [SecurityCritical]
-        public override void Seek(long pos)
-        {
-            _cacheDirIndexInput.Seek(pos);
-        }
-
-        [SecurityCritical]
-        public override void Close()
+        
+        protected override void Dispose(bool disposing)
         {
             _fileMutex.WaitOne();
             try
@@ -263,7 +250,7 @@ namespace Examine.LuceneEngine.Directories
 #if FULLDEBUG
                 Trace.WriteLine($"CLOSED READSTREAM local {_name}");
 #endif
-                _cacheDirIndexInput.Close();
+                _cacheDirIndexInput.Dispose();
                 _cacheDirIndexInput = null;
                 _syncDirectory = null;
                 GC.SuppressFinalize(this);
@@ -274,13 +261,17 @@ namespace Examine.LuceneEngine.Directories
             }
         }
 
-        [SecurityCritical]
+        public override void Seek(long pos)
+        {
+            _cacheDirIndexInput.Seek(pos);
+        }
+
         public override long Length()
         {
             return _cacheDirIndexInput.Length();
         }
 
-        [SecuritySafeCritical]
+        
         public override object Clone()
         {
             IndexInput clone = null;
@@ -302,5 +293,6 @@ namespace Examine.LuceneEngine.Directories
             return clone;
         }
 
+        public override long FilePointer => _cacheDirIndexInput.FilePointer;
     }
 }

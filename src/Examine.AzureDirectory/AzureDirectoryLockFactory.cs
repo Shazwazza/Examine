@@ -17,16 +17,16 @@ namespace Examine.AzureDirectory
         
         public override Lock MakeLock(string name)
         {
-            if (lockPrefix != null)
-                name = this.lockPrefix + "-" + name;
+            if (LockPrefix != null)
+                name = LockPrefix + "-" + name;
 
             return new AzureSimpleLock(_azureDirectory.RootFolder + name, _azureDirectory);           
         }
 
         public override void ClearLock(string name)
         {
-            if (lockPrefix != null)
-                name = this.lockPrefix + "-" + name;
+            if (LockPrefix != null)
+                name = LockPrefix + "-" + name;
 
             var lockFile = _azureDirectory.RootFolder + name;
 

@@ -10,15 +10,15 @@ namespace Examine.LuceneEngine.Directories
     /// <summary>
     /// A class to manage mutex locks per directory instance (ID)
     /// </summary>
-    [SecuritySafeCritical]
+    
     public class SyncMutexManager
     {
         private readonly string _id;
 
-        [SecuritySafeCritical]
+        
         private static readonly ConcurrentDictionary<Lucene.Net.Store.Directory, SyncMutexManager> MutexManagers = new ConcurrentDictionary<Lucene.Net.Store.Directory, SyncMutexManager>();
 
-        [SecuritySafeCritical]
+        
         public SyncMutexManager(string id)
         {
             if (id == null) throw new ArgumentNullException(nameof(id));
@@ -68,7 +68,7 @@ namespace Examine.LuceneEngine.Directories
 
         public static Mutex GrabMutex(Lucene.Net.Store.Directory directory, string name)
         {
-            var mgr = MutexManagers.GetOrAdd(directory, d => new SyncMutexManager(d.GetLockID()));
+            var mgr = MutexManagers.GetOrAdd(directory, d => new SyncMutexManager(d.GetLockId()));
             return mgr.CreateMutex(name);
         }
     }

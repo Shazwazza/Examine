@@ -24,8 +24,6 @@ using System.Security;
 [assembly: InternalsVisibleTo("Examine.Test")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
-[assembly: AllowPartiallyTrustedCallers]
-
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version

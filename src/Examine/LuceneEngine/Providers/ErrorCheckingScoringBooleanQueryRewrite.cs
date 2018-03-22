@@ -20,11 +20,11 @@ namespace Examine.LuceneEngine.Providers
     /// ]]>
     /// </example>
     /// </remarks>
-    [SecurityCritical]
+    
     [Serializable]
-    public class ErrorCheckingScoringBooleanQueryRewrite : MultiTermQuery.RewriteMethod
+    public class ErrorCheckingScoringBooleanQueryRewrite : RewriteMethod
     {
-        [SecurityCritical]
+        
         public override Query Rewrite(IndexReader reader, MultiTermQuery query)
         {
             //we'll try to use the SCORING_BOOLEAN_QUERY_REWRITE but this can result in TooManyClauses
@@ -72,7 +72,7 @@ namespace Examine.LuceneEngine.Providers
             //
             //            NOTE: this is where the TooManyClauses Exception would occur 
             //
-            //            booleanQuery.Add(termQuery, BooleanClause.Occur.SHOULD);
+            //            booleanQuery.Add(termQuery, Occur.SHOULD);
             //            ++inc;
             //        }
             //    }

@@ -206,17 +206,14 @@ namespace Examine.AzureDirectory
             _indexInput.ReadBytes(b, offset, len);
         }
 
-        public override long GetFilePointer()
-        {
-            return _indexInput.GetFilePointer();
-        }
+        public override long FilePointer => _indexInput.FilePointer;
 
         public override void Seek(long pos)
         {
             _indexInput.Seek(pos);
         }
 
-        public override void Close()
+        protected override void Dispose(bool isDiposing)
         {
             _fileMutex.WaitOne();
             try
@@ -224,7 +221,7 @@ namespace Examine.AzureDirectory
 #if FULLDEBUG
                 Trace.WriteLine($"CLOSED READSTREAM local {_name}");
 #endif
-                _indexInput.Close();
+                _indexInput.Dispose();
                 _indexInput = null;
                 _azureDirectory = null;
                 _blobContainer = null;

@@ -36,7 +36,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="indexPath"></param>
         /// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
 		public UmbracoExamineSearcher(DirectoryInfo indexPath, Analyzer analyzer)
             : base(indexPath, analyzer)
         {
@@ -47,13 +47,13 @@ namespace UmbracoExamine
 		/// </summary>
 		/// <param name="luceneDirectory"></param>
 		/// <param name="analyzer"></param>
-		[SecuritySafeCritical]
+		
 		public UmbracoExamineSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
 			: base(luceneDirectory, analyzer)
 		{
 		}
 
-        [SecuritySafeCritical]
+        
         public UmbracoExamineSearcher(IndexWriter writer, Analyzer analyzer)
             : base(writer, analyzer)
         {

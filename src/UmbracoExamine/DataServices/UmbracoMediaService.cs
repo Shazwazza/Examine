@@ -25,7 +25,7 @@ namespace UmbracoExamine.DataServices
         /// </summary>
         /// <param name="xpath"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]
+		
 		public XDocument GetLatestMediaByXpath(string xpath)
         {
 
@@ -39,7 +39,7 @@ namespace UmbracoExamine.DataServices
             return result.ToXDocument();
         }
 
-		[SecuritySafeCritical]
+		
         private XElement GetMediaItem(int nodeId)
         {
             var nodes = umbraco.library.GetMedia(nodeId, true);

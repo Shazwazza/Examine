@@ -27,7 +27,7 @@ namespace UmbracoExamine
         /// If the type of node is not a Document, the cacheOnly has no effect, it will use the API to return
         /// the xml. 
         /// </remarks>
-		[SecuritySafeCritical]
+		
         public static XDocument ToXDocument(this Content node, bool cacheOnly)
         {
             if (cacheOnly && node.GetType().Equals(typeof(Document)))
@@ -50,7 +50,7 @@ namespace UmbracoExamine
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-		[SecuritySafeCritical]        
+		        
         private static XDocument ToXDocument(this Content node)
         {
             var xDoc = new XmlDocument();

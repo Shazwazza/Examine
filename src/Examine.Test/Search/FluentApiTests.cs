@@ -397,7 +397,7 @@ namespace Examine.Test.Search
 
             //set the rewrite method before adding queries
             var lsc = (LuceneSearchCriteria)sc;
-            lsc.QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+            lsc.QueryParser.MultiTermRewriteMethod = MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE;
 
             sc = sc.NodeName("umbrac".MultipleCharacterWildcard())
                 .Or().Field("headerText", "umbrac".MultipleCharacterWildcard())
@@ -426,7 +426,7 @@ namespace Examine.Test.Search
         {
             //this will throw during rewriting because 'lo*' matches too many things but with the work around in place this shouldn't throw
             // but it will use a constant score rewrite
-            BooleanQuery.SetMaxClauseCount(3);
+            BooleanQuery.MaxClauseCount =3;
 
             try
             {
@@ -435,7 +435,7 @@ namespace Examine.Test.Search
 
                 //set the rewrite method before adding queries
                 var lsc = (LuceneSearchCriteria)sc;
-                lsc.QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+                lsc.QueryParser.MultiTermRewriteMethod = MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE;
 
                 sc = sc.NodeName("lo".MultipleCharacterWildcard())
                     .Or().Field("headerText", "lo".MultipleCharacterWildcard())
@@ -449,7 +449,7 @@ namespace Examine.Test.Search
             finally
             {
                 //reset
-                BooleanQuery.SetMaxClauseCount(1024);
+                BooleanQuery.MaxClauseCount = 1024;
             }      
         }
 

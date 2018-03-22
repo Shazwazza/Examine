@@ -27,7 +27,7 @@ namespace Examine.LuceneEngine
         /// https://github.com/kimchy/compass/blob/master/src/main/src/org/apache/lucene/index/LuceneUtils.java
         /// 
         /// </remarks>
-        [SecuritySafeCritical]
+        
         internal static void CopyTo(this IndexInput indexInput, IndexOutput indexOutput, string name)
         {
             var buffer = new byte[32768];
@@ -53,13 +53,13 @@ namespace Examine.LuceneEngine
         }
 
 
-        [SecuritySafeCritical]
+        
         public static ReaderStatus GetReaderStatus(this IndexSearcher searcher)
         {
-            return searcher.GetIndexReader().GetReaderStatus();
+            return searcher.IndexReader.GetReaderStatus();
         }        
 
-		[SecuritySafeCritical]
+		
         public static ReaderStatus GetReaderStatus(this IndexReader reader)
         {
             ReaderStatus status = ReaderStatus.NotCurrent;

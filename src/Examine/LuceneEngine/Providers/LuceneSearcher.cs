@@ -29,7 +29,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Default constructor
         /// </summary>
-        [SecuritySafeCritical]
+        
         public LuceneSearcher()
         {
             _disposer = new DisposableSearcher(this);
@@ -41,7 +41,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="analyzer"></param>
-        [SecuritySafeCritical]
+        
         public LuceneSearcher(IndexWriter writer, Analyzer analyzer)
             : base(analyzer)
         {
@@ -56,7 +56,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
-        [SecuritySafeCritical]
+        
         public LuceneSearcher(DirectoryInfo workingFolder, Analyzer analyzer)
             : base(analyzer)
         {
@@ -71,7 +71,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
-        [SecuritySafeCritical]
+        
         public LuceneSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
             : base(analyzer)
         {
@@ -92,7 +92,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// It is assumed that the indexer for the searcher will always be initialized first and therefore a directory would be available
         /// </remarks>
-        [SecuritySafeCritical]
+        
         private void InitializeDirectory()
         {
             if (_directory != null) return;
@@ -131,7 +131,7 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-        [SecuritySafeCritical]
+        
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -208,7 +208,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Ensures the index exists
         /// </summary>
-        [SecuritySafeCritical]
+        
         [Obsolete("This is not used and performs no operation, if no index directory exists for the searcher the searcher should just return empty results", true)]
         public virtual void EnsureIndex()
         {
@@ -225,7 +225,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>
         /// Returns null if the underlying index doesn't exist
         /// </returns>
-        [SecuritySafeCritical]
+        
         public override Searcher GetSearcher()
         {
             if (!ValidateSearcher()) return null;
@@ -239,12 +239,12 @@ namespace Examine.LuceneEngine.Providers
         /// Returns a list of fields to search on
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         protected internal override string[] GetSearchFields()
         {
             if (!ValidateSearcher()) return new string[] {};
 
-            //var reader = _searcher.GetIndexReader();
+            //var reader = _searcherIndexReader;
             var fields = _reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
             var searchFields = fields
@@ -253,12 +253,12 @@ namespace Examine.LuceneEngine.Providers
             return searchFields;
         }
 
-        [SecuritySafeCritical]
+        
         protected virtual Directory GetLuceneDirectory()
         {
             if (_nrtWriter != null)
             {
-                return _nrtWriter.GetDirectory();
+                return _nrtWriter.Directory;
             }
             
             return _directory;
@@ -268,7 +268,7 @@ namespace Examine.LuceneEngine.Providers
         /// Used to open a new reader when first initializing, when forcing a re-open or when the reader becomes stale (new data is in the index)
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         protected virtual IndexReader OpenNewReader()
         {
             //If a writer was resolved, we can now operate in NRT mode
@@ -289,7 +289,7 @@ namespace Examine.LuceneEngine.Providers
         /// This will check if a writer exists for the current directory to see if we can establish an NRT reader in the future
         /// </summary>
         /// <returns></returns>
-        [SecuritySafeCritical]
+        
         private bool TryEstablishNrtReader()
         {
             //Try to resolve an existing IndexWriter for the current directory
@@ -309,7 +309,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// If the index does not exist, it will not store the value so subsequent calls to this will re-evaulate
         /// </remarks>
-        [SecuritySafeCritical]
+        
         private bool IndexExistsImpl()
         {
             //if it's been set and it's true, return true
@@ -327,7 +327,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// This checks if the IndexSearcher is initialized and up to date.
         /// </summary>
-        [SecuritySafeCritical]
+        
         private bool ValidateSearcher()
         {
             //can't proceed if there's no index
@@ -418,7 +418,7 @@ namespace Examine.LuceneEngine.Providers
                 _luceneSearcher = indexer;
             }
 
-            [SecuritySafeCritical]
+            
             public void ScheduleReopen()
             {
                 lock (_locker)
@@ -496,7 +496,7 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            [SecuritySafeCritical]
+            
             private void TimerRelease()
             {
                 lock (_locker)
@@ -545,7 +545,7 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            [SecuritySafeCritical]
+            
             private void StartLongPoll()
             {
                 //if no timer, we are not NRT and we are not currently in long poll mode then
@@ -559,7 +559,7 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            [SecuritySafeCritical]
+            
             private void MaybeReopen()
             {
                 switch (_luceneSearcher._reader.GetReaderStatus())
@@ -646,7 +646,7 @@ namespace Examine.LuceneEngine.Providers
             /// <summary>
             /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
             /// </summary>
-            [SecuritySafeCritical]
+            
             protected override void DisposeResources()
             {
                 _searcher._disposed = true;

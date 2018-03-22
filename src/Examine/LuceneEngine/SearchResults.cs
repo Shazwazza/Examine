@@ -6,6 +6,7 @@ using System.Security;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Index;
 
 namespace Examine.LuceneEngine
 {
@@ -28,9 +29,9 @@ namespace Examine.LuceneEngine
         /// </summary>
         public Searcher LuceneSearcher
         {
-            [SecuritySafeCritical]
+            
             get;
-            [SecuritySafeCritical]
+            
             private set;
         }
 
@@ -39,21 +40,21 @@ namespace Examine.LuceneEngine
         /// </summary>
         public Query LuceneQuery
         {
-            [SecuritySafeCritical]
+            
             get;
-            [SecuritySafeCritical]
+            
             private set;
         }
 
         public TopDocs TopDocs
         {
-            [SecuritySafeCritical]
+            
             get;
-            [SecuritySafeCritical]
+            
             private set;
         }
 
-        [SecuritySafeCritical]
+        
         internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
         {
             LuceneQuery = query;
@@ -62,7 +63,7 @@ namespace Examine.LuceneEngine
             DoSearch(query, sortField, 0);
         }
 
-        [SecuritySafeCritical]
+        
         internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
         {
             LuceneQuery = query;
@@ -71,7 +72,7 @@ namespace Examine.LuceneEngine
             DoSearch(query, sortField, maxResults);
         }
 
-        [SecuritySafeCritical]
+        
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
         {
             //This try catch is because analyzers strip out stop words and sometimes leave the query
@@ -82,7 +83,7 @@ namespace Examine.LuceneEngine
             //before throwing exceptions.
             try
             {
-                var set = new Hashtable();
+                var set = new HashSet<Term>();
                 query.ExtractTerms(set);
             }
             catch (NullReferenceException)
@@ -97,17 +98,17 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-            maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc();
+            maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc;
 
             Collector topDocsCollector;
             if (sortField.Any())
             {
-                topDocsCollector = TopFieldCollector.create(
+                topDocsCollector = TopFieldCollector.Create(
                     new Sort(sortField.ToArray()), maxResults, false, false, false, false);
             }
             else
             {
-                topDocsCollector = TopScoreDocCollector.create(maxResults, true);
+                topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
             }
 
             LuceneSearcher.Search(query, topDocsCollector);
@@ -137,7 +138,7 @@ namespace Examine.LuceneEngine
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-        [SecuritySafeCritical]
+        
         protected SearchResult CreateSearchResult(int docId, Document doc, float score)
         {
             string id = doc.Get("id");
@@ -164,7 +165,7 @@ namespace Examine.LuceneEngine
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-        [SecuritySafeCritical]
+        
         protected SearchResult CreateSearchResult(Document doc, float score)
         {
             string id = doc.Get("id");
@@ -184,7 +185,7 @@ namespace Examine.LuceneEngine
             return searchResult;
         }
 
-        [SecuritySafeCritical]
+        
         private SearchResult PrepareSearchResult(SearchResult sr, Document doc)
         {
             //we can use lucene to find out the fields which have been stored for this particular document
@@ -195,7 +196,7 @@ namespace Examine.LuceneEngine
 
             foreach (var field in fields.Cast<Field>())
             {
-                var fieldName = field.Name();
+                var fieldName = field.Name;
                 var values = doc.GetValues(fieldName);
 
                 if (values.Length > 1)
@@ -215,18 +216,18 @@ namespace Examine.LuceneEngine
 
         //NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
         // at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
-        [SecuritySafeCritical]
+        
         private SearchResult CreateFromDocumentItem(int i)
         {
-            var docId = TopDocs.ScoreDocs[i].doc;
+            var docId = TopDocs.ScoreDocs[i].Doc;
             var doc = LuceneSearcher.Doc(docId);
-            var score = TopDocs.ScoreDocs[i].score;
+            var score = TopDocs.ScoreDocs[i].Score;
             var result = CreateSearchResult(docId, doc, score);
             return result;
         }
 
         //NOTE: This is totally retarded but it is required for medium trust as I cannot put this code inside the Skip method... wtf
-        [SecuritySafeCritical]
+        
         private int GetScoreDocsLength()
         {
             if (TopDocs?.ScoreDocs == null)
@@ -244,7 +245,7 @@ namespace Examine.LuceneEngine
         /// </remarks>
         /// <param name="skip">The number of items in the results to skip.</param>
         /// <returns>A collection of the search results</returns>
-		[SecuritySafeCritical]
+		
         public IEnumerable<SearchResult> Skip(int skip)
         {
             for (int i = skip, n = GetScoreDocsLength(); i < n; i++)
@@ -273,7 +274,7 @@ namespace Examine.LuceneEngine
             private readonly IEnumerator<SearchResult> _baseEnumerator;
             private readonly IndexSearcher _searcher;
 
-            [SecuritySafeCritical]
+            
             public DecrementReaderResult(IEnumerator<SearchResult> baseEnumerator, Searcher searcher)
             {
                 _baseEnumerator = baseEnumerator;
@@ -281,18 +282,18 @@ namespace Examine.LuceneEngine
 
                 if (_searcher != null)
                 {
-                    _searcher.GetIndexReader().IncRef();
+                    _searcher.IndexReader.IncRef();
                 }
             }
 
-            [SecuritySafeCritical]
+            
             public void Dispose()
             {
                 _baseEnumerator.Dispose();
 
                 if (_searcher != null)
                 {
-                    _searcher.GetIndexReader().DecRef();
+                    _searcher.IndexReader.DecRef();
                 }
             }
 
@@ -321,7 +322,7 @@ namespace Examine.LuceneEngine
         /// Gets the enumerator starting at position 0
         /// </summary>
         /// <returns>A collection of the search results</returns>
-        [SecuritySafeCritical]
+        
         public IEnumerator<SearchResult> GetEnumerator()
         {
             return new DecrementReaderResult(
