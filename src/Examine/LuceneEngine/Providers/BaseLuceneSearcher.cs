@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine.Providers
 		
         protected BaseLuceneSearcher(Analyzer analyzer)
 		{           
-            IndexingAnalyzer = analyzer;
+            DefaultLuceneAnalyzer = analyzer;
 		}
 
 		#endregion
@@ -43,16 +43,14 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Used to specify if leading wildcards are allowed. WARNING SLOWS PERFORMANCE WHEN ENABLED!
         /// </summary>
-        public bool EnableLeadingWildcards { get; set; }
+        public bool EnableLeadingWildcards { get; protected internal set; }
 
 	    /// <summary>
 	    /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
 	    /// </summary>
-	    public Analyzer IndexingAnalyzer
+	    public Analyzer DefaultLuceneAnalyzer
 	    {
-			
 		    get;
-			
 			protected internal set;
 	    }
 
@@ -79,11 +77,11 @@ namespace Examine.LuceneEngine.Providers
             {
                 //this should be a fully qualified type
                 var analyzerType = TypeHelper.FindType(config["analyzer"]);
-                IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+                DefaultLuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
             }
             else
             {
-                IndexingAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+                DefaultLuceneAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
             }
 
             if (config["enableLeadingWildcard"] != null)
@@ -100,7 +98,7 @@ namespace Examine.LuceneEngine.Providers
         ///</summary>
         ///<returns></returns>
 		
-        public abstract Searcher GetSearcher();
+        public abstract Searcher GetLuceneSearcher();
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
@@ -113,8 +111,24 @@ namespace Examine.LuceneEngine.Providers
         {
             //TODO: It would be nice to be able to pass in the existing field definitions here so 
             // we'd know what fields have sorting enabled so we don't have to use the special sorting syntax for field types
+            return CreateSearchCriteria(type, defaultOperation, DefaultLuceneAnalyzer, EnableLeadingWildcards);
+        }
 
-            return new LuceneSearchCriteria(type, IndexingAnalyzer, GetSearchFields(), EnableLeadingWildcards, defaultOperation);
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <param name="type">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
+        /// <param name="luceneAnalyzer"></param>
+        /// <param name="enableLeadingWildcards"></param>
+        /// <returns></returns>
+        public ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, bool enableLeadingWildcards)
+        {
+            if (luceneAnalyzer == null) throw new ArgumentNullException(nameof(luceneAnalyzer));
+
+            //TODO: It would be nice to be able to pass in the existing field definitions here so 
+            // we'd know what fields have sorting enabled so we don't have to use the special sorting syntax for field types
+            return new LuceneSearchCriteria(type, luceneAnalyzer, GetSearchFields(), enableLeadingWildcards, defaultOperation);
         }
 
         /// <summary>
@@ -175,7 +189,7 @@ namespace Examine.LuceneEngine.Providers
             if (luceneParams == null)
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
-            var searcher = GetSearcher();
+            var searcher = GetLuceneSearcher();
             if (searcher == null) return new EmptySearchResults();
 
             var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);

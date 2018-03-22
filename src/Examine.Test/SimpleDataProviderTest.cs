@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
@@ -24,7 +24,7 @@ namespace Examine.Test
             //now, we need to ensure the right data is in there....
             
             //get searcher and reader to get stats
-            var r = ((IndexSearcher)_searcher.GetSearcher()).IndexReader;
+            var r = ((IndexSearcher)_searcher.GetLuceneSearcher()).IndexReader;
 
             //there's 7 fields in the index, but 1 sorted fields, 2 are special fields
             var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);
@@ -52,7 +52,7 @@ namespace Examine.Test
             _indexer.ReIndexNode(xml, "Documents");
 
             //get searcher and reader to get stats            
-            var r = ((IndexSearcher)_searcher.GetSearcher()).IndexReader;      
+            var r = ((IndexSearcher)_searcher.GetLuceneSearcher()).IndexReader;      
 
             //there should be 6 documents now (3 Documents, 3 Pictures)
             Assert.AreEqual(6, r.NumDocs());        

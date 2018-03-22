@@ -1,7 +1,7 @@
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Examine.LuceneEngine;
-using Examine.Test.PartialTrust;
+
 using NUnit.Framework;
 
 namespace Examine.Test

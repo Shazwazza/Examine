@@ -46,7 +46,7 @@ namespace Examine.LuceneEngine.Providers
 			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
 			foreach (var ip in indexPath)
 			{
-				searchers.Add(new LuceneSearcher(ip, IndexingAnalyzer));
+				searchers.Add(new LuceneSearcher(ip, DefaultLuceneAnalyzer));
 			}
 	        Searchers = searchers;
         }
@@ -65,7 +65,7 @@ namespace Examine.LuceneEngine.Providers
 			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
 			foreach (var luceneDirectory in luceneDirs)
 			{
-				searchers.Add(new LuceneSearcher(luceneDirectory, IndexingAnalyzer));
+				searchers.Add(new LuceneSearcher(luceneDirectory, DefaultLuceneAnalyzer));
 			}
 			Searchers = searchers;
 		}
@@ -108,7 +108,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //create the searchers
-            var analyzer = IndexingAnalyzer;
+            var analyzer = DefaultLuceneAnalyzer;
             var searchers = new List<LuceneSearcher>();
             //DO NOT PUT THIS INTO LINQ BECAUSE THE SECURITY ACCCESS SHIT WONT WORK
             foreach (var s in toSearch)
@@ -137,13 +137,13 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
 		
-        public override Searcher GetSearcher()
+        public override Searcher GetLuceneSearcher()
         {
 	        var searchables = new List<Searchable>();
 			//NOTE: Do not convert this to Linq as it will fail the Code Analysis because Linq screws with it.
 			foreach(var s in Searchers)
 			{
-			    var searcher = s.GetSearcher();
+			    var searcher = s.GetLuceneSearcher();
                 if (searcher != null)
                     searchables.Add(searcher);
 			}

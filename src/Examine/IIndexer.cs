@@ -8,6 +8,12 @@ namespace Examine
     /// </summary>
     public interface IIndexer
     {
+        /// <summary>
+        /// Returns a searcher for the index
+        /// </summary>
+        /// <returns></returns>
+        ISearcher GetSearcher();
+
         //NOTE: this would be a better approach like in v2 but would be quite a breaking change.
         ///// <summary>
         ///// Reindexes many nodes at once
@@ -16,6 +22,13 @@ namespace Examine
         ///// <param name="type"></param>
         //void ReIndexNodes(IEnumerable<XElement> nodes, string type);
 
+        ///// <summary>
+        ///// Method to re-index specific data
+        ///// </summary>
+        ///// <param name="nodes"></param>
+        //void IndexItems(IEnumerable<ValueSet> nodes);
+
+        //TODO: REmove this
         /// <summary>
         /// Forces a particular XML node to be reindexed
         /// </summary>

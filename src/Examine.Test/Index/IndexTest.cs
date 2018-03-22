@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Store;
@@ -396,10 +396,7 @@ namespace Examine.Test.Index
             {
                 indexer.RebuildIndex();
                 var searcher = IndexInitializer.GetUmbracoSearcher(d);
-
-                //set to 5 so optmization occurs frequently
-                indexer.OptimizationCommitThreshold = 5;
-
+                
                 //get a node from the data repo
                 var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                     .Root
@@ -433,7 +430,7 @@ namespace Examine.Test.Index
                 var searcher = IndexInitializer.GetUmbracoSearcher(d);
 
                 //get searcher and reader to get stats
-                var r = ((IndexSearcher)searcher.GetSearcher()).IndexReader;
+                var r = ((IndexSearcher)searcher.GetLuceneSearcher()).IndexReader;
 
                 //there's 16 fields in the index, but 3 sorted fields
                 var fields = r.GetFieldNames(IndexReader.FieldOption.ALL);

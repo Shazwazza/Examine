@@ -1,4 +1,4 @@
-﻿using Examine.Test.PartialTrust;
+﻿
 using NUnit.Framework;
 
 namespace Examine.Test.Search

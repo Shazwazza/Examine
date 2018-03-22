@@ -1,25 +1,26 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration.Provider;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Web.Configuration;
 using System.Web.Hosting;
 using System.Xml.Linq;
 using Examine.Config;
-using Examine.LuceneEngine.Providers;
+using Examine.LuceneEngine;
 using Examine.Providers;
 using Examine.SearchCriteria;
-using System.Web;
-using Examine.LuceneEngine;
-using Lucene.Net.Index;
-using Lucene.Net.Store;
+using Lucene.Net.Analysis;
 
 namespace Examine
 {
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : ISearcher, IIndexer, IRegisteredObject
+    public class ExamineManager : IDisposable, IRegisteredObject
     {
         //tracks if the ExamineManager should register itself with the HostingEnvironment
         private static volatile bool _defaultRegisteration = true;
@@ -38,193 +39,202 @@ namespace Examine
         private ExamineManager()
         {
             if (!_defaultRegisteration) return;
+            AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
             HostingEnvironment.RegisterObject(this);
         }
+
+        /// <summary>
+        /// Returns true if this singleton has been initialized
+        /// </summary>
+        public static bool InstanceInitialized { get; private set; }
 
         /// <summary>
         /// Singleton
         /// </summary>
         public static ExamineManager Instance
         {
-            get { return Manager; }
+            get
+            {
+                InstanceInitialized = true;
+                return Manager;
+            }
         }
 
         private static readonly ExamineManager Manager = new ExamineManager();
 
-        private readonly object _lock = new object();
-
-        ///<summary>
-        /// Returns the default search provider
-        ///</summary>
-        public BaseSearchProvider DefaultSearchProvider
-        {
-            get
-            {
-                EnsureProviders();
-                return _defaultSearchProvider;
-            }
-        }
+        private object _lock = new object();
+        private readonly ConcurrentDictionary<string, IIndexer> _indexers = new ConcurrentDictionary<string, IIndexer>();
+        private readonly ConcurrentDictionary<string, ISearcher> _searchers = new ConcurrentDictionary<string, ISearcher>();
 
         /// <summary>
         /// Returns the collection of searchers
         /// </summary>
-        public SearchProviderCollection SearchProviderCollection
-        {
-            get
-            {
-                EnsureProviders();
-                return _searchProviderCollection;
-            }            
-        }
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Searchers should be resolved using the GetIndexSearcher method, this only returns the configuration based searchers")]
+        public SearchProviderCollection SearchProviderCollection => ConfigBasedSearchProviders;
 
-        /// <summary>
-        /// Return the colleciton of indexers
-        /// </summary>
-        public IndexProviderCollection IndexProviderCollection
+        private SearchProviderCollection ConfigBasedSearchProviders
         {
             get
             {
                 EnsureProviders();
-                return _indexProviderCollection;
+                return _providerCollections.Item1;
             }
         }
 
-        private volatile bool _providersInit = false;
-        private BaseSearchProvider _defaultSearchProvider;
-        private SearchProviderCollection _searchProviderCollection;
-        private IndexProviderCollection _indexProviderCollection;
+        /// <summary>
+        /// Return the colleciton of indexer providers (only the ones registered in config)
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Use the IndexProviders property instead, this only returns the configuration based indexers")]
+        public IndexProviderCollection IndexProviderCollection => ConfigBasedIndexProviders;
+
+        private IndexProviderCollection ConfigBasedIndexProviders
+        {
+            get
+            {
+                EnsureProviders();
+                return _providerCollections.Item2;
+            }
+        }
+
+        /// <summary>
+        /// Returns the searcher for a given index
+        /// </summary>
+        /// <param name="indexerName"></param>
+        /// <returns></returns>
+        public ISearcher GetIndexSearcher(string indexerName)
+        {
+            if (IndexProviders.ContainsKey(indexerName))
+            {
+                if (IndexProviders.TryGetValue(indexerName, out var indexer))
+                {
+                    return indexer.GetSearcher();
+                }
+            }
+            throw new KeyNotFoundException("No indexer defined by name " + indexerName);
+        }
+
+        /// <summary>
+        /// Returns a strongly type indexer by name
+        /// </summary>
+        /// <typeparam name="TIndexer"></typeparam>
+        /// <param name="indexerName"></param>
+        /// <returns></returns>
+        public TIndexer GetIndexer<TIndexer>(string indexerName)
+            where TIndexer : class, IIndexer
+        {
+            return IndexProviders[indexerName] as TIndexer;
+        }
+
+        /// <summary>
+        /// Returns an indexer by name
+        /// </summary>
+        /// <param name="indexerName"></param>
+        /// <returns></returns>
+        public IIndexer GetIndexer(string indexerName)
+        {
+            return IndexProviders[indexerName];
+        }
+
+        /// <summary>
+        /// Gets a list of all index providers
+        /// </summary>
+        /// <remarks>
+        /// This returns all config based indexes and indexers registered in code
+        /// </remarks>
+        public IReadOnlyDictionary<string, IIndexer> IndexProviders
+        {
+            get
+            {
+                var providerDictionary = ConfigBasedIndexProviders.ToDictionary(x => x.Name, x => (IIndexer)x);
+                foreach (var i in _indexers)
+                {
+                    providerDictionary[i.Key] = i.Value;
+                }
+                return new Dictionary<string, IIndexer>(providerDictionary, StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        /// <summary>
+        /// Adds an indexer to the manager
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="indexer"></param>
+        public void AddIndexer(string name, IIndexer indexer)
+        {
+            //make sure this name doesn't exist in
+
+            if (ConfigBasedIndexProviders[name] != null)
+            {
+                throw new InvalidOperationException("The indexer with name " + name + " already exists");
+            }
+            if (!_indexers.TryAdd(name, indexer))
+            {
+                throw new InvalidOperationException("The indexer with name " + name + " already exists");
+            }
+        }
+
+        /// <summary>
+        /// Adds an index searcher to the manager - generally this would be a multi index searcher since most searchers are created from an existing index
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="searcher"></param>
+        public void AddSearcher(string name, ISearcher searcher)
+        {
+            //make sure this name doesn't exist in
+
+            if (ConfigBasedSearchProviders[name] != null)
+            {
+                throw new InvalidOperationException("The searcher with name " + name + " already exists");
+            }
+            if (!_searchers.TryAdd(name, searcher))
+            {
+                throw new InvalidOperationException("The searcher with name " + name + " already exists");
+            }
+        }
+
+
+        private bool _providersInit = false;
+        
+        private Tuple<SearchProviderCollection, IndexProviderCollection> _providerCollections;
 
         /// <summary>
         /// Before any of the index/search collections are accessed, the providers need to be loaded
         /// </summary>
         private void EnsureProviders()
         {
-            if (!_providersInit)
+            LazyInitializer.EnsureInitialized(ref _providerCollections, ref _providersInit, ref _lock, () =>
             {
-                lock (_lock)
-                {
-                    // Do this again to make sure _provider is still null
-                    if (!_providersInit)
-                    {
-                        // Load registered providers and point _provider to the default provider	
+                // Load registered providers and point _provider to the default provider	`
 
-                        _indexProviderCollection = new IndexProviderCollection();
-                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, _indexProviderCollection, typeof(BaseIndexProvider));
+                var indexProviderCollection = new IndexProviderCollection();
+                ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, indexProviderCollection, typeof(BaseIndexProvider));
 
-                        _searchProviderCollection = new SearchProviderCollection();
-                        ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, _searchProviderCollection, typeof(BaseSearchProvider));
+                var searchProviderCollection = new SearchProviderCollection();
+                ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, searchProviderCollection, typeof(BaseSearchProvider));
 
-                        //set the default
-                        if (!string.IsNullOrEmpty(ExamineSettings.Instance.SearchProviders.DefaultProvider))
-                            _defaultSearchProvider = _searchProviderCollection[ExamineSettings.Instance.SearchProviders.DefaultProvider];
-
-                        if (_defaultSearchProvider == null)
-                            throw new ProviderException("Unable to load default search provider");
-
-                        _providersInit = true;
-
-
-                        //check if we need to rebuild on startup
-                        if (ExamineSettings.Instance.RebuildOnAppStart)
-                        {
-                            foreach (IIndexer index in _indexProviderCollection)
-                            {
-                                var rebuild = false;
-                                var healthy = true;
-                                Exception unhealthyEx = null;
-                                var exists = index.IndexExists();
-                                if (!exists)
-                                    rebuild = true;
-                                if (!rebuild)
-                                {
-                                    healthy = IsIndexHealthy(index, out unhealthyEx);
-                                    if (!healthy)
-                                        rebuild = true;
-                                }
-                                //if it doesn't exist ... or if it's unhealthy/corrupt
-                                
-                                if (rebuild)
-                                {
-                                    var args = new BuildingEmptyIndexOnStartupEventArgs(index, healthy, unhealthyEx);
-                                    OnBuildingEmptyIndexOnStartup(args);
-                                    if (!args.Cancel)
-                                    {
-                                        index.RebuildIndex();    
-                                    }
-                                }
-                            }    
-                        }
-
-                    }
-                }
-            }
+                return new Tuple<SearchProviderCollection, IndexProviderCollection>(searchProviderCollection, indexProviderCollection);
+            });
         }
 
-        private bool IsIndexHealthy(IIndexer index, out Exception e)
-        {
-            var luceneIndex = index as LuceneIndexer;
-            if (luceneIndex == null)
-            {
-                e = null;
-                return true;
-            }
-            Exception ex;
-            var readable = luceneIndex.IsReadable(out ex);
-            e = ex;
-            return readable;
-        }
+        ///// <summary>
+        ///// Re-indexes items for the providers specified
+        ///// </summary>
+        ///// <param name="nodes"></param>
+        ///// <param name="providers"></param>
+        //public void IndexItems(ValueSet[] nodes, IEnumerable<IIndexer> providers)
+        //{
+        //    foreach (var provider in providers)
+        //    {
+        //        provider.IndexItems(nodes);
+        //    }
+        //}
 
-
-        #region ISearcher Members
-
-        /// <summary>
-        /// Uses the default provider specified to search
-        /// </summary>
-        /// <param name="searchParameters"></param>
-        /// <returns></returns>
-        /// <remarks>This is just a wrapper for the default provider</remarks>
-        public ISearchResults Search(ISearchCriteria searchParameters)
-        {
-            return DefaultSearchProvider.Search(searchParameters);
-        }
-
-        /// <summary>
-        /// Uses the default provider specified to search
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="maxResults"></param>
-        /// <param name="useWildcards"></param>
-        /// <returns></returns>
-        public ISearchResults Search(string searchText, bool useWildcards)
-        {
-            return DefaultSearchProvider.Search(searchText, useWildcards);
-        }
-
-
-        #endregion
-
-        /// <summary>
-        /// Reindex nodes for the providers specified
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="type"></param>
-        /// <param name="providers"></param>
         public void ReIndexNode(XElement node, string type, IEnumerable<BaseIndexProvider> providers)
         {
             _ReIndexNode(node, type, providers);
         }
-
-        /// <summary>
-        /// Deletes index for node for the specified providers
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="providers"></param>
-        public void DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
-        {
-            _DeleteFromIndex(nodeId, providers);
-        }
-
-        #region IIndexer Members
 
         /// <summary>
         /// Reindex nodes for all providers
@@ -233,25 +243,21 @@ namespace Examine
         /// <param name="type"></param>
         public void ReIndexNode(XElement node, string type)
         {
-            _ReIndexNode(node, type, IndexProviderCollection);
+            _ReIndexNode(node, type, IndexProviders.Values);
         }
-        private void _ReIndexNode(XElement node, string type, IEnumerable<BaseIndexProvider> providers)
+
+        private static void _ReIndexNode(XElement node, string type, IEnumerable<IIndexer> providers)
         {
             foreach (var provider in providers)
-            {
                 provider.ReIndexNode(node, type);
-            }
         }
 
         /// <summary>
-        /// Deletes index for node for all providers
+        /// Deletes index for node for the specified providers
         /// </summary>
         /// <param name="nodeId"></param>
-        public void DeleteFromIndex(string nodeId)
-        {
-            _DeleteFromIndex(nodeId, IndexProviderCollection);
-        }    
-        private void _DeleteFromIndex(string nodeId, IEnumerable<BaseIndexProvider> providers)
+        /// <param name="providers"></param>
+        public void DeleteFromIndex(string nodeId, IEnumerable<IIndexer> providers)
         {
             foreach (var provider in providers)
             {
@@ -259,91 +265,72 @@ namespace Examine
             }
         }
 
-        public void IndexAll(string type)
+        ///// <summary>
+        ///// Reindex nodes for all providers
+        ///// </summary>
+        ///// <param name="nodes"></param>
+        //public void IndexItems(ValueSet[] nodes)
+        //{
+        //    IndexItems(nodes, IndexProviders.Values);
+        //}
+
+        /// <summary>
+        /// Deletes index for node for all providers
+        /// </summary>
+        /// <param name="nodeId"></param>
+        public void DeleteFromIndex(string nodeId)
         {
-            _IndexAll(type);
+            DeleteFromIndex(nodeId, IndexProviders.Values);
         }
-        private void _IndexAll(string type)
+
+        /// <summary>
+        /// Indexes all items for the index category for all providers
+        /// </summary>
+        /// <param name="indexCategory"></param>
+        public void IndexAll(string indexCategory)
         {
-            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            foreach (var provider in IndexProviders.Values)
             {
-                provider.IndexAll(type);
+                provider.IndexAll(indexCategory);
             }
         }
 
+        /// <summary>
+        /// Rebuilds indexes for all providers
+        /// </summary>
         public void RebuildIndex()
         {
-            _RebuildIndex();
-        }
-        private void _RebuildIndex()
-        {
-            foreach (BaseIndexProvider provider in IndexProviderCollection)
+            foreach (var provider in IndexProviders.Values)
             {
                 provider.RebuildIndex();
             }
         }
-
-        public IIndexCriteria IndexerData
+        
+        /// <summary>
+        /// Call this in Application_End.
+        /// </summary>
+        public void Dispose()
         {
-            get
+            Dispose(true);
+
+            // Use SupressFinalize in case a subclass 
+            // of this type implements a finalizer.
+            GC.SuppressFinalize(this);
+        }
+        private bool _disposed = false;
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
             {
-                throw new NotImplementedException();
+                if (disposing)
+                {
+                    Stop(false);
+                    Stop(true);
+                }
+
+                // Indicate that the instance has been disposed.
+                _disposed = true;
             }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public bool IndexExists()
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-
-
-        #region ISearcher Members
-
-        /// <summary>
-        /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
-        /// </summary>
-        /// <returns></returns>
-        public ISearchCriteria CreateSearchCriteria()
-        {
-            return this.CreateSearchCriteria(string.Empty, BooleanOperation.And);
-        }
-
-        public ISearchCriteria CreateSearchCriteria(string type)
-        {
-            return this.CreateSearchCriteria(type, BooleanOperation.And);
-        }
-
-        public ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
-        {
-            return this.CreateSearchCriteria(string.Empty, defaultOperation);
-        }
-
-        public ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
-        {
-            return this.DefaultSearchProvider.CreateSearchCriteria(type, defaultOperation);
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Event is raised when an index is being rebuild on app startup when it is empty, this event is cancelable
-        /// </summary>
-        public event EventHandler<BuildingEmptyIndexOnStartupEventArgs> BuildingEmptyIndexOnStartup;
-
-        /// <summary>
-        /// Raises the BuildingEmptyIndexOnStartup event
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnBuildingEmptyIndexOnStartup(BuildingEmptyIndexOnStartupEventArgs e)
-        {
-            var handler = BuildingEmptyIndexOnStartup;
-            if (handler != null) handler(this, e);
         }
 
         /// <summary>
@@ -382,7 +369,7 @@ namespace Examine
             {
                 try
                 {
-                    foreach (var indexer in IndexProviderCollection.OfType<IDisposable>())
+                    foreach (var indexer in IndexProviders.OfType<IDisposable>())
                     {
                         indexer.Dispose();
                     }

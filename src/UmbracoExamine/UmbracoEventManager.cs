@@ -65,7 +65,7 @@ namespace UmbracoExamine
         {
             //ensure that only the providers are flagged to listen execute
             var xml = sender.ToXml(new System.Xml.XmlDocument(), false).ToXElement();
-            var providers = ExamineManager.Instance.IndexProviderCollection.OfType<BaseUmbracoIndexer>()
+            var providers = ExamineManager.Instance.IndexProviders.Values.OfType<BaseUmbracoIndexer>()
                 .Where(x => x.EnableDefaultEventHandler);
             ExamineManager.Instance.ReIndexNode(xml, IndexTypes.Member, providers);
         }

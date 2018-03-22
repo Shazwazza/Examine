@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.Test.DataServices;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using Lucene.Net.Store;

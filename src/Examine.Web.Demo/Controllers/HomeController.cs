@@ -43,8 +43,9 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult Search(string id)
         {
-            var criteria = ExamineManager.Instance.CreateSearchCriteria();
-            var result = ExamineManager.Instance.Search(criteria.RawQuery(id));
+            var searcher = ExamineManager.Instance.GetIndexSearcher("Simple2Indexer");
+            var criteria = searcher.CreateSearchCriteria();
+            var result = searcher.Search(criteria.RawQuery(id));
             var sb = new StringBuilder();
             sb.AppendLine($"Results :{result.TotalItemCount}");
             foreach (var searchResult in result)

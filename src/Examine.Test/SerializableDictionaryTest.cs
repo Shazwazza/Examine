@@ -5,7 +5,7 @@ using System;
 using System.Xml;
 using System.Text;
 using System.Collections.Generic;
-using Examine.Test.PartialTrust;
+
 using NUnit.Framework;
 
 namespace Examine.Test

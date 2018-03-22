@@ -49,8 +49,9 @@ namespace Examine.Providers
 
         
         #region IIndexer members
-        
-        
+
+        public abstract ISearcher GetSearcher();
+
         /// <summary>
         /// Forces a particular XML node to be reindexed
         /// </summary>

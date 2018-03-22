@@ -5,7 +5,7 @@ using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
@@ -139,7 +139,6 @@ namespace Examine.Test.Search
         /// CANNOT BE A MUST WITH NOT i.e. +(-id:1 -id:2 -id:3)  --> That will not work with the "+"
         /// </summary>
         [Test]
-        [TestOnlyInFullTrust]
         public void FluentApi_Grouped_Not_Query_Output()
         {
             Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");

@@ -31,7 +31,7 @@ namespace Examine.LuceneEngine.Providers
         public LuceneMemorySearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
         {
             _luceneDirectory = new RAMDirectory(luceneDirectory);;
-            IndexingAnalyzer = analyzer;
+            DefaultLuceneAnalyzer = analyzer;
         }
 
 		
@@ -47,7 +47,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
 		
-        public override Searcher GetSearcher()
+        public override Searcher GetLuceneSearcher()
         {
             //Trace.WriteLine("LuceneMemorySearcher.GetSearcher");
             if (_searcher == null)

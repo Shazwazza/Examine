@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using Examine.LuceneEngine.Providers;
 using Examine.Test.DataServices;
-using Examine.Test.PartialTrust;
+
 using Lucene.Net.Analysis.Standard;
 using System.Threading;
 using Examine.LuceneEngine;

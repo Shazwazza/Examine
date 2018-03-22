@@ -231,9 +231,9 @@ namespace UmbracoExamine
             //find all descendants based on path
             var descendantPath = string.Format(@"\-1\,*{0}\,*", nodeId);
             var rawQuery = string.Format("{0}:{1}", IndexPathFieldName, descendantPath);
-            var c = InternalSearcher.CreateSearchCriteria();
+            var c = GetSearcher().CreateSearchCriteria();
             var filtered = c.RawQuery(rawQuery);
-            var results = InternalSearcher.Search(filtered);
+            var results = GetSearcher().Search(filtered);
 
             DataService.LogService.AddVerboseLog(int.Parse(nodeId), string.Format("DeleteFromIndex with query: {0} (found {1} results)", rawQuery, results.Count()));
 

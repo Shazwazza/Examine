@@ -217,7 +217,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns null if the underlying index doesn't exist
         /// </returns>
         
-        public override Searcher GetSearcher()
+        public override Searcher GetLuceneSearcher()
         {
             if (!ValidateSearcher()) return null;
 
