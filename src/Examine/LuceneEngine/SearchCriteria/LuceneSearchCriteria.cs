@@ -14,6 +14,7 @@ using Lucene.Net.Search.Spans;
 using Lucene.Net.Index;
 using Lucene.Net.Documents;
 using Examine.LuceneEngine.Providers;
+using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
@@ -25,20 +26,13 @@ namespace Examine.LuceneEngine.SearchCriteria
     {
         internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
 
-        public MultiFieldQueryParser QueryParser
-        {
-            
-            get;
-            
-            private set;
-        }
+        private readonly CustomMultiFieldQueryParser _queryParser;
 
+        public MultiFieldQueryParser QueryParser => _queryParser;
 
         public BooleanQuery Query
         {
-            
             get;
-            
             internal set;
         }
 
@@ -76,8 +70,8 @@ namespace Examine.LuceneEngine.SearchCriteria
             SearchIndexType = type;
             Query = new BooleanQuery();
             this.BooleanOperation = occurance;
-            this.QueryParser = new MultiFieldQueryParser(_luceneVersion, fields, analyzer);
-            this.QueryParser.AllowLeadingWildcard = allowLeadingWildcards;
+            this._queryParser = new CustomMultiFieldQueryParser(_luceneVersion, fields, analyzer);
+            this._queryParser.AllowLeadingWildcard = allowLeadingWildcards;
             
             this._occurance = occurance.ToLuceneOccurance();
         }
@@ -121,7 +115,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public int TotalHits
         {
             get;
-            internal protected set;
+            protected internal set;
         }
 
         #endregion
@@ -140,10 +134,10 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
 		
-        protected internal IBooleanOperation IdInternal(int id, Occur occurance)
+        protected internal IBooleanOperation IdInternal(int id, Occur occurrence)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this.QueryParser.GetFieldQuery(LuceneIndexer.IndexNodeIdFieldName, id.ToString()), occurance);
+            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndexer.IndexNodeIdFieldName, id.ToString(CultureInfo.InvariantCulture)), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
@@ -223,7 +217,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 		
         protected internal IBooleanOperation ParentIdInternal(int id, Occur occurance)
         {
-            Query.Add(this.QueryParser.GetFieldQuery(ParentIdField, id.ToString()), occurance);
+            Query.Add(this._queryParser.GetFieldQueryInternal(ParentIdField, id.ToString(CultureInfo.InvariantCulture)), occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -273,7 +267,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.Fuzzy:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFuzzyQuery(fieldName, fieldValue.Value, fieldValue.Level);
+                        queryToAdd = this._queryParser.GetFuzzyQueryInternal(fieldName, fieldValue.Value, fieldValue.Level);
                     }
                     else
                     {
@@ -286,7 +280,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.ComplexWildcard:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetWildcardQuery(fieldName, fieldValue.Value);
+                        queryToAdd = this._queryParser.GetWildcardQueryInternal(fieldName, fieldValue.Value);
                     }
                     else
                     {
@@ -299,8 +293,8 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.Boosted:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFieldQuery(fieldName, fieldValue.Value);
-                        queryToAdd.SetBoost(fieldValue.Level);
+                        queryToAdd = this._queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd.Boost = fieldValue.Level;
                     }
                     else
                     {
@@ -346,7 +340,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 default:
                     if (useQueryParser)
                     {
-                        queryToAdd = this.QueryParser.GetFieldQuery(fieldName, fieldValue.Value); 
+                        queryToAdd = this._queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value); 
                     }
                     else
                     {
@@ -898,9 +892,6 @@ namespace Examine.LuceneEngine.SearchCriteria
                         case "DOC":
                             defaultSort = SortField.DOC;
                             break;
-                        case "AUTO":
-                            defaultSort = SortField.AUTO;
-                            break;
                         case "STRING":
                             defaultSort = SortField.STRING;
                             break;
@@ -942,5 +933,35 @@ namespace Examine.LuceneEngine.SearchCriteria
 
 
         #endregion
+
+        /// <summary>
+        /// We use this to get at the protected methods directly since the new version makes them not public
+        /// </summary>
+        private class CustomMultiFieldQueryParser : MultiFieldQueryParser
+        {
+
+            public CustomMultiFieldQueryParser(Version matchVersion, string[] fields, Analyzer analyzer, IDictionary<string, float> boosts) : base(matchVersion, fields, analyzer, boosts)
+            {
+            }
+            public CustomMultiFieldQueryParser(Version matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
+            {
+            }
+
+            public Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
+            {
+                return GetFuzzyQuery(field, termStr, minSimilarity);
+            }
+
+            public Query GetWildcardQueryInternal(string field, string termStr)
+            {
+                return GetWildcardQuery(field, termStr);
+            }
+
+            public Query GetFieldQueryInternal(string field, string queryText)
+            {
+                return GetFieldQuery(field, queryText);
+            }
+        }
+
     }
 }

@@ -468,10 +468,6 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         public bool WaitForIndexQueueOnShutdown { get; set; }
         
-        [Obsolete("This is no longer used and will be removed in future versions")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool AutomaticallyOptimize { get; protected set; }
-
         /// <summary>
         /// The number of commits to wait for before optimizing the index if AutomaticallyOptimize = true
         /// </summary>

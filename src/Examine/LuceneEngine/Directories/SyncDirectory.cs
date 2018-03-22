@@ -133,8 +133,7 @@ namespace Examine.LuceneEngine.Directories
         }
 
         /// <summary>Set the modified time of an existing file to now. </summary>
-        [Obsolete("This is actually never used")]
-        
+        [Obsolete("This is actually never used")]        
         public override void TouchFile(string name)
         {
             //just update the cache file - the Lucene source actually never calls this method!

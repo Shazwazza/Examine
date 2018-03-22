@@ -133,7 +133,6 @@
     <Compile Include="DataServices\UmbracoContentService.cs" />
     <Compile Include="DataServices\UmbracoMediaService.cs" />
     <Compile Include="IndexTypes.cs" />
-    <Compile Include="LegacyObjects.cs" />
     <Compile Include="LoggingLevel.cs" />
     <Compile Include="UmbracoMemberIndexer.cs" />
     <Compile Include="ContentExtensions.cs" />

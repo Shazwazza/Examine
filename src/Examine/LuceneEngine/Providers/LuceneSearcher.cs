@@ -204,16 +204,7 @@ namespace Examine.LuceneEngine.Providers
                 _indexFolder = value;
             }
         }
-
-        /// <summary>
-        /// Ensures the index exists
-        /// </summary>
         
-        [Obsolete("This is not used and performs no operation, if no index directory exists for the searcher the searcher should just return empty results", true)]
-        public virtual void EnsureIndex()
-        {
-        }
-
         /// <summary>
         /// Name of the Lucene.NET index set
         /// </summary>

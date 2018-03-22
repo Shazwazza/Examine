@@ -136,7 +136,6 @@
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\LocalTempStorageIndexer.cs" />
-    <Compile Include="LuceneEngine\AllHitsCollector.cs" />
     <Compile Include="LuceneEngine\Config\ExamineLuceneIndexes.cs" />
     <Compile Include="LuceneEngine\Config\IndexField.cs" />
     <Compile Include="LuceneEngine\Config\IndexFieldCollection.cs" />
@@ -175,6 +174,7 @@
     <Compile Include="LuceneEngine\SimpleDataSet.cs" />
     <Compile Include="LuceneEngine\WriterTracker.cs" />
     <Compile Include="NetworkHelper.cs" />
+    <Compile Include="ObjectExtensions.cs" />
     <Compile Include="OrderedDictionary.cs" />
     <Compile Include="SearchCriteria\BooleanOperation.cs" />
     <Compile Include="SearchCriteria\DateResolution.cs" />
@@ -194,6 +194,7 @@
     <Compile Include="Providers\SearchProviderCollection.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="TypeHelper.cs" />
+    <Compile Include="ValueSet.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
