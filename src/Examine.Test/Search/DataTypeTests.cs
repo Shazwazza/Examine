@@ -270,7 +270,7 @@ namespace Examine.Test.Search
 
             _indexer.RebuildIndex();
 
-			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
+            _searcher = _indexer.GetSearcher();
         }
 
         [TestFixtureTearDown]

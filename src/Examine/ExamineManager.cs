@@ -218,38 +218,40 @@ namespace Examine
             });
         }
 
-        ///// <summary>
-        ///// Re-indexes items for the providers specified
-        ///// </summary>
-        ///// <param name="nodes"></param>
-        ///// <param name="providers"></param>
-        //public void IndexItems(ValueSet[] nodes, IEnumerable<IIndexer> providers)
-        //{
-        //    foreach (var provider in providers)
-        //    {
-        //        provider.IndexItems(nodes);
-        //    }
-        //}
-
-        public void ReIndexNode(XElement node, string type, IEnumerable<BaseIndexProvider> providers)
+        /// <summary>
+        /// Re-indexes items for the providers specified
+        /// </summary>
+        /// <param name="nodes"></param>
+        /// <param name="providers"></param>
+        public void IndexItems(ValueSet[] nodes, IEnumerable<IIndexer> providers)
         {
-            _ReIndexNode(node, type, providers);
+            foreach (var provider in providers)
+            {
+                provider.IndexItems(nodes);
+            }
+        }
+
+        internal void ReIndexNode(XElement node, string category, IEnumerable<BaseIndexProvider> providers)
+        {
+            _ReIndexNode(node, category, providers);
         }
 
         /// <summary>
         /// Reindex nodes for all providers
         /// </summary>
         /// <param name="node"></param>
-        /// <param name="type"></param>
-        public void ReIndexNode(XElement node, string type)
+        /// <param name="category"></param>
+        internal void ReIndexNode(XElement node, string category)
         {
-            _ReIndexNode(node, type, IndexProviders.Values);
+            _ReIndexNode(node, category, IndexProviders.Values);
         }
 
-        private static void _ReIndexNode(XElement node, string type, IEnumerable<IIndexer> providers)
+        private static void _ReIndexNode(XElement node, string category, IEnumerable<IIndexer> providers)
         {
             foreach (var provider in providers)
-                provider.ReIndexNode(node, type);
+            {
+                provider.IndexItems(new []{ node.ConvertToValueSet(category) });
+            }
         }
 
         /// <summary>

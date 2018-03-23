@@ -15,7 +15,7 @@ using NUnit.Framework;
 namespace Examine.Test
 {
     [TestFixture]
-	public class SimpleDataProviderTest //: AbstractPartialTrustFixture<SimpleDataProviderTest>
+	public class SimpleDataProviderTest
     {
         [Test]
         public void SimpleData_RebuildIndex()
@@ -35,8 +35,8 @@ namespace Examine.Test
             Assert.AreEqual(5, r.NumDocs());
 
             //test for the special fields to ensure they are there:
-            Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
-            Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
+            Assert.AreEqual(1, fields.Count(x => x == LuceneIndexer.IndexNodeIdFieldName));
+            Assert.AreEqual(1, fields.Count(x => x == LuceneIndexer.IndexTypeFieldName));
 
         }
 
@@ -46,10 +46,9 @@ namespace Examine.Test
 
             //now we'll index one new node:
 
-            var dataSet =  ((TestSimpleDataProvider)_indexer.DataService).CreateNewDocument(DateTime.Now);
-            var xml = dataSet.RowData.ToExamineXml(dataSet.NodeDefinition.NodeId, dataSet.NodeDefinition.Type);
+            var dataSet =  ((TestValueSetDataProvider)_indexer.DataService).CreateNewDocument(DateTime.Now);
 
-            _indexer.ReIndexNode(xml, "Documents");
+            _indexer.IndexItems(new[] {dataSet});
 
             //get searcher and reader to get stats            
             var r = ((IndexSearcher)_searcher.GetLuceneSearcher()).IndexReader;      
@@ -80,7 +79,8 @@ namespace Examine.Test
 			_luceneDir = new RandomIdRAMDirectory();
 			_indexer = IndexInitializer.GetSimpleIndexer(_luceneDir);
 			_indexer.RebuildIndex();
-			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
+		    _searcher = (LuceneSearcher)_indexer.GetSearcher();
+
 		}
 
         [TestFixtureTearDown]

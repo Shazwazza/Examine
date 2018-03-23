@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Linq;
+using Examine.Providers;
 
 namespace Examine
 {
@@ -14,27 +15,11 @@ namespace Examine
         /// <returns></returns>
         ISearcher GetSearcher();
 
-        //NOTE: this would be a better approach like in v2 but would be quite a breaking change.
-        ///// <summary>
-        ///// Reindexes many nodes at once
-        ///// </summary>
-        ///// <param name="nodes"></param>
-        ///// <param name="type"></param>
-        //void ReIndexNodes(IEnumerable<XElement> nodes, string type);
-
-        ///// <summary>
-        ///// Method to re-index specific data
-        ///// </summary>
-        ///// <param name="nodes"></param>
-        //void IndexItems(IEnumerable<ValueSet> nodes);
-
-        //TODO: REmove this
         /// <summary>
-        /// Forces a particular XML node to be reindexed
+        /// Method to re-index specific data
         /// </summary>
-        /// <param name="node">XML node to reindex</param>
-        /// <param name="type">Type of index to use</param>
-        void ReIndexNode(XElement node, string type);
+        /// <param name="values"></param>
+        void IndexItems(IEnumerable<ValueSet> values);
         
         /// <summary>
         /// Deletes a node from the index
@@ -45,19 +30,21 @@ namespace Examine
         /// <summary>
         /// Re-indexes all data for the index type specified
         /// </summary>
-        /// <param name="type"></param>
-        void IndexAll(string type);
+        /// <param name="category"></param>
+        void IndexAll(string category);
 
         /// <summary>
         /// Rebuilds the entire index from scratch for all index types
         /// </summary>
         void RebuildIndex();
 
-        /// <summary>
-        /// Gets/sets the index criteria to create the index with
-        /// </summary>
-        /// <value>The indexer data.</value>
-        IIndexCriteria IndexerData { get; set; }
+        ///// <summary>
+        ///// Gets/sets the index criteria to create the index with
+        ///// </summary>
+        ///// <value>The indexer data.</value>
+        //IIndexCriteria IndexerData { get; set; }
+
+        IndexFieldDefinitions IndexFieldDefinitions { get; }
 
         /// <summary>
         /// determines whether the index exsists or not

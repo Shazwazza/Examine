@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexTypes"></param>
         /// <param name="async"></param>
 		
-		public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
+		public SimpleDataIndexer(IIndexCriteria indexerData, DirectoryInfo workingFolder, Analyzer analyzer, IValueSetDataService dataService, IEnumerable<string> indexTypes, bool async)
             : base(indexerData, workingFolder, analyzer, async)
         {
             DataService = dataService;
@@ -52,7 +52,7 @@ namespace Examine.LuceneEngine.Providers
 		/// <param name="indexTypes"></param>
 		/// <param name="async"></param>
 		
-		public SimpleDataIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, ISimpleDataService dataService, IEnumerable<string> indexTypes, bool async)
+		public SimpleDataIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer, IValueSetDataService dataService, IEnumerable<string> indexTypes, bool async)
 			: base(indexerData, luceneDirectory, analyzer, async)
 		{
 			DataService = dataService;
@@ -62,7 +62,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The data service used to retrieve all of the data for an index type
         /// </summary>
-        public ISimpleDataService DataService { get; set; }
+        public IValueSetDataService DataService { get; set; }
 
         /// <summary>
         /// A list of index types defined for this indexer
@@ -72,14 +72,11 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Gets the data for the index type from the data service and indexes it.
         /// </summary>
-        /// <param name="type"></param>
-        protected override void PerformIndexAll(string type)
+        /// <param name="category"></param>
+        protected override void PerformIndexAll(string category)
         {
-            AddNodesToIndex(
-                //put the enumerable collection into the index
-                DataService.GetAllData(type).Select(d => d.RowData.ToExamineXml(d.NodeDefinition.NodeId, d.NodeDefinition.Type)), 
-                type);            
-        }              
+            IndexItems(DataService.GetAllData(category));
+        }
 
         /// <summary>
         /// Indexes each index type defined in IndexTypes property
@@ -112,7 +109,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 //this should be a fully qualified type
                 var serviceType = TypeHelper.FindType(config["dataService"]);
-                DataService = (ISimpleDataService)Activator.CreateInstance(serviceType);
+                DataService = (IValueSetDataService)Activator.CreateInstance(serviceType);
             }
             else
             {

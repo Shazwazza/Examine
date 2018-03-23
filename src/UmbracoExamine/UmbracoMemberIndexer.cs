@@ -65,16 +65,15 @@ namespace UmbracoExamine
             return null;
         }
 
-        protected override System.Collections.Generic.Dictionary<string, string> GetDataToIndex(XElement node, string type)
+        protected override void OnGatheringNodeData(IndexingItemEventArgs e)
         {
-            var data = base.GetDataToIndex(node, type);
-
-            if (data.ContainsKey("email"))
+            base.OnGatheringNodeData(e);
+            if (e.IndexItem.ValueSet.Values.TryGetValue("email", out var vals))
             {
-                data.Add("__email",data["email"].Replace("."," ").Replace("@"," "));
+                var email = vals.FirstOrDefault()?.ToString();
+                if (!string.IsNullOrWhiteSpace(email))
+                    e.IndexItem.ValueSet.Add("__email", email.Replace(".", " ").Replace("@", " "));
             }
-
-            return data;
         }
 
 		

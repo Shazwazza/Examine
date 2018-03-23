@@ -113,7 +113,7 @@ namespace Examine.Web.Demo.Controllers
             {
                 var timer = new Stopwatch();
                 timer.Start();
-                ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"].RebuildIndex();
+                ExamineManager.Instance.IndexProviders["Simple2Indexer"].RebuildIndex();
                 timer.Stop();
 
                 return View(timer.Elapsed.TotalSeconds);
@@ -128,27 +128,17 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult ReIndexItems()
         {
-            var total = 0;
             var dataService = new TableDirectReaderDataService();
-            foreach (var simpleDataSet in dataService.GetRandomItems())
-            {
-                ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"]
-                    .ReIndexNode(
-                        simpleDataSet.RowData.ToExamineXml(
-                            simpleDataSet.NodeDefinition.NodeId,
-                            simpleDataSet.NodeDefinition.Type),
-                        "TestType");
-                total++;
-            }            
-
-            return View(total);
+            var randomItems = dataService.GetRandomItems().ToArray();
+            ExamineManager.Instance.IndexProviders["Simple2Indexer"].IndexItems(randomItems);
+            return View(randomItems.Length);
         }
 
         [HttpPost]
         public ActionResult TestIndex()
         {
 
-            var indexer = (LuceneIndexer)ExamineManager.Instance.IndexProviderCollection["Simple2Indexer"];
+            var indexer = (LuceneIndexer)ExamineManager.Instance.IndexProviders["Simple2Indexer"];
             var writer = indexer.GetIndexWriter();
 
             var model = new IndexInfo

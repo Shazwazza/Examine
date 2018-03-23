@@ -85,7 +85,7 @@
     <Compile Include="DataServices\TestDataService.cs" />
     <Compile Include="DataServices\TestLogService.cs" />
     <Compile Include="DataServices\TestMediaService.cs" />
-    <Compile Include="DataServices\TestSimpleDataProvider.cs" />
+    <Compile Include="DataServices\TestValueSetDataProvider.cs" />
     <Compile Include="Search\DataTypeTests.cs" />
     <Compile Include="Search\FluentApiTests.cs" />
     <Compile Include="IndexInitializer.cs" />

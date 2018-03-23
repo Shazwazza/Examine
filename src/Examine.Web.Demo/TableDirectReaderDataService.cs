@@ -11,13 +11,13 @@ namespace Examine.Web.Demo
     /// Data service for Examine using SqlCe's DirectTable reader as it is by far the fastest 
     /// way to read data from SqlCe.
     /// </summary>
-    public class TableDirectReaderDataService : ISimpleDataService
+    public class TableDirectReaderDataService : IValueSetDataService
     {
         /// <summary>
         /// Returns some random items from the storage
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<SimpleDataSet> GetRandomItems()
+        public IEnumerable<ValueSet> GetRandomItems()
         {
             var random = new Random(Guid.NewGuid().GetHashCode());
             var current = 0;
@@ -37,14 +37,7 @@ namespace Examine.Web.Demo
                             //A 1 in 1000 chance of being returned
                             if (random.Next(1, 1001) == 1000)
                             {
-                                yield return new SimpleDataSet()
-                                {
-                                    NodeDefinition = new IndexedNode()
-                                    {
-                                        NodeId = rs.GetInt32(0),
-                                        Type = "TestType"
-                                    },
-                                    RowData = new Dictionary<string, string>()
+                                yield return new ValueSet(rs.GetInt32(0).ToString(), "TestType", new Dictionary<string, object>()
                                 {
                                     {"Column1", rs.GetString(1)},
                                     {"Column2", rs.GetString(2)},
@@ -52,10 +45,8 @@ namespace Examine.Web.Demo
                                     {"Column4", rs.GetString(4)},
                                     {"Column5", rs.GetString(5)},
                                     {"Column6", rs.GetString(6)}
-                                }
-                                };
+                                });
                             }
-                            
                             current++;
                         }
                     }
@@ -63,7 +54,7 @@ namespace Examine.Web.Demo
             }
         }
 
-        public IEnumerable<SimpleDataSet> GetAllData(string indexType)
+        public IEnumerable<ValueSet> GetAllData(string indexType)
         {
             using (var db = new MyDbContext())
             {
@@ -77,23 +68,15 @@ namespace Examine.Web.Demo
                         var rs = cmd.ExecuteResultSet(ResultSetOptions.None);
                         while(rs.Read())
                         {
-                            yield return new SimpleDataSet()
+                            yield return new ValueSet(rs.GetInt32(0).ToString(), "TestType", new Dictionary<string, object>()
                             {
-                                NodeDefinition = new IndexedNode()
-                                {
-                                    NodeId = rs.GetInt32(0),
-                                    Type = "TestType"
-                                },
-                                RowData = new Dictionary<string, string>()
-                                {
-                                    {"Column1", rs.GetString(1)},
-                                    {"Column2", rs.GetString(2)},
-                                    {"Column3", rs.GetString(3)},
-                                    {"Column4", rs.GetString(4)},
-                                    {"Column5", rs.GetString(5)},
-                                    {"Column6", rs.GetString(6)}
-                                }
-                            };
+                                {"Column1", rs.GetString(1)},
+                                {"Column2", rs.GetString(2)},
+                                {"Column3", rs.GetString(3)},
+                                {"Column4", rs.GetString(4)},
+                                {"Column5", rs.GetString(5)},
+                                {"Column6", rs.GetString(6)}
+                            });
                         }
                     }                
                 }

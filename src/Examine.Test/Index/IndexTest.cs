@@ -72,8 +72,8 @@ namespace Examine.Test.Index
                 customIndexer.RebuildIndex();
 
                 customIndexer.DocumentWriting += handler;
-                
-                var customSearcher = IndexInitializer.GetLuceneSearcher(d);
+
+                var customSearcher = customIndexer.GetSearcher(); //IndexInitializer.GetLuceneSearcher(d);
                 var results = customSearcher.Search(customSearcher.CreateSearchCriteria().NodeName("home").Compile());
                 Assert.Greater(results.TotalItemCount, 0);
                 foreach (var result in results)
@@ -138,7 +138,7 @@ namespace Examine.Test.Index
                         var cloned = new XElement(node);
                         cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
                         Debug.WriteLine("Indexing {0}", docId);
-                        indexer.ReIndexNode(cloned, IndexTypes.Content);
+                        indexer.IndexItems(new []{ cloned.ConvertToValueSet(IndexTypes.Content) });
                     }, TaskCreationOptions.LongRunning));
                 }
 
@@ -229,7 +229,7 @@ namespace Examine.Test.Index
                         var cloned = new XElement(node);
                         cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
                         Debug.WriteLine("Indexing {0}", docId);
-                        customIndexer.ReIndexNode(cloned, IndexTypes.Content);
+                        customIndexer.IndexItems(new []{ cloned .ConvertToValueSet(IndexTypes.Content) });
                         Thread.Sleep(100);
                     }
                 }
@@ -333,7 +333,7 @@ namespace Examine.Test.Index
                                 var cloned = new XElement(node);
                                 cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
                                 Debug.WriteLine("Indexing {0}", docId);
-                                ind.ReIndexNode(cloned, IndexTypes.Content);
+                                ind.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
                                 Thread.Sleep(100);
                             }
                         }
@@ -409,7 +409,7 @@ namespace Examine.Test.Index
                 //reindex the same node a bunch of times
                 for (var i = 0; i < 29; i++)
                 {
-                    indexer.ReIndexNode(node, IndexTypes.Content);
+                    indexer.IndexItems(new[] { node.ConvertToValueSet(IndexTypes.Content) });
                 }
 
                 //ensure no duplicates

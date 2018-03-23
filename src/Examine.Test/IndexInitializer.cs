@@ -127,7 +127,7 @@ namespace Examine.Test
                                                          -1),
                                                          luceneDir,
                                                          new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29),
-                                                         new TestSimpleDataProvider(),
+                                                         new TestValueSetDataProvider(),
                                                          new[] { "Documents", "Pictures" },
                                                          false);
             i.IndexingError += IndexingError;
@@ -135,11 +135,6 @@ namespace Examine.Test
             return i;
         }
         
-        public static LuceneSearcher GetLuceneSearcher(Lucene.Net.Store.Directory luceneDir)
-        {
-            return new LuceneSearcher(luceneDir, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));
-        }
-
         public static MultiIndexSearcher GetMultiSearcher(Lucene.Net.Store.Directory pdfDir, Lucene.Net.Store.Directory simpleDir, Lucene.Net.Store.Directory conventionDir, Lucene.Net.Store.Directory cwsDir)
         {
             var i = new MultiIndexSearcher(new[] { pdfDir, simpleDir, conventionDir, cwsDir }, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29));

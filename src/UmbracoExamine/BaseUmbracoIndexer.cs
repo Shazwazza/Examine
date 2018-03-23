@@ -15,6 +15,7 @@ using UmbracoExamine.DataServices;
 using Examine;
 using System.IO;
 using System.Xml.Linq;
+using Examine.LuceneEngine;
 
 namespace UmbracoExamine
 {
@@ -212,20 +213,20 @@ namespace UmbracoExamine
         //    }
         //}
 
-        /// <summary>
-        /// Ensures that the node being indexed is of a correct type and is a descendent of the parent id specified.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        protected override bool ValidateDocument(XElement node)
-        {
-            //check if this document is a descendent of the parent
-            if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
-                if (!((string)node.Attribute("path")).Contains("," + IndexerData.ParentNodeId.Value.ToString() + ","))
-                    return false;
+        ///// <summary>
+        ///// Ensures that the node being indexed is of a correct type and is a descendent of the parent id specified.
+        ///// </summary>
+        ///// <param name="item"></param>
+        ///// <returns></returns>
+        //protected override bool ValidateDocument(IndexItem item)
+        //{
+        //    //check if this document is a descendent of the parent
+        //    if (IndexerData.ParentNodeId.HasValue && IndexerData.ParentNodeId.Value > 0)
+        //        if (!((string)node.Attribute("path")).Contains("," + IndexerData.ParentNodeId.Value.ToString() + ","))
+        //            return false;
 
-            return base.ValidateDocument(node);
-        }
+        //    return base.ValidateDocument(node);
+        //}
 
         /// <summary>
         /// Reindexes all supported types
@@ -238,22 +239,22 @@ namespace UmbracoExamine
             }
         }
 
-        public override void ReIndexNode(XElement node, string type)
-        {
-            if (!SupportedTypes.Contains(type))
-                return;
+        //public override void ReIndexNode(XElement node, string type)
+        //{
+        //    if (!SupportedTypes.Contains(type))
+        //        return;
 
-            base.ReIndexNode(node, type);
-        }
+        //    base.ReIndexNode(node, type);
+        //}
 
         /// <summary>
         /// Builds an xpath statement to query against Umbraco data for the index type specified, then
         /// initiates the re-indexing of the data matched.
         /// </summary>
-        /// <param name="type"></param>
-        protected override void PerformIndexAll(string type)
+        /// <param name="category"></param>
+        protected override void PerformIndexAll(string category)
         {
-            if (!SupportedTypes.Contains(type))
+            if (!SupportedTypes.Contains(category))
                 return;
 
             var xPath = "//*[(number(@id) > 0 and (@isDoc or @nodeTypeAlias)){0}]"; //we'll add more filters to this below if needed
@@ -291,19 +292,9 @@ namespace UmbracoExamine
             var filter = sb.ToString();
             xPath = string.Format(xPath, filter.Length > 0 ? " and " + filter : "");
 
-            //raise the event and set the xpath statement to the value returned
-            var args = new IndexingNodesEventArgs(IndexerData, xPath, type);
-            OnNodesIndexing(args);
-            if (args.Cancel)
-            {
-                return;
-            }
+            DataService.LogService.AddVerboseLog(-1, $"({this.Name}) PerformIndexAll with XPATH: {xPath}");
 
-            xPath = args.XPath;
-
-            DataService.LogService.AddVerboseLog(-1, string.Format("({0}) PerformIndexAll with XPATH: {1}", this.Name, xPath));
-
-            AddNodesToIndex(xPath, type);
+            AddNodesToIndex(xPath, category);
         }
 
         /// <summary>
@@ -338,18 +329,18 @@ namespace UmbracoExamine
         /// Adds all nodes with the given xPath root.
         /// </summary>
         /// <param name="xPath">The x path.</param>
-        /// <param name="type">The type.</param>
-        private void AddNodesToIndex(string xPath, string type)
+        /// <param name="category">The type.</param>
+        private void AddNodesToIndex(string xPath, string category)
         {
             // Get all the nodes of nodeTypeAlias == nodeTypeAlias
-            XDocument xDoc = GetXDocument(xPath, type);
+            XDocument xDoc = GetXDocument(xPath, category);
             if (xDoc != null)
             {
                 XElement rootNode = xDoc.Root;
 
                 IEnumerable<XElement> children = rootNode.Elements();
 
-                AddNodesToIndex(children, type);
+                IndexItems(children.Select(x => x.ConvertToValueSet(category)));
             }
 
         }

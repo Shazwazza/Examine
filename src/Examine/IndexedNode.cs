@@ -10,28 +10,41 @@ namespace Examine
     /// <summary>
     /// Simple class to store the definition of an indexed node
     /// </summary>
-    public class IndexedNode
+    internal struct IndexedNode : IEquatable<IndexedNode>
     {
-        public int NodeId { get; set; }
-        public string Type { get; set; }
-
-        /// <summary>
-        /// Overridden to base equality on NodeId
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public override bool Equals(object obj)
+        public IndexedNode(int nodeId, string category)
         {
-            return ((IndexedNode)obj).NodeId == this.NodeId;
+            NodeId = nodeId;
+            Category = category;
         }
 
-        /// <summary>
-        /// Overridden to base equality on NodeId
-        /// </summary>
-        /// <returns></returns>
+        public int NodeId { get; }
+        public string Category { get; }
+
+        public bool Equals(IndexedNode other)
+        {
+            return NodeId == other.NodeId;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            return obj is IndexedNode && Equals((IndexedNode)obj);
+        }
+
         public override int GetHashCode()
         {
-            return this.NodeId.GetHashCode();
+            return NodeId;
+        }
+
+        public static bool operator ==(IndexedNode left, IndexedNode right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(IndexedNode left, IndexedNode right)
+        {
+            return !left.Equals(right);
         }
     }
 }

@@ -8,12 +8,14 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Directories;
+using Examine.LuceneEngine.Indexing;
 using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
@@ -36,13 +38,13 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Default constructor - used for defining indexes in config
         /// </summary>
-
         protected LuceneIndexer()
         {
             _disposer = new DisposableIndexer(this);
             _committer = new IndexCommiter(this);
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
+            InitFieldTypes(DefaultIndexValueTypes);
         }
 
         /// <summary>
@@ -70,6 +72,7 @@ namespace Examine.LuceneEngine.Providers
             InitializeDirectory();
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
+            InitFieldTypes(DefaultIndexValueTypes);
         }
 
         /// <summary>
@@ -96,6 +99,7 @@ namespace Examine.LuceneEngine.Providers
             _directory = luceneDirectory;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
+            InitFieldTypes(DefaultIndexValueTypes);
         }
 
         /// <summary>
@@ -121,6 +125,7 @@ namespace Examine.LuceneEngine.Providers
             RunAsync = async;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
+            InitFieldTypes(DefaultIndexValueTypes);
         }
 
         #endregion
@@ -329,6 +334,31 @@ namespace Examine.LuceneEngine.Providers
         #region Static Helpers
 
         /// <summary>
+        /// Returns the default index value types that is used in normal construction of an indexer
+        /// </summary>
+        /// <returns></returns>
+        public static IDictionary<string, Func<string, IIndexValueType>> DefaultIndexValueTypes
+            => new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
+            {
+                {"number", name => new Int32Type(name)},
+                {FieldDefinitionTypes.Integer.ToLowerInvariant(), name => new Int32Type(name)},
+                {FieldDefinitionTypes.Float.ToLowerInvariant(), name => new SingleType(name)},
+                {FieldDefinitionTypes.Double.ToLowerInvariant(), name => new DoubleType(name)},
+                {FieldDefinitionTypes.Long.ToLowerInvariant(), name => new Int64Type(name)},
+                {"date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateTime.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateYear.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.YEAR)},
+                {FieldDefinitionTypes.DateMonth.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MONTH)},
+                {FieldDefinitionTypes.DateDay.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.DAY)},
+                {FieldDefinitionTypes.DateHour.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.HOUR)},
+                {FieldDefinitionTypes.DateMinute.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
+                {FieldDefinitionTypes.Raw.ToLowerInvariant(), name => new RawStringType(name)},
+                {FieldDefinitionTypes.FullText.ToLowerInvariant(), name => new FullTextType(name)},
+                {FieldDefinitionTypes.FullTextSortable.ToLowerInvariant(), name => new FullTextType(name, true)}
+            };
+        
+
+        /// <summary>
         /// Converts a DateTime to total number of milliseconds for storage in a numeric field
         /// </summary>
         /// <param name="t">The t.</param>
@@ -432,6 +462,11 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Properties
+
+        /// <summary>
+        /// Defines the field types such as number, fulltext, etc...
+        /// </summary>
+        public ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// this flag indicates if Examine should wait for the current index queue to be fully processed during appdomain shutdown
@@ -578,26 +613,56 @@ namespace Examine.LuceneEngine.Providers
         /// This is here for inheritors to deal with if there's a duplicate entry in the fields dictionary when trying to index.
         /// The system by default just ignores duplicates but this will give inheritors a chance to do something about it (i.e. logging, alerting...)
         /// </summary>
-        /// <param name="nodeId"></param>
+        /// <param name="itemId"></param>
         /// <param name="indexSetName"></param>
         /// <param name="fieldName"></param>
-        protected virtual void OnDuplicateFieldWarning(int nodeId, string indexSetName, string fieldName) { }
+        protected virtual void OnDuplicateFieldWarning(string itemId, string indexSetName, string fieldName) { }
 
         #endregion
 
         #region Provider implementation
 
-
-        /// <summary>
-        /// Forces a particular XML node to be reindexed
-        /// </summary>
-        /// <param name="node">XML node to reindex</param>
-        /// <param name="type">Type of index to use</param>
-        public override void ReIndexNode(XElement node, string type)
+        public override void IndexItems(IEnumerable<ValueSet> values)
         {
-            //now index the single node
-            AddSingleNodeToIndex(node, type);
+            //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
+            Monitor.Enter(_writerLocker);
+            try
+            {
+                Interlocked.Increment(ref _activeAddsOrDeletes);
+
+                try
+                {
+                    //enqueue the batch, this allows lazy enumeration of the items
+                    // when the indexes starts to process
+                    EnqueueIndexOperation(
+                        values.Select(value => new IndexOperation(
+                            new IndexItem(value), 
+                            IndexOperationType.Add)));
+
+                    //run the indexer on all queued files
+                    SafelyProcessQueueItems();
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _activeAddsOrDeletes);
+                }
+            }
+            finally
+            {
+                Monitor.Exit(_writerLocker);
+            }
         }
+
+        ///// <summary>
+        ///// Forces a particular XML node to be reindexed
+        ///// </summary>
+        ///// <param name="node">XML node to reindex</param>
+        ///// <param name="type">Type of index to use</param>
+        //public override void ReIndexNode(XElement node, string type)
+        //{
+        //    //now index the single node
+        //    AddSingleNodeToIndex(node, type);
+        //}
 
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
@@ -672,7 +737,7 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
-                    OnIndexingError(new IndexingErrorEventArgs("Could not acquire lock in EnsureIndex so cannot create new index", -1, null));
+                    OnIndexingError(new IndexingErrorEventArgs(this, "Could not acquire lock in EnsureIndex so cannot create new index", -1, null));
                 }
             }
         }
@@ -696,7 +761,7 @@ namespace Examine.LuceneEngine.Providers
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs("An error occurred creating the index", -1, ex));
+                OnIndexingError(new IndexingErrorEventArgs(this, "An error occurred creating the index", -1, ex));
                 return;
             }
             finally
@@ -717,7 +782,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot rebuild the index, indexing cancellation has been requested", -1, null));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot rebuild the index, indexing cancellation has been requested", -1, null));
                 return;
             }
 
@@ -741,11 +806,7 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                EnqueueIndexOperation(new IndexOperation()
-                {
-                    Operation = IndexOperationType.Delete,
-                    Item = new IndexItem(null, "", nodeId)
-                });
+                EnqueueIndexOperation(new IndexOperation(IndexItem.ForId(nodeId), IndexOperationType.Delete));
                 SafelyProcessQueueItems();
             }
             finally
@@ -757,19 +818,15 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Re-indexes all data for the index type specified
         /// </summary>
-        /// <param name="type"></param>
-        public override void IndexAll(string type)
+        /// <param name="category"></param>
+        public override void IndexAll(string category)
         {
             //remove this index type
-            var op = new IndexOperation()
-            {
-                Operation = IndexOperationType.Delete,
-                Item = new IndexItem(null, type, string.Empty)
-            };
+            var op = new IndexOperation(IndexItem.ForCategory(category), IndexOperationType.Delete);
             EnqueueIndexOperation(op);
 
             //now do the indexing...
-            PerformIndexAll(type);
+            PerformIndexAll(category);
         }
 
         #endregion
@@ -785,7 +842,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, index cancellation has been requested", -1, null), true);
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, index cancellation has been requested", -1, null), true);
                 return;
             }
 
@@ -797,7 +854,7 @@ namespace Examine.LuceneEngine.Providers
                 //check if the index is ready to be written to.
                 if (!IndexReady())
                 {
-                    OnIndexingError(new IndexingErrorEventArgs("Cannot optimize index, the index is currently locked", -1, null), true);
+                    OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, the index is currently locked", -1, null), true);
                     return;
                 }
 
@@ -813,53 +870,53 @@ namespace Examine.LuceneEngine.Providers
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error optimizing Lucene index", -1, ex));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Error optimizing Lucene index", -1, ex));
             }
 
         }
 
         #region Protected
 
-        /// <summary>
-        /// This will add a number of nodes to the index
-        /// </summary>        
-        /// <param name="nodes"></param>
-        /// <param name="type"></param>
-        protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
-        {
+        ///// <summary>
+        ///// This will add a number of nodes to the index
+        ///// </summary>        
+        ///// <param name="nodes"></param>
+        ///// <param name="type"></param>
+        //protected void AddNodesToIndex(IEnumerable<XElement> nodes, string type)
+        //{
 
-            //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
-            Monitor.Enter(_writerLocker);
-            try
-            {
-                Interlocked.Increment(ref _activeAddsOrDeletes);
+        //    //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
+        //    Monitor.Enter(_writerLocker);
+        //    try
+        //    {
+        //        Interlocked.Increment(ref _activeAddsOrDeletes);
 
-                try
-                {
-                    //enqueue the batch, this allows lazy enumeration of the items
-                    // when the indexes starts to process
-                    EnqueueIndexOperation(
-                        nodes.Select(node => new IndexOperation(new IndexItem(node, type, (string)node.Attribute("id")), IndexOperationType.Add)));
+        //        try
+        //        {
+        //            //enqueue the batch, this allows lazy enumeration of the items
+        //            // when the indexes starts to process
+        //            EnqueueIndexOperation(
+        //                nodes.Select(node => new IndexOperation(new IndexItem(node, type, (string)node.Attribute("id")), IndexOperationType.Add)));
 
-                    //run the indexer on all queued files
-                    SafelyProcessQueueItems();
-                }
-                finally
-                {
-                    Interlocked.Decrement(ref _activeAddsOrDeletes);
-                }
-            }
-            finally
-            {
-                Monitor.Exit(_writerLocker);
-            }
-        }
+        //            //run the indexer on all queued files
+        //            SafelyProcessQueueItems();
+        //        }
+        //        finally
+        //        {
+        //            Interlocked.Decrement(ref _activeAddsOrDeletes);
+        //        }
+        //    }
+        //    finally
+        //    {
+        //        Monitor.Exit(_writerLocker);
+        //    }
+        //}
 
         /// <summary>
         /// Called to perform the operation to do the actual indexing of an index type after the lucene index has been re-initialized.
         /// </summary>
-        /// <param name="type"></param>
-        protected abstract void PerformIndexAll(string type);
+        /// <param name="category"></param>
+        protected abstract void PerformIndexAll(string category);
 
         /// <summary>
         /// Called to perform the actual rebuild of the indexes once the lucene index has been re-initialized.
@@ -962,16 +1019,16 @@ namespace Examine.LuceneEngine.Providers
             return _exists.Value;
         }
 
-        /// <summary>
-        /// Adds single node to index. If the node already exists, a duplicate will probably be created,
-        /// To re-index, use the ReIndexNode method.
-        /// </summary>
-        /// <param name="node">The node to index.</param>
-        /// <param name="type">The type to store the node as.</param>
-        protected virtual void AddSingleNodeToIndex(XElement node, string type)
-        {
-            AddNodesToIndex(new XElement[] { node }, type);
-        }
+        ///// <summary>
+        ///// Adds single node to index. If the node already exists, a duplicate will probably be created,
+        ///// To re-index, use the ReIndexNode method.
+        ///// </summary>
+        ///// <param name="node">The node to index.</param>
+        ///// <param name="type">The type to store the node as.</param>
+        //protected virtual void AddSingleNodeToIndex(XElement node, string type)
+        //{
+        //    AddNodesToIndex(new XElement[] { node }, type);
+        //}
 
 
         /// <summary>
@@ -1000,347 +1057,139 @@ namespace Examine.LuceneEngine.Providers
                 {
                     iw.Commit();
                 }
-
-
-                OnIndexDeleted(new DeleteIndexEventArgs(new KeyValuePair<string, string>(indexTerm.Field, indexTerm.Text)));
+                
                 return true;
             }
             catch (Exception ee)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error deleting Lucene index", nodeId, ee));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Error deleting Lucene index", nodeId, ee));
                 return false;
             }
         }
 
         /// <summary>
-        /// Ensures that the node being indexed is of a correct type and is a descendent of the parent id specified.
+        /// Ensures that the node being indexed is valid
         /// </summary>
-        /// <param name="node"></param>
+        /// <param name="item"></param>
         /// <returns></returns>
-        protected virtual bool ValidateDocument(XElement node)
+        protected virtual bool ValidateDocument(IndexItem item)
         {
             //check if this document is of a correct type of node type alias
             if (IndexerData.IncludeNodeTypes.Any())
-                if (!IndexerData.IncludeNodeTypes.Contains(node.ExamineNodeTypeAlias()))
+                if (!IndexerData.IncludeNodeTypes.Contains(item.ExamineNodeTypeAlias()))
                     return false;
 
             //if this node type is part of our exclusion list, do not validate
             if (IndexerData.ExcludeNodeTypes.Any())
-                if (IndexerData.ExcludeNodeTypes.Contains(node.ExamineNodeTypeAlias()))
+                if (IndexerData.ExcludeNodeTypes.Contains(item.ExamineNodeTypeAlias()))
                     return false;
 
             return true;
         }
 
-
-        /// <summary>
-        /// Translates the XElement structure into a dictionary object to be indexed.
-        /// </summary>
-        /// <remarks>
-        /// This is used when re-indexing an individual node since this is the way the provider model works.
-        /// For this provider, it will use a very similar XML structure as umbraco 4.0.x:
-        /// </remarks>
-        /// <example>
-        /// <code>
-        /// <![CDATA[
-        /// <root>
-        ///     <node id="1234" nodeTypeAlias="yourIndexType">
-        ///         <data alias="fieldName1">Some data</data>
-        ///         <data alias="fieldName2">Some other data</data>
-        ///     </node>
-        ///     <node id="345" nodeTypeAlias="anotherIndexType">
-        ///         <data alias="fieldName3">More data</data>
-        ///     </node>
-        /// </root>
-        /// ]]>
-        /// </code>        
-        /// </example>
-        /// <param name="node"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        protected virtual Dictionary<string, string> GetDataToIndex(XElement node, string type)
+        private string GetFieldTypeFromObjectType(object o)
         {
-            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            if (!node.IsExamineElement())
-                return values;
-
-            //resolve all attributes now it is much faster to do this than to relookup all of the XML data
-            //using Linq and the node.Attributes() methods re-gets all of them.
-            var attributeValues = node.Attributes().ToDictionary(x => x.Name.LocalName, x => x.Value);
-
-            var nodeId = int.Parse(attributeValues["id"]);
-
-            // Add umbraco node properties 
-            foreach (var field in IndexerData.StandardFields)
+            switch (Type.GetTypeCode(o.GetType()))
             {
-                string val = node.SelectExaminePropertyValue(attributeValues, field.Name);
-                if (val == null) continue;
-
-                var args = new IndexingFieldDataEventArgs(node, field.Name, val, true, nodeId);
-                OnGatheringFieldData(args);
-                val = args.FieldValue;
-
-                //don't add if the value is empty/null                
-                if (!string.IsNullOrEmpty(val))
-                {
-                    if (values.ContainsKey(field.Name))
-                    {
-                        OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
-                    }
-                    else
-                    {
-                        values.Add(field.Name, val);
-                    }
-                }
-
-            }
-
-            //resolve all element data now it is much faster to do this than to relookup all of the XML data
-            //using Linq and the node.Elements() methods re-gets all of them.
-            var elementValues = node.SelectExamineDataValues();
-
-            // Get all user data that we want to index and store into a dictionary 
-            foreach (var field in IndexerData.UserFields)
-            {
-                // Get the value of the data       
-                string value;
-                if (!elementValues.TryGetValue(field.Name, out value))
-                    continue;
-
-                //raise the event and assign the value to the returned data from the event
-                var indexingFieldDataArgs = new IndexingFieldDataEventArgs(node, field.Name, value, false, nodeId);
-                OnGatheringFieldData(indexingFieldDataArgs);
-                value = indexingFieldDataArgs.FieldValue;
-
-                //don't add if the value is empty/null
-                if (!string.IsNullOrEmpty(value))
-                {
-                    if (values.ContainsKey(field.Name))
-                    {
-                        OnDuplicateFieldWarning(nodeId, IndexSetName, field.Name);
-                    }
-                    else
-                    {
-                        values.Add(field.Name, value);
-                    }
-                }
-            }
-
-            //raise the event and assign the value to the returned data from the event
-            var indexingNodeDataArgs = new IndexingNodeDataEventArgs(node, nodeId, values, type);
-            OnGatheringNodeData(indexingNodeDataArgs);
-            values = indexingNodeDataArgs.Fields;
-
-            return values;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <returns></returns>
-        protected virtual FieldIndexTypes GetPolicy(string fieldName)
-        {
-            return FieldIndexTypes.ANALYZED;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fieldIndex"></param>
-        /// <returns></returns>
-
-        private Field.Index TranslateFieldIndexTypeToLuceneType(FieldIndexTypes fieldIndex)
-        {
-            switch (fieldIndex)
-            {
-                case FieldIndexTypes.ANALYZED:
-                    return Field.Index.ANALYZED;
-
-                case FieldIndexTypes.ANALYZED_NO_NORMS:
-                    return Field.Index.ANALYZED_NO_NORMS;
-
-                case FieldIndexTypes.NO:
-                    return Field.Index.NO;
-
-                case FieldIndexTypes.NOT_ANALYZED:
-                    return Field.Index.NOT_ANALYZED;
-
-                case FieldIndexTypes.NOT_ANALYZED_NO_NORMS:
-                    return Field.Index.NOT_ANALYZED_NO_NORMS;
-
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                case TypeCode.Empty:
+                case TypeCode.DBNull:
+                    throw new NotSupportedException();
+                case TypeCode.Int16:
+                case TypeCode.Boolean:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                    return FieldDefinitionTypes.Integer;
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    return FieldDefinitionTypes.Long;
+                case TypeCode.Single:
+                    return FieldDefinitionTypes.Float;
+                case TypeCode.Double:
+                case TypeCode.Decimal:
+                    return FieldDefinitionTypes.Double;
+                case TypeCode.DateTime:
+                    return FieldDefinitionTypes.DateTime;
+                case TypeCode.String:
+                    return FieldDefinitionTypes.FullText;
+                case TypeCode.Char:
+                case TypeCode.Object:
                 default:
-                    throw new Exception("Unknown field index type");
+                    return FieldDefinitionTypes.Raw;
             }
         }
-
 
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
-        /// <param name="fields">The fields and their associated data.</param>
+        /// <param name="item">The data to index.</param>
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
-        /// <param name="nodeId">The node id.</param>
-        /// <param name="type">The type to index the node as.</param>
-        /// <remarks>
-        /// This will normalize (lowercase) all text before it goes in to the index.
-        /// </remarks>
-
-        protected virtual void AddDocument(Dictionary<string, string> fields, IndexWriter writer, int nodeId, string type)
+        protected virtual void AddDocument(IndexItem item, IndexWriter writer)
         {
-            var args = new IndexingNodeEventArgs(nodeId, fields, type);
-            OnNodeIndexing(args);
-            if (args.Cancel)
-                return;
-
             var d = new Document();
 
-            foreach (var field in fields)
+            foreach (var field in item.ValueSet.Values)
             {
-                //don't include the special fields if they exists     
+                //Check for the special field prefix, if this is the case it's indexed as Raw
                 if (field.Key.StartsWith(SpecialFieldPrefix))
+                {
+                    var rawValueType = IndexFieldTypes[FieldDefinitionTypes.Raw](field.Key);
+                    foreach (var o in field.Value)
+                    {
+                        rawValueType.AddValue(d, o);
+                    }
                     continue;
-
-                var ourPolicyType = GetPolicy(field.Key);
-                var lucenePolicy = TranslateFieldIndexTypeToLuceneType(ourPolicyType);
-
-                IReadOnlyList<IIndexField> indexedFields;
-                if (!CombinedIndexerDataFields.TryGetValue(field.Key, out indexedFields))
-                {
-                    indexedFields = new List<IIndexField>();
                 }
-
-                if (indexedFields.Count == 0)
+                    
+                //try to find the field definition for this field
+                if (IndexFieldDefinitions.TryGetValue(field.Key, out var indexedFields))
                 {
-                    //TODO: Decide if we should support non-strings in here too
-                    d.Add(
-                    new Field(field.Key,
-                        field.Value,
-                        Field.Store.YES,
-                        lucenePolicy,
-                              Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES));
-                }
-
-                else
-                {
-                    //checks if there's duplicates fields, if not check if the field needs to be sortable...
+                    //checks if there's duplicates fields
                     if (indexedFields.Count > 1)
                     {
                         //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field                        
-                        OnDuplicateFieldWarning(nodeId, IndexSetName, field.Key);
+                        OnDuplicateFieldWarning(item.Id, IndexSetName, field.Key);
                     }
 
-                    //take the first one and continue!
+                    //take the first one and continue
                     var indexField = indexedFields[0];
 
-                    IFieldable luceneField = null;
-                    IFieldable luceneSortedField = null;
-                    object parsedVal = null;
-                    if (string.IsNullOrEmpty(indexField.Type)) indexField.Type = string.Empty;
-                    switch (indexField.Type.ToUpper())
-                    {
-                        case "NUMBER":
-                        case "INT":
-                            if (!TryConvert<int>(field.Value, out parsedVal))
-                                break;
-                            luceneField = new NumericField(field.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetIntValue((int)parsedVal);
-                            luceneSortedField = new NumericField(SortedFieldNamePrefix + field.Key, Field.Store.NO, true).SetIntValue((int)parsedVal);
-                            break;
-                        case "FLOAT":
-                            if (!TryConvert<float>(field.Value, out parsedVal))
-                                break;
-                            luceneField = new NumericField(field.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetFloatValue((float)parsedVal);
-                            luceneSortedField = new NumericField(SortedFieldNamePrefix + field.Key, Field.Store.NO, true).SetFloatValue((float)parsedVal);
-                            break;
-                        case "DOUBLE":
-                            if (!TryConvert<double>(field.Value, out parsedVal))
-                                break;
-                            luceneField = new NumericField(field.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetDoubleValue((double)parsedVal);
-                            luceneSortedField = new NumericField(SortedFieldNamePrefix + field.Key, Field.Store.NO, true).SetDoubleValue((double)parsedVal);
-                            break;
-                        case "LONG":
-                            if (!TryConvert<long>(field.Value, out parsedVal))
-                                break;
-                            luceneField = new NumericField(field.Key, Field.Store.YES, !Equals(lucenePolicy, Field.Index.NO)).SetLongValue((long)parsedVal);
-                            luceneSortedField = new NumericField(SortedFieldNamePrefix + field.Key, Field.Store.NO, true).SetLongValue((long)parsedVal);
-                            break;
-                        case "DATE":
-                        case "DATETIME":
-                            {
-                                SetDateTimeField(field.Key, field.Value, DateTools.Resolution.MILLISECOND, lucenePolicy, ref luceneField, ref luceneSortedField);
-                                break;
-                            }
-                        case "DATE.YEAR":
-                            {
-                                SetDateTimeField(field.Key, field.Value, DateTools.Resolution.YEAR, lucenePolicy, ref luceneField, ref luceneSortedField);
-                                break;
-                            }
-                        case "DATE.MONTH":
-                            {
-                                SetDateTimeField(field.Key, field.Value, DateTools.Resolution.MONTH, lucenePolicy, ref luceneField, ref luceneSortedField);
-                                break;
-                            }
-                        case "DATE.DAY":
-                            {
-                                SetDateTimeField(field.Key, field.Value, DateTools.Resolution.DAY, lucenePolicy, ref luceneField, ref luceneSortedField);
-                                break;
-                            }
-                        case "DATE.HOUR":
-                            {
-                                SetDateTimeField(field.Key, field.Value, DateTools.Resolution.HOUR, lucenePolicy, ref luceneField, ref luceneSortedField);
-                                break;
-                            }
-                        case "DATE.MINUTE":
-                            {
-                                SetDateTimeField(field.Key, field.Value, DateTools.Resolution.MINUTE, lucenePolicy, ref luceneField, ref luceneSortedField);
-                                break;
-                            }
-                        default:
-                            luceneField =
-                                new Field(field.Key,
-                                    field.Value,
-                                    Field.Store.YES,
-                                    lucenePolicy,
-                                          Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES
-                                );
-                            luceneSortedField = new Field(SortedFieldNamePrefix + field.Key,
-                                                    field.Value,
-                                                    Field.Store.NO, //we don't want to store the field because we're only using it to sort, not return data
-                                                    Field.Index.NOT_ANALYZED,
-                                                    Field.TermVector.NO
-                                );
-                            break;
-                    }
+                    if (indexField.Type == null) continue;
 
-                    //if the parsed value is null, this means it couldn't parse and we should log this error
-                    if (luceneField == null)
+                    if (IndexFieldTypes.TryGetValue(indexField.Type, out var indexValueType))
                     {
-                        OnIndexingError(new IndexingErrorEventArgs("Could not parse value: " + field.Value + "into the type: " + indexField.Type, nodeId, null));
-                    }
-                    else
-                    {
-                        d.Add(luceneField);
-
-                        //add the special sorted field if sorting is enabled
-                        if (indexField.EnableSorting)
+                        var valueType = indexValueType(field.Key);
+                        foreach (var o in field.Value)
                         {
-                            d.Add(luceneSortedField);
+                            valueType.AddValue(d, o);
+                        }
+                    }
+                }
+                else
+                {
+                    //there are no field definitions for this so index it based on the clr type    
+                    foreach (var o in field.Value)
+                    {
+                        var fieldType = GetFieldTypeFromObjectType(o);
+                        if (IndexFieldTypes.TryGetValue(fieldType, out var indexValueType))
+                        {
+                            var valueType = indexValueType(field.Key);
+                            valueType.AddValue(d, o);
                         }
                     }
                 }
             }
 
-            AddSpecialFieldsToDocument(d, fields);
+            AddSpecialFieldsToDocument(d, item.ValueSet);
 
-            var docArgs = new DocumentWritingEventArgs(nodeId, d, fields);
+            var docArgs = new DocumentWritingEventArgs(item.ValueSet, d);
             OnDocumentWriting(docArgs);
             if (docArgs.Cancel)
                 return;
 
-            writer.UpdateDocument(new Term(IndexNodeIdFieldName, nodeId.ToString(CultureInfo.InvariantCulture)), d);
-
-            OnNodeIndexed(new IndexedNodeEventArgs(nodeId));
+            writer.UpdateDocument(new Term(IndexNodeIdFieldName, item.Id), d);
         }
 
 
@@ -1371,26 +1220,26 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        /// <summary>
-        /// Returns a dictionary of special key/value pairs to store in the lucene index which will be stored by:
-        /// - Field.Store.YES
-        /// - Field.Index.NOT_ANALYZED_NO_NORMS
-        /// - Field.TermVector.NO
-        /// </summary>
-        /// <param name="allValuesForIndexing">
-        /// The dictionary object containing all name/value pairs that are to be put into the index
-        /// </param>
-        /// <returns></returns>
-        protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
-        {
-            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-				//we want to store the nodeId separately as it's the index
-				{IndexNodeIdFieldName, allValuesForIndexing[IndexNodeIdFieldName]},
-				//add the index type first
-				{IndexTypeFieldName, allValuesForIndexing[IndexTypeFieldName]}
-            };
-        }
+    //    /// <summary>
+    //    /// Returns a dictionary of special key/value pairs to store in the lucene index which will be stored by:
+    //    /// - Field.Store.YES
+    //    /// - Field.Index.NOT_ANALYZED_NO_NORMS
+    //    /// - Field.TermVector.NO
+    //    /// </summary>
+    //    /// <param name="allValuesForIndexing">
+    //    /// The dictionary object containing all name/value pairs that are to be put into the index
+    //    /// </param>
+    //    /// <returns></returns>
+    //    protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
+    //    {
+    //        return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    //        {
+				////we want to store the nodeId separately as it's the index
+				//{IndexNodeIdFieldName, allValuesForIndexing[IndexNodeIdFieldName]},
+				////add the index type first
+				//{IndexTypeFieldName, allValuesForIndexing[IndexTypeFieldName]}
+    //        };
+    //    }
 
         /// <summary>
         /// Process all of the queue items
@@ -1510,7 +1359,7 @@ namespace Examine.LuceneEngine.Providers
             //check if the index is ready to be written to.
             if (!IndexReady())
             {
-                OnIndexingError(new IndexingErrorEventArgs("Cannot index queue items, the index is currently locked", -1, null));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot index queue items, the index is currently locked", -1, null));
                 return 0;
             }
 
@@ -1564,16 +1413,10 @@ namespace Examine.LuceneEngine.Providers
                 {
                     _committer.ScheduleCommit();
                 }
-
-                if (indexedNodes.Count > 0)
-                {
-                    //raise the completed event
-                    OnNodesIndexed(new IndexedNodesEventArgs(IndexerData, indexedNodes));
-                }
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs("Error indexing queue items", -1, ex));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Error indexing queue items", -1, ex));
             }
             finally
             {
@@ -1687,7 +1530,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 case IndexOperationType.Add:
 
-                    if (ValidateDocument(item.Item.DataToIndex))
+                    if (ValidateDocument(item.Item))
                     {
                         //var added = ProcessIndexQueueItem(item, inMemoryWriter);
                         var added = ProcessIndexQueueItem(item, writer);
@@ -1698,8 +1541,6 @@ namespace Examine.LuceneEngine.Providers
                         //do the delete but no commit - it may or may not exist in the index but since it is not 
                         // valid it should definitely not be there.
                         ProcessDeleteQueueItem(item, writer, false);
-
-                        OnIgnoringNode(new IndexingNodeDataEventArgs(item.Item.DataToIndex, int.Parse(item.Item.Id), null, item.Item.IndexType));
                     }
                     break;
                 case IndexOperationType.Delete:
@@ -1724,7 +1565,7 @@ namespace Examine.LuceneEngine.Providers
             else
             {
                 OnIndexingError(
-                    new IndexingErrorEventArgs(
+                    new IndexingErrorEventArgs(this,
                         "App is shutting down so index operation is ignored: " + op.Item.Id, -1, null));
             }
         }
@@ -1743,7 +1584,7 @@ namespace Examine.LuceneEngine.Providers
             else
             {
                 OnIndexingError(
-                    new IndexingErrorEventArgs(
+                    new IndexingErrorEventArgs(this,
                         "App is shutting down so index batch operation is ignored", -1, null));
             }
         }
@@ -1882,14 +1723,14 @@ namespace Examine.LuceneEngine.Providers
             return new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer);
         }
 
-        private void EnsureSpecialFields(Dictionary<string, string> fields, string nodeId, string type)
-        {
-            //ensure the special fields are added to the dictionary to be saved to file
-            if (!fields.ContainsKey(IndexNodeIdFieldName))
-                fields.Add(IndexNodeIdFieldName, nodeId);
-            if (!fields.ContainsKey(IndexTypeFieldName))
-                fields.Add(IndexTypeFieldName, type);
-        }
+        //private void EnsureSpecialFields(Dictionary<string, string> fields, string nodeId, string type)
+        //{
+        //    //ensure the special fields are added to the dictionary to be saved to file
+        //    if (!fields.ContainsKey(IndexNodeIdFieldName))
+        //        fields.Add(IndexNodeIdFieldName, nodeId);
+        //    if (!fields.ContainsKey(IndexTypeFieldName))
+        //        fields.Add(IndexTypeFieldName, type);
+        //}
 
 
         /// <summary>
@@ -1934,17 +1775,22 @@ namespace Examine.LuceneEngine.Providers
         /// - Field.TermVector.NO
         /// </summary>
         /// <param name="d"></param>
-        /// <param name="fields"></param>
-
-        private void AddSpecialFieldsToDocument(Document d, Dictionary<string, string> fields)
+        /// <param name="valueSet"></param>
+        protected virtual void AddSpecialFieldsToDocument(Document d, ValueSet valueSet)
         {
-            var specialFields = GetSpecialFieldsToIndex(fields);
-
-            foreach (var s in specialFields)
+            foreach (var s in new[]{ IndexNodeIdFieldName , IndexTypeFieldName })
             {
-                //TODO: we're going to lower case the special fields, the Standard analyzer query parser always lower cases, so 
-                //we need to do that... there might be a nicer way ?
-                d.Add(new Field(s.Key, s.Value.ToLower(), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS, Field.TermVector.NO));
+                if (d.GetField(s) == null)
+                {
+                    var rawValueType = IndexFieldTypes[FieldDefinitionTypes.Raw](s);
+                    if(valueSet.Values.TryGetValue(s, out var values))
+                    {
+                        foreach (var o in values)
+                        {
+                            rawValueType.AddValue(d, o);
+                        }
+                    }
+                }
             }
         }
 
@@ -1961,7 +1807,7 @@ namespace Examine.LuceneEngine.Providers
             //if the id is empty then remove the whole type
             if (string.IsNullOrEmpty(op.Item.Id))
             {
-                DeleteFromIndex(new Term(IndexTypeFieldName, op.Item.IndexType), iw, performCommit);
+                DeleteFromIndex(new Term(IndexTypeFieldName, op.Item.IndexCategory), iw, performCommit);
             }
             else
             {
@@ -1977,15 +1823,17 @@ namespace Examine.LuceneEngine.Providers
             //get the node id
             var nodeId = int.Parse(op.Item.Id);
 
-            //now, add the index with our dictionary object
-            var fields = GetDataToIndex(op.Item.DataToIndex, op.Item.IndexType);
-            EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexType);
+            //raise the event and assign the value to the returned data from the event
+            var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.Item);
+            OnGatheringNodeData(indexingNodeDataArgs);
 
-            AddDocument(fields, writer, nodeId, op.Item.IndexType);
+            //EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexCategory);
+
+            AddDocument(op.Item, writer);
 
             CommitCount++;
 
-            return new IndexedNode() { NodeId = nodeId, Type = op.Item.IndexType };
+            return new IndexedNode(nodeId, op.Item.IndexCategory);
         }
 
         /// <summary>
@@ -2008,6 +1856,13 @@ namespace Examine.LuceneEngine.Providers
 
         }
 
+        private void InitFieldTypes(IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types)
+        {
+            foreach (var type in types)
+            {
+                IndexFieldTypes.TryAdd(type.Key, type.Value);
+            }
+        }
 
         #endregion
 

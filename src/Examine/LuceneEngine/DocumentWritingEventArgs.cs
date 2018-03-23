@@ -12,39 +12,28 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// Event arguments for a Document Writing event
     /// </summary>
-    public class DocumentWritingEventArgs : CancelEventArgs, INodeEventArgs
+    public class DocumentWritingEventArgs : CancelEventArgs
     {
-	    /// <summary>
-	    /// Lucene.NET Document, including all previously added fields
-	    /// </summary>        
-	    public Document Document
-	    {
-			
-			get;
-			
-			private set;
-	    }
+        /// <summary>
+        /// Lucene.NET Document, including all previously added fields
+        /// </summary>        
+        public Document Document { get; }
+
         /// <summary>
         /// Fields of the indexer
         /// </summary>
-        public Dictionary<string, string> Fields { get; private set; }
-        /// <summary>
-        /// NodeId of the document being written
-        /// </summary>
-        public int NodeId { get; private set; }
+        public ValueSet ValueSet { get; }
+        
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="nodeId"></param>
+        /// <param name="valueSet"></param>
         /// <param name="d"></param>
-        /// <param name="fields"></param>
-		
-        public DocumentWritingEventArgs(int nodeId, Document d, Dictionary<string, string> fields)
+        public DocumentWritingEventArgs(ValueSet valueSet, Document d)
         {
-            this.NodeId = nodeId;
             this.Document = d;
-            this.Fields = fields;
+            this.ValueSet = valueSet;
         }
     }
 }

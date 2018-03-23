@@ -19,6 +19,7 @@ using Examine.LuceneEngine.Config;
 using UmbracoExamine.Config;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
+using Lucene.Net.Documents;
 using umbraco.BasePages;
 
 
@@ -79,26 +80,26 @@ namespace UmbracoExamine
         /// Alot of standard umbraco fields shouldn't be tokenized or even indexed, just stored into lucene
         /// for retreival after searching.
         /// </summary>
-        internal static readonly Dictionary<string, FieldIndexTypes> IndexFieldPolicies
-            = new Dictionary<string, FieldIndexTypes>()
+        internal static readonly Dictionary<string, string> IndexFieldPolicies
+            = new Dictionary<string, string>()
             {
-                { "id", FieldIndexTypes.NOT_ANALYZED},
-                { "version", FieldIndexTypes.NOT_ANALYZED},
-                { "parentID", FieldIndexTypes.NOT_ANALYZED},
-                { "level", FieldIndexTypes.NOT_ANALYZED},
-                { "writerID", FieldIndexTypes.NOT_ANALYZED},
-                { "creatorID", FieldIndexTypes.NOT_ANALYZED},
-                { "nodeType", FieldIndexTypes.NOT_ANALYZED},
-                { "template", FieldIndexTypes.NOT_ANALYZED},
-                { "sortOrder", FieldIndexTypes.NOT_ANALYZED},
-                { "createDate", FieldIndexTypes.NOT_ANALYZED},
-                { "updateDate", FieldIndexTypes.NOT_ANALYZED},
-                { "nodeName", FieldIndexTypes.ANALYZED},
-                { "urlName", FieldIndexTypes.NOT_ANALYZED},
-                { "writerName", FieldIndexTypes.ANALYZED},
-                { "creatorName", FieldIndexTypes.ANALYZED},
-                { "nodeTypeAlias", FieldIndexTypes.ANALYZED},
-                { "path", FieldIndexTypes.NOT_ANALYZED}
+                { "id", FieldDefinitionTypes.Raw},
+                { "version", FieldDefinitionTypes.Raw},
+                { "parentID", FieldDefinitionTypes.Raw},
+                { "level", FieldDefinitionTypes.Raw},
+                { "writerID", FieldDefinitionTypes.Raw},
+                { "creatorID", FieldDefinitionTypes.Raw},
+                { "nodeType", FieldDefinitionTypes.Raw},
+                { "template", FieldDefinitionTypes.Raw},
+                { "sortOrder", FieldDefinitionTypes.Raw},
+                { "createDate", FieldDefinitionTypes.Raw},
+                { "updateDate", FieldDefinitionTypes.Raw},
+                { "nodeName", FieldDefinitionTypes.FullText},
+                { "urlName", FieldDefinitionTypes.Raw},
+                { "writerName", FieldDefinitionTypes.Raw},
+                { "creatorName", FieldDefinitionTypes.Raw},
+                { "nodeTypeAlias", FieldDefinitionTypes.FullText},
+                { "path", FieldDefinitionTypes.Raw}
             };
 
         #endregion
@@ -180,19 +181,7 @@ namespace UmbracoExamine
         //    DataService.LogService.AddVerboseLog(docArgs.NodeId, string.Format("({0}) DocumentWriting event for node ({1})", this.Name, LuceneIndexFolder.FullName));
         //    base.OnDocumentWriting(docArgs);
         //}
-
-        protected override void OnNodeIndexed(IndexedNodeEventArgs e)
-        {
-            DataService.LogService.AddVerboseLog(e.NodeId, string.Format("Index created for node"));
-            base.OnNodeIndexed(e);
-        }
-
-        protected override void OnIndexDeleted(DeleteIndexEventArgs e)
-        {
-            DataService.LogService.AddVerboseLog(-1, string.Format("Index deleted for term: {0} with value {1}", e.DeletedTerm.Key, e.DeletedTerm.Value));
-            base.OnIndexDeleted(e);
-        }
-
+        
         protected override void OnIndexOptimizing(EventArgs e)
         {
             DataService.LogService.AddInfoLog(-1, string.Format("Index is being optimized"));
@@ -202,21 +191,6 @@ namespace UmbracoExamine
         #endregion
 
         #region Public methods
-
-       
-        /// <summary>
-        /// Overridden for logging
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="type"></param>
-        public override void ReIndexNode(XElement node, string type)
-        {
-            if (!SupportedTypes.Contains(type))
-                return;
-
-            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("ReIndexNode with type: {0}", type));
-            base.ReIndexNode(node, type);
-        }
 
         /// <summary>
         /// Deletes a node from the index.                
@@ -240,11 +214,7 @@ namespace UmbracoExamine
             //need to create a delete queue item for each one found
             foreach (var r in results)
             {
-                EnqueueIndexOperation(new IndexOperation()
-                    {
-                        Operation = IndexOperationType.Delete,
-                        Item = new IndexItem(null, "", r.Id.ToString())
-                    });
+                EnqueueIndexOperation(new IndexOperation(IndexItem.ForId(r.Id.ToString()),IndexOperationType.Delete));
                 //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }
 
@@ -253,20 +223,7 @@ namespace UmbracoExamine
         #endregion
 
         #region Protected
-
-
-
-        /// <summary>
-        /// Overridden for logging.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <param name="type"></param>
-        protected override void AddSingleNodeToIndex(XElement node, string type)
-        {
-            DataService.LogService.AddVerboseLog((int)node.Attribute("id"), string.Format("AddSingleNodeToIndex with type: {0}", type));
-            base.AddSingleNodeToIndex(node, type);
-        }
-
+        
         public override void RebuildIndex()
         {
             DataService.LogService.AddVerboseLog(-1, "Rebuilding index");
@@ -278,61 +235,60 @@ namespace UmbracoExamine
         /// ensure our special Path field is added to the collection
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnGatheringNodeData(IndexingNodeDataEventArgs e)
+        protected override void OnGatheringNodeData(IndexingItemEventArgs e)
         {
-            //strip html of all users fields
-            // Get all user data that we want to index and store into a dictionary 
-            foreach (var field in IndexerData.UserFields)
-            {
-                if (e.Fields.ContainsKey(field.Name))
-                {
-                    e.Fields[field.Name] = DataService.ContentService.StripHtml(e.Fields[field.Name]);
-                }
-            }
+            //TODO: This needs to be done with an value indexer
+            ////strip html of all users fields
+            //// Get all user data that we want to index and store into a dictionary 
+            //foreach (var field in IndexerData.UserFields)
+            //{
+            //    if (e.Fields.ContainsKey(field.Name))
+            //    {
+            //        e.Fields[field.Name] = DataService.ContentService.StripHtml(e.Fields[field.Name]);
+            //    }
+            //}
 
             base.OnGatheringNodeData(e);
 
             //ensure the special path and node type alis fields is added to the dictionary to be saved to file
-            var path = e.Node.Attribute("path").Value;
-            if (!e.Fields.ContainsKey(IndexPathFieldName))
-                e.Fields.Add(IndexPathFieldName, path);
-
-            //this needs to support both schemas so get the nodeTypeAlias if it exists, otherwise the name
-            var nodeTypeAlias = e.Node.Attribute("nodeTypeAlias") == null ? e.Node.Name.LocalName : e.Node.Attribute("nodeTypeAlias").Value;
-            if (!e.Fields.ContainsKey(NodeTypeAliasFieldName))
-                e.Fields.Add(NodeTypeAliasFieldName, nodeTypeAlias);
-        }
-
-        /// <summary>
-        /// Called when a duplicate field is detected in the dictionary that is getting indexed.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="indexSetName"></param>
-        /// <param name="fieldName"></param>
-        protected override void OnDuplicateFieldWarning(int nodeId, string indexSetName, string fieldName)
-        {
-            base.OnDuplicateFieldWarning(nodeId, indexSetName, fieldName);
-
-            this.DataService.LogService.AddInfoLog(nodeId, "Field \"" + fieldName + "\" is listed multiple times in the index set \"" + indexSetName + "\". Please ensure all names are unique");
+            if (e.IndexItem.ValueSet.Values.TryGetValue("path", out var pathVals))
+            {
+                var path = pathVals.FirstOrDefault()?.ToString();
+                if (!string.IsNullOrWhiteSpace(path))
+                    e.IndexItem.ValueSet.Add(IndexPathFieldName, path);
+            }
+            if (e.IndexItem.ValueSet.Values.TryGetValue("nodeTypeAlias", out var nodeTypeAliasVals))
+            {
+                var nodeTypeAlias = nodeTypeAliasVals.FirstOrDefault()?.ToString();
+                if (!string.IsNullOrWhiteSpace(nodeTypeAlias))
+                    e.IndexItem.ValueSet.Add(NodeTypeAliasFieldName, nodeTypeAlias);
+            }
         }
 
         /// <summary>
         /// Overridden to add the path property to the special fields to index
         /// </summary>
-        /// <param name="allValuesForIndexing"></param>
-        /// <returns></returns>
-        protected override Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
+        /// <param name="d"></param>
+        /// <param name="valueSet"></param>
+        protected override void AddSpecialFieldsToDocument(Document d, ValueSet valueSet)
         {
-            var fields = base.GetSpecialFieldsToIndex(allValuesForIndexing);
+            base.AddSpecialFieldsToDocument(d, valueSet);
 
-            //adds the special path property to the index
-            fields.Add(IndexPathFieldName, allValuesForIndexing[IndexPathFieldName]);
-
-            //adds the special node type alias property to the index
-            fields.Add(NodeTypeAliasFieldName, allValuesForIndexing[NodeTypeAliasFieldName]);
-
-            return fields;
-
+            //TODO: Pretty sure these will have alraedy been added!
+            foreach (var s in new[] { IndexPathFieldName, NodeTypeAliasFieldName })
+            {
+                if (d.GetField(s) == null)
+                {
+                    var rawValueType = IndexFieldTypes[FieldDefinitionTypes.Raw](s);
+                    if (valueSet.Values.TryGetValue(s, out var values))
+                    {
+                        foreach (var o in values)
+                        {
+                            rawValueType.AddValue(d, o);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -345,36 +301,37 @@ namespace UmbracoExamine
             return indexSet.ToIndexCriteria(DataService);
         }
 
-        /// <summary>
-        /// return the index policy for the field name passed in, if not found, return normal
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <returns></returns>
-        protected override FieldIndexTypes GetPolicy(string fieldName)
-        {
-            var def = IndexFieldPolicies.Where(x => x.Key == fieldName);
-            return (def.Count() == 0 ? FieldIndexTypes.ANALYZED : def.Single().Value);
-        }
+        ///// <summary>
+        ///// return the index policy for the field name passed in, if not found, return normal
+        ///// </summary>
+        ///// <param name="fieldName"></param>
+        ///// <returns></returns>
+        //protected override FieldIndexTypes GetPolicy(string fieldName)
+        //{
+        //    var def = IndexFieldPolicies.Where(x => x.Key == fieldName);
+        //    return (def.Count() == 0 ? FieldIndexTypes.ANALYZED : def.Single().Value);
+        //}
 
-        /// <summary>
-        /// Ensure that the content of this node is available for indexing (i.e. don't allow protected
-        /// content to be indexed when this is disabled).
-        /// <returns></returns>
-        /// </summary>
-        protected override bool ValidateDocument(XElement node)
-        {
-            var nodeId = int.Parse(node.Attribute("id").Value);
-            // Test for access if we're only indexing published content
-            // return nothing if we're not supporting protected content and it is protected, and we're not supporting unpublished content
-            if (!SupportUnpublishedContent
-                && (!SupportProtectedContent
-                && DataService.ContentService.IsProtected(nodeId, node.Attribute("path").Value)))
-            {
-                return false;
-            }
+        //TODO: Add validation!
+        ///// <summary>
+        ///// Ensure that the content of this node is available for indexing (i.e. don't allow protected
+        ///// content to be indexed when this is disabled).
+        ///// <returns></returns>
+        ///// </summary>
+        //protected override bool ValidateDocument(XElement node)
+        //{
+        //    var nodeId = int.Parse(node.Attribute("id").Value);
+        //    // Test for access if we're only indexing published content
+        //    // return nothing if we're not supporting protected content and it is protected, and we're not supporting unpublished content
+        //    if (!SupportUnpublishedContent
+        //        && (!SupportProtectedContent
+        //        && DataService.ContentService.IsProtected(nodeId, node.Attribute("path").Value)))
+        //    {
+        //        return false;
+        //    }
 
-            return base.ValidateDocument(node);
-        }
+        //    return base.ValidateDocument(node);
+        //}
 
         #endregion
     }

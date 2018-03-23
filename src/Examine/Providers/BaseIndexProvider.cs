@@ -51,13 +51,14 @@ namespace Examine.Providers
         #region IIndexer members
 
         public abstract ISearcher GetSearcher();
+        public abstract void IndexItems(IEnumerable<ValueSet> values);
 
-        /// <summary>
-        /// Forces a particular XML node to be reindexed
-        /// </summary>
-        /// <param name="node">XML node to reindex</param>
-        /// <param name="type">Type of index to use</param>
-        public abstract void ReIndexNode(XElement node, string type);
+        ///// <summary>
+        ///// Forces a particular XML node to be reindexed
+        ///// </summary>
+        ///// <param name="node">XML node to reindex</param>
+        ///// <param name="type">Type of index to use</param>
+        //public abstract void ReIndexNode(XElement node, string type);
 
         /// <summary>
         /// Deletes a node from the index
@@ -68,8 +69,8 @@ namespace Examine.Providers
         /// <summary>
         /// Re-indexes all data for the index type specified
         /// </summary>
-        /// <param name="type"></param>
-        public abstract void IndexAll(string type);
+        /// <param name="category"></param>
+        public abstract void IndexAll(string category);
 
         /// <summary>
         /// Rebuilds the entire index from scratch for all index types
@@ -81,26 +82,25 @@ namespace Examine.Providers
         /// </summary>
         public IIndexCriteria IndexerData
         {
-            get { return _indexerData; }
+            get => _indexerData;
             set
             {
                 _indexerData = value;
                 //reset the combined data 
-                _combinedIndexerDataFields = null;
+                _indexFieldDefinitions = null;
             }
         }
 
-        private CombinedIndexerDataFields _combinedIndexerDataFields;
+        private IndexFieldDefinitions _indexFieldDefinitions;
         private IIndexCriteria _indexerData;
 
-        internal CombinedIndexerDataFields CombinedIndexerDataFields
-        {
-            get
-            {
-                return _combinedIndexerDataFields 
-                    ?? (_combinedIndexerDataFields = new CombinedIndexerDataFields(IndexerData.UserFields.Concat(IndexerData.StandardFields.ToList())));
-            }
-        }
+        /// <summary>
+        /// Defines the mappings for field types to index field types
+        /// </summary>
+        /// <remarks>
+        /// This is mutable
+        /// </remarks>
+        public IndexFieldDefinitions IndexFieldDefinitions => _indexFieldDefinitions ?? (_indexFieldDefinitions = new IndexFieldDefinitions(IndexerData == null ? Enumerable.Empty<IIndexField>() : IndexerData.UserFields.Concat(IndexerData.StandardFields.ToList())));
 
         /// <summary>
         /// Check if the index exists
@@ -117,52 +117,14 @@ namespace Examine.Providers
         public event EventHandler<IndexingErrorEventArgs> IndexingError;
 
         /// <summary>
-        /// Occurs when a node is in its Indexing phase
-        /// </summary>
-        public event EventHandler<IndexingNodeEventArgs> NodeIndexing;
-        /// <summary>
-        /// Occurs when a node is in its Indexed phase
-        /// </summary>
-        public event EventHandler<IndexedNodeEventArgs> NodeIndexed;
-        /// <summary>
-        /// Occurs when a collection of nodes are in their Indexing phase (before a single node is processed)
-        /// </summary>
-        public event EventHandler<IndexingNodesEventArgs> NodesIndexing;
-        /// <summary>
-        /// Occurs when the collection of nodes have been indexed
-        /// </summary>
-        public event EventHandler<IndexedNodesEventArgs> NodesIndexed;
-
-        /// <summary>
         /// Occurs when the indexer is gathering the fields and their associated data for the index
         /// </summary>
-        public event EventHandler<IndexingNodeDataEventArgs> GatheringNodeData;
-        /// <summary>
-        /// Occurs when a node is deleted from the index
-        /// </summary>
-        public event EventHandler<DeleteIndexEventArgs> IndexDeleted;
-        /// <summary>
-        /// Occurs when a particular field is having its data obtained
-        /// </summary>
-        public event EventHandler<IndexingFieldDataEventArgs> GatheringFieldData;
-        /// <summary>
-        /// Occurs when node is found but outside the supported node set
-        /// </summary>
-        public event EventHandler<IndexingNodeDataEventArgs> IgnoringNode;
+        public event EventHandler<IndexingItemEventArgs> GatheringNodeData;
+        
         #endregion
 
         #region Protected Event callers
-
-        /// <summary>
-        /// Called when a node is ignored by the ValidateDocument method.
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnIgnoringNode(IndexingNodeDataEventArgs e)
-        {
-            if (IgnoringNode != null)
-                IgnoringNode(this, e);
-        }
-
+        
         /// <summary>
         /// Raises the <see cref="E:IndexingError"/> event.
         /// </summary>
@@ -174,93 +136,18 @@ namespace Examine.Providers
         }
 
         /// <summary>
-        /// Raises the <see cref="E:NodeIndexed"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexedNodeEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnNodeIndexed(IndexedNodeEventArgs e)
-        {
-            if (NodeIndexed != null)
-                NodeIndexed(this, e);
-        }
-
-        /// <summary>
-        /// Raises the <see cref="E:NodeIndexing"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingNodeEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnNodeIndexing(IndexingNodeEventArgs e)
-        {
-            if (NodeIndexing != null)
-                NodeIndexing(this, e);
-        }
-
-        /// <summary>
-        /// Raises the <see cref="E:IndexDeleted"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.DeleteIndexEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnIndexDeleted(DeleteIndexEventArgs e)
-        {
-            if (IndexDeleted != null)
-                IndexDeleted(this, e);
-        }
-
-        /// <summary>
         /// Raises the <see cref="E:GatheringNodeData"/> event.
         /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingNodeDataEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnGatheringNodeData(IndexingNodeDataEventArgs e)
+        /// <param name="e">The <see cref="IndexingItemDataEventArgs"/> instance containing the event data.</param>
+        protected virtual void OnGatheringNodeData(IndexingItemEventArgs e)
         {
             if (GatheringNodeData != null)
                 GatheringNodeData(this, e);
-        }
-
-        /// <summary>
-        /// Raises the <see cref="E:GatheringFieldData"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingFieldDataEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnGatheringFieldData(IndexingFieldDataEventArgs e)
-        {
-            if (GatheringFieldData != null)
-                GatheringFieldData(this, e);
-        }
-
-        /// <summary>
-        /// Raises the <see cref="E:NodesIndexed"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexedNodesEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnNodesIndexed(IndexedNodesEventArgs e)
-        {
-            if (NodesIndexed != null)
-                NodesIndexed(this, e);
-        }
-
-        /// <summary>
-        /// Raises the <see cref="E:NodesIndexing"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingNodesEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnNodesIndexing(IndexingNodesEventArgs e)
-        {
-            if (NodesIndexing != null)
-                NodesIndexing(this, e);
         }
 
         #endregion
 
 
 
-    }
-
-    /// <summary>
-    /// The dictionary will be for keys but each key could contain multiple IIndexField
-    /// </summary>
-    internal class CombinedIndexerDataFields : Dictionary<string, IReadOnlyList<IIndexField>>
-    {
-        public CombinedIndexerDataFields(IEnumerable<IIndexField> allFields)
-        {
-            foreach (var f in allFields.GroupBy(x => x.Name))
-            {
-                Add(f.Key, f.ToList());
-            }
-        }
-        
     }
 }

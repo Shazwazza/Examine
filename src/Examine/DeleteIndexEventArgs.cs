@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
@@ -8,12 +9,14 @@ namespace Examine
     public class DeleteIndexEventArgs : EventArgs
     {
 
-        public DeleteIndexEventArgs(KeyValuePair<string, string> term)
+        public DeleteIndexEventArgs(IIndexer indexer, KeyValuePair<string, string> term)
         {
+            Indexer = indexer;
             DeletedTerm = term;
         }
 
-        public KeyValuePair<string, string> DeletedTerm { get; private set; }
+        public IIndexer Indexer { get; }
+        public KeyValuePair<string, string> DeletedTerm { get; }
 
     }
 }

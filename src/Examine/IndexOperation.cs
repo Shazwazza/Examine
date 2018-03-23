@@ -3,12 +3,8 @@ namespace Examine
     /// <summary>
     /// Represents an indexing operation (either add/remove)
     /// </summary>
-    public class IndexOperation
-    {
-        public IndexOperation()
-        {
-        }
-
+    public struct IndexOperation
+    {   
         /// <summary>
         /// Initializes a new instance of the <see cref="T:System.Object"/> class.
         /// </summary>
@@ -21,7 +17,7 @@ namespace Examine
         /// <summary>
         /// Gets the Index item
         /// </summary>
-        public IndexItem Item { get; set; }
+        public IndexItem Item { get; }
 
         /// <summary>
         /// Gets or sets the operation.
@@ -29,6 +25,6 @@ namespace Examine
         /// <value>
         /// The operation.
         /// </value>
-        public IndexOperationType Operation { get; set; }
+        public IndexOperationType Operation { get; }
     }
 }

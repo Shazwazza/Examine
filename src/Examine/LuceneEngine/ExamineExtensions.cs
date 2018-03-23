@@ -10,7 +10,7 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// Static methods to help query umbraco xml
     /// </summary>
-    public static class ExamineXmlExtensions
+    internal static class ExamineExtensions
     {
         /// <summary>
         /// Translates a dictionary object, node id, and node type into the property xml structure used by the examine indexer
@@ -37,7 +37,7 @@ namespace Examine.LuceneEngine
         /// ]]>
         /// </code>        
         /// </example>
-        public static XElement ToExamineXml(this Dictionary<string, string> data, int nodeId, string nodeType)
+        public static XElement ToExamineXml(this Dictionary<string, string> data, string nodeId, string nodeType)
         {
             var nodes = new List<XElement>();
             foreach (var x in data)
@@ -184,6 +184,13 @@ namespace Examine.LuceneEngine
                 : (string) x.Attribute("nodeTypeAlias");
         }
 
+        public static string ExamineNodeTypeAlias(this IndexItem x)
+        {
+            if (x == null) throw new ArgumentNullException(nameof(x));
+
+            return x.ValueSet.Values.TryGetValue("nodeTypeAlias", out var val) ? val.FirstOrDefault()?.ToString() : null;
+        }
+
         /// <summary>
         /// Returns the property value for the doc type element (such as id, path, etc...)
         /// If the element is not an umbraco doc type node, or the property name isn't found, it returns String.Empty 
@@ -253,11 +260,32 @@ namespace Examine.LuceneEngine
             return reader.ReadInnerXml();
         }
 
-        internal static Dictionary<string, string> SelectExamineDataValues(this XElement xml)
+        internal static ValueSet ConvertToValueSet(this XElement xml, string indexCategory)
+        {
+            if (!xml.IsExamineElement())
+                throw new InvalidOperationException("Not a supported Examine XML structure");
+            var allVals = xml.SelectExamineAllValues();
+            var id = (string)xml.Attribute("id");
+            return new ValueSet(id, indexCategory, allVals);
+        }
+
+        internal static Dictionary<string, object> SelectExamineAllValues(this XElement xml)
+        {
+            var attributeValues = xml.Attributes().ToDictionary(x => x.Name.LocalName, x => x.Value);
+            var dataValues = xml.SelectExamineDataValues();
+            foreach (var v in attributeValues)
+            {
+                //override the data values with attribute values if they do match, otherwise add
+                dataValues[v.Key] = v.Value;
+            }
+            return dataValues;
+        }
+
+        internal static Dictionary<string, object> SelectExamineDataValues(this XElement xml)
         {
             //resolve all element data at once since it is much faster to do this than to relookup all of the XML data
             //using Linq and the node.Elements() methods re-gets all of them.
-            var elementValues = new Dictionary<string, string>();
+            var elementValues = new Dictionary<string, object>();
             foreach (var x in xml.Elements())
             {
                 string key;

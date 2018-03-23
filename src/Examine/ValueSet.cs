@@ -8,17 +8,17 @@ namespace Examine
     /// <summary>
     /// Represents an item to be indexed
     /// </summary>
-    public class ValueSet
+    public struct ValueSet
     {
-        /// <summary>
-        /// Used for legacy purposes and stores the original xml document that used to be used for indexing
-        /// </summary>
-        internal XElement OriginalNode { get; set; }
+        ///// <summary>
+        ///// Used for legacy purposes and stores the original xml document that used to be used for indexing
+        ///// </summary>
+        //internal XElement OriginalNode { get; set; }
 
         /// <summary>
         /// The id of the object to be indexed
         /// </summary>
-        public long Id { get; private set; }
+        public string Id { get; }
 
         /// <summary>
         /// The index category
@@ -26,17 +26,17 @@ namespace Examine
         /// <remarks>
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </remarks>
-        public string IndexCategory { get; private set; }
+        public string IndexCategory { get; }
 
         /// <summary>
         /// The item's node type (in umbraco terms this would be the doc type alias)
         /// </summary>
-        public string ItemType { get; private set; }
+        public string ItemType { get; }
 
         /// <summary>
         /// The values to be indexed
         /// </summary>
-        public Dictionary<string, List<object>> Values { get; private set; }
+        public Dictionary<string, List<object>> Values { get; }
 
         /// <summary>
         /// Constructor
@@ -50,7 +50,7 @@ namespace Examine
         /// <param name="values">
         /// An anonymous object converted to a dictionary
         /// </param>
-        public ValueSet(long id, string indexCategory, string itemType, object values)
+        public ValueSet(string id, string indexCategory, string itemType, object values)
             : this(id, indexCategory, itemType, ObjectExtensions.ConvertObjectToDictionary(values)) { }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Examine
         /// <param name="values">
         /// An anonymous object converted to a dictionary
         /// </param>
-        public ValueSet(long id, string indexCategory, object values)
+        public ValueSet(string id, string indexCategory, object values)
             : this(id, indexCategory, string.Empty, ObjectExtensions.ConvertObjectToDictionary(values)) { }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(long id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object>> values)
+        public ValueSet(string id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object>> values)
             : this(id, indexCategory, itemType, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(long id, string indexCategory, IEnumerable<KeyValuePair<string, object>> values)
+        public ValueSet(string id, string indexCategory, IEnumerable<KeyValuePair<string, object>> values)
             : this(id, indexCategory, string.Empty, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(long id, string indexCategory, string itemType, Dictionary<string, List<object>> values = null)
+        public ValueSet(string id, string indexCategory, string itemType, Dictionary<string, List<object>> values = null)
         {
             Id = id;
             IndexCategory = indexCategory;
@@ -116,7 +116,7 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(long id, string indexCategory, Dictionary<string, List<object>> values = null)
+        public ValueSet(string id, string indexCategory, Dictionary<string, List<object>> values = null)
             : this(id, indexCategory, string.Empty, values) { }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(long id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object[]>> values)
+        public ValueSet(string id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object[]>> values)
             : this(id, indexCategory, itemType, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
         {
 
@@ -143,7 +143,7 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(long id, string indexCategory, IEnumerable<KeyValuePair<string, object[]>> values)
+        public ValueSet(string id, string indexCategory, IEnumerable<KeyValuePair<string, object[]>> values)
             : this(id, indexCategory, string.Empty, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
         {
 
@@ -183,7 +183,7 @@ namespace Examine
         /// <param name="itemType"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
-        internal static ValueSet FromLegacyFields(long nodeId, string indexCategory, string itemType, Dictionary<string, string> fields)
+        internal static ValueSet FromLegacyFields(string nodeId, string indexCategory, string itemType, Dictionary<string, string> fields)
         {
             return new ValueSet(nodeId, indexCategory, itemType, fields.Select(kv => new KeyValuePair<string, object>(kv.Key, kv.Value)));
         }
@@ -215,7 +215,7 @@ namespace Examine
         /// <returns></returns>
         internal XElement ToExamineXml()
         {
-            return OriginalNode ?? ToLegacyFields().ToExamineXml((int)Id, IndexCategory);
+            return ToLegacyFields().ToExamineXml(Id, IndexCategory);
         }
     }
 }
