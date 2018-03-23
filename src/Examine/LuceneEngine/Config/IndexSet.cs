@@ -9,13 +9,7 @@ namespace Examine.LuceneEngine.Config
     {
 
         [ConfigurationProperty("SetName", IsRequired = true, IsKey = true)]
-        public string SetName
-        {
-            get
-            {
-                return (string)this["SetName"];
-            }
-        }
+        public string SetName => (string)this["SetName"];
 
         private string m_IndexPath = "";
 

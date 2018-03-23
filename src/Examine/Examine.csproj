@@ -108,6 +108,8 @@
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="FieldDefinitionTypes.cs" />
+    <Compile Include="IndexField.cs" />
     <Compile Include="IndexingItemEventArgs.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
@@ -130,7 +132,6 @@
     <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
-    <Compile Include="LuceneEngine\FieldDefinitionTypes.cs" />
     <Compile Include="LuceneEngine\Indexing\LowercaseAccentRemovingWhitespaceAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\DateTimeType.cs" />
     <Compile Include="LuceneEngine\Indexing\DoubleType.cs" />
@@ -142,7 +143,7 @@
     <Compile Include="LuceneEngine\Indexing\SingleType.cs" />
     <Compile Include="LuceneEngine\LocalTempStorageIndexer.cs" />
     <Compile Include="LuceneEngine\Config\ExamineLuceneIndexes.cs" />
-    <Compile Include="LuceneEngine\Config\IndexField.cs" />
+    <Compile Include="LuceneEngine\Config\ConfigIndexField.cs" />
     <Compile Include="LuceneEngine\Config\IndexFieldCollection.cs" />
     <Compile Include="LuceneEngine\Config\IndexFieldCollectionExtensions.cs" />
     <Compile Include="LuceneEngine\Config\IndexSet.cs" />

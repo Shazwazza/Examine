@@ -312,26 +312,26 @@ namespace UmbracoExamine
         //    return (def.Count() == 0 ? FieldIndexTypes.ANALYZED : def.Single().Value);
         //}
 
-        //TODO: Add validation!
-        ///// <summary>
-        ///// Ensure that the content of this node is available for indexing (i.e. don't allow protected
-        ///// content to be indexed when this is disabled).
-        ///// <returns></returns>
-        ///// </summary>
-        //protected override bool ValidateDocument(XElement node)
-        //{
-        //    var nodeId = int.Parse(node.Attribute("id").Value);
-        //    // Test for access if we're only indexing published content
-        //    // return nothing if we're not supporting protected content and it is protected, and we're not supporting unpublished content
-        //    if (!SupportUnpublishedContent
-        //        && (!SupportProtectedContent
-        //        && DataService.ContentService.IsProtected(nodeId, node.Attribute("path").Value)))
-        //    {
-        //        return false;
-        //    }
+        /// <summary>
+        /// Ensure that the content of this node is available for indexing (i.e. don't allow protected
+        /// content to be indexed when this is disabled).
+        /// <returns></returns>
+        /// </summary>
+        protected override bool ValidateItem(IndexItem item)
+        {
+            var nodeId = int.Parse(item.Id);
+            // Test for access if we're only indexing published content
+            // return nothing if we're not supporting protected content and it is protected, and we're not supporting unpublished content
+            if (!SupportUnpublishedContent
+                && (!SupportProtectedContent
+                && DataService.ContentService.IsProtected(nodeId, item.ValueSet.GetValue("path").ToString())))
+            {
+                return false;
+            }
 
-        //    return base.ValidateDocument(node);
-        //}
+            return base.ValidateItem(item);
+        }
+        
 
         #endregion
     }

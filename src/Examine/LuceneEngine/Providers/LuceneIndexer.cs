@@ -341,20 +341,20 @@ namespace Examine.LuceneEngine.Providers
             => new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
                 {"number", name => new Int32Type(name)},
-                {FieldDefinitionTypes.Integer.ToLowerInvariant(), name => new Int32Type(name)},
-                {FieldDefinitionTypes.Float.ToLowerInvariant(), name => new SingleType(name)},
-                {FieldDefinitionTypes.Double.ToLowerInvariant(), name => new DoubleType(name)},
-                {FieldDefinitionTypes.Long.ToLowerInvariant(), name => new Int64Type(name)},
+                {FieldDefinitionTypes.Integer, name => new Int32Type(name)},
+                {FieldDefinitionTypes.Float, name => new SingleType(name)},
+                {FieldDefinitionTypes.Double, name => new DoubleType(name)},
+                {FieldDefinitionTypes.Long, name => new Int64Type(name)},
                 {"date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateTime.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateYear.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.YEAR)},
-                {FieldDefinitionTypes.DateMonth.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MONTH)},
-                {FieldDefinitionTypes.DateDay.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.DAY)},
-                {FieldDefinitionTypes.DateHour.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.HOUR)},
-                {FieldDefinitionTypes.DateMinute.ToLowerInvariant(), name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
-                {FieldDefinitionTypes.Raw.ToLowerInvariant(), name => new RawStringType(name)},
-                {FieldDefinitionTypes.FullText.ToLowerInvariant(), name => new FullTextType(name)},
-                {FieldDefinitionTypes.FullTextSortable.ToLowerInvariant(), name => new FullTextType(name, true)}
+                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, DateTools.Resolution.YEAR)},
+                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, DateTools.Resolution.MONTH)},
+                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, DateTools.Resolution.DAY)},
+                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, DateTools.Resolution.HOUR)},
+                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
+                {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
+                {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, true)}
             };
         
 
@@ -608,16 +608,7 @@ namespace Examine.LuceneEngine.Providers
             if (IndexOperationComplete != null)
                 IndexOperationComplete(this, e);
         }
-
-        /// <summary>
-        /// This is here for inheritors to deal with if there's a duplicate entry in the fields dictionary when trying to index.
-        /// The system by default just ignores duplicates but this will give inheritors a chance to do something about it (i.e. logging, alerting...)
-        /// </summary>
-        /// <param name="itemId"></param>
-        /// <param name="indexSetName"></param>
-        /// <param name="fieldName"></param>
-        protected virtual void OnDuplicateFieldWarning(string itemId, string indexSetName, string fieldName) { }
-
+        
         #endregion
 
         #region Provider implementation
@@ -1072,16 +1063,16 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        protected virtual bool ValidateDocument(IndexItem item)
+        protected virtual bool ValidateItem(IndexItem item)
         {
             //check if this document is of a correct type of node type alias
             if (IndexerData.IncludeNodeTypes.Any())
-                if (!IndexerData.IncludeNodeTypes.Contains(item.ExamineNodeTypeAlias()))
+                if (!IndexerData.IncludeNodeTypes.Contains(item.ValueSet.ItemType))
                     return false;
 
             //if this node type is part of our exclusion list, do not validate
             if (IndexerData.ExcludeNodeTypes.Any())
-                if (IndexerData.ExcludeNodeTypes.Contains(item.ExamineNodeTypeAlias()))
+                if (IndexerData.ExcludeNodeTypes.Contains(item.ValueSet.ItemType))
                     return false;
 
             return true;
@@ -1144,19 +1135,10 @@ namespace Examine.LuceneEngine.Providers
                 }
                     
                 //try to find the field definition for this field
-                if (IndexFieldDefinitions.TryGetValue(field.Key, out var indexedFields))
+                if (IndexFieldDefinitions.TryGetValue(field.Key, out var indexField))
                 {
-                    //checks if there's duplicates fields
-                    if (indexedFields.Count > 1)
-                    {
-                        //we wont error if there are two fields which match, we'll just log an error and ignore the 2nd field                        
-                        OnDuplicateFieldWarning(item.Id, IndexSetName, field.Key);
-                    }
-
-                    //take the first one and continue
-                    var indexField = indexedFields[0];
-
-                    if (indexField.Type == null) continue;
+                    if (indexField.Type == null)
+                        continue;
 
                     if (IndexFieldTypes.TryGetValue(indexField.Type, out var indexValueType))
                     {
@@ -1530,7 +1512,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 case IndexOperationType.Add:
 
-                    if (ValidateDocument(item.Item))
+                    if (ValidateItem(item.Item))
                     {
                         //var added = ProcessIndexQueueItem(item, inMemoryWriter);
                         var added = ProcessIndexQueueItem(item, writer);

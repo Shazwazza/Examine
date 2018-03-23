@@ -331,8 +331,7 @@ namespace UmbracoExamine
         /// <param name="xPath">The x path.</param>
         /// <param name="category">The type.</param>
         private void AddNodesToIndex(string xPath, string category)
-        {
-            // Get all the nodes of nodeTypeAlias == nodeTypeAlias
+        {            
             XDocument xDoc = GetXDocument(xPath, category);
             if (xDoc != null)
             {
@@ -340,7 +339,8 @@ namespace UmbracoExamine
 
                 IEnumerable<XElement> children = rootNode.Elements();
 
-                IndexItems(children.Select(x => x.ConvertToValueSet(category)));
+                var items = children.Select(x => x.ConvertToValueSet(category)).ToArray();
+                IndexItems(items);
             }
 
         }

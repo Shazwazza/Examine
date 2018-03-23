@@ -34,7 +34,7 @@ namespace UmbracoExamine.Config
                     var userFields = svc.ContentService.GetAllUserPropertyNames();
                     foreach (var u in userFields)
                     {
-                        set.IndexUserFields.Add(new IndexField() { Name = u });
+                        set.IndexUserFields.Add(new ConfigIndexField() { Name = u });
                     } 
                 }
             }
@@ -47,7 +47,7 @@ namespace UmbracoExamine.Config
                     var sysFields = svc.ContentService.GetAllSystemPropertyNames();
                     foreach (var s in sysFields)
                     {
-                        set.IndexAttributeFields.Add(new IndexField() { Name = s });
+                        set.IndexAttributeFields.Add(new ConfigIndexField() { Name = s });
                     } 
                 }
             }

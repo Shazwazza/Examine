@@ -156,8 +156,19 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<object> GetValues(string key)
         {
-            List<object> values;
-            return !Values.TryGetValue(key, out values) ? (IEnumerable<object>)new object[0] : values;
+            return !Values.TryGetValue(key, out var values) ? (IEnumerable<object>)new object[0] : values;
+        }
+
+        /// <summary>
+        /// Gets a single value for the key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns>
+        /// If there are multiple values, this will return the first
+        /// </returns>
+        public object GetValue(string key)
+        {
+            return !Values.TryGetValue(key, out var values) ? null : values.FirstOrDefault();
         }
 
         /// <summary>
@@ -167,8 +178,7 @@ namespace Examine
         /// <param name="value"></param>
         public void Add(string key, object value)
         {
-            List<object> values;
-            if (!Values.TryGetValue(key, out values))
+            if (!Values.TryGetValue(key, out var values))
             {
                 Values.Add(key, values = new List<object>());
             }
@@ -188,34 +198,34 @@ namespace Examine
             return new ValueSet(nodeId, indexCategory, itemType, fields.Select(kv => new KeyValuePair<string, object>(kv.Key, kv.Value)));
         }
 
-        /// <summary>
-        /// Convert this value set to legacy fields
-        /// </summary>
-        /// <returns></returns>
-        internal Dictionary<string, string> ToLegacyFields()
-        {
-            var fields = new Dictionary<string, string>();
-            foreach (var v in Values)
-            {
-                foreach (var val in v.Value)
-                {
-                    if (val != null)
-                    {
-                        fields.Add(v.Key, "" + val);
-                        break;
-                    }
-                }
-            }
-            return fields;
-        }
+        ///// <summary>
+        ///// Convert this value set to legacy fields
+        ///// </summary>
+        ///// <returns></returns>
+        //internal Dictionary<string, string> ToLegacyFields()
+        //{
+        //    var fields = new Dictionary<string, string>();
+        //    foreach (var v in Values)
+        //    {
+        //        foreach (var val in v.Value)
+        //        {
+        //            if (val != null)
+        //            {
+        //                fields.Add(v.Key, "" + val);
+        //                break;
+        //            }
+        //        }
+        //    }
+        //    return fields;
+        //}
 
-        /// <summary>
-        /// Converts the value set to the legacy XML representation
-        /// </summary>
-        /// <returns></returns>
-        internal XElement ToExamineXml()
-        {
-            return ToLegacyFields().ToExamineXml(Id, IndexCategory);
-        }
+        ///// <summary>
+        ///// Converts the value set to the legacy XML representation
+        ///// </summary>
+        ///// <returns></returns>
+        //internal XElement ToExamineXml()
+        //{
+        //    return ToLegacyFields().ToExamineXml(Id, IndexCategory);
+        //}
     }
 }

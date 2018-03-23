@@ -11,11 +11,11 @@ namespace Examine.LuceneEngine.Config
         #region Overridden methods to define collection
         protected override ConfigurationElement CreateNewElement()
         {
-            return new IndexField();
+            return new ConfigIndexField();
         }
         protected override object GetElementKey(ConfigurationElement element)
         {
-            IndexField field = (IndexField)element;
+            ConfigIndexField field = (ConfigIndexField)element;
             return field.Name;
         }
 
@@ -29,7 +29,7 @@ namespace Examine.LuceneEngine.Config
         /// Adds an index field to the collection
         /// </summary>
         /// <param name="field"></param>
-        public void Add(IndexField field)
+        public void Add(ConfigIndexField field)
         {
             BaseAdd(field, true);
         }
@@ -39,11 +39,11 @@ namespace Examine.LuceneEngine.Config
         /// </summary>
         /// <value>Field Name</value>
         /// <returns></returns>
-        public new IndexField this[string name]
+        public new ConfigIndexField this[string name]
         {
             get
             {
-                return (IndexField)this.BaseGet(name);
+                return (ConfigIndexField)this.BaseGet(name);
             }
         }
 

@@ -184,13 +184,6 @@ namespace Examine.LuceneEngine
                 : (string) x.Attribute("nodeTypeAlias");
         }
 
-        public static string ExamineNodeTypeAlias(this IndexItem x)
-        {
-            if (x == null) throw new ArgumentNullException(nameof(x));
-
-            return x.ValueSet.Values.TryGetValue("nodeTypeAlias", out var val) ? val.FirstOrDefault()?.ToString() : null;
-        }
-
         /// <summary>
         /// Returns the property value for the doc type element (such as id, path, etc...)
         /// If the element is not an umbraco doc type node, or the property name isn't found, it returns String.Empty 
@@ -266,7 +259,8 @@ namespace Examine.LuceneEngine
                 throw new InvalidOperationException("Not a supported Examine XML structure");
             var allVals = xml.SelectExamineAllValues();
             var id = (string)xml.Attribute("id");
-            return new ValueSet(id, indexCategory, allVals);
+            var nodeTypeAlias = xml.ExamineNodeTypeAlias();
+            return new ValueSet(id, indexCategory, nodeTypeAlias, allVals);
         }
 
         internal static Dictionary<string, object> SelectExamineAllValues(this XElement xml)
@@ -288,6 +282,11 @@ namespace Examine.LuceneEngine
             var elementValues = new Dictionary<string, object>();
             foreach (var x in xml.Elements())
             {
+                if (x.Attribute("id") != null)
+                {
+                    continue;
+                }   
+
                 string key;
                 if (x.Name.LocalName == "data")
                 {

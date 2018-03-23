@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Examine.LuceneEngine
+﻿namespace Examine
 {
     /// <summary>
     /// Contains the names of field definition types

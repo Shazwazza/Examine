@@ -1,7 +1,5 @@
 ﻿namespace Examine
 {
-    
-
     /// <summary>
     /// Represents a field to index
     /// </summary>
@@ -10,16 +8,16 @@
         /// <summary>
         /// The name of the index field
         /// </summary>
-        string Name { get; set; }
+        string Name { get; }
         
         /// <summary>
         /// Whether or not this field has sorting enabled in search results
         /// </summary>
-        bool EnableSorting { get; set; }
+        bool EnableSorting { get; }
 
         /// <summary>
         /// The data type
         /// </summary>
-        string Type { get; set; }
+        string Type { get;  }
     }
 }

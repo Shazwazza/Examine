@@ -9,48 +9,30 @@ namespace Examine.LuceneEngine.Config
     ///<summary>
     /// A configuration item representing a field to index
     ///</summary>
-    public sealed class IndexField : ConfigurationElement, IIndexField
+    public sealed class ConfigIndexField : ConfigurationElement, IIndexField
     {
         [ConfigurationProperty("Name", IsRequired = true)]
         public string Name
         {
-            get
-            {
-                return (string)this["Name"];
-            }
-            set
-            {
-                this["Name"] = value;
-            }
+            get => (string)this["Name"];
+            set => this["Name"] = value;
         }
 
         [ConfigurationProperty("EnableSorting", IsRequired = false)]
         public bool EnableSorting
         {
-            get
-            {
-                return (bool)this["EnableSorting"];
-            }
-            set
-            {
-                this["EnableSorting"] = value;
-            }
+            get => (bool)this["EnableSorting"];
+            set => this["EnableSorting"] = value;
         }
 
         [ConfigurationProperty("Type", IsRequired = false, DefaultValue="String")]
         public string Type
         {
-            get
-            {
-                return (string)this["Type"];
-            }
-            set
-            {
-                this["Type"] = value;
-            }
+            get => (string)this["Type"];
+            set => this["Type"] = value;
         }
 
-        public bool Equals(IndexField other)
+        public bool Equals(ConfigIndexField other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -62,7 +44,7 @@ namespace Examine.LuceneEngine.Config
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((IndexField)obj);
+            return Equals((ConfigIndexField)obj);
         }
 
         public override int GetHashCode()
@@ -70,12 +52,12 @@ namespace Examine.LuceneEngine.Config
             return Name.GetHashCode();
         }
 
-        public static bool operator ==(IndexField left, IndexField right)
+        public static bool operator ==(ConfigIndexField left, ConfigIndexField right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(IndexField left, IndexField right)
+        public static bool operator !=(ConfigIndexField left, ConfigIndexField right)
         {
             return !Equals(left, right);
         }
