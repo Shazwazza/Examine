@@ -28,6 +28,7 @@ namespace Examine.LuceneEngine.Indexing
         }
 
         private readonly Analyzer _analyzer = new LowercaseAccentRemovingWhitespaceAnalyzer();
+
         public override void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
         {
             base.SetupAnalyzers(analyzer);
@@ -48,7 +49,7 @@ namespace Examine.LuceneEngine.Indexing
         }
 
 
-        public override Query GetQuery(string query, Searcher searcher, IManagedQueryParameters parameters)
+        public override Query GetQuery(string query, Searcher searcher)
         {
             //TODO: Fix this!
 

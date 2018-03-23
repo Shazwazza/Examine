@@ -23,9 +23,9 @@ namespace UmbracoExamine
 
         #region Constructors
 
-		/// <summary>
-		/// Default constructor
-		/// </summary>
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public UmbracoExamineSearcher()
             : base()
         {
@@ -70,7 +70,7 @@ namespace UmbracoExamine
         public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
             var criteria = base.CreateSearchCriteria(type, defaultOperation) as LuceneSearchCriteria;
-            criteria.NodeTypeAliasField = UmbracoContentIndexer.NodeTypeAliasFieldName;
+            //criteria.NodeTypeAliasField = UmbracoContentIndexer.NodeTypeAliasFieldName;
             return criteria;
         }
 

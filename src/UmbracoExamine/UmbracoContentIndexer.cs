@@ -279,7 +279,7 @@ namespace UmbracoExamine
             {
                 if (d.GetField(s) == null)
                 {
-                    var rawValueType = IndexFieldTypes[FieldDefinitionTypes.Raw](s);
+                    var rawValueType = IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw](s);
                     if (valueSet.Values.TryGetValue(s, out var values))
                     {
                         foreach (var o in values)

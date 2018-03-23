@@ -20,6 +20,8 @@ using System.Diagnostics;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using System.Threading;
+using Examine.LuceneEngine.SearchCriteria;
+using Examine.SearchCriteria;
 using Examine.Test.DataServices;
 using UmbracoExamine;
 
@@ -74,7 +76,7 @@ namespace Examine.Test.Index
                 customIndexer.DocumentWriting += handler;
 
                 var customSearcher = customIndexer.GetSearcher(); //IndexInitializer.GetLuceneSearcher(d);
-                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().NodeName("home").Compile());
+                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Field("nodeName", "home").Compile());
                 Assert.Greater(results.TotalItemCount, 0);
                 foreach (var result in results)
                 {
@@ -172,7 +174,7 @@ namespace Examine.Test.Index
                 writer.WaitForMerges();
 
                 //ensure no data since it's a new index
-                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().NodeName("Home").Compile());
+                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Compile());
 
                 //should be less than the total inserted because we overwrote it in the middle of processing
                 Debug.WriteLine("TOTAL RESULTS: " + results.TotalItemCount);
@@ -245,7 +247,7 @@ namespace Examine.Test.Index
 
                 //ensure no duplicates
                 
-                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().NodeName("Home").Compile());
+                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Compile());
                 Assert.AreEqual(3, results.Count());
             }            
         }
@@ -304,7 +306,7 @@ namespace Examine.Test.Index
                             if (idQueue.TryDequeue(out docId))
                             {
                                 idQueue.Enqueue(docId);
-                                var r = s.Search(s.CreateSearchCriteria().Id(docId).Compile());
+                                var r = s.Search(s.CreateSearchCriteria().Id(docId.ToString()).Compile());
                                 Debug.WriteLine("searching thread: {0}, id: {1}, found: {2}", Thread.CurrentThread.ManagedThreadId, docId, r.Count());
                                 Thread.Sleep(50);
                             }
@@ -383,7 +385,7 @@ namespace Examine.Test.Index
 
                 writer.WaitForMerges();
 
-                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().NodeName("Home").Compile());
+                var results = customSearcher.Search(customSearcher.CreateSearchCriteria().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Compile());
                 Assert.AreEqual(10, results.Count());
             }
         }
@@ -413,7 +415,7 @@ namespace Examine.Test.Index
                 }
 
                 //ensure no duplicates
-                var results = searcher.Search(searcher.CreateSearchCriteria().Id(id).Compile());
+                var results = searcher.Search(searcher.CreateSearchCriteria().Id(id.ToString()).Compile());
                 Assert.AreEqual(1, results.Count());
             }
             

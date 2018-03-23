@@ -132,6 +132,7 @@
     <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
+    <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\LowercaseAccentRemovingWhitespaceAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\DateTimeType.cs" />
     <Compile Include="LuceneEngine\Indexing\DoubleType.cs" />
@@ -164,6 +165,8 @@
     <Compile Include="LuceneEngine\Directories\IDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Providers\ErrorCheckingScoringBooleanQueryRewrite.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexValueType.cs" />
+    <Compile Include="LuceneEngine\IndexFieldValueTypes.cs" />
+    <Compile Include="LuceneEngine\FieldValueTypes.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndexer.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneMemorySearcher.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
@@ -171,6 +174,8 @@
     <Compile Include="LuceneEngine\Providers\SimpleDataIndexer.cs" />
     <Compile Include="LuceneEngine\ReaderStatus.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\ICriteriaContext.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\LateBoundQuery.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneBooleanOperation.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />

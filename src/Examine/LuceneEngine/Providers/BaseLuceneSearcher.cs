@@ -13,6 +13,8 @@ using System.Linq;
 
 namespace Examine.LuceneEngine.Providers
 {
+
+
     ///<summary>
     /// Simple abstract class containing basic properties for Lucene searchers
     ///</summary>
@@ -100,17 +102,16 @@ namespace Examine.LuceneEngine.Providers
 		
         public abstract Searcher GetLuceneSearcher();
 
+        public abstract ICriteriaContext GetCriteriaContext();
+
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
-        /// <returns>A blank SearchCriteria</returns>
-		
+        /// <returns>A blank SearchCriteria</returns>		
 		public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
         {
-            //TODO: It would be nice to be able to pass in the existing field definitions here so 
-            // we'd know what fields have sorting enabled so we don't have to use the special sorting syntax for field types
             return CreateSearchCriteria(type, defaultOperation, DefaultLuceneAnalyzer, EnableLeadingWildcards);
         }
 
@@ -126,9 +127,9 @@ namespace Examine.LuceneEngine.Providers
         {
             if (luceneAnalyzer == null) throw new ArgumentNullException(nameof(luceneAnalyzer));
 
-            //TODO: It would be nice to be able to pass in the existing field definitions here so 
-            // we'd know what fields have sorting enabled so we don't have to use the special sorting syntax for field types
-            return new LuceneSearchCriteria(type, luceneAnalyzer, GetSearchFields(), enableLeadingWildcards, defaultOperation);
+            return new LuceneSearchCriteria(
+                this, GetCriteriaContext(),
+                type, luceneAnalyzer, GetSearchFields(), enableLeadingWildcards, defaultOperation);
         }
 
         /// <summary>

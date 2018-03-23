@@ -1,5 +1,6 @@
 ﻿using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
+using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing
 {
@@ -15,7 +16,7 @@ namespace Examine.LuceneEngine.Indexing
 
         //void AnalyzeReader(ReaderData readerData);
 
-        //Query GetQuery(string query, Searcher searcher, IManagedQueryParameters parameters);
+        Query GetQuery(string query, Searcher searcher);
 
         //IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader);
 

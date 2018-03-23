@@ -44,7 +44,6 @@ namespace Examine.LuceneEngine.Providers
             _committer = new IndexCommiter(this);
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
-            InitFieldTypes(DefaultIndexValueTypes);
         }
 
         /// <summary>
@@ -69,10 +68,12 @@ namespace Examine.LuceneEngine.Providers
 
             RunAsync = async;
 
-            InitializeDirectory();
+            var directory = InitializeDirectory();
+            //initialize the field types
+            IndexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(directory, x => new IndexFieldValueTypes(FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions));
+
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
-            InitFieldTypes(DefaultIndexValueTypes);
         }
 
         /// <summary>
@@ -97,9 +98,10 @@ namespace Examine.LuceneEngine.Providers
             RunAsync = async;
 
             _directory = luceneDirectory;
+            //initialize the field types
+            IndexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(_directory, x => new IndexFieldValueTypes(FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions));
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
-            InitFieldTypes(DefaultIndexValueTypes);
         }
 
         /// <summary>
@@ -117,6 +119,8 @@ namespace Examine.LuceneEngine.Providers
             _committer = new IndexCommiter(this);
 
             _writer = writer;
+            //initialize the field types
+            IndexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(_writer.Directory, x => new IndexFieldValueTypes(FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions));
             WorkingFolder = null;
             LuceneIndexFolder = null;
 
@@ -125,7 +129,6 @@ namespace Examine.LuceneEngine.Providers
             RunAsync = async;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
-            InitFieldTypes(DefaultIndexValueTypes);
         }
 
         #endregion
@@ -225,7 +228,9 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            InitializeDirectory();
+            var directory = InitializeDirectory();
+            //initialize the field types
+            IndexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(directory, x => new IndexFieldValueTypes(FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions));
 
             if (config["analyzer"] != null)
             {
@@ -329,35 +334,13 @@ namespace Examine.LuceneEngine.Providers
 
         private bool _hasIndex = false;
 
-        private Lazy<ConcurrentDictionary<string, IIndexValueType>> _resolvedFieldValueTypes;
-        
+        public IndexFieldValueTypes IndexFieldValueTypes { get; private set; }
+
         #endregion
 
         #region Static Helpers
 
-        /// <summary>
-        /// Returns the default index value types that is used in normal construction of an indexer
-        /// </summary>
-        /// <returns></returns>
-        public static IDictionary<string, Func<string, IIndexValueType>> DefaultIndexValueTypes
-            => new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
-            {
-                {"number", name => new Int32Type(name)},
-                {FieldDefinitionTypes.Integer, name => new Int32Type(name)},
-                {FieldDefinitionTypes.Float, name => new SingleType(name)},
-                {FieldDefinitionTypes.Double, name => new DoubleType(name)},
-                {FieldDefinitionTypes.Long, name => new Int64Type(name)},
-                {"date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, DateTools.Resolution.YEAR)},
-                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, DateTools.Resolution.MONTH)},
-                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, DateTools.Resolution.DAY)},
-                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, DateTools.Resolution.HOUR)},
-                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
-                {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
-                {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, true)}
-            };
+        
         
 
         /// <summary>
@@ -465,14 +448,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Properties
 
-        /// <summary>
-        /// Defines the field types such as number, fulltext, etc...
-        /// </summary>
-        /// <remarks>
-        /// This collection is mutable but must be changed before the EnsureIndex method is fired (i.e. on startup)
-        /// </remarks>
-        public ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes { get; } = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
-
+        
         /// <summary>
         /// this flag indicates if Examine should wait for the current index queue to be fully processed during appdomain shutdown
         /// </summary>
@@ -1117,22 +1093,7 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        /// <summary>
-        /// Returns the value type for the field name specified, if it's not found it will create on with the factory supplied
-        /// and initialize it.
-        /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="indexValueTypeFactory"></param>
-        /// <returns></returns>
-        private IIndexValueType GetValueType(string fieldName, Func<string, IIndexValueType> indexValueTypeFactory)
-        {
-            return _resolvedFieldValueTypes.Value.GetOrAdd(fieldName, n =>
-            {
-                var t = indexValueTypeFactory(n);
-                //t.SetupAnalyzers(Analyzer);
-                return t;
-            });
-        }
+        
 
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
@@ -1148,7 +1109,7 @@ namespace Examine.LuceneEngine.Providers
                 //Check for the special field prefix, if this is the case it's indexed as Raw
                 if (field.Key.StartsWith(SpecialFieldPrefix))
                 {
-                    var valueType = GetValueType(field.Key, IndexFieldTypes[FieldDefinitionTypes.Raw]);
+                    var valueType = IndexFieldValueTypes.GetValueType(field.Key, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(d, o);
@@ -1159,7 +1120,7 @@ namespace Examine.LuceneEngine.Providers
                 //try to find the field definition for this field
                 if (IndexFieldDefinitions.TryGetValue(field.Key, out var indexField))
                 {
-                    var valueType = GetValueType(indexField.Name, IndexFieldTypes[FieldDefinitionTypes.FullText]);
+                    var valueType = IndexFieldValueTypes.GetValueType(indexField.Name, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.FullText]);
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(d, o);
@@ -1593,9 +1554,9 @@ namespace Examine.LuceneEngine.Providers
         /// Initialize the directory
         /// </summary>
 
-        private void InitializeDirectory()
+        private Directory InitializeDirectory()
         {
-            if (_directory != null) return;
+            if (_directory != null) return _directory;
 
             if (DirectoryFactory == null)
             {
@@ -1605,6 +1566,7 @@ namespace Examine.LuceneEngine.Providers
                 _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
             }
             _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, InvokeDirectoryFactory);
+            return _directory;
         }
 
         /// <summary>
@@ -1769,10 +1731,10 @@ namespace Examine.LuceneEngine.Providers
         protected virtual void AddSpecialFieldsToDocument(Document d, ValueSet valueSet)
         {
             //add node id
-            var nodeIdValueType = GetValueType(IndexNodeIdFieldName, IndexFieldTypes[FieldDefinitionTypes.Raw]);
+            var nodeIdValueType = IndexFieldValueTypes.GetValueType(IndexNodeIdFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
             nodeIdValueType.AddValue(d, valueSet.Id);
             //add the index type
-            var indexTypeValueType = GetValueType(IndexTypeFieldName, IndexFieldTypes[FieldDefinitionTypes.Raw]);
+            var indexTypeValueType = IndexFieldValueTypes.GetValueType(IndexTypeFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
             indexTypeValueType.AddValue(d, valueSet.ItemType);
         }
 
@@ -1836,39 +1798,6 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-        }
-
-        private void InitFieldTypes(IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types)
-        {
-            foreach (var type in types)
-            {
-                IndexFieldTypes.TryAdd(type.Key, type.Value);
-            }
-
-            //initializes the collection of field aliases to it's correct IIndexValueType
-            _resolvedFieldValueTypes = new Lazy<ConcurrentDictionary<string, IIndexValueType>>(() =>
-            {
-                var result = new ConcurrentDictionary<string, IIndexValueType>();
-
-                foreach (var field in IndexFieldDefinitions)
-                {
-                    if (!string.IsNullOrWhiteSpace(field.Value.Type) && IndexFieldTypes.TryGetValue(field.Value.Type, out var valueTypeFactory))
-                    {
-                        var valueType = valueTypeFactory(field.Key);
-                        //valueType.SetupAnalyzers(Analyzer);
-                        result.TryAdd(valueType.FieldName, valueType);
-                    }
-                    else
-                    {
-                        //Define the default!
-                        var fulltext = IndexFieldTypes[field.Value.EnableSorting ? FieldDefinitionTypes.FullTextSortable : FieldDefinitionTypes.FullText];
-                        var valueType = fulltext(field.Key);
-                        //valueType.SetupAnalyzers(Analyzer);
-                        result.TryAdd(valueType.FieldName, valueType);
-                    }
-                }
-                return result;
-            });
         }
 
         #endregion

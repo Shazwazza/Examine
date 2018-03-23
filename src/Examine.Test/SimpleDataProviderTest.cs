@@ -58,16 +58,16 @@ namespace Examine.Test
                         
         }
 
-        [Test]
-        public void SimpleDataProviderTest_Range_Search_On_Year()
-        {
-            //Act
-            var query = _searcher.CreateSearchCriteria().Range("YearCreated", DateTime.Now.AddYears(-1), DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
-            var results = _searcher.Search(query);
+        //[Test]
+        //public void SimpleDataProviderTest_Range_Search_On_Year()
+        //{
+        //    //Act
+        //    var query = _searcher.CreateSearchCriteria().Range("YearCreated", DateTime.Now.AddYears(-1), DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
+        //    var results = _searcher.Search(query);
 
-            //Assert
-            Assert.AreEqual(5, results.TotalItemCount);
-        }
+        //    //Assert
+        //    Assert.AreEqual(5, results.TotalItemCount);
+        //}
 
         private static SimpleDataIndexer _indexer;
         private static LuceneSearcher _searcher;

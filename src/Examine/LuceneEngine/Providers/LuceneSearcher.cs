@@ -226,6 +226,12 @@ namespace Examine.LuceneEngine.Providers
             return _searcher;
         }
 
+        public override ICriteriaContext GetCriteriaContext()
+        {
+            var indexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(GetLuceneDirectory());
+            return new CriteriaContext(indexFieldValueTypes, GetLuceneSearcher());
+        }
+
         /// <summary>
         /// Returns a list of fields to search on
         /// </summary>

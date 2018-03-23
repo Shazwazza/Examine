@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Indexing
             doc.Add(new NumericField(LuceneIndexer.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetIntValue(parsedVal));
         }
 
-        public override Query GetQuery(string query, Searcher searcher, IManagedQueryParameters parameters)
+        public override Query GetQuery(string query, Searcher searcher)
         {
             int parsedVal;
             if (!TryConvert(query, out parsedVal))
@@ -30,7 +30,7 @@ namespace Examine.LuceneEngine.Indexing
             return GetQuery(parsedVal, parsedVal);
         }
 
-        public Query GetQuery(int? lower, int? upper, bool lowerInclusive = true, bool upperInclusive = true, IManagedQueryParameters parameters = null)
+        public Query GetQuery(int? lower, int? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
             return NumericRangeQuery.NewIntRange(FieldName,
                 lower != null ? lower.Value : (int?)null,

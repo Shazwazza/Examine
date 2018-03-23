@@ -150,7 +150,10 @@ namespace Examine.LuceneEngine.Providers
 			return new MultiSearcher(searchables.ToArray());
         }
 
-
+        public override ICriteriaContext GetCriteriaContext()
+        {
+            return new MultiCriteriaContext(GetLuceneSearcher(), Searchers.Select(s => s.GetCriteriaContext()).ToArray());
+        }
 
 
         #region IDisposable Members

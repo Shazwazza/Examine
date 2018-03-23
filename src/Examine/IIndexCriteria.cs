@@ -10,6 +10,7 @@ namespace Examine
         /// <summary>
         /// A list of all node types to exclude from the index
         /// </summary>
+        //TODO: Do we want these?
         IEnumerable<string> ExcludeNodeTypes { get; }
 
         /// <summary>
@@ -20,11 +21,13 @@ namespace Examine
         /// <summary>
         /// The starting node id of the node to idnex
         /// </summary>
+        //TODO: Remove this
         int? ParentNodeId { get; }
 
         /// <summary>
         /// A list of the 'standard' attribute fields to index
         /// </summary>
+        //TODO: Consolidate these
         IEnumerable<IIndexField> StandardFields { get; }
 
         /// <summary>

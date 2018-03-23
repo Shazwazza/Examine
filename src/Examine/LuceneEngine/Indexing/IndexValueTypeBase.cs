@@ -40,7 +40,7 @@ namespace Examine.LuceneEngine.Indexing
 
         protected abstract void AddSingleValue(Document doc, object value);        
         
-        public virtual Query GetQuery(string query, Searcher searcher, IManagedQueryParameters parameters)
+        public virtual Query GetQuery(string query, Searcher searcher)
         {
             return new TermQuery(new Term(FieldName, query));
         }

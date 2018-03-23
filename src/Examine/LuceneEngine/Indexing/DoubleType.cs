@@ -4,19 +4,6 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing
 {
-    /// <summary>
-    /// Interface for parameters for managed queries (i.e. queries provided by IIndexValueType)
-    /// </summary>
-    public interface IManagedQueryParameters
-    {
-        object GetParameter(string name);
-    }
-
-    public interface IIndexRangeValueType<T> where T : struct
-    {
-        Query GetQuery(T? lower, T? upper, bool lowerInclusive = true, bool upperInclusive = true, IManagedQueryParameters parameters = null);
-    }
-
     public class DoubleType : IndexValueTypeBase, IIndexRangeValueType<double>
     {
         public DoubleType(string fieldName, bool store= true)
@@ -34,7 +21,7 @@ namespace Examine.LuceneEngine.Indexing
             doc.Add(new NumericField(LuceneIndexer.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetDoubleValue(parsedVal));
         }
 
-        public override Query GetQuery(string query, Searcher searcher, IManagedQueryParameters parameters)
+        public override Query GetQuery(string query, Searcher searcher)
         {
             double parsedVal;
             if (!TryConvert(query, out parsedVal))
@@ -43,7 +30,7 @@ namespace Examine.LuceneEngine.Indexing
             return GetQuery(parsedVal, parsedVal);
         }
 
-        public Query GetQuery(double? lower, double? upper, bool lowerInclusive = true, bool upperInclusive = true, IManagedQueryParameters parameters = null)
+        public Query GetQuery(double? lower, double? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
             return NumericRangeQuery.NewDoubleRange(FieldName,
                 lower ?? double.MinValue,

@@ -165,9 +165,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// Converts an Examine boolean operation to a Lucene representation
         /// </summary>
         /// <param name="o">The operation.</param>
-        /// <returns>The translated Boolean operation</returns>
-        
-        public static Occur ToLuceneOccurance(this BooleanOperation o)
+        /// <returns>The translated Boolean operation</returns>        
+        public static Occur ToLuceneOccurrence(this BooleanOperation o)
         {
             switch (o)
             {
@@ -186,7 +185,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="o">The occurrence to translate.</param>
         /// <returns>The translated boolean occurrence</returns>
-        
+
         public static BooleanOperation ToBooleanOperation(this Occur o)
         {
             if (o == Occur.MUST)
