@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.LuceneEngine.Config;
 
 namespace Examine
 {
@@ -14,21 +13,11 @@ namespace Examine
         {
             foreach (var f in allFields.GroupBy(x => x.Name))
             {
-                var indexField = f.FirstOrDefault() ?? new IndexField
+                var indexField = f.FirstOrDefault();
+                if (indexField != null)
                 {
-                    Name = f.Key,
-                    Type = FieldDefinitionTypes.FullText //default
-                };
-                if (string.IsNullOrWhiteSpace(indexField.Type))
-                {
-                    indexField = new IndexField
-                    {
-                        Name = indexField.Name,
-                        Type = FieldDefinitionTypes.FullText, //default
-                        EnableSorting = indexField.EnableSorting
-                    };
+                    TryAdd(f.Key, f.FirstOrDefault());
                 }
-                TryAdd(f.Key, indexField);
             }
         }
         

@@ -98,9 +98,9 @@ namespace Examine.Providers
         /// Defines the mappings for field types to index field types
         /// </summary>
         /// <remarks>
-        /// This is mutable
+        /// This is mutable but changes will only work prior to accessing the resolved value types
         /// </remarks>
-        public IndexFieldDefinitions IndexFieldDefinitions => _indexFieldDefinitions ?? (_indexFieldDefinitions = new IndexFieldDefinitions(IndexerData == null ? Enumerable.Empty<IIndexField>() : IndexerData.UserFields.Concat(IndexerData.StandardFields.ToList())));
+        public IndexFieldDefinitions IndexFieldDefinitions => _indexFieldDefinitions ?? (_indexFieldDefinitions = new IndexFieldDefinitions(IndexerData?.UserFields.Concat(IndexerData.StandardFields.ToList()) ?? Enumerable.Empty<IIndexField>()));
 
         /// <summary>
         /// Check if the index exists

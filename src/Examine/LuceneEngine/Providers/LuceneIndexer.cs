@@ -329,6 +329,8 @@ namespace Examine.LuceneEngine.Providers
 
         private bool _hasIndex = false;
 
+        private Lazy<ConcurrentDictionary<string, IIndexValueType>> _resolvedFieldValueTypes;
+        
         #endregion
 
         #region Static Helpers
@@ -466,7 +468,10 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Defines the field types such as number, fulltext, etc...
         /// </summary>
-        public ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
+        /// <remarks>
+        /// This collection is mutable but must be changed before the EnsureIndex method is fired (i.e. on startup)
+        /// </remarks>
+        public ConcurrentDictionary<string, Func<string, IIndexValueType>> IndexFieldTypes { get; } = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// this flag indicates if Examine should wait for the current index queue to be fully processed during appdomain shutdown
@@ -1113,6 +1118,23 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
+        /// Returns the value type for the field name specified, if it's not found it will create on with the factory supplied
+        /// and initialize it.
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="indexValueTypeFactory"></param>
+        /// <returns></returns>
+        private IIndexValueType GetValueType(string fieldName, Func<string, IIndexValueType> indexValueTypeFactory)
+        {
+            return _resolvedFieldValueTypes.Value.GetOrAdd(fieldName, n =>
+            {
+                var t = indexValueTypeFactory(n);
+                //t.SetupAnalyzers(Analyzer);
+                return t;
+            });
+        }
+
+        /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
         /// <param name="item">The data to index.</param>
@@ -1126,10 +1148,10 @@ namespace Examine.LuceneEngine.Providers
                 //Check for the special field prefix, if this is the case it's indexed as Raw
                 if (field.Key.StartsWith(SpecialFieldPrefix))
                 {
-                    var rawValueType = IndexFieldTypes[FieldDefinitionTypes.Raw](field.Key);
+                    var valueType = GetValueType(field.Key, IndexFieldTypes[FieldDefinitionTypes.Raw]);
                     foreach (var o in field.Value)
                     {
-                        rawValueType.AddValue(d, o);
+                        valueType.AddValue(d, o);
                     }
                     continue;
                 }
@@ -1137,31 +1159,27 @@ namespace Examine.LuceneEngine.Providers
                 //try to find the field definition for this field
                 if (IndexFieldDefinitions.TryGetValue(field.Key, out var indexField))
                 {
-                    if (indexField.Type == null)
-                        continue;
-
-                    if (IndexFieldTypes.TryGetValue(indexField.Type, out var indexValueType))
-                    {
-                        var valueType = indexValueType(field.Key);
-                        foreach (var o in field.Value)
-                        {
-                            valueType.AddValue(d, o);
-                        }
-                    }
-                }
-                else
-                {
-                    //there are no field definitions for this so index it based on the clr type    
+                    var valueType = GetValueType(indexField.Name, IndexFieldTypes[FieldDefinitionTypes.FullText]);
                     foreach (var o in field.Value)
                     {
-                        var fieldType = GetFieldTypeFromObjectType(o);
-                        if (IndexFieldTypes.TryGetValue(fieldType, out var indexValueType))
-                        {
-                            var valueType = indexValueType(field.Key);
-                            valueType.AddValue(d, o);
-                        }
+                        valueType.AddValue(d, o);
                     }
                 }
+
+                //TODO: In previous examine versions, we don't index things that are not explicitly defined in fields, but do we want to allow that?
+                //else
+                //{
+                //    //there are no field definitions for this so index it based on the clr type    
+                //    foreach (var o in field.Value)
+                //    {
+                //        var fieldType = GetFieldTypeFromObjectType(o);
+                //        if (IndexFieldTypes.TryGetValue(fieldType, out var indexValueType))
+                //        {
+                //            var valueType = indexValueType(field.Key);
+                //            valueType.AddValue(d, o);
+                //        }
+                //    }
+                //}
             }
 
             AddSpecialFieldsToDocument(d, item.ValueSet);
@@ -1704,17 +1722,7 @@ namespace Examine.LuceneEngine.Providers
         {
             return new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer);
         }
-
-        //private void EnsureSpecialFields(Dictionary<string, string> fields, string nodeId, string type)
-        //{
-        //    //ensure the special fields are added to the dictionary to be saved to file
-        //    if (!fields.ContainsKey(IndexNodeIdFieldName))
-        //        fields.Add(IndexNodeIdFieldName, nodeId);
-        //    if (!fields.ContainsKey(IndexTypeFieldName))
-        //        fields.Add(IndexTypeFieldName, type);
-        //}
-
-
+        
         /// <summary>
         /// Tries to parse a type using the Type's type converter
         /// </summary>
@@ -1760,20 +1768,12 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="valueSet"></param>
         protected virtual void AddSpecialFieldsToDocument(Document d, ValueSet valueSet)
         {
-            foreach (var s in new[]{ IndexNodeIdFieldName , IndexTypeFieldName })
-            {
-                if (d.GetField(s) == null)
-                {
-                    var rawValueType = IndexFieldTypes[FieldDefinitionTypes.Raw](s);
-                    if(valueSet.Values.TryGetValue(s, out var values))
-                    {
-                        foreach (var o in values)
-                        {
-                            rawValueType.AddValue(d, o);
-                        }
-                    }
-                }
-            }
+            //add node id
+            var nodeIdValueType = GetValueType(IndexNodeIdFieldName, IndexFieldTypes[FieldDefinitionTypes.Raw]);
+            nodeIdValueType.AddValue(d, valueSet.Id);
+            //add the index type
+            var indexTypeValueType = GetValueType(IndexTypeFieldName, IndexFieldTypes[FieldDefinitionTypes.Raw]);
+            indexTypeValueType.AddValue(d, valueSet.ItemType);
         }
 
         /// <summary>
@@ -1844,6 +1844,31 @@ namespace Examine.LuceneEngine.Providers
             {
                 IndexFieldTypes.TryAdd(type.Key, type.Value);
             }
+
+            //initializes the collection of field aliases to it's correct IIndexValueType
+            _resolvedFieldValueTypes = new Lazy<ConcurrentDictionary<string, IIndexValueType>>(() =>
+            {
+                var result = new ConcurrentDictionary<string, IIndexValueType>();
+
+                foreach (var field in IndexFieldDefinitions)
+                {
+                    if (!string.IsNullOrWhiteSpace(field.Value.Type) && IndexFieldTypes.TryGetValue(field.Value.Type, out var valueTypeFactory))
+                    {
+                        var valueType = valueTypeFactory(field.Key);
+                        //valueType.SetupAnalyzers(Analyzer);
+                        result.TryAdd(valueType.FieldName, valueType);
+                    }
+                    else
+                    {
+                        //Define the default!
+                        var fulltext = IndexFieldTypes[field.Value.EnableSorting ? FieldDefinitionTypes.FullTextSortable : FieldDefinitionTypes.FullText];
+                        var valueType = fulltext(field.Key);
+                        //valueType.SetupAnalyzers(Analyzer);
+                        result.TryAdd(valueType.FieldName, valueType);
+                    }
+                }
+                return result;
+            });
         }
 
         #endregion

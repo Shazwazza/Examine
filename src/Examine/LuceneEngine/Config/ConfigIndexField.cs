@@ -32,7 +32,7 @@ namespace Examine.LuceneEngine.Config
             set => this["Type"] = value;
         }
 
-        public bool Equals(ConfigIndexField other)
+        public bool Equals(IndexField other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -44,7 +44,7 @@ namespace Examine.LuceneEngine.Config
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((ConfigIndexField)obj);
+            return Equals((IndexField)obj);
         }
 
         public override int GetHashCode()
