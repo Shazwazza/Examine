@@ -24,6 +24,6 @@ using System.Security;
 [assembly: InternalsVisibleTo("Examine.Azure")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
-[assembly: AssemblyVersion("0.1.89.0")]
-[assembly: AssemblyFileVersion("0.1.89.0")]
-[assembly: AssemblyInformationalVersion("0.1.89")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyInformationalVersion("1.0.0-beta01")]
