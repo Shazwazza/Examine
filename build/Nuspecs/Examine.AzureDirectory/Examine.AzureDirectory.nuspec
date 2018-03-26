@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Examine.AzureDirectory</id>
+    <version>0.0.0.0</version>
+    <title>Examine.Directory.AzureDirectory</title>
+    <authors>Shannon Deminick</authors>
+    <owners>Shannon Deminick</owners>
+    <projectUrl>https://github.com/Shazwazza/Examine</projectUrl>
+    <licenseUrl>http://www.opensource.org/licenses/ms-pl</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>AzureDirectory implementation for Examine allows storing indexes in Blob storage and syncing to local fast storage</description>
+    <summary>AzureDirectory implementation for Examine allows storing indexes in Blob storage and syncing to local fast storage</summary>
+    <tags>azure blob examine search lucene</tags>
+    <copyright>$copyright$</copyright>
+    <dependencies>
+      <dependency id="Examine" version="0.1.80" />
+      <dependency id="WindowsAzure.Storage" version="8.0.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Examine.AzureDirectory.dll" target="lib\net45\Examine.AzureDirectory.dll" />
+    <file src="Examine.AzureDirectory.pdb" target="lib\net45\Examine.AzureDirectory.pdb" />
+  </files>
+</package>
