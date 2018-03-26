@@ -166,7 +166,7 @@ namespace Examine.LuceneEngine.Providers
 
             //Need to check if the index set or IndexerData is specified...
 
-#pragma warning disable 618
+
             if (config["indexSet"] == null && (FieldDefinitionsInternal == null || !FieldDefinitionsInternal.Any()))
             {
                 //if we don't have either, then we'll try to set the index set by naming conventions
@@ -229,7 +229,7 @@ namespace Examine.LuceneEngine.Providers
                     LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
                 }
             }
-#pragma warning restore 618
+
 
             if (config["analyzer"] != null)
             {
@@ -694,7 +694,7 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
-                    OnIndexingError(new IndexingErrorEventArgs(this, "Could not acquire lock in EnsureIndex so cannot create new index", -1, null));
+                    OnIndexingError(new IndexingErrorEventArgs(this, "Could not acquire lock in EnsureIndex so cannot create new index", null, null));
                 }
             }
         }
@@ -718,7 +718,7 @@ namespace Examine.LuceneEngine.Providers
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs(this, "An error occurred creating the index", -1, ex));
+                OnIndexingError(new IndexingErrorEventArgs(this, "An error occurred creating the index", null, ex));
                 return;
             }
             finally
@@ -739,7 +739,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot rebuild the index, indexing cancellation has been requested", -1, null));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot rebuild the index, indexing cancellation has been requested", null, null));
                 return;
             }
 
@@ -798,7 +798,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, index cancellation has been requested", -1, null), true);
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, index cancellation has been requested", null, null), true);
                 return;
             }
 
@@ -810,7 +810,7 @@ namespace Examine.LuceneEngine.Providers
                 //check if the index is ready to be written to.
                 if (!IndexReady())
                 {
-                    OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, the index is currently locked", -1, null), true);
+                    OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, the index is currently locked", null, null), true);
                     return;
                 }
 
@@ -822,7 +822,7 @@ namespace Examine.LuceneEngine.Providers
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Error optimizing Lucene index", -1, ex));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Error optimizing Lucene index", null, ex));
             }
 
         }
@@ -977,9 +977,11 @@ namespace Examine.LuceneEngine.Providers
 
         protected bool DeleteFromIndex(Term indexTerm, IndexWriter iw, bool performCommit = true)
         {
-            int nodeId = -1;
+            string itemId = null;
             if (indexTerm.Field == "id")
-                int.TryParse(indexTerm.Text, out nodeId);
+            {
+                itemId = indexTerm.Text;
+            }
 
             try
             {
@@ -998,7 +1000,7 @@ namespace Examine.LuceneEngine.Providers
             }
             catch (Exception ee)
             {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Error deleting Lucene index", nodeId, ee));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Error deleting Lucene index", itemId, ee));
                 return false;
             }
         }
@@ -1009,17 +1011,17 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="doc"></param>
         /// <param name="item">The data to index.</param>
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
-        protected virtual void AddDocument(Document d, IndexItem item, IndexWriter writer)
+        protected virtual void AddDocument(Document doc, IndexItem item, IndexWriter writer)
         {
             //add node id
             var nodeIdValueType = FieldValueTypeCollection.GetValueType(ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.Raw]);
-            nodeIdValueType.AddValue(d, item.ValueSet.Id);
+            nodeIdValueType.AddValue(doc, item.ValueSet.Id);
             //add the category
             var categoryValueType = FieldValueTypeCollection.GetValueType(CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.InvariantCultureIgnoreCase]);
-            categoryValueType.AddValue(d, item.ValueSet.Category);
+            categoryValueType.AddValue(doc, item.ValueSet.Category);
             //add the item type
             var indexTypeValueType = FieldValueTypeCollection.GetValueType(ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.InvariantCultureIgnoreCase]);
-            indexTypeValueType.AddValue(d, item.ValueSet.ItemType);
+            indexTypeValueType.AddValue(doc, item.ValueSet.ItemType);
 
             foreach (var field in item.ValueSet.Values)
             {
@@ -1029,7 +1031,7 @@ namespace Examine.LuceneEngine.Providers
                     var valueType = FieldValueTypeCollection.GetValueType(definedFieldDefinition.Name, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.FullText]);
                     foreach (var o in field.Value)
                     {
-                        valueType.AddValue(d, o);
+                        valueType.AddValue(doc, o);
                     }
                 }
                 else if (field.Key.StartsWith(SpecialFieldPrefix))
@@ -1039,7 +1041,7 @@ namespace Examine.LuceneEngine.Providers
                     var valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.InvariantCultureIgnoreCase]);
                     foreach (var o in field.Value)
                     {
-                        valueType.AddValue(d, o);
+                        valueType.AddValue(doc, o);
                     }
                 }
                 else
@@ -1050,17 +1052,17 @@ namespace Examine.LuceneEngine.Providers
                     var valueType = FieldValueTypeCollection.GetValueType(def.Name, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.FullText]);
                     foreach (var o in field.Value)
                     {
-                        valueType.AddValue(d, o);
+                        valueType.AddValue(doc, o);
                     }
                 }
             }
 
-            var docArgs = new DocumentWritingEventArgs(item.ValueSet, d);
+            var docArgs = new DocumentWritingEventArgs(item.ValueSet, doc);
             OnDocumentWriting(docArgs);
             if (docArgs.Cancel)
                 return;
 
-            writer.UpdateDocument(new Term(ItemIdFieldName, item.Id), d);
+            writer.UpdateDocument(new Term(ItemIdFieldName, item.Id), doc);
         }
 
 
@@ -1230,12 +1232,12 @@ namespace Examine.LuceneEngine.Providers
             //check if the index is ready to be written to.
             if (!IndexReady())
             {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot index queue items, the index is currently locked", -1, null));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot index queue items, the index is currently locked", null, null));
                 return 0;
             }
 
             //track all of the nodes indexed
-            var indexedNodes = new List<IndexedNode>();
+            var indexedNodes = new List<IndexedItem>();
 
             Interlocked.Increment(ref _activeWrites);
 
@@ -1287,7 +1289,7 @@ namespace Examine.LuceneEngine.Providers
             }
             catch (Exception ex)
             {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Error indexing queue items", -1, ex));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Error indexing queue items", null, ex));
             }
             finally
             {
@@ -1395,7 +1397,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        private void ProcessQueueItem(IndexOperation item, ICollection<IndexedNode> indexedNodes, IndexWriter writer)
+        private void ProcessQueueItem(IndexOperation item, ICollection<IndexedItem> indexedNodes, IndexWriter writer)
         {
             switch (item.Operation)
             {
@@ -1403,9 +1405,9 @@ namespace Examine.LuceneEngine.Providers
 
                     if (ValidateItem(item.Item))
                     {
-                        //var added = ProcessIndexQueueItem(item, inMemoryWriter);
                         var added = ProcessIndexQueueItem(item, writer);
-                        indexedNodes.Add(added);
+                        if (added != IndexedItem.Empty)
+                            indexedNodes.Add(added);
                     }
                     else
                     {
@@ -1437,7 +1439,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 OnIndexingError(
                     new IndexingErrorEventArgs(this,
-                        "App is shutting down so index operation is ignored: " + op.Item.Id, -1, null));
+                        "App is shutting down so index operation is ignored: " + op.Item.Id, null, null));
             }
         }
 
@@ -1456,7 +1458,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 OnIndexingError(
                     new IndexingErrorEventArgs(this,
-                        "App is shutting down so index batch operation is ignored", -1, null));
+                        "App is shutting down so index batch operation is ignored", null, null));
             }
         }
 
@@ -1664,23 +1666,22 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        private IndexedNode ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
+        private IndexedItem ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
         {
             //get the node id
             var nodeId = int.Parse(op.Item.Id);
 
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.Item);
-            OnGatheringNodeData(indexingNodeDataArgs);
-
-            //EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexCategory);
+            OnTransformingIndexValues(indexingNodeDataArgs);
+            if (indexingNodeDataArgs.Cancel) return IndexedItem.Empty;
 
             var d = new Document();
             AddDocument(d, op.Item, writer);
 
             CommitCount++;
 
-            return new IndexedNode(nodeId, op.Item.IndexCategory);
+            return new IndexedItem(nodeId, op.Item.IndexCategory);
         }
 
         /// <summary>

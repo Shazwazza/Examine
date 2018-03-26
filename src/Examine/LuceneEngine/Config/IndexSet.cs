@@ -5,13 +5,14 @@ using System.Web.Hosting;
 
 namespace Examine.LuceneEngine.Config
 {
+    //TODO: Move this to Umbraco!
     public sealed class IndexSet : ConfigurationElement
     {
 
         [ConfigurationProperty("SetName", IsRequired = true, IsKey = true)]
         public string SetName => (string)this["SetName"];
 
-        private string m_IndexPath = "";
+        private string _indexPath = "";
 
         /// <summary>
         /// The folder path of where the lucene index is stored
@@ -25,15 +26,12 @@ namespace Examine.LuceneEngine.Config
         {
             get
             {
-                if (string.IsNullOrEmpty(m_IndexPath))
-                    m_IndexPath = (string)this["IndexPath"];
+                if (string.IsNullOrEmpty(_indexPath))
+                    _indexPath = (string)this["IndexPath"];
 
-                return m_IndexPath;
+                return _indexPath;
             }
-            set
-            {
-                m_IndexPath = value;
-            }
+            set => _indexPath = value;
         }
 
         /// <summary>
@@ -57,7 +55,7 @@ namespace Examine.LuceneEngine.Config
         }
 
         /// <summary>
-        /// When this property is set, the indexing will only index documents that are children of this node.
+        /// When this property is set, the indexing will only index documents that are descendants of this node.
         /// </summary>
         [ConfigurationProperty("IndexParentId", IsRequired = false, IsKey = false)]
         public int? IndexParentId
@@ -76,26 +74,14 @@ namespace Examine.LuceneEngine.Config
         /// </summary>
         [ConfigurationCollection(typeof(IndexFieldCollection))]
         [ConfigurationProperty("IncludeNodeTypes", IsDefaultCollection = false, IsRequired = false)]
-        public IndexFieldCollection IncludeNodeTypes
-        {
-            get
-            {
-                return (IndexFieldCollection)base["IncludeNodeTypes"];
-            }
-        }
+        public IndexFieldCollection IncludeNodeTypes => (IndexFieldCollection)base["IncludeNodeTypes"];
 
         /// <summary>
         /// The collection of node types to not index. If specified, these node types will not be indexed.
         /// </summary>
         [ConfigurationCollection(typeof(IndexFieldCollection))]
         [ConfigurationProperty("ExcludeNodeTypes", IsDefaultCollection = false, IsRequired = false)]
-        public IndexFieldCollection ExcludeNodeTypes
-        {
-            get
-            {
-                return (IndexFieldCollection)base["ExcludeNodeTypes"];
-            }
-        }
+        public IndexFieldCollection ExcludeNodeTypes => (IndexFieldCollection)base["ExcludeNodeTypes"];
 
         /// <summary>
         /// A collection of user defined umbraco fields to index
@@ -105,13 +91,7 @@ namespace Examine.LuceneEngine.Config
         /// </remarks>
         [ConfigurationCollection(typeof(IndexFieldCollection))]
         [ConfigurationProperty("IndexUserFields", IsDefaultCollection = false, IsRequired = false)]
-        public IndexFieldCollection IndexUserFields
-        {
-            get
-            {
-                return (IndexFieldCollection)base["IndexUserFields"];
-            }
-        }
+        public IndexFieldCollection IndexUserFields => (IndexFieldCollection)base["IndexUserFields"];
 
         /// <summary>
         /// The fields umbraco values that will be indexed. i.e. id, nodeTypeAlias, writer, etc...
@@ -138,12 +118,6 @@ namespace Examine.LuceneEngine.Config
         /// </remarks>
         [ConfigurationCollection(typeof(IndexFieldCollection))]
         [ConfigurationProperty("IndexAttributeFields", IsDefaultCollection = false, IsRequired = false)]
-        public IndexFieldCollection IndexAttributeFields
-        {
-            get
-            {
-                return (IndexFieldCollection)base["IndexAttributeFields"];
-            }
-        }
+        public IndexFieldCollection IndexAttributeFields => (IndexFieldCollection)base["IndexAttributeFields"];
     }
 }

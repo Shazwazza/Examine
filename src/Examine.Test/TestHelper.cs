@@ -7,7 +7,7 @@ namespace Examine.Test
 {
     public static class TestHelper
     {
-        static public string AssemblyDirectory
+        public static string AssemblyDirectory
         {
             get
             {

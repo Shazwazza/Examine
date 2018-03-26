@@ -123,7 +123,7 @@
     <Compile Include="DisposableObjectSlim.cs" />
     <Compile Include="Enforcer.cs" />
     <Compile Include="ConfigIndexCriteria.cs" />
-    <Compile Include="IndexedNode.cs" />
+    <Compile Include="IndexedItem.cs" />
     <Compile Include="IndexingErrorEventArgs.cs" />
     <Compile Include="IIndexer.cs" />
     <Compile Include="IndexSetExtensions.cs" />

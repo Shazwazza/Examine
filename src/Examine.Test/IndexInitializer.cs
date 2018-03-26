@@ -1,37 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Reflection;
 using Examine.Test.DataServices;
 using System.Threading;
-using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Analysis;
 using Examine.Providers;
 using System.Collections.Specialized;
 using Examine.LuceneEngine.Config;
-using Examine.LuceneEngine;
-using Examine.LuceneEngine.Indexing;
-using Examine.LuceneEngine.Providers;
 using Lucene.Net.Search;
-using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Test
 {
-    internal class UmbracoIndexer : ValueSetIndexer
-    {
-        public UmbracoIndexer(IValueSetDataService dataService, IEnumerable<string> indexCategories, IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) : base(dataService, indexCategories, fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
-        {
-        }
-
-        public UmbracoIndexer(IValueSetDataService dataService, IEnumerable<string> indexCategories, IEnumerable<FieldDefinition> fieldDefinitions, IndexWriter writer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) : base(dataService, indexCategories, fieldDefinitions, writer, validator, indexValueTypesFactory)
-        {
-        }
-    }
-
     /// <summary>
     /// Used internally by test classes to initialize a new index from the template
     /// </summary>

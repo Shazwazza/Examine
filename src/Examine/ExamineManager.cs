@@ -231,27 +231,13 @@ namespace Examine
             }
         }
 
-        internal void ReIndexNode(XElement node, string category, IEnumerable<BaseIndexProvider> providers)
-        {
-            _ReIndexNode(node, category, providers);
-        }
-
         /// <summary>
         /// Reindex nodes for all providers
         /// </summary>
-        /// <param name="node"></param>
-        /// <param name="category"></param>
-        internal void ReIndexNode(XElement node, string category)
+        /// <param name="nodes"></param>
+        public void IndexItems(ValueSet[] nodes)
         {
-            _ReIndexNode(node, category, IndexProviders.Values);
-        }
-
-        private static void _ReIndexNode(XElement node, string category, IEnumerable<IIndexer> providers)
-        {
-            foreach (var provider in providers)
-            {
-                provider.IndexItems(new []{ node.ConvertToValueSet(category) });
-            }
+            IndexItems(nodes, IndexProviders.Values);
         }
 
         /// <summary>
@@ -266,15 +252,6 @@ namespace Examine
                 provider.DeleteFromIndex(nodeId);
             }
         }
-
-        ///// <summary>
-        ///// Reindex nodes for all providers
-        ///// </summary>
-        ///// <param name="nodes"></param>
-        //public void IndexItems(ValueSet[] nodes)
-        //{
-        //    IndexItems(nodes, IndexProviders.Values);
-        //}
 
         /// <summary>
         /// Deletes index for node for all providers

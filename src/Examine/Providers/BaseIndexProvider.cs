@@ -95,15 +95,16 @@ namespace Examine.Providers
         #endregion
 
         #region Events
+
         /// <summary>
         /// Occurs for an Indexing Error
         /// </summary>
         public event EventHandler<IndexingErrorEventArgs> IndexingError;
 
         /// <summary>
-        /// Occurs when the indexer is gathering the fields and their associated data for the index
+        /// Raised before the item is indexed allowing developers to customize the data that get's stored in the index
         /// </summary>
-        public event EventHandler<IndexingItemEventArgs> GatheringNodeData;
+        public event EventHandler<IndexingItemEventArgs> TransformingIndexValues;
         
         #endregion
 
@@ -115,18 +116,16 @@ namespace Examine.Providers
         /// <param name="e">The <see cref="Examine.IndexingErrorEventArgs"/> instance containing the event data.</param>
         protected virtual void OnIndexingError(IndexingErrorEventArgs e)
         {
-            if (IndexingError != null)
-                IndexingError(this, e);
+            IndexingError?.Invoke(this, e);
         }
 
         /// <summary>
-        /// Raises the <see cref="E:GatheringNodeData"/> event.
+        /// Raises the <see cref="E:TransformingIndexValues"/> event.
         /// </summary>
-        /// <param name="e">The <see cref="IndexingItemDataEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnGatheringNodeData(IndexingItemEventArgs e)
+        /// <param name="e">The <see cref="IndexingItemEventArgs"/> instance containing the event data.</param>
+        protected virtual void OnTransformingIndexValues(IndexingItemEventArgs e)
         {
-            if (GatheringNodeData != null)
-                GatheringNodeData(this, e);
+            TransformingIndexValues?.Invoke(this, e);
         }
 
         #endregion

@@ -1,8 +1,9 @@
 using System;
+using System.ComponentModel;
 
 namespace Examine
 {
-    public class IndexingItemEventArgs : EventArgs
+    public class IndexingItemEventArgs : CancelEventArgs
     {
         public IIndexer Indexer { get; }
         public IndexItem IndexItem { get; }
