@@ -20,29 +20,29 @@ namespace Examine.LuceneEngine
             _fieldValueTypes.Clear();
         }
         
-        private readonly ConcurrentDictionary<string, IndexFieldValueTypes> _fieldValueTypes = new ConcurrentDictionary<string, IndexFieldValueTypes>();
+        private readonly ConcurrentDictionary<string, FieldValueTypeCollection> _fieldValueTypes = new ConcurrentDictionary<string, FieldValueTypeCollection>();
 
         public static FieldValueTypes Current { get; } = new FieldValueTypes();
 
         /// <summary>
-        /// Returns the <see cref="IndexFieldValueTypes"/> for the directory/index
+        /// Returns the <see cref="FieldValueTypeCollection"/> for the directory/index
         /// </summary>
         /// <param name="dir"></param>
         /// <returns></returns>
-        public IndexFieldValueTypes GetIndexFieldValueTypes(Directory dir)
+        public FieldValueTypeCollection GetIndexFieldValueTypes(Directory dir)
         {
             return GetIndexFieldValueTypes(dir, true);
         }
 
         /// <summary>
-        /// Returns the <see cref="IndexFieldValueTypes"/> for the directory/index
+        /// Returns the <see cref="FieldValueTypeCollection"/> for the directory/index
         /// </summary>
         /// <param name="dir"></param>
         /// <param name="throwIfEmpty"></param>
         /// <returns></returns>
-        public IndexFieldValueTypes GetIndexFieldValueTypes(Directory dir, bool throwIfEmpty)
+        public FieldValueTypeCollection GetIndexFieldValueTypes(Directory dir, bool throwIfEmpty)
         {
-            IndexFieldValueTypes d;
+            FieldValueTypeCollection d;
             if (!_fieldValueTypes.TryGetValue(dir.GetLockId(), out d))
             {
                 if (throwIfEmpty)
@@ -53,7 +53,7 @@ namespace Examine.LuceneEngine
             return d;
         }
 
-        public IndexFieldValueTypes InitializeFieldValueTypes(Directory dir, Func<Directory, IndexFieldValueTypes> factory)
+        public FieldValueTypeCollection InitializeFieldValueTypes(Directory dir, Func<Directory, FieldValueTypeCollection> factory)
         {
             var resolved = _fieldValueTypes.GetOrAdd(dir.GetLockId(), s => factory(dir));
             return resolved;
@@ -63,7 +63,7 @@ namespace Examine.LuceneEngine
         /// Returns the default index value types that is used in normal construction of an indexer
         /// </summary>
         /// <returns></returns>
-        public static IDictionary<string, Func<string, IIndexValueType>> DefaultIndexValueTypes
+        public static IReadOnlyDictionary<string, Func<string, IIndexValueType>> DefaultIndexValueTypes
             => new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
                 {"number", name => new Int32Type(name)},
@@ -80,7 +80,8 @@ namespace Examine.LuceneEngine
                 {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, true)}
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, true)},
+                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerValueType(name, new CultureInvariantWhitespaceAnalyzer())}
             };
     }
 }

@@ -11,31 +11,16 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public ExamineValue(Examineness vagueness, string value, float level)
         {
-            //remove the stop words
-            //var realVal = value.RemoveStopWords();
-
             this.Examineness = vagueness;
             this.Value = value;
             this.Level = level;
         }
 
-        public Examineness Examineness
-        {
-            get;
-            private set;
-        }
+        public Examineness Examineness { get; }
 
-        public string Value
-        {
-            get;
-            private set;
-        }
+        public string Value { get; }
 
-        public float Level
-        {
-            get;
-            private set;
-        }
+        public float Level { get; }
 
     }
 }

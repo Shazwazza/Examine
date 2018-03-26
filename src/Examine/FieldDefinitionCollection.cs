@@ -7,9 +7,9 @@ namespace Examine
     /// <summary>
     /// Defines the mappings between a field name and it's index type
     /// </summary>
-    public class IndexFieldDefinitions : ConcurrentDictionary<string, IIndexField>
+    public class FieldDefinitionCollection : ConcurrentDictionary<string, FieldDefinition>
     {
-        public IndexFieldDefinitions(IEnumerable<IIndexField> allFields)
+        public FieldDefinitionCollection(IEnumerable<FieldDefinition> allFields)
         {
             foreach (var f in allFields.GroupBy(x => x.Name))
             {

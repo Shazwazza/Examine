@@ -10,7 +10,7 @@ namespace Examine
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TVal"></typeparam>
-    internal class OrderedDictionary<TKey, TVal> : KeyedCollection<TKey, KeyValuePair<TKey, TVal>>, IDictionary<TKey, TVal>
+    internal class OrderedDictionary<TKey, TVal> : KeyedCollection<TKey, KeyValuePair<TKey, TVal>>, IDictionary<TKey, TVal>, IReadOnlyDictionary<TKey, TVal>
     {
         public OrderedDictionary()
         {
@@ -73,6 +73,12 @@ namespace Examine
             value = default(TVal);
             return false;
         }
+
+        TVal IReadOnlyDictionary<TKey, TVal>.this[TKey key] => ((IDictionary<TKey, TVal>)this)[key];
+
+        IEnumerable<TKey> IReadOnlyDictionary<TKey, TVal>.Keys => Keys;
+
+        IEnumerable<TVal> IReadOnlyDictionary<TKey, TVal>.Values => Values;
 
         TVal IDictionary<TKey, TVal>.this[TKey key]
         {

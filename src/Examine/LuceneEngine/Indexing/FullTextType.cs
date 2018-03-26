@@ -12,27 +12,16 @@ namespace Examine.LuceneEngine.Indexing
     public class FullTextType : IndexValueTypeBase
     {
         private readonly bool _sortable;
-        private readonly Analyzer _customAnalyzer;
-
+        
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="sortable"></param>
-        /// <param name="customAnalyzer"></param>
-        public FullTextType(string fieldName, bool sortable = false, Analyzer customAnalyzer = null)
+        public FullTextType(string fieldName, bool sortable = false)
             : base(fieldName, true)
         {
             _sortable = sortable;
-            _customAnalyzer = customAnalyzer;
-        }
-
-        public override void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
-        {
-            base.SetupAnalyzers(analyzer);
-
-            if (_customAnalyzer != null)
-                analyzer.AddAnalyzer(FieldName, _customAnalyzer);
         }
 
         protected override void AddSingleValue(Document doc, object value)

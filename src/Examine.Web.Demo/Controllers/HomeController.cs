@@ -28,7 +28,7 @@ namespace Examine.Web.Demo.Controllers
         public ActionResult MultiSearch(string query)
         {
             var multi = ExamineManager.Instance.SearchProviderCollection["MultiIndexSearcher"];
-            var criteria = multi.CreateSearchCriteria();
+            var criteria = multi.CreateCriteria();
             var result = multi.Search(criteria.RawQuery(query));
 
             var sb = new StringBuilder();
@@ -44,7 +44,7 @@ namespace Examine.Web.Demo.Controllers
         public ActionResult Search(string id)
         {
             var searcher = ExamineManager.Instance.GetIndexSearcher("Simple2Indexer");
-            var criteria = searcher.CreateSearchCriteria();
+            var criteria = searcher.CreateCriteria();
             var result = searcher.Search(criteria.RawQuery(id));
             var sb = new StringBuilder();
             sb.AppendLine($"Results :{result.TotalItemCount}");

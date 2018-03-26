@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Examine.LuceneEngine;
@@ -10,11 +11,6 @@ namespace Examine
     /// </summary>
     public struct ValueSet
     {
-        ///// <summary>
-        ///// Used for legacy purposes and stores the original xml document that used to be used for indexing
-        ///// </summary>
-        //internal XElement OriginalNode { get; set; }
-
         /// <summary>
         /// The id of the object to be indexed
         /// </summary>
@@ -146,7 +142,6 @@ namespace Examine
         public ValueSet(string id, string category, IEnumerable<KeyValuePair<string, object[]>> values)
             : this(id, category, string.Empty, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
         {
-
         }
 
         /// <summary>
@@ -227,5 +222,9 @@ namespace Examine
         //{
         //    return ToLegacyFields().ToExamineXml(Id, IndexCategory);
         //}
+        public ValueSet Clone(string id)
+        {
+            return new ValueSet(id, Category, Values.ToDictionary(x => x.Key, x => x.Value));
+        }
     }
 }

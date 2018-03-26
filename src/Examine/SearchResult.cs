@@ -7,30 +7,49 @@ namespace Examine
 {
     public class SearchResult
     {
-        private readonly OrderedDictionary<string, string> _fields;
+        private OrderedDictionary<string, string> _fields;
+        private readonly OrderedDictionary<string, string[]> _fieldValues;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public SearchResult()
+        public SearchResult(string id, int docId, float score, IDictionary<string, string[]> fieldVals)
         {
-            _fields = new OrderedDictionary<string, string>();
-            MultiValueFields = new Dictionary<string, List<string>>();
+            Id = id;
+            DocId = docId;
+            Score = score;
+            _fieldValues = new OrderedDictionary<string, string[]>();
+            var asWritable = (IDictionary<string, string[]>)_fieldValues;
+            foreach (var fieldValue in fieldVals)
+            {
+                asWritable[fieldValue.Key] = fieldValue.Value;
+            }
         }
 
-        public int DocId { get; set; }
-        public int Id { get; set; }
-        public float Score { get; set; }
+        public int DocId { get; }
+        public string Id { get;  }
+        public float Score { get; }
 
-        //TODO: This should have been IReadOnlyDictionary
-        public IDictionary<string, string> Fields
+        public IReadOnlyDictionary<string, string> Fields
         {
-            get => _fields;
-            //TODO: This was a mistake and should have never allowed setting
-            protected set => throw new NotSupportedException("Setting the Fields property is not supported");
+            get
+            {
+                if (_fields != null) return _fields;
+
+                //initialize from the multi fields
+                _fields = new OrderedDictionary<string, string>();
+                var asWritable = (IDictionary<string, string>) _fields;
+                foreach (var fieldValue in _fieldValues)
+                {
+                    if (fieldValue.Value.Length > 0)
+                        asWritable[fieldValue.Key] = fieldValue.Value[0];
+                }
+                return _fields;
+            }
         }
 
-        internal IDictionary<string, List<string>> MultiValueFields { get; }
+        public IReadOnlyDictionary<string, string[]> FieldValues => _fieldValues;
+
 
         /// <summary>
         /// If a single field was indexed with multiple values this will return those values, otherwise it will just return the single 
@@ -40,17 +59,12 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<string> GetValues(string key)
         {
-            if (MultiValueFields.TryGetValue(key, out List<string> found))
+            if (FieldValues.TryGetValue(key, out var found))
             {
                 return found;
             }
 
-            if (Fields.TryGetValue(key, out string single))
-            {
-                return new[] { single };
-            }
-
-            return Enumerable.Empty<string>();
+            return Fields.TryGetValue(key, out var single) ? new[] { single } : Enumerable.Empty<string>();
         } 
 
         /// <summary>
@@ -58,25 +72,15 @@ namespace Examine
         /// </summary>
         /// <param name="resultIndex"></param>
         /// <returns></returns>
-        public KeyValuePair<string, string> this[int resultIndex] => _fields[resultIndex];
+        public KeyValuePair<string, string> this[int resultIndex] => ((OrderedDictionary<string, string>)Fields)[resultIndex];
 
         /// <summary>
         /// Returns the value for the key specified
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public string this[string key] 
-        {
-            get
-            {
-                if (Fields.TryGetValue(key, out string single))
-                {
-                    return single;
-                }
-                return null;
-            }
-        }
-        
+        public string this[string key] => Fields.TryGetValue(key, out var single) ? single : null;
+
         /// <summary>
         /// Override this method so that the Distinct() operator works
         /// </summary>

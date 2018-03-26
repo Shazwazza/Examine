@@ -391,7 +391,7 @@ namespace Examine.LuceneEngine.Providers
         /// once a writer is created and an index is updated, the current reader won't become NRT immediately without these
         /// timers.
         /// </remarks>
-        private class ReaderReopener : DisposableObject
+        private class ReaderReopener : DisposableObjectSlim
         {
             private readonly LuceneSearcher _luceneSearcher;
             private DateTime _timestamp;
@@ -631,7 +631,7 @@ namespace Examine.LuceneEngine.Providers
 
         private readonly DisposableSearcher _disposer;
 
-        private class DisposableSearcher : DisposableObject
+        private class DisposableSearcher : DisposableObjectSlim
         {
             private readonly LuceneSearcher _searcher;
 

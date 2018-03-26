@@ -6,16 +6,16 @@ using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine
 {
-    public class IndexFieldValueTypes
+    public class FieldValueTypeCollection
     {
         /// <summary>
         /// Returns the PerFieldAnalyzerWrapper
         /// </summary>
-        internal PerFieldAnalyzerWrapper Analyzer { get; private set; }
+        internal PerFieldAnalyzerWrapper Analyzer { get; }
 
-        public IndexFieldValueTypes(
+        public FieldValueTypeCollection(
             Analyzer defaultAnalyzer,
-            IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types, IndexFieldDefinitions indexFieldDefinitions)
+            IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types, FieldDefinitionCollection fieldDefinitionCollection)
         {
             Analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer);
             foreach (var type in types)
@@ -28,7 +28,7 @@ namespace Examine.LuceneEngine
             {
                 var result = new ConcurrentDictionary<string, IIndexValueType>();
 
-                foreach (var field in indexFieldDefinitions)
+                foreach (var field in fieldDefinitionCollection)
                 {
                     if (!string.IsNullOrWhiteSpace(field.Value.Type) && ValueTypeFactories.TryGetValue(field.Value.Type, out var valueTypeFactory))
                     {
@@ -39,7 +39,7 @@ namespace Examine.LuceneEngine
                     else
                     {
                         //Define the default!
-                        var fulltext = ValueTypeFactories[field.Value.EnableSorting ? FieldDefinitionTypes.FullTextSortable : FieldDefinitionTypes.FullText];
+                        var fulltext = ValueTypeFactories[FieldDefinitionTypes.FullText];
                         var valueType = fulltext(field.Key);
                         valueType.SetupAnalyzers(Analyzer);
                         result.TryAdd(valueType.FieldName, valueType);

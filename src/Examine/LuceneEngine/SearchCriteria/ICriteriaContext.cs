@@ -30,21 +30,21 @@ namespace Examine.LuceneEngine.SearchCriteria
 
     public class CriteriaContext : ICriteriaContext
     {
-        private readonly IndexFieldValueTypes _indexFieldValueTypes;
+        private readonly FieldValueTypeCollection _fieldValueTypeCollection;
 
-        public CriteriaContext(IndexFieldValueTypes indexFieldValueTypes, Searcher searcher)
+        public CriteriaContext(FieldValueTypeCollection fieldValueTypeCollection, Searcher searcher)
         {
-            _indexFieldValueTypes = indexFieldValueTypes;
+            _fieldValueTypeCollection = fieldValueTypeCollection;
             Searcher = searcher;
         }
 
         public Searcher Searcher { get; }
 
-        public IEnumerable<IIndexValueType> ValueTypes => _indexFieldValueTypes.ValueTypes;
+        public IEnumerable<IIndexValueType> ValueTypes => _fieldValueTypeCollection.ValueTypes;
 
         public IIndexValueType GetValueType(string fieldName)
         {
-            return _indexFieldValueTypes.GetValueType(fieldName);
+            return _fieldValueTypeCollection.GetValueType(fieldName);
         }
     }
 

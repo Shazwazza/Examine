@@ -29,15 +29,15 @@ namespace Examine
         /// Creates a search criteria instance as required by the implementation
         /// </summary>
         /// <returns></returns>
-        ISearchCriteria CreateSearchCriteria();
+        ISearchCriteria CreateCriteria();
 
-        ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
+        ISearchCriteria CreateCriteria(BooleanOperation defaultOperation);
 
         /// <summary>
         /// Creates a search criteria instance as required by the implementation
         /// </summary>
         /// <param name="type">The type of index (i.e. Media or Content )</param>
-        ISearchCriteria CreateSearchCriteria(string type);
+        ISearchCriteria CreateCriteria(string type);
 
         /// <summary>
         /// Creates a search criteria instance as required by the implementation
@@ -47,6 +47,6 @@ namespace Examine
         /// <returns>
         /// An instance of <see cref="Examine.SearchCriteria.ISearchCriteria"/>
         /// </returns>
-        ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
+        ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation);
     }
 }

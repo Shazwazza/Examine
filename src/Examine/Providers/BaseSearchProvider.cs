@@ -57,14 +57,14 @@ namespace Examine.Providers
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
         /// <returns></returns>
-        public abstract ISearchCriteria CreateSearchCriteria();
+        public abstract ISearchCriteria CreateCriteria();
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
         /// <param name="type">The type of data in the index.</param>
         /// <returns>A blank SearchCriteria</returns>
-        public abstract ISearchCriteria CreateSearchCriteria(string type);
+        public abstract ISearchCriteria CreateCriteria(string type);
 
         ///<summary>
         /// Creates an instance of SearchCriteria for the provider
@@ -72,7 +72,7 @@ namespace Examine.Providers
         ///<param name="defaultOperation"></param>
         ///<returns></returns>
 		
-		public abstract ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation);
+		public abstract ISearchCriteria CreateCriteria(BooleanOperation defaultOperation);
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
@@ -81,7 +81,7 @@ namespace Examine.Providers
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>
 		
-		public abstract ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation);
+		public abstract ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation);
 
         #endregion
     }

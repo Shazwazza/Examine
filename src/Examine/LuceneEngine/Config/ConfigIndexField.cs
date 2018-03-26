@@ -9,7 +9,7 @@ namespace Examine.LuceneEngine.Config
     ///<summary>
     /// A configuration item representing a field to index
     ///</summary>
-    public sealed class ConfigIndexField : ConfigurationElement, IIndexField
+    public sealed class ConfigIndexField : ConfigurationElement
     {
         [ConfigurationProperty("Name", IsRequired = true)]
         public string Name
@@ -32,7 +32,7 @@ namespace Examine.LuceneEngine.Config
             set => this["Type"] = value;
         }
 
-        public bool Equals(IndexField other)
+        public bool Equals(ConfigIndexField other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -44,7 +44,7 @@ namespace Examine.LuceneEngine.Config
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((IndexField)obj);
+            return Equals((ConfigIndexField)obj);
         }
 
         public override int GetHashCode()

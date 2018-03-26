@@ -32,42 +32,7 @@ namespace UmbracoExamine
     /// </summary>
     internal class UmbracoContentIndexer : BaseUmbracoIndexer
     {
-        #region Constructors
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        public UmbracoContentIndexer()
-            : base() { }
-
-        /// <summary>
-        /// Constructor to allow for creating an indexer at runtime
-        /// </summary>
-        /// <param name="indexerData"></param>
-        /// <param name="indexPath"></param>
-        /// <param name="dataService"></param>
-        /// <param name="analyzer"></param>
-		
-		public UmbracoContentIndexer(IIndexCriteria indexerData, DirectoryInfo indexPath, IDataService dataService, Analyzer analyzer, bool async)
-            : base(indexerData, indexPath, dataService, analyzer, async) { }
-
-		/// <summary>
-		/// Constructor to allow for creating an indexer at runtime
-		/// </summary>
-		/// <param name="indexerData"></param>
-		/// <param name="luceneDirectory"></param>
-		/// <param name="dataService"></param>
-		/// <param name="analyzer"></param>
-		/// <param name="async"></param>
-		
-		public UmbracoContentIndexer(IIndexCriteria indexerData, Lucene.Net.Store.Directory luceneDirectory, IDataService dataService, Analyzer analyzer, bool async)
-			: base(indexerData, luceneDirectory, dataService, analyzer, async) { }
-
-        
-        public UmbracoContentIndexer(IIndexCriteria indexerData, IndexWriter writer, IDataService dataService, bool async)
-            : base(indexerData, writer, dataService, async) { }
-
-        #endregion
 
         #region Constants & Fields
 
@@ -75,7 +40,7 @@ namespace UmbracoExamine
         /// Used to store the path of a content object
         /// </summary>
         public const string IndexPathFieldName = "__Path";
-        public const string NodeTypeAliasFieldName = "__NodeTypeAlias";
+        
 
         /// <summary>
         /// A type that defines the type of index for each Umbraco field (non user defined fields)
@@ -201,17 +166,17 @@ namespace UmbracoExamine
         /// When a content node is deleted, we also need to delete it's children from the index so we need to perform a 
         /// custom Lucene search to find all decendents and create Delete item queues for them too.
         /// </remarks>
-        /// <param name="nodeId">ID of the node to delete</param>
-        public override void DeleteFromIndex(string nodeId)
+        /// <param name="itemId">ID of the node to delete</param>
+        public override void DeleteFromIndex(string itemId)
         {
             //find all descendants based on path
-            var descendantPath = string.Format(@"\-1\,*{0}\,*", nodeId);
+            var descendantPath = string.Format(@"\-1\,*{0}\,*", itemId);
             var rawQuery = string.Format("{0}:{1}", IndexPathFieldName, descendantPath);
             var c = GetSearcher().CreateSearchCriteria();
             var filtered = c.RawQuery(rawQuery);
             var results = GetSearcher().Search(filtered);
 
-            DataService.LogService.AddVerboseLog(int.Parse(nodeId), string.Format("DeleteFromIndex with query: {0} (found {1} results)", rawQuery, results.Count()));
+            DataService.LogService.AddVerboseLog(int.Parse(itemId), string.Format("DeleteFromIndex with query: {0} (found {1} results)", rawQuery, results.Count()));
 
             //need to create a delete queue item for each one found
             foreach (var r in results)
@@ -220,7 +185,7 @@ namespace UmbracoExamine
                 //SaveDeleteIndexQueueItem(new KeyValuePair<string, string>(IndexNodeIdFieldName, r.Id.ToString()));
             }
 
-            base.DeleteFromIndex(nodeId);
+            base.DeleteFromIndex(itemId);
         }
         #endregion
 
@@ -251,6 +216,17 @@ namespace UmbracoExamine
             //}
 
             base.OnGatheringNodeData(e);
+
+            //ensure the special path and node type alias fields is added
+            if (e.IndexItem.ValueSet.Values.TryGetValue("path", out var pathVals))
+            {
+                var path = pathVals.FirstOrDefault()?.ToString();
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    e.IndexItem.ValueSet.Add(IndexPathFieldName, path);
+                }
+            }
+            
         }
 
         /// <summary>
@@ -261,41 +237,13 @@ namespace UmbracoExamine
         protected override IndexFieldValueTypes CreateFieldValueTypes(Directory x)
         {
             //add custom field definition
-            IndexFieldDefinitions.TryAdd(NodeTypeAliasFieldName, new IndexField
+            FieldDefinitionCollection.TryAdd(NodeTypeAliasFieldName, new IndexField
             {
                 Name = NodeTypeAliasFieldName,
-                Type = "culture-invariant-whitespace"
+                Type = FieldDefinitionTypes.InvariantCultureIgnoreCase
             });
             var result = base.CreateFieldValueTypes(x);
-            //now add the custom value type
-            result.ValueTypeFactories.TryAdd("culture-invariant-whitespace", s => new FullTextType(s, customAnalyzer: new CultureInvariantWhitespaceAnalyzer()));
             return result;
-        }
-
-        /// <summary>
-        /// Overridden to add the path property to the special fields to index
-        /// </summary>
-        /// <param name="d"></param>
-        /// <param name="valueSet"></param>
-        protected override void AddSpecialFieldsToDocument(Document d, ValueSet valueSet)
-        {
-            base.AddSpecialFieldsToDocument(d, valueSet);
-
-            //ensure the special path and node type alis fields is added to the dictionary to be saved to file
-            if (valueSet.Values.TryGetValue("path", out var pathVals))
-            {
-                var path = pathVals.FirstOrDefault()?.ToString();
-                if (!string.IsNullOrWhiteSpace(path))
-                {
-                    var pathValueType = IndexFieldValueTypes.GetValueType(IndexPathFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
-                    pathValueType.AddValue(d, path);
-                }
-            }
-            if (!string.IsNullOrWhiteSpace(valueSet.ItemType))
-            {
-                var nodeTypeValueType = IndexFieldValueTypes.GetValueType(NodeTypeAliasFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
-                nodeTypeValueType.AddValue(d, valueSet.ItemType.ToLowerInvariant());
-            }
         }
 
         /// <summary>

@@ -25,11 +25,5 @@ namespace Examine.SearchCriteria
         /// <returns></returns>
         ISearchCriteria RawQuery(string query);
 
-        /// <summary>
-        /// Sets the max count for the result
-        /// </summary>
-        /// <param name="maxCount"></param>
-        /// <returns></returns>
-        ISearchCriteria MaxCount(int maxCount);
     }
 }

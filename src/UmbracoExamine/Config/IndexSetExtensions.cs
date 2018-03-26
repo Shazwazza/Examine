@@ -24,7 +24,7 @@ namespace UmbracoExamine.Config
         /// <param name="set"></param>
         /// <param name="svc"></param>
         /// <returns></returns>
-        public static IIndexCriteria ToIndexCriteria(this IndexSet set, IDataService svc)
+        public static ConfigIndexCriteria ToIndexCriteria(this IndexSet set, IDataService svc)
         {
             if (set.IndexUserFields.Count == 0)
             {
@@ -52,9 +52,9 @@ namespace UmbracoExamine.Config
                 }
             }
 
-            return new IndexCriteria(
-                set.IndexAttributeFields.Cast<IIndexField>().ToArray(),
-                set.IndexUserFields.Cast<IIndexField>().ToArray(),
+            return new ConfigIndexCriteria(
+                set.IndexAttributeFields.Cast<ConfigIndexField>().Select(x => new FieldDefinition(x.Name, x.Type)).ToArray(),
+                set.IndexUserFields.Cast<ConfigIndexField>().Select(x => new FieldDefinition(x.Name, x.Type)).ToArray(),
                 set.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 set.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
                 set.IndexParentId);

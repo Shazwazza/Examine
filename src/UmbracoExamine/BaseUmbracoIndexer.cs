@@ -262,10 +262,10 @@ namespace UmbracoExamine
             var sb = new StringBuilder();
 
             //create the xpath statement to match node type aliases if specified
-            if (IndexerData.IncludeNodeTypes.Any())
+            if (IndexerData.IncludeItemTypes.Any())
             {
                 sb.Append("(");
-                foreach (var field in IndexerData.IncludeNodeTypes)
+                foreach (var field in IndexerData.IncludeItemTypes)
                 {
                     //this can be used across both schemas
                     const string nodeTypeAlias = "(@nodeTypeAlias='{0}' or (count(@nodeTypeAlias)=0 and name()='{0}'))";

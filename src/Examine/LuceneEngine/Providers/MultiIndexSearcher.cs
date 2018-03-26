@@ -160,7 +160,7 @@ namespace Examine.LuceneEngine.Providers
 
         private readonly DisposableSearcher _disposer;
 
-        private class DisposableSearcher : DisposableObject
+        private class DisposableSearcher : DisposableObjectSlim
         {
             private readonly MultiIndexSearcher _searcher;
 

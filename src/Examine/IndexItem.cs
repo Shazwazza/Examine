@@ -6,9 +6,14 @@ namespace Examine
     /// <summary>
     /// Represents an item going into the index
     /// </summary>
-    public class IndexItem
+    public struct IndexItem
     {
-        private IndexItem(){}
+        private IndexItem(string id, string category)
+        {
+            Id = id;
+            IndexCategory = category;
+            ValueSet = default(ValueSet);
+        }
 
         /// <summary>
         /// Constructor
@@ -23,40 +28,19 @@ namespace Examine
 
         public static IndexItem ForCategory(string indexCategory)
         {
-            return new IndexItem {IndexCategory = indexCategory};
+            return new IndexItem(null, indexCategory);
         }
 
         public static IndexItem ForId(string id)
         {
-            return new IndexItem { Id = id };
+            return new IndexItem(id, null);
         }
         
-        ///// <summary>
-        ///// Initializes a new instance of the <see cref="IndexItem"/> class.
-        ///// </summary>
-        ///// <param name="data">The data.</param>
-        ///// <param name="type">The type.</param>
-        ///// <param name="id">The id.</param>
-        //public IndexItem(XElement data, string type, string id)
-        //{
-        //    DataToIndex = data;
-        //    IndexType = type;
-        //    Id = id;
-        //}
-
         /// <summary>
         /// Exposes the underlying ValueSet
         /// </summary>
         public ValueSet ValueSet { get; }
-
-        ///// <summary>
-        ///// Gets or sets the data.
-        ///// </summary>
-        ///// <value>
-        ///// The data.
-        ///// </value>
-        //public XElement DataToIndex { get; private set; }
-
+        
         /// <summary>
         /// Gets or sets the type of the index.
         /// </summary>

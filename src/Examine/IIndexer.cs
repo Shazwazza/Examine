@@ -24,8 +24,8 @@ namespace Examine
         /// <summary>
         /// Deletes a node from the index
         /// </summary>
-        /// <param name="nodeId">Node to delete</param>
-        void DeleteFromIndex(string nodeId);
+        /// <param name="itemId">Node to delete</param>
+        void DeleteFromIndex(string itemId);
         
         /// <summary>
         /// Re-indexes all data for the index type specified
@@ -37,14 +37,8 @@ namespace Examine
         /// Rebuilds the entire index from scratch for all index types
         /// </summary>
         void RebuildIndex();
-
-        ///// <summary>
-        ///// Gets/sets the index criteria to create the index with
-        ///// </summary>
-        ///// <value>The indexer data.</value>
-        //IIndexCriteria IndexerData { get; set; }
-
-        IndexFieldDefinitions IndexFieldDefinitions { get; }
+        
+        FieldDefinitionCollection FieldDefinitionCollection { get; }
 
         /// <summary>
         /// determines whether the index exsists or not

@@ -93,12 +93,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
         #region ISearchCriteria Members
-
-        /// <summary>
-        /// Get the maximum number of results to be easy
-        /// </summary>
-        public int MaxResults { get; private set; } = int.MaxValue;
-
+        
         /// <summary>
         /// The index category
         /// </summary>
@@ -472,18 +467,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             this.Query.Add(this._queryParser.Parse(query), this._occurrence);
             return this;
         }
-
-        /// <summary>
-        /// Set the Max number of items to return
-        /// </summary>
-        /// <param name="maxCount"></param>
-        /// <returns></returns>
-        public ISearchCriteria MaxCount(int maxCount)
-        {
-            MaxResults = maxCount;
-            return this;
-        }
-
+        
         /// <summary>
         /// Adds a true Lucene Query 
         /// </summary>
@@ -741,7 +725,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         protected internal IBooleanOperation IdInternal(string id, Occur occurrence)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndexer.NodeIdFieldName, id), occurrence);
+            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndexer.ItemIdFieldName, id), occurrence);
 
             return new LuceneBooleanOperation(this);
         }

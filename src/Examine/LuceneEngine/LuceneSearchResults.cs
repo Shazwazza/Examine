@@ -13,7 +13,7 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// An implementation of the search results returned from Lucene.Net
     /// </summary>
-    public class SearchResults : ISearchResults
+    public class LuceneSearchResults : ISearchResults
     {
         ///<summary>
         /// Returns an empty search result
@@ -27,35 +27,17 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Exposes the internal Lucene searcher
         /// </summary>
-        public Searcher LuceneSearcher
-        {
-            
-            get;
-            
-            private set;
-        }
+        public Searcher LuceneSearcher { get; }
 
         /// <summary>
         /// Exposes the internal lucene query to run the search
         /// </summary>
-        public Query LuceneQuery
-        {
-            
-            get;
-            
-            private set;
-        }
+        public Query LuceneQuery { get; }
 
-        public TopDocs TopDocs
-        {
-            
-            get;
-            
-            private set;
-        }
+        public TopDocs TopDocs { get; private set; }
 
-        
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
+
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
         {
             LuceneQuery = query;
 
@@ -64,7 +46,7 @@ namespace Examine.LuceneEngine
         }
 
         
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
         {
             LuceneQuery = query;
 
@@ -131,86 +113,33 @@ namespace Examine.LuceneEngine
         /// </summary>
         protected Dictionary<int, SearchResult> Docs = new Dictionary<int, SearchResult>();
 
-        // <summary>
+        /// <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
         /// </summary>
         /// <param name="docId">The doc id of the lucene document.</param>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-        
         protected SearchResult CreateSearchResult(int docId, Document doc, float score)
         {
-            string id = doc.Get("id");
-
-            if (string.IsNullOrEmpty(id))
-            {
-                id = doc.Get(LuceneIndexer.NodeIdFieldName);
-            }
-
-            var sr = new SearchResult
-            {
-                DocId = docId,
-                Id = int.Parse(id),
-                Score = score
-            };
-
-            var searchResult = PrepareSearchResult(sr, doc);
+            var searchResult = PrepareSearchResult(docId, score, doc);
             return searchResult;
         }
 
-        /// <summary>
-        /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
-        /// </summary>
-        /// <param name="doc">The doc to convert.</param>
-        /// <param name="score">The score.</param>
-        /// <returns>A populated search result object</returns>
-        
-        protected SearchResult CreateSearchResult(Document doc, float score)
-        {
-            string id = doc.Get("id");
-
-            if (string.IsNullOrEmpty(id))
-            {
-                id = doc.Get(LuceneIndexer.NodeIdFieldName);
-            }
-
-            var sr = new SearchResult
-            {
-                Id = int.Parse(id),
-                Score = score
-            };
-
-            var searchResult = PrepareSearchResult(sr, doc);
-            return searchResult;
-        }
-
-        
-        private SearchResult PrepareSearchResult(SearchResult sr, Document doc)
+        private SearchResult PrepareSearchResult(int docId, float score, Document doc)
         {
             //we can use lucene to find out the fields which have been stored for this particular document
             //I'm not sure if it'll return fields that have null values though
             var fields = doc.GetFields();
 
-            //ignore our internal fields though
-
-            foreach (var field in fields.Cast<Field>())
+            var id = doc.Get("id");
+            if (string.IsNullOrEmpty(id))
             {
-                var fieldName = field.Name;
-                var values = doc.GetValues(fieldName);
-
-                if (values.Length > 1)
-                {
-                    sr.MultiValueFields[fieldName] = values.ToList();
-                    //ensure the first value is added to the normal fields
-                    sr.Fields[fieldName] = values[0];
-                }
-                else if (values.Length > 0)
-                {
-                    sr.Fields[fieldName] = values[0];
-                }
+                id = doc.Get(LuceneIndexer.ItemIdFieldName);
             }
-
+            var sr = new SearchResult(id, docId, score,
+                fields.Cast<Field>().ToDictionary(field => field.Name, field => doc.GetValues(field.Name)));
+            
             return sr;
         }
 

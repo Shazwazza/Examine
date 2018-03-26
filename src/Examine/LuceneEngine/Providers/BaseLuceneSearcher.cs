@@ -13,8 +13,6 @@ using System.Linq;
 
 namespace Examine.LuceneEngine.Providers
 {
-
-
     ///<summary>
     /// Simple abstract class containing basic properties for Lucene searchers
     ///</summary>
@@ -110,7 +108,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>A blank SearchCriteria</returns>		
-		public override ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation)
+		public override ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation)
         {
             return CreateSearchCriteria(type, defaultOperation, DefaultLuceneAnalyzer, EnableLeadingWildcards);
         }
@@ -144,7 +142,7 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         public override ISearchResults Search(string searchText, bool useWildcards)
         {
-            var sc = this.CreateSearchCriteria();
+            var sc = this.CreateCriteria();
             return TextSearchAllFields(searchText, useWildcards, sc);
         }
 
@@ -193,7 +191,7 @@ namespace Examine.LuceneEngine.Providers
             var searcher = GetLuceneSearcher();
             if (searcher == null) return new EmptySearchResults();
 
-            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);
+            var pagesResults = new LuceneSearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);
             return pagesResults;
         }
 
@@ -262,7 +260,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         public override ISearchResults Search(string searchText, bool useWildcards, string indexType)
         {
-            var sc = CreateSearchCriteria(indexType);
+            var sc = CreateCriteria(indexType);
             return TextSearchAllFields(searchText, useWildcards, sc);
         }
 
@@ -271,23 +269,23 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
         
-        public override ISearchCriteria CreateSearchCriteria()
+        public override ISearchCriteria CreateCriteria()
         {
-            return CreateSearchCriteria(string.Empty, BooleanOperation.And);
+            return CreateCriteria(string.Empty, BooleanOperation.And);
         }
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
-        public override ISearchCriteria CreateSearchCriteria(string type)
+        public override ISearchCriteria CreateCriteria(string type)
         {
-            return CreateSearchCriteria(type, BooleanOperation.And);
+            return CreateCriteria(type, BooleanOperation.And);
         }
 
 		
-        public override ISearchCriteria CreateSearchCriteria(BooleanOperation defaultOperation)
+        public override ISearchCriteria CreateCriteria(BooleanOperation defaultOperation)
         {
-            return CreateSearchCriteria(string.Empty, defaultOperation);
+            return CreateCriteria(string.Empty, defaultOperation);
         }
 
 

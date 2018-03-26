@@ -125,41 +125,20 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <summary>
         /// Escapes the string within Lucene
         /// </summary>
-        /// <param name="s">The string to wildcard.</param>
+        /// <param name="s">The string to escape.</param>
         /// <returns>An IExamineValue for the required operation</returns>
-        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
-        
+        /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>        
         public static IExamineValue Escape(this string s)
         {
             if (String.IsNullOrEmpty(s))
                 throw new ArgumentException("Supplied string is null or empty.", "s");
-            return new ExamineValue(Examineness.Escaped, QueryParser.Escape(s));
+
+            //NOTE: You would be tempted to use QueryParser.Escape(s) here but that is incorrect because
+            // inside of LuceneSearchCriteria when we detect Escaped, we use a PhraseQuery which automatically
+            // escapes invalid chars.
+
+            return new ExamineValue(Examineness.Escaped, s);
         }
-
-        ///// <summary>
-        ///// Sets up an <see cref="IExamineValue"/> for an additional Examiness
-        ///// </summary>
-        ///// <param name="examineValue">The IExamineValue to continue working with.</param>
-        ///// <param name="s">The string to postfix.</param>
-        ///// <returns>Combined strings</returns>
-        //public static string Then(this IExamineValue examineValue, string s)
-        //{
-        //    if (examineValue == null)
-        //        throw new ArgumentNullException("examineValue", "examineValue is null.");
-        //    if (String.IsNullOrEmpty(s))
-        //        throw new ArgumentException("Supplied string is null or empty.", "s");
-        //    return examineValue.Value + s;
-        //}
-
-        ///// <summary>
-        ///// Sets up an <see cref="IExamineValue"/> for an additional Examiness
-        ///// </summary>
-        ///// <param name="examineValue">The IExamineValue to continue working with.</param>
-        ///// <returns>Combined strings</returns>
-        //public static string Then(this IExamineValue examineValue)
-        //{
-        //    return Then(examineValue, string.Empty);
-        //}
 
         /// <summary>
         /// Converts an Examine boolean operation to a Lucene representation

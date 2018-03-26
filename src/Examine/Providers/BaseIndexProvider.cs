@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration.Provider;
 using System.Linq;
 using System.Security;
 using Examine;
 using System.Xml.Linq;
+using Examine.LuceneEngine;
 
 namespace Examine.Providers
 {
@@ -17,13 +19,14 @@ namespace Examine.Providers
         /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
         /// </summary>
         protected BaseIndexProvider() { }
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
+        /// Constructor for creating an indexer at runtime
         /// </summary>
-        /// <param name="indexerData">The indexer data.</param>
-        protected BaseIndexProvider(IIndexCriteria indexerData)
+        /// <param name="fieldDefinitions"></param>
+        protected BaseIndexProvider(IEnumerable<FieldDefinition> fieldDefinitions)
         {
-            IndexerData = indexerData;
+            FieldDefinitionsInternal = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
         }
 
         /// <summary>
@@ -40,26 +43,17 @@ namespace Examine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-        
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             base.Initialize(name, config);
             
         }
 
-        
         #region IIndexer members
 
         public abstract ISearcher GetSearcher();
         public abstract void IndexItems(IEnumerable<ValueSet> values);
-
-        ///// <summary>
-        ///// Forces a particular XML node to be reindexed
-        ///// </summary>
-        ///// <param name="node">XML node to reindex</param>
-        ///// <param name="type">Type of index to use</param>
-        //public abstract void ReIndexNode(XElement node, string type);
-
+        
         /// <summary>
         /// Deletes a node from the index
         /// </summary>
@@ -76,23 +70,13 @@ namespace Examine.Providers
         /// Rebuilds the entire index from scratch for all index types
         /// </summary>
         public abstract void RebuildIndex();
+        
+        private FieldDefinitionCollection _fieldDefinitionCollection;
 
         /// <summary>
-        /// Gets/sets the index criteria to create the index with
+        /// This is set in the ctor, however for the provider model this will be set during the provider initialization
         /// </summary>
-        public IIndexCriteria IndexerData
-        {
-            get => _indexerData;
-            set
-            {
-                _indexerData = value;
-                //reset the combined data 
-                _indexFieldDefinitions = null;
-            }
-        }
-
-        private IndexFieldDefinitions _indexFieldDefinitions;
-        private IIndexCriteria _indexerData;
+        internal IEnumerable<FieldDefinition> FieldDefinitionsInternal { get; set; }
 
         /// <summary>
         /// Defines the mappings for field types to index field types
@@ -100,7 +84,7 @@ namespace Examine.Providers
         /// <remarks>
         /// This is mutable but changes will only work prior to accessing the resolved value types
         /// </remarks>
-        public IndexFieldDefinitions IndexFieldDefinitions => _indexFieldDefinitions ?? (_indexFieldDefinitions = new IndexFieldDefinitions(IndexerData?.UserFields.Concat(IndexerData.StandardFields.ToList()) ?? Enumerable.Empty<IIndexField>()));
+        public FieldDefinitionCollection FieldDefinitionCollection => _fieldDefinitionCollection ?? (_fieldDefinitionCollection = new FieldDefinitionCollection(FieldDefinitionsInternal));
 
         /// <summary>
         /// Check if the index exists
