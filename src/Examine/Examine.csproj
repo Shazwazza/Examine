@@ -132,8 +132,9 @@
     <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
+    <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
-    <Compile Include="LuceneEngine\Indexing\LowercaseAccentRemovingWhitespaceAnalyzer.cs" />
+    <Compile Include="LuceneEngine\CultureInvariantWhitespaceAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\DateTimeType.cs" />
     <Compile Include="LuceneEngine\Indexing\DoubleType.cs" />
     <Compile Include="LuceneEngine\Indexing\FullTextType.cs" />

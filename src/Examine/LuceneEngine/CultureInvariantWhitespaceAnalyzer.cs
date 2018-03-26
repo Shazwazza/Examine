@@ -1,0 +1,46 @@
+﻿using System.IO;
+using Lucene.Net.Analysis;
+
+namespace Examine.LuceneEngine
+{
+    /// <summary>
+    /// A whitespace analyzer that can be configured to be culture invariant
+    /// </summary>
+    public sealed class CultureInvariantWhitespaceAnalyzer : Analyzer
+    {
+        private readonly bool _caseInsensitive;
+        private readonly bool _ignoreLanguageAccents;
+
+        public CultureInvariantWhitespaceAnalyzer(bool caseInsensitive = true, bool ignoreLanguageAccents = true)
+        {
+            _caseInsensitive = caseInsensitive;
+            _ignoreLanguageAccents = ignoreLanguageAccents;
+        }
+
+        public override TokenStream TokenStream(string fieldName, TextReader reader)
+        {
+            TokenStream result = new LetterOrDigitTokenizer(reader);
+            if (_ignoreLanguageAccents)
+                result = new ASCIIFoldingFilter(result);
+            if (_caseInsensitive)
+                result = new LowerCaseFilter(result);            
+            return result;
+        }
+
+        private class LetterOrDigitTokenizer : CharTokenizer
+        {
+            public LetterOrDigitTokenizer(TextReader tr)
+                : base(tr)
+            {
+            }
+
+            protected override bool IsTokenChar(char p)
+            {
+                var include = char.IsLetterOrDigit(p);
+                return include;
+            }
+        }
+
+    }
+
+}

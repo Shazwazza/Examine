@@ -17,7 +17,7 @@ namespace Examine
         public IndexItem(ValueSet valueSet)
         {
             ValueSet = valueSet;
-            IndexCategory = ValueSet.IndexCategory;
+            IndexCategory = ValueSet.Category;
             Id = ValueSet.Id.ToString(CultureInfo.InvariantCulture);
         }
 

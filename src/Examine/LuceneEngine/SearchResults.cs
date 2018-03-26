@@ -145,7 +145,7 @@ namespace Examine.LuceneEngine
 
             if (string.IsNullOrEmpty(id))
             {
-                id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
+                id = doc.Get(LuceneIndexer.NodeIdFieldName);
             }
 
             var sr = new SearchResult
@@ -172,7 +172,7 @@ namespace Examine.LuceneEngine
 
             if (string.IsNullOrEmpty(id))
             {
-                id = doc.Get(LuceneIndexer.IndexNodeIdFieldName);
+                id = doc.Get(LuceneIndexer.NodeIdFieldName);
             }
 
             var sr = new SearchResult

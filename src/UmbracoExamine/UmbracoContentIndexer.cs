@@ -16,11 +16,13 @@ using umbraco.cms.businesslogic;
 using UmbracoExamine.DataServices;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Config;
+using Examine.LuceneEngine.Indexing;
 using UmbracoExamine.Config;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using umbraco.BasePages;
+using Directory = Lucene.Net.Store.Directory;
 
 
 namespace UmbracoExamine
@@ -249,20 +251,25 @@ namespace UmbracoExamine
             //}
 
             base.OnGatheringNodeData(e);
+        }
 
-            //ensure the special path and node type alis fields is added to the dictionary to be saved to file
-            if (e.IndexItem.ValueSet.Values.TryGetValue("path", out var pathVals))
+        /// <summary>
+        /// Override to set a custom field value type for special fields
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        protected override IndexFieldValueTypes CreateFieldValueTypes(Directory x)
+        {
+            //add custom field definition
+            IndexFieldDefinitions.TryAdd(NodeTypeAliasFieldName, new IndexField
             {
-                var path = pathVals.FirstOrDefault()?.ToString();
-                if (!string.IsNullOrWhiteSpace(path))
-                    e.IndexItem.ValueSet.Add(IndexPathFieldName, path);
-            }
-            if (e.IndexItem.ValueSet.Values.TryGetValue("nodeTypeAlias", out var nodeTypeAliasVals))
-            {
-                var nodeTypeAlias = nodeTypeAliasVals.FirstOrDefault()?.ToString();
-                if (!string.IsNullOrWhiteSpace(nodeTypeAlias))
-                    e.IndexItem.ValueSet.Add(NodeTypeAliasFieldName, nodeTypeAlias);
-            }
+                Name = NodeTypeAliasFieldName,
+                Type = "culture-invariant-whitespace"
+            });
+            var result = base.CreateFieldValueTypes(x);
+            //now add the custom value type
+            result.ValueTypeFactories.TryAdd("culture-invariant-whitespace", s => new FullTextType(s, customAnalyzer: new CultureInvariantWhitespaceAnalyzer()));
+            return result;
         }
 
         /// <summary>
@@ -274,20 +281,20 @@ namespace UmbracoExamine
         {
             base.AddSpecialFieldsToDocument(d, valueSet);
 
-            //TODO: Pretty sure these will have alraedy been added!
-            foreach (var s in new[] { IndexPathFieldName, NodeTypeAliasFieldName })
+            //ensure the special path and node type alis fields is added to the dictionary to be saved to file
+            if (valueSet.Values.TryGetValue("path", out var pathVals))
             {
-                if (d.GetField(s) == null)
+                var path = pathVals.FirstOrDefault()?.ToString();
+                if (!string.IsNullOrWhiteSpace(path))
                 {
-                    var rawValueType = IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw](s);
-                    if (valueSet.Values.TryGetValue(s, out var values))
-                    {
-                        foreach (var o in values)
-                        {
-                            rawValueType.AddValue(d, o);
-                        }
-                    }
+                    var pathValueType = IndexFieldValueTypes.GetValueType(IndexPathFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
+                    pathValueType.AddValue(d, path);
                 }
+            }
+            if (!string.IsNullOrWhiteSpace(valueSet.ItemType))
+            {
+                var nodeTypeValueType = IndexFieldValueTypes.GetValueType(NodeTypeAliasFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
+                nodeTypeValueType.AddValue(d, valueSet.ItemType.ToLowerInvariant());
             }
         }
 

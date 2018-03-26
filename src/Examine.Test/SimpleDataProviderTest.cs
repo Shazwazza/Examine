@@ -35,8 +35,8 @@ namespace Examine.Test
             Assert.AreEqual(5, r.NumDocs());
 
             //test for the special fields to ensure they are there:
-            Assert.AreEqual(1, fields.Count(x => x == LuceneIndexer.IndexNodeIdFieldName));
-            Assert.AreEqual(1, fields.Count(x => x == LuceneIndexer.IndexTypeFieldName));
+            Assert.AreEqual(1, fields.Count(x => x == LuceneIndexer.NodeIdFieldName));
+            Assert.AreEqual(1, fields.Count(x => x == LuceneIndexer.CategoryFieldName));
 
         }
 

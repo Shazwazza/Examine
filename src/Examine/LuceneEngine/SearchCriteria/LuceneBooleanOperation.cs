@@ -84,9 +84,9 @@ namespace Examine.LuceneEngine.SearchCriteria
 
                 //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), Occur.MUST);
 
-                if (!string.IsNullOrEmpty(this._search.SearchIndexType))
+                if (!string.IsNullOrEmpty(this._search.Category))
                 {
-                    this._search.FieldInternal(LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType), Occur.MUST);
+                    this._search.FieldInternal(LuceneIndexer.CategoryFieldName, new ExamineValue(Examineness.Explicit, this._search.Category), Occur.MUST);
                 }
 
                 //ensure we don't compile twice!
@@ -95,7 +95,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
             return this._search;
 
-            //if (!_hasCompiled && !string.IsNullOrEmpty(this._search.SearchIndexType))
+            //if (!_hasCompiled && !string.IsNullOrEmpty(this._search.Category))
             //{
             //    var query = this._search.Query;
 
@@ -105,7 +105,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             //    //this.search.query.Add(this.search.queryParser.Parse("(" + query.ToString() + ")"), Occur.MUST);
 
             //    this._search.FieldInternal(
-            //        LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.SearchIndexType), Occur.MUST,
+            //        LuceneIndexer.IndexTypeFieldName, new ExamineValue(Examineness.Explicit, this._search.Category), Occur.MUST,
             //        //Don't use the QueryParser to create this query, this is an explit query and Depending on the Query Parser used this could muck things up:
             //        // https://github.com/Shazwazza/Examine/issues/54
             //        false);

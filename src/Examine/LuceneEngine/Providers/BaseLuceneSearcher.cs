@@ -83,7 +83,7 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                DefaultLuceneAnalyzer = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
+                DefaultLuceneAnalyzer = new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
             }
 
             if (config["enableLeadingWildcard"] != null)

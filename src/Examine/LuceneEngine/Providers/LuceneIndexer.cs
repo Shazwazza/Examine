@@ -64,13 +64,13 @@ namespace Examine.LuceneEngine.Providers
             WorkingFolder = workingFolder;
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
 
-            IndexingAnalyzer = analyzer;
+            LuceneAnalyzer = analyzer;
 
             RunAsync = async;
 
             var directory = InitializeDirectory();
             //initialize the field types
-            IndexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(directory, x => new IndexFieldValueTypes(FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions));
+            IndexFieldValueTypes = FieldValueTypes.Current.InitializeFieldValueTypes(directory, CreateFieldValueTypes);
 
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
@@ -93,13 +93,13 @@ namespace Examine.LuceneEngine.Providers
             WorkingFolder = null;
             LuceneIndexFolder = null;
 
-            IndexingAnalyzer = analyzer;
+            LuceneAnalyzer = analyzer;
 
             RunAsync = async;
 
             _directory = luceneDirectory;
             //initialize the field types
-            IndexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(_directory, x => new IndexFieldValueTypes(FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions));
+            IndexFieldValueTypes = FieldValueTypes.Current.InitializeFieldValueTypes(_directory, CreateFieldValueTypes);
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
         }
@@ -120,11 +120,11 @@ namespace Examine.LuceneEngine.Providers
 
             _writer = writer;
             //initialize the field types
-            IndexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(_writer.Directory, x => new IndexFieldValueTypes(FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions));
+            IndexFieldValueTypes = FieldValueTypes.Current.InitializeFieldValueTypes(_writer.Directory, CreateFieldValueTypes);
             WorkingFolder = null;
             LuceneIndexFolder = null;
 
-            IndexingAnalyzer = writer.Analyzer;
+            LuceneAnalyzer = writer.Analyzer;
 
             RunAsync = async;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
@@ -228,20 +228,20 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            var directory = InitializeDirectory();
-            //initialize the field types
-            IndexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(directory, x => new IndexFieldValueTypes(FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions));
-
             if (config["analyzer"] != null)
             {
                 //this should be a fully qualified type
                 var analyzerType = TypeHelper.FindType(config["analyzer"]);
-                IndexingAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+                LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
             }
             else
             {
-                IndexingAnalyzer = new StandardAnalyzer(Version.LUCENE_29);
+                LuceneAnalyzer = new CultureInvariantStandardAnalyzer(Version.LUCENE_30);
             }
+
+            var directory = InitializeDirectory();
+            //initialize the field types
+            IndexFieldValueTypes = FieldValueTypes.Current.InitializeFieldValueTypes(directory, CreateFieldValueTypes);
 
             RunAsync = true;
             if (config["runAsync"] != null)
@@ -273,14 +273,14 @@ namespace Examine.LuceneEngine.Providers
         public const string SortedFieldNamePrefix = "__Sort_";
 
         /// <summary>
-        /// Used to store a non-tokenized key for the document
+        /// Used to store a non-tokenized key for the document for the Category
         /// </summary>
-        public const string IndexTypeFieldName = "__IndexType";
+        public const string CategoryFieldName = "__IndexType";
 
         /// <summary>
         /// Used to store a non-tokenized type for the document
         /// </summary>
-        public const string IndexNodeIdFieldName = "__NodeId";
+        public const string NodeIdFieldName = "__NodeId";
 
         /// <summary>
         /// Used to perform thread locking
@@ -461,7 +461,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
         /// </summary>
-        public Analyzer IndexingAnalyzer
+        public Analyzer LuceneAnalyzer
         {
 
             get;
@@ -729,7 +729,7 @@ namespace Examine.LuceneEngine.Providers
                     IndexWriter.Unlock(dir);
                 }
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(dir, IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                writer = new IndexWriter(dir, LuceneAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
             }
             catch (Exception ex)
             {
@@ -848,6 +848,17 @@ namespace Examine.LuceneEngine.Providers
         }
 
         #region Protected
+
+        /// <summary>
+        /// Creates the <see cref="IndexFieldValueTypes"/> for this index
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        protected virtual IndexFieldValueTypes CreateFieldValueTypes(Directory x)
+        {
+            var result = new IndexFieldValueTypes(LuceneAnalyzer, FieldValueTypes.DefaultIndexValueTypes, IndexFieldDefinitions);
+            return result;
+        }
 
         ///// <summary>
         ///// This will add a number of nodes to the index
@@ -1150,7 +1161,7 @@ namespace Examine.LuceneEngine.Providers
             if (docArgs.Cancel)
                 return;
 
-            writer.UpdateDocument(new Term(IndexNodeIdFieldName, item.Id), d);
+            writer.UpdateDocument(new Term(NodeIdFieldName, item.Id), d);
         }
 
 
@@ -1643,7 +1654,7 @@ namespace Examine.LuceneEngine.Providers
         private IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
-            var writer = new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            var writer = new IndexWriter(d, LuceneAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
             return writer;
         }
 
@@ -1682,7 +1693,7 @@ namespace Examine.LuceneEngine.Providers
 
         private LuceneSearcher CreateSearcher()
         {
-            return new LuceneSearcher(GetIndexWriter(), IndexingAnalyzer);
+            return new LuceneSearcher(GetIndexWriter(), LuceneAnalyzer);
         }
         
         /// <summary>
@@ -1731,11 +1742,11 @@ namespace Examine.LuceneEngine.Providers
         protected virtual void AddSpecialFieldsToDocument(Document d, ValueSet valueSet)
         {
             //add node id
-            var nodeIdValueType = IndexFieldValueTypes.GetValueType(IndexNodeIdFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
+            var nodeIdValueType = IndexFieldValueTypes.GetValueType(NodeIdFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
             nodeIdValueType.AddValue(d, valueSet.Id);
             //add the index type
-            var indexTypeValueType = IndexFieldValueTypes.GetValueType(IndexTypeFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
-            indexTypeValueType.AddValue(d, valueSet.ItemType);
+            var indexTypeValueType = IndexFieldValueTypes.GetValueType(CategoryFieldName, IndexFieldValueTypes.ValueTypeFactories[FieldDefinitionTypes.Raw]);
+            indexTypeValueType.AddValue(d, valueSet.Category);
         }
 
         /// <summary>
@@ -1751,11 +1762,11 @@ namespace Examine.LuceneEngine.Providers
             //if the id is empty then remove the whole type
             if (string.IsNullOrEmpty(op.Item.Id))
             {
-                DeleteFromIndex(new Term(IndexTypeFieldName, op.Item.IndexCategory), iw, performCommit);
+                DeleteFromIndex(new Term(CategoryFieldName, op.Item.IndexCategory), iw, performCommit);
             }
             else
             {
-                DeleteFromIndex(new Term(IndexNodeIdFieldName, op.Item.Id), iw, performCommit);
+                DeleteFromIndex(new Term(NodeIdFieldName, op.Item.Id), iw, performCommit);
             }
 
             CommitCount++;

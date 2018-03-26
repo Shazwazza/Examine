@@ -22,7 +22,7 @@ namespace Examine.LuceneEngine.SearchCriteria
     /// <summary>
     /// This class is used to query against Lucene.Net
     /// </summary>
-    [DebuggerDisplay("SearchIndexType: {SearchIndexType}, LuceneQuery: {Query}")]
+    [DebuggerDisplay("Category: {Category}, LuceneQuery: {Query}")]
     public class LuceneSearchCriteria : ISearchCriteria
     {
         private readonly BaseLuceneSearcher _searcher;
@@ -59,7 +59,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             _searcher = searcher;
             _indexFieldValueTypes = indexFieldValueTypes;
 
-            SearchIndexType = type;
+            Category = type;
             Queries.Push(new BooleanQuery());
             this.BooleanOperation = occurance;
             this._queryParser = new CustomMultiFieldQueryParser(_luceneVersion, fields, analyzer);
@@ -89,7 +89,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public override string ToString()
         {
-            return $"{{ SearchIndexType: {this.SearchIndexType}, LuceneQuery: {Query} }}";
+            return $"{{ Category: {this.Category}, LuceneQuery: {Query} }}";
         }
 
         #region ISearchCriteria Members
@@ -99,7 +99,13 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         public int MaxResults { get; private set; } = int.MaxValue;
 
-        public string SearchIndexType
+        /// <summary>
+        /// The index category
+        /// </summary>
+        /// <remarks>
+        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
+        /// </remarks>
+        public string Category
         {
             get;
             protected set;
@@ -735,7 +741,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         protected internal IBooleanOperation IdInternal(string id, Occur occurrence)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndexer.IndexNodeIdFieldName, id), occurrence);
+            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndexer.NodeIdFieldName, id), occurrence);
 
             return new LuceneBooleanOperation(this);
         }

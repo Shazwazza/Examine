@@ -24,14 +24,25 @@ namespace Examine.LuceneEngine
 
         public static FieldValueTypes Current { get; } = new FieldValueTypes();
 
+        /// <summary>
+        /// Returns the <see cref="IndexFieldValueTypes"/> for the directory/index
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <returns></returns>
         public IndexFieldValueTypes GetIndexFieldValueTypes(Directory dir)
         {
-            return GetIndexFieldValueTypes(dir, false);
+            return GetIndexFieldValueTypes(dir, true);
         }
 
+        /// <summary>
+        /// Returns the <see cref="IndexFieldValueTypes"/> for the directory/index
+        /// </summary>
+        /// <param name="dir"></param>
+        /// <param name="throwIfEmpty"></param>
+        /// <returns></returns>
         public IndexFieldValueTypes GetIndexFieldValueTypes(Directory dir, bool throwIfEmpty)
         {
-            IndexFieldValueTypes d = null;
+            IndexFieldValueTypes d;
             if (!_fieldValueTypes.TryGetValue(dir.GetLockId(), out d))
             {
                 if (throwIfEmpty)
@@ -42,7 +53,7 @@ namespace Examine.LuceneEngine
             return d;
         }
 
-        public IndexFieldValueTypes GetIndexFieldValueTypes(Directory dir, Func<Directory, IndexFieldValueTypes> factory)
+        public IndexFieldValueTypes InitializeFieldValueTypes(Directory dir, Func<Directory, IndexFieldValueTypes> factory)
         {
             var resolved = _fieldValueTypes.GetOrAdd(dir.GetLockId(), s => factory(dir));
             return resolved;

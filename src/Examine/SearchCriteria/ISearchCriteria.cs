@@ -11,7 +11,7 @@ namespace Examine.SearchCriteria
         /// <summary>
         /// Indicates the type of data to search on
         /// </summary>
-        string SearchIndexType { get; }
+        string Category { get; }
 
         /// <summary>
         /// Passes a text string which is preformatted for the underlying search API. Examine will not modify this

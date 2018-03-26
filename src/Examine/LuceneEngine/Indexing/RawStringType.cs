@@ -5,7 +5,7 @@ namespace Examine.LuceneEngine.Indexing
 {
 
     /// <summary>
-    /// Indexes a raw string value - not analyzed, no normas
+    /// Indexes a raw string value - not analyzed, no norms
     /// </summary>
     public class RawStringType : IndexValueTypeBase
     {

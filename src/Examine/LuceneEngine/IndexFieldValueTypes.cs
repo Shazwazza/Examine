@@ -2,13 +2,22 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Examine.LuceneEngine.Indexing;
+using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine
 {
     public class IndexFieldValueTypes
     {
-        public IndexFieldValueTypes(IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types, IndexFieldDefinitions indexFieldDefinitions)
+        /// <summary>
+        /// Returns the PerFieldAnalyzerWrapper
+        /// </summary>
+        internal PerFieldAnalyzerWrapper Analyzer { get; private set; }
+
+        public IndexFieldValueTypes(
+            Analyzer defaultAnalyzer,
+            IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types, IndexFieldDefinitions indexFieldDefinitions)
         {
+            Analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer);
             foreach (var type in types)
             {
                 ValueTypeFactories.TryAdd(type.Key, type.Value);
@@ -24,7 +33,7 @@ namespace Examine.LuceneEngine
                     if (!string.IsNullOrWhiteSpace(field.Value.Type) && ValueTypeFactories.TryGetValue(field.Value.Type, out var valueTypeFactory))
                     {
                         var valueType = valueTypeFactory(field.Key);
-                        //valueType.SetupAnalyzers(Analyzer);
+                        valueType.SetupAnalyzers(Analyzer);
                         result.TryAdd(valueType.FieldName, valueType);
                     }
                     else
@@ -32,7 +41,7 @@ namespace Examine.LuceneEngine
                         //Define the default!
                         var fulltext = ValueTypeFactories[field.Value.EnableSorting ? FieldDefinitionTypes.FullTextSortable : FieldDefinitionTypes.FullText];
                         var valueType = fulltext(field.Key);
-                        //valueType.SetupAnalyzers(Analyzer);
+                        valueType.SetupAnalyzers(Analyzer);
                         result.TryAdd(valueType.FieldName, valueType);
                     }
                 }
@@ -52,7 +61,7 @@ namespace Examine.LuceneEngine
             return _resolvedValueTypes.Value.GetOrAdd(fieldName, n =>
             {
                 var t = indexValueTypeFactory(n);
-                //t.SetupAnalyzers(Analyzer);
+                t.SetupAnalyzers(Analyzer);
                 return t;
             });
         }

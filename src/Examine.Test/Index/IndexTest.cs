@@ -95,7 +95,7 @@ namespace Examine.Test.Index
         public void Can_Overwrite_Index_During_Indexing_Operation()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = IndexInitializer.GetUmbracoIndexer(writer))
             using (var customSearcher = IndexInitializer.GetUmbracoSearcher(writer))
             {
@@ -190,7 +190,7 @@ namespace Examine.Test.Index
         public void Index_Ensure_No_Duplicates_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = IndexInitializer.GetUmbracoIndexer(writer))
             using (var customSearcher = IndexInitializer.GetUmbracoSearcher(writer))
             {
@@ -256,7 +256,7 @@ namespace Examine.Test.Index
         public void Index_Read_And_Write_Ensure_No_Errors_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = IndexInitializer.GetUmbracoIndexer(writer))
             using (var customSearcher = IndexInitializer.GetUmbracoSearcher(writer))
             {
@@ -444,8 +444,8 @@ namespace Examine.Test.Index
                 Assert.AreEqual(10, r.NumDocs());
 
                 //test for the special fields to ensure they are there:
-                Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexNodeIdFieldName).Count());
-                Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.IndexTypeFieldName).Count());
+                Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.NodeIdFieldName).Count());
+                Assert.AreEqual(1, fields.Where(x => x == LuceneIndexer.CategoryFieldName).Count());
                 Assert.AreEqual(1, fields.Where(x => x == UmbracoContentIndexer.IndexPathFieldName).Count());
                 Assert.AreEqual(1, fields.Where(x => x == UmbracoContentIndexer.NodeTypeAliasFieldName).Count());
             }

@@ -12,33 +12,33 @@ namespace Examine.LuceneEngine.Indexing
     public class FullTextType : IndexValueTypeBase
     {
         private readonly bool _sortable;
-        public int TermExpansions { get; set; }
-
+        private readonly Analyzer _customAnalyzer;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, bool sortable = false)
+        /// <param name="customAnalyzer"></param>
+        public FullTextType(string fieldName, bool sortable = false, Analyzer customAnalyzer = null)
             : base(fieldName, true)
         {
             _sortable = sortable;
-            TermExpansions = 25;
+            _customAnalyzer = customAnalyzer;
         }
-
-        private readonly Analyzer _analyzer = new LowercaseAccentRemovingWhitespaceAnalyzer();
 
         public override void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
         {
             base.SetupAnalyzers(analyzer);
 
-            analyzer.AddAnalyzer(FieldName, _analyzer);
+            if (_customAnalyzer != null)
+                analyzer.AddAnalyzer(FieldName, _customAnalyzer);
         }
 
         protected override void AddSingleValue(Document doc, object value)
         {
-            doc.Add(new Field(FieldName, "" + value, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.WITH_POSITIONS_OFFSETS));
+            doc.Add(new Field(FieldName, "" + value, Field.Store.YES, Field.Index.ANALYZED, 
+                Field.TermVector.WITH_POSITIONS_OFFSETS /* This is required for the fast vector highligher but will double the field size */ ));
 
             if (_sortable)
             {
@@ -49,80 +49,80 @@ namespace Examine.LuceneEngine.Indexing
         }
 
 
-        public override Query GetQuery(string query, Searcher searcher)
-        {
-            //TODO: Fix this!
+        //public override Query GetQuery(string query, Searcher searcher)
+        //{
+        //    //TODO: Fix this!
 
-            if (query == null)
-            {
-                return null;
-            }
+        //    if (query == null)
+        //    {
+        //        return null;
+        //    }
 
-            var tokenStream = _analyzer.TokenStream("SearchText", new StringReader(query));
-            var termAttribute = tokenStream.AddAttribute<ITermAttribute>();
-
-
-            var bq = new BooleanQuery();
-            while (tokenStream.IncrementToken())
-            {
-                var term = termAttribute.Term;
-                var directMatch = new TermQuery(new Term(FieldName, term));
-                if (term.Length >= 3)
-                {
-                    directMatch.Boost = 10;
-
-                    var bqInner = new BooleanQuery();
-                    bqInner.Add(directMatch, Occur.SHOULD);
+        //    var tokenStream = _analyzer.TokenStream("SearchText", new StringReader(query));
+        //    var termAttribute = tokenStream.AddAttribute<ITermAttribute>();
 
 
-                    //var pq = new PrefixQuery(new Term(FieldName, term));
-                    //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-                    //foreach (var r in searcher.GetSubSearchers().Select(s => s.GetIndexReader()))
-                    //{
-                    //    bqInner.Add(pq.Rewrite(r), Occur.SHOULD);
-                    //}
+        //    var bq = new BooleanQuery();
+        //    while (tokenStream.IncrementToken())
+        //    {
+        //        var term = termAttribute.Term;
+        //        var directMatch = new TermQuery(new Term(FieldName, term));
+        //        if (term.Length >= 3)
+        //        {
+        //            directMatch.Boost = 10;
 
-                    //var pops = GetPopularTerms(term, searcher, facetsLoader).GetTopItems(TermExpansions,
-                    //    new LambdaComparer<KeyValuePair<string, double>>((x, y) =>x.Value.CompareTo(y.Value))).ToArray();
-
-                    //if (pops.Length > 0)
-                    //{
-                    //    var max = pops.Max(p => p.Value);
-                    //    foreach (var p in pops)
-                    //    {
-                    //        var pq = new TermQuery(new Term(FieldName, p.Key));
-                    //        pq.Boost = ((float) (p.Value/max));
-                    //        bqInner.Add(pq, Occur.SHOULD);
-                    //    }
-                    //}
-
-                    //TODO: This is where all kinds of awesome should happen, including spell checking etc.
-                    //var pq = new PrefixQuery(new Term(FieldName, term));
-
-                    //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-
-                    //foreach (var r in searcher.GetSubSearchers().Select(s => s.GetIndexReader()))
-                    //{
-                    //    bqInner.Add(pq.Rewrite(r), Occur.SHOULD);
-                    //}
-
-                    //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-                    //foreach (var ixs in searcher.GetSubSearchers())
-                    //{
-                    //    bqInner.Add(pq.Rewrite(ixs.GetIndexReader()), Occur.SHOULD);                        
-                    //}                    
+        //            var bqInner = new BooleanQuery();
+        //            bqInner.Add(directMatch, Occur.SHOULD);
 
 
-                    bq.Add(bqInner, Occur.MUST);
-                }
-                else
-                {
-                    bq.Add(directMatch, Occur.MUST);
-                }
-            }
+        //            //var pq = new PrefixQuery(new Term(FieldName, term));
+        //            //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+        //            //foreach (var r in searcher.GetSubSearchers().Select(s => s.GetIndexReader()))
+        //            //{
+        //            //    bqInner.Add(pq.Rewrite(r), Occur.SHOULD);
+        //            //}
 
-            return bq.Clauses.Count > 0 ? bq : null;
-        }
+        //            //var pops = GetPopularTerms(term, searcher, facetsLoader).GetTopItems(TermExpansions,
+        //            //    new LambdaComparer<KeyValuePair<string, double>>((x, y) =>x.Value.CompareTo(y.Value))).ToArray();
+
+        //            //if (pops.Length > 0)
+        //            //{
+        //            //    var max = pops.Max(p => p.Value);
+        //            //    foreach (var p in pops)
+        //            //    {
+        //            //        var pq = new TermQuery(new Term(FieldName, p.Key));
+        //            //        pq.Boost = ((float) (p.Value/max));
+        //            //        bqInner.Add(pq, Occur.SHOULD);
+        //            //    }
+        //            //}
+
+        //            //TODO: This is where all kinds of awesome should happen, including spell checking etc.
+        //            //var pq = new PrefixQuery(new Term(FieldName, term));
+
+        //            //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+
+        //            //foreach (var r in searcher.GetSubSearchers().Select(s => s.GetIndexReader()))
+        //            //{
+        //            //    bqInner.Add(pq.Rewrite(r), Occur.SHOULD);
+        //            //}
+
+        //            //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
+        //            //foreach (var ixs in searcher.GetSubSearchers())
+        //            //{
+        //            //    bqInner.Add(pq.Rewrite(ixs.GetIndexReader()), Occur.SHOULD);                        
+        //            //}                    
+
+
+        //            bq.Add(bqInner, Occur.MUST);
+        //        }
+        //        else
+        //        {
+        //            bq.Add(directMatch, Occur.MUST);
+        //        }
+        //    }
+
+        //    return bq.Clauses.Count > 0 ? bq : null;
+        //}
 
     }
 }

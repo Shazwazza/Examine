@@ -26,7 +26,7 @@ namespace Examine
         /// <remarks>
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </remarks>
-        public string IndexCategory { get; }
+        public string Category { get; }
 
         /// <summary>
         /// The item's node type (in umbraco terms this would be the doc type alias)
@@ -44,27 +44,27 @@ namespace Examine
         /// <param name="id"></param>
         /// <param name="itemType">
         /// The item's node type (in umbraco terms this would be the doc type alias)</param>
-        /// <param name="indexCategory">
+        /// <param name="category">
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values">
         /// An anonymous object converted to a dictionary
         /// </param>
-        public ValueSet(string id, string indexCategory, string itemType, object values)
-            : this(id, indexCategory, itemType, ObjectExtensions.ConvertObjectToDictionary(values)) { }
+        public ValueSet(string id, string category, string itemType, object values)
+            : this(id, category, itemType, ObjectExtensions.ConvertObjectToDictionary(values)) { }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="indexCategory">
+        /// <param name="category">
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values">
         /// An anonymous object converted to a dictionary
         /// </param>
-        public ValueSet(string id, string indexCategory, object values)
-            : this(id, indexCategory, string.Empty, ObjectExtensions.ConvertObjectToDictionary(values)) { }
+        public ValueSet(string id, string category, object values)
+            : this(id, category, string.Empty, ObjectExtensions.ConvertObjectToDictionary(values)) { }
 
         /// <summary>
         /// Constructor
@@ -72,23 +72,23 @@ namespace Examine
         /// <param name="id"></param>
         /// <param name="itemType">
         /// The item's node type (in umbraco terms this would be the doc type alias)</param>
-        /// <param name="indexCategory">
+        /// <param name="category">
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object>> values)
-            : this(id, indexCategory, itemType, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
+        public ValueSet(string id, string category, string itemType, IEnumerable<KeyValuePair<string, object>> values)
+            : this(id, category, itemType, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="indexCategory">
+        /// <param name="category">
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string indexCategory, IEnumerable<KeyValuePair<string, object>> values)
-            : this(id, indexCategory, string.Empty, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
+        public ValueSet(string id, string category, IEnumerable<KeyValuePair<string, object>> values)
+            : this(id, category, string.Empty, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
 
         /// <summary>
         /// Constructor
@@ -96,14 +96,14 @@ namespace Examine
         /// <param name="id"></param>
         /// <param name="itemType">
         /// The item's node type (in umbraco terms this would be the doc type alias)</param>
-        /// <param name="indexCategory">
+        /// <param name="category">
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string indexCategory, string itemType, Dictionary<string, List<object>> values = null)
+        public ValueSet(string id, string category, string itemType, Dictionary<string, List<object>> values = null)
         {
             Id = id;
-            IndexCategory = indexCategory;
+            Category = category;
             ItemType = itemType;
             Values = values ?? new Dictionary<string, List<object>>();
         }
@@ -112,12 +112,12 @@ namespace Examine
         /// Constructor
         /// </summary>
         /// <param name="id"></param>        
-        /// <param name="indexCategory">
+        /// <param name="category">
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string indexCategory, Dictionary<string, List<object>> values = null)
-            : this(id, indexCategory, string.Empty, values) { }
+        public ValueSet(string id, string category, Dictionary<string, List<object>> values = null)
+            : this(id, category, string.Empty, values) { }
 
         /// <summary>
         /// Constructor
@@ -125,12 +125,12 @@ namespace Examine
         /// <param name="id"></param>
         /// <param name="itemType">
         /// The item's node type (in umbraco terms this would be the doc type alias)</param>
-        /// <param name="indexCategory">
+        /// <param name="category">
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string indexCategory, string itemType, IEnumerable<KeyValuePair<string, object[]>> values)
-            : this(id, indexCategory, itemType, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
+        public ValueSet(string id, string category, string itemType, IEnumerable<KeyValuePair<string, object[]>> values)
+            : this(id, category, itemType, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
         {
 
         }
@@ -139,12 +139,12 @@ namespace Examine
         /// Constructor
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="indexCategory">
+        /// <param name="category">
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string indexCategory, IEnumerable<KeyValuePair<string, object[]>> values)
-            : this(id, indexCategory, string.Empty, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
+        public ValueSet(string id, string category, IEnumerable<KeyValuePair<string, object[]>> values)
+            : this(id, category, string.Empty, values.Where(kv => kv.Value != null).SelectMany(kv => kv.Value.Select(v => new KeyValuePair<string, object>(kv.Key, v))))
         {
 
         }

@@ -265,9 +265,9 @@ namespace Examine.Test.Search
             var searcher = (BaseLuceneSearcher) _searcher;
             var criteria = searcher.CreateSearchCriteria(BooleanOperation.Or);
             var filter = criteria
-                .Field(LuceneIndexer.IndexTypeFieldName, "media")
+                .Field(LuceneIndexer.CategoryFieldName, "media")
                 .Or()
-                .Field(LuceneIndexer.IndexTypeFieldName, "content")
+                .Field(LuceneIndexer.CategoryFieldName, "content")
                 .Compile();
 
             var results = searcher.Search(filter, 3);
@@ -282,9 +282,9 @@ namespace Examine.Test.Search
             var searcher = (BaseLuceneSearcher)_searcher;
             var criteria = searcher.CreateSearchCriteria(BooleanOperation.Or);
             var filter = criteria
-                .Field(LuceneIndexer.IndexTypeFieldName, "media")
+                .Field(LuceneIndexer.CategoryFieldName, "media")
                 .Or()
-                .Field(LuceneIndexer.IndexTypeFieldName, "content")
+                .Field(LuceneIndexer.CategoryFieldName, "content")
                 .Compile();
 
             var results = searcher.Search(filter, 5);
@@ -350,9 +350,9 @@ namespace Examine.Test.Search
         {          
             var criteria = _searcher.CreateSearchCriteria(BooleanOperation.Or);
             var filter = criteria
-                .Field(LuceneIndexer.IndexTypeFieldName, "media")
+                .Field(LuceneIndexer.CategoryFieldName, "media")
                 .Or()
-				.Field(LuceneIndexer.IndexTypeFieldName, "content")
+				.Field(LuceneIndexer.CategoryFieldName, "content")
                 .Compile();
 
             var results = _searcher.Search(filter);
@@ -585,7 +585,11 @@ namespace Examine.Test.Search
         [Test]
         public void FluentApiTests_Cws_TextPage_OrderedByNodeName()
         {
+            var result2 = _searcher.Search(_searcher.CreateSearchCriteria().All().Compile());
+            var adsf = result2.ToArray();
+
             var criteria = _searcher.CreateSearchCriteria("content");
+
             IBooleanOperation query = criteria.NodeTypeAlias("cws_textpage");
             query = query.And().OrderBy("nodeName");
             var sCriteria = query.Compile();
