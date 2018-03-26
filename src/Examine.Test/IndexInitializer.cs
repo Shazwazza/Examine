@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Reflection;
-using UmbracoExamine.Config;
-using UmbracoExamine;
 using Examine.Test.DataServices;
 using System.Threading;
 using Lucene.Net.Index;

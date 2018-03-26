@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UmbracoExamine.DataServices;
 using System.Xml.Linq;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.XPath;
-using UmbracoExamine.Config;
-using UmbracoExamine;
 
 namespace Examine.Test.DataServices
 {
@@ -17,7 +14,7 @@ namespace Examine.Test.DataServices
     /// <summary>
     /// A mock data service used to return content from the XML data file created with CWS
     /// </summary>
-    public class TestContentService : IContentService
+    public class TestContentService 
     {
         public const int ProtectedNode = 1142;
 
@@ -83,15 +80,13 @@ namespace Examine.Test.DataServices
                 .Select(x => x.Name.LocalName)
                 .ToList();
         }
-
-        public IEnumerable<string> GetAllSystemPropertyNames()
-        {
-            return UmbracoContentIndexer.IndexFieldPolicies.Select(x => x.Key);
-        }
+        
 
         #endregion
 
         private readonly XDocument _xDoc;
+
+        
 
 
 

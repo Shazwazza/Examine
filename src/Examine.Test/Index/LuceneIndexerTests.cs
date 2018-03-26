@@ -22,7 +22,7 @@ using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.SearchCriteria;
 using Examine.SearchCriteria;
 using Examine.Test.DataServices;
-using UmbracoExamine;
+using Examine.Test.UmbracoExamine;
 using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Index

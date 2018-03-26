@@ -13,7 +13,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
-using UmbracoExamine;
+
 using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Search

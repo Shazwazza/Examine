@@ -82,9 +82,6 @@
     <Compile Include="OrderedDictionaryTests.cs" />
     <Compile Include="RandomIdRAMDirectory.cs" />
     <Compile Include="DataServices\TestContentService.cs" />
-    <Compile Include="DataServices\TestDataService.cs" />
-    <Compile Include="DataServices\TestLogService.cs" />
-    <Compile Include="DataServices\TestMediaService.cs" />
     <Compile Include="DataServices\TestValueSetDataProvider.cs" />
     <Compile Include="Search\DataTypeTests.cs" />
     <Compile Include="Search\FluentApiTests.cs" />
@@ -98,6 +95,8 @@
     <Compile Include="SimpleDataProviderTest.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="TestIndexer.cs" />
+    <Compile Include="UmbracoExamine\ExamineXmlExtensions.cs" />
+    <Compile Include="UmbracoExamine\IndexTypes.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -134,10 +133,6 @@
     <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\UmbracoExamine\UmbracoExamine.csproj">
-      <Project>{07FBC26B-2927-4A22-8D96-D644C667FECC}</Project>
-      <Name>UmbracoExamine</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

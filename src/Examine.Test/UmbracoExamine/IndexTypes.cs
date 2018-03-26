@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace UmbracoExamine
+﻿namespace Examine.Test.UmbracoExamine
 {
     /// <summary>
     /// The index types stored in the Lucene Index
