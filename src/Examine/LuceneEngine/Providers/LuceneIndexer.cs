@@ -1006,12 +1006,11 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
+        /// <param name="doc"></param>
         /// <param name="item">The data to index.</param>
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
-        protected virtual void AddDocument(IndexItem item, IndexWriter writer)
+        protected virtual void AddDocument(Document d, IndexItem item, IndexWriter writer)
         {
-            var d = new Document();
-
             //add node id
             var nodeIdValueType = FieldValueTypeCollection.GetValueType(ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.Raw]);
             nodeIdValueType.AddValue(d, item.ValueSet.Id);
@@ -1676,7 +1675,8 @@ namespace Examine.LuceneEngine.Providers
 
             //EnsureSpecialFields(fields, op.Item.Id, op.Item.IndexCategory);
 
-            AddDocument(op.Item, writer);
+            var d = new Document();
+            AddDocument(d, op.Item, writer);
 
             CommitCount++;
 
