@@ -15,8 +15,11 @@ namespace Examine.Providers
     /// </summary>
     public abstract class BaseIndexProvider : ProviderBase, IIndexer
     {
+        private FieldDefinitionCollection _fieldDefinitionCollection;
+        private readonly IEnumerable<FieldDefinition> _fieldDefinitions;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="BaseIndexProvider"/> class.
+        /// Constructor for creating a provider/config based index
         /// </summary>
         protected BaseIndexProvider() { }
 
@@ -26,7 +29,7 @@ namespace Examine.Providers
         /// <param name="fieldDefinitions"></param>
         protected BaseIndexProvider(IEnumerable<FieldDefinition> fieldDefinitions)
         {
-            FieldDefinitionsInternal = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
+            _fieldDefinitions = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
         }
 
         /// <summary>
@@ -71,20 +74,13 @@ namespace Examine.Providers
         /// </summary>
         public abstract void RebuildIndex();
         
-        private FieldDefinitionCollection _fieldDefinitionCollection;
-
-        /// <summary>
-        /// This is set in the ctor, however for the provider model this will be set during the provider initialization
-        /// </summary>
-        internal IEnumerable<FieldDefinition> FieldDefinitionsInternal { get; set; }
-
         /// <summary>
         /// Defines the mappings for field types to index field types
         /// </summary>
         /// <remarks>
         /// This is mutable but changes will only work prior to accessing the resolved value types
         /// </remarks>
-        public FieldDefinitionCollection FieldDefinitionCollection => _fieldDefinitionCollection ?? (_fieldDefinitionCollection = new FieldDefinitionCollection(FieldDefinitionsInternal));
+        public FieldDefinitionCollection FieldDefinitionCollection => _fieldDefinitionCollection ?? (_fieldDefinitionCollection = new FieldDefinitionCollection(_fieldDefinitions));
 
         /// <summary>
         /// Check if the index exists

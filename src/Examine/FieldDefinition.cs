@@ -8,6 +8,8 @@ namespace Examine
     public struct FieldDefinition : IEquatable<FieldDefinition>
     {
 
+
+
         /// <summary>
         /// Constructor
         /// </summary>

@@ -11,13 +11,13 @@ namespace Examine
     {
         public FieldDefinitionCollection(IEnumerable<FieldDefinition> allFields)
         {
+            if (allFields == null) return;
+
             foreach (var f in allFields.GroupBy(x => x.Name))
             {
                 var indexField = f.FirstOrDefault();
-                if (indexField != null)
-                {
-                    TryAdd(f.Key, f.FirstOrDefault());
-                }
+                if (indexField != default(FieldDefinition))
+                    TryAdd(f.Key, indexField);
             }
         }
         

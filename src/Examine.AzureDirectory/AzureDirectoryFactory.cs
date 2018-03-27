@@ -46,7 +46,7 @@ namespace Examine.AzureDirectory
                 CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),                
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 new SimpleFSDirectory(tempFolder),
-                rootFolder: indexer.IndexSetName);
+                rootFolder: indexer.GetLuceneDirectory().GetLockId());
         }
         
     }

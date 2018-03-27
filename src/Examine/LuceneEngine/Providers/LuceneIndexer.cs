@@ -294,12 +294,7 @@ namespace Examine.LuceneEngine.Providers
         /// The base folder that contains the queue and index folder and the indexer executive files
         /// </summary>
         public DirectoryInfo WorkingFolder { get; private set; }
-
-        /// <summary>
-        /// The index set name which references an Examine <see cref="IndexSet"/>
-        /// </summary>
-        public string IndexSetName { get; private set; }
-
+        
         /// <summary>
         /// returns true if the indexer has been canceled (app is shutting down)
         /// </summary>
