@@ -63,7 +63,6 @@ namespace Examine.LuceneEngine.Providers
             _committer = new IndexCommiter(this);
 
             ValueSetValidator = validator;
-            WorkingFolder = null;
             LuceneIndexFolder = null;
 
             LuceneAnalyzer = analyzer;
@@ -96,7 +95,6 @@ namespace Examine.LuceneEngine.Providers
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
             //initialize the field types
             FieldValueTypeCollection = FieldValueTypes.Current.InitializeFieldValueTypes(_writer.Directory, directory => CreateFieldValueTypes(directory, indexValueTypesFactory));
-            WorkingFolder = null;
             LuceneIndexFolder = null;
 
             LuceneAnalyzer = writer.Analyzer;
@@ -288,12 +286,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The folder that stores the Lucene Index files
         /// </summary>
-        public DirectoryInfo LuceneIndexFolder { get; private set; }
-
-        /// <summary>
-        /// The base folder that contains the queue and index folder and the indexer executive files
-        /// </summary>
-        public DirectoryInfo WorkingFolder { get; private set; }
+        public DirectoryInfo LuceneIndexFolder { get; protected set; }
         
         /// <summary>
         /// returns true if the indexer has been canceled (app is shutting down)
@@ -1215,8 +1208,7 @@ namespace Examine.LuceneEngine.Providers
 
             if (DirectoryFactory == null)
             {
-                //ensure all of the folders are created at startup   
-                VerifyFolder(WorkingFolder);
+                //ensure all of the folders are created at startup
                 VerifyFolder(LuceneIndexFolder);
                 _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
             }
@@ -1229,7 +1221,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-
         private Directory InvokeDirectoryFactory(string s)
         {
             return DirectoryFactory.CreateDirectory(this, s);
@@ -1429,7 +1420,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     if (!System.IO.Directory.Exists(folder.FullName))
                     {
-                        folder.Create();
+                        System.IO.Directory.CreateDirectory(folder.FullName);
                         folder.Refresh();
                     }
                 }
