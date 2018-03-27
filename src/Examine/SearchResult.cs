@@ -8,22 +8,30 @@ namespace Examine
     public class SearchResult
     {
         private OrderedDictionary<string, string> _fields;
-        private readonly OrderedDictionary<string, string[]> _fieldValues;
+        private readonly Lazy<OrderedDictionary<string, IReadOnlyList<string>>> _fieldValues;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public SearchResult(string id, int docId, float score, IDictionary<string, string[]> fieldVals)
+        public SearchResult(string id, int docId, float score, Func<IDictionary<string, List<string>>> lazyFieldVals)
         {
             Id = id;
             DocId = docId;
             Score = score;
-            _fieldValues = new OrderedDictionary<string, string[]>();
-            var asWritable = (IDictionary<string, string[]>)_fieldValues;
-            foreach (var fieldValue in fieldVals)
+            _fieldValues = new Lazy<OrderedDictionary<string, IReadOnlyList<string>>>(() =>
             {
-                asWritable[fieldValue.Key] = fieldValue.Value;
-            }
+                var result = new OrderedDictionary<string, IReadOnlyList<string>>();
+                var asWritable = (IDictionary<string, IReadOnlyList<string>>)result;
+
+                var fieldVals = lazyFieldVals(); //defer execution of collection to here
+
+                foreach (var fieldValue in fieldVals)
+                {
+                    asWritable[fieldValue.Key] = fieldValue.Value;
+                }
+
+                return result;
+            });
         }
 
         public int DocId { get; }
@@ -39,16 +47,16 @@ namespace Examine
                 //initialize from the multi fields
                 _fields = new OrderedDictionary<string, string>();
                 var asWritable = (IDictionary<string, string>) _fields;
-                foreach (var fieldValue in _fieldValues)
+                foreach (var fieldValue in _fieldValues.Value)
                 {
-                    if (fieldValue.Value.Length > 0)
+                    if (fieldValue.Value.Count > 0)
                         asWritable[fieldValue.Key] = fieldValue.Value[0];
                 }
                 return _fields;
             }
         }
 
-        public IReadOnlyDictionary<string, string[]> FieldValues => _fieldValues;
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> FieldValues => _fieldValues.Value;
 
 
         /// <summary>
