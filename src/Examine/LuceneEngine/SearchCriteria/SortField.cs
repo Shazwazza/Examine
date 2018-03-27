@@ -3,17 +3,17 @@
     /// <summary>
     /// Represents a field used to sort results
     /// </summary>
-    public class SortableField
+    public struct SortableField
     {
         /// <summary>
         /// The field name to sort by
         /// </summary>
-        public string FieldName { get; private set; }
+        public string FieldName { get; }
 
         /// <summary>
         /// The way in which the results will be sorted by the field specified.
         /// </summary>
-        public SortType SortType { get; private set; }
+        public SortType SortType { get; }
 
         /// <summary>
         /// Constructor
