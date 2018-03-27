@@ -950,9 +950,6 @@ namespace Examine.LuceneEngine.SearchCriteria
         private class CustomMultiFieldQueryParser : MultiFieldQueryParser
         {
 
-            public CustomMultiFieldQueryParser(Version matchVersion, string[] fields, Analyzer analyzer, IDictionary<string, float> boosts) : base(matchVersion, fields, analyzer, boosts)
-            {
-            }
             public CustomMultiFieldQueryParser(Version matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
             {
             }

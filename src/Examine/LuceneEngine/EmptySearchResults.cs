@@ -6,9 +6,13 @@ namespace Examine.LuceneEngine
 {
 	internal class EmptySearchResults : ISearchResults
 	{
-		private List<ISearchResults>  _emptyResult = new List<ISearchResults>();
+        private EmptySearchResults()
+        {   
+        }
 
-		public IEnumerator<SearchResult> GetEnumerator()
+	    public static ISearchResults Instance { get; } = new EmptySearchResults();
+
+        public IEnumerator<SearchResult> GetEnumerator()
 		{
 			return Enumerable.Empty<SearchResult>().GetEnumerator();
 		}
@@ -18,12 +22,9 @@ namespace Examine.LuceneEngine
 			return Enumerable.Empty<SearchResult>().GetEnumerator();
 		}
 
-		public int TotalItemCount
-		{
-			get { return 0; }
-		}
+		public int TotalItemCount => 0;
 
-		public IEnumerable<SearchResult> Skip(int skip)
+	    public IEnumerable<SearchResult> Skip(int skip)
 		{
 			return Enumerable.Empty<SearchResult>();
 		}

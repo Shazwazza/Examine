@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine
         ///<returns></returns>
         public static ISearchResults Empty()
         {
-            return new EmptySearchResults();
+            return EmptySearchResults.Instance;
         }
 
         /// <summary>

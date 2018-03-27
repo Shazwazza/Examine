@@ -189,7 +189,7 @@ namespace Examine.LuceneEngine.Providers
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
             var searcher = GetLuceneSearcher();
-            if (searcher == null) return new EmptySearchResults();
+            if (searcher == null) return EmptySearchResults.Instance;
 
             var pagesResults = new LuceneSearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);
             return pagesResults;

@@ -1,13 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security;
-using System.Text;
-using Examine.LuceneEngine;
-using Examine;
-using Examine.LuceneEngine.Config;
-using System.Xml.Linq;
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;

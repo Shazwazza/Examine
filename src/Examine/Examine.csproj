@@ -123,11 +123,9 @@
     <Compile Include="LuceneEngine\Directories\SyncMutexManager.cs" />
     <Compile Include="DisposableObjectSlim.cs" />
     <Compile Include="Enforcer.cs" />
-    <Compile Include="ConfigIndexCriteria.cs" />
     <Compile Include="IndexedItem.cs" />
     <Compile Include="IndexingErrorEventArgs.cs" />
     <Compile Include="IIndexer.cs" />
-    <Compile Include="IndexSetExtensions.cs" />
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
@@ -143,12 +141,6 @@
     <Compile Include="LuceneEngine\Indexing\RawStringType.cs" />
     <Compile Include="LuceneEngine\Indexing\SingleType.cs" />
     <Compile Include="LuceneEngine\LocalTempStorageIndexer.cs" />
-    <Compile Include="LuceneEngine\Config\ExamineLuceneIndexes.cs" />
-    <Compile Include="LuceneEngine\Config\ConfigIndexField.cs" />
-    <Compile Include="LuceneEngine\Config\IndexFieldCollection.cs" />
-    <Compile Include="LuceneEngine\Config\IndexFieldCollectionExtensions.cs" />
-    <Compile Include="LuceneEngine\Config\IndexSet.cs" />
-    <Compile Include="LuceneEngine\Config\IndexSetCollection.cs" />
     <Compile Include="LuceneEngine\DirectoryTracker.cs" />
     <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
     <Compile Include="LuceneEngine\EmptySearchResults.cs" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -8,20 +7,14 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Indexing;
 using Examine.Providers;
 using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 using Version = Lucene.Net.Util.Version;
 
@@ -45,24 +38,6 @@ namespace Examine.LuceneEngine.Providers
             _committer = new IndexCommiter(this);
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
-
-            //This is using the legacy config so we'll use the old validation logic
-            ValueSetValidator = new ValueSetValidatorDelegate(set =>
-            {
-                //Here is the legacy validation logic...
-
-                //check if this document is of a correct type of node type alias
-                if (ConfigIndexCriteria.IncludeItemTypes.Any())
-                    if (!ConfigIndexCriteria.IncludeItemTypes.Contains(set.ItemType))
-                        return false;
-
-                //if this node type is part of our exclusion list, do not validate
-                if (ConfigIndexCriteria.ExcludeItemTypes.Any())
-                    if (ConfigIndexCriteria.ExcludeItemTypes.Contains(set.ItemType))
-                        return false;
-
-                return true;
-            });
         }
 
         /// <summary>
@@ -163,73 +138,6 @@ namespace Examine.LuceneEngine.Providers
                 if (factoryType == null) throw new NullReferenceException("No directory type found for value: " + config["directoryFactory"]);
                 DirectoryFactory = (IDirectoryFactory)Activator.CreateInstance(factoryType);
             }
-
-            //Need to check if the index set or IndexerData is specified...
-
-
-            if (config["indexSet"] == null && (FieldDefinitionsInternal == null || !FieldDefinitionsInternal.Any()))
-            {
-                //if we don't have either, then we'll try to set the index set by naming conventions
-                var found = false;
-                if (name.EndsWith("Indexer"))
-                {
-                    var setNameByConvension = name.Remove(name.LastIndexOf("Indexer")) + "IndexSet";
-                    //check if we can assign the index set by naming convention
-                    var set = IndexSets.Instance.Sets.Cast<IndexSet>().SingleOrDefault(x => x.SetName == setNameByConvension);
-
-                    if (set != null)
-                    {
-                        //we've found an index set by naming conventions :)
-                        IndexSetName = set.SetName;
-
-                        var indexSet = IndexSets.Instance.Sets[IndexSetName];
-
-                        //if tokens are declared in the path, then use them (i.e. {machinename} )
-                        indexSet.ReplaceTokensInIndexPath();
-
-                        //get the index criteria and ensure folder
-                        ConfigIndexCriteria = CreateFieldDefinitionsFromConfig(indexSet);
-                        FieldDefinitionsInternal = ConfigIndexCriteria.StandardFields.Union(ConfigIndexCriteria.UserFields).ToArray();
-
-                        //now set the index folders
-                        WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
-                        LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-
-                        found = true;
-                    }
-                }
-
-                if (!found)
-                    throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration and/or the IndexerData property has not been explicitly set");
-
-            }
-            else if (config["indexSet"] != null)
-            {
-                //if an index set is specified, ensure it exists and initialize the indexer based on the set
-
-                if (IndexSets.Instance.Sets[config["indexSet"]] == null)
-                {
-                    throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
-                }
-                else
-                {
-                    IndexSetName = config["indexSet"];
-
-                    var indexSet = IndexSets.Instance.Sets[IndexSetName];
-
-                    //if tokens are declared in the path, then use them (i.e. {machinename} )
-                    indexSet.ReplaceTokensInIndexPath();
-
-                    //get the index criteria and ensure folder
-                    ConfigIndexCriteria = CreateFieldDefinitionsFromConfig(indexSet);
-                    FieldDefinitionsInternal = ConfigIndexCriteria.StandardFields.Union(ConfigIndexCriteria.UserFields).ToArray();
-
-                    //now set the index folders
-                    WorkingFolder = IndexSets.Instance.Sets[IndexSetName].IndexDirectory;
-                    LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-                }
-            }
-
 
             if (config["analyzer"] != null)
             {
@@ -339,122 +247,12 @@ namespace Examine.LuceneEngine.Providers
 
         #endregion
 
-        #region Static Helpers
-
-
-
-
-        /// <summary>
-        /// Converts a DateTime to total number of milliseconds for storage in a numeric field
-        /// </summary>
-        /// <param name="t">The t.</param>
-        /// <returns></returns>
-        public static long DateTimeToTicks(DateTime t)
-        {
-            return t.Ticks;
-        }
-
-        /// <summary>
-        /// Converts a DateTime to total number of seconds for storage in a numeric field
-        /// </summary>
-        /// <param name="t">The t.</param>
-        /// <returns></returns>
-        public static double DateTimeToSeconds(DateTime t)
-        {
-            return (t - DateTime.MinValue).TotalSeconds;
-        }
-
-        /// <summary>
-        /// Converts a DateTime to total number of minutes for storage in a numeric field
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        public static double DateTimeToMinutes(DateTime t)
-        {
-            return (t - DateTime.MinValue).TotalMinutes;
-        }
-
-        /// <summary>
-        /// Converts a DateTime to total number of hours for storage in a numeric field
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        public static double DateTimeToHours(DateTime t)
-        {
-            return (t - DateTime.MinValue).TotalHours;
-        }
-
-        /// <summary>
-        /// Converts a DateTime to total number of days for storage in a numeric field
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        public static double DateTimeToDays(DateTime t)
-        {
-            return (t - DateTime.MinValue).TotalDays;
-        }
-
-        /// <summary>
-        /// Converts a number of milliseconds to a DateTime from DateTime.MinValue
-        /// </summary>
-        /// <param name="ticks"></param>
-        /// <returns></returns>
-        public static DateTime DateTimeFromTicks(long ticks)
-        {
-            return new DateTime(ticks);
-        }
-
-        /// <summary>
-        /// Converts a number of seconds to a DateTime from DateTime.MinValue
-        /// </summary>
-        /// <param name="seconds"></param>
-        /// <returns></returns>
-        public static DateTime DateTimeFromSeconds(double seconds)
-        {
-            return DateTime.MinValue.AddSeconds(seconds);
-        }
-
-        /// <summary>
-        /// Converts a number of minutes to a DateTime from DateTime.MinValue
-        /// </summary>
-        /// <param name="minutes"></param>
-        /// <returns></returns>
-        public static DateTime DateTimeFromMinutes(double minutes)
-        {
-            return DateTime.MinValue.AddMinutes(minutes);
-        }
-
-        /// <summary>
-        /// Converts a number of hours to a DateTime from DateTime.MinValue
-        /// </summary>
-        /// <param name="hours"></param>
-        /// <returns></returns>
-        public static DateTime DateTimeFromHours(double hours)
-        {
-            return DateTime.MinValue.AddHours(hours);
-        }
-
-        /// <summary>
-        /// Converts a number of days to a DateTime from DateTime.MinValue
-        /// </summary>
-        /// <param name="days"></param>
-        /// <returns></returns>
-        public static DateTime DateTimeFromDays(double days)
-        {
-            return DateTime.MinValue.AddDays(days);
-        }
-
-
-        #endregion
-
         #region Properties
-
-        internal ConfigIndexCriteria ConfigIndexCriteria { get; private set; }
 
         /// <summary>
         /// A validator to validate a value set before it's indexed
         /// </summary>
-        protected IValueSetValidator ValueSetValidator { get; private set; }
+        protected IValueSetValidator ValueSetValidator { get; set; }
 
         /// <summary>
         /// this flag indicates if Examine should wait for the current index queue to be fully processed during appdomain shutdown
@@ -1064,54 +862,6 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        private void SetDateTimeField(string fieldName, string valueToParse, DateTools.Resolution resolution, Field.Index lucenePolicy,
-            ref IFieldable field, ref IFieldable sortedField)
-        {
-            object parsedVal;
-            if (!TryConvert<DateTime>(valueToParse, out parsedVal))
-                return;
-            var date = (DateTime)parsedVal;
-            string dateAsString = DateTools.DateToString(date, resolution);
-
-            field =
-                new Field(fieldName,
-                          dateAsString,
-                          Field.Store.YES,
-                          lucenePolicy,
-                          Equals(lucenePolicy, Field.Index.NO) ? Field.TermVector.NO : Field.TermVector.YES
-                    );
-
-            sortedField =
-                new Field(SortedFieldNamePrefix + fieldName,
-                          dateAsString,
-                          Field.Store.NO, //do not store, we're not going to return this value only use it for sorting
-                          Field.Index.NOT_ANALYZED,
-                          Field.TermVector.NO
-                    );
-        }
-
-
-        //    /// <summary>
-        //    /// Returns a dictionary of special key/value pairs to store in the lucene index which will be stored by:
-        //    /// - Field.Store.YES
-        //    /// - Field.Index.NOT_ANALYZED_NO_NORMS
-        //    /// - Field.TermVector.NO
-        //    /// </summary>
-        //    /// <param name="allValuesForIndexing">
-        //    /// The dictionary object containing all name/value pairs that are to be put into the index
-        //    /// </param>
-        //    /// <returns></returns>
-        //    protected virtual Dictionary<string, string> GetSpecialFieldsToIndex(Dictionary<string, string> allValuesForIndexing)
-        //    {
-        //        return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        //        {
-        ////we want to store the nodeId separately as it's the index
-        //{IndexNodeIdFieldName, allValuesForIndexing[IndexNodeIdFieldName]},
-        ////add the index type first
-        //{IndexTypeFieldName, allValuesForIndexing[IndexTypeFieldName]}
-        //        };
-        //    }
-
         /// <summary>
         /// Process all of the queue items
         /// </summary>
@@ -1589,16 +1339,6 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Private
-
-        private ConfigIndexCriteria CreateFieldDefinitionsFromConfig(IndexSet indexSet)
-        {
-            return new ConfigIndexCriteria(
-                    indexSet.IndexAttributeFields.Cast<ConfigIndexField>().Select(x => new FieldDefinition(x.Name, x.Type)).ToArray(),
-                    indexSet.IndexUserFields.Cast<ConfigIndexField>().Select(x => new FieldDefinition(x.Name, x.Type)).ToArray(),
-                    indexSet.IncludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
-                    indexSet.ExcludeNodeTypes.ToList().Select(x => x.Name).ToArray(),
-                    indexSet.IndexParentId);
-        }
 
         private LuceneSearcher CreateSearcher()
         {

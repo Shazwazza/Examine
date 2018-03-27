@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Threading;
-using Examine;
-using Examine.SearchCriteria;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
-using Examine.LuceneEngine;
-using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Directory = Lucene.Net.Store.Directory;
@@ -110,7 +104,7 @@ namespace Examine.LuceneEngine.Providers
         private IndexWriter _nrtWriter;
         private bool? _exists;
         private bool _disposed = false;
-        private ReaderReopener _reopener;
+        private readonly ReaderReopener _reopener;
 
         /// <summary>
         /// Do not access this object directly. The public property ensures that the folder state is always up to date
@@ -136,49 +130,7 @@ namespace Examine.LuceneEngine.Providers
         {
             base.Initialize(name, config);
 
-            //need to check if the index set is specified, if it's not, we'll see if we can find one by convension
-            //if the folder is not null and the index set is null, we'll assume that this has been created at runtime.
-            //NOTE: Don't proceed if the _luceneDirectory is set since we already know where to look.
-            if (config["indexSet"] == null && (LuceneIndexFolder == null && _directory == null))
-            {
-                //if we don't have either, then we'll try to set the index set by naming convensions
-                var found = false;
-                if (name.EndsWith("Searcher"))
-                {
-                    var setNameByConvension = name.Remove(name.LastIndexOf("Searcher")) + "IndexSet";
-                    //check if we can assign the index set by naming convension
-                    var set = IndexSets.Instance.Sets.Cast<IndexSet>().SingleOrDefault(x => x.SetName == setNameByConvension);
-
-                    if (set != null)
-                    {
-                        set.ReplaceTokensInIndexPath();
-
-                        //we've found an index set by naming convensions :)
-                        IndexSetName = set.SetName;
-                        found = true;
-                    }
-                }
-
-                if (!found)
-                    throw new ArgumentNullException("indexSet on LuceneExamineIndexer provider has not been set in configuration");
-
-                //get the folder to index
-                LuceneIndexFolder = new DirectoryInfo(Path.Combine(IndexSets.Instance.Sets[IndexSetName].IndexDirectory.FullName, "Index"));
-            }
-            else if (config["indexSet"] != null && _directory == null)
-            {
-                if (IndexSets.Instance.Sets[config["indexSet"]] == null)
-                    throw new ArgumentException("The indexSet specified for the LuceneExamineIndexer provider does not exist");
-
-                IndexSetName = config["indexSet"];
-
-                var indexSet = IndexSets.Instance.Sets[IndexSetName];
-
-                indexSet.ReplaceTokensInIndexPath();
-
-                //get the folder to index
-                LuceneIndexFolder = new DirectoryInfo(Path.Combine(indexSet.IndexDirectory.FullName, "Index"));
-            }
+            
 
             InitializeDirectory();
         }
@@ -199,16 +151,10 @@ namespace Examine.LuceneEngine.Providers
                 _indexFolder.Refresh();
                 return _indexFolder;
             }
-            private set
-            {
-                _indexFolder = value;
-            }
+            protected set => _indexFolder = value;
         }
         
-        /// <summary>
-        /// Name of the Lucene.NET index set
-        /// </summary>
-        public string IndexSetName { get; private set; }
+        
 
         /// <summary>
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.

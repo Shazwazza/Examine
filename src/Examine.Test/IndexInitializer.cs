@@ -1,16 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Reflection;
-using Examine.Test.DataServices;
-using System.Threading;
-using Lucene.Net.Store;
-using Lucene.Net.Analysis.Standard;
-using Examine.Providers;
-using System.Collections.Specialized;
-using Examine.LuceneEngine.Config;
-using Lucene.Net.Search;
 
 namespace Examine.Test
 {
