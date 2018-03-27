@@ -7,7 +7,7 @@ namespace Examine
     /// <summary>
     /// Defines the mappings between a field name and it's index type
     /// </summary>
-    public class FieldDefinitionCollection : ConcurrentDictionary<string, FieldDefinition>
+    public class FieldDefinitionCollection : ConcurrentDictionary<string, FieldDefinition>, IEnumerable<FieldDefinition>
     {
         public FieldDefinitionCollection(IEnumerable<FieldDefinition> allFields)
         {
@@ -20,6 +20,10 @@ namespace Examine
                     TryAdd(f.Key, indexField);
             }
         }
-        
+
+        IEnumerator<FieldDefinition> IEnumerable<FieldDefinition>.GetEnumerator()
+        {
+            return Values.GetEnumerator();
+        }
     }
 }
