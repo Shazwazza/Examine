@@ -83,10 +83,11 @@ namespace Examine.LuceneEngine
             maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc;
 
             Collector topDocsCollector;
-            if (sortField.Any())
+            var sortFields = sortField as SortField[] ?? sortField.ToArray();
+            if (sortFields.Length > 0)
             {
                 topDocsCollector = TopFieldCollector.Create(
-                    new Sort(sortField.ToArray()), maxResults, false, false, false, false);
+                    new Sort(sortFields), maxResults, false, false, false, false);
             }
             else
             {
@@ -95,7 +96,7 @@ namespace Examine.LuceneEngine
 
             LuceneSearcher.Search(query, topDocsCollector);
 
-            TopDocs = sortField.Any()
+            TopDocs = sortFields.Length > 0
                 ? ((TopFieldCollector)topDocsCollector).TopDocs()
                 : ((TopScoreDocCollector)topDocsCollector).TopDocs();
 
@@ -128,17 +129,42 @@ namespace Examine.LuceneEngine
 
         private SearchResult PrepareSearchResult(int docId, float score, Document doc)
         {
-            //we can use lucene to find out the fields which have been stored for this particular document
-            //I'm not sure if it'll return fields that have null values though
-            var fields = doc.GetFields();
-
             var id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
             {
                 id = doc.Get(LuceneIndexer.ItemIdFieldName);
             }
-            var sr = new SearchResult(id, docId, score,
-                fields.Cast<Field>().ToDictionary(field => field.Name, field => doc.GetValues(field.Name)));
+
+            var sr = new SearchResult(id, docId, score, () =>
+            {
+                //we can use lucene to find out the fields which have been stored for this particular document
+                var fields = doc.GetFields();
+
+                var resultVals = new Dictionary<string, List<string>>();
+
+                foreach (var field in fields.Cast<Field>())
+                {
+                    var fieldName = field.Name;
+                    var values = doc.GetValues(fieldName);
+
+                    if (resultVals.TryGetValue(fieldName, out var resultFieldVals))
+                    {
+                        foreach (var value in values)
+                        {
+                            if (!resultFieldVals.Contains(value))
+                            {
+                                resultFieldVals.Add(value);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        resultVals[fieldName] = values.ToList();
+                    }
+                }
+
+                return resultVals;
+            });
             
             return sr;
         }
