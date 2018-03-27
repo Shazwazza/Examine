@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -92,7 +93,8 @@ namespace Examine
             return reader.ReadInnerXml();
         }
 
-        internal static ValueSet ConvertToValueSet(this XElement xml, string indexCategory)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static ValueSet ConvertToValueSet(this XElement xml, string indexCategory)
         {
             if (!xml.IsExamineElement())
                 throw new InvalidOperationException("Not a supported Examine XML structure");
