@@ -1430,6 +1430,34 @@ namespace Examine.LuceneEngine.Providers
 
         #endregion
 
+        /// <summary>
+        /// Used to force the index into synchronous index processing
+        /// </summary>
+        /// <returns></returns>
+        public IDisposable ProcessNonAsync()
+        {
+            return new SynchronousIndexProcessor(this);
+        }
+
+        /// <summary>
+        /// Used to force the index into synchronous index processing
+        /// </summary>
+        private class SynchronousIndexProcessor : DisposableObjectSlim
+        {
+            private readonly LuceneIndexer _indexer;
+
+            public SynchronousIndexProcessor(LuceneIndexer indexer)
+            {
+                _indexer = indexer;
+                _indexer.RunAsync = false;
+            }
+
+            protected override void DisposeResources()
+            {
+                _indexer.RunAsync = true;
+            }
+        }
+
         #region IDisposable Members
 
         private readonly DisposableIndexer _disposer;
@@ -1524,5 +1552,7 @@ namespace Examine.LuceneEngine.Providers
 
 
     }
+
+    
 }
 

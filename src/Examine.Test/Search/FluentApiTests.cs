@@ -31,7 +31,7 @@ namespace Examine.Test.Search
                     new FieldDefinition("created", "datetime")
                 }, luceneDir, analyzer))
             {
-                
+
 
                 indexer.IndexItems(new[]
                 {
