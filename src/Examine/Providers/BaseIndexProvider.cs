@@ -88,6 +88,15 @@ namespace Examine.Providers
         /// <returns></returns>
         public abstract bool IndexExists();
 
+        /// <summary>
+        /// Returns true if the index is brand new/empty
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool IsIndexNew()
+        {
+            return !IndexExists();
+        }
+
         #endregion
 
         #region Events

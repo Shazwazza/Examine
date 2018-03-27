@@ -38,6 +38,9 @@ namespace Examine
         /// </summary>
         void RebuildIndex();
         
+        /// <summary>
+        /// Returns the field definitions for the index
+        /// </summary>
         FieldDefinitionCollection FieldDefinitionCollection { get; }
 
         /// <summary>
@@ -45,5 +48,10 @@ namespace Examine
         /// </summary>
         bool IndexExists();
 
+        /// <summary>
+        /// Determines if the index is new (contains any data)
+        /// </summary>
+        /// <returns></returns>
+        bool IsIndexNew();
     }
 }

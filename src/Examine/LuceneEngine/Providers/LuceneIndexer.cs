@@ -688,6 +688,30 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
+        /// Indicate if the index is new or not
+        /// </summary>
+        /// <returns></returns>
+        public override bool IsIndexNew()
+        {
+            var baseNew = base.IsIndexNew();
+            if (!baseNew)
+            {
+                var writer = GetIndexWriter();
+                if (writer != null)
+                {
+                    using (var reader = writer.GetReader())
+                    {
+                        return reader.NumDocs() == 0;
+                    }
+                }
+
+                return true;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Check if the index is readable/healthy
         /// </summary>
         /// <returns></returns>
