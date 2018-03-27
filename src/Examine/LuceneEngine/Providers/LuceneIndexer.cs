@@ -514,7 +514,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Fires once an index operation is completed
         /// </summary>
-        public event EventHandler IndexOperationComplete;
+        public event EventHandler<IndexOperationEventArgs> IndexOperationComplete;
 
         /// <summary>
         /// Occurs when [document writing].
@@ -565,14 +565,12 @@ namespace Examine.LuceneEngine.Providers
 
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
         {
-            if (DocumentWriting != null)
-                DocumentWriting(this, docArgs);
+            DocumentWriting?.Invoke(this, docArgs);
         }
         
-        protected virtual void OnIndexOperationComplete(EventArgs e)
+        protected virtual void OnIndexOperationComplete(IndexOperationEventArgs e)
         {
-            if (IndexOperationComplete != null)
-                IndexOperationComplete(this, e);
+            IndexOperationComplete?.Invoke(this, e);
         }
 
         #endregion
@@ -591,7 +589,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     //enqueue the batch, this allows lazy enumeration of the items
                     // when the indexes starts to process
-                    EnqueueIndexOperation(
+                    QueueIndexOperation(
                         values.Select(value => new IndexOperation(
                             new IndexItem(value),
                             IndexOperationType.Add)));
@@ -763,7 +761,7 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                EnqueueIndexOperation(new IndexOperation(IndexItem.ForId(itemId), IndexOperationType.Delete));
+                QueueIndexOperation(new IndexOperation(IndexItem.ForId(itemId), IndexOperationType.Delete));
                 SafelyProcessQueueItems();
             }
             finally
@@ -780,7 +778,7 @@ namespace Examine.LuceneEngine.Providers
         {
             //remove this index type
             var op = new IndexOperation(IndexItem.ForCategory(category), IndexOperationType.Delete);
-            EnqueueIndexOperation(op);
+            QueueIndexOperation(op);
 
             //now do the indexing...
             PerformIndexAll(category);
@@ -1183,7 +1181,7 @@ namespace Examine.LuceneEngine.Providers
                         //reset the flag
                         _isIndexing = false;
 
-                        OnIndexOperationComplete(new EventArgs());
+                        OnIndexOperationComplete(new IndexOperationEventArgs(this, numProcessedItems));
                     }
                 }
             }
@@ -1428,7 +1426,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation
         /// </summary>
         /// <param name="op"></param>
-        protected void EnqueueIndexOperation(IndexOperation op)
+        protected void QueueIndexOperation(IndexOperation op)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
@@ -1447,7 +1445,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation batch
         /// </summary>
         /// <param name="ops"></param>
-        protected void EnqueueIndexOperation(IEnumerable<IndexOperation> ops)
+        protected void QueueIndexOperation(IEnumerable<IndexOperation> ops)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)

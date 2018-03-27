@@ -110,6 +110,7 @@
     <Compile Include="FieldDefinition.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
     <Compile Include="IndexingItemEventArgs.cs" />
+    <Compile Include="IndexOperationEventArgs.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\MultiIndexLock.cs" />

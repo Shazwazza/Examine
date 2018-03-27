@@ -381,14 +381,14 @@ namespace Examine.Test.Index
 
                 var waitHandle = new ManualResetEvent(false);
 
-                EventHandler operationComplete = (sender, e) =>
+                void OperationComplete(object sender, IndexOperationEventArgs e)
                 {
                     //signal that we are done
                     waitHandle.Set();
-                };
+                }
 
                 //add the handler for optimized since we know it will be optimized last based on the commit count
-                customIndexer.IndexOperationComplete += operationComplete;
+                customIndexer.IndexOperationComplete += OperationComplete;
 
                 //remove the normal indexing error handler
                 customIndexer.IndexingError -= IndexInitializer.IndexingError;
@@ -475,14 +475,14 @@ namespace Examine.Test.Index
 
                 var waitHandle = new ManualResetEvent(false);
 
-                EventHandler operationComplete = (sender, e) =>
+                void OperationComplete(object sender, IndexOperationEventArgs e)
                 {
                     //signal that we are done
                     waitHandle.Set();
-                };
+                }
 
                 //add the handler for optimized since we know it will be optimized last based on the commit count
-                customIndexer.IndexOperationComplete += operationComplete;
+                customIndexer.IndexOperationComplete += OperationComplete;
 
                 //remove the normal indexing error handler
                 customIndexer.IndexingError -= IndexInitializer.IndexingError;
@@ -542,14 +542,14 @@ namespace Examine.Test.Index
 
                 var waitHandle = new ManualResetEvent(false);
 
-                EventHandler operationComplete = (sender, e) =>
+                void OperationComplete(object sender, IndexOperationEventArgs e)
                 {
                     //signal that we are done
                     waitHandle.Set();
-                };
+                }
 
                 //add the handler for optimized since we know it will be optimized last based on the commit count
-                customIndexer.IndexOperationComplete += operationComplete;
+                customIndexer.IndexOperationComplete += OperationComplete;
 
                 //remove the normal indexing error handler
                 customIndexer.IndexingError -= IndexInitializer.IndexingError;
