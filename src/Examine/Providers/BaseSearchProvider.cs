@@ -22,7 +22,7 @@ namespace Examine.Providers
         /// <param name="useWildcards"></param>
         /// <param name="maxResults"></param>
         /// <returns></returns>
-        public abstract ISearchResults Search(string searchText, bool useWildcards, int maxResults = int.MaxValue);
+        public abstract ISearchResults Search(string searchText, bool useWildcards, int maxResults = 500);
 
         /// <summary>
         /// Searches the data source using the Examine Fluent API
@@ -30,7 +30,7 @@ namespace Examine.Providers
         /// <param name="searchParams">The fluent API search.</param>
         /// <param name="maxResults"></param>
         /// <returns></returns>
-        public abstract ISearchResults Search(ISearchCriteria searchParams, int maxResults = int.MaxValue);
+        public abstract ISearchResults Search(ISearchCriteria searchParams, int maxResults = 500);
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider

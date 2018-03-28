@@ -143,7 +143,7 @@ namespace Examine.LuceneEngine.Providers
         /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
         /// in a wild card search too.
         /// </remarks>
-        public override ISearchResults Search(string searchText, bool useWildcards, int maxResults = int.MaxValue)
+        public override ISearchResults Search(string searchText, bool useWildcards, int maxResults = 500)
         {
             var sc = this.CreateCriteria();
             return TextSearchAllFields(searchText, useWildcards, sc, maxResults);
@@ -171,7 +171,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Performs a search with a maximum number of results
         /// </summary>
-        public override ISearchResults Search(ISearchCriteria searchParams, int maxResults = int.MaxValue)
+        public override ISearchResults Search(ISearchCriteria searchParams, int maxResults = 500)
         {
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
 

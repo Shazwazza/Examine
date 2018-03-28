@@ -80,7 +80,7 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-            maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc;
+            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.MaxDoc) : LuceneSearcher.MaxDoc;
 
             Collector topDocsCollector;
             var sortFields = sortField as SortField[] ?? sortField.ToArray();

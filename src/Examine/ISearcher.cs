@@ -18,7 +18,7 @@ namespace Examine
         /// <param name="useWildcards">if set to <c>true</c> the search will use wildcards.</param>
         /// <param name="maxResults"></param>
         /// <returns>Search Results</returns>
-        ISearchResults Search(string searchText, bool useWildcards, int maxResults = int.MaxValue);
+        ISearchResults Search(string searchText, bool useWildcards, int maxResults = 500);
 
         /// <summary>
         /// Searches using the specified search query parameters
@@ -26,7 +26,7 @@ namespace Examine
         /// <param name="searchParameters">The search parameters.</param>
         /// <param name="maxResults"></param>
         /// <returns>Search Results</returns>
-        ISearchResults Search(ISearchCriteria searchParameters, int maxResults = int.MaxValue);
+        ISearchResults Search(ISearchCriteria searchParameters, int maxResults = 500);
 
         /// <summary>
         /// Creates a search criteria instance as required by the implementation
