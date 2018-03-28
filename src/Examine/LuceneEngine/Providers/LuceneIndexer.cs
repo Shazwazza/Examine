@@ -1360,7 +1360,9 @@ namespace Examine.LuceneEngine.Providers
 
         private LuceneSearcher CreateSearcher()
         {
-            return new LuceneSearcher(Name + "Searcher", GetIndexWriter(), LuceneAnalyzer);
+            //trim the "Indexer" suffix if it exists
+            var name = Name.EndsWith("Indexer") ? Name.Substring(0, "Indexer".Length) : Name;
+            return new LuceneSearcher(name + "Searcher", GetIndexWriter(), LuceneAnalyzer);
         }
 
         /// <summary>
