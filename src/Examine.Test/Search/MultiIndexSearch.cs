@@ -38,7 +38,7 @@ namespace Examine.Test.Search
                 indexer3.IndexItem(new ValueSet(2.ToString(), "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(new ValueSet(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
-                var searcher = new MultiIndexSearcher(new[]
+                var searcher = new MultiIndexSearcher("testSearcher", new[]
                 {
                     luceneDir1, luceneDir2, luceneDir3, luceneDir4
                 }, analyzer);
@@ -70,7 +70,7 @@ namespace Examine.Test.Search
                 indexer3.IndexItem(new ValueSet(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(new ValueSet(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
                 
-                var searcher = new MultiIndexSearcher(new[]
+                var searcher = new MultiIndexSearcher("testSearcher", new[]
                 {
                     luceneDir1, luceneDir2, luceneDir3, luceneDir4
                 }, analyzer);

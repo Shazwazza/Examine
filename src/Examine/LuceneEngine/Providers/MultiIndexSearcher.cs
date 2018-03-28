@@ -30,35 +30,40 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="indexPath"></param>
         /// <param name="analyzer"></param>		
-		public MultiIndexSearcher(IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
-            : base(analyzer)
+        public MultiIndexSearcher(string name, IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
+            : base(name, analyzer)
         {
             _disposer = new DisposableSearcher(this);
 	        var searchers = new List<LuceneSearcher>();
-			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
-			foreach (var ip in indexPath)
+            var i = 0;
+            foreach (var ip in indexPath)
 			{
-				searchers.Add(new LuceneSearcher(ip, LuceneAnalyzer));
+				searchers.Add(new LuceneSearcher(name + "_" + i, ip, LuceneAnalyzer));
+			    i++;
 			}
 	        Searchers = searchers;
         }
 
-		/// <summary>
-		/// Constructor to allow for creating an indexer at runtime
-		/// </summary>
-		/// <param name="luceneDirs"></param>
-		/// <param name="analyzer"></param>
-		public MultiIndexSearcher(IEnumerable<Lucene.Net.Store.Directory> luceneDirs, Analyzer analyzer)
-			: base(analyzer)
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="luceneDirs"></param>
+        /// <param name="analyzer"></param>
+        public MultiIndexSearcher(string name, IEnumerable<Lucene.Net.Store.Directory> luceneDirs, Analyzer analyzer)
+			: base(name, analyzer)
 		{
             _disposer = new DisposableSearcher(this);
 			var searchers = new List<LuceneSearcher>();
-			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
-			foreach (var luceneDirectory in luceneDirs)
+
+		    var i = 0;
+            foreach (var luceneDirectory in luceneDirs)
 			{
-				searchers.Add(new LuceneSearcher(luceneDirectory, LuceneAnalyzer));
+				searchers.Add(new LuceneSearcher(name + "_" + i, luceneDirectory, LuceneAnalyzer));
+			    i++;
 			}
 			Searchers = searchers;
 		}

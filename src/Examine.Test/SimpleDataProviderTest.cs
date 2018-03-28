@@ -101,7 +101,7 @@
 
 //                session.WaitForChanges();
 
-//                var searcher = new LuceneSearcher(luceneDir, analyzer);
+//                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
 //                var query = searcher.CreateSearchCriteria().Range("YearCreated", DateTime.Now.AddYears(-1), DateTime.Now, true, true, SearchCriteria.DateResolution.Year).Compile();
 //                var results = searcher.Search(query);

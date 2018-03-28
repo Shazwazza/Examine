@@ -12,13 +12,15 @@ namespace Examine.LuceneEngine.Providers
     /// </summary>
     public class ValueSetIndexer : LuceneIndexer
     {
-        public ValueSetIndexer(IValueSetDataService dataService, IEnumerable<string> indexCategories, IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) : base(fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
+        public ValueSetIndexer(string name, IValueSetDataService dataService, IEnumerable<string> indexCategories, IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) 
+            : base(name, fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
         {
             DataService = dataService;
             IndexCategories = indexCategories;
         }
 
-        public ValueSetIndexer(IValueSetDataService dataService, IEnumerable<string> indexCategories, IEnumerable<FieldDefinition> fieldDefinitions, IndexWriter writer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) : base(fieldDefinitions, writer, validator, indexValueTypesFactory)
+        public ValueSetIndexer(string name, IValueSetDataService dataService, IEnumerable<string> indexCategories, IEnumerable<FieldDefinition> fieldDefinitions, IndexWriter writer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) 
+            : base(name, fieldDefinitions, writer, validator, indexValueTypesFactory)
         {
             DataService = dataService;
             IndexCategories = indexCategories;
@@ -47,12 +49,12 @@ namespace Examine.LuceneEngine.Providers
         /// Indexes each index type defined in IndexTypes property
         /// </summary>
         protected override void PerformIndexRebuild()
-        {            
+        {
             foreach (var t in IndexCategories)
             {
                 IndexAll(t);
             }
         }
-        
+
     }
 }

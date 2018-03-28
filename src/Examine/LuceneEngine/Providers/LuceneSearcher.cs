@@ -30,33 +30,32 @@ namespace Examine.LuceneEngine.Providers
             _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
         }
-        
+
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="writer"></param>
         /// <param name="analyzer"></param>
-        
-        public LuceneSearcher(IndexWriter writer, Analyzer analyzer)
-            : base(analyzer)
+        public LuceneSearcher(string name, IndexWriter writer, Analyzer analyzer)
+            : base(name, analyzer)
         {
-            if (writer == null) throw new ArgumentNullException("writer");
             _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
-            _nrtWriter = writer;
+            _nrtWriter = writer ?? throw new ArgumentNullException(nameof(writer));
         }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="workingFolder"></param>
         /// <param name="analyzer"></param>
-        
-        public LuceneSearcher(DirectoryInfo workingFolder, Analyzer analyzer)
-            : base(analyzer)
+        public LuceneSearcher(string name, DirectoryInfo workingFolder, Analyzer analyzer)
+            : base(name, analyzer)
         {
             _disposer = new DisposableSearcher(this);
-            _reopener = new ReaderReopener(this);
+            _reopener = new ReaderReopener(this);            
             LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
             InitializeDirectory();
         }
@@ -64,11 +63,11 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Constructor to allow creating an indexer at runtime with the specified lucene directory
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
-        
-        public LuceneSearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
-            : base(analyzer)
+        public LuceneSearcher(string name, Directory luceneDirectory, Analyzer analyzer)
+            : base(name, analyzer)
         {
             _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
@@ -133,10 +132,6 @@ namespace Examine.LuceneEngine.Providers
             
             InitializeDirectory();
         }
-
-        //Overridden just to hide
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public override string Name => base.Name;
 
         /// <summary>
         /// Directory where the Lucene.NET Index resides

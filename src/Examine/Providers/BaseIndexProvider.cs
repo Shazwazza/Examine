@@ -17,6 +17,7 @@ namespace Examine.Providers
     {
         private FieldDefinitionCollection _fieldDefinitionCollection;
         private readonly IEnumerable<FieldDefinition> _fieldDefinitions;
+        private readonly string _name;
 
         /// <summary>
         /// Constructor for creating a provider/config based index
@@ -26,9 +27,12 @@ namespace Examine.Providers
         /// <summary>
         /// Constructor for creating an indexer at runtime
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
-        protected BaseIndexProvider(IEnumerable<FieldDefinition> fieldDefinitions)
+        protected BaseIndexProvider(string name, IEnumerable<FieldDefinition> fieldDefinitions)
         {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            _name = name;
             _fieldDefinitions = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
         }
 
@@ -51,6 +55,8 @@ namespace Examine.Providers
             base.Initialize(name, config);
             
         }
+
+        public override string Name => _name ?? base.Name;
 
         #region IIndexer members
 

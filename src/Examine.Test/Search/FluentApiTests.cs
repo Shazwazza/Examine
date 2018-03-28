@@ -211,7 +211,7 @@ namespace Examine.Test.Search
 
 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateCriteria("content");
@@ -236,7 +236,7 @@ namespace Examine.Test.Search
             {
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchCriteria)searcher.CreateCriteria();
@@ -293,7 +293,7 @@ namespace Examine.Test.Search
             {
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchCriteria)searcher.CreateCriteria();
@@ -345,7 +345,7 @@ namespace Examine.Test.Search
             {
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchCriteria)searcher.CreateCriteria();
@@ -406,7 +406,7 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateCriteria("content");
@@ -447,7 +447,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateCriteria("content");
@@ -490,7 +490,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria("content");
                 var filter = criteria.Field("parentID", 1139);
@@ -538,7 +538,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria("content");
                 var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Escape()).Compile();
@@ -572,7 +572,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria();
                 var filter = criteria.Field("bodyText", "into")
@@ -621,7 +621,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria("content");
                 var filter = criteria.RawQuery("nodeTypeAlias:CWS_Home");
@@ -656,7 +656,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria("media");
                 var filter = criteria.Field("nodeTypeAlias", "image").Compile();
@@ -691,7 +691,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria(defaultOperation: BooleanOperation.Or);
                 var filter = criteria
@@ -733,7 +733,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var sc = searcher.CreateCriteria("content");
                 var sc1 = sc.Field("parentID", 1143).And().OrderBy(new SortableField("sortOrder", SortType.Int)).Compile();
@@ -780,7 +780,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var sc = searcher.CreateCriteria("content");
                 var sc1 = sc.Field("parentID", 1143).And().OrderBy(new SortableField("updateDate", SortType.Double)).Compile();
@@ -826,7 +826,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var sc = searcher.CreateCriteria("content");
                 var sc1 = sc.Field("writerName", "administrator").And()
@@ -870,7 +870,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var sc = searcher.CreateCriteria("content", BooleanOperation.Or);
                 var sc1 = sc.Field("nodeName", "umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco").Compile();
@@ -916,7 +916,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //Arrange
                 var sc = searcher.CreateCriteria("content");
@@ -957,7 +957,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //Arrange
                 var sc = searcher.CreateCriteria("content");
@@ -999,7 +999,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //Arrange
                 var criteria = searcher.CreateCriteria("content");
@@ -1043,7 +1043,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //Arrange
                 var criteria = searcher.CreateCriteria("content");
@@ -1092,7 +1092,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateCriteria();
@@ -1143,7 +1143,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateCriteria();
@@ -1192,7 +1192,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateCriteria();
@@ -1241,7 +1241,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateCriteria();
@@ -1294,7 +1294,7 @@ namespace Examine.Test.Search
 
                 
 
-        //        var searcher = new LuceneSearcher(luceneDir, analyzer);
+        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
         //        var criteria = searcher.CreateCriteria();
         //        var filter = criteria.Range("MinuteCreated",
@@ -1348,7 +1348,7 @@ namespace Examine.Test.Search
 
                 
 
-        //        var searcher = new LuceneSearcher(luceneDir, analyzer);
+        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
         //        var criteria = searcher.CreateCriteria();
         //        var filter = criteria.Range("HourCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Hour).Compile();
@@ -1398,7 +1398,7 @@ namespace Examine.Test.Search
 
                 
 
-        //        var searcher = new LuceneSearcher(luceneDir, analyzer);
+        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
         //        var criteria = searcher.CreateCriteria();
         //        var filter = criteria.Range("DayCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Day).Compile();
@@ -1449,7 +1449,7 @@ namespace Examine.Test.Search
 
                 
 
-        //        var searcher = new LuceneSearcher(luceneDir, analyzer);
+        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
         //        var criteria = searcher.CreateCriteria();
         //        var filter = criteria.Range("MonthCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Month).Compile();
@@ -1501,7 +1501,7 @@ namespace Examine.Test.Search
 
                 
 
-        //        var searcher = new LuceneSearcher(luceneDir, analyzer);
+        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
         //        var criteria = searcher.CreateCriteria();
 
@@ -1552,7 +1552,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria();
                 var filter = criteria.ManagedRangeQuery<DateTime>(new []{ "DateCreated" }, reIndexDateTime, DateTime.Now, true, true).Compile();
@@ -1596,7 +1596,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria();
                 var filter = criteria.Field("Content", "think".Fuzzy(0.1F)).Compile();
@@ -1642,7 +1642,7 @@ namespace Examine.Test.Search
 
 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria();
                 var filter = criteria.Field("Content", "hello").Compile();
@@ -1686,7 +1686,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria();
 
@@ -1731,7 +1731,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria();
 
@@ -1776,7 +1776,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria();
 
@@ -1821,7 +1821,7 @@ namespace Examine.Test.Search
 
                 
 
-                var searcher = new LuceneSearcher(luceneDir, analyzer);
+                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 var criteria = searcher.CreateCriteria(defaultOperation: BooleanOperation.Or);
 

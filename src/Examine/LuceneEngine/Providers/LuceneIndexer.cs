@@ -44,6 +44,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Constructor to create an indexer at runtime
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
         /// <param name="luceneDirectory"></param>
@@ -53,12 +54,13 @@ namespace Examine.LuceneEngine.Providers
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
         protected LuceneIndexer(
+            string name, 
             IEnumerable<FieldDefinition> fieldDefinitions,
             Directory luceneDirectory,
             Analyzer analyzer,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
-            : base(fieldDefinitions)
+            : base(name, fieldDefinitions)
         {
             _disposer = new DisposableIndexer(this);
             _committer = new IndexCommiter(this);
@@ -78,16 +80,18 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="writer"></param>
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
         protected LuceneIndexer(
+            string name,
             IEnumerable<FieldDefinition> fieldDefinitions, 
             IndexWriter writer, 
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
-            : base(fieldDefinitions)
+            : base(name, fieldDefinitions)
         {
             _disposer = new DisposableIndexer(this);
             _committer = new IndexCommiter(this);
@@ -1356,7 +1360,7 @@ namespace Examine.LuceneEngine.Providers
 
         private LuceneSearcher CreateSearcher()
         {
-            return new LuceneSearcher(GetIndexWriter(), LuceneAnalyzer);
+            return new LuceneSearcher(Name + "Searcher", GetIndexWriter(), LuceneAnalyzer);
         }
 
         /// <summary>

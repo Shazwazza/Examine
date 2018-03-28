@@ -19,24 +19,28 @@ namespace Examine.LuceneEngine.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
+        private readonly string _name;
+
         #region Constructors
 
-		/// <summary>
-		/// Default constructor
-		/// </summary>
-		protected BaseLuceneSearcher()
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        protected BaseLuceneSearcher()
 		{
         }
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
+        /// <param name="name"></param>
         /// <param name="analyzer"></param>
-		
-        protected BaseLuceneSearcher(Analyzer analyzer)
-		{           
-            LuceneAnalyzer = analyzer;
-		}
+        protected BaseLuceneSearcher(string name, Analyzer analyzer)
+		{
+		    if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+		    LuceneAnalyzer = analyzer;
+		    _name = name;
+        }
 
 		#endregion
         
@@ -82,6 +86,8 @@ namespace Examine.LuceneEngine.Providers
                 LuceneAnalyzer = new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
             }
         }
+
+        public override string Name => _name ?? base.Name;
 
         protected internal abstract string[] GetSearchFields();
         
