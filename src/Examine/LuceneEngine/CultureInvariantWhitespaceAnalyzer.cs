@@ -11,7 +11,12 @@ namespace Examine.LuceneEngine
         private readonly bool _caseInsensitive;
         private readonly bool _ignoreLanguageAccents;
 
-        public CultureInvariantWhitespaceAnalyzer(bool caseInsensitive = true, bool ignoreLanguageAccents = true)
+        public CultureInvariantWhitespaceAnalyzer() : this(true, true)
+        {
+            
+        }
+
+        public CultureInvariantWhitespaceAnalyzer(bool caseInsensitive, bool ignoreLanguageAccents)
         {
             _caseInsensitive = caseInsensitive;
             _ignoreLanguageAccents = ignoreLanguageAccents;
