@@ -13,6 +13,7 @@ using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Indexing;
 using Examine.Providers;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Directory = Lucene.Net.Store.Directory;
@@ -141,7 +142,10 @@ namespace Examine.LuceneEngine.Providers
             {
                 //this should be a fully qualified type
                 var analyzerType = TypeHelper.FindType(config["analyzer"]);
-                LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+                if (typeof(StandardAnalyzer).IsAssignableFrom(analyzerType))
+                    LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType, Version.LUCENE_30);
+                else
+                    LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
             }
             else
             {

@@ -7,13 +7,18 @@ using Lucene.Net.Util;
 namespace Examine.LuceneEngine
 {
     /// <summary>
-    /// The same as the <see cref="StandardAnalyzer"/> but with an additional <see cref="Asc"/>
+    /// The same as the <see cref="StandardAnalyzer"/> but with an additional <see cref="ASCIIFoldingFilter"/>
     /// </summary>
     public sealed class CultureInvariantStandardAnalyzer : StandardAnalyzer
     {
         private readonly Version _matchVersion;
         private readonly ISet<string> _stopWords;
         private readonly bool _enableStopPositionIncrements;
+
+        public CultureInvariantStandardAnalyzer() : this(Version.LUCENE_30)
+        {
+            
+        }
 
         public CultureInvariantStandardAnalyzer(Version matchVersion, ISet<string> stopWords) : base(matchVersion, stopWords)
         {
