@@ -35,14 +35,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
         internal BooleanQuery Query => Queries.Peek();
         internal List<SortField> SortFields = new List<SortField>();
-
-        //public MultiFieldQueryParser QueryParser => _queryParser;
-        //public BooleanQuery Query
-        //{
-        //    get;
-        //    internal set;
-        //}
-
+        
         private Occur _occurrence;
         private BooleanOperation _boolOp;
 
@@ -52,7 +45,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal LuceneSearchCriteria(
             BaseLuceneSearcher searcher,
             ICriteriaContext indexFieldValueTypes,
-            string type, Analyzer analyzer, string[] fields, bool allowLeadingWildcards, BooleanOperation occurance)
+            string type, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {   
             Enforcer.ArgumentNotNull(fields, "fields");
 
@@ -63,7 +56,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             Queries.Push(new BooleanQuery());
             this.BooleanOperation = occurance;
             this._queryParser = new CustomMultiFieldQueryParser(_luceneVersion, fields, analyzer);
-            this._queryParser.AllowLeadingWildcard = allowLeadingWildcards;
+            this._queryParser.AllowLeadingWildcard = searchOptions.AllowLeadingWildcard;
         }
 
         /// <summary>
@@ -72,7 +65,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <value>The boolean operation.</value>
         public BooleanOperation BooleanOperation
         {
-            get { return _boolOp; }
+            get => _boolOp;
             protected internal set
             {
                 _boolOp = value;

@@ -18,7 +18,6 @@ namespace Examine.LuceneEngine.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
-
         #region Constructors
 
 		/// <summary>
@@ -39,12 +38,7 @@ namespace Examine.LuceneEngine.Providers
 		}
 
 		#endregion
-
-        /// <summary>
-        /// Used to specify if leading wildcards are allowed. WARNING SLOWS PERFORMANCE WHEN ENABLED!
-        /// </summary>
-        public bool EnableLeadingWildcards { get; protected internal set; }
-
+        
 	    /// <summary>
 	    /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
 	    /// </summary>
@@ -83,12 +77,6 @@ namespace Examine.LuceneEngine.Providers
             {
                 DefaultLuceneAnalyzer = new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
             }
-
-            if (config["enableLeadingWildcard"] != null)
-            {
-                EnableLeadingWildcards = Boolean.Parse(config["enableLeadingWildcard"]);
-            }
-
         }
 
         protected internal abstract string[] GetSearchFields();
@@ -110,7 +98,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>A blank SearchCriteria</returns>		
 		public override ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation)
         {
-            return CreateSearchCriteria(type, defaultOperation, DefaultLuceneAnalyzer, EnableLeadingWildcards);
+            return CreateSearchCriteria(type, defaultOperation, DefaultLuceneAnalyzer, new LuceneSearchOptions());
         }
 
         /// <summary>
@@ -119,15 +107,15 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <param name="luceneAnalyzer"></param>
-        /// <param name="enableLeadingWildcards"></param>
+        /// <param name="searchOptions"></param>
         /// <returns></returns>
-        public ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, bool enableLeadingWildcards)
+        public ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null) throw new ArgumentNullException(nameof(luceneAnalyzer));
 
             return new LuceneSearchCriteria(
                 this, GetCriteriaContext(),
-                type, luceneAnalyzer, GetSearchFields(), enableLeadingWildcards, defaultOperation);
+                type, luceneAnalyzer, GetSearchFields(), searchOptions, defaultOperation);
         }
 
         /// <summary>
