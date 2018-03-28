@@ -89,7 +89,11 @@ namespace Examine.LuceneEngine.Providers
 
         public override string Name => _name ?? base.Name;
 
-        protected internal abstract string[] GetSearchFields();
+        /// <summary>
+        /// Returns all field names that exist in the index
+        /// </summary>
+        /// <returns></returns>
+        public abstract string[] GetAllIndexedFields();
         
         ///<summary>
         /// returns the underlying Lucene searcher
@@ -125,7 +129,7 @@ namespace Examine.LuceneEngine.Providers
 
             return new LuceneSearchCriteria(
                 this, GetCriteriaContext(),
-                type, luceneAnalyzer, GetSearchFields(), searchOptions, defaultOperation);
+                type, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
         }
 
         /// <summary>
@@ -133,57 +137,45 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="searchText"></param>
         /// <param name="useWildcards"></param>
+        /// <param name="maxResults"></param>
         /// <returns></returns>
         /// <remarks>
         /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
         /// in a wild card search too.
         /// </remarks>
-        public override ISearchResults Search(string searchText, bool useWildcards)
+        public override ISearchResults Search(string searchText, bool useWildcards, int maxResults = int.MaxValue)
         {
             var sc = this.CreateCriteria();
-            return TextSearchAllFields(searchText, useWildcards, sc);
+            return TextSearchAllFields(searchText, useWildcards, sc, maxResults);
         }
 
-        internal ISearchResults TextSearchAllFields(string searchText, bool useWildcards, ISearchCriteria sc)
+        internal ISearchResults TextSearchAllFields(string searchText, bool useWildcards, ISearchCriteria sc, int maxResults)
         {
-            var splitSearch = searchText.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var splitSearch = searchText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (useWildcards)
             {
-                sc = sc.GroupedOr(GetSearchFields(),
+                sc = sc.GroupedOr(GetAllIndexedFields(),
                     splitSearch.Select(x =>
                         new ExamineValue(Examineness.ComplexWildcard, x.MultipleCharacterWildcard().Value)).Cast<IExamineValue>().ToArray()
-                    ).Compile();                
+                    ).Compile();
             }
             else
             {
-                sc = sc.GroupedOr(GetSearchFields(), splitSearch).Compile();
+                sc = sc.GroupedOr(GetAllIndexedFields(), splitSearch).Compile();
             }
 
-            return Search(sc);
-        }
-
-        /// <summary>
-        /// Performs a search
-        /// </summary>
-        /// <param name="searchParams"></param>
-        /// <returns></returns>
-        
-        public override ISearchResults Search(ISearchCriteria searchParams)
-        {
-            return Search(searchParams, 0);
+            return Search(sc, maxResults);
         }
 
         /// <summary>
         /// Performs a search with a maximum number of results
-        /// </summary>        
-        
-        public override ISearchResults Search(ISearchCriteria searchParams, int maxResults)
+        /// </summary>
+        public override ISearchResults Search(ISearchCriteria searchParams, int maxResults = int.MaxValue)
         {
             Enforcer.ArgumentNotNull(searchParams, "searchParams");
 
-            var luceneParams = searchParams as LuceneSearchCriteria;
-            if (luceneParams == null)
+            if (!(searchParams is LuceneSearchCriteria luceneParams))
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
 
             var searcher = GetLuceneSearcher();
@@ -241,27 +233,7 @@ namespace Examine.LuceneEngine.Providers
         private static RewriteMethod _errorCheckingScoringBooleanQueryRewriteInstance;
 
         public static RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance => _errorCheckingScoringBooleanQueryRewriteInstance ?? (_errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite());
-
-        /// <summary>
-        /// A simple search mechanism to search all fields based on an index type.
-        /// </summary>
-        /// <remarks>
-        /// This can be used to do a simple search against an index type instead of the entire index.
-        /// 
-        /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
-        /// in a wild card search too.
-        /// 
-        /// </remarks>
-        /// <param name="searchText"></param>
-        /// <param name="useWildcards"></param>
-        /// <param name="indexType"></param>
-        /// <returns></returns>
-        public override ISearchResults Search(string searchText, bool useWildcards, string indexType)
-        {
-            var sc = CreateCriteria(indexType);
-            return TextSearchAllFields(searchText, useWildcards, sc);
-        }
-
+        
         /// <summary>
         /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
         /// </summary>

@@ -75,7 +75,7 @@ namespace Examine.Test.Search
                     luceneDir1, luceneDir2, luceneDir3, luceneDir4
                 }, analyzer);
 
-                var result = searcher.GetSearchFields();
+                var result = searcher.GetAllIndexedFields();
                 //will be item1 , item2, item3, and item4
                 Assert.AreEqual(4, result.Count());
                 foreach (var s in new[] { "item1", "item2", "item3", "item4" })

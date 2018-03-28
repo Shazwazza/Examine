@@ -177,12 +177,8 @@ namespace Examine.LuceneEngine.Providers
             return new CriteriaContext(indexFieldValueTypes, GetLuceneSearcher());
         }
 
-        /// <summary>
-        /// Returns a list of fields to search on
-        /// </summary>
-        /// <returns></returns>
-        
-        protected internal override string[] GetSearchFields()
+        /// <inheritdoc />
+        public override string[] GetAllIndexedFields()
         {
             if (!ValidateSearcher()) return new string[] {};
 
