@@ -245,7 +245,7 @@ namespace Examine
         /// </summary>
         /// <param name="nodeId"></param>
         /// <param name="providers"></param>
-        public void DeleteFromIndex(string nodeId, IEnumerable<IIndexer> providers)
+        public void DeleteFromIndexes(string nodeId, IEnumerable<IIndexer> providers)
         {
             foreach (var provider in providers)
             {
@@ -257,9 +257,9 @@ namespace Examine
         /// Deletes index for node for all providers
         /// </summary>
         /// <param name="nodeId"></param>
-        public void DeleteFromIndex(string nodeId)
+        public void DeleteFromIndexes(string nodeId)
         {
-            DeleteFromIndex(nodeId, IndexProviders.Values);
+            DeleteFromIndexes(nodeId, IndexProviders.Values);
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace Examine
         /// <summary>
         /// Rebuilds indexes for all providers
         /// </summary>
-        public void RebuildIndex()
+        public void RebuildIndexes()
         {
             foreach (var provider in IndexProviders.Values)
             {

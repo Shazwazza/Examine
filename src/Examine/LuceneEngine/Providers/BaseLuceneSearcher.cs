@@ -10,6 +10,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using System.Linq;
+using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -34,7 +35,7 @@ namespace Examine.LuceneEngine.Providers
 		
         protected BaseLuceneSearcher(Analyzer analyzer)
 		{           
-            DefaultLuceneAnalyzer = analyzer;
+            LuceneAnalyzer = analyzer;
 		}
 
 		#endregion
@@ -42,7 +43,7 @@ namespace Examine.LuceneEngine.Providers
 	    /// <summary>
 	    /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
 	    /// </summary>
-	    public Analyzer DefaultLuceneAnalyzer
+	    public Analyzer LuceneAnalyzer
 	    {
 		    get;
 			protected internal set;
@@ -71,11 +72,14 @@ namespace Examine.LuceneEngine.Providers
             {
                 //this should be a fully qualified type
                 var analyzerType = TypeHelper.FindType(config["analyzer"]);
-                DefaultLuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+                if (typeof(StandardAnalyzer).IsAssignableFrom(analyzerType))
+                    LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType, Version.LUCENE_30);
+                else
+                    LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
             }
             else
             {
-                DefaultLuceneAnalyzer = new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
+                LuceneAnalyzer = new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
             }
         }
 
@@ -98,7 +102,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>A blank SearchCriteria</returns>		
 		public override ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation)
         {
-            return CreateSearchCriteria(type, defaultOperation, DefaultLuceneAnalyzer, new LuceneSearchOptions());
+            return CreateSearchCriteria(type, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
         }
 
         /// <summary>

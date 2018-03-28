@@ -40,7 +40,7 @@ namespace Examine.LuceneEngine.Providers
 			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
 			foreach (var ip in indexPath)
 			{
-				searchers.Add(new LuceneSearcher(ip, DefaultLuceneAnalyzer));
+				searchers.Add(new LuceneSearcher(ip, LuceneAnalyzer));
 			}
 	        Searchers = searchers;
         }
@@ -58,7 +58,7 @@ namespace Examine.LuceneEngine.Providers
 			//NOTE: DO NOT convert to Linq like this used to be as this breaks security level 2 code because of something Linq is doing.
 			foreach (var luceneDirectory in luceneDirs)
 			{
-				searchers.Add(new LuceneSearcher(luceneDirectory, DefaultLuceneAnalyzer));
+				searchers.Add(new LuceneSearcher(luceneDirectory, LuceneAnalyzer));
 			}
 			Searchers = searchers;
 		}

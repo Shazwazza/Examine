@@ -31,11 +31,9 @@ namespace Examine.LuceneEngine
         /// </summary>
         public static Func<DirectoryInfo, LockFactory> DefaultLockFactory { get; set; }
 
-        private static readonly DirectoryTracker Instance = new DirectoryTracker();
-       
         private readonly ConcurrentDictionary<string, Directory> _directories = new ConcurrentDictionary<string, Directory>();
    
-        public static DirectoryTracker Current => Instance;
+        public static DirectoryTracker Current { get; } = new DirectoryTracker();
 
         public Directory GetDirectory(DirectoryInfo dir)
         {
@@ -46,8 +44,7 @@ namespace Examine.LuceneEngine
         {
             if (throwIfEmpty)
             {
-                Directory d;
-                if (!_directories.TryGetValue(dir.FullName, out d))
+                if (!_directories.TryGetValue(dir.FullName, out var d))
                 {
                     throw new NullReferenceException("No directory was added with path " + dir.FullName + ", maybe an indexer hasn't been initialized?");
                 }

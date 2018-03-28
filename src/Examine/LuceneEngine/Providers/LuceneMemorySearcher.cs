@@ -31,7 +31,7 @@ namespace Examine.LuceneEngine.Providers
         public LuceneMemorySearcher(Lucene.Net.Store.Directory luceneDirectory, Analyzer analyzer)
         {
             _luceneDirectory = new RAMDirectory(luceneDirectory);;
-            DefaultLuceneAnalyzer = analyzer;
+            LuceneAnalyzer = analyzer;
         }
 
 		

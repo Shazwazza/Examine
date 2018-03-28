@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -129,15 +130,18 @@ namespace Examine.LuceneEngine.Providers
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
-
             
-
             InitializeDirectory();
         }
+
+        //Overridden just to hide
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override string Name => base.Name;
 
         /// <summary>
         /// Directory where the Lucene.NET Index resides
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)] //hidden by default
         public DirectoryInfo LuceneIndexFolder
         {
             get
