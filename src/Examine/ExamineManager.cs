@@ -98,11 +98,7 @@ namespace Examine
             }
         }
 
-        /// <summary>
-        /// Returns the searcher for a given index
-        /// </summary>
-        /// <param name="indexerName"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public ISearcher GetSearcher(string indexerName)
         {
             if (IndexProviders.ContainsKey(indexerName))
@@ -114,23 +110,20 @@ namespace Examine
             }
             throw new KeyNotFoundException("No indexer defined by name " + indexerName);
         }
-        
-        /// <summary>
-        /// Returns an indexer by name
-        /// </summary>
-        /// <param name="indexerName"></param>
-        /// <returns></returns>
+
+        /// <inheritdoc />
+        public ISearcher GetRegisteredSearcher(string searcherName)
+        {            
+            return _searchers.TryGetValue(searcherName, out var searcher) ? searcher : null;
+        }
+
+        /// <inheritdoc />
         public IIndexer GetIndexer(string indexerName)
         {
             return IndexProviders[indexerName];
         }
 
-        /// <summary>
-        /// Gets a list of all index providers
-        /// </summary>
-        /// <remarks>
-        /// This returns all config based indexes and indexers registered in code
-        /// </remarks>
+        /// <inheritdoc />
         public IReadOnlyDictionary<string, IIndexer> IndexProviders
         {
             get
@@ -144,11 +137,7 @@ namespace Examine
             }
         }
 
-        /// <summary>
-        /// Adds an indexer to the manager
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="indexer"></param>
+        /// <inheritdoc />
         public void AddIndexer(string name, IIndexer indexer)
         {
             //make sure this name doesn't exist in
@@ -163,11 +152,7 @@ namespace Examine
             }
         }
 
-        /// <summary>
-        /// Adds an index searcher to the manager - generally this would be a multi index searcher since most searchers are created from an existing index
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="searcher"></param>
+        /// <inheritdoc />
         public void AddSearcher(string name, ISearcher searcher)
         {
             //make sure this name doesn't exist in
@@ -206,11 +191,7 @@ namespace Examine
             });
         }
 
-        /// <summary>
-        /// Re-indexes items for the providers specified
-        /// </summary>
-        /// <param name="nodes"></param>
-        /// <param name="providers"></param>
+        /// <inheritdoc />
         public void IndexItems(ValueSet[] nodes, IEnumerable<IIndexer> providers)
         {
             foreach (var provider in providers)
@@ -219,20 +200,13 @@ namespace Examine
             }
         }
 
-        /// <summary>
-        /// Reindex nodes for all providers
-        /// </summary>
-        /// <param name="nodes"></param>
+        /// <inheritdoc />
         public void IndexItems(ValueSet[] nodes)
         {
             IndexItems(nodes, IndexProviders.Values);
         }
 
-        /// <summary>
-        /// Deletes index for node for the specified providers
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="providers"></param>
+        /// <inheritdoc />
         public void DeleteFromIndexes(string nodeId, IEnumerable<IIndexer> providers)
         {
             foreach (var provider in providers)
@@ -241,19 +215,13 @@ namespace Examine
             }
         }
 
-        /// <summary>
-        /// Deletes index for node for all providers
-        /// </summary>
-        /// <param name="nodeId"></param>
+        /// <inheritdoc />
         public void DeleteFromIndexes(string nodeId)
         {
             DeleteFromIndexes(nodeId, IndexProviders.Values);
         }
 
-        /// <summary>
-        /// Indexes all items for the index category for all providers
-        /// </summary>
-        /// <param name="indexCategory"></param>
+        /// <inheritdoc />
         public void IndexAll(string indexCategory)
         {
             foreach (var provider in IndexProviders.Values)
@@ -262,9 +230,7 @@ namespace Examine
             }
         }
 
-        /// <summary>
-        /// Rebuilds indexes for all providers
-        /// </summary>
+        /// <inheritdoc />
         public void RebuildIndexes()
         {
             foreach (var provider in IndexProviders.Values)
