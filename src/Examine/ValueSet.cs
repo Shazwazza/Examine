@@ -179,52 +179,5 @@ namespace Examine
             }
             values.Add(value);
         }
-
-        /// <summary>
-        /// Convert to a ValueSet from legacy fields
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="indexCategory"></param>
-        /// <param name="itemType"></param>
-        /// <param name="fields"></param>
-        /// <returns></returns>
-        internal static ValueSet FromLegacyFields(string nodeId, string indexCategory, string itemType, Dictionary<string, string> fields)
-        {
-            return new ValueSet(nodeId, indexCategory, itemType, fields.Select(kv => new KeyValuePair<string, object>(kv.Key, kv.Value)));
-        }
-
-        ///// <summary>
-        ///// Convert this value set to legacy fields
-        ///// </summary>
-        ///// <returns></returns>
-        //internal Dictionary<string, string> ToLegacyFields()
-        //{
-        //    var fields = new Dictionary<string, string>();
-        //    foreach (var v in Values)
-        //    {
-        //        foreach (var val in v.Value)
-        //        {
-        //            if (val != null)
-        //            {
-        //                fields.Add(v.Key, "" + val);
-        //                break;
-        //            }
-        //        }
-        //    }
-        //    return fields;
-        //}
-
-        ///// <summary>
-        ///// Converts the value set to the legacy XML representation
-        ///// </summary>
-        ///// <returns></returns>
-        //internal XElement ToExamineXml()
-        //{
-        //    return ToLegacyFields().ToExamineXml(Id, IndexCategory);
-        //}
-        public ValueSet Clone(string id)
-        {
-            return new ValueSet(id, Category, Values.ToDictionary(x => x.Key, x => x.Value));
-        }
     }
 }

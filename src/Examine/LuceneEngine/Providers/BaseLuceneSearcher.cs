@@ -112,7 +112,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>A blank SearchCriteria</returns>		
 		public override ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation)
         {
-            return CreateSearchCriteria(type, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
+            return CreateCriteria(type, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
         }
 
         /// <summary>
@@ -123,13 +123,11 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneAnalyzer"></param>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        public ISearchCriteria CreateSearchCriteria(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
+        public ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null) throw new ArgumentNullException(nameof(luceneAnalyzer));
 
-            return new LuceneSearchCriteria(
-                this, GetCriteriaContext(),
-                type, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
+            return new LuceneSearchCriteria(GetCriteriaContext(), type, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
         }
 
         /// <summary>
@@ -145,12 +143,21 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         public override ISearchResults Search(string searchText, bool useWildcards, int maxResults = 500)
         {
-            var sc = this.CreateCriteria();
-            return TextSearchAllFields(searchText, useWildcards, sc, maxResults);
+            var sc = CreateCriteriaForSearchingAllFields(searchText, useWildcards, maxResults);
+            return Search(sc, maxResults);
         }
 
-        internal ISearchResults TextSearchAllFields(string searchText, bool useWildcards, ISearchCriteria sc, int maxResults)
+        /// <summary>
+        /// Creates an instance of <see cref="ISearchCriteria"/> for searching all fields in the index
+        /// </summary>
+        /// <param name="searchText"></param>
+        /// <param name="useWildcards"></param>
+        /// <param name="maxResults"></param>
+        /// <returns></returns>
+        public ISearchCriteria CreateCriteriaForSearchingAllFields(string searchText, bool useWildcards, int maxResults)
         {
+            var sc = this.CreateCriteria();
+
             var splitSearch = searchText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (useWildcards)
@@ -158,14 +165,14 @@ namespace Examine.LuceneEngine.Providers
                 sc = sc.GroupedOr(GetAllIndexedFields(),
                     splitSearch.Select(x =>
                         new ExamineValue(Examineness.ComplexWildcard, x.MultipleCharacterWildcard().Value)).Cast<IExamineValue>().ToArray()
-                    ).Compile();
+                ).Compile();
             }
             else
             {
                 sc = sc.GroupedOr(GetAllIndexedFields(), splitSearch).Compile();
             }
 
-            return Search(sc, maxResults);
+            return sc;
         }
 
         /// <summary>

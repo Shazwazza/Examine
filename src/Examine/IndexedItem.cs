@@ -15,9 +15,9 @@ namespace Examine
         private static readonly IndexedItem EmptyInstance = new IndexedItem(-1, null);
         public static IndexedItem Empty => EmptyInstance;
 
-        public static bool IsEmpty(IndexedItem item)
+        public bool IsEmpty()
         {
-            return item == EmptyInstance;
+            return this == EmptyInstance;
         }
 
         public IndexedItem(int itemId, string category)

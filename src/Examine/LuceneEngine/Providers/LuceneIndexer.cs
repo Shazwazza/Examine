@@ -723,8 +723,7 @@ namespace Examine.LuceneEngine.Providers
         /// Check if the index is readable/healthy
         /// </summary>
         /// <returns></returns>
-
-        internal bool IsReadable(out Exception ex)
+        public bool IsReadable(out Exception ex)
         {
             if (_writer != null)
             {
@@ -1174,7 +1173,7 @@ namespace Examine.LuceneEngine.Providers
                     if (ValidateItem(item.Item))
                     {
                         var added = ProcessIndexQueueItem(item, writer);
-                        if (added != IndexedItem.Empty)
+                        if (!added.IsEmpty())
                             indexedNodes.Add(added);
                     }
                     else
@@ -1363,40 +1362,6 @@ namespace Examine.LuceneEngine.Providers
             //trim the "Indexer" suffix if it exists
             var name = Name.EndsWith("Indexer") ? Name.Substring(0, Name.LastIndexOf("Indexer", StringComparison.Ordinal)) : Name;
             return new LuceneSearcher(name + "Searcher", GetIndexWriter(), LuceneAnalyzer);
-        }
-
-        /// <summary>
-        /// Tries to parse a type using the Type's type converter
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="val"></param>
-        /// <param name="parsedVal"></param>
-        /// <returns></returns>
-        private static bool TryConvert<T>(string val, out object parsedVal)
-            where T : struct
-        {
-            try
-            {
-                var t = typeof(T);
-                TypeConverter tc = TypeDescriptor.GetConverter(t);
-                var convertFrom = tc.ConvertFrom(null, CultureInfo.InvariantCulture, val);
-                if (convertFrom != null)
-                {
-                    parsedVal = (T)convertFrom;
-                    return true;
-                }
-                else
-                {
-                    parsedVal = null;
-                    return false;
-                }
-            }
-            catch (NotSupportedException)
-            {
-                parsedVal = null;
-                return false;
-            }
-
         }
 
 

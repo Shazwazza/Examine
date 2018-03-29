@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Xml.XPath;
 
 namespace Examine.Test.DataServices
@@ -16,8 +14,6 @@ namespace Examine.Test.DataServices
     /// </summary>
     public class TestContentService 
     {
-        public const int ProtectedNode = 1142;
-
         public TestContentService()
         {
             var xmlFile = new DirectoryInfo(TestHelper.AssemblyDirectory).GetDirectories("App_Data")
@@ -26,24 +22,6 @@ namespace Examine.Test.DataServices
                 .Single();
 
             _xDoc = XDocument.Load(xmlFile.FullName);
-        }
-
-        #region IContentService Members
-
-        /// <summary>
-        /// Return the XDocument containing the xml from the umbraco.config xml file
-        /// </summary>
-        /// <param name="xpath"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// This is no different in the test suite as published content
-        /// </remarks>
-        public XDocument GetLatestContentByXPath(string xpath)
-        {
-            var xdoc = XDocument.Parse("<content></content>");
-            xdoc.Root.Add(_xDoc.XPathSelectElements(xpath));
-
-            return xdoc;
         }
 
         /// <summary>
@@ -58,31 +36,6 @@ namespace Examine.Test.DataServices
 
             return xdoc;
         }
-
-        public string StripHtml(string value)
-        {
-            const string pattern = @"<(.|\n)*?>";
-            return Regex.Replace(value, pattern, string.Empty);
-        }
-
-        public bool IsProtected(int nodeId, string path)
-        {
-            // single node is marked as protected for test indexer
-            // hierarchy is not important for this test
-            return nodeId == ProtectedNode;
-        }
-
-        public IEnumerable<string> GetAllUserPropertyNames()
-        {
-            return GetPublishedContentByXPath("//*[count(@id)>0]")
-                .Root
-                .Elements()
-                .Select(x => x.Name.LocalName)
-                .ToList();
-        }
-        
-
-        #endregion
 
         private readonly XDocument _xDoc;
 

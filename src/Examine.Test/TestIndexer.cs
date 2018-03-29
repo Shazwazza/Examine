@@ -18,13 +18,6 @@ namespace Examine.Test
             RunAsync = false;
         }
 
-        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, IndexWriter writer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) 
-            : base("testIndexer", fieldDefinitions, writer, validator, indexValueTypesFactory)
-        {
-            EnsureIndex(true);
-            RunAsync = false;
-        }
-
         public TestIndexer(Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
             : base("testIndexer", new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer, validator)
         {

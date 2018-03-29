@@ -82,7 +82,6 @@
     <Compile Include="OrderedDictionaryTests.cs" />
     <Compile Include="RandomIdRAMDirectory.cs" />
     <Compile Include="DataServices\TestContentService.cs" />
-    <Compile Include="DataServices\TestValueSetDataProvider.cs" />
     <Compile Include="Search\DataTypeTests.cs" />
     <Compile Include="Search\FluentApiTests.cs" />
     <Compile Include="IndexInitializer.cs" />
@@ -95,7 +94,6 @@
     <Compile Include="SimpleDataProviderTest.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="TestIndexer.cs" />
-    <Compile Include="UmbracoExamine\ExamineXmlExtensions.cs" />
     <Compile Include="UmbracoExamine\IndexTypes.cs" />
   </ItemGroup>
   <ItemGroup>

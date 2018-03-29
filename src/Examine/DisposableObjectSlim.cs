@@ -8,12 +8,11 @@ namespace Examine
     /// </summary>
     internal abstract class DisposableObjectSlim : IDisposable
     {
-        private bool _disposed;
         private readonly object _locko = new object();
 
         // gets a value indicating whether this instance is disposed.
         // for internal tests only (not thread safe)
-        internal bool Disposed => _disposed;
+        protected bool Disposed { get; private set; }
 
         // implements IDisposable
         public void Dispose()
@@ -26,8 +25,8 @@ namespace Examine
         {
             lock (_locko)
             {
-                if (_disposed) return;
-                _disposed = true;
+                if (Disposed) return;
+                Disposed = true;
             }
 
             if (disposing)

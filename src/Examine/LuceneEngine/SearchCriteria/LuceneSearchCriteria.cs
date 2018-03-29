@@ -25,16 +25,15 @@ namespace Examine.LuceneEngine.SearchCriteria
     [DebuggerDisplay("Category: {Category}, LuceneQuery: {Query}")]
     public class LuceneSearchCriteria : ISearchCriteria
     {
-        private readonly BaseLuceneSearcher _searcher;
-        private readonly ICriteriaContext _indexFieldValueTypes;
-        internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
+        private readonly ICriteriaContext _criteriaContext;
+        private static readonly Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
 
         private readonly CustomMultiFieldQueryParser _queryParser;
         public QueryParser QueryParser => _queryParser;
 
-        internal Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
+        internal readonly Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
         internal BooleanQuery Query => Queries.Peek();
-        internal List<SortField> SortFields = new List<SortField>();
+        internal readonly List<SortField> SortFields = new List<SortField>();
         
         private Occur _occurrence;
         private BooleanOperation _boolOp;
@@ -43,14 +42,12 @@ namespace Examine.LuceneEngine.SearchCriteria
 
 		
         internal LuceneSearchCriteria(
-            BaseLuceneSearcher searcher,
-            ICriteriaContext indexFieldValueTypes,
+            ICriteriaContext criteriaContext,
             string type, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {   
             Enforcer.ArgumentNotNull(fields, "fields");
-
-            _searcher = searcher;
-            _indexFieldValueTypes = indexFieldValueTypes;
+            
+            _criteriaContext = criteriaContext;
 
             Category = type;
             Queries.Push(new BooleanQuery());
@@ -93,24 +90,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <remarks>
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </remarks>
-        public string Category
-        {
-            get;
-            protected set;
-        }
-
-        public bool IncludeHitCount
-        {
-            get;
-            set;
-        }
-
-        //public int TotalHits
-        //{
-        //    get;
-        //    protected internal set;
-        //}
-
+        public string Category { get; }
+        
         #endregion
 
         #region ISearch Members
@@ -263,13 +244,13 @@ namespace Examine.LuceneEngine.SearchCriteria
             Query.Add(new LateBoundQuery(() =>
             {
                 var types = fields != null
-                                ? fields.Select(f => _indexFieldValueTypes.GetValueType(f)).Where(t => t != null)
-                                : _indexFieldValueTypes.ValueTypes;
+                                ? fields.Select(f => _criteriaContext.GetValueType(f)).Where(t => t != null)
+                                : _criteriaContext.ValueTypes;
 
                 var bq = new BooleanQuery();
                 foreach (var type in types)
                 {
-                    var q = type.GetQuery(query, _searcher.GetLuceneSearcher());
+                    var q = type.GetQuery(query, _criteriaContext.Searcher);
                     if (q != null)
                     {
                         //CriteriaContext.ManagedQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
@@ -291,8 +272,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 var bq = new BooleanQuery();
                 foreach (var f in fields)
                 {
-                    var type = _indexFieldValueTypes.GetValueType(f) as IIndexRangeValueType<T>;
-                    if (type != null)
+                    if (_criteriaContext.GetValueType(f) is IIndexRangeValueType<T> type)
                     {
                         var q = type.GetQuery(min, max, minInclusive, maxInclusive);
                         if (q != null)
@@ -303,7 +283,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                     }
                     else
                     {
-                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, _indexFieldValueTypes.GetValueType(f).GetType());
+                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, _criteriaContext.GetValueType(f).GetType());
                     }
                 }
                 return bq;
