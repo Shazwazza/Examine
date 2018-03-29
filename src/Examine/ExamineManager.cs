@@ -20,7 +20,7 @@ namespace Examine
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : IDisposable, IRegisteredObject
+    public class ExamineManager : IDisposable, IRegisteredObject, IExamineManager
     {
         //tracks if the ExamineManager should register itself with the HostingEnvironment
         private static volatile bool _defaultRegisteration = true;
@@ -103,7 +103,7 @@ namespace Examine
         /// </summary>
         /// <param name="indexerName"></param>
         /// <returns></returns>
-        public ISearcher GetIndexSearcher(string indexerName)
+        public ISearcher GetSearcher(string indexerName)
         {
             if (IndexProviders.ContainsKey(indexerName))
             {
@@ -114,19 +114,7 @@ namespace Examine
             }
             throw new KeyNotFoundException("No indexer defined by name " + indexerName);
         }
-
-        /// <summary>
-        /// Returns a strongly type indexer by name
-        /// </summary>
-        /// <typeparam name="TIndexer"></typeparam>
-        /// <param name="indexerName"></param>
-        /// <returns></returns>
-        public TIndexer GetIndexer<TIndexer>(string indexerName)
-            where TIndexer : class, IIndexer
-        {
-            return IndexProviders[indexerName] as TIndexer;
-        }
-
+        
         /// <summary>
         /// Returns an indexer by name
         /// </summary>

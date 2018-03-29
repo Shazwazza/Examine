@@ -107,6 +107,7 @@
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="FieldDefinition.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
+    <Compile Include="IExamineManager.cs" />
     <Compile Include="IndexingItemEventArgs.cs" />
     <Compile Include="IndexOperationEventArgs.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />

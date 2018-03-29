@@ -43,7 +43,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult Search(string id)
         {
-            var searcher = ExamineManager.Instance.GetIndexSearcher("Simple2Indexer");
+            var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
             var criteria = searcher.CreateCriteria();
             var result = searcher.Search(criteria.RawQuery(id));
             var sb = new StringBuilder();
