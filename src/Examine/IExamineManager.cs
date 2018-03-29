@@ -47,19 +47,9 @@ namespace Examine
         /// <param name="indexerName"></param>
         /// <returns></returns>
         IIndexer GetIndexer(string indexerName);
-
+        
         /// <summary>
-        /// Returns the searcher for a given index
-        /// </summary>
-        /// <param name="indexerName"></param>
-        /// <returns></returns>
-        /// <exception cref="KeyNotFoundException">
-        /// Thrown if no indexer was found with the provided name
-        /// </exception>
-        ISearcher GetSearcher(string indexerName);
-
-        /// <summary>
-        /// Returns a searcher that was registered with <see cref="AddSearcher"/>
+        /// Returns a searcher that was registered with <see cref="AddSearcher"/> or via config
         /// </summary>
         /// <param name="searcherName"></param>
         /// <returns>

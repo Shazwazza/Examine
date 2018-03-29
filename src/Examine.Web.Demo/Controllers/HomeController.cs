@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Web.Mvc;
+using Examine;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using Examine.Web.Demo.Models;
@@ -27,7 +28,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult MultiSearch(string query)
         {
-            var multi = ExamineManager.Instance.SearchProviderCollection["MultiIndexSearcher"];
+            var multi = ExamineManager.Instance.GetRegisteredSearcher("MultiIndexSearcher");
             var criteria = multi.CreateCriteria();
             var result = multi.Search(criteria.RawQuery(query));
 

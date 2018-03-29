@@ -51,7 +51,7 @@ namespace Examine
         /// <summary>
         /// Singleton
         /// </summary>
-        public static ExamineManager Instance
+        public static IExamineManager Instance
         {
             get
             {
@@ -97,24 +97,11 @@ namespace Examine
                 return _providerCollections.Item2;
             }
         }
-
-        /// <inheritdoc />
-        public ISearcher GetSearcher(string indexerName)
-        {
-            if (IndexProviders.ContainsKey(indexerName))
-            {
-                if (IndexProviders.TryGetValue(indexerName, out var indexer))
-                {
-                    return indexer.GetSearcher();
-                }
-            }
-            throw new KeyNotFoundException("No indexer defined by name " + indexerName);
-        }
-
+        
         /// <inheritdoc />
         public ISearcher GetRegisteredSearcher(string searcherName)
         {            
-            return _searchers.TryGetValue(searcherName, out var searcher) ? searcher : null;
+            return (_searchers.TryGetValue(searcherName, out var searcher) ? searcher : null) ?? SearchProviderCollection[searcherName];
         }
 
         /// <inheritdoc />
