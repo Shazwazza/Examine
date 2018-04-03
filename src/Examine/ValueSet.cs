@@ -167,17 +167,45 @@ namespace Examine
         }
 
         /// <summary>
-        /// Adds a value to the keyed item
+        /// Adds a value to the keyed item, if it doesn't exist the key will be created
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        public void Add(string key, object value)
+        /// <returns>
+        /// The number of items stored for the key
+        /// </returns>
+        public int Add(string key, object value)
         {
             if (!Values.TryGetValue(key, out var values))
             {
                 Values.Add(key, values = new List<object>());
             }
             values.Add(value);
+            return values.Count;
+        }
+
+        /// <summary>
+        /// sets a value to the keyed item, if it doesn't exist the key will be created
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void Set(string key, object value)
+        {
+            //replace
+            Values[key] = new List<object> { value };
+        }
+
+        /// <summary>
+        /// Adds a value to the keyed item if it doesn't exist
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public bool TryAdd(string key, object value)
+        {
+            if (Values.ContainsKey(key)) return false;
+            Values.Add(key, new List<object> {value});
+            return true;
+
         }
     }
 }

@@ -104,7 +104,7 @@ namespace Examine
             //since this is what Umbraco expects
             var nodeTypeAlias = xml.ExamineNodeTypeAlias();
             var set = new ValueSet(id, indexCategory, nodeTypeAlias, allVals);
-            set.Add("nodeTypeAlias", nodeTypeAlias);
+            set.Set("nodeTypeAlias", nodeTypeAlias);
             return set;
         }
 
