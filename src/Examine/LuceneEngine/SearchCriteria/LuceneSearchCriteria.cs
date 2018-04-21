@@ -210,6 +210,45 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
         /// <summary>
+        /// Query on multiple NodeTypeAliases
+        /// </summary>
+        /// <param name="nodeTypeAliases">Multiple NodeTypeAliases.</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation NodeTypeAlias(string[] nodeTypeAliases)
+        {
+            Enforcer.ArgumentNotNull(nodeTypeAliases, "nodeTypeAliases");
+
+            return this.NodeTypeAlias(nodeTypeAliases
+                .Select(nodeTypeAlias => new ExamineValue(Examineness.Explicit, nodeTypeAlias))
+                .Cast<IExamineValue>()
+                .ToArray());
+        }
+
+        /// <summary>
+        /// Query on multiple NodeTypeAliases
+        /// </summary>
+        /// <param name="nodeTypeAliases">Multiple NodeTypeAliases.</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        [SecuritySafeCritical]
+        public IBooleanOperation NodeTypeAlias(IExamineValue[] nodeTypeAliases)
+        {
+            Enforcer.ArgumentNotNull(nodeTypeAliases, "nodeTypeAliases");
+            return this.NodeTypeAliasInternal(nodeTypeAliases
+                    .Select(nodeTypeAlias => new ExamineValue(nodeTypeAlias.Examineness, nodeTypeAlias.Value.ToLower(), nodeTypeAlias.Level))
+                    .Cast<IExamineValue>()
+                    .ToArray(),
+                _occurance);
+        }
+
+        [SecuritySafeCritical]
+        protected internal IBooleanOperation NodeTypeAliasInternal(IExamineValue[] examineValues, BooleanClause.Occur occurance)
+        {
+            Query.Add(GetMultiFieldQuery(new[] { NodeTypeAliasField }, examineValues, BooleanClause.Occur.SHOULD, true, false), occurance);
+
+            return new LuceneBooleanOperation(this);
+        }
+
+        /// <summary>
         /// Query on the Parent ID
         /// </summary>
         /// <param name="id">The id of the parent.</param>
@@ -679,6 +718,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fieldVals"></param>
         /// <param name="occurance"></param>
         /// <param name="matchAllCombinations">If true will match all combinations, if not will only match the values corresponding with fields</param>
+        /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         /// <remarks>
         /// 
@@ -710,7 +750,8 @@ namespace Examine.LuceneEngine.SearchCriteria
             string[] fields, 
             IExamineValue[] fieldVals, 
             BooleanClause.Occur occurance,
-            bool matchAllCombinations = false)
+            bool matchAllCombinations = false,
+            bool useQueryParser = true)
         {
 
             var qry = new BooleanQuery();
@@ -720,7 +761,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 {
                     foreach (var val in fieldVals)
                     {
-                        var q = GetFieldInternalQuery(f, val, true);
+                        var q = GetFieldInternalQuery(f, val, useQueryParser);
                         if (q != null)
                         {
                             qry.Add(q, occurance);
@@ -743,7 +784,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 
                 for (int i = 0; i < fields.Length; i++)
                 {
-                    var q = GetFieldInternalQuery(fields[i], queryVals[i], true);
+                    var q = GetFieldInternalQuery(fields[i], queryVals[i], useQueryParser);
                     if (q != null)
                     {
                         qry.Add(q, occurance);

@@ -44,6 +44,18 @@ namespace Examine.SearchCriteria
         /// <returns></returns>
         IBooleanOperation NodeTypeAlias(IExamineValue nodeTypeAlias);
         /// <summary>
+        /// Query on the NodeTypeAlias
+        /// </summary>
+        /// <param name="nodeTypeAliases">Multiple NodeTypeAliases.</param>
+        /// <returns></returns>
+        IBooleanOperation NodeTypeAlias(IExamineValue[] nodeTypeAliases);
+        /// <summary>
+        /// Query on the NodeTypeAlias
+        /// </summary>
+        /// <param name="nodeTypeAliases">Multiple NodeTypeAliases.</param>
+        /// <returns></returns>
+        IBooleanOperation NodeTypeAlias(string[] nodeTypeAliases);
+        /// <summary>
         /// Query on the Parent ID
         /// </summary>
         /// <param name="id">The id of the parent.</param>

@@ -294,6 +294,30 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
         /// <summary>
+        /// Query on the NodeTypeAlias
+        /// </summary>
+        /// <param name="nodeTypeAliases">Multiple node type aliases</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation NodeTypeAlias(IExamineValue[] nodeTypeAliases)
+        {
+            return this.search.NodeTypeAliasInternal(nodeTypeAliases, occurance);
+        }
+        
+        /// <summary>
+        /// Query on the NodeTypeAlias
+        /// </summary>
+        /// <param name="nodeTypeAliases">Multiple node type aliases</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        public IBooleanOperation NodeTypeAlias(string[] nodeTypeAliases)
+        {
+            return this.search.NodeTypeAliasInternal(nodeTypeAliases
+                    .Select(x => new ExamineValue(Examineness.Explicit, x))
+                    .Cast<IExamineValue>()
+                    .ToArray(),
+                occurance);
+        }
+
+        /// <summary>
         /// Query on the specified field
         /// </summary>
         /// <param name="fieldName">Name of the field.</param>
