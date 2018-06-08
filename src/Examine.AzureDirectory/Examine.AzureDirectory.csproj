@@ -78,8 +78,8 @@
     </Compile>
     <Compile Include="AzureDirectory.cs" />
     <Compile Include="AzureDirectoryFactory.cs" />
-    <Compile Include="AzureDirectoryLockFactory.cs" />
     <Compile Include="AzureDirectoryNativeLockFactory.cs" />
+    <Compile Include="AzureDirectorySimpleLockFactory.cs" />
     <Compile Include="AzureIndexInput.cs" />
     <Compile Include="AzureIndexOutput.cs" />
     <Compile Include="AzureSimpleLock.cs" />

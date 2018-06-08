@@ -46,7 +46,8 @@ namespace Examine.AzureDirectory
 
             _cacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
-            _lockFactory = new MultiIndexLockFactory(new AzureDirectoryNativeLockFactory(this), _cacheDirectory.GetLockFactory());
+            //_lockFactory = new MultiIndexLockFactory(new AzureDirectoryNativeLockFactory(this), _cacheDirectory.GetLockFactory());
+            _lockFactory = new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), _cacheDirectory.GetLockFactory());
 
             if (string.IsNullOrEmpty(rootFolder))
                 RootFolder = string.Empty;
