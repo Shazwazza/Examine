@@ -330,11 +330,13 @@ namespace Examine.LuceneEngine.Directories
             this.Close();
         }
 
+        //TODO: This isn't used
         internal StreamInput OpenCachedInputAsStream(string name)
         {
             return new StreamInput(CacheDirectory.OpenInput(name));
         }
 
+        //TODO: This isn't used
         internal StreamOutput CreateCachedOutputAsStream(string name)
         {
             return new StreamOutput(CacheDirectory.CreateOutput(name));

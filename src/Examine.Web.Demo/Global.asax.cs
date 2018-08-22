@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Index;
 
 namespace Examine.Web.Demo
 {
@@ -37,6 +39,18 @@ namespace Examine.Web.Demo
                 Context.Server.MapPath("~/App_Data/" + DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), "ExamineListener"));
 
             Trace.WriteLine("App starting");
+
+#if FULLDEBUG
+            foreach (var luceneIndexer in ExamineManager.Instance.IndexProviderCollection.OfType<LuceneIndexer>())
+            {
+                var dir = luceneIndexer.GetLuceneDirectory();
+                if (IndexWriter.IsLocked(dir))
+                {
+                    Trace.WriteLine("Forcing index " + luceneIndexer.IndexSetName + " to be unlocked since it was left in a locked state");
+                    IndexWriter.Unlock(dir);
+                }
+            }
+#endif
 
             //take care of unhandled exceptions - there is nothing we can do to
             // prevent the entire w3wp process to go down but at least we can try

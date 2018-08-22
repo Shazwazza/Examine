@@ -38,6 +38,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.AzureDirectory", "Examine.AzureDirectory\Examine.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.AzureDirectory", "Examine.AzureDirectory", "{1667E2A1-051D-48F6-A2DE-301788613870}"
+	ProjectSection(SolutionItems) = preProject
+		..\build\Nuspecs\Examine.AzureDirectory\Examine.AzureDirectory.nuspec = ..\build\Nuspecs\Examine.AzureDirectory\Examine.AzureDirectory.nuspec
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

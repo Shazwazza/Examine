@@ -22,8 +22,7 @@ namespace Examine.AzureDirectory
         private readonly string _containerName;        
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
-        private readonly Lucene.Net.Store.Directory _cacheDirectory;
-        private readonly MultiIndexLockFactory _lockFactory;
+        private readonly LockFactory _lockFactory;
 
         /// <summary>
         /// Create an AzureDirectory
@@ -33,21 +32,29 @@ namespace Examine.AzureDirectory
         /// <param name="cacheDirectory">local Directory object to use for local cache</param>
         /// <param name="compressBlobs"></param>
         /// <param name="rootFolder">path of the root folder inside the container</param>
+        /// <param name="isReadOnly">
+        /// By default this is set to false which means that the <see cref="LockFactory"/> created for this directory will be 
+        /// a <see cref="MultiIndexLockFactory"/> which will create locks in both the cache and blob storage folders.
+        /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
+        /// </param>
         public AzureDirectory(
             CloudStorageAccount storageAccount,            
             string containerName,
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false,
-            string rootFolder = null)
+            string rootFolder = null,
+            bool isReadOnly = false)
         {            
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
             if (string.IsNullOrWhiteSpace(containerName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
 
-            _cacheDirectory = cacheDirectory;
+            CacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
-            //_lockFactory = new MultiIndexLockFactory(new AzureDirectoryNativeLockFactory(this), _cacheDirectory.GetLockFactory());
-            _lockFactory = new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), _cacheDirectory.GetLockFactory());
+            
+            _lockFactory = isReadOnly
+                ? CacheDirectory.GetLockFactory()
+                : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.GetLockFactory());
 
             if (string.IsNullOrEmpty(rootFolder))
                 RootFolder = string.Empty;
@@ -59,22 +66,21 @@ namespace Examine.AzureDirectory
 
             _blobClient = storageAccount.CreateCloudBlobClient();
             EnsureContainer();
-            this.CompressBlobs = compressBlobs;
+            CompressBlobs = compressBlobs;
         }
 
         public string RootFolder { get; }
         public CloudBlobContainer BlobContainer => _blobContainer;
-        public bool CompressBlobs { get; set; }
+        public bool CompressBlobs { get; }
+        public Lucene.Net.Store.Directory CacheDirectory { get; }
 
         public void ClearCache()
         {
-            foreach (string file in _cacheDirectory.ListAll())
+            foreach (string file in CacheDirectory.ListAll())
             {
-                _cacheDirectory.DeleteFile(file);
+                CacheDirectory.DeleteFile(file);
             }
         }
-
-        public Lucene.Net.Store.Directory CacheDirectory => _cacheDirectory;
 
         public void EnsureContainer()
         {
@@ -92,9 +98,11 @@ namespace Examine.AzureDirectory
 
         public override string[] ListAll()
         {
-            CheckDirty();
+            var blobFiles = CheckDirty();
 
-            return _inSync ? _cacheDirectory.ListAll() : GetAllBlobFiles();
+            return _inSync 
+                ? CacheDirectory.ListAll() 
+                : (blobFiles ?? GetAllBlobFiles());
         }
 
         private string[] GetAllBlobFiles()
@@ -113,7 +121,7 @@ namespace Examine.AzureDirectory
             {
                 try
                 {
-                    return _cacheDirectory.FileExists(name);
+                    return CacheDirectory.FileExists(name);
                 }
                 catch (Exception)
                 {
@@ -146,7 +154,7 @@ namespace Examine.AzureDirectory
 
             if (_inSync)
             {
-                return _cacheDirectory.FileModified(name);
+                return CacheDirectory.FileModified(name);
             }
 
             try
@@ -170,7 +178,7 @@ namespace Examine.AzureDirectory
         public override void TouchFile(string name)
         {
             //just update the cache file - the Lucene source actually never calls this method!
-            _cacheDirectory.TouchFile(name);
+            CacheDirectory.TouchFile(name);
             SetDirty();
         }
 
@@ -187,14 +195,14 @@ namespace Examine.AzureDirectory
             // local storage because the FileExist method will always return false.
             try
             {
-                if (_cacheDirectory.FileExists(name + ".blob"))
+                if (CacheDirectory.FileExists(name + ".blob"))
                 {
-                    _cacheDirectory.DeleteFile(name + ".blob");
+                    CacheDirectory.DeleteFile(name + ".blob");
                 }
 
-                if (_cacheDirectory.FileExists(name))
+                if (CacheDirectory.FileExists(name))
                 {
-                    _cacheDirectory.DeleteFile(name);
+                    CacheDirectory.DeleteFile(name);
                     SetDirty();
                 }
             }
@@ -240,12 +248,12 @@ namespace Examine.AzureDirectory
             try
             {
                 // we delete and force a redownload, since we can't do this in an atomic way
-                if (_cacheDirectory.FileExists(from))
-                    _cacheDirectory.RenameFile(from, to);
+                if (CacheDirectory.FileExists(from))
+                    CacheDirectory.RenameFile(from, to);
 
                 // drop old cached data as it's wrong now
-                if (_cacheDirectory.FileExists(from + ".blob"))
-                    _cacheDirectory.DeleteFile(from + ".blob");
+                if (CacheDirectory.FileExists(from + ".blob"))
+                    CacheDirectory.DeleteFile(from + ".blob");
 
                 SetDirty();
             }
@@ -262,7 +270,7 @@ namespace Examine.AzureDirectory
 
             if (_inSync)
             {
-                return _cacheDirectory.FileLength(name);
+                return CacheDirectory.FileLength(name);
             }
 
             var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
@@ -345,7 +353,7 @@ namespace Examine.AzureDirectory
         /// </summary>
         public override string GetLockID()
         {
-            return string.Concat(base.GetLockID(), _cacheDirectory.GetLockID());
+            return string.Concat(base.GetLockID(), CacheDirectory.GetLockID());
         }
 
         public virtual bool ShouldCompressFile(string path)
@@ -384,8 +392,14 @@ namespace Examine.AzureDirectory
             return new StreamOutput(CacheDirectory.CreateOutput(name));
         }
 
-
-        private void CheckDirty()
+        /// <summary>
+        /// Checks dirty flag and sets the _inSync flag after querying the blob strorage vs local storage segment gen
+        /// </summary>
+        /// <returns>
+        /// If _dirty is true and blob storage files are looked up, this will return those blob storage files, this is a performance gain so
+        /// we don't double query blob storage.
+        /// </returns>
+        private string[] CheckDirty()
         {
             if (_dirty)
             {
@@ -396,15 +410,19 @@ namespace Examine.AzureDirectory
                     {
                         //these methods don't throw exceptions, will return -1 if something has gone wrong
                         // in which case we'll consider them not in sync
-                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(GetAllBlobFiles());
-                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(_cacheDirectory);
+                        var blobFiles = GetAllBlobFiles();
+                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(blobFiles);
+                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
                         _inSync = masterSeg == localSeg && masterSeg != -1;
                         _dirty = false;
+                        return blobFiles;
                     }
                 }
             }
-        }
 
+            return null;
+        }
+        
         private void SetDirty()
         {
             if (!_dirty)

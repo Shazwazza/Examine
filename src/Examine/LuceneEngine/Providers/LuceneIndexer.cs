@@ -348,8 +348,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        private bool _hasIndex = false;
-
         #endregion
 
         #region Static Helpers
@@ -636,16 +634,17 @@ namespace Examine.LuceneEngine.Providers
             //now index the single node
             AddSingleNodeToIndex(node, type);
         }
-
+        
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
         [SecuritySafeCritical]
         public void EnsureIndex(bool forceOverwrite)
         {
-            if (!forceOverwrite && _hasIndex) return;
+            if (!forceOverwrite && _exists.HasValue && _exists.Value) return;
 
-            if (!IndexExists() || forceOverwrite)
+            var indexExists = IndexExists();
+            if (!indexExists || forceOverwrite)
             {
                 //if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
                 // logic to actually execute multiple times
@@ -655,13 +654,15 @@ namespace Examine.LuceneEngine.Providers
                     {
                         var dir = GetLuceneDirectory();
 
-                        //if there's no index, we need to create one
-                        if (!IndexExists())
+                        if (!indexExists)
                         {
+                            //if there's no index, we need to create one
                             CreateNewIndex(dir);
                         }
-                        else if (forceOverwrite)
+                        else
                         {
+                            //it does exists so we'll need to clear it out
+
                             Trace.WriteLine("Initializing new index");
 
                             if (_writer == null)
@@ -743,7 +744,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     writer.Close();
                 }
-                _hasIndex = true;
+                _exists = true;
             }
         }
 
@@ -1854,11 +1855,12 @@ namespace Examine.LuceneEngine.Providers
             {
                 try
                 {
+                    System.IO.Directory.CreateDirectory(LuceneIndexFolder.FullName);
                     _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), FileMode.Append);
                     var w = new StreamWriter(_logOutput);
                     writer.SetInfoStream(w);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     //if an exception is thrown here we won't worry about it, it will mean we cannot create the log file
                 }

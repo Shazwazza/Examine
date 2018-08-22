@@ -8,19 +8,30 @@ using Microsoft.WindowsAzure.Storage;
 namespace Examine.AzureDirectory
 {
     /// <summary>
-    /// The azure umbraco content indexer.
+    /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for use on the server that can actively write to the index
     /// </summary>
     public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory
     {
+        private readonly bool _isReadOnly;
+
+        public AzureDirectoryFactory()
+        {
+        }
+
+        public AzureDirectoryFactory(bool isReadOnly)
+        {
+            _isReadOnly = isReadOnly;
+        }
+
         /// <summary>
         /// Get/set the config storage key
         /// </summary>
-        public static string ConfigStorageKey = "examine:AzureStorageConnString";
+        public static string ConfigStorageKey { get; set; } = "examine:AzureStorageConnString";
 
         /// <summary>
         /// Get/set the config container key
         /// </summary>
-        public static string ConfigContainerKey = "examine:AzureStorageContainer";
+        public static string ConfigContainerKey { get; set; } = "examine:AzureStorageContainer";
 
         /// <summary>
         /// Return the AzureDirectory.
@@ -46,7 +57,8 @@ namespace Examine.AzureDirectory
                 CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),                
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 new SimpleFSDirectory(tempFolder),
-                rootFolder: indexer.IndexSetName);
+                rootFolder: indexer.IndexSetName,
+                isReadOnly: _isReadOnly);
         }
         
     }

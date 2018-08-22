@@ -48,8 +48,25 @@ namespace Examine.LuceneEngine.Directories
         {
             lock (Locker)
             {
-                _master.ClearLock(lockName);
-                _child.ClearLock(lockName);
+                var isChild = false;
+                try
+                {
+                    //try to release master
+                    _master.ClearLock(lockName);
+
+                    //if that succeeds try to release child
+                    isChild = true;
+                    _child.ClearLock(lockName);
+                }
+                catch (Exception)
+                {
+                    //if an error occurs above for the master still attempt to release child
+                    if (!isChild)
+                        _child.ClearLock(lockName);
+
+                    throw;
+                }
+                
             }
         }
     }
