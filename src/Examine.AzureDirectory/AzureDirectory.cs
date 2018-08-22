@@ -15,6 +15,7 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectory : Lucene.Net.Store.Directory
     {
+        private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
@@ -48,6 +49,7 @@ namespace Examine.AzureDirectory
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
             if (string.IsNullOrWhiteSpace(containerName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
+            _isReadOnly = isReadOnly;
 
             CacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
@@ -161,11 +163,16 @@ namespace Examine.AzureDirectory
             {
                 var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
                 blob.FetchAttributes();
-                var utcDate = blob.Properties.LastModified.Value.UtcDateTime;
+                if (blob.Properties.LastModified != null)
+                {
+                    var utcDate = blob.Properties.LastModified.Value.UtcDateTime;
 
-                //This is the data structure of how the default Lucene FSDirectory returns this value so we want
-                // to be consistent with how Lucene works
-                return (long)utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
+                    //This is the data structure of how the default Lucene FSDirectory returns this value so we want
+                    // to be consistent with how Lucene works
+                    return (long)utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
+                }
+
+                return 0;
             }
             catch
             {
@@ -185,6 +192,8 @@ namespace Examine.AzureDirectory
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(string name)
         {
+            //TODO: Maybe check for _isReadOnly ?
+
             //We're going to try to remove this from the cache directory first,
             // because the IndexFileDeleter will call this file to remove files 
             // but since some files will be in use still, it will retry when a reader/searcher
@@ -277,11 +286,9 @@ namespace Examine.AzureDirectory
             blob.FetchAttributes();
 
             // index files may be compressed so the actual length is stored in metatdata
-            string blobLegthMetadata;
-            bool hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out blobLegthMetadata);
+            var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
 
-            long blobLength;
-            if (hasMetadataValue && long.TryParse(blobLegthMetadata, out blobLength))
+            if (hasMetadataValue && long.TryParse(blobLegthMetadata, out var blobLength))
             {
                 return blobLength;
             }
@@ -293,6 +300,8 @@ namespace Examine.AzureDirectory
         /// </summary>
         public override IndexOutput CreateOutput(string name)
         {
+            //TODO: Maybe check for _isReadOnly ?
+
             SetDirty();
             var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
             return new AzureIndexOutput(this, blob, name);
