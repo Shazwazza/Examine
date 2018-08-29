@@ -192,8 +192,6 @@ namespace Examine.AzureDirectory
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(string name)
         {
-            //TODO: Maybe check for _isReadOnly ?
-
             //We're going to try to remove this from the cache directory first,
             // because the IndexFileDeleter will call this file to remove files 
             // but since some files will be in use still, it will retry when a reader/searcher
@@ -224,13 +222,16 @@ namespace Examine.AzureDirectory
                 throw;
             }
 
+            //if we are readonly, then we are only modifying local storage
+            if (_isReadOnly) return;
+
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
             
             var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
             blob.DeleteIfExists();            
             SetDirty();
 
-            Trace.WriteLine($"DELETE {_blobContainer.Uri.ToString()}/{name}");
+            Trace.WriteLine($"DELETE {_blobContainer.Uri}/{name}");
         }
 
         
@@ -241,17 +242,21 @@ namespace Examine.AzureDirectory
         [Obsolete("This is actually never used")]
         public override void RenameFile(string from, string to)
         {
-            try
+            //if we are readonly, then we are only modifying local storage
+            if (!_isReadOnly)
             {
-                var blobFrom = _blobContainer.GetBlockBlobReference(from);
-                var blobTo = _blobContainer.GetBlockBlobReference(to);
-                blobTo.StartCopy(blobFrom);
-                blobFrom.DeleteIfExists();
-                SetDirty();               
-            }
-            catch(Exception ex)
-            {
-                Trace.TraceError("Could not rename file on master index; " + ex);
+                try
+                {
+                    var blobFrom = _blobContainer.GetBlockBlobReference(from);
+                    var blobTo = _blobContainer.GetBlockBlobReference(to);
+                    blobTo.StartCopy(blobFrom);
+                    blobFrom.DeleteIfExists();
+                    SetDirty();
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError("Could not rename file on master index; " + ex);
+                }
             }
 
             try
@@ -268,7 +273,7 @@ namespace Examine.AzureDirectory
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Could not rename file on local index; " + ex);
+                Trace.TraceError("Could not rename file on local index; " + ex);
             }
         }
 
@@ -300,9 +305,14 @@ namespace Examine.AzureDirectory
         /// </summary>
         public override IndexOutput CreateOutput(string name)
         {
-            //TODO: Maybe check for _isReadOnly ?
-
             SetDirty();
+
+            //if we are readonly, then we are only modifying local storage
+            if (_isReadOnly)
+            {
+                return CacheDirectory.CreateOutput(name);
+            }
+
             var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
             return new AzureIndexOutput(this, blob, name);
         }
@@ -310,6 +320,27 @@ namespace Examine.AzureDirectory
         /// <summary>Returns a stream reading an existing file. </summary>
         public override IndexInput OpenInput(string name)
         {
+            CheckDirty();
+            
+            if (_inSync)
+            {
+                try
+                {
+                    return CacheDirectory.OpenInput(name);
+                }
+                catch (FileNotFoundException)
+                {
+                    //if it's not found then we need to re-read from blob so were not in sync
+                    SetDirty();
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError("Could not get local file though we are marked as inSync, reverting to try blob storage; " + ex);
+                }
+            }
+
+            //try to sync the file from blob storage
+
             try
             {
                 var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
@@ -389,18 +420,7 @@ namespace Examine.AzureDirectory
                     return false;
             };
         }
-
-        //public StreamInput OpenCachedInputAsStream(string name)
-        //{
-        //    return new StreamInput(CacheDirectory.OpenInput(name));
-        //}
-
-        //TODO: Get rid of this
-        public StreamOutput CreateCachedOutputAsStream(string name)
-        {
-            return new StreamOutput(CacheDirectory.CreateOutput(name));
-        }
-
+        
         /// <summary>
         /// Checks dirty flag and sets the _inSync flag after querying the blob strorage vs local storage segment gen
         /// </summary>
