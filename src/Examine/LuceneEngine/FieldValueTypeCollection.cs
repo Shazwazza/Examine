@@ -14,10 +14,10 @@ namespace Examine.LuceneEngine
         internal PerFieldAnalyzerWrapper Analyzer { get; }
 
         public FieldValueTypeCollection(
-            Analyzer defaultAnalyzer,
+            PerFieldAnalyzerWrapper analyzer, 
             IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types, FieldDefinitionCollection fieldDefinitionCollection)
         {
-            Analyzer = new PerFieldAnalyzerWrapper(defaultAnalyzer);
+            Analyzer = analyzer;
             foreach (var type in types)
             {
                 ValueTypeFactories.TryAdd(type.Key, type.Value);
@@ -50,7 +50,7 @@ namespace Examine.LuceneEngine
         }
 
         /// <summary>
-        /// Returns the value type for the field name specified, if it's not found it will create on with the factory supplied
+        /// Returns the value type for the field name specified, if it's not found it will create one with the factory supplied
         /// and initialize it.
         /// </summary>
         /// <param name="fieldName"></param>

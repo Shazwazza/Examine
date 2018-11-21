@@ -19,7 +19,8 @@ namespace Examine.LuceneEngine.Providers
             IndexCategories = indexCategories;
         }
 
-        public ValueSetIndexer(string name, IValueSetDataService dataService, IEnumerable<string> indexCategories, IEnumerable<FieldDefinition> fieldDefinitions, IndexWriter writer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) 
+        //TODO: Not sure if we want to expose this one yet
+        internal ValueSetIndexer(string name, IValueSetDataService dataService, IEnumerable<string> indexCategories, IEnumerable<FieldDefinition> fieldDefinitions, IndexWriter writer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) 
             : base(name, fieldDefinitions, writer, validator, indexValueTypesFactory)
         {
             DataService = dataService;

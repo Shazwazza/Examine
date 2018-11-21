@@ -291,9 +291,10 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndexer(luceneDir, analyzer))
 
             {
-                
 
-                var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
+
+                var searcher = indexer.GetSearcher();
+                    //new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchCriteria)searcher.CreateCriteria();

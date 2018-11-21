@@ -50,7 +50,7 @@ namespace Examine.LuceneEngine.Providers
 	    public Analyzer LuceneAnalyzer
 	    {
 		    get;
-			protected internal set;
+			private set;
 	    }
 
         /// <summary>

@@ -158,7 +158,6 @@
     <Compile Include="LuceneEngine\FieldValueTypes.cs" />
     <Compile Include="LuceneEngine\Providers\IValueSetValidator.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndexer.cs" />
-    <Compile Include="LuceneEngine\Providers\LuceneMemorySearcher.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchOptions.cs" />
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />

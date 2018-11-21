@@ -28,7 +28,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Constructor to allow for creating an indexer at runtime
+        /// Constructor to allow for creating a searcher at runtime
         /// </summary>
         /// <param name="name"></param>
         /// <param name="indexPath"></param>
@@ -48,7 +48,7 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Constructor to allow for creating an indexer at runtime
+        /// Constructor to allow for creating a searcher at runtime
         /// </summary>
         /// <param name="name"></param>
         /// <param name="luceneDirs"></param>
@@ -68,7 +68,20 @@ namespace Examine.LuceneEngine.Providers
 			Searchers = searchers;
 		}
 
-		#endregion
+        /// <summary>
+        /// Constructor to allow for creating a searcher at runtime
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="luceneDirs"></param>
+        /// <param name="analyzer"></param>
+        public MultiIndexSearcher(string name, IEnumerable<LuceneSearcher> searchers, Analyzer analyzer)
+            : base(name, analyzer)
+        {
+            _disposer = new DisposableSearcher(this);
+            Searchers = searchers;
+        }
+
+        #endregion
 
         ///<summary>
         /// The underlying LuceneSearchers that will be searched across

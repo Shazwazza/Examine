@@ -50,7 +50,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer">Specifies the default analyzer to use per field</param>
         /// <param name="indexValueTypesFactory">
-        /// Specifies the index value types to use for this indexer, if this is not specified then the result of LuceneIndexer.GetDefaultIndexValueTypes() will be used.
+        /// Specifies the index value types to use for this indexer, if this is not specified then the result of FieldValueTypes.DefaultIndexValueTypes will be used.
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
         protected LuceneIndexer(
@@ -68,7 +68,7 @@ namespace Examine.LuceneEngine.Providers
             ValueSetValidator = validator;
             LuceneIndexFolder = null;
 
-            LuceneAnalyzer = analyzer;
+            DefaultAnalyzer = analyzer;
 
             _directory = luceneDirectory;
             //initialize the field types
@@ -77,6 +77,8 @@ namespace Examine.LuceneEngine.Providers
             WaitForIndexQueueOnShutdown = true;
         }
 
+        //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
+        // with all of the field definitions in place, etc... but that will most likely never happen
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
         /// </summary>
@@ -85,10 +87,10 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="writer"></param>
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
-        protected LuceneIndexer(
+        internal LuceneIndexer(
             string name,
-            IEnumerable<FieldDefinition> fieldDefinitions, 
-            IndexWriter writer, 
+            IEnumerable<FieldDefinition> fieldDefinitions,
+            IndexWriter writer,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
             : base(name, fieldDefinitions)
@@ -96,14 +98,13 @@ namespace Examine.LuceneEngine.Providers
             _disposer = new DisposableIndexer(this);
             _committer = new IndexCommiter(this);
 
+            DefaultAnalyzer = writer.Analyzer;
             ValueSetValidator = validator;
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            
             //initialize the field types
             FieldValueTypeCollection = FieldValueTypes.Current.InitializeFieldValueTypes(_writer.Directory, directory => CreateFieldValueTypes(directory, indexValueTypesFactory));
             LuceneIndexFolder = null;
-
-            LuceneAnalyzer = writer.Analyzer;
-            
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
         }
@@ -147,13 +148,13 @@ namespace Examine.LuceneEngine.Providers
                 //this should be a fully qualified type
                 var analyzerType = TypeHelper.FindType(config["analyzer"]);
                 if (typeof(StandardAnalyzer).IsAssignableFrom(analyzerType))
-                    LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType, Version.LUCENE_30);
+                    DefaultAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType, Version.LUCENE_30);
                 else
-                    LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
+                    DefaultAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
             }
             else
             {
-                LuceneAnalyzer = new CultureInvariantStandardAnalyzer(Version.LUCENE_30);
+                DefaultAnalyzer = new CultureInvariantStandardAnalyzer(Version.LUCENE_30);
             }
 
             var directory = InitializeDirectory();
@@ -268,15 +269,19 @@ namespace Examine.LuceneEngine.Providers
         public bool WaitForIndexQueueOnShutdown { get; set; }
 
         /// <summary>
-        /// The analyzer to use when indexing content, by default, this is set to StandardAnalyzer
+        /// The default analyzer to use when indexing content, by default, this is set to StandardAnalyzer
         /// </summary>
-        public Analyzer LuceneAnalyzer
+        public Analyzer DefaultAnalyzer
         {
-
-            get;
-
-            protected set;
+            get; private set;
         }
+
+        private PerFieldAnalyzerWrapper _fieldAnalyzer;
+        public PerFieldAnalyzerWrapper FieldAnalyzer => _fieldAnalyzer
+            ?? (_fieldAnalyzer =
+                (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
+                    ? pfa
+                    : new PerFieldAnalyzerWrapper(DefaultAnalyzer));
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
@@ -507,7 +512,7 @@ namespace Examine.LuceneEngine.Providers
                     IndexWriter.Unlock(dir);
                 }
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(dir, LuceneAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
             }
             catch (Exception ex)
             {
@@ -661,7 +666,7 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            var result = new FieldValueTypeCollection(LuceneAnalyzer, defaults, FieldDefinitionCollection);
+            var result = new FieldValueTypeCollection(FieldAnalyzer, defaults, FieldDefinitionCollection);
             return result;
         }
 
@@ -844,7 +849,12 @@ namespace Examine.LuceneEngine.Providers
                 //check if we have a defined one
                 if (FieldDefinitionCollection.TryGetValue(field.Key, out var definedFieldDefinition))
                 {
-                    var valueType = FieldValueTypeCollection.GetValueType(definedFieldDefinition.Name, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.FullText]);
+                    var valueType = FieldValueTypeCollection.GetValueType(
+                        definedFieldDefinition.Name,
+                        FieldValueTypeCollection.ValueTypeFactories.TryGetValue(definedFieldDefinition.Type, out var valTypeFactory)
+                            ? valTypeFactory
+                            : FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.FullText]);
+
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -1322,7 +1332,7 @@ namespace Examine.LuceneEngine.Providers
         private IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
-            var writer = new IndexWriter(d, LuceneAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
             return writer;
         }
 
@@ -1363,7 +1373,7 @@ namespace Examine.LuceneEngine.Providers
         {
             //trim the "Indexer" suffix if it exists
             var name = Name.EndsWith("Indexer") ? Name.Substring(0, Name.LastIndexOf("Indexer", StringComparison.Ordinal)) : Name;
-            return new LuceneSearcher(name + "Searcher", GetIndexWriter(), LuceneAnalyzer);
+            return new LuceneSearcher(name + "Searcher", GetIndexWriter(), FieldAnalyzer);
         }
 
 

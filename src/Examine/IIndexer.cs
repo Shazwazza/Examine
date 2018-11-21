@@ -9,6 +9,8 @@ namespace Examine
     /// </summary>
     public interface IIndexer
     {
+        //TODO: Why not add Name? Wouldn't that simpify some things like registering a new index with the manager?
+
         /// <summary>
         /// Returns a searcher for the index
         /// </summary>
