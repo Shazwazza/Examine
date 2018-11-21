@@ -17,19 +17,17 @@ namespace Examine.AzureDirectory
         private AzureDirectory _azureDirectory;
         private CloudBlobContainer _blobContainer;
         private ICloudBlob _blob;
-        private string _name;
+        private readonly string _name;
 
         private IndexInput _indexInput;
-        private Mutex _fileMutex;
+        private readonly Mutex _fileMutex;
 
-        public Lucene.Net.Store.Directory CacheDirectory { get { return _azureDirectory.CacheDirectory; } }
+        public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
         public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob)
         {
-            if (azuredirectory == null) throw new ArgumentNullException(nameof(azuredirectory));
-
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
-            _azureDirectory = azuredirectory;
+            _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
 #if FULLDEBUG
             Trace.WriteLine($"opening {_name} ");
 #endif
@@ -49,18 +47,16 @@ namespace Examine.AzureDirectory
                 }
                 else
                 {
-                    long cachedLength = CacheDirectory.FileLength(fileName);
-                    string blobLengthMetadata;
-                    bool hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out blobLengthMetadata); 
-                    long blobLength = blob.Properties.Length;
+                    var cachedLength = CacheDirectory.FileLength(fileName);
+                    var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata); 
+                    var blobLength = blob.Properties.Length;
                     if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
 
-                    string blobLastModifiedMetadata;
-                    long longLastModified = 0;
-                    DateTime blobLastModifiedUTC = blob.Properties.LastModified.Value.UtcDateTime;
-                    if (blob.Metadata.TryGetValue("CachedLastModified", out blobLastModifiedMetadata)) {
-                        if (long.TryParse(blobLastModifiedMetadata, out longLastModified))
-                            blobLastModifiedUTC = new DateTime(longLastModified).ToUniversalTime();
+                    var blobLastModifiedUtc = blob.Properties.LastModified.Value.UtcDateTime;
+                    if (blob.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
+                    {
+                        if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
+                            blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
                     }
                     
                     if (cachedLength != blobLength)
@@ -69,13 +65,13 @@ namespace Examine.AzureDirectory
                     {
 
                         // cachedLastModifiedUTC was not ouputting with a date (just time) and the time was always off
-                        long unixDate = CacheDirectory.FileModified(fileName);
-                        DateTime start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                        var cachedLastModifiedUTC = start.AddMilliseconds(unixDate).ToUniversalTime();
+                        var unixDate = CacheDirectory.FileModified(fileName);
+                        var start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                        var cachedLastModifiedUtc = start.AddMilliseconds(unixDate).ToUniversalTime();
                         
-                        if (cachedLastModifiedUTC != blobLastModifiedUTC)
+                        if (cachedLastModifiedUtc != blobLastModifiedUtc)
                         {
-                            var timeSpan = blobLastModifiedUTC.Subtract(cachedLastModifiedUTC);
+                            var timeSpan = blobLastModifiedUtc.Subtract(cachedLastModifiedUtc);
                             if (timeSpan.TotalSeconds > 1)
                                 fFileNeeded = true;
                             else
@@ -99,7 +95,7 @@ namespace Examine.AzureDirectory
                     }
                     else
                     {
-                        using (var fileStream = _azureDirectory.CreateCachedOutputAsStream(fileName))
+                        using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
                         {
                             // get the blob
                             _blob.DownloadToStream(fileStream);
@@ -147,7 +143,7 @@ namespace Examine.AzureDirectory
                 deflatedStream.Seek(0, SeekOrigin.Begin);
 
                 // open output file for uncompressed contents
-                using (var fileStream = _azureDirectory.CreateCachedOutputAsStream(fileName))
+                using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
                 using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
                 {
                     var bytes = new byte[65535];

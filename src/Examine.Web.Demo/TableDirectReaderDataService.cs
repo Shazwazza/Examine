@@ -17,7 +17,7 @@ namespace Examine.Web.Demo
         /// Returns some random items from the storage
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<ValueSet> GetRandomItems()
+        public IEnumerable<ValueSet> GetRandomItems(int max = int.MaxValue)
         {
             var random = new Random(Guid.NewGuid().GetHashCode());
             var current = 0;
@@ -47,7 +47,9 @@ namespace Examine.Web.Demo
                                     {"Column6", rs.GetString(6)}
                                 });
                             }
-                            current++;
+                                current++;
+                                if (current > max) yield break;
+                            }
                         }
                     }
                 }

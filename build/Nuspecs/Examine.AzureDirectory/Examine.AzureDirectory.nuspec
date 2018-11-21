@@ -3,19 +3,19 @@
   <metadata>
     <id>Examine.AzureDirectory</id>
     <version>0.0.0.0</version>
-    <title>Examine.Directory.AzureDirectory</title>
+    <title>Examine.AzureDirectory</title>
     <authors>Shannon Deminick</authors>
     <owners>Shannon Deminick</owners>
     <projectUrl>https://github.com/Shazwazza/Examine</projectUrl>
     <licenseUrl>http://www.opensource.org/licenses/ms-pl</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>AzureDirectory implementation for Examine allows storing indexes in Blob storage and syncing to local fast storage</description>
-    <summary>AzureDirectory implementation for Examine allows storing indexes in Blob storage and syncing to local fast storage</summary>
-    <tags>azure blob examine search lucene</tags>
+    <description>A directory factory implementation for Examine to store the primary index files in Blob storage and syncing them to the local fast drive.</description>
+    <summary>A directory factory implementation for Examine to store the primary index files in Blob storage and syncing them to the local fast drive</summary>
+    <tags>examine azure blobstorage search lucene</tags>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="Examine" version="0.1.80" />
-      <dependency id="WindowsAzure.Storage" version="8.0.0" />
+      <dependency id="Examine" version="0.1.90-beta01" />
+      <dependency id="WindowsAzure.Storage" version="9.3.1" />
     </dependencies>
   </metadata>
   <files>

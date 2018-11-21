@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Examine
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.AzureDirectory", "Examine.AzureDirectory\Examine.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.AzureDirectory", "Examine.AzureDirectory", "{925EA1CE-542E-442E-A8C3-F34FEBE3F81A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.AzureDirectory", "Examine.AzureDirectory", "{1667E2A1-051D-48F6-A2DE-301788613870}"
 	ProjectSection(SolutionItems) = preProject
 		..\build\Nuspecs\Examine.AzureDirectory\Examine.AzureDirectory.nuspec = ..\build\Nuspecs\Examine.AzureDirectory\Examine.AzureDirectory.nuspec
 	EndProjectSection
@@ -68,7 +68,10 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{976F400B-2ABA-4C36-8FD6-B0B35D0911D0} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
-		{925EA1CE-542E-442E-A8C3-F34FEBE3F81A} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
+		{1667E2A1-051D-48F6-A2DE-301788613870} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1FD5A35C-59D2-4BF3-B524-2F84242A42AA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {468B7BF7-F220-4717-85F6-69D8E7C7F2B0}

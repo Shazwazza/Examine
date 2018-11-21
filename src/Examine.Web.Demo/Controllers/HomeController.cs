@@ -130,7 +130,7 @@ namespace Examine.Web.Demo.Controllers
         public ActionResult ReIndexItems()
         {
             var dataService = new TableDirectReaderDataService();
-            var randomItems = dataService.GetRandomItems().ToArray();
+            var randomItems = dataService.GetRandomItems(10).ToArray();
             ExamineManager.Instance.IndexProviders["Simple2Indexer"].IndexItems(randomItems);
             return View(randomItems.Length);
         }

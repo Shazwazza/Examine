@@ -28,15 +28,19 @@ namespace Examine.LuceneEngine.Directories
         
         public override bool Obtain()
         {
-            return _dirMaster.Obtain() 
-                && _dirChild.Obtain();
+            var master = _dirMaster.Obtain();
+            if (!master) return false;
+            var child = _dirChild.Obtain();
+            return child;
         }
 
         
         public override bool Obtain(long lockWaitTimeout)
         {
-            return _dirMaster.Obtain(lockWaitTimeout) 
-                && _dirChild.Obtain(lockWaitTimeout);
+            var master = _dirMaster.Obtain(lockWaitTimeout);
+            if (!master) return false;
+            var child = _dirChild.Obtain(lockWaitTimeout);
+            return child;
         }
 
         /// <summary>
@@ -45,8 +49,25 @@ namespace Examine.LuceneEngine.Directories
         
         public override void Release()
         {
-            _dirMaster.Release();
-            _dirChild.Release();
+            var isChild = false;
+            try
+            {
+                //try to release master
+                _dirMaster.Release();
+
+                //if that succeeds try to release child
+                isChild = true;
+                _dirChild.Release();
+            }
+            catch (System.Exception ex2)
+            {
+                //if an error occurs above for the master still attempt to release child
+                if (!isChild)
+                    _dirChild.Release();
+
+                throw;
+            }
+            
         }
 
         /// <summary>
