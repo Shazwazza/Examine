@@ -41,12 +41,12 @@ namespace Examine.Web.Demo
             Trace.WriteLine("App starting");
 
 #if FULLDEBUG
-            foreach (var luceneIndexer in ExamineManager.Instance.IndexProviderCollection.OfType<LuceneIndexer>())
+            foreach (var luceneIndexer in ExamineManager.Instance.IndexProviders.OfType<LuceneIndexer>())
             {
                 var dir = luceneIndexer.GetLuceneDirectory();
                 if (IndexWriter.IsLocked(dir))
                 {
-                    Trace.WriteLine("Forcing index " + luceneIndexer.IndexSetName + " to be unlocked since it was left in a locked state");
+                    Trace.WriteLine("Forcing index " + luceneIndexer.Name + " to be unlocked since it was left in a locked state");
                     IndexWriter.Unlock(dir);
                 }
             }

@@ -47,16 +47,16 @@ namespace Examine.Web.Demo
                                     {"Column6", rs.GetString(6)}
                                 });
                             }
-                                current++;
-                                if (current > max) yield break;
-                            }
+                            current++;
+                            if (current > max) yield break;
                         }
                     }
                 }
             }
         }
 
-        public IEnumerable<ValueSet> GetAllData(string indexType)
+
+        public IEnumerable<ValueSet> GetAllData(string category)
         {
             using (var db = new MyDbContext())
             {
@@ -68,7 +68,7 @@ namespace Examine.Web.Demo
                         cmd.CommandText = "TestModels";
                         cmd.CommandType = CommandType.TableDirect;
                         var rs = cmd.ExecuteResultSet(ResultSetOptions.None);
-                        while(rs.Read())
+                        while (rs.Read())
                         {
                             yield return new ValueSet(rs.GetInt32(0).ToString(), "TestType", new Dictionary<string, object>()
                             {
@@ -80,7 +80,7 @@ namespace Examine.Web.Demo
                                 {"Column6", rs.GetString(6)}
                             });
                         }
-                    }                
+                    }
                 }
             }
         }
