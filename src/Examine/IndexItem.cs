@@ -47,11 +47,11 @@ namespace Examine
         /// <value>
         /// The type of the index.
         /// </value>
-        public string IndexCategory { get; private set; }
+        public string IndexCategory { get; }
 
         /// <summary>
         /// Gets the id.
         /// </summary>
-        public string Id { get; private set; }
+        public string Id { get; }
     }
 }

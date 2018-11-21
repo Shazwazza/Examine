@@ -5,7 +5,7 @@ namespace Examine.LuceneEngine.Indexing
 {
 
     /// <summary>
-    /// Indexes a raw string value - not analyzed, no norms
+    /// Indexes a raw string value - not analyzed
     /// </summary>
     public class RawStringType : IndexValueTypeBase
     {
@@ -32,7 +32,8 @@ namespace Examine.LuceneEngine.Indexing
                 default:
                     doc.Add(new Field(FieldName, "" + value, 
                         Store ? Field.Store.YES : Field.Store.NO, 
-                        Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+                        Field.Index.NOT_ANALYZED, 
+                        Field.TermVector.NO));
                     break;
             }
         }

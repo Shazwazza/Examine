@@ -9,7 +9,7 @@ namespace Examine
     /// <summary>
     /// Represents an item to be indexed
     /// </summary>
-    public struct ValueSet
+    public class ValueSet
     {
         /// <summary>
         /// The id of the object to be indexed
@@ -151,7 +151,7 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<object> GetValues(string key)
         {
-            return !Values.TryGetValue(key, out var values) ? (IEnumerable<object>)new object[0] : values;
+            return !Values.TryGetValue(key, out var values) ? Enumerable.Empty<object>() : values;
         }
 
         /// <summary>
