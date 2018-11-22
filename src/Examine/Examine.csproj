@@ -129,6 +129,7 @@
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
+    <Compile Include="LuceneEngine\FieldValueTypesTracker.cs" />
     <Compile Include="LuceneEngine\Indexing\GenericAnalyzerValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\CultureInvariantWhitespaceAnalyzer.cs" />
@@ -155,7 +156,6 @@
     <Compile Include="LuceneEngine\Providers\ErrorCheckingScoringBooleanQueryRewrite.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexValueType.cs" />
     <Compile Include="LuceneEngine\FieldValueTypeCollection.cs" />
-    <Compile Include="LuceneEngine\FieldValueTypes.cs" />
     <Compile Include="LuceneEngine\Providers\IValueSetValidator.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndexer.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />

@@ -38,10 +38,9 @@ namespace Examine.Test.Search
                 indexer3.IndexItem(new ValueSet(2.ToString(), "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(new ValueSet(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
-                var searcher = new MultiIndexSearcher("testSearcher", new[]
-                {
-                    luceneDir1, luceneDir2, luceneDir3, luceneDir4
-                }, analyzer);
+                var searcher = new MultiIndexSearcher("testSearcher",
+                    new[] { indexer1.GetSearcher(), indexer2.GetSearcher(), indexer3.GetSearcher(), indexer4.GetSearcher()}.OfType<LuceneSearcher>(), 
+                    analyzer);
 
                 var result = searcher.Search("darkness", false);
 
@@ -70,10 +69,9 @@ namespace Examine.Test.Search
                 indexer3.IndexItem(new ValueSet(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(new ValueSet(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
                 
-                var searcher = new MultiIndexSearcher("testSearcher", new[]
-                {
-                    luceneDir1, luceneDir2, luceneDir3, luceneDir4
-                }, analyzer);
+                var searcher = new MultiIndexSearcher("testSearcher",
+                    new[] { indexer1.GetSearcher(), indexer2.GetSearcher(), indexer3.GetSearcher(), indexer4.GetSearcher()}.OfType<LuceneSearcher>(), 
+                    analyzer);
 
                 var result = searcher.GetAllIndexedFields();
                 //will be item1 , item2, item3, and item4

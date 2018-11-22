@@ -18,55 +18,14 @@ namespace Examine.LuceneEngine.Providers
 
         #region Constructors
 
-		/// <summary>
-		/// Constructor used for config providers
-		/// </summary>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-        public MultiIndexSearcher()
-		{
-            _disposer = new DisposableSearcher(this);
-        }
-
         /// <summary>
-        /// Constructor to allow for creating a searcher at runtime
+        /// Constructor used for config providers
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="indexPath"></param>
-        /// <param name="analyzer"></param>		
-        public MultiIndexSearcher(string name, IEnumerable<DirectoryInfo> indexPath, Analyzer analyzer)
-            : base(name, analyzer)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public MultiIndexSearcher()
         {
             _disposer = new DisposableSearcher(this);
-	        var searchers = new List<LuceneSearcher>();
-            var i = 0;
-            foreach (var ip in indexPath)
-			{
-				searchers.Add(new LuceneSearcher(name + "_" + i, ip, LuceneAnalyzer));
-			    i++;
-			}
-	        Searchers = searchers;
         }
-
-        /// <summary>
-        /// Constructor to allow for creating a searcher at runtime
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="luceneDirs"></param>
-        /// <param name="analyzer"></param>
-        public MultiIndexSearcher(string name, IEnumerable<Lucene.Net.Store.Directory> luceneDirs, Analyzer analyzer)
-			: base(name, analyzer)
-		{
-            _disposer = new DisposableSearcher(this);
-			var searchers = new List<LuceneSearcher>();
-
-		    var i = 0;
-            foreach (var luceneDirectory in luceneDirs)
-			{
-				searchers.Add(new LuceneSearcher(name + "_" + i, luceneDirectory, LuceneAnalyzer));
-			    i++;
-			}
-			Searchers = searchers;
-		}
 
         /// <summary>
         /// Constructor to allow for creating a searcher at runtime
@@ -78,16 +37,43 @@ namespace Examine.LuceneEngine.Providers
             : base(name, analyzer)
         {
             _disposer = new DisposableSearcher(this);
-            Searchers = searchers;
+            _searchers = new Lazy<IEnumerable<LuceneSearcher>>(() => searchers);
         }
 
         #endregion
 
+        private List<string> _configuredIndexes;
+
+        public override void Initialize(string name, NameValueCollection config)
+        {
+            base.Initialize(name, config);
+
+            //need to check if the index set is specified, if it's not, we'll see if we can find one by convension
+            //if the folder is not null and the index set is null, we'll assume that this has been created at runtime.
+            if (config["indexes"] == null || string.IsNullOrWhiteSpace(config["indexes"]))
+            {
+                throw new ArgumentNullException("indexes on MultiIndexSearcher provider has not been set in configuration");
+            }
+
+            var indexes = config["indexes"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            if (indexes.Length == 0)
+                throw new ArgumentNullException("indexes on MultiIndexSearcher provider has not been set in configuration");
+
+            _configuredIndexes = new List<string>(indexes);
+            _searchers = new Lazy<IEnumerable<LuceneSearcher>>(() => _configuredIndexes.Select(x => ExamineManager.Instance.GetIndexer(x))
+                    .Where(x => x != null)
+                    .Select(x => x.GetSearcher())
+                    .OfType<LuceneSearcher>()
+                    .ToList());
+        }
+
+        private Lazy<IEnumerable<LuceneSearcher>> _searchers;
+
         ///<summary>
         /// The underlying LuceneSearchers that will be searched across
         ///</summary>
-        public IEnumerable<LuceneSearcher> Searchers { get; protected set; }
-        
+        public IEnumerable<LuceneSearcher> Searchers => _searchers.Value;
+
         /// <summary>
         /// Returns a list of fields to search on based on all distinct fields found in the sub searchers
         /// </summary>

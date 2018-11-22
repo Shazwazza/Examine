@@ -50,7 +50,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer">Specifies the default analyzer to use per field</param>
         /// <param name="indexValueTypesFactory">
-        /// Specifies the index value types to use for this indexer, if this is not specified then the result of FieldValueTypes.DefaultIndexValueTypes will be used.
+        /// Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="DefaultIndexValueTypes"/> will be used.
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
         protected LuceneIndexer(
@@ -72,7 +72,7 @@ namespace Examine.LuceneEngine.Providers
 
             _directory = luceneDirectory;
             //initialize the field types
-            FieldValueTypeCollection = FieldValueTypes.Current.InitializeFieldValueTypes(_directory, directory => CreateFieldValueTypes(directory, indexValueTypesFactory));
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
         }
@@ -101,9 +101,9 @@ namespace Examine.LuceneEngine.Providers
             DefaultAnalyzer = writer.Analyzer;
             ValueSetValidator = validator;
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
-            
+
             //initialize the field types
-            FieldValueTypeCollection = FieldValueTypes.Current.InitializeFieldValueTypes(_writer.Directory, directory => CreateFieldValueTypes(directory, indexValueTypesFactory));
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
             LuceneIndexFolder = null;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
@@ -130,7 +130,7 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
@@ -158,8 +158,10 @@ namespace Examine.LuceneEngine.Providers
             }
 
             var directory = InitializeDirectory();
-            //initialize the field types
-            FieldValueTypeCollection = FieldValueTypes.Current.InitializeFieldValueTypes(directory, d => CreateFieldValueTypes(d, null));
+
+            //initialize the field types using the tracker which is required for config based indexes/searchers
+            _fieldValueTypeCollection = FieldValueTypesTracker.Current.InitializeFieldValueTypes(directory, 
+                d => new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(null)));
 
             RunAsync = true;
             
@@ -248,11 +250,41 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        public FieldValueTypeCollection FieldValueTypeCollection { get; private set; }
-
         #endregion
 
         #region Properties
+
+        private Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
+
+        /// <summary>
+        /// Returns the <see cref="FieldValueTypeCollection"/> configured for this index
+        /// </summary>
+        public FieldValueTypeCollection FieldValueTypeCollection => _fieldValueTypeCollection.Value;
+
+        /// <summary>
+        /// Returns the default index value types that is used in normal construction of an indexer
+        /// </summary>
+        /// <returns></returns>
+        public static IReadOnlyDictionary<string, Func<string, IIndexValueType>> DefaultIndexValueTypes
+            => new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
+            {
+                {"number", name => new Int32Type(name)},
+                {FieldDefinitionTypes.Integer, name => new Int32Type(name)},
+                {FieldDefinitionTypes.Float, name => new SingleType(name)},
+                {FieldDefinitionTypes.Double, name => new DoubleType(name)},
+                {FieldDefinitionTypes.Long, name => new Int64Type(name)},
+                {"date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, DateTools.Resolution.YEAR)},
+                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, DateTools.Resolution.MONTH)},
+                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, DateTools.Resolution.DAY)},
+                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, DateTools.Resolution.HOUR)},
+                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
+                {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
+                {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, true)},
+                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerValueType(name, new CultureInvariantWhitespaceAnalyzer())}
+            };
 
         /// <summary>
         /// A validator to validate a value set before it's indexed
@@ -647,13 +679,11 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="x"></param>
         /// <param name="indexValueTypesFactory"></param>
         /// <returns></returns>
-        protected virtual FieldValueTypeCollection CreateFieldValueTypes(Directory x, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
+        protected virtual FieldValueTypeCollection CreateFieldValueTypes(IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
         {
-            if (x == null) throw new ArgumentNullException(nameof(x));
-
             //copy to writable dictionary
             var defaults = new Dictionary<string, Func<string, IIndexValueType>>();
-            foreach (var defaultIndexValueType in FieldValueTypes.DefaultIndexValueTypes)
+            foreach (var defaultIndexValueType in DefaultIndexValueTypes)
             {
                 defaults[defaultIndexValueType.Key] = defaultIndexValueType.Value;
             }
@@ -1373,7 +1403,7 @@ namespace Examine.LuceneEngine.Providers
         {
             //trim the "Indexer" suffix if it exists
             var name = Name.EndsWith("Indexer") ? Name.Substring(0, Name.LastIndexOf("Indexer", StringComparison.Ordinal)) : Name;
-            return new LuceneSearcher(name + "Searcher", GetIndexWriter(), FieldAnalyzer);
+            return new LuceneSearcher(name + "Searcher", GetIndexWriter(), FieldAnalyzer, FieldValueTypeCollection);
         }
 
 

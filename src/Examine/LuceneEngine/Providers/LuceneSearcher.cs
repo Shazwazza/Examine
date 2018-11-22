@@ -22,9 +22,9 @@ namespace Examine.LuceneEngine.Providers
         #region Constructors
 
         /// <summary>
-        /// Default constructor
+        /// Default constructor for config based providers
         /// </summary>
-        
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public LuceneSearcher()
         {
             _disposer = new DisposableSearcher(this);
@@ -37,27 +37,13 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="name"></param>
         /// <param name="writer"></param>
         /// <param name="analyzer"></param>
-        public LuceneSearcher(string name, IndexWriter writer, Analyzer analyzer)
+        public LuceneSearcher(string name, IndexWriter writer, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
             _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
             _nrtWriter = writer ?? throw new ArgumentNullException(nameof(writer));
-        }
-
-        /// <summary>
-        /// Constructor to allow for creating an indexer at runtime
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="workingFolder"></param>
-        /// <param name="analyzer"></param>
-        public LuceneSearcher(string name, DirectoryInfo workingFolder, Analyzer analyzer)
-            : base(name, analyzer)
-        {
-            _disposer = new DisposableSearcher(this);
-            _reopener = new ReaderReopener(this);            
-            LuceneIndexFolder = new DirectoryInfo(Path.Combine(workingFolder.FullName, "Index"));
-            InitializeDirectory();
+            FieldValueTypeCollection = fieldValueTypeCollection;
         }
 
         /// <summary>
@@ -66,7 +52,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="name"></param>
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
-        public LuceneSearcher(string name, Directory luceneDirectory, Analyzer analyzer)
+        public LuceneSearcher(string name, Directory luceneDirectory, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
             _disposer = new DisposableSearcher(this);
@@ -110,7 +96,7 @@ namespace Examine.LuceneEngine.Providers
         /// Do not access this object directly. The public property ensures that the folder state is always up to date
         /// </summary>
         private DirectoryInfo _indexFolder;
-        
+
         /// <summary>
         /// Initializes the provider.
         /// </summary>
@@ -125,12 +111,14 @@ namespace Examine.LuceneEngine.Providers
         /// <exception cref="T:System.InvalidOperationException">
         /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
         /// </exception>
-        
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override void Initialize(string name, NameValueCollection config)
         {
             base.Initialize(name, config);
             
             InitializeDirectory();
+
+            FieldValueTypeCollection = FieldValueTypesTracker.Current.GetIndexFieldValueTypes(GetLuceneDirectory());
         }
 
         /// <summary>
@@ -152,8 +140,10 @@ namespace Examine.LuceneEngine.Providers
             }
             protected set => _indexFolder = value;
         }
-        
-        
+
+        public FieldValueTypeCollection FieldValueTypeCollection { get; private set; }
+
+
 
         /// <summary>
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
@@ -161,7 +151,7 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>
         /// Returns null if the underlying index doesn't exist
         /// </returns>
-        
+
         public override Searcher GetLuceneSearcher()
         {
             if (!ValidateSearcher()) return null;
@@ -173,8 +163,7 @@ namespace Examine.LuceneEngine.Providers
 
         public override ICriteriaContext GetCriteriaContext()
         {
-            var indexFieldValueTypes = FieldValueTypes.Current.GetIndexFieldValueTypes(GetLuceneDirectory());
-            return new CriteriaContext(indexFieldValueTypes, GetLuceneSearcher());
+            return new CriteriaContext(FieldValueTypeCollection, GetLuceneSearcher());
         }
 
         /// <inheritdoc />

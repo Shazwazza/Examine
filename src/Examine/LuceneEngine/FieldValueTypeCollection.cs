@@ -6,19 +6,29 @@ using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine
 {
+    /// <summary>
+    /// A collection of field names and their <see cref="IIndexValueType"/> for an index
+    /// </summary>
     public class FieldValueTypeCollection
     {
         /// <summary>
         /// Returns the PerFieldAnalyzerWrapper
         /// </summary>
-        internal PerFieldAnalyzerWrapper Analyzer { get; }
+        public PerFieldAnalyzerWrapper Analyzer { get; }
 
+        /// <summary>
+        /// Create a <see cref="FieldValueTypeCollection"/>
+        /// </summary>
+        /// <param name="analyzer">The <see cref="PerFieldAnalyzerWrapper"/> used for indexing</param>
+        /// <param name="valueTypeFactories">List of value type factories to initialize the collection with</param>
+        /// <param name="fieldDefinitionCollection"></param>
         public FieldValueTypeCollection(
             PerFieldAnalyzerWrapper analyzer, 
-            IEnumerable<KeyValuePair<string, Func<string, IIndexValueType>>> types, FieldDefinitionCollection fieldDefinitionCollection)
+            IReadOnlyDictionary<string, Func<string, IIndexValueType>> valueTypeFactories, 
+            FieldDefinitionCollection fieldDefinitionCollection)
         {
             Analyzer = analyzer;
-            foreach (var type in types)
+            foreach (var type in valueTypeFactories)
             {
                 ValueTypeFactories.TryAdd(type.Key, type.Value);
             }
@@ -50,12 +60,14 @@ namespace Examine.LuceneEngine
         }
 
         /// <summary>
-        /// Returns the value type for the field name specified, if it's not found it will create one with the factory supplied
-        /// and initialize it.
+        /// Returns the value type for the field name specified
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="indexValueTypeFactory"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// If it's not found it will create one with the factory supplied and initialize it.
+        /// </remarks>
         public IIndexValueType GetValueType(string fieldName, Func<string, IIndexValueType> indexValueTypeFactory)
         {
             return _resolvedValueTypes.Value.GetOrAdd(fieldName, n =>
@@ -66,6 +78,11 @@ namespace Examine.LuceneEngine
             });
         }
 
+        /// <summary>
+        /// Returns the value type for the field name specified
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <returns>Returns null if a value type was not found</returns>
         public IIndexValueType GetValueType(string fieldName)
         {
             return _resolvedValueTypes.Value.TryGetValue(fieldName, out var valueType) ? valueType : null;
