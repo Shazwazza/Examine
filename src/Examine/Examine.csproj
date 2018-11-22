@@ -129,6 +129,7 @@
     <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
+    <Compile Include="LuceneEngine\EmailAddressAnalyzer.cs" />
     <Compile Include="LuceneEngine\FieldValueTypesTracker.cs" />
     <Compile Include="LuceneEngine\Indexing\GenericAnalyzerValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />

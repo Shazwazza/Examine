@@ -37,5 +37,10 @@ namespace Examine
         /// Will be indexed with the <see cref="CultureInvariantWhitespaceAnalyzer"/>, this is what is used for 'special' prefixed fields
         /// </summary>
         public const string InvariantCultureIgnoreCase = "invariantcultureignorecase";
+
+        /// <summary>
+        /// Will be indexed with the <see cref="EmailAddressAnalyzer"/>
+        /// </summary>
+        public const string EmailAddress = "emailaddress";
     }
 }

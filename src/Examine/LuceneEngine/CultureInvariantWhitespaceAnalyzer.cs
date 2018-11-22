@@ -3,6 +3,7 @@ using Lucene.Net.Analysis;
 
 namespace Examine.LuceneEngine
 {
+
     /// <summary>
     /// A whitespace analyzer that can be configured to be culture invariant
     /// </summary>
