@@ -12,21 +12,20 @@ namespace Examine
     /// </summary>
     internal struct IndexedItem : IEquatable<IndexedItem>
     {
-        private static readonly IndexedItem EmptyInstance = new IndexedItem(-1, null);
-        public static IndexedItem Empty => EmptyInstance;
+        public static IndexedItem Empty { get; } = new IndexedItem(string.Empty, null);
 
         public bool IsEmpty()
         {
-            return this == EmptyInstance;
+            return this == Empty;
         }
 
-        public IndexedItem(int itemId, string category)
+        public IndexedItem(string itemId, string category)
         {
             ItemId = itemId;
             Category = category;
         }
 
-        public int ItemId { get; }
+        public string ItemId { get; }
         public string Category { get; }
 
         public bool Equals(IndexedItem other)
@@ -42,9 +41,9 @@ namespace Examine
 
         public override int GetHashCode()
         {
-            return ItemId;
+            return -2113648141 + EqualityComparer<string>.Default.GetHashCode(ItemId);
         }
-
+        
         public static bool operator ==(IndexedItem left, IndexedItem right)
         {
             return left.Equals(right);

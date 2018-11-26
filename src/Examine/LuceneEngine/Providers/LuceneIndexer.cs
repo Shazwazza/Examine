@@ -556,7 +556,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 if (writer != null)
                 {
-                    writer.Close();
+                    writer.Dispose();
                 }
                 _exists = true;
             }
@@ -1434,9 +1434,7 @@ namespace Examine.LuceneEngine.Providers
 
         private IndexedItem ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
         {
-            //get the node id
-            var nodeId = int.Parse(op.Item.Id);
-
+            
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.Item);
             OnTransformingIndexValues(indexingNodeDataArgs);
@@ -1447,7 +1445,7 @@ namespace Examine.LuceneEngine.Providers
 
             CommitCount++;
 
-            return new IndexedItem(nodeId, op.Item.IndexCategory);
+            return new IndexedItem(op.Item.Id, op.Item.IndexCategory);
         }
 
         /// <summary>
