@@ -26,14 +26,17 @@ namespace Examine.LuceneEngine.Indexing
 
         protected override void AddSingleValue(Document doc, object value)
         {
-            doc.Add(new Field(FieldName, "" + value, Field.Store.YES, Field.Index.ANALYZED, 
+            if (TryConvert<string>(value, out var str))
+            {
+                doc.Add(new Field(FieldName, str, Field.Store.YES, Field.Index.ANALYZED,
                 Field.TermVector.WITH_POSITIONS_OFFSETS /* This is required for the fast vector highligher but will double the field size */ ));
 
-            if (_sortable)
-            {
-                doc.Add(new Field(LuceneIndexer.SortedFieldNamePrefix + FieldName, "" + value,
-                    Field.Store.YES,
-                    Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+                if (_sortable)
+                {
+                    doc.Add(new Field(LuceneIndexer.SortedFieldNamePrefix + FieldName, str,
+                        Field.Store.YES,
+                        Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+                }
             }
         }
 

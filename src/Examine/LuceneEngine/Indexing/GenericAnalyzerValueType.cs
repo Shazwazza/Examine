@@ -24,7 +24,10 @@ namespace Examine.LuceneEngine.Indexing
 
         protected override void AddSingleValue(Document doc, object value)
         {
-            doc.Add(new Field(FieldName, "" + value, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES));
+            if (TryConvert<string>(value, out var str))
+            {
+                doc.Add(new Field(FieldName, str, Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES));
+            }   
         }
     }
 }

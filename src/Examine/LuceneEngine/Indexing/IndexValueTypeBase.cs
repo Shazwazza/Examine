@@ -56,11 +56,22 @@ namespace Examine.LuceneEngine.Indexing
         /// <param name="parsedVal"></param>
         /// <returns></returns>        
         protected static bool TryConvert<T>(object val, out T parsedVal)
-            where T : struct
         {
+            if (val == null)
+            {
+                parsedVal = default(T);
+                return false;
+            }
+
             if (val is T)
             {
                 parsedVal = (T) val;
+                return true;
+            }
+
+            if (typeof(T) == typeof(string))
+            {
+                parsedVal = (T)(object)val.ToString();
                 return true;
             }
 
@@ -113,9 +124,6 @@ namespace Examine.LuceneEngine.Indexing
                 parsedVal = default(T);
                 return false;
             }
-
-            parsedVal = default(T);
-            return false;
         }
 
     }

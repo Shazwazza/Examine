@@ -30,10 +30,13 @@ namespace Examine.LuceneEngine.Indexing
                     doc.Add(new Field(FieldName, ts));
                     break;
                 default:
-                    doc.Add(new Field(FieldName, "" + value, 
-                        Store ? Field.Store.YES : Field.Store.NO, 
-                        Field.Index.NOT_ANALYZED, 
-                        Field.TermVector.NO));
+                    if (TryConvert<string>(value, out var str))
+                    {
+                        doc.Add(new Field(FieldName, str,
+                            Store ? Field.Store.YES : Field.Store.NO,
+                            Field.Index.NOT_ANALYZED,
+                            Field.TermVector.NO));
+                    }   
                     break;
             }
         }

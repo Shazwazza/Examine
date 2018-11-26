@@ -730,8 +730,8 @@ namespace Examine.Test.Search
                 var currSort = 0;
                 for (var i = 0; i < results1.Length; i++)
                 {
-                    Assert.GreaterOrEqual(int.Parse(results1[i].Fields["sortOrder"]), currSort);
-                    currSort = int.Parse(results1[i].Fields["sortOrder"]);
+                    Assert.GreaterOrEqual(int.Parse(results1[i].Values["sortOrder"]), currSort);
+                    currSort = int.Parse(results1[i].Values["sortOrder"]);
                 }
             }
         }
@@ -775,8 +775,8 @@ namespace Examine.Test.Search
                 double currSort = 0;
                 for (var i = 0; i < results1.Length; i++)
                 {
-                    Assert.GreaterOrEqual(double.Parse(results1[i].Fields["updateDate"]), currSort);
-                    currSort = double.Parse(results1[i].Fields["updateDate"]);
+                    Assert.GreaterOrEqual(double.Parse(results1[i].Values["updateDate"]), currSort);
+                    currSort = double.Parse(results1[i].Values["updateDate"]);
                 }
             }
         }

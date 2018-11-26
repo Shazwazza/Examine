@@ -36,7 +36,7 @@ namespace Examine.Web.Demo.Controllers
             sb.AppendLine($"Results :{result.TotalItemCount}");
             foreach (var searchResult in result)
             {
-                sb.AppendLine($"Id:{searchResult.Id}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Fields.Select(x => x.Value))}");
+                sb.AppendLine($"Id:{searchResult.Id}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Values.Select(x => x.Value))}");
             }
             return Content(sb.ToString());
         }
@@ -51,7 +51,7 @@ namespace Examine.Web.Demo.Controllers
             sb.AppendLine($"Results :{result.TotalItemCount}");
             foreach (var searchResult in result)
             {
-                sb.AppendLine($"Id:{searchResult.Id}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Fields.Select(x => x.Value))}");
+                sb.AppendLine($"Id:{searchResult.Id}, Score:{searchResult.Score}, Vals: {string.Join(", ", searchResult.Values.Select(x => x.Value))}");
             }
             return Content(sb.ToString());
         }

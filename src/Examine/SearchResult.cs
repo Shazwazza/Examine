@@ -38,7 +38,10 @@ namespace Examine
         public string Id { get;  }
         public float Score { get; }
 
-        public IReadOnlyDictionary<string, string> Fields
+        /// <summary>
+        /// Returns the values in the result
+        /// </summary>
+        public IReadOnlyDictionary<string, string> Values
         {
             get
             {
@@ -56,7 +59,13 @@ namespace Examine
             }
         }
 
-        public IReadOnlyDictionary<string, IReadOnlyList<string>> FieldValues => _fieldValues.Value;
+        /// <summary>
+        /// Returns the values in the result
+        /// </summary>
+        /// <remarks>
+        /// This is used to retrieve multiple values per field if there are any
+        /// </remarks>
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> AllValues => _fieldValues.Value;
 
 
         /// <summary>
@@ -67,12 +76,12 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<string> GetValues(string key)
         {
-            if (FieldValues.TryGetValue(key, out var found))
+            if (AllValues.TryGetValue(key, out var found))
             {
                 return found;
             }
 
-            return Fields.TryGetValue(key, out var single) ? new[] { single } : Enumerable.Empty<string>();
+            return Values.TryGetValue(key, out var single) ? new[] { single } : Enumerable.Empty<string>();
         } 
 
         /// <summary>
@@ -80,14 +89,14 @@ namespace Examine
         /// </summary>
         /// <param name="resultIndex"></param>
         /// <returns></returns>
-        public KeyValuePair<string, string> this[int resultIndex] => ((OrderedDictionary<string, string>)Fields)[resultIndex];
+        public KeyValuePair<string, string> this[int resultIndex] => ((OrderedDictionary<string, string>)Values)[resultIndex];
 
         /// <summary>
         /// Returns the value for the key specified
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public string this[string key] => Fields.TryGetValue(key, out var single) ? single : null;
+        public string this[string key] => Values.TryGetValue(key, out var single) ? single : null;
 
         /// <summary>
         /// Override this method so that the Distinct() operator works
