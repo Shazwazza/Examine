@@ -25,7 +25,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
-    public abstract class LuceneIndexer : BaseIndexProvider, IDisposable
+    public class LuceneIndexer : BaseIndexProvider, IDisposable
     {
         #region Constructors
 
@@ -438,21 +438,9 @@ namespace Examine.LuceneEngine.Providers
             }
         }
         
-        ///// <summary>
-        ///// Forces a particular XML node to be reindexed
-        ///// </summary>
-        ///// <param name="node">XML node to reindex</param>
-        ///// <param name="type">Type of index to use</param>
-        //public override void ReIndexNode(XElement node, string type)
-        //{
-        //    //now index the single node
-        //    AddSingleNodeToIndex(node, type);
-        //}
-
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
-
         public void EnsureIndex(bool forceOverwrite)
         {
             if (!forceOverwrite && _exists.HasValue && _exists.Value) return;
@@ -533,7 +521,6 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Used internally to create a brand new index, this is not thread safe
         /// </summary>
-
         private void CreateNewIndex(Directory dir)
         {
             IndexWriter writer = null;
@@ -562,22 +549,18 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
+
         /// <summary>
-        /// Rebuilds the entire index from scratch for all index types
+        /// Creates a new index, any existing index will be deleted
         /// </summary>
-        /// <remarks>This will completely delete the index and recreate it</remarks>
-        public override void RebuildIndex()
+        public override void CreateIndex()
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot rebuild the index, indexing cancellation has been requested", null, null));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot create a new index, indexing cancellation has been requested", null, null));
                 return;
             }
-
             EnsureIndex(true);
-
-            //call abstract method
-            PerformIndexRebuild();
         }
 
         /// <summary>
@@ -601,20 +584,6 @@ namespace Examine.LuceneEngine.Providers
             {
                 Interlocked.Decrement(ref _activeAddsOrDeletes);
             }
-        }
-
-        /// <summary>
-        /// Re-indexes all data for the index type specified
-        /// </summary>
-        /// <param name="category"></param>
-        public override void IndexAll(string category)
-        {
-            //remove this index type
-            var op = new IndexOperation(IndexItem.ForCategory(category), IndexOperationType.Delete);
-            QueueIndexOperation(op);
-
-            //now do the indexing...
-            PerformIndexAll(category);
         }
 
         #endregion
@@ -702,21 +671,9 @@ namespace Examine.LuceneEngine.Providers
         }
 
         /// <summary>
-        /// Called to perform the operation to do the actual indexing of an index type after the lucene index has been re-initialized.
-        /// </summary>
-        /// <param name="category"></param>
-        protected abstract void PerformIndexAll(string category);
-
-        /// <summary>
-        /// Called to perform the actual rebuild of the indexes once the lucene index has been re-initialized.
-        /// </summary>
-        protected abstract void PerformIndexRebuild();
-        
-        /// <summary>
         /// Checks if the index is ready to open/write to.
         /// </summary>
         /// <returns></returns>
-
         protected bool IndexReady()
         {
             return _writer != null || (!IndexWriter.IsLocked(GetLuceneDirectory()));
@@ -730,30 +687,6 @@ namespace Examine.LuceneEngine.Providers
         public override bool IndexExists()
         {
             return _writer != null || IndexExistsImpl();
-        }
-
-        /// <summary>
-        /// Indicate if the index is new or not
-        /// </summary>
-        /// <returns></returns>
-        public override bool IsIndexNew()
-        {
-            var baseNew = base.IsIndexNew();
-            if (!baseNew)
-            {
-                var writer = GetIndexWriter();
-                if (writer != null)
-                {
-                    using (var reader = writer.GetReader())
-                    {
-                        return reader.NumDocs() == 0;
-                    }
-                }
-
-                return true;
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -826,7 +759,6 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
-
         protected bool DeleteFromIndex(Term indexTerm, IndexWriter iw, bool performCommit = true)
         {
             string itemId = null;

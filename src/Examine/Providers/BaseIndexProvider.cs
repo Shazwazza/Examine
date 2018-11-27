@@ -70,15 +70,9 @@ namespace Examine.Providers
         public abstract void DeleteFromIndex(string nodeId);
 
         /// <summary>
-        /// Re-indexes all data for the index type specified
+        /// Creates a new index, any existing index will be deleted
         /// </summary>
-        /// <param name="category"></param>
-        public abstract void IndexAll(string category);
-
-        /// <summary>
-        /// Rebuilds the entire index from scratch for all index types
-        /// </summary>
-        public abstract void RebuildIndex();
+        public abstract void CreateIndex();
         
         /// <summary>
         /// Defines the mappings for field types to index field types
@@ -93,15 +87,6 @@ namespace Examine.Providers
         /// </summary>
         /// <returns></returns>
         public abstract bool IndexExists();
-
-        /// <summary>
-        /// Returns true if the index is brand new/empty
-        /// </summary>
-        /// <returns></returns>
-        public virtual bool IsIndexNew()
-        {
-            return !IndexExists();
-        }
 
         #endregion
 

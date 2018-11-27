@@ -10,10 +10,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Returns a collection of <see cref="ValueSet"/>
         /// </summary>
-        /// <param name="category"></param>
         /// <returns></returns>
-        IEnumerable<ValueSet> GetAllData(string category);
-
-        
+        IEnumerable<ValueSet> GetAllData();
     }
 }

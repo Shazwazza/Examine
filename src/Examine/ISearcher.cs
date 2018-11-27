@@ -11,6 +11,8 @@ namespace Examine
     /// </summary>
     public interface ISearcher
     {
+        string Name { get; }
+
         /// <summary>
         /// Searches the specified search text in all fields of the index
         /// </summary>

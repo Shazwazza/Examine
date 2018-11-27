@@ -56,7 +56,7 @@ namespace Examine.Web.Demo
         }
 
 
-        public IEnumerable<ValueSet> GetAllData(string category)
+        public IEnumerable<ValueSet> GetAllData()
         {
             using (var db = new MyDbContext())
             {

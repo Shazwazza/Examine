@@ -9,7 +9,7 @@ namespace Examine
     /// </summary>
     public interface IIndexer
     {
-        //TODO: Why not add Name? Wouldn't that simpify some things like registering a new index with the manager?
+        string Name { get; }
 
         /// <summary>
         /// Returns a searcher for the index
@@ -18,7 +18,7 @@ namespace Examine
         ISearcher GetSearcher();
 
         /// <summary>
-        /// Method to re-index specific data
+        /// Method to index data
         /// </summary>
         /// <param name="values"></param>
         void IndexItems(IEnumerable<ValueSet> values);
@@ -30,15 +30,9 @@ namespace Examine
         void DeleteFromIndex(string itemId);
         
         /// <summary>
-        /// Re-indexes all data for the index type specified
+        /// Creates a new index, any existing index will be deleted
         /// </summary>
-        /// <param name="category"></param>
-        void IndexAll(string category);
-
-        /// <summary>
-        /// Rebuilds the entire index from scratch for all index types
-        /// </summary>
-        void RebuildIndex();
+        void CreateIndex();
         
         /// <summary>
         /// Returns the field definitions for the index
@@ -49,11 +43,6 @@ namespace Examine
         /// determines whether the index exsists or not
         /// </summary>
         bool IndexExists();
-
-        /// <summary>
-        /// Determines if the index is new (contains any data)
-        /// </summary>
-        /// <returns></returns>
-        bool IsIndexNew();
+        
     }
 }

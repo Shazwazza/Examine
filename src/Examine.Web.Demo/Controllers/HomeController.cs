@@ -28,7 +28,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult MultiSearch(string query)
         {
-            var multi = ExamineManager.Instance.GetRegisteredSearcher("MultiIndexSearcher");
+            var multi = ExamineManager.Instance.GetSearcher("MultiIndexSearcher");
             var criteria = multi.CreateCriteria();
             var result = multi.Search(criteria.RawQuery(query));
 
@@ -44,7 +44,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult Search(string id)
         {
-            var searcher = ExamineManager.Instance.GetSearcher("Simple2Indexer");
+            var searcher = ExamineManagerExtensions.GetSearcher(ExamineManager.Instance, "Simple2Indexer");
             var criteria = searcher.CreateCriteria();
             var result = searcher.Search(criteria.RawQuery(id));
             var sb = new StringBuilder();
@@ -114,7 +114,9 @@ namespace Examine.Web.Demo.Controllers
             {
                 var timer = new Stopwatch();
                 timer.Start();
-                ExamineManager.Instance.IndexProviders["Simple2Indexer"].RebuildIndex();
+                ExamineManager.Instance.IndexProviders["Simple2Indexer"].CreateIndex();
+                var dataService = new TableDirectReaderDataService();
+                ExamineManager.Instance.IndexProviders["Simple2Indexer"].IndexItems(dataService.GetAllData());
                 timer.Stop();
 
                 return View(timer.Elapsed.TotalSeconds);

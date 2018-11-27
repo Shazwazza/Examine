@@ -40,8 +40,8 @@ namespace Examine.Test.Index
             using (var d = new RandomIdRAMDirectory())
             using (var indexer = new TestIndexer(d, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
-                indexer.RebuildIndex();
+                indexer.CreateIndex();
+                indexer.IndexItems(indexer.AllData());
 
                 var indexWriter = indexer.GetIndexWriter();
                 var reader = indexWriter.GetReader();
@@ -49,26 +49,6 @@ namespace Examine.Test.Index
             }
         }
 
-        [Test]
-        public void Reindex_Item_Type()
-        {
-            using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
-            {
-                
-                indexer.IndexAll("category0");
-
-                var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(50, reader.NumDocs());
-
-                indexer.IndexAll("category1");
-
-                indexWriter = indexer.GetIndexWriter();
-                reader = indexWriter.GetReader();
-                Assert.AreEqual(100, reader.NumDocs());
-            }
-        }
 
         [Test]
         public void Index_Exists()

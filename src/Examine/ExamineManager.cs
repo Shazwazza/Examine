@@ -66,13 +66,6 @@ namespace Examine
         private readonly ConcurrentDictionary<string, IIndexer> _indexers = new ConcurrentDictionary<string, IIndexer>();
         private readonly ConcurrentDictionary<string, ISearcher> _searchers = new ConcurrentDictionary<string, ISearcher>();
 
-        /// <summary>
-        /// Returns the collection of searchers
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Searchers should be resolved using the GetIndexSearcher method, this only returns the configuration based searchers")]
-        public SearchProviderCollection SearchProviderCollection => ConfigBasedSearchProviders;
-
         private SearchProviderCollection ConfigBasedSearchProviders
         {
             get
@@ -81,13 +74,6 @@ namespace Examine
                 return _providerCollections.Item1;
             }
         }
-
-        /// <summary>
-        /// Return the colleciton of indexer providers (only the ones registered in config)
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Use the IndexProviders property instead, this only returns the configuration based indexers")]
-        public IndexProviderCollection IndexProviderCollection => ConfigBasedIndexProviders;
 
         private IndexProviderCollection ConfigBasedIndexProviders
         {
@@ -99,9 +85,9 @@ namespace Examine
         }
         
         /// <inheritdoc />
-        public ISearcher GetRegisteredSearcher(string searcherName)
+        public ISearcher GetSearcher(string searcherName)
         {            
-            return (_searchers.TryGetValue(searcherName, out var searcher) ? searcher : null) ?? SearchProviderCollection[searcherName];
+            return (_searchers.TryGetValue(searcherName, out var searcher) ? searcher : null) ?? ConfigBasedSearchProviders[searcherName];
         }
 
         /// <inheritdoc />
@@ -125,32 +111,32 @@ namespace Examine
         }
 
         /// <inheritdoc />
-        public void AddIndexer(string name, IIndexer indexer)
+        public void AddIndexer(IIndexer indexer)
         {
             //make sure this name doesn't exist in
 
-            if (ConfigBasedIndexProviders[name] != null)
+            if (ConfigBasedIndexProviders[indexer.Name] != null)
             {
-                throw new InvalidOperationException("The indexer with name " + name + " already exists");
+                throw new InvalidOperationException("The indexer with name " + indexer.Name + " already exists");
             }
-            if (!_indexers.TryAdd(name, indexer))
+            if (!_indexers.TryAdd(indexer.Name, indexer))
             {
-                throw new InvalidOperationException("The indexer with name " + name + " already exists");
+                throw new InvalidOperationException("The indexer with name " + indexer.Name + " already exists");
             }
         }
 
         /// <inheritdoc />
-        public void AddSearcher(string name, ISearcher searcher)
+        public void AddSearcher(ISearcher searcher)
         {
             //make sure this name doesn't exist in
 
-            if (ConfigBasedSearchProviders[name] != null)
+            if (ConfigBasedSearchProviders[searcher.Name] != null)
             {
-                throw new InvalidOperationException("The searcher with name " + name + " already exists");
+                throw new InvalidOperationException("The searcher with name " + searcher.Name + " already exists");
             }
-            if (!_searchers.TryAdd(name, searcher))
+            if (!_searchers.TryAdd(searcher.Name, searcher))
             {
-                throw new InvalidOperationException("The searcher with name " + name + " already exists");
+                throw new InvalidOperationException("The searcher with name " + searcher.Name + " already exists");
             }
         }
 
@@ -178,54 +164,6 @@ namespace Examine
             });
         }
 
-        /// <inheritdoc />
-        public void IndexItems(ValueSet[] nodes, IEnumerable<IIndexer> providers)
-        {
-            foreach (var provider in providers)
-            {
-                provider.IndexItems(nodes);
-            }
-        }
-
-        /// <inheritdoc />
-        public void IndexItems(ValueSet[] nodes)
-        {
-            IndexItems(nodes, IndexProviders.Values);
-        }
-
-        /// <inheritdoc />
-        public void DeleteFromIndexes(string nodeId, IEnumerable<IIndexer> providers)
-        {
-            foreach (var provider in providers)
-            {
-                provider.DeleteFromIndex(nodeId);
-            }
-        }
-
-        /// <inheritdoc />
-        public void DeleteFromIndexes(string nodeId)
-        {
-            DeleteFromIndexes(nodeId, IndexProviders.Values);
-        }
-
-        /// <inheritdoc />
-        public void IndexAll(string indexCategory)
-        {
-            foreach (var provider in IndexProviders.Values)
-            {
-                provider.IndexAll(indexCategory);
-            }
-        }
-
-        /// <inheritdoc />
-        public void RebuildIndexes()
-        {
-            foreach (var provider in IndexProviders.Values)
-            {
-                provider.RebuildIndex();
-            }
-        }
-        
         /// <summary>
         /// Call this in Application_End.
         /// </summary>
@@ -271,7 +209,7 @@ namespace Examine
                     // or always use a foreach loop which can't really be forced. The only alternative to using DecRef and IncRef would be to make the results
                     // not lazy which isn't good.
 
-                    foreach (var searcher in SearchProviderCollection.OfType<IDisposable>())
+                    foreach (var searcher in ConfigBasedSearchProviders.OfType<IDisposable>())
                     {
                         searcher.Dispose();
                     }

@@ -11,7 +11,7 @@ namespace Examine.Test
 {
     public class TestIndexer : LuceneIndexer
     {
-        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) 
+        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
             : base("testIndexer", fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
         {
             RunAsync = false;
@@ -28,7 +28,7 @@ namespace Examine.Test
         {
         }
 
-        private IEnumerable<ValueSet> AllData()
+        public IEnumerable<ValueSet> AllData()
         {
             var data = new List<ValueSet>();
             for (int i = 0; i < 100; i++)
@@ -36,16 +36,6 @@ namespace Examine.Test
                 data.Add(new ValueSet(i.ToString(), "category" + (i % 2), new { item1 = "value" + i, item2 = "value" + i }));
             }
             return data;
-        }
-
-        protected override void PerformIndexAll(string category)
-        {
-            IndexItems(AllData().Where(x => x.Category == category).ToArray());
-        }
-
-        protected override void PerformIndexRebuild()
-        {
-            IndexItems(AllData().ToArray());
         }
     }
 }
