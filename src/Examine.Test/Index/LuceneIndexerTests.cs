@@ -76,6 +76,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
+                indexer.EnsureIndex(true);
                 Assert.IsTrue(indexer.IndexExists());
             }
         }

@@ -14,14 +14,12 @@ namespace Examine.Test
         public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null) 
             : base("testIndexer", fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
         {
-            EnsureIndex(true);
             RunAsync = false;
         }
 
         public TestIndexer(Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
             : base("testIndexer", new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer, validator)
         {
-            EnsureIndex(true);
             RunAsync = false;
         }
 

@@ -1033,11 +1033,6 @@ namespace Examine.LuceneEngine.Providers
 
         private int ForceProcessQueueItems(bool block)
         {
-            if (!IndexExists())
-            {
-                return 0;
-            }
-
             //check if the index is ready to be written to.
             if (!IndexReady())
             {
@@ -1071,9 +1066,8 @@ namespace Examine.LuceneEngine.Providers
                 }
                 else
                 {
-                    IEnumerable<IndexOperation> batch;
                     //index while we're not cancelled and while there's items in there
-                    while (!_cancellationTokenSource.IsCancellationRequested && _indexQueue.TryTake(out batch))
+                    while (!_cancellationTokenSource.IsCancellationRequested && _indexQueue.TryTake(out IEnumerable<IndexOperation> batch))
                     {
                         foreach (var item in batch)
                         {
