@@ -65,7 +65,7 @@ namespace Examine.Providers
         /// </remarks>
         protected abstract void PerformIndexItems(IEnumerable<ValueSet> op);
 
-        #region IIndexer members
+        #region IIndex members
 
         public abstract ISearcher GetSearcher();
 
