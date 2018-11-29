@@ -41,7 +41,7 @@ namespace Examine.Web.Demo
             Trace.WriteLine("App starting");
 
 #if FULLDEBUG
-            foreach (var luceneIndexer in ExamineManager.Instance.IndexProviders.OfType<LuceneIndexer>())
+            foreach (var luceneIndexer in ExamineManager.Instance.IndexProviders.OfType<LuceneIndex>())
             {
                 var dir = luceneIndexer.GetLuceneDirectory();
                 if (IndexWriter.IsLocked(dir))

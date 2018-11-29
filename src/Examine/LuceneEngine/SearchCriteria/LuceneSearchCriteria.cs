@@ -568,7 +568,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                     fieldName = fieldName.Substring(0, match.Index);
                 }
 
-                this.SortFields.Add(new SortField(LuceneIndexer.SortedFieldNamePrefix + fieldName, defaultSort, descending));
+                this.SortFields.Add(new SortField(LuceneIndex.SortedFieldNamePrefix + fieldName, defaultSort, descending));
             }
 
             return new LuceneBooleanOperation(this);
@@ -698,7 +698,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         protected internal IBooleanOperation IdInternal(string id, Occur occurrence)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndexer.ItemIdFieldName, id), occurrence);
+            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndex.ItemIdFieldName, id), occurrence);
 
             return new LuceneBooleanOperation(this);
         }

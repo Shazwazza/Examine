@@ -9,21 +9,21 @@ using Lucene.Net.Store;
 
 namespace Examine.Test
 {
-    public class TestIndexer : LuceneIndexer
+    public class TestIndex : LuceneIndex
     {
-        public TestIndexer(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
+        public TestIndex(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
             : base("testIndexer", fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
         {
             RunAsync = false;
         }
 
-        public TestIndexer(Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
+        public TestIndex(Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
             : base("testIndexer", new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer, validator)
         {
             RunAsync = false;
         }
 
-        public TestIndexer(IndexWriter writer, IValueSetValidator validator = null)
+        public TestIndex(IndexWriter writer, IValueSetValidator validator = null)
             : base("testIndexer", new FieldDefinition[] { }, writer, validator)
         {
         }

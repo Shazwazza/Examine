@@ -63,7 +63,7 @@ namespace Examine
         private static readonly ExamineManager Manager = new ExamineManager();
 
         private object _lock = new object();
-        private readonly ConcurrentDictionary<string, IIndexer> _indexers = new ConcurrentDictionary<string, IIndexer>();
+        private readonly ConcurrentDictionary<string, IIndex> _indexers = new ConcurrentDictionary<string, IIndex>();
         private readonly ConcurrentDictionary<string, ISearcher> _searchers = new ConcurrentDictionary<string, ISearcher>();
 
         private SearchProviderCollection ConfigBasedSearchProviders
@@ -91,37 +91,37 @@ namespace Examine
         }
 
         /// <inheritdoc />
-        public IIndexer GetIndexer(string indexerName)
+        public IIndex GetIndex(string indexName)
         {
-            return IndexProviders[indexerName];
+            return IndexProviders[indexName];
         }
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, IIndexer> IndexProviders
+        public IReadOnlyDictionary<string, IIndex> IndexProviders
         {
             get
             {
-                var providerDictionary = ConfigBasedIndexProviders.ToDictionary(x => x.Name, x => (IIndexer)x);
+                var providerDictionary = ConfigBasedIndexProviders.ToDictionary(x => x.Name, x => (IIndex)x);
                 foreach (var i in _indexers)
                 {
                     providerDictionary[i.Key] = i.Value;
                 }
-                return new Dictionary<string, IIndexer>(providerDictionary, StringComparer.OrdinalIgnoreCase);
+                return new Dictionary<string, IIndex>(providerDictionary, StringComparer.OrdinalIgnoreCase);
             }
         }
 
         /// <inheritdoc />
-        public void AddIndexer(IIndexer indexer)
+        public void AddIndex(IIndex index)
         {
             //make sure this name doesn't exist in
 
-            if (ConfigBasedIndexProviders[indexer.Name] != null)
+            if (ConfigBasedIndexProviders[index.Name] != null)
             {
-                throw new InvalidOperationException("The indexer with name " + indexer.Name + " already exists");
+                throw new InvalidOperationException("The indexer with name " + index.Name + " already exists");
             }
-            if (!_indexers.TryAdd(indexer.Name, indexer))
+            if (!_indexers.TryAdd(index.Name, index))
             {
-                throw new InvalidOperationException("The indexer with name " + indexer.Name + " already exists");
+                throw new InvalidOperationException("The indexer with name " + index.Name + " already exists");
             }
         }
 

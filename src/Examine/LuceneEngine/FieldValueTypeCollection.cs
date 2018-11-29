@@ -103,5 +103,6 @@ namespace Examine.LuceneEngine
         /// Returns the resolved collection of IIndexValueTypes for this index
         /// </summary>
         public IEnumerable<IIndexValueType> ValueTypes => _resolvedValueTypes.Value.Values;
+
     }
 }

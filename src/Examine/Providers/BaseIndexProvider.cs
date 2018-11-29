@@ -7,13 +7,14 @@ using System.Security;
 using Examine;
 using System.Xml.Linq;
 using Examine.LuceneEngine;
+using Examine.LuceneEngine.Providers;
 
 namespace Examine.Providers
 {
     /// <summary>
-    /// Base class for an Examine Index Provider. You must implement this class to create an IndexProvider
+    /// Base class for an Examine Index Provider
     /// </summary>
-    public abstract class BaseIndexProvider : ProviderBase, IIndexer
+    public abstract class BaseIndexProvider : ProviderBase, IIndex
     {
         private FieldDefinitionCollection _fieldDefinitionCollection;
         private readonly IEnumerable<FieldDefinition> _fieldDefinitions;
@@ -29,40 +30,55 @@ namespace Examine.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
-        protected BaseIndexProvider(string name, IEnumerable<FieldDefinition> fieldDefinitions)
+        /// <param name="validator"></param>
+        protected BaseIndexProvider(string name, IEnumerable<FieldDefinition> fieldDefinitions, IValueSetValidator validator)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
             _name = name;
             _fieldDefinitions = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
-        }
-
-        /// <summary>
-        /// Initializes the provider.
-        /// </summary>
-        /// <param name="name">The friendly name of the provider.</param>
-        /// <param name="config">A collection of the name/value pairs representing the provider-specific attributes specified in the configuration for this provider.</param>
-        /// <exception cref="T:System.ArgumentNullException">
-        /// The name of the provider is null.
-        /// </exception>
-        /// <exception cref="T:System.ArgumentException">
-        /// The name of the provider has a length of zero.
-        /// </exception>
-        /// <exception cref="T:System.InvalidOperationException">
-        /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
-        /// </exception>
-        public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
-        {
-            base.Initialize(name, config);
-            
+            ValueSetValidator = validator;
         }
 
         public override string Name => _name ?? base.Name;
 
+        /// <summary>
+        /// A validator to validate a value set before it's indexed
+        /// </summary>
+        public IValueSetValidator ValueSetValidator { get; protected set; }
+
+        /// <summary>
+        /// Ensures that the node being indexed is of a correct type 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        protected bool ValidateItem(ValueSet item)
+        {
+            return ValueSetValidator == null || ValueSetValidator.Validate(item);
+        }
+
+        /// <summary>
+        /// Method used to index the items in the <see cref="ValueSet"/>
+        /// </summary>
+        /// <param name="op"></param>
+        /// <remarks>
+        /// Items will have been validated at this stage
+        /// </remarks>
+        protected abstract void PerformIndexItems(IEnumerable<ValueSet> op);
+
         #region IIndexer members
 
         public abstract ISearcher GetSearcher();
-        public abstract void IndexItems(IEnumerable<ValueSet> values);
-        
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Validates the items and calls <see cref="M:Examine.Providers.BaseIndexProvider.PerformIndexItems(System.Collections.Generic.IEnumerable{Examine.ValueSet})" />
+        /// </summary>
+        /// <param name="values"></param>
+        public void IndexItems(IEnumerable<ValueSet> values)
+        {
+            PerformIndexItems(values.Where(ValidateItem));
+        }
+
         /// <summary>
         /// Deletes a node from the index
         /// </summary>

@@ -32,13 +32,13 @@ namespace Examine.Test.Index
     /// Tests the standard indexing capabilities
     /// </summary>
     [TestFixture]
-    public class LuceneIndexerTests
+    public class LuceneIndexTests
     {
         [Test]
         public void Rebuild_Index()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(d, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(d, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 indexer.CreateIndex();
                 indexer.IndexItems(indexer.AllData());
@@ -54,7 +54,7 @@ namespace Examine.Test.Index
         public void Index_Exists()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 indexer.EnsureIndex(true);
                 Assert.IsTrue(indexer.IndexExists());
@@ -62,46 +62,10 @@ namespace Examine.Test.Index
         }
 
         [Test]
-        public void Ensures_Doc_Is_Removed_If_Validation_Fails()
-        {
-            using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30),
-                //custom validator
-                validator: new ValueSetValidatorDelegate(set => !set.Values.ContainsKey("invalid"))))
-            {
-                
-
-                indexer.IndexItem(new ValueSet(1.ToString(), "content",
-                    new Dictionary<string, List<object>>
-                    {
-                        {"item1", new List<object>(new[] {"value1"})},
-                        {"item2", new List<object>(new[] {"value2"})}
-                    }));
-
-                var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(1, reader.NumDocs());
-
-                //re-index with a value that will be invalid for the indexer - thus it should be removed from the index
-                indexer.IndexItem(new ValueSet(1.ToString(), "content",
-                    new Dictionary<string, List<object>>
-                    {
-                        {"item1", new List<object>(new[] {"value1"})},
-                        {"item2", new List<object>(new[] {"value2"})},
-                        {"invalid", new List<object>(new[] {"this is invalid!"})}
-                    }));
-
-                indexWriter = indexer.GetIndexWriter();
-                reader = indexWriter.GetReader();
-                Assert.AreEqual(0, reader.NumDocs());
-            }
-        }
-
-        [Test]
         public void Can_Add_One_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 
 
@@ -122,7 +86,7 @@ namespace Examine.Test.Index
         public void Can_Add_Same_Document_Twice_Without_Duplication()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 
 
@@ -146,7 +110,7 @@ namespace Examine.Test.Index
         public void Can_Add_Multiple_Docs()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 
 
@@ -170,7 +134,7 @@ namespace Examine.Test.Index
         public void Can_Delete()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 
 
@@ -196,7 +160,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 
 
@@ -214,15 +178,15 @@ namespace Examine.Test.Index
                     var fields = luceneSearcher.Doc(0).GetFields().ToArray();
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndexer.ItemTypeFieldName));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndexer.ItemIdFieldName));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndexer.CategoryFieldName));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.ItemTypeFieldName));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.ItemIdFieldName));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.CategoryFieldName));
 
                     Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").StringValue);
                     Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").StringValue);
-                    Assert.AreEqual("test", fields.Single(x => x.Name == LuceneIndexer.ItemTypeFieldName).StringValue);
-                    Assert.AreEqual("1", fields.Single(x => x.Name == LuceneIndexer.ItemIdFieldName).StringValue);
-                    Assert.AreEqual("content", fields.Single(x => x.Name == LuceneIndexer.CategoryFieldName).StringValue);
+                    Assert.AreEqual("test", fields.Single(x => x.Name == LuceneIndex.ItemTypeFieldName).StringValue);
+                    Assert.AreEqual("1", fields.Single(x => x.Name == LuceneIndex.ItemIdFieldName).StringValue);
+                    Assert.AreEqual("content", fields.Single(x => x.Name == LuceneIndex.CategoryFieldName).StringValue);
                 }
             }
         }
@@ -231,7 +195,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Easy_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 
 
@@ -254,7 +218,7 @@ namespace Examine.Test.Index
         public void Can_Have_Multiple_Values_In_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 
 
@@ -290,7 +254,7 @@ namespace Examine.Test.Index
         public void Can_Update_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
                 
 
@@ -316,7 +280,7 @@ namespace Examine.Test.Index
         public void Number_Field()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndexer(
+            using (var indexer = new TestIndex(
                 new[]
                 {
                     new FieldDefinition("item2", "number")
@@ -342,7 +306,7 @@ namespace Examine.Test.Index
                     Assert.AreEqual(typeof(Int32Type), valType.GetType());
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
                     //for a number type there will always be a sort field
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndexer.SortedFieldNamePrefix + "item2"));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.SortedFieldNamePrefix + "item2"));
                 }
             }
 
@@ -356,7 +320,7 @@ namespace Examine.Test.Index
         {
             using (var d = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
-            using (var customIndexer = new TestIndexer(writer))
+            using (var customIndexer = new TestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
 
@@ -450,7 +414,7 @@ namespace Examine.Test.Index
         {
             using (var d = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
-            using (var customIndexer = new TestIndexer(writer))
+            using (var customIndexer = new TestIndex(writer))
             //using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
 
@@ -517,7 +481,7 @@ namespace Examine.Test.Index
         {
             using (var d = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
-            using (var customIndexer = new TestIndexer(writer))
+            using (var customIndexer = new TestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
 
@@ -579,7 +543,7 @@ namespace Examine.Test.Index
                     }
                 };
 
-                Action<IIndexer> doIndex = (ind) =>
+                Action<IIndex> doIndex = (ind) =>
                 {
                     try
                     {

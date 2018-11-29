@@ -14,11 +14,11 @@ namespace Examine
         /// <summary>
         /// Method to re-index specific data
         /// </summary>
-        /// <param name="indexer"></param>
+        /// <param name="index"></param>
         /// <param name="node"></param>
-        public static void IndexItem(this IIndexer indexer, ValueSet node)
+        public static void IndexItem(this IIndex index, ValueSet node)
         {
-            indexer.IndexItems(new[] { node });
+            index.IndexItems(new[] { node });
         }
 
         /// <summary>

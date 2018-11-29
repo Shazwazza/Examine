@@ -7,7 +7,7 @@ namespace Examine
     /// <summary>
     /// Interface to represent an Examine Indexer
     /// </summary>
-    public interface IIndexer
+    public interface IIndex
     {
         string Name { get; }
 

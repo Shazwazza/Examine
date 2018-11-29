@@ -7,6 +7,6 @@ namespace Examine.LuceneEngine.Directories
     public interface IDirectoryFactory
     {
         
-        Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder);
+        Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder);
     }
 }

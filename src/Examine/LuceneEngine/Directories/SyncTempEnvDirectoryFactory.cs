@@ -18,7 +18,7 @@ namespace Examine.LuceneEngine.Directories
     public class SyncTempEnvDirectoryFactory : TempEnvDirectoryFactory, IDirectoryFactory
     {
         
-        public override Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
+        public override Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);
             var tempFolder = GetLocalStorageDirectory(indexFolder);

@@ -4,13 +4,13 @@ namespace Examine
 {
     public class IndexingItemEventArgs : CancelEventArgs
     {
-        public IIndexer Indexer { get; }
-        public IndexItem IndexItem { get; }
+        public IIndex Index { get; }
+        public ValueSet ValueSet { get; }
 
-        public IndexingItemEventArgs(IIndexer indexer, IndexItem indexItem)
+        public IndexingItemEventArgs(IIndex index, ValueSet valueSet)
         {
-            Indexer = indexer;
-            IndexItem = indexItem;
+            Index = index;
+            ValueSet = valueSet;
         }
     }
 }

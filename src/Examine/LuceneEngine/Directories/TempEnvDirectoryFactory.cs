@@ -16,7 +16,7 @@ namespace Examine.LuceneEngine.Directories
     public class TempEnvDirectoryFactory : IDirectoryFactory
     {
         
-        public virtual Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
+        public virtual Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);
             var tempFolder = GetLocalStorageDirectory(indexFolder);

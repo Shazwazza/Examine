@@ -8,9 +8,9 @@ namespace Examine
     public class IndexingErrorEventArgs : EventArgs
     {
 
-        public IndexingErrorEventArgs(IIndexer indexer, string message, string itemId, Exception innerException)
+        public IndexingErrorEventArgs(IIndex index, string message, string itemId, Exception innerException)
         {
-            Indexer = indexer;
+            Index = index;
             this.ItemId = itemId;
             this.Message = message;
             this.InnerException = innerException;
@@ -18,7 +18,7 @@ namespace Examine
 
         public Exception InnerException { get; }
         public string Message { get; }
-        public IIndexer Indexer { get; }
+        public IIndex Index { get; }
         public string ItemId { get; }
     }
 }

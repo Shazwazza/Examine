@@ -25,7 +25,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
-    public class LuceneIndexer : BaseIndexProvider, IDisposable
+    public class LuceneIndex : BaseIndexProvider, IDisposable
     {
         #region Constructors
 
@@ -33,9 +33,9 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor used for provider instantiation
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected LuceneIndexer()
+        protected LuceneIndex()
         {
-            _disposer = new DisposableIndexer(this);
+            _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
@@ -53,19 +53,18 @@ namespace Examine.LuceneEngine.Providers
         /// Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="DefaultIndexValueTypes"/> will be used.
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
-        protected LuceneIndexer(
+        protected LuceneIndex(
             string name, 
             IEnumerable<FieldDefinition> fieldDefinitions,
             Directory luceneDirectory,
             Analyzer analyzer,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
-            : base(name, fieldDefinitions)
+            : base(name, fieldDefinitions, validator)
         {
-            _disposer = new DisposableIndexer(this);
+            _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
 
-            ValueSetValidator = validator;
             LuceneIndexFolder = null;
 
             DefaultAnalyzer = analyzer;
@@ -87,19 +86,18 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="writer"></param>
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
-        internal LuceneIndexer(
+        internal LuceneIndex(
             string name,
             IEnumerable<FieldDefinition> fieldDefinitions,
             IndexWriter writer,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
-            : base(name, fieldDefinitions)
+            : base(name, fieldDefinitions, validator)
         {
-            _disposer = new DisposableIndexer(this);
+            _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
 
             DefaultAnalyzer = writer.Analyzer;
-            ValueSetValidator = validator;
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
 
             //initialize the field types
@@ -286,12 +284,7 @@ namespace Examine.LuceneEngine.Providers
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerValueType(name, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerValueType(name, new EmailAddressAnalyzer())}
             };
-
-        /// <summary>
-        /// A validator to validate a value set before it's indexed
-        /// </summary>
-        protected IValueSetValidator ValueSetValidator { get; set; }
-
+        
         /// <summary>
         /// this flag indicates if Examine should wait for the current index queue to be fully processed during appdomain shutdown
         /// </summary>
@@ -407,7 +400,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Provider implementation
 
-        public override void IndexItems(IEnumerable<ValueSet> values)
+        protected override void PerformIndexItems(IEnumerable<ValueSet> values)
         {
             //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             Monitor.Enter(_writerLocker);
@@ -420,9 +413,7 @@ namespace Examine.LuceneEngine.Providers
                     //enqueue the batch, this allows lazy enumeration of the items
                     // when the indexes starts to process
                     QueueIndexOperation(
-                        values.Select(value => new IndexOperation(
-                            new IndexItem(value),
-                            IndexOperationType.Add)));
+                        values.Select(value => new IndexOperation(value, IndexOperationType.Add)));
 
                     //run the indexer on all queued files
                     SafelyProcessQueueItems();
@@ -577,7 +568,7 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                QueueIndexOperation(new IndexOperation(IndexItem.ForId(itemId), IndexOperationType.Delete));
+                QueueIndexOperation(new IndexOperation(new ValueSet(itemId, null), IndexOperationType.Delete));
                 SafelyProcessQueueItems();
             }
             finally
@@ -629,19 +620,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Protected
 
-        /// <summary>
-        /// Ensures that the node being indexed is of a correct type 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        protected virtual bool ValidateItem(IndexItem item)
-        {
-            if (ValueSetValidator != null)
-            {
-                return ValueSetValidator.Validate(item.ValueSet);
-            }
-            return true;
-        }
+        
 
         /// <summary>
         /// Creates the <see cref="FieldValueTypeCollection"/> for this index
@@ -793,21 +772,21 @@ namespace Examine.LuceneEngine.Providers
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
         /// <param name="doc"></param>
-        /// <param name="item">The data to index.</param>
+        /// <param name="valueSet">The data to index.</param>
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
-        protected virtual void AddDocument(Document doc, IndexItem item, IndexWriter writer)
+        protected virtual void AddDocument(Document doc, ValueSet valueSet, IndexWriter writer)
         {
             //add node id
             var nodeIdValueType = FieldValueTypeCollection.GetValueType(ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.Raw]);
-            nodeIdValueType.AddValue(doc, item.ValueSet.Id);
+            nodeIdValueType.AddValue(doc, valueSet.Id);
             //add the category
             var categoryValueType = FieldValueTypeCollection.GetValueType(CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.InvariantCultureIgnoreCase]);
-            categoryValueType.AddValue(doc, item.ValueSet.Category);
+            categoryValueType.AddValue(doc, valueSet.Category);
             //add the item type
             var indexTypeValueType = FieldValueTypeCollection.GetValueType(ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.InvariantCultureIgnoreCase]);
-            indexTypeValueType.AddValue(doc, item.ValueSet.ItemType);
+            indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            foreach (var field in item.ValueSet.Values)
+            foreach (var field in valueSet.Values)
             {
                 //check if we have a defined one
                 if (FieldDefinitionCollection.TryGetValue(field.Key, out var definedFieldDefinition))
@@ -846,19 +825,19 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            var docArgs = new DocumentWritingEventArgs(item.ValueSet, doc);
+            var docArgs = new DocumentWritingEventArgs(valueSet, doc);
             OnDocumentWriting(docArgs);
             if (docArgs.Cancel)
                 return;
 
-            writer.UpdateDocument(new Term(ItemIdFieldName, item.Id), doc);
+            writer.UpdateDocument(new Term(ItemIdFieldName, valueSet.Id), doc);
         }
 
 
         /// <summary>
         /// Process all of the queue items
         /// </summary>
-        protected internal void SafelyProcessQueueItems()
+        private void SafelyProcessQueueItems()
         {
             if (!RunAsync)
             {
@@ -962,7 +941,6 @@ namespace Examine.LuceneEngine.Providers
         /// The 'block' parameter is very important, normally this will not block since we're running on a background thread anyways, however
         /// during app shutdown we want to process the remaining queue and block.
         /// </remarks>
-
         private int ForceProcessQueueItems(bool block)
         {
             //check if the index is ready to be written to.
@@ -973,7 +951,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //track all of the nodes indexed
-            var indexedNodes = new List<IndexedItem>();
+            var indexedNodes = 0;
 
             Interlocked.Increment(ref _activeWrites);
 
@@ -989,23 +967,17 @@ namespace Examine.LuceneEngine.Providers
                     }
 
                     foreach (var batch in _indexQueue.GetConsumingEnumerable())
-                    {
                         foreach (var item in batch)
-                        {
-                            ProcessQueueItem(item, indexedNodes, writer);
-                        }
-                    }
+                            if (ProcessQueueItem(item, writer))
+                                indexedNodes++;
                 }
                 else
                 {
                     //index while we're not cancelled and while there's items in there
-                    while (!_cancellationTokenSource.IsCancellationRequested && _indexQueue.TryTake(out IEnumerable<IndexOperation> batch))
-                    {
+                    while (!_cancellationTokenSource.IsCancellationRequested && _indexQueue.TryTake(out var batch))
                         foreach (var item in batch)
-                        {
-                            ProcessQueueItem(item, indexedNodes, writer);
-                        }
-                    }
+                            if (ProcessQueueItem(item, writer))
+                                indexedNodes++;
                 }
 
                 //this is required to ensure the index is written to during the same thread execution
@@ -1031,7 +1003,7 @@ namespace Examine.LuceneEngine.Providers
                 Interlocked.Decrement(ref _activeWrites);
             }
 
-            return indexedNodes.Count;
+            return indexedNodes;
         }
 
         /// <summary>
@@ -1039,7 +1011,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private class IndexCommiter : DisposableObjectSlim
         {
-            private readonly LuceneIndexer _indexer;
+            private readonly LuceneIndex _index;
             private DateTime _timestamp;
             private Timer _timer;
             private readonly object _locker = new object();
@@ -1050,9 +1022,9 @@ namespace Examine.LuceneEngine.Providers
             /// </summary>
             private const int MaxWaitMilliseconds = 300000;
 
-            public IndexCommiter(LuceneIndexer indexer)
+            public IndexCommiter(LuceneIndex index)
             {
-                _indexer = indexer;
+                _index = index;
             }
 
 
@@ -1063,10 +1035,10 @@ namespace Examine.LuceneEngine.Providers
                     if (_timer == null)
                     {
                         //if we've been cancelled then be sure to commit now
-                        if (_indexer._cancellationTokenSource.IsCancellationRequested)
+                        if (_index._cancellationTokenSource.IsCancellationRequested)
                         {
                             //perform the commit
-                            _indexer._writer?.Commit();
+                            _index._writer?.Commit();
                         }
                         else
                         {
@@ -1079,7 +1051,7 @@ namespace Examine.LuceneEngine.Providers
                     else
                     {
                         //if we've been cancelled then be sure to cancel the timer and commit now
-                        if (_indexer._cancellationTokenSource.IsCancellationRequested)
+                        if (_index._cancellationTokenSource.IsCancellationRequested)
                         {
                             //Stop the timer
                             _timer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -1087,7 +1059,7 @@ namespace Examine.LuceneEngine.Providers
                             _timer = null;
 
                             //perform the commit
-                            _indexer._writer?.Commit();
+                            _index._writer?.Commit();
                         }
                         else if (
                             // must be less than the max
@@ -1120,7 +1092,7 @@ namespace Examine.LuceneEngine.Providers
                         _timer = null;
 
                         //perform the commit
-                        _indexer._writer?.Commit();
+                        _index._writer?.Commit();
                     }
                 }
             }
@@ -1132,28 +1104,17 @@ namespace Examine.LuceneEngine.Providers
         }
 
 
-        private void ProcessQueueItem(IndexOperation item, ICollection<IndexedItem> indexedNodes, IndexWriter writer)
+        private bool ProcessQueueItem(IndexOperation item, IndexWriter writer)
         {
             switch (item.Operation)
             {
                 case IndexOperationType.Add:
 
-                    if (ValidateItem(item.Item))
-                    {
-                        var added = ProcessIndexQueueItem(item, writer);
-                        if (!added.IsEmpty())
-                            indexedNodes.Add(added);
-                    }
-                    else
-                    {
-                        //do the delete but no commit - it may or may not exist in the index but since it is not 
-                        // valid it should definitely not be there.
-                        ProcessDeleteQueueItem(item, writer, false);
-                    }
-                    break;
+                    var added = ProcessIndexQueueItem(item, writer);
+                    return added;
                 case IndexOperationType.Delete:
                     ProcessDeleteQueueItem(item, writer, false);
-                    break;
+                    return true;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -1163,7 +1124,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation
         /// </summary>
         /// <param name="op"></param>
-        protected void QueueIndexOperation(IndexOperation op)
+        private void QueueIndexOperation(IndexOperation op)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
@@ -1174,7 +1135,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 OnIndexingError(
                     new IndexingErrorEventArgs(this,
-                        "App is shutting down so index operation is ignored: " + op.Item.Id, null, null));
+                        "App is shutting down so index operation is ignored: " + op.ValueSet.Id, null, null));
             }
         }
 
@@ -1182,7 +1143,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation batch
         /// </summary>
         /// <param name="ops"></param>
-        protected void QueueIndexOperation(IEnumerable<IndexOperation> ops)
+        private void QueueIndexOperation(IEnumerable<IndexOperation> ops)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
@@ -1200,7 +1161,6 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Initialize the directory
         /// </summary>
-
         private Directory InitializeDirectory()
         {
             if (_directory != null) return _directory;
@@ -1285,7 +1245,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-
         private IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
@@ -1297,7 +1256,6 @@ namespace Examine.LuceneEngine.Providers
         /// Returns an index writer for the current directory
         /// </summary>
         /// <returns></returns>
-
         public IndexWriter GetIndexWriter()
         {
             EnsureIndex(false);
@@ -1328,50 +1286,50 @@ namespace Examine.LuceneEngine.Providers
 
         private LuceneSearcher CreateSearcher()
         {
-            //trim the "Indexer" suffix if it exists
+            //trim the "Indexer" / "Index" suffix if it exists
             var name = Name.EndsWith("Indexer") ? Name.Substring(0, Name.LastIndexOf("Indexer", StringComparison.Ordinal)) : Name;
+            name = name.EndsWith("Index") ? Name.Substring(0, Name.LastIndexOf("Index", StringComparison.Ordinal)) : Name;
             return new LuceneSearcher(name + "Searcher", GetIndexWriter(), FieldAnalyzer, FieldValueTypeCollection);
         }
 
 
         /// <summary>
-        /// Reads the FileInfo passed in into a dictionary object and deletes it from the index
+        /// Deletes the item from the index either by id or by category
         /// </summary>
         /// <param name="op"></param>
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
-
         private void ProcessDeleteQueueItem(IndexOperation op, IndexWriter iw, bool performCommit = true)
         {
 
             //if the id is empty then remove the whole type
-            if (string.IsNullOrEmpty(op.Item.Id))
+            if (!string.IsNullOrEmpty(op.ValueSet.Id))
             {
-                DeleteFromIndex(new Term(CategoryFieldName, op.Item.IndexCategory), iw, performCommit);
+                DeleteFromIndex(new Term(ItemIdFieldName, op.ValueSet.Id), iw, performCommit);
             }
-            else
+            else if (!string.IsNullOrEmpty(op.ValueSet.Category))
             {
-                DeleteFromIndex(new Term(ItemIdFieldName, op.Item.Id), iw, performCommit);
+                DeleteFromIndex(new Term(CategoryFieldName, op.ValueSet.Category), iw, performCommit);
             }
 
             CommitCount++;
         }
 
 
-        private IndexedItem ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
+        private bool ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
         {
             
             //raise the event and assign the value to the returned data from the event
-            var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.Item);
+            var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.ValueSet);
             OnTransformingIndexValues(indexingNodeDataArgs);
-            if (indexingNodeDataArgs.Cancel) return IndexedItem.Empty;
+            if (indexingNodeDataArgs.Cancel) return false;
 
             var d = new Document();
-            AddDocument(d, op.Item, writer);
+            AddDocument(d, op.ValueSet, writer);
 
             CommitCount++;
 
-            return new IndexedItem(op.Item.Id, op.Item.IndexCategory);
+            return true;
         }
 
         /// <summary>
@@ -1410,32 +1368,32 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private class SynchronousIndexProcessor : DisposableObjectSlim
         {
-            private readonly LuceneIndexer _indexer;
+            private readonly LuceneIndex _index;
 
-            public SynchronousIndexProcessor(LuceneIndexer indexer)
+            public SynchronousIndexProcessor(LuceneIndex index)
             {
-                _indexer = indexer;
-                _indexer.RunAsync = false;
+                _index = index;
+                _index.RunAsync = false;
             }
 
             protected override void DisposeResources()
             {
-                _indexer.RunAsync = true;
+                _index.RunAsync = true;
             }
         }
 
         #region IDisposable Members
 
-        private readonly DisposableIndexer _disposer;
+        private readonly DisposableIndex _disposer;
         private readonly IndexCommiter _committer;
 
-        private class DisposableIndexer : DisposableObjectSlim
+        private class DisposableIndex : DisposableObjectSlim
         {
-            private readonly LuceneIndexer _indexer;
+            private readonly LuceneIndex _index;
 
-            public DisposableIndexer(LuceneIndexer indexer)
+            public DisposableIndex(LuceneIndex index)
             {
-                _indexer = indexer;
+                _index = index;
             }
 
             /// <summary>
@@ -1445,43 +1403,43 @@ namespace Examine.LuceneEngine.Providers
             protected override void DisposeResources()
             {
 
-                if (_indexer.WaitForIndexQueueOnShutdown)
+                if (_index.WaitForIndexQueueOnShutdown)
                 {
                     //if there are active adds, lets way/retry (5 seconds)
-                    RetryUntilSuccessOrTimeout(() => _indexer._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
+                    RetryUntilSuccessOrTimeout(() => _index._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
                 }
 
                 //cancel any operation currently in place
-                _indexer._cancellationTokenSource.Cancel();
+                _index._cancellationTokenSource.Cancel();
 
                 //ensure nothing more can be added
-                _indexer._indexQueue.CompleteAdding();
+                _index._indexQueue.CompleteAdding();
 
-                if (_indexer._writer != null)
+                if (_index._writer != null)
                 {
-                    if (_indexer.WaitForIndexQueueOnShutdown)
+                    if (_index.WaitForIndexQueueOnShutdown)
                     {
                         //process remaining items and block until complete
-                        _indexer.ForceProcessQueueItems(true);
+                        _index.ForceProcessQueueItems(true);
                     }
                 }
 
                 //dispose it now
-                _indexer._indexQueue.Dispose();
+                _index._indexQueue.Dispose();
 
                 //Don't close the writer until there are definitely no more writes
                 //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
                 //we are not terminating Lucene while it is actively writing to the index.
-                RetryUntilSuccessOrTimeout(() => _indexer._activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
+                RetryUntilSuccessOrTimeout(() => _index._activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
 
                 //close the committer, this will ensure a final commit is made if one has been queued
-                _indexer._committer.Dispose();
+                _index._committer.Dispose();
 
-                _indexer._writer?.Dispose();
+                _index._writer?.Dispose();
 
-                _indexer._cancellationTokenSource.Dispose();
+                _index._cancellationTokenSource.Dispose();
 
-                _indexer._logOutput?.Close();
+                _index._logOutput?.Close();
             }
 
             private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)

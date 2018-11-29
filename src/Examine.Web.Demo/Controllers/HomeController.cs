@@ -141,7 +141,7 @@ namespace Examine.Web.Demo.Controllers
         public ActionResult TestIndex()
         {
 
-            var indexer = (LuceneIndexer)ExamineManager.Instance.IndexProviders["Simple2Indexer"];
+            var indexer = (LuceneIndex)ExamineManager.Instance.IndexProviders["Simple2Indexer"];
             var writer = indexer.GetIndexWriter();
 
             var model = new IndexInfo

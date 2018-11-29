@@ -24,7 +24,7 @@ namespace Examine.LuceneEngine.Indexing
             var val = DateToLong(parsedVal);
 
             doc.Add(new NumericField(FieldName, Store ? Field.Store.YES : Field.Store.NO, true).SetLongValue(val));
-            doc.Add(new NumericField(LuceneIndexer.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetLongValue(val));
+            doc.Add(new NumericField(LuceneIndex.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetLongValue(val));
         }
 
         /// <summary>

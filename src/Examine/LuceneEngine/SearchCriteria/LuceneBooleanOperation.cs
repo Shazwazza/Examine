@@ -86,7 +86,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
                 if (!string.IsNullOrEmpty(this._search.Category))
                 {
-                    this._search.FieldInternal(LuceneIndexer.CategoryFieldName, new ExamineValue(Examineness.Explicit, this._search.Category), Occur.MUST);
+                    this._search.FieldInternal(LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, this._search.Category), Occur.MUST);
                 }
 
                 //ensure we don't compile twice!

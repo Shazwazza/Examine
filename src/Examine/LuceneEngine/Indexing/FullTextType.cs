@@ -33,7 +33,7 @@ namespace Examine.LuceneEngine.Indexing
 
                 if (_sortable)
                 {
-                    doc.Add(new Field(LuceneIndexer.SortedFieldNamePrefix + FieldName, str,
+                    doc.Add(new Field(LuceneIndex.SortedFieldNamePrefix + FieldName, str,
                         Field.Store.YES,
                         Field.Index.NOT_ANALYZED, Field.TermVector.NO));
                 }

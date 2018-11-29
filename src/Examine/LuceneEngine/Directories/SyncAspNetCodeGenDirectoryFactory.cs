@@ -12,7 +12,7 @@ namespace Examine.LuceneEngine.Directories
     public class SyncAspNetCodeGenDirectoryFactory : IDirectoryFactory
     {
         
-        public Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
+        public Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);
             var codeGen = GetLocalStorageDirectory(indexFolder);

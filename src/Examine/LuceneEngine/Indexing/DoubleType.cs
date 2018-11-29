@@ -18,7 +18,7 @@ namespace Examine.LuceneEngine.Indexing
                 return;
 
             doc.Add(new NumericField(FieldName, Store ? Field.Store.YES : Field.Store.NO, true).SetDoubleValue(parsedVal));
-            doc.Add(new NumericField(LuceneIndexer.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetDoubleValue(parsedVal));
+            doc.Add(new NumericField(LuceneIndex.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetDoubleValue(parsedVal));
         }
 
         public override Query GetQuery(string query, Searcher searcher)

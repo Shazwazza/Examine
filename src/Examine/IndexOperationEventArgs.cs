@@ -4,12 +4,12 @@ namespace Examine
 {
     public class IndexOperationEventArgs : EventArgs
     {
-        public IIndexer Indexer { get; }
+        public IIndex Index { get; }
         public int ItemsIndexed { get; }
 
-        public IndexOperationEventArgs(IIndexer indexer, int itemsIndexed)
+        public IndexOperationEventArgs(IIndex index, int itemsIndexed)
         {
-            Indexer = indexer;
+            Index = index;
             ItemsIndexed = itemsIndexed;
         }
     }
