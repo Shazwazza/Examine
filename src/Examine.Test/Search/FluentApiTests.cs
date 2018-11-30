@@ -424,14 +424,14 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    ValueSet.FromObject(1.ToString(), "content",
+                    new ValueSet(1.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 1"},
                             {"bodyText", "lorem ipsum"},
                             {"__Path", "-1,123,456,789"}
                         }),
-                    ValueSet.FromObject(2.ToString(), "content",
+                    new ValueSet(2.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
@@ -508,21 +508,21 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    ValueSet.FromObject(1.ToString(), "content",
+                    new ValueSet(1.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 1"},
                             {"nodeTypeAlias", "CWS_Home"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
-                    ValueSet.FromObject(2.ToString(), "content",
+                    new ValueSet(2.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
                             {"nodeTypeAlias", "CWS_Home"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
-                    ValueSet.FromObject(3.ToString(), "content",
+                    new ValueSet(3.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 3"},
@@ -589,21 +589,21 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    ValueSet.FromObject(1.ToString(), "content",
+                    new ValueSet(1.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 1"},
                             {"nodeTypeAlias", "CWS_Home"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
-                    ValueSet.FromObject(2.ToString(), "content",
+                    new ValueSet(2.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
                             {"nodeTypeAlias", "CWS_Home"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
-                    ValueSet.FromObject(3.ToString(), "content",
+                    new ValueSet(3.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 3"},
