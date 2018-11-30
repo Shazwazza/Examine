@@ -32,7 +32,7 @@ namespace Examine
         /// <summary>
         /// The values to be indexed
         /// </summary>
-        public Dictionary<string, List<object>> Values { get; }
+        public IDictionary<string, List<object>> Values { get; }
 
         /// <summary>
         /// Constructor
@@ -73,7 +73,7 @@ namespace Examine
         /// </param>
         /// <param name="values"></param>
         public ValueSet(string id, string category, string itemType, IEnumerable<KeyValuePair<string, object>> values)
-            : this(id, category, itemType, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value).ToList())) { }
+            : this(id, category, itemType, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value))) { }
 
         /// <summary>
         /// Constructor
@@ -96,12 +96,18 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string category, string itemType, Dictionary<string, List<object>> values = null)
+        public ValueSet(string id, string category, string itemType, IDictionary<string, IEnumerable<object>> values = null)
         {
             Id = id;
             Category = category;
             ItemType = itemType;
-            Values = values ?? new Dictionary<string, List<object>>();
+            var v = new Dictionary<string, List<object>>();
+            if (values != null)
+            {
+                foreach (var val in values)
+                    v[val.Key] = val.Value.ToList();
+            }
+            Values = v;
         }
 
         /// <summary>

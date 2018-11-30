@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 using Examine.Providers;
 
@@ -43,6 +44,10 @@ namespace Examine
         /// determines whether the index exsists or not
         /// </summary>
         bool IndexExists();
-        
+
+        /// <summary>
+        /// Raised once an index operation is completed
+        /// </summary>
+        event EventHandler<IndexOperationEventArgs> IndexOperationComplete;
     }
 }

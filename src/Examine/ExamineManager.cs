@@ -93,11 +93,14 @@ namespace Examine
         /// <inheritdoc />
         public IIndex GetIndex(string indexName)
         {
-            return IndexProviders[indexName];
+            return Indexes[indexName];
         }
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, IIndex> IndexProviders
+        public IReadOnlyDictionary<string, ISearcher> RegisteredSearchers => _searchers.Values.Concat(ConfigBasedSearchProviders).ToDictionary(x => x.Name, x => x);
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, IIndex> Indexes
         {
             get
             {
@@ -227,7 +230,7 @@ namespace Examine
             {
                 try
                 {
-                    foreach (var indexer in IndexProviders.OfType<IDisposable>())
+                    foreach (var indexer in Indexes.OfType<IDisposable>())
                     {
                         indexer.Dispose();
                     }

@@ -10,19 +10,25 @@ namespace Examine
         /// <remarks>
         /// This returns all config based indexes and indexers registered in code
         /// </remarks>
-        IReadOnlyDictionary<string, IIndex> IndexProviders { get; }
+        IReadOnlyDictionary<string, IIndex> Indexes { get; }
+
+        /// <summary>
+        /// Gets a list of all manually configured search providers
+        /// </summary>
+        /// <remarks>
+        /// This returns only those searchers explicitly registered with <see cref="AddSearcher"/> or config based searchers
+        /// </remarks>
+        IReadOnlyDictionary<string, ISearcher> RegisteredSearchers { get; }
 
         /// <summary>
         /// Adds an indexer to the manager
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="index"></param>
         void AddIndex(IIndex index);
 
         /// <summary>
         /// Adds an index searcher to the manager - generally this would be a multi index searcher since most searchers are created from an existing index
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="searcher"></param>
         void AddSearcher(ISearcher searcher);
 

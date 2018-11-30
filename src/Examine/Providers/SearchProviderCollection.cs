@@ -16,15 +16,15 @@ namespace Examine.Providers
         public override void Add(ProviderBase provider)
         {
             if (provider == null)
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
 
             if (!(provider is BaseSearchProvider))
-                throw new ArgumentException("Invalid provider type", "provider");
+                throw new ArgumentException("Invalid provider type", nameof(provider));
 
             base.Add(provider);
         }
 
-        private List<BaseSearchProvider> m_List = null;
+        private List<BaseSearchProvider> _list = null;
 
         #region IEnumerable<BaseIndexProvider> Members
 
@@ -34,15 +34,15 @@ namespace Examine.Providers
         /// <returns></returns>
         IEnumerator<BaseSearchProvider> IEnumerable<BaseSearchProvider>.GetEnumerator()
         {
-            if (m_List == null)
+            if (_list == null)
             {
-                m_List = new List<BaseSearchProvider>();
+                _list = new List<BaseSearchProvider>();
                 foreach (var x in this)
                 {
-                    m_List.Add((BaseSearchProvider)x);
+                    _list.Add((BaseSearchProvider)x);
                 }
             }
-            return m_List.GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         #endregion

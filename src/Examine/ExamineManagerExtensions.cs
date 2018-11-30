@@ -15,9 +15,9 @@ namespace Examine
         /// </exception>
         public static ISearcher GetSearcher(this IExamineManager manager, string indexerName)
         {
-            if (manager.IndexProviders.ContainsKey(indexerName))
+            if (manager.Indexes.ContainsKey(indexerName))
             {
-                if (manager.IndexProviders.TryGetValue(indexerName, out var indexer))
+                if (manager.Indexes.TryGetValue(indexerName, out var indexer))
                 {
                     return indexer.GetSearcher();
                 }

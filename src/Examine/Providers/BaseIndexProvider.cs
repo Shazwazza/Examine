@@ -57,13 +57,25 @@ namespace Examine.Providers
         }
 
         /// <summary>
-        /// Method used to index the items in the <see cref="ValueSet"/>
+        /// Indexes the items in the <see cref="ValueSet"/>
         /// </summary>
         /// <param name="op"></param>
+        /// <param name="onComplete">
+        /// Called by the implementor once the items have been indexed
+        /// </param>
         /// <remarks>
         /// Items will have been validated at this stage
         /// </remarks>
-        protected abstract void PerformIndexItems(IEnumerable<ValueSet> op);
+        protected abstract void PerformIndexItems(IEnumerable<ValueSet> op, Action<IndexOperationEventArgs> onComplete);
+
+        /// <summary>
+        /// Deletes an index item by id
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="onComplete">
+        /// Called by the implementor once the items have been indexed
+        /// </param>
+        protected abstract void PerformDeleteFromIndex(string nodeId, Action<IndexOperationEventArgs> onComplete);
 
         #region IIndex members
 
@@ -76,14 +88,17 @@ namespace Examine.Providers
         /// <param name="values"></param>
         public void IndexItems(IEnumerable<ValueSet> values)
         {
-            PerformIndexItems(values.Where(ValidateItem));
+            PerformIndexItems(values.Where(ValidateItem), OnIndexOperationComplete);
         }
 
         /// <summary>
         /// Deletes a node from the index
         /// </summary>
         /// <param name="nodeId">Node to delete</param>
-        public abstract void DeleteFromIndex(string nodeId);
+        public void DeleteFromIndex(string nodeId)
+        {
+            PerformDeleteFromIndex(nodeId, OnIndexOperationComplete);
+        }
 
         /// <summary>
         /// Creates a new index, any existing index will be deleted
@@ -108,6 +123,9 @@ namespace Examine.Providers
 
         #region Events
 
+        /// <inheritdoc />
+        public event EventHandler<IndexOperationEventArgs> IndexOperationComplete;
+
         /// <summary>
         /// Occurs for an Indexing Error
         /// </summary>
@@ -117,11 +135,16 @@ namespace Examine.Providers
         /// Raised before the item is indexed allowing developers to customize the data that get's stored in the index
         /// </summary>
         public event EventHandler<IndexingItemEventArgs> TransformingIndexValues;
-        
+
         #endregion
 
         #region Protected Event callers
-        
+
+        private void OnIndexOperationComplete(IndexOperationEventArgs e)
+        {
+            IndexOperationComplete?.Invoke(this, e);
+        }
+
         /// <summary>
         /// Raises the <see cref="E:IndexingError"/> event.
         /// </summary>

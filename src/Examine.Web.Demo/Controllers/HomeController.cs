@@ -114,9 +114,9 @@ namespace Examine.Web.Demo.Controllers
             {
                 var timer = new Stopwatch();
                 timer.Start();
-                ExamineManager.Instance.IndexProviders["Simple2Indexer"].CreateIndex();
+                ExamineManager.Instance.Indexes["Simple2Indexer"].CreateIndex();
                 var dataService = new TableDirectReaderDataService();
-                ExamineManager.Instance.IndexProviders["Simple2Indexer"].IndexItems(dataService.GetAllData());
+                ExamineManager.Instance.Indexes["Simple2Indexer"].IndexItems(dataService.GetAllData());
                 timer.Stop();
 
                 return View(timer.Elapsed.TotalSeconds);
@@ -133,7 +133,7 @@ namespace Examine.Web.Demo.Controllers
         {
             var dataService = new TableDirectReaderDataService();
             var randomItems = dataService.GetRandomItems(10).ToArray();
-            ExamineManager.Instance.IndexProviders["Simple2Indexer"].IndexItems(randomItems);
+            ExamineManager.Instance.Indexes["Simple2Indexer"].IndexItems(randomItems);
             return View(randomItems.Length);
         }
 
@@ -141,7 +141,7 @@ namespace Examine.Web.Demo.Controllers
         public ActionResult TestIndex()
         {
 
-            var indexer = (LuceneIndex)ExamineManager.Instance.IndexProviders["Simple2Indexer"];
+            var indexer = (LuceneIndex)ExamineManager.Instance.Indexes["Simple2Indexer"];
             var writer = indexer.GetIndexWriter();
 
             var model = new IndexInfo

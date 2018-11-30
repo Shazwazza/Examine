@@ -335,11 +335,6 @@ namespace Examine.LuceneEngine.Providers
         #region Events
         
         /// <summary>
-        /// Fires once an index operation is completed
-        /// </summary>
-        public event EventHandler<IndexOperationEventArgs> IndexOperationComplete;
-
-        /// <summary>
         /// Occurs when [document writing].
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
@@ -390,17 +385,12 @@ namespace Examine.LuceneEngine.Providers
         {
             DocumentWriting?.Invoke(this, docArgs);
         }
-        
-        protected virtual void OnIndexOperationComplete(IndexOperationEventArgs e)
-        {
-            IndexOperationComplete?.Invoke(this, e);
-        }
 
         #endregion
 
         #region Provider implementation
 
-        protected override void PerformIndexItems(IEnumerable<ValueSet> values)
+        protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
         {
             //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             Monitor.Enter(_writerLocker);
@@ -416,7 +406,7 @@ namespace Examine.LuceneEngine.Providers
                         values.Select(value => new IndexOperation(value, IndexOperationType.Add)));
 
                     //run the indexer on all queued files
-                    SafelyProcessQueueItems();
+                    SafelyProcessQueueItems(onComplete);
                 }
                 finally
                 {
@@ -562,14 +552,15 @@ namespace Examine.LuceneEngine.Providers
         /// custom Lucene search to find all decendents and create Delete item queues for them too.
         /// </remarks>
         /// <param name="itemId">ID of the node to delete</param>
-        public override void DeleteFromIndex(string itemId)
+        /// <param name="onComplete"></param>
+        protected override void PerformDeleteFromIndex(string itemId, Action<IndexOperationEventArgs> onComplete)
         {
             Interlocked.Increment(ref _activeAddsOrDeletes);
 
             try
             {
                 QueueIndexOperation(new IndexOperation(new ValueSet(itemId, null), IndexOperationType.Delete));
-                SafelyProcessQueueItems();
+                SafelyProcessQueueItems(onComplete);
             }
             finally
             {
@@ -837,11 +828,12 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Process all of the queue items
         /// </summary>
-        private void SafelyProcessQueueItems()
+        /// <param name="onComplete"></param>
+        private void SafelyProcessQueueItems(Action<IndexOperationEventArgs> onComplete)
         {
             if (!RunAsync)
             {
-                StartIndexing();
+                StartIndexing(onComplete);
             }
             else
             {
@@ -860,7 +852,7 @@ namespace Examine.LuceneEngine.Providers
                                     {
                                         //Ensure the indexing processes is using an invariant culture
                                         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                                        StartIndexing();
+                                        StartIndexing(onComplete);
                                     },
                                     _cancellationTokenSource.Token,  //use our cancellation token
                                     TaskCreationOptions.None,
@@ -882,7 +874,8 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Processes the queue and checks if optimization needs to occur at the end
         /// </summary>
-        void StartIndexing()
+        /// <param name="onComplete"></param>
+        void StartIndexing(Action<IndexOperationEventArgs> onComplete)
         {
             if (!_isIndexing)
             {
@@ -903,7 +896,7 @@ namespace Examine.LuceneEngine.Providers
                         //reset the flag
                         _isIndexing = false;
 
-                        OnIndexOperationComplete(new IndexOperationEventArgs(this, numProcessedItems));
+                        onComplete(new IndexOperationEventArgs(this, numProcessedItems));
                     }
                 }
             }
