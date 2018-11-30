@@ -10,7 +10,7 @@ namespace Examine
         /// <remarks>
         /// This returns all config based indexes and indexers registered in code
         /// </remarks>
-        IReadOnlyDictionary<string, IIndex> Indexes { get; }
+        IEnumerable<IIndex> Indexes { get; }
 
         /// <summary>
         /// Gets a list of all manually configured search providers
@@ -18,7 +18,7 @@ namespace Examine
         /// <remarks>
         /// This returns only those searchers explicitly registered with <see cref="AddSearcher"/> or config based searchers
         /// </remarks>
-        IReadOnlyDictionary<string, ISearcher> RegisteredSearchers { get; }
+        IEnumerable<ISearcher> RegisteredSearchers { get; }
 
         /// <summary>
         /// Adds an indexer to the manager
@@ -38,17 +38,19 @@ namespace Examine
         /// Returns an indexer by name
         /// </summary>
         /// <param name="indexName"></param>
-        /// <returns></returns>
-        IIndex GetIndex(string indexName);
-        
+        /// <param name="index"></param>
+        /// <returns>true if the index was found by name</returns>
+        bool TryGetIndex(string indexName, out IIndex index);
+
         /// <summary>
         /// Returns a searcher that was registered with <see cref="AddSearcher"/> or via config
         /// </summary>
         /// <param name="searcherName"></param>
+        /// <param name="searcher"></param>
         /// <returns>
-        /// Returns null if not found, otherwise an <see cref="ISearcher"/> reference
+        /// true if the searcher was found by name
         /// </returns>
-        ISearcher GetSearcher(string searcherName);
+        bool TryGetSearcher(string searcherName, out ISearcher searcher);
 
     }
 }

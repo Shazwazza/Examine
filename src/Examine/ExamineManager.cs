@@ -85,34 +85,19 @@ namespace Examine
         }
         
         /// <inheritdoc />
-        public ISearcher GetSearcher(string searcherName)
-        {            
-            return (_searchers.TryGetValue(searcherName, out var searcher) ? searcher : null) ?? ConfigBasedSearchProviders[searcherName];
-        }
+        public bool TryGetSearcher(string searcherName, out ISearcher searcher) => 
+            (searcher = (_searchers.TryGetValue(searcherName, out var s) ? s : null) ?? ConfigBasedSearchProviders[searcherName]) != null;
 
         /// <inheritdoc />
-        public IIndex GetIndex(string indexName)
-        {
-            return Indexes[indexName];
-        }
+        public bool TryGetIndex(string indexName, out IIndex index) => 
+            (index = (_indexers.TryGetValue(indexName, out var i) ? i : null) ?? ConfigBasedIndexProviders[indexName]) != null;
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, ISearcher> RegisteredSearchers => _searchers.Values.Concat(ConfigBasedSearchProviders).ToDictionary(x => x.Name, x => x);
+        public IEnumerable<ISearcher> RegisteredSearchers => _searchers.Values.Concat(ConfigBasedSearchProviders);
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, IIndex> Indexes
-        {
-            get
-            {
-                var providerDictionary = ConfigBasedIndexProviders.ToDictionary(x => x.Name, x => (IIndex)x);
-                foreach (var i in _indexers)
-                {
-                    providerDictionary[i.Key] = i.Value;
-                }
-                return new Dictionary<string, IIndex>(providerDictionary, StringComparer.OrdinalIgnoreCase);
-            }
-        }
-
+        public IEnumerable<IIndex> Indexes => _indexers.Values.Concat(ConfigBasedIndexProviders);
+       
         /// <inheritdoc />
         public void AddIndex(IIndex index)
         {

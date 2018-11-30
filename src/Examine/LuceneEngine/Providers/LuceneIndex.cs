@@ -559,7 +559,7 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                QueueIndexOperation(new IndexOperation(new ValueSet(itemId, null), IndexOperationType.Delete));
+                QueueIndexOperation(new IndexOperation(new ValueSet(itemId), IndexOperationType.Delete));
                 SafelyProcessQueueItems(onComplete);
             }
             finally

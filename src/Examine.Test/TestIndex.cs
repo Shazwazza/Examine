@@ -33,7 +33,7 @@ namespace Examine.Test
             var data = new List<ValueSet>();
             for (int i = 0; i < 100; i++)
             {
-                data.Add(new ValueSet(i.ToString(), "category" + (i % 2), new { item1 = "value" + i, item2 = "value" + i }));
+                data.Add(ValueSet.FromObject(i.ToString(), "category" + (i % 2), new { item1 = "value" + i, item2 = "value" + i }));
             }
             return data;
         }

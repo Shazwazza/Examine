@@ -31,12 +31,12 @@ namespace Examine.Test.Search
             using (var indexer4 = new TestIndex(luceneDir4, analyzer) { RunAsync = false })
 
             {
-                indexer1.IndexItem(new ValueSet(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
-                indexer2.IndexItem(new ValueSet(1.ToString(), "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
-                indexer3.IndexItem(new ValueSet(1.ToString(), "content", new { item1 = "value3", item2 = "They are expected to confront the darkness and show evidence that they have done so in their papers" }));
-                indexer4.IndexItem(new ValueSet(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
-                indexer3.IndexItem(new ValueSet(2.ToString(), "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
-                indexer4.IndexItem(new ValueSet(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
+                indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
+                indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
+                indexer3.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value3", item2 = "They are expected to confront the darkness and show evidence that they have done so in their papers" }));
+                indexer4.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
+                indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
+                indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
                 var searcher = new MultiIndexSearcher("testSearcher",
                     new[] { indexer1.GetSearcher(), indexer2.GetSearcher(), indexer3.GetSearcher(), indexer4.GetSearcher()}.OfType<LuceneSearcher>(), 
@@ -62,12 +62,12 @@ namespace Examine.Test.Search
             using (var indexer3 = new TestIndex(luceneDir3, analyzer) { RunAsync = false })
             using (var indexer4 = new TestIndex(luceneDir4, analyzer) { RunAsync = false })
             {
-                indexer1.IndexItem(new ValueSet(1.ToString(), "content", new { item1 = "hello", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
-                indexer2.IndexItem(new ValueSet(1.ToString(), "content", new { item1 = "world", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
-                indexer3.IndexItem(new ValueSet(1.ToString(), "content", new { item1 = "here", item2 = "They are expected to confront the darkness and show evidence that they have done so in their papers" }));
-                indexer4.IndexItem(new ValueSet(1.ToString(), "content", new { item1 = "are", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
-                indexer3.IndexItem(new ValueSet(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
-                indexer4.IndexItem(new ValueSet(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
+                indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "hello", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
+                indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "world", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
+                indexer3.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "here", item2 = "They are expected to confront the darkness and show evidence that they have done so in their papers" }));
+                indexer4.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "are", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
+                indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
+                indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
                 
                 var searcher = new MultiIndexSearcher("testSearcher",
                     new[] { indexer1.GetSearcher(), indexer2.GetSearcher(), indexer3.GetSearcher(), indexer4.GetSearcher()}.OfType<LuceneSearcher>(), 

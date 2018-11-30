@@ -26,6 +26,9 @@ namespace Examine
         {
             if (o != null)
             {
+                if (o is IDictionary)
+                    throw new InvalidOperationException($"The input object is already of type {typeof(IDictionary)}");
+
                 var props = TypeDescriptor.GetProperties(o);
                 var d = new Dictionary<string, object>();
                 foreach (var prop in props.Cast<PropertyDescriptor>().Where(x => !ignoreProperties.Contains(x.Name)))

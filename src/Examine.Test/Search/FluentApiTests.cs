@@ -35,21 +35,21 @@ namespace Examine.Test.Search
 
                 indexer.IndexItems(new[]
                 {
-                    new ValueSet(123.ToString(), "content",
+                    ValueSet.FromObject(123.ToString(), "content",
                         new
                         {
                             created = new DateTime(2000, 01, 02),
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Home"
                         }),
-                    new ValueSet(2123.ToString(), "content",
+                    ValueSet.FromObject(2123.ToString(), "content",
                         new
                         {
                             created = new DateTime(2000, 01, 04),
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Test"
                         }),
-                    new ValueSet(3123.ToString(), "content",
+                    ValueSet.FromObject(3123.ToString(), "content",
                         new
                         {
                             created = new DateTime(2000, 01, 05),
@@ -87,21 +87,21 @@ namespace Examine.Test.Search
 
                 indexer.IndexItems(new[]
                 {
-                    new ValueSet(123.ToString(), "content",
+                    ValueSet.FromObject(123.ToString(), "content",
                         new
                         {
                             parentID = 121,
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Home"
                         }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new
                         {
                             parentID = 123,
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Test"
                         }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new
                         {
                             parentID = 124,
@@ -137,21 +137,21 @@ namespace Examine.Test.Search
 
                 indexer.IndexItems(new[]
                 {
-                    new ValueSet(123.ToString(), "content",
+                    ValueSet.FromObject(123.ToString(), "content",
                         new
                         {
                             nodeName = "my name 1",
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Home"
                         }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new
                         {
                             parentID = 123,
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Test"
                         }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new
                         {
                             parentID = 123,
@@ -186,21 +186,21 @@ namespace Examine.Test.Search
 
                 indexer.IndexItems(new[]
                 {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new
                         {
                             nodeName = "my name 1",
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Home"
                         }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new
                         {
                             nodeName = "About us",
                             bodyText = "lorem ipsum",
                             nodeTypeAlias = "CWS_Test"
                         }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new
                         {
                             nodeName = "my name 3",
@@ -395,9 +395,9 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", headerText = "header 1", umbracoNaviHide = "1" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
@@ -424,14 +424,14 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 1"},
                             {"bodyText", "lorem ipsum"},
                             {"__Path", "-1,123,456,789"}
                         }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
@@ -475,11 +475,11 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", parentID = "1235" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", parentID = "1139" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
                     });
 
@@ -508,21 +508,21 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 1"},
                             {"nodeTypeAlias", "CWS_Home"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
                             {"nodeTypeAlias", "CWS_Home"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 3"},
@@ -557,11 +557,11 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "into 1", bodyText = "It was one thing to bring Carmen into it, but Jonathan was another story." }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "my name 2", bodyText = "Hands shoved backwards into his back pockets, he took slow deliberate steps, as if he had something on his mind." }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "my name 3", bodyText = "Slowly carrying the full cups into the living room, she handed one to Alex." })
                     });
 
@@ -589,21 +589,21 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 1"},
                             {"nodeTypeAlias", "CWS_Home"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
                             {"nodeTypeAlias", "CWS_Home"}
                             //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 3"},
@@ -637,11 +637,11 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "media",
+                    ValueSet.FromObject(1.ToString(), "media",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
-                    new ValueSet(2.ToString(), "media",
+                    ValueSet.FromObject(2.ToString(), "media",
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
-                    new ValueSet(3.ToString(), "media",
+                    ValueSet.FromObject(3.ToString(), "media",
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
                     });
 
@@ -668,13 +668,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "media",
+                    ValueSet.FromObject(1.ToString(), "media",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
-                    new ValueSet(2.ToString(), "media",
+                    ValueSet.FromObject(2.ToString(), "media",
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", nodeTypeAlias = "file" }),
-                    new ValueSet(4.ToString(), "other",
+                    ValueSet.FromObject(4.ToString(), "other",
                         new { nodeName = "my name 4", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
                     });
 
@@ -708,13 +708,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", sortOrder = "3", parentID = "1143" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "my name 2", sortOrder = "1", parentID = "1143" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "my name 3", sortOrder = "2", parentID = "1143" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "my name 4", bodyText = "lorem ipsum", parentID = "2222" })
                     });
 
@@ -753,13 +753,13 @@ namespace Examine.Test.Search
                 var now = DateTime.Now;
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", updateDate = now.AddDays(2).ToString("yyyy-MM-dd"), parentID = "1143" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "my name 2", updateDate = now.ToString("yyyy-MM-dd"), parentID = 1143 }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "my name 3", updateDate = now.AddDays(1).ToString("yyyy-MM-dd"), parentID = 1143 }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "my name 4", updateDate = now, parentID = "2222" })
                     });
 
@@ -797,13 +797,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", writerName = "administrator", parentID = "1143" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "my name 2", writerName = "administrator", parentID = "1143" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "my name 3", writerName = "administrator", parentID = "1143" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
                     });
                 
@@ -840,13 +840,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "umbraco", headerText = "world", bodyText = "blah" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "umbraco", headerText = "umbraco", bodyText = "blah" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "umbraco", headerText = "umbraco", bodyText = "umbraco" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "hello", headerText = "world", bodyText = "blah" })
                     });
 
@@ -884,13 +884,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "hello", headerText = "world", writerName = "blah" })
                     });
 
@@ -923,13 +923,13 @@ namespace Examine.Test.Search
 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "codegarden09", headerText = "world", writerName = "administrator" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "codegarden 09", headerText = "umbraco", writerName = "administrator" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "codegarden  09", headerText = "umbraco", writerName = "administrator" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "codegarden 090", headerText = "world", writerName = "blah" })
                     });
 
@@ -963,13 +963,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", nodeTypeAlias = "CWS_Hello" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "Helo", nodeTypeAlias = "CWS_World" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "Another node", nodeTypeAlias = "SomethingElse" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "Always consider this", nodeTypeAlias = "CWS_World" })
                     });
 
@@ -1005,13 +1005,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", metaKeywords = "Warren is likely to be creative" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "Helo", metaKeywords = "Creative is Warren's middle name" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "Another node", metaKeywords = "If Warren were creative... well, he actually is" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "Always consider this", metaKeywords = "Warren is a very talented individual and quite creative" })
                     });
 
@@ -1052,13 +1052,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", SomeFloat = 1 }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "Helo", SomeFloat = 123 }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "Another node", SomeFloat = 12 }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "Always consider this", SomeFloat = 25 })
                     });
 
@@ -1101,13 +1101,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", SomeNumber = 1 }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "Helo", SomeNumber = 123 }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "Another node", SomeNumber = 12 }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "Always consider this", SomeNumber = 25 })
                     });
 
@@ -1148,13 +1148,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", SomeDouble = 1d }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "Helo", SomeDouble = 123d }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "Another node", SomeDouble = 12d }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "Always consider this", SomeDouble = 25d })
                     });
 
@@ -1195,13 +1195,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", SomeLong = 1L }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { nodeName = "Helo", SomeLong = 123L }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "Another node", SomeLong = 12L }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "Always consider this", SomeLong = 25L })
                     });
 
@@ -1246,13 +1246,13 @@ namespace Examine.Test.Search
         //        
 
         //        indexer.IndexItems(new[] {
-        //            new ValueSet(1.ToString(), "content",
+        //            ValueSet.FromObject(1.ToString(), "content",
         //                new { MinuteCreated = reIndexDateTime }),
-        //            new ValueSet(2.ToString(), "content",
+        //            ValueSet.FromObject(2.ToString(), "content",
         //                new { MinuteCreated = reIndexDateTime }),
-        //            new ValueSet(3.ToString(), "content",
+        //            ValueSet.FromObject(3.ToString(), "content",
         //                new { MinuteCreated = reIndexDateTime.AddMinutes(-10) }),
-        //            new ValueSet(4.ToString(), "content",
+        //            ValueSet.FromObject(4.ToString(), "content",
         //                new { MinuteCreated = reIndexDateTime })
         //            });
 
@@ -1300,13 +1300,13 @@ namespace Examine.Test.Search
         //        
 
         //        indexer.IndexItems(new[] {
-        //            new ValueSet(1.ToString(), "content",
+        //            ValueSet.FromObject(1.ToString(), "content",
         //                new { HourCreated = reIndexDateTime }),
-        //            new ValueSet(2.ToString(), "content",
+        //            ValueSet.FromObject(2.ToString(), "content",
         //                new { HourCreated = reIndexDateTime }),
-        //            new ValueSet(3.ToString(), "content",
+        //            ValueSet.FromObject(3.ToString(), "content",
         //                new { HourCreated = reIndexDateTime.AddHours(-10) }),
-        //            new ValueSet(4.ToString(), "content",
+        //            ValueSet.FromObject(4.ToString(), "content",
         //                new { HourCreated = reIndexDateTime })
         //            });
 
@@ -1350,13 +1350,13 @@ namespace Examine.Test.Search
         //        
 
         //        indexer.IndexItems(new[] {
-        //            new ValueSet(1.ToString(), "content",
+        //            ValueSet.FromObject(1.ToString(), "content",
         //                new { DayCreated = reIndexDateTime }),
-        //            new ValueSet(2.ToString(), "content",
+        //            ValueSet.FromObject(2.ToString(), "content",
         //                new { DayCreated = reIndexDateTime }),
-        //            new ValueSet(3.ToString(), "content",
+        //            ValueSet.FromObject(3.ToString(), "content",
         //                new { DayCreated = reIndexDateTime.AddDays(-10) }),
-        //            new ValueSet(4.ToString(), "content",
+        //            ValueSet.FromObject(4.ToString(), "content",
         //                new { DayCreated = reIndexDateTime })
         //            });
 
@@ -1401,13 +1401,13 @@ namespace Examine.Test.Search
         //        
 
         //        indexer.IndexItems(new[] {
-        //            new ValueSet(1.ToString(), "content",
+        //            ValueSet.FromObject(1.ToString(), "content",
         //                new { MonthCreated = reIndexDateTime }),
-        //            new ValueSet(2.ToString(), "content",
+        //            ValueSet.FromObject(2.ToString(), "content",
         //                new { MonthCreated = reIndexDateTime }),
-        //            new ValueSet(3.ToString(), "content",
+        //            ValueSet.FromObject(3.ToString(), "content",
         //                new { MonthCreated = reIndexDateTime.AddMonths(-10) }),
-        //            new ValueSet(4.ToString(), "content",
+        //            ValueSet.FromObject(4.ToString(), "content",
         //                new { MonthCreated = reIndexDateTime })
         //            });
 
@@ -1453,13 +1453,13 @@ namespace Examine.Test.Search
         //        
 
         //        indexer.IndexItems(new[] {
-        //            new ValueSet(1.ToString(), "content",
+        //            ValueSet.FromObject(1.ToString(), "content",
         //                new { YearCreated = reIndexDateTime }),
-        //            new ValueSet(2.ToString(), "content",
+        //            ValueSet.FromObject(2.ToString(), "content",
         //                new { YearCreated = reIndexDateTime }),
-        //            new ValueSet(3.ToString(), "content",
+        //            ValueSet.FromObject(3.ToString(), "content",
         //                new { YearCreated = reIndexDateTime.AddMonths(-10) }),
-        //            new ValueSet(4.ToString(), "content",
+        //            ValueSet.FromObject(4.ToString(), "content",
         //                new { YearCreated = reIndexDateTime })
         //            });
 
@@ -1504,13 +1504,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { DateCreated = reIndexDateTime }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { DateCreated = reIndexDateTime }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { DateCreated = reIndexDateTime.AddMonths(-10) }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { DateCreated = reIndexDateTime })
                     });
 
@@ -1546,13 +1546,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "I'm thinking here" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "I'm a thinker" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { Content = "I am pretty thoughtful" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { Content = "I thought you were cool" })
                     });
 
@@ -1590,13 +1590,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "hello world" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello worlds" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { Content = "hello you cruel world" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { Content = "hi there, hello world" })
                 });
 
@@ -1632,13 +1632,13 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "hello world", Type = "type1" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or other", Type = "type1" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { Content = "hello you cruel world", Type = "type2" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
@@ -1673,15 +1673,15 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "hello world", Type = "type1" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or other", Type = "type1" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or world", Type = "type1" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { Content = "hello you cruel world", Type = "type2" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
@@ -1716,15 +1716,15 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "hello world", Type = "type1" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or other", Type = "type1" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or world", Type = "type1" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { Content = "hello you cruel world", Type = "type2" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
@@ -1759,15 +1759,15 @@ namespace Examine.Test.Search
                 
 
                 indexer.IndexItems(new[] {
-                    new ValueSet(1.ToString(), "content",
+                    ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "hello world", Type = "type1" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or other", Type = "type1" }),
-                    new ValueSet(2.ToString(), "content",
+                    ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello you guys", Type = "type1" }),
-                    new ValueSet(3.ToString(), "content",
+                    ValueSet.FromObject(3.ToString(), "content",
                         new { Content = "hello you cruel world", Type = "type2" }),
-                    new ValueSet(4.ToString(), "content",
+                    ValueSet.FromObject(4.ToString(), "content",
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 

@@ -60,11 +60,18 @@ namespace Examine.LuceneEngine.Providers
                 throw new ArgumentNullException("indexes on MultiIndexSearcher provider has not been set in configuration");
 
             _configuredIndexes = new List<string>(indexes);
-            _searchers = new Lazy<IEnumerable<LuceneSearcher>>(() => _configuredIndexes.Select(x => ExamineManager.Instance.GetIndex(x))
-                    .Where(x => x != null)
-                    .Select(x => x.GetSearcher())
-                    .OfType<LuceneSearcher>()
-                    .ToList());
+
+            _searchers = new Lazy<IEnumerable<LuceneSearcher>>(() =>
+            {
+                var result = new HashSet<LuceneSearcher>();
+                foreach (var x in _configuredIndexes)
+                {
+                    if (ExamineManager.Instance.TryGetIndex(x, out var index))
+                        if (index.GetSearcher() is LuceneSearcher ls)
+                            result.Add(ls);
+                }
+                return result;
+            });
         }
 
         private Lazy<IEnumerable<LuceneSearcher>> _searchers;

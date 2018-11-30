@@ -4,6 +4,7 @@ using System.Data.SqlServerCe;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Web.Http.Results;
 using System.Web.Mvc;
 using Examine;
 using Examine.LuceneEngine;
@@ -28,7 +29,9 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult MultiSearch(string query)
         {
-            var multi = ExamineManager.Instance.GetSearcher("MultiIndexSearcher");
+            if (!ExamineManager.Instance.TryGetSearcher("MultiIndexSearcher", out var multi))
+                return HttpNotFound();
+
             var criteria = multi.CreateCriteria();
             var result = multi.Search(criteria.RawQuery(query));
 
@@ -44,7 +47,10 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult Search(string id)
         {
-            var searcher = ExamineManagerExtensions.GetSearcher(ExamineManager.Instance, "Simple2Indexer");
+            if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
+                return HttpNotFound();
+
+            var searcher = index.GetSearcher();
             var criteria = searcher.CreateCriteria();
             var result = searcher.Search(criteria.RawQuery(id));
             var sb = new StringBuilder();
@@ -110,13 +116,16 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult RebuildIndex()
         {
+            if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
+                return HttpNotFound();
+
             try
             {
                 var timer = new Stopwatch();
                 timer.Start();
-                ExamineManager.Instance.Indexes["Simple2Indexer"].CreateIndex();
+                index.CreateIndex();
                 var dataService = new TableDirectReaderDataService();
-                ExamineManager.Instance.Indexes["Simple2Indexer"].IndexItems(dataService.GetAllData());
+                index.IndexItems(dataService.GetAllData());
                 timer.Stop();
 
                 return View(timer.Elapsed.TotalSeconds);
@@ -131,17 +140,22 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult ReIndexItems()
         {
+            if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
+                return HttpNotFound();
+
             var dataService = new TableDirectReaderDataService();
             var randomItems = dataService.GetRandomItems(10).ToArray();
-            ExamineManager.Instance.Indexes["Simple2Indexer"].IndexItems(randomItems);
+            index.IndexItems(randomItems);
             return View(randomItems.Length);
         }
 
         [HttpPost]
         public ActionResult TestIndex()
         {
+            if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
+                return HttpNotFound();
 
-            var indexer = (LuceneIndex)ExamineManager.Instance.Indexes["Simple2Indexer"];
+            var indexer = (LuceneIndex)index;
             var writer = indexer.GetIndexWriter();
 
             var model = new IndexInfo

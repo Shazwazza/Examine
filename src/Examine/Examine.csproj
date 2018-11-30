@@ -105,7 +105,6 @@
     <Compile Include="Config\IndexProvidersSection.cs" />
     <Compile Include="Config\SearchProvidersSection.cs" />
     <Compile Include="Config\ExamineSettings.cs" />
-    <Compile Include="ExamineManagerExtensions.cs" />
     <Compile Include="FieldDefinition.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
     <Compile Include="IExamineManager.cs" />

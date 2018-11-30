@@ -70,7 +70,7 @@ namespace Examine.Test.Index
                 
 
                 indexer.IndexItem(new ValueSet(1.ToString(), "content",
-                    new Dictionary<string, List<object>>
+                    new Dictionary<string, IEnumerable<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
                         {"item2", new List<object>(new[] {"value2"})}
@@ -91,7 +91,7 @@ namespace Examine.Test.Index
                 
 
                 var value = new ValueSet(1.ToString(), "content",
-                    new Dictionary<string, List<object>>
+                    new Dictionary<string, IEnumerable<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
                         {"item2", new List<object>(new[] {"value2"})}
@@ -117,7 +117,7 @@ namespace Examine.Test.Index
                 for (var i = 0; i < 10; i++)
                 {
                     indexer.IndexItem(new ValueSet(i.ToString(), "content",
-                        new Dictionary<string, List<object>>
+                        new Dictionary<string, IEnumerable<object>>
                         {
                             {"item1", new List<object>(new[] {"value1"})},
                             {"item2", new List<object>(new[] {"value2"})}
@@ -141,7 +141,7 @@ namespace Examine.Test.Index
                 for (var i = 0; i < 10; i++)
                 {
                     indexer.IndexItem(new ValueSet(i.ToString(), "content",
-                        new Dictionary<string, List<object>>
+                        new Dictionary<string, IEnumerable<object>>
                         {
                             {"item1", new List<object>(new[] {"value1"})},
                             {"item2", new List<object>(new[] {"value2"})}
@@ -165,7 +165,7 @@ namespace Examine.Test.Index
                 
 
                 indexer.IndexItem(new ValueSet(1.ToString(), "content", "test",
-                    new Dictionary<string, List<object>>
+                    new Dictionary<string, IEnumerable<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
                         {"item2", new List<object>(new[] {"value2"})}
@@ -199,7 +199,7 @@ namespace Examine.Test.Index
             {
                 
 
-                indexer.IndexItem(new ValueSet(1.ToString(), "content",
+                indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1", item2 = "value2" }));
 
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
@@ -223,7 +223,7 @@ namespace Examine.Test.Index
                 
 
                 indexer.IndexItem(new ValueSet(1.ToString(), "content",
-                    new Dictionary<string, List<object>>
+                    new Dictionary<string, IEnumerable<object>>
                     {
                         {
                             "item1", new List<object> {"subval1", "subval2"}
@@ -258,10 +258,10 @@ namespace Examine.Test.Index
             {
                 
 
-                indexer.IndexItem(new ValueSet(1.ToString(), "content",
+                indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1", item2 = "value2" }));
 
-                indexer.IndexItem(new ValueSet(1.ToString(), "content",
+                indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value3", item2 = "value4" }));
 
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
@@ -291,7 +291,7 @@ namespace Examine.Test.Index
                 
 
                 indexer.IndexItem(new ValueSet(1.ToString(), "content",
-                    new Dictionary<string, List<object>>
+                    new Dictionary<string, IEnumerable<object>>
                     {
                         {"item1", new List<object>(new[] {"value1"})},
                         {"item2", new List<object>(new object[] {123456})}
