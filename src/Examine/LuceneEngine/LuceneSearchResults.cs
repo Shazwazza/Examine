@@ -98,7 +98,7 @@ namespace Examine.LuceneEngine
         /// Gets the total number of results for the search
         /// </summary>
         /// <value>The total items from the search.</value>
-        public int TotalItemCount { get; private set; }
+        public long TotalItemCount { get; private set; }
 
         /// <summary>
         /// Internal cache of search results
@@ -192,7 +192,7 @@ namespace Examine.LuceneEngine
         /// <param name="skip">The number of items in the results to skip.</param>
         /// <returns>A collection of the search results</returns>
 		
-        public IEnumerable<SearchResult> Skip(int skip)
+        public IEnumerable<ISearchResult> Skip(int skip)
         {
             for (int i = skip, n = GetScoreDocsLength(); i < n; i++)
             {
@@ -215,21 +215,18 @@ namespace Examine.LuceneEngine
         /// Used to Increment/Decrement the index reader so that when the app is shutdown, a reader doesn't actually
         /// get closed if one is open still and it will self close at the end of it's process.
         /// </summary>
-        private struct DecrementReaderResult : IEnumerator<SearchResult>
+        private struct DecrementReaderResult : IEnumerator<ISearchResult>
         {
-            private readonly IEnumerator<SearchResult> _baseEnumerator;
+            private readonly IEnumerator<ISearchResult> _baseEnumerator;
             private readonly IndexSearcher _searcher;
 
             
-            public DecrementReaderResult(IEnumerator<SearchResult> baseEnumerator, Searcher searcher)
+            public DecrementReaderResult(IEnumerator<ISearchResult> baseEnumerator, Searcher searcher)
             {
                 _baseEnumerator = baseEnumerator;
                 _searcher = searcher as IndexSearcher;
 
-                if (_searcher != null)
-                {
-                    _searcher.IndexReader.IncRef();
-                }
+                _searcher?.IndexReader.IncRef();
             }
 
             
@@ -237,10 +234,7 @@ namespace Examine.LuceneEngine
             {
                 _baseEnumerator.Dispose();
 
-                if (_searcher != null)
-                {
-                    _searcher.IndexReader.DecRef();
-                }
+                _searcher?.IndexReader.DecRef();
             }
 
             public bool MoveNext()
@@ -253,15 +247,9 @@ namespace Examine.LuceneEngine
                 _baseEnumerator.Reset();
             }
 
-            public SearchResult Current
-            {
-                get { return _baseEnumerator.Current; }
-            }
+            public ISearchResult Current => _baseEnumerator.Current;
 
-            object IEnumerator.Current
-            {
-                get { return Current; }
-            }
+            object IEnumerator.Current => Current;
         }
 
         /// <summary>
@@ -269,7 +257,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <returns>A collection of the search results</returns>
         
-        public IEnumerator<SearchResult> GetEnumerator()
+        public IEnumerator<ISearchResult> GetEnumerator()
         {
             return new DecrementReaderResult(
                 Skip(0).GetEnumerator(),

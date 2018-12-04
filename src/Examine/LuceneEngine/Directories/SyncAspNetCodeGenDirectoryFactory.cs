@@ -9,18 +9,18 @@ namespace Examine.LuceneEngine.Directories
     /// <summary>
     /// A directory factory used to create an instance of SyncDirectory that uses AspNet codegen as the cache directory
     /// </summary>
-    public class SyncAspNetCodeGenDirectoryFactory : IDirectoryFactory
+    public class SyncAspNetCodeGenDirectoryFactory : DirectoryFactory
     {
         
-        public Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
+        public override Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);
             var codeGen = GetLocalStorageDirectory(indexFolder);
             var master = new DirectoryInfo(luceneIndexFolder);
             var masterDir = new SimpleFSDirectory(master);
             var cacheDir = new SimpleFSDirectory(codeGen);            
-            masterDir.SetLockFactory(DirectoryTracker.DefaultLockFactory(master));
-            cacheDir.SetLockFactory(DirectoryTracker.DefaultLockFactory(codeGen));
+            masterDir.SetLockFactory(DefaultLockFactory(master));
+            cacheDir.SetLockFactory(DefaultLockFactory(codeGen));
             return new SyncDirectory(masterDir, cacheDir);
         }
 

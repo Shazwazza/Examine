@@ -12,21 +12,21 @@ namespace Examine.LuceneEngine
 
 	    public static ISearchResults Instance { get; } = new EmptySearchResults();
 
-        public IEnumerator<SearchResult> GetEnumerator()
+        public IEnumerator<ISearchResult> GetEnumerator()
 		{
-			return Enumerable.Empty<SearchResult>().GetEnumerator();
+			return Enumerable.Empty<ISearchResult>().GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return Enumerable.Empty<SearchResult>().GetEnumerator();
+			return Enumerable.Empty<ISearchResult>().GetEnumerator();
 		}
 
-		public int TotalItemCount => 0;
+		public long TotalItemCount => 0;
 
-	    public IEnumerable<SearchResult> Skip(int skip)
+	    public IEnumerable<ISearchResult> Skip(int skip)
 		{
-			return Enumerable.Empty<SearchResult>();
+			return Enumerable.Empty<ISearchResult>();
 		}
 	}
 }

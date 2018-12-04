@@ -92,7 +92,6 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -110,6 +109,8 @@
     <Compile Include="IExamineManager.cs" />
     <Compile Include="IndexingItemEventArgs.cs" />
     <Compile Include="IndexOperationEventArgs.cs" />
+    <Compile Include="ISearchResult.cs" />
+    <Compile Include="LuceneEngine\Directories\DirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\MultiIndexLock.cs" />
@@ -128,7 +129,6 @@
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
     <Compile Include="LuceneEngine\EmailAddressAnalyzer.cs" />
-    <Compile Include="LuceneEngine\FieldValueTypesTracker.cs" />
     <Compile Include="LuceneEngine\Indexing\GenericAnalyzerValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\CultureInvariantWhitespaceAnalyzer.cs" />
@@ -140,11 +140,9 @@
     <Compile Include="LuceneEngine\Indexing\Int64Type.cs" />
     <Compile Include="LuceneEngine\Indexing\RawStringType.cs" />
     <Compile Include="LuceneEngine\Indexing\SingleType.cs" />
-    <Compile Include="LuceneEngine\DirectoryTracker.cs" />
     <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
     <Compile Include="LuceneEngine\EmptySearchResults.cs" />
     <Compile Include="ExamineExtensions.cs" />
-    <Compile Include="LuceneEngine\IValueSetDataService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
     <Compile Include="LuceneEngine\OpenReaderTracker.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
@@ -154,7 +152,7 @@
     <Compile Include="LuceneEngine\Providers\ErrorCheckingScoringBooleanQueryRewrite.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexValueType.cs" />
     <Compile Include="LuceneEngine\FieldValueTypeCollection.cs" />
-    <Compile Include="LuceneEngine\Providers\IValueSetValidator.cs" />
+    <Compile Include="IValueSetValidator.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndex.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchOptions.cs" />
@@ -192,6 +190,7 @@
     <Compile Include="StringExtensions.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="ValueSet.cs" />
+    <Compile Include="ValueSetValidationResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

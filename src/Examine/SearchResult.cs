@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Examine
 {
-    public class SearchResult
+    public class SearchResult : ISearchResult
     {
         private OrderedDictionary<string, string> _fields;
         private readonly Lazy<OrderedDictionary<string, IReadOnlyList<string>>> _fieldValues;

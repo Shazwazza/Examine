@@ -1,19 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration.Provider;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Web.Configuration;
 using System.Web.Hosting;
-using System.Xml.Linq;
 using Examine.Config;
 using Examine.LuceneEngine;
 using Examine.Providers;
-using Examine.SearchCriteria;
-using Lucene.Net.Analysis;
 
 namespace Examine
 {

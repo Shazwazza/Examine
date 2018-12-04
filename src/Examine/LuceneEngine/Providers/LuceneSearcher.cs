@@ -22,10 +22,10 @@ namespace Examine.LuceneEngine.Providers
         #region Constructors
 
         /// <summary>
-        /// Default constructor for config based providers
+        /// Protected constructor since this cannot be created via config
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public LuceneSearcher()
+        protected LuceneSearcher()
         {
             _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
@@ -37,6 +37,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="name"></param>
         /// <param name="writer"></param>
         /// <param name="analyzer"></param>
+        /// <param name="fieldValueTypeCollection"></param>
         public LuceneSearcher(string name, IndexWriter writer, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
@@ -52,6 +53,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="name"></param>
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer"></param>
+        /// <param name="fieldValueTypeCollection"></param>
         public LuceneSearcher(string name, Directory luceneDirectory, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
@@ -59,26 +61,10 @@ namespace Examine.LuceneEngine.Providers
             _reopener = new ReaderReopener(this);
             LuceneIndexFolder = null;
             _directory = luceneDirectory;
+            FieldValueTypeCollection = fieldValueTypeCollection;
         }
 
         #endregion      
-
-        /// <summary>
-        /// Initialize the directory
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="NullReferenceException">
-        /// this will throw if a Directory instance is not found at the specified location</exception>
-        /// <remarks>
-        /// It is assumed that the indexer for the searcher will always be initialized first and therefore a directory would be available
-        /// </remarks>
-        
-        private void InitializeDirectory()
-        {
-            if (_directory != null) return;
-
-            _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, true);
-        }
 
         /// <summary>
         /// Used as a singleton instance
@@ -86,7 +72,7 @@ namespace Examine.LuceneEngine.Providers
         private IndexSearcher _searcher;
         private volatile IndexReader _reader;
         private readonly object _locker = new object();
-        private Directory _directory;
+        private readonly Directory _directory;
         private IndexWriter _nrtWriter;
         private bool? _exists;
         private bool _disposed = false;
@@ -96,30 +82,6 @@ namespace Examine.LuceneEngine.Providers
         /// Do not access this object directly. The public property ensures that the folder state is always up to date
         /// </summary>
         private DirectoryInfo _indexFolder;
-
-        /// <summary>
-        /// Initializes the provider.
-        /// </summary>
-        /// <param name="name">The friendly name of the provider.</param>
-        /// <param name="config">A collection of the name/value pairs representing the provider-specific attributes specified in the configuration for this provider.</param>
-        /// <exception cref="T:System.ArgumentNullException">
-        /// The name of the provider is null.
-        /// </exception>
-        /// <exception cref="T:System.ArgumentException">
-        /// The name of the provider has a length of zero.
-        /// </exception>
-        /// <exception cref="T:System.InvalidOperationException">
-        /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
-        /// </exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public override void Initialize(string name, NameValueCollection config)
-        {
-            base.Initialize(name, config);
-            
-            InitializeDirectory();
-
-            FieldValueTypeCollection = FieldValueTypesTracker.Current.GetIndexFieldValueTypes(GetLuceneDirectory());
-        }
 
         /// <summary>
         /// Directory where the Lucene.NET Index resides
@@ -151,7 +113,6 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>
         /// Returns null if the underlying index doesn't exist
         /// </returns>
-
         public override Searcher GetLuceneSearcher()
         {
             if (!ValidateSearcher()) return null;
@@ -195,7 +156,6 @@ namespace Examine.LuceneEngine.Providers
         /// Used to open a new reader when first initializing, when forcing a re-open or when the reader becomes stale (new data is in the index)
         /// </summary>
         /// <returns></returns>
-        
         protected virtual IndexReader OpenNewReader()
         {
             //If a writer was resolved, we can now operate in NRT mode
@@ -216,7 +176,6 @@ namespace Examine.LuceneEngine.Providers
         /// This will check if a writer exists for the current directory to see if we can establish an NRT reader in the future
         /// </summary>
         /// <returns></returns>
-        
         private bool TryEstablishNrtReader()
         {
             //Try to resolve an existing IndexWriter for the current directory
@@ -236,7 +195,6 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// If the index does not exist, it will not store the value so subsequent calls to this will re-evaulate
         /// </remarks>
-        
         private bool IndexExistsImpl()
         {
             //if it's been set and it's true, return true
@@ -254,7 +212,6 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// This checks if the IndexSearcher is initialized and up to date.
         /// </summary>
-        
         private bool ValidateSearcher()
         {
             //can't proceed if there's no index

@@ -51,9 +51,9 @@ namespace Examine.Providers
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        protected bool ValidateItem(ValueSet item)
+        protected ValueSetValidationResult ValidateItem(ValueSet item)
         {
-            return ValueSetValidator == null || ValueSetValidator.Validate(item);
+            return ValueSetValidator?.Validate(item) ?? ValueSetValidationResult.Valid;
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Examine.Providers
         /// <param name="values"></param>
         public void IndexItems(IEnumerable<ValueSet> values)
         {
-            PerformIndexItems(values.Where(ValidateItem), OnIndexOperationComplete);
+            PerformIndexItems(values.Where(x => ValidateItem(x) != ValueSetValidationResult.Failed), OnIndexOperationComplete);
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ namespace Examine.Web.Demo
     /// Data service for Examine using SqlCe's DirectTable reader as it is by far the fastest 
     /// way to read data from SqlCe.
     /// </summary>
-    public class TableDirectReaderDataService : IValueSetDataService
+    public class TableDirectReaderDataService
     {
         /// <summary>
         /// Returns some random items from the storage
@@ -46,9 +46,9 @@ namespace Examine.Web.Demo
                                     {"Column5", rs.GetString(5)},
                                     {"Column6", rs.GetString(6)}
                                 });
+                                current++;
+                                if (current > max) yield break;
                             }
-                            current++;
-                            if (current > max) yield break;
                         }
                     }
                 }

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Indexing;
 using Examine.Providers;
@@ -16,6 +17,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 using Version = Lucene.Net.Util.Version;
 
@@ -33,7 +35,7 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor used for provider instantiation
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected LuceneIndex()
+        public LuceneIndex()
         {
             _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
@@ -53,7 +55,7 @@ namespace Examine.LuceneEngine.Providers
         /// Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="DefaultIndexValueTypes"/> will be used.
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
-        protected LuceneIndex(
+        public LuceneIndex(
             string name, 
             IEnumerable<FieldDefinition> fieldDefinitions,
             Directory luceneDirectory,
@@ -155,16 +157,16 @@ namespace Examine.LuceneEngine.Providers
                 DefaultAnalyzer = new CultureInvariantStandardAnalyzer(Version.LUCENE_30);
             }
 
-            var directory = InitializeDirectory();
+            if (config["indexFolder"] != null)
+            {
+                LuceneIndexFolder = new DirectoryInfo(MapPath(config["indexFolder"]));
+            }
 
-            //initialize the field types using the tracker which is required for config based indexes/searchers
-            _fieldValueTypeCollection = FieldValueTypesTracker.Current.InitializeFieldValueTypes(directory, 
-                d => new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(null)));
+            _directory = InitializeDirectory();
 
-            RunAsync = true;
-            
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes());
+
             CommitCount = 0;
-
         }
 
         #endregion
@@ -318,7 +320,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Indicates whether or this system will process the queue items asynchonously - used for testing
         /// </summary>
-        internal bool RunAsync { get; set; }
+        internal bool RunAsync { get; set; } = true;
 
         /// <summary>
         /// The folder that stores the Lucene Index files
@@ -896,7 +898,7 @@ namespace Examine.LuceneEngine.Providers
                         //reset the flag
                         _isIndexing = false;
 
-                        onComplete(new IndexOperationEventArgs(this, numProcessedItems));
+                        onComplete?.Invoke(new IndexOperationEventArgs(this, numProcessedItems));
                     }
                 }
             }
@@ -1151,6 +1153,18 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
+        public static string MapPath(string configPath)
+        {
+            if (!configPath.StartsWith("~/")) return configPath;
+
+            // Support unit testing scenario where hosting environment is not initialized.
+            var hostingRoot = HostingEnvironment.IsHosted
+                ? HostingEnvironment.MapPath("~/")
+                : AppDomain.CurrentDomain.BaseDirectory;
+
+            return Path.Combine(hostingRoot, configPath.Substring(2).Replace('/', '\\'));
+        }
+
         /// <summary>
         /// Initialize the directory
         /// </summary>
@@ -1158,26 +1172,20 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_directory != null) return _directory;
 
+
+            //ensure all of the folders are created at startup
+            if (!VerifyFolder(LuceneIndexFolder))
+                throw new InvalidOperationException("The indexFolder was not specified");
+
             if (DirectoryFactory == null)
-            {
-                //ensure all of the folders are created at startup
-                VerifyFolder(LuceneIndexFolder);
-                _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
+            {   
+                var simpleFsDirectory = new SimpleFSDirectory(LuceneIndexFolder);
+                simpleFsDirectory.SetLockFactory(Directories.DirectoryFactory.DefaultLockFactory(LuceneIndexFolder));
+                return simpleFsDirectory;
             }
-            _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, InvokeDirectoryFactory);
-            return _directory;
-        }
 
-        /// <summary>
-        /// Purely to do with stupid medium trust
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        private Directory InvokeDirectoryFactory(string s)
-        {
-            return DirectoryFactory.CreateDirectory(this, s);
+            return DirectoryFactory.CreateDirectory(this, LuceneIndexFolder.FullName);
         }
-
 
         private Directory _directory;
 
@@ -1329,8 +1337,11 @@ namespace Examine.LuceneEngine.Providers
         /// Creates the folder if it does not exist.
         /// </summary>
         /// <param name="folder"></param>
-        private void VerifyFolder(DirectoryInfo folder)
+        private bool VerifyFolder(DirectoryInfo folder)
         {
+            if (folder == null)
+                return false;
+
             if (!System.IO.Directory.Exists(folder.FullName))
             {
                 lock (_folderLocker)
@@ -1343,6 +1354,7 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
+            return true;
         }
 
         #endregion

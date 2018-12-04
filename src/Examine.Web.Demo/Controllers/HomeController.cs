@@ -26,14 +26,15 @@ namespace Examine.Web.Demo.Controllers
             return View();
         }
 
+        [ValidateInput(false)]
         [HttpGet]
-        public ActionResult MultiSearch(string query)
+        public ActionResult MultiSearch(string id)
         {
             if (!ExamineManager.Instance.TryGetSearcher("MultiIndexSearcher", out var multi))
                 return HttpNotFound();
 
             var criteria = multi.CreateCriteria();
-            var result = multi.Search(criteria.RawQuery(query));
+            var result = multi.Search(criteria.RawQuery(id));
 
             var sb = new StringBuilder();
             sb.AppendLine($"Results :{result.TotalItemCount}");
@@ -44,6 +45,7 @@ namespace Examine.Web.Demo.Controllers
             return Content(sb.ToString());
         }
 
+        [ValidateInput(false)]
         [HttpGet]
         public ActionResult Search(string id)
         {
@@ -119,21 +121,25 @@ namespace Examine.Web.Demo.Controllers
             if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
                 return HttpNotFound();
 
-            try
+            var luceneIndex = (LuceneIndex) index;
+            using (luceneIndex.ProcessNonAsync())
             {
-                var timer = new Stopwatch();
-                timer.Start();
-                index.CreateIndex();
-                var dataService = new TableDirectReaderDataService();
-                index.IndexItems(dataService.GetAllData());
-                timer.Stop();
+                try
+                {
+                    var timer = new Stopwatch();
+                    timer.Start();
+                    index.CreateIndex();
+                    var dataService = new TableDirectReaderDataService();
+                    index.IndexItems(dataService.GetAllData());
+                    timer.Stop();
 
-                return View(timer.Elapsed.TotalSeconds);
-            }
-            catch (Exception ex)
-            {
-                this.ModelState.AddModelError("DataError", ex.Message);
-                return View(0.0);
+                    return View(timer.Elapsed.TotalSeconds);
+                }
+                catch (Exception ex)
+                {
+                    this.ModelState.AddModelError("DataError", ex.Message);
+                    return View(0.0);
+                }
             }
         }
 
@@ -143,10 +149,14 @@ namespace Examine.Web.Demo.Controllers
             if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
                 return HttpNotFound();
 
-            var dataService = new TableDirectReaderDataService();
-            var randomItems = dataService.GetRandomItems(10).ToArray();
-            index.IndexItems(randomItems);
-            return View(randomItems.Length);
+            var luceneIndex = (LuceneIndex)index;
+            using (luceneIndex.ProcessNonAsync())
+            {
+                var dataService = new TableDirectReaderDataService();
+                var randomItems = dataService.GetRandomItems(10).ToArray();
+                index.IndexItems(randomItems);
+                return View(randomItems.Length);
+            }
         }
 
         [HttpPost]

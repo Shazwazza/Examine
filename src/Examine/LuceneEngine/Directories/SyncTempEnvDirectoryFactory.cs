@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine.Directories
     /// <remarks>
     /// This works well for Azure Web Apps directory sync
     /// </remarks>
-    public class SyncTempEnvDirectoryFactory : TempEnvDirectoryFactory, IDirectoryFactory
+    public class SyncTempEnvDirectoryFactory : TempEnvDirectoryFactory
     {
         
         public override Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
@@ -25,8 +25,8 @@ namespace Examine.LuceneEngine.Directories
             var master = new DirectoryInfo(luceneIndexFolder);
             var masterDir = new SimpleFSDirectory(master);
             var cacheDir = new SimpleFSDirectory(tempFolder);
-            masterDir.SetLockFactory(DirectoryTracker.DefaultLockFactory(master));
-            cacheDir.SetLockFactory(DirectoryTracker.DefaultLockFactory(tempFolder));
+            masterDir.SetLockFactory(DefaultLockFactory(master));
+            cacheDir.SetLockFactory(DefaultLockFactory(tempFolder));
             return new SyncDirectory(masterDir, cacheDir);
         }
         

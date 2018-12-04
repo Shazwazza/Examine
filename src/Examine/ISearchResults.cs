@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Examine
 {
-    public interface ISearchResults : IEnumerable<SearchResult>
+    public interface ISearchResults : IEnumerable<ISearchResult>
     {
-        int TotalItemCount { get; }
-        IEnumerable<SearchResult> Skip(int skip);
+        long TotalItemCount { get; }
+        IEnumerable<ISearchResult> Skip(int skip);
     }
 }

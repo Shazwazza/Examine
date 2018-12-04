@@ -2,19 +2,21 @@
 
 namespace Examine.LuceneEngine.Providers
 {
+
+
     /// <summary>
     /// Simple validator that uses a delegate for validation
     /// </summary>
     public class ValueSetValidatorDelegate : IValueSetValidator
     {
-        private readonly Func<ValueSet, bool> _validator;
+        private readonly Func<ValueSet, ValueSetValidationResult> _validator;
 
-        public ValueSetValidatorDelegate(Func<ValueSet, bool> validator)
+        public ValueSetValidatorDelegate(Func<ValueSet, ValueSetValidationResult> validator)
         {
             _validator = validator;
         }
 
-        public bool Validate(ValueSet valueSet)
+        public ValueSetValidationResult Validate(ValueSet valueSet)
         {
             return _validator(valueSet);
         }
