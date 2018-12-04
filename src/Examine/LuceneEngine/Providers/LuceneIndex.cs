@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Hosting;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Indexing;
@@ -159,7 +160,10 @@ namespace Examine.LuceneEngine.Providers
 
             if (config["indexFolder"] != null)
             {
-                LuceneIndexFolder = new DirectoryInfo(MapPath(config["indexFolder"]));
+                LuceneIndexFolder = new DirectoryInfo(
+                    IOHelper.MapPath(
+                        IOHelper.ReplaceTokensInIndexPath(
+                            config["indexFolder"])));
             }
 
             _directory = InitializeDirectory();
@@ -1153,17 +1157,7 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        public static string MapPath(string configPath)
-        {
-            if (!configPath.StartsWith("~/")) return configPath;
-
-            // Support unit testing scenario where hosting environment is not initialized.
-            var hostingRoot = HostingEnvironment.IsHosted
-                ? HostingEnvironment.MapPath("~/")
-                : AppDomain.CurrentDomain.BaseDirectory;
-
-            return Path.Combine(hostingRoot, configPath.Substring(2).Replace('/', '\\'));
-        }
+       
 
         /// <summary>
         /// Initialize the directory

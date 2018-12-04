@@ -44,8 +44,8 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal LuceneSearchCriteria(
             ICriteriaContext criteriaContext,
             string type, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
-        {   
-            Enforcer.ArgumentNotNull(fields, "fields");
+        {
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
             
             _criteriaContext = criteriaContext;
 
@@ -116,22 +116,22 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public IBooleanOperation Field(string fieldName, string fieldValue)
         {
-            Enforcer.ArgumentNotNull(fieldName, "fieldName");
-            Enforcer.ArgumentNotNull(fieldValue, "fieldValue");
+            if (fieldName == null) throw new ArgumentNullException(nameof(fieldName));
+            if (fieldValue == null) throw new ArgumentNullException(nameof(fieldValue));
             return this.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), _occurrence);
         }
 
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
-            Enforcer.ArgumentNotNull(fieldName, "fieldName");
-            Enforcer.ArgumentNotNull(fieldValue, "fieldValue");
+            if (fieldName == null) throw new ArgumentNullException(nameof(fieldName));
+            if (fieldValue == null) throw new ArgumentNullException(nameof(fieldValue));
             return this.FieldInternal(fieldName, fieldValue, _occurrence);
         }
 
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
         {
-            Enforcer.ArgumentNotNull(fields, "fields");
-            Enforcer.ArgumentNotNull(query, "query");
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (query == null) throw new ArgumentNullException(nameof(query));
 
             var fieldVals = new List<IExamineValue>();
             foreach (var f in query)
@@ -143,16 +143,16 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] fieldVals)
         {
-            Enforcer.ArgumentNotNull(fields, "fields");
-            Enforcer.ArgumentNotNull(Query, "fieldVals");
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (fieldVals == null) throw new ArgumentNullException(nameof(fieldVals));
 
             return this.GroupedAndInternal(fields.ToArray(), fieldVals.ToArray(), _occurrence);
         }
 
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
         {
-            Enforcer.ArgumentNotNull(fields, "fields");
-            Enforcer.ArgumentNotNull(query, "query");
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (query == null) throw new ArgumentNullException(nameof(query));
 
             var fieldVals = new List<IExamineValue>();
             foreach (var f in query)
@@ -165,16 +165,16 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
         {
-            Enforcer.ArgumentNotNull(fields, "fields");
-            Enforcer.ArgumentNotNull(Query, "query");
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (query == null) throw new ArgumentNullException(nameof(query));
 
             return this.GroupedOrInternal(fields.ToArray(), query, _occurrence);
         }
 
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
         {
-            Enforcer.ArgumentNotNull(fields, "fields");
-            Enforcer.ArgumentNotNull(query, "query");
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (query == null) throw new ArgumentNullException(nameof(query));
 
             var fieldVals = new List<IExamineValue>();
             foreach (var f in query)
@@ -187,17 +187,17 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
-            Enforcer.ArgumentNotNull(fields, "fields");
-            Enforcer.ArgumentNotNull(query, "query");
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (query == null) throw new ArgumentNullException(nameof(query));
 
             return this.GroupedNotInternal(fields.ToArray(), query, _occurrence);
         }
 
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
         {
-            Enforcer.ArgumentNotNull(fields, "fields");
-            Enforcer.ArgumentNotNull(query, "query");
-            Enforcer.ArgumentNotNull(operations, "operations");
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (operations == null) throw new ArgumentNullException(nameof(operations));
+            if (query == null) throw new ArgumentNullException(nameof(query));
 
             var fieldVals = new List<IExamineValue>();
             foreach (var f in query)
@@ -210,9 +210,9 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query)
         {
-            Enforcer.ArgumentNotNull(fields, "fields");
-            Enforcer.ArgumentNotNull(Query, "query");
-            Enforcer.ArgumentNotNull(operations, "operations");
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (operations == null) throw new ArgumentNullException(nameof(operations));
+            if (query == null) throw new ArgumentNullException(nameof(query));
 
             return this.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, _occurrence);
 
@@ -220,14 +220,14 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public IBooleanOperation OrderBy(params string[] fieldNames)
         {
-            Enforcer.ArgumentNotNull(fieldNames, "fieldNames");
+            if (fieldNames == null) throw new ArgumentNullException(nameof(fieldNames));
 
             return this.OrderByInternal(false, fieldNames);
         }
 
         public IBooleanOperation OrderByDescending(params string[] fieldNames)
         {
-            Enforcer.ArgumentNotNull(fieldNames, "fieldNames");
+            if (fieldNames == null) throw new ArgumentNullException(nameof(fieldNames));
 
             return this.OrderByInternal(true, fieldNames);
         }

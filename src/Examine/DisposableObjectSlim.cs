@@ -2,7 +2,8 @@
 using System.Threading;
 
 namespace Examine
-{
+{   
+
     /// <summary>
     /// This should not be use if there are unmanaged resources to be disposed, use DisposableObject instead
     /// </summary>

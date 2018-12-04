@@ -109,6 +109,7 @@
     <Compile Include="IExamineManager.cs" />
     <Compile Include="IndexingItemEventArgs.cs" />
     <Compile Include="IndexOperationEventArgs.cs" />
+    <Compile Include="IOHelper.cs" />
     <Compile Include="ISearchResult.cs" />
     <Compile Include="LuceneEngine\Directories\DirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
@@ -122,7 +123,6 @@
     <Compile Include="LuceneEngine\Directories\SyncIndexOutput.cs" />
     <Compile Include="LuceneEngine\Directories\SyncMutexManager.cs" />
     <Compile Include="DisposableObjectSlim.cs" />
-    <Compile Include="Enforcer.cs" />
     <Compile Include="IndexingErrorEventArgs.cs" />
     <Compile Include="IIndex.cs" />
     <Compile Include="ISearchResults.cs" />

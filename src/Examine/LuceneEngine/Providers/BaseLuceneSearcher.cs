@@ -180,7 +180,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public override ISearchResults Search(ISearchCriteria searchParams, int maxResults = 500)
         {
-            Enforcer.ArgumentNotNull(searchParams, "searchParams");
+            if (searchParams == null) throw new ArgumentNullException(nameof(searchParams));
 
             if (!(searchParams is LuceneSearchCriteria luceneParams))
                 throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
