@@ -66,9 +66,13 @@ namespace Examine.LuceneEngine.Providers
                 var result = new HashSet<LuceneSearcher>();
                 foreach (var x in _configuredIndexes)
                 {
-                    if (ExamineManager.Instance.TryGetIndex(x, out var index))
-                        if (index.GetSearcher() is LuceneSearcher ls)
-                            result.Add(ls);
+                    if (!ExamineManager.Instance.TryGetIndex(x, out var index)) 
+                        throw new InvalidOperationException($"The index {x} was not found");
+
+                    if (!(index.GetSearcher() is LuceneSearcher ls))
+                        throw new NotSupportedException($"The index {x} does not return a searcher of type {typeof(LuceneSearcher)}");
+
+                    result.Add(ls);
                 }
                 return result;
             });
