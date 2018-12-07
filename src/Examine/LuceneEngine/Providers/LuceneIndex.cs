@@ -892,17 +892,20 @@ namespace Examine.LuceneEngine.Providers
 
                         _isIndexing = true;
 
+                        var totalProcessed = 0;
+
                         //keep processing until it is complete
                         var numProcessedItems = 0;
                         do
                         {
                             numProcessedItems = ForceProcessQueueItems();
+                            totalProcessed += numProcessedItems;
                         } while (numProcessedItems > 0);
 
                         //reset the flag
                         _isIndexing = false;
 
-                        onComplete?.Invoke(new IndexOperationEventArgs(this, numProcessedItems));
+                        onComplete?.Invoke(new IndexOperationEventArgs(this, totalProcessed));
                     }
                 }
             }
