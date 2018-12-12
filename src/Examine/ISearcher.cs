@@ -14,13 +14,12 @@ namespace Examine
         string Name { get; }
 
         /// <summary>
-        /// Searches the specified search text in all fields of the index
+        /// Searches the index
         /// </summary>
         /// <param name="searchText">The search text.</param>
-        /// <param name="useWildcards">if set to <c>true</c> the search will use wildcards.</param>
         /// <param name="maxResults"></param>
         /// <returns>Search Results</returns>
-        ISearchResults Search(string searchText, bool useWildcards, int maxResults = 500);
+        ISearchResults Search(string searchText, int maxResults = 500);
 
         /// <summary>
         /// Searches using the specified search query parameters

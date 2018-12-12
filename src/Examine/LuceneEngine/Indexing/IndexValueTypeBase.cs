@@ -11,8 +11,8 @@ namespace Examine.LuceneEngine.Indexing
 {
     public abstract class IndexValueTypeBase : IIndexValueType
     {
-        public string FieldName { get; private set; }
-        public bool Store { get; private set; }
+        public string FieldName { get; }
+        public bool Store { get; }
         
         protected IndexValueTypeBase(string fieldName, bool store = true)
         {
@@ -40,6 +40,12 @@ namespace Examine.LuceneEngine.Indexing
 
         protected abstract void AddSingleValue(Document doc, object value);        
         
+        /// <summary>
+        /// By default returns a <see cref="TermQuery"/>
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="searcher"></param>
+        /// <returns></returns>
         public virtual Query GetQuery(string query, Searcher searcher)
         {
             return new TermQuery(new Term(FieldName, query));

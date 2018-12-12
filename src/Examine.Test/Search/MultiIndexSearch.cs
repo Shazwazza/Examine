@@ -25,10 +25,10 @@ namespace Examine.Test.Search
             using (var luceneDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = new TestIndex(luceneDir1, analyzer) { RunAsync = false })
-            using (var indexer2 = new TestIndex(luceneDir2, analyzer) { RunAsync = false })
-            using (var indexer3 = new TestIndex(luceneDir3, analyzer) { RunAsync = false })
-            using (var indexer4 = new TestIndex(luceneDir4, analyzer) { RunAsync = false })
+            using (var indexer1 = new TestIndex(luceneDir1, analyzer))
+            using (var indexer2 = new TestIndex(luceneDir2, analyzer))
+            using (var indexer3 = new TestIndex(luceneDir3, analyzer))
+            using (var indexer4 = new TestIndex(luceneDir4, analyzer))
 
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
@@ -42,9 +42,13 @@ namespace Examine.Test.Search
                     new[] { indexer1.GetSearcher(), indexer2.GetSearcher(), indexer3.GetSearcher(), indexer4.GetSearcher()}.OfType<LuceneSearcher>(), 
                     analyzer);
 
-                var result = searcher.Search("darkness", false);
+                var result = searcher.Search("darkness");
 
                 Assert.AreEqual(4, result.TotalItemCount);
+                foreach (var r in result)
+                {
+                    Console.WriteLine("Score = " + r.Score);
+                }
             }
         }
 

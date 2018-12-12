@@ -111,7 +111,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         
         public IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct
         {
-            return ManagedRangeQuery<T>(new[] { fieldName }, fieldValue, fieldValue);
+            return RangeQuery<T>(new[] { fieldName }, fieldValue, fieldValue);
         }
 
         public IBooleanOperation Field(string fieldName, string fieldValue)
@@ -190,7 +190,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             if (fields == null) throw new ArgumentNullException(nameof(fields));
             if (query == null) throw new ArgumentNullException(nameof(query));
 
-            return this.GroupedNotInternal(fields.ToArray(), query, _occurrence);
+            return this.GroupedNotInternal(fields.ToArray(), query);
         }
 
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
@@ -265,7 +265,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneBooleanOperation(this);
         }
 
-        public IBooleanOperation ManagedRangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct
+        public IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct
         {
             Query.Add(new LateBoundQuery(() =>
             {
@@ -297,138 +297,6 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             return IdInternal(id, _occurrence);
         }
-
-        ///// <summary>
-        ///// Ranges the specified field name.
-        ///// </summary>
-        ///// <param name="fieldName">Name of the field.</param>
-        ///// <param name="start">The start.</param>
-        ///// <param name="end">The end.</param>
-        ///// <returns></returns>
-        //public IBooleanOperation Range(string fieldName, DateTime start, DateTime end)
-        //{
-        //    return this.Range(fieldName, start, end, true, true);
-        //}
-
-        ///// <summary>
-        ///// Ranges the specified field name.
-        ///// </summary>
-        ///// <param name="fieldName">Name of the field.</param>
-        ///// <param name="start">The start.</param>
-        ///// <param name="end">The end.</param>
-        ///// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        ///// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        ///// <returns></returns>
-        //public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
-        //{
-        //    return this.Range(fieldName, start, end, true, true, DateResolution.Millisecond);
-        //}
-
-        ///// <summary>
-        ///// Ranges the specified field name.
-        ///// </summary>
-        ///// <param name="fieldName">Name of the field.</param>
-        ///// <param name="start">The start.</param>
-        ///// <param name="end">The end.</param>
-        ///// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        ///// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        ///// <param name="resolution">The resolution.</param>
-        ///// <returns></returns>
-
-        //public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper, DateResolution resolution)
-        //{
-        //    //By specifying the resolution we can do more accurate range searching on date fields
-        //    DateTools.Resolution luceneResolution;
-        //    switch (resolution)
-        //    {
-        //        case DateResolution.Year:
-        //            luceneResolution = DateTools.Resolution.YEAR;
-        //            break;
-        //        case DateResolution.Month:
-        //            luceneResolution = DateTools.Resolution.MONTH;
-        //            break;
-        //        case DateResolution.Day:
-        //            luceneResolution = DateTools.Resolution.DAY;
-        //            break;
-        //        case DateResolution.Hour:
-        //            luceneResolution = DateTools.Resolution.HOUR;
-        //            break;
-        //        case DateResolution.Minute:
-        //            luceneResolution = DateTools.Resolution.MINUTE;
-        //            break;
-        //        case DateResolution.Second:
-        //            luceneResolution = DateTools.Resolution.SECOND;
-        //            break;
-        //        case DateResolution.Millisecond:
-        //        default:
-        //            luceneResolution = DateTools.Resolution.MILLISECOND;
-        //            break;
-        //    }
-        //    //since lucene works on string's for all searching we need to flatten the date
-        //    return this.RangeInternal(fieldName, DateTools.DateToString(start, luceneResolution), DateTools.DateToString(end, luceneResolution), includeLower, includeUpper, _occurrence);
-        //}
-
-        //public IBooleanOperation Range(string fieldName, int start, int end)
-        //{
-        //    Enforcer.ArgumentNotNull(fieldName, "fieldName");
-        //    return this.Range(fieldName, start, end, true, true);
-        //}
-
-
-        //public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
-        //{
-        //    return this.RangeInternal(fieldName, start, end, includeLower, includeUpper, _occurrence);
-        //}
-
-        //public IBooleanOperation Range(string fieldName, float lower, float upper)
-        //{
-        //    return this.Range(fieldName, lower, upper, true, true);
-        //}
-
-
-        //public IBooleanOperation Range(string fieldName, float lower, float upper, bool includeLower, bool includeUpper)
-        //{
-        //    return this.RangeInternal(fieldName, lower, upper, includeLower, includeUpper, _occurrence);
-        //}
-
-        //public IBooleanOperation Range(string fieldName, double lower, double upper)
-        //{
-        //    return this.Range(fieldName, lower, upper, true, true);
-        //}
-
-
-        //public IBooleanOperation Range(string fieldName, double lower, double upper, bool includeLower, bool includeUpper)
-        //{
-        //    return this.RangeInternal(fieldName, lower, upper, includeLower, includeUpper, _occurrence);
-        //}
-
-        //public IBooleanOperation Range(string fieldName, string start, string end)
-        //{
-        //    Enforcer.ArgumentNotNull(fieldName, "fieldName");
-        //    Enforcer.ArgumentNotNull(start, "start");
-        //    Enforcer.ArgumentNotNull(end, "end");
-        //    return this.Range(fieldName, start, end, true, true);
-        //}
-
-
-        //public IBooleanOperation Range(string fieldName, string start, string end, bool includeLower, bool includeUpper)
-        //{
-        //    Enforcer.ArgumentNotNull(fieldName, "fieldName");
-        //    Enforcer.ArgumentNotNull(start, "start");
-        //    Enforcer.ArgumentNotNull(end, "end");
-        //    return this.RangeInternal(fieldName, start, end, includeLower, includeUpper, _occurrence);
-        //}
-
-        //public IBooleanOperation Range(string fieldName, long lower, long upper)
-        //{
-        //    return this.Range(fieldName, lower, upper, true, true);
-        //}
-
-
-        //public IBooleanOperation Range(string fieldName, long lower, long upper, bool includeLower, bool includeUpper)
-        //{
-        //    return this.RangeInternal(fieldName, lower, upper, includeLower, includeUpper, _occurrence);
-        //}
 
         /// <summary>
         /// Passes a raw search query to the provider to handle
@@ -668,7 +536,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new LuceneBooleanOperation(this);
         }
 
-        protected internal LuceneBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals, Occur occurrence)
+        protected internal LuceneBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals)
         {
             //if there's only 1 query text we want to build up a string like this:
             //(!field1:query !field2:query !field3:query)
@@ -836,10 +704,9 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// For example, 'codegarden 090' would be matched against the search term 'codegarden 09' with the above, whereas when using the 
         /// PhraseQuery this is not the case
         /// </remarks>
-        private Query ParseRawQuery(string field, string txt)
+        private static Query ParseRawQuery(string field, string txt)
         {
-            var phraseQuery = new PhraseQuery();
-            phraseQuery.Slop = 0; ;
+            var phraseQuery = new PhraseQuery {Slop = 0};
             foreach (var val in txt.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 phraseQuery.Add(new Term(field, val));
@@ -861,59 +728,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
             return new LuceneBooleanOperation(this);
         }
-
-        //protected internal IBooleanOperation RangeInternal(string fieldName, int start, int end, bool includeLower, bool includeUpper, Occur occurance)
-        //{
-        //    Query.Add(NumericRangeQuery.NewIntRange(fieldName, start, end, includeLower, includeUpper), occurance);
-        //    return new LuceneBooleanOperation(this);
-        //}
-
-		
-        //protected internal IBooleanOperation RangeInternal(string fieldName, double lower, double upper, bool includeLower, bool includeUpper, Occur occurance)
-        //{
-        //    Query.Add(NumericRangeQuery.NewDoubleRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
-        //    return new LuceneBooleanOperation(this);
-        //}
-		
-        //protected internal IBooleanOperation RangeInternal(string fieldName, float lower, float upper, bool includeLower, bool includeUpper, Occur occurance)
-        //{
-        //    Query.Add(NumericRangeQuery.NewFloatRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
-        //    return new LuceneBooleanOperation(this);
-        //}
-
-		
-        //protected internal IBooleanOperation RangeInternal(string fieldName, long lower, long upper, bool includeLower, bool includeUpper, Occur occurance)
-        //{
-        //    Query.Add(NumericRangeQuery.NewLongRange(fieldName, lower, upper, includeLower, includeUpper), occurance);
-        //    return new LuceneBooleanOperation(this);
-        //}
-
         
-
-		
-        //protected internal IBooleanOperation RangeInternal(string fieldName, string start, string end, bool includeLower, bool includeUpper, Occur occurance)
-        //{
-        //    Query.Add(new TermRangeQuery(fieldName, start, end, includeLower, includeUpper), occurance);
-
-        //    return new LuceneBooleanOperation(this);
-        //}
-        
-        
-        protected internal IBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals)
-        {
-            //if there's only 1 query text we want to build up a string like this:
-            //(!field1:query !field2:query !field3:query)
-            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
-            
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT, true), 
-                //NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work. 
-                // for example, it cannot be:  +(-id:1 -id:2 -id:3)
-                // it just needs to be          (-id:1 -id:2 -id:3)
-                Occur.SHOULD);
-
-            return new LuceneBooleanOperation(this);
-        }
-
 
         #endregion
 

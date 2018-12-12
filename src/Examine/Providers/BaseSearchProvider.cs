@@ -16,21 +16,20 @@ namespace Examine.Providers
     public abstract class BaseSearchProvider : ProviderBase, ISearcher
     {
         /// <summary>
-        /// Simple search method which should default to searching content nodes
+        /// Searches the index
         /// </summary>
         /// <param name="searchText"></param>
-        /// <param name="useWildcards"></param>
         /// <param name="maxResults"></param>
         /// <returns></returns>
-        public abstract ISearchResults Search(string searchText, bool useWildcards, int maxResults = 500);
+        public abstract ISearchResults Search(string searchText, int maxResults = 500);
 
         /// <summary>
-        /// Searches the data source using the Examine Fluent API
+        /// Searches using the specified search query parameters
         /// </summary>
-        /// <param name="searchParams">The fluent API search.</param>
+        /// <param name="searchParameters">The search parameters.</param>
         /// <param name="maxResults"></param>
         /// <returns></returns>
-        public abstract ISearchResults Search(ISearchCriteria searchParams, int maxResults = 500);
+        public abstract ISearchResults Search(ISearchCriteria searchParameters, int maxResults = 500);
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider

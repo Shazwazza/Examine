@@ -61,7 +61,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 var numberSortedCriteria = searcher.CreateCriteria()
-                    .ManagedRangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01, 02), new DateTime(2000, 01, 05), maxInclusive: false);
+                    .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01, 02), new DateTime(2000, 01, 05), maxInclusive: false);
 
                 var compiled = numberSortedCriteria.Compile();
 
@@ -71,6 +71,41 @@ namespace Examine.Test.Search
             }
         }
 
+        [Test]
+        public void Managed_Full_Text()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var indexer1 = new TestIndex(luceneDir1, analyzer))
+            {
+                indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
+                indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
+                indexer1.IndexItem(ValueSet.FromObject("3", "content", new { item1 = "value3", item2 = "They are expected to confront the darkness and show evidence that they have done so in their papers" }));
+                indexer1.IndexItem(ValueSet.FromObject("4", "content", new { item1 = "value4", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
+                indexer1.IndexItem(ValueSet.FromObject("5", "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
+                indexer1.IndexItem(ValueSet.FromObject("6", "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
+
+                var searcher = indexer1.GetSearcher();
+
+                var result = searcher.Search("darkness");
+
+                Assert.AreEqual(4, result.TotalItemCount);
+                Console.WriteLine("Search 1:");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+
+                result = searcher.Search("total darkness");
+                Assert.AreEqual(2, result.TotalItemCount);
+                Console.WriteLine("Search 2:");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+            }
+        }
 
         [Test]
         public void Managed_Range_Int()
@@ -111,7 +146,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 var numberSortedCriteria = searcher.CreateCriteria()
-                    .ManagedRangeQuery<int>(new[] { "parentID" }, 122, 124);
+                    .RangeQuery<int>(new[] { "parentID" }, 122, 124);
 
                 var compiled = numberSortedCriteria.Compile();
 
@@ -1063,10 +1098,10 @@ namespace Examine.Test.Search
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateCriteria();
-                var filter1 = criteria1.ManagedRangeQuery<float>(new []{"SomeFloat" }, 0f, 100f, true, true).Compile();
+                var filter1 = criteria1.RangeQuery<float>(new []{"SomeFloat" }, 0f, 100f, true, true).Compile();
 
                 var criteria2 = searcher.CreateCriteria();
-                var filter2 = criteria2.ManagedRangeQuery<float>(new[] { "SomeFloat" }, 101f, 200f, true, true).Compile();
+                var filter2 = criteria2.RangeQuery<float>(new[] { "SomeFloat" }, 101f, 200f, true, true).Compile();
 
                 //Act
                 var results1 = searcher.Search(filter1);
@@ -1112,10 +1147,10 @@ namespace Examine.Test.Search
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateCriteria();
-                var filter1 = criteria1.ManagedRangeQuery<int>(new[]{ "SomeNumber" }, 0, 100, true, true).Compile();
+                var filter1 = criteria1.RangeQuery<int>(new[]{ "SomeNumber" }, 0, 100, true, true).Compile();
 
                 var criteria2 = searcher.CreateCriteria();
-                var filter2 = criteria2.ManagedRangeQuery<int>(new[] { "SomeNumber" }, 101, 200, true, true).Compile();
+                var filter2 = criteria2.RangeQuery<int>(new[] { "SomeNumber" }, 101, 200, true, true).Compile();
 
                 //Act
                 var results1 = searcher.Search(filter1);
@@ -1159,10 +1194,10 @@ namespace Examine.Test.Search
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateCriteria();
-                var filter1 = criteria1.ManagedRangeQuery<double>(new[]{ "SomeDouble" }, 0d, 100d, true, true).Compile();
+                var filter1 = criteria1.RangeQuery<double>(new[]{ "SomeDouble" }, 0d, 100d, true, true).Compile();
 
                 var criteria2 = searcher.CreateCriteria();
-                var filter2 = criteria2.ManagedRangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true).Compile();
+                var filter2 = criteria2.RangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true).Compile();
 
                 //Act
                 var results1 = searcher.Search(filter1);
@@ -1206,10 +1241,10 @@ namespace Examine.Test.Search
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateCriteria();
-                var filter1 = criteria1.ManagedRangeQuery<long>(new[]{ "SomeLong" }, 0L, 100L, true, true).Compile();
+                var filter1 = criteria1.RangeQuery<long>(new[]{ "SomeLong" }, 0L, 100L, true, true).Compile();
 
                 var criteria2 = searcher.CreateCriteria();
-                var filter2 = criteria2.ManagedRangeQuery<long>(new[] { "SomeLong" }, 101L, 200L, true, true).Compile();
+                var filter2 = criteria2.RangeQuery<long>(new[] { "SomeLong" }, 101L, 200L, true, true).Compile();
 
                 //Act
                 var results1 = searcher.Search(filter1);
@@ -1514,10 +1549,10 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 var criteria = searcher.CreateCriteria();
-                var filter = criteria.ManagedRangeQuery<DateTime>(new []{ "DateCreated" }, reIndexDateTime, DateTime.Now, true, true).Compile();
+                var filter = criteria.RangeQuery<DateTime>(new []{ "DateCreated" }, reIndexDateTime, DateTime.Now, true, true).Compile();
 
                 var criteria2 = searcher.CreateCriteria();
-                var filter2 = criteria2.ManagedRangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true).Compile();
+                var filter2 = criteria2.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true).Compile();
 
                 ////Act
                 var results = searcher.Search(filter);

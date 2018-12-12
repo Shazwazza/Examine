@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         public IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct
         {
-            return ManagedRangeQuery<T>(new[] { fieldName }, fieldValue, fieldValue);
+            return RangeQuery<T>(new[] { fieldName }, fieldValue, fieldValue);
         }
 
         public IBooleanOperation Field(string fieldName, string fieldValue)
@@ -85,12 +85,12 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
-            return this._search.GroupedNotInternal(fields.ToArray(), fieldVals.ToArray(), this._occurrence);
+            return this._search.GroupedNotInternal(fields.ToArray(), fieldVals.ToArray());
         }
 
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
-            return this._search.GroupedNotInternal(fields.ToArray(), query, this._occurrence);
+            return this._search.GroupedNotInternal(fields.ToArray(), query);
         }
 
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
@@ -128,9 +128,9 @@ namespace Examine.LuceneEngine.SearchCriteria
             return _search.ManagedQuery(query, fields);
         }
 
-        public IBooleanOperation ManagedRangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct
+        public IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct
         {
-            return _search.ManagedRangeQuery(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive);
+            return _search.RangeQuery(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive);
         }
 
         /// <summary>
@@ -150,185 +150,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             return this._search.IdInternal(id, this._occurrence);
         }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        //      public IBooleanOperation Range(string fieldName, DateTime start, DateTime end)
-        //      {
-        //          return this.Range(fieldName, start, end, true, true);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        //      /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        //      /// <returns>
-        //      /// A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended
-        //      /// </returns>
-        //      public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper)
-        //      {
-        //          return this.Range(fieldName, start, end, includeLower, includeUpper, DateResolution.Millisecond);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        //      /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        //      /// <param name="resolution">The resolution.</param>
-        //      /// <returns></returns>
-        //      public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper, DateResolution resolution)
-        //      {
-        //          return this.search.Range(fieldName, start, end, includeLower, includeUpper);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        //      public IBooleanOperation Range(string fieldName, int start, int end)
-        //      {
-        //          return this.Range(fieldName, start, end, true, true);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        //      /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-
-        //public IBooleanOperation Range(string fieldName, int start, int end, bool includeLower, bool includeUpper)
-        //      {
-        //          return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        //      public IBooleanOperation Range(string fieldName, double start, double end)
-        //      {
-        //          return this.Range(fieldName, start, end, true, true);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        //      /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-
-        //public IBooleanOperation Range(string fieldName, double start, double end, bool includeLower, bool includeUpper)
-        //      {
-        //          return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        //      public IBooleanOperation Range(string fieldName, float start, float end)
-        //      {
-        //          return this.Range(fieldName, start, end, true, true);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        //      /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-
-        //public IBooleanOperation Range(string fieldName, float start, float end, bool includeLower, bool includeUpper)
-        //      {
-        //          return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        //      public IBooleanOperation Range(string fieldName, long start, long end)
-        //      {
-        //          return this.Range(fieldName, start, end, true, true);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        //      /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-
-        //public IBooleanOperation Range(string fieldName, long start, long end, bool includeLower, bool includeUpper)
-        //      {
-        //          return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        //      public IBooleanOperation Range(string fieldName, string start, string end)
-        //      {
-        //          return this.Range(fieldName, start, end, true, true);
-        //      }
-
-        //      /// <summary>
-        //      /// Ranges the specified field name.
-        //      /// </summary>
-        //      /// <param name="fieldName">Name of the field.</param>
-        //      /// <param name="start">The start.</param>
-        //      /// <param name="end">The end.</param>
-        //      /// <param name="includeLower">if set to <c>true</c> [include lower].</param>
-        //      /// <param name="includeUpper">if set to <c>true</c> [include upper].</param>
-        //      /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-
-        //public IBooleanOperation Range(string fieldName, string start, string end, bool includeLower, bool includeUpper)
-        //      {
-        //          return this.search.RangeInternal(fieldName, start, end, includeLower, includeUpper, occurance);
-        //      }
-
+        
 
         #endregion
 

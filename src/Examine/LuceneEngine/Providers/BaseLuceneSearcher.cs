@@ -134,45 +134,16 @@ namespace Examine.LuceneEngine.Providers
         /// Simple search method which defaults to searching content nodes
         /// </summary>
         /// <param name="searchText"></param>
-        /// <param name="useWildcards"></param>
         /// <param name="maxResults"></param>
         /// <returns></returns>
         /// <remarks>
         /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
         /// in a wild card search too.
         /// </remarks>
-        public override ISearchResults Search(string searchText, bool useWildcards, int maxResults = 500)
+        public override ISearchResults Search(string searchText, int maxResults = 500)
         {
-            var sc = CreateCriteriaForSearchingAllFields(searchText, useWildcards, maxResults);
+            var sc = CreateCriteria().ManagedQuery(searchText).Compile();
             return Search(sc, maxResults);
-        }
-
-        /// <summary>
-        /// Creates an instance of <see cref="ISearchCriteria"/> for searching all fields in the index
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="useWildcards"></param>
-        /// <param name="maxResults"></param>
-        /// <returns></returns>
-        public ISearchCriteria CreateCriteriaForSearchingAllFields(string searchText, bool useWildcards, int maxResults)
-        {
-            var sc = this.CreateCriteria();
-
-            var splitSearch = searchText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-            if (useWildcards)
-            {
-                sc = sc.GroupedOr(GetAllIndexedFields(),
-                    splitSearch.Select(x =>
-                        new ExamineValue(Examineness.ComplexWildcard, x.MultipleCharacterWildcard().Value)).Cast<IExamineValue>().ToArray()
-                ).Compile();
-            }
-            else
-            {
-                sc = sc.GroupedOr(GetAllIndexedFields(), splitSearch).Compile();
-            }
-
-            return sc;
         }
 
         /// <summary>
@@ -210,7 +181,7 @@ namespace Examine.LuceneEngine.Providers
         /// 
         /// </remarks>
         
-        protected void SetScoringBooleanQueryRewriteMethod(Query query)
+        private void SetScoringBooleanQueryRewriteMethod(Query query)
         {
             
 

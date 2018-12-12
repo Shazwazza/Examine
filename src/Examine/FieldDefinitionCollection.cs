@@ -58,6 +58,13 @@ namespace Examine
             return _definitions.TryGetValue(fieldName, out fieldDefinition);
         }
 
+        public bool TryAdd(string fieldName, FieldDefinition definition)
+        {
+            return _definitions.TryAdd(fieldName, definition);
+        }
+
+        public int Count => _definitions.Count;
+
         public IEnumerator<FieldDefinition> GetEnumerator()
         {
             return _definitions.Values.GetEnumerator();

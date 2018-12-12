@@ -44,6 +44,7 @@ namespace Examine.SearchCriteria
         /// <param name="fieldValue">The field value.</param>
         /// <returns></returns>
         IBooleanOperation Field(string fieldName, string fieldValue);
+
         /// <summary>
         /// Query on the specified field
         /// </summary>
@@ -141,11 +142,14 @@ namespace Examine.SearchCriteria
 
 
         /// <summary>
-        /// Matches items as defined by the IIndexValueType used for the fields specified.  If a type is not defined for a field name nothing will be added
+        /// The index will determine the most appropriate way to search given the query and the fields provided
         /// </summary>
         /// <param name="query"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// 
+        /// </remarks>
         IBooleanOperation ManagedQuery(string query, string[] fields = null);
 
         /// <summary>
@@ -159,6 +163,6 @@ namespace Examine.SearchCriteria
         /// <param name="minInclusive"></param>
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
-        IBooleanOperation ManagedRangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+        IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
     }
 }

@@ -286,7 +286,7 @@ namespace Examine.LuceneEngine.Providers
                 {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, true)},
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, null, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerValueType(name, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerValueType(name, new EmailAddressAnalyzer())}
             };
