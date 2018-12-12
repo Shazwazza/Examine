@@ -622,7 +622,6 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Creates the <see cref="FieldValueTypeCollection"/> for this index
         /// </summary>
-        /// <param name="x"></param>
         /// <param name="indexValueTypesFactory"></param>
         /// <returns></returns>
         protected virtual FieldValueTypeCollection CreateFieldValueTypes(IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)

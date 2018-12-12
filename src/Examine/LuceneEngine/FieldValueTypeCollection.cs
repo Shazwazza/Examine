@@ -7,7 +7,7 @@ using Lucene.Net.Analysis;
 namespace Examine.LuceneEngine
 {
     /// <summary>
-    /// A collection of field names and their <see cref="IIndexValueType"/> for an index
+    /// Maintains a collection of field names names and their <see cref="IIndexValueType"/> for an index
     /// </summary>
     public class FieldValueTypeCollection
     {
@@ -40,9 +40,9 @@ namespace Examine.LuceneEngine
 
                 foreach (var field in fieldDefinitionCollection)
                 {
-                    if (!string.IsNullOrWhiteSpace(field.Value.Type) && ValueTypeFactories.TryGetValue(field.Value.Type, out var valueTypeFactory))
+                    if (!string.IsNullOrWhiteSpace(field.Type) && ValueTypeFactories.TryGetValue(field.Type, out var valueTypeFactory))
                     {
-                        var valueType = valueTypeFactory(field.Key);
+                        var valueType = valueTypeFactory(field.Name);
                         valueType.SetupAnalyzers(Analyzer);
                         result.TryAdd(valueType.FieldName, valueType);
                     }
@@ -50,7 +50,7 @@ namespace Examine.LuceneEngine
                     {
                         //Define the default!
                         var fulltext = ValueTypeFactories[FieldDefinitionTypes.FullText];
-                        var valueType = fulltext(field.Key);
+                        var valueType = fulltext(field.Name);
                         valueType.SetupAnalyzers(Analyzer);
                         result.TryAdd(valueType.FieldName, valueType);
                     }
@@ -60,7 +60,7 @@ namespace Examine.LuceneEngine
         }
 
         /// <summary>
-        /// Returns the value type for the field name specified
+        /// Returns the <see cref="IIndexValueType"/> for the field name specified
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="indexValueTypeFactory"></param>
@@ -100,7 +100,7 @@ namespace Examine.LuceneEngine
         private readonly Lazy<ConcurrentDictionary<string, IIndexValueType>> _resolvedValueTypes;
 
         /// <summary>
-        /// Returns the resolved collection of IIndexValueTypes for this index
+        /// Returns the resolved collection of <see cref="IIndexValueType"/> for this index
         /// </summary>
         public IEnumerable<IIndexValueType> ValueTypes => _resolvedValueTypes.Value.Values;
 
