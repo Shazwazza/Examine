@@ -281,10 +281,7 @@ namespace Examine.Test.Index
         {
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
-                new[]
-                {
-                    new FieldDefinition("item2", "number")
-                },
+                new FieldDefinitionCollection(new FieldDefinition("item2", "number")),
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_30)))
             {

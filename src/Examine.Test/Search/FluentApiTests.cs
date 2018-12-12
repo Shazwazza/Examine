@@ -26,10 +26,9 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(new[]
-                {
-                    new FieldDefinition("created", "datetime")
-                }, luceneDir, analyzer))
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime")), 
+                luceneDir, analyzer))
             {
 
 
@@ -78,10 +77,9 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(new[]
-            {
-                new FieldDefinition("parentID", "number")
-            }, luceneDir, analyzer))
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
+                luceneDir, analyzer))
             {
                 
 
@@ -128,10 +126,9 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(new[]
-            {
-                new FieldDefinition("parentID", "number")
-            }, luceneDir, analyzer))
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
+                luceneDir, analyzer))
             {
                 
 
@@ -418,7 +415,7 @@ namespace Examine.Test.Search
 
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
-                new[] { new FieldDefinition("__Path", "raw") },
+                new FieldDefinitionCollection(new FieldDefinition("__Path", "raw")),
                 luceneDir, analyzer))
             {
                 
@@ -467,7 +464,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
-                new[] { new FieldDefinition("parentID", "number") },
+                new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
                 luceneDir, analyzer))
             
 
@@ -502,7 +499,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
-                new[] { new FieldDefinition("nodeTypeAlias", "raw") },
+                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw")),
                 luceneDir, analyzer))
             {
                 
@@ -700,7 +697,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a number, otherwise it's not sortable
-                new[] { new FieldDefinition("sortOrder", "number"), new FieldDefinition("parentID", "number") },
+                new FieldDefinitionCollection(new FieldDefinition("sortOrder", "number"), new FieldDefinition("parentID", "number")),
                 luceneDir, analyzer))
             
 
@@ -743,7 +740,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a date, otherwise it's not sortable
-                new[] { new FieldDefinition("updateDate", "date"), new FieldDefinition("parentID", "number") },
+                new FieldDefinitionCollection(new FieldDefinition("updateDate", "date"), new FieldDefinition("parentID", "number")),
                 luceneDir, analyzer))
             
 
@@ -788,7 +785,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
-                new[] { new FieldDefinition("nodeName", "fulltextsortable") },
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", "fulltextsortable")),
                 luceneDir, analyzer))
             
 
@@ -1044,7 +1041,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a float
-                new[] { new FieldDefinition("SomeFloat", "float") },
+                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", "float")),
                 luceneDir, analyzer))
             
 
@@ -1093,7 +1090,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a float
-                new[] { new FieldDefinition("SomeNumber", "number") },
+                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", "number")),
                 luceneDir, analyzer))
             
 
@@ -1140,7 +1137,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a float
-                new[] { new FieldDefinition("SomeDouble", "double") },
+                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", "double")),
                 luceneDir, analyzer))
             
 
@@ -1187,7 +1184,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a float
-                new[] { new FieldDefinition("SomeLong", "long") },
+                new FieldDefinitionCollection(new FieldDefinition("SomeLong", "long")),
                 luceneDir, analyzer))
             
 
@@ -1496,7 +1493,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
 
-                new[] { new FieldDefinition("DateCreated", "datetime") },
+                new FieldDefinitionCollection(new FieldDefinition("DateCreated", "datetime")),
                 luceneDir, analyzer))
             
 

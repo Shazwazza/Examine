@@ -11,20 +11,20 @@ namespace Examine.Test
 {
     public class TestIndex : LuceneIndex
     {
-        public TestIndex(IEnumerable<FieldDefinition> fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
+        public TestIndex(FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
             : base("testIndexer", fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
         {
             RunAsync = false;
         }
 
         public TestIndex(Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
-            : base("testIndexer", new FieldDefinition[] { }, luceneDirectory, defaultAnalyzer, validator)
+            : base("testIndexer", new FieldDefinitionCollection(), luceneDirectory, defaultAnalyzer, validator)
         {
             RunAsync = false;
         }
 
         public TestIndex(IndexWriter writer, IValueSetValidator validator = null)
-            : base("testIndexer", new FieldDefinition[] { }, writer, validator)
+            : base("testIndexer", new FieldDefinitionCollection(), writer, validator)
         {
         }
 

@@ -16,8 +16,6 @@ namespace Examine.Providers
     /// </summary>
     public abstract class BaseIndexProvider : ProviderBase, IIndex
     {
-        private FieldDefinitionCollection _fieldDefinitionCollection;
-        private readonly IEnumerable<FieldDefinition> _fieldDefinitions;
         private readonly string _name;
 
         /// <summary>
@@ -31,11 +29,11 @@ namespace Examine.Providers
         /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="validator"></param>
-        protected BaseIndexProvider(string name, IEnumerable<FieldDefinition> fieldDefinitions, IValueSetValidator validator)
+        protected BaseIndexProvider(string name, FieldDefinitionCollection fieldDefinitions, IValueSetValidator validator)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
             _name = name;
-            _fieldDefinitions = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
+            FieldDefinitionCollection = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
             ValueSetValidator = validator;
         }
 
@@ -111,7 +109,7 @@ namespace Examine.Providers
         /// <remarks>
         /// This is mutable but changes will only work prior to accessing the resolved value types
         /// </remarks>
-        public FieldDefinitionCollection FieldDefinitionCollection => _fieldDefinitionCollection ?? (_fieldDefinitionCollection = new FieldDefinitionCollection(_fieldDefinitions));
+        public FieldDefinitionCollection FieldDefinitionCollection { get; }
 
         /// <summary>
         /// Check if the index exists

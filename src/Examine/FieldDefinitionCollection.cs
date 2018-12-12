@@ -13,11 +13,22 @@ namespace Examine
     {
         private readonly ConcurrentDictionary<string, FieldDefinition> _definitions = new ConcurrentDictionary<string, FieldDefinition>();
 
-        public FieldDefinitionCollection(IEnumerable<FieldDefinition> allFields)
-        {
-            if (allFields == null) return;
+        public FieldDefinitionCollection()
+            : this(Enumerable.Empty<FieldDefinition>())
+        {   
+        }
 
-            foreach (var f in allFields.GroupBy(x => x.Name))
+        public FieldDefinitionCollection(params FieldDefinition[] definitions)
+            : this((IEnumerable<FieldDefinition>)definitions)
+        {
+            
+        }
+
+        public FieldDefinitionCollection(IEnumerable<FieldDefinition> definitions)
+        {
+            if (definitions == null) return;
+
+            foreach (var f in definitions.GroupBy(x => x.Name))
             {
                 var indexField = f.FirstOrDefault();
                 if (indexField != default(FieldDefinition))

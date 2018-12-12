@@ -57,8 +57,8 @@ namespace Examine.LuceneEngine.Providers
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
         public LuceneIndex(
-            string name, 
-            IEnumerable<FieldDefinition> fieldDefinitions,
+            string name,
+            FieldDefinitionCollection fieldDefinitions,
             Directory luceneDirectory,
             Analyzer analyzer,
             IValueSetValidator validator = null,
@@ -91,7 +91,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexValueTypesFactory"></param>
         internal LuceneIndex(
             string name,
-            IEnumerable<FieldDefinition> fieldDefinitions,
+            FieldDefinitionCollection fieldDefinitions,
             IndexWriter writer,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
