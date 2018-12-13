@@ -12,6 +12,10 @@ namespace Examine.LuceneEngine.Indexing
     public abstract class IndexValueTypeBase : IIndexValueType
     {
         public string FieldName { get; }
+
+        //by default it will not be sortable
+        public virtual string SortableFieldName => null;
+
         public bool Store { get; }
         
         protected IndexValueTypeBase(string fieldName, bool store = true)

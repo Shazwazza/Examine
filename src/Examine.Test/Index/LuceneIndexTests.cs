@@ -302,8 +302,6 @@ namespace Examine.Test.Index
                     var valType = indexer.FieldValueTypeCollection.GetValueType("item2");
                     Assert.AreEqual(typeof(Int32Type), valType.GetType());
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
-                    //for a number type there will always be a sort field
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.SortedFieldNamePrefix + "item2"));
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿namespace Examine.LuceneEngine.SearchCriteria
+﻿namespace Examine.SearchCriteria
 {
     /// <summary>
     /// Represents a field used to sort results

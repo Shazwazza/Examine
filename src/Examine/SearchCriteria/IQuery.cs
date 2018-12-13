@@ -122,16 +122,16 @@ namespace Examine.SearchCriteria
         /// <summary>
         /// Orders the results by the specified fields
         /// </summary>
-        /// <param name="fieldNames">The field names.</param>
+        /// <param name="fields">The field names.</param>
         /// <returns></returns>
-        IBooleanOperation OrderBy(params string[] fieldNames);
+        IBooleanOperation OrderBy(params SortableField[] fields);
 
         /// <summary>
         /// Orders the results by the specified fields in a descending order
         /// </summary>
-        /// <param name="fieldNames">The field names.</param>
+        /// <param name="fields">The field names.</param>
         /// <returns></returns>
-        IBooleanOperation OrderByDescending(params string[] fieldNames);
+        IBooleanOperation OrderByDescending(params SortableField[] fields);
 
 
         /// <summary>

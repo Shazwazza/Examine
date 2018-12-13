@@ -108,14 +108,14 @@ namespace Examine.LuceneEngine.SearchCriteria
             return this._search.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, _occurrence);
         }
 
-        public IBooleanOperation OrderBy(params string[] fieldNames)
+        public IBooleanOperation OrderBy(params SortableField[] fields)
         {
-            return this._search.OrderBy(fieldNames);
+            return this._search.OrderBy(fields);
         }
 
-        public IBooleanOperation OrderByDescending(params string[] fieldNames)
+        public IBooleanOperation OrderByDescending(params SortableField[] fields)
         {
-            return this._search.OrderByDescending(fieldNames);
+            return this._search.OrderByDescending(fields);
         }
 
         public IBooleanOperation All()

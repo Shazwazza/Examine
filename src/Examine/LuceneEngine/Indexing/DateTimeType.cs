@@ -7,7 +7,12 @@ namespace Examine.LuceneEngine.Indexing
 {
     public class DateTimeType : IndexValueTypeBase, IIndexRangeValueType<DateTime>
     {
-        public DateTools.Resolution Resolution { get; private set; }
+        public DateTools.Resolution Resolution { get; }
+
+        /// <summary>
+        /// Can be sorted by the normal field name
+        /// </summary>
+        public override string SortableFieldName => FieldName;
 
         public DateTimeType(string fieldName, DateTools.Resolution resolution, bool store = true)
             : base(fieldName, store)
@@ -17,14 +22,12 @@ namespace Examine.LuceneEngine.Indexing
 
         protected override void AddSingleValue(Document doc, object value)
         {
-            DateTime parsedVal;
-            if (!TryConvert(value, out parsedVal))
+            if (!TryConvert(value, out DateTime parsedVal))
                 return;
 
             var val = DateToLong(parsedVal);
 
             doc.Add(new NumericField(FieldName, Store ? Field.Store.YES : Field.Store.NO, true).SetLongValue(val));
-            doc.Add(new NumericField(LuceneIndex.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetLongValue(val));
         }
 
         /// <summary>
@@ -39,8 +42,7 @@ namespace Examine.LuceneEngine.Indexing
 
         public override Query GetQuery(string query, Searcher searcher)
         {
-            DateTime parsedVal;
-            if (!TryConvert(query, out parsedVal))
+            if (!TryConvert(query, out DateTime parsedVal))
                 return null;
 
             return GetQuery(parsedVal, parsedVal);

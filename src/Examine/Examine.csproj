@@ -170,8 +170,8 @@
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchExtensions.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\MultiCriteriaContext.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\SortableField.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\SortType.cs" />
+    <Compile Include="SearchCriteria\SortableField.cs" />
+    <Compile Include="SearchCriteria\SortType.cs" />
     <Compile Include="LuceneEngine\LuceneSearchResults.cs" />
     <Compile Include="LuceneEngine\ValueTypeFactoryCollection.cs" />
     <Compile Include="LuceneEngine\WriterTracker.cs" />

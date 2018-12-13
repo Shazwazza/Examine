@@ -26,7 +26,6 @@ namespace Examine.LuceneEngine.SearchCriteria
     public class LuceneSearchCriteria : ISearchCriteria
     {
         private readonly ICriteriaContext _criteriaContext;
-        private static readonly Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
 
         private readonly CustomMultiFieldQueryParser _queryParser;
         public QueryParser QueryParser => _queryParser;
@@ -218,18 +217,18 @@ namespace Examine.LuceneEngine.SearchCriteria
 
         }
 
-        public IBooleanOperation OrderBy(params string[] fieldNames)
+        public IBooleanOperation OrderBy(params SortableField[] fields)
         {
-            if (fieldNames == null) throw new ArgumentNullException(nameof(fieldNames));
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
 
-            return this.OrderByInternal(false, fieldNames);
+            return this.OrderByInternal(false, fields);
         }
 
-        public IBooleanOperation OrderByDescending(params string[] fieldNames)
+        public IBooleanOperation OrderByDescending(params SortableField[] fields)
         {
-            if (fieldNames == null) throw new ArgumentNullException(nameof(fieldNames));
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
 
-            return this.OrderByInternal(true, fieldNames);
+            return this.OrderByInternal(true, fields);
         }
 
         public IBooleanOperation All()
@@ -373,70 +372,55 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// Internal operation for adding the ordered results
         /// </summary>
         /// <param name="descending">if set to <c>true</c> [descending].</param>
-        /// <param name="fieldNames">The field names.</param>
+        /// <param name="fields">The field names.</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        /// <remarks>
-        /// 
-        /// In order to support sorting based on a real lucene type we have to 'hack' some new syntax in for the field names. 
-        /// Ideally we'd have a new method but changing the interface will break things. So instead we're going to detect if each field
-        /// name contains a Sort definition. The syntax will be:
-        /// 
-        /// myFieldName[Type=INT]
-        /// 
-        /// We then detect if the field name contains [Type=xxx] using regex, if it does then we'll parse out the type and see if it
-        /// matches a real lucene type.
-        /// 
-        /// </remarks>        
-        protected internal LuceneBooleanOperation OrderByInternal(bool descending, params string[] fieldNames)
+        private LuceneBooleanOperation OrderByInternal(bool descending, params SortableField[] fields)
         {
-            foreach (var f in fieldNames)
+            foreach (var f in fields)
             {
-                var fieldName = f;
+                var fieldName = f.FieldName;
+
                 var defaultSort = SortField.STRING;
-                var match = SortMatchExpression.Match(fieldName);
-                if (match.Success && match.Groups["type"] != null)
+
+                switch (f.SortType)
                 {
-                    switch (match.Groups["type"].Value.ToUpper())
-                    {
-                        case "SCORE":
-                            defaultSort = SortField.SCORE;
-                            break;
-                        case "DOC":
-                            defaultSort = SortField.DOC;
-                            break;
-                        case "STRING":
-                            defaultSort = SortField.STRING;
-                            break;
-                        case "INT":
-                            defaultSort = SortField.INT;
-                            break;
-                        case "FLOAT":
-                            defaultSort = SortField.FLOAT;
-                            break;
-                        case "LONG":
-                            defaultSort = SortField.LONG;
-                            break;
-                        case "DOUBLE":
-                            defaultSort = SortField.DOUBLE;
-                            break;
-                        case "SHORT":
-                            defaultSort = SortField.SHORT;
-                            break;
-                        case "CUSTOM":
-                            defaultSort = SortField.CUSTOM;
-                            break;
-                        case "BYTE":
-                            defaultSort = SortField.BYTE;
-                            break;
-                        case "STRING_VAL":
-                            defaultSort = SortField.STRING_VAL;
-                            break;
-                    }
-                    //now strip the type from the string
-                    fieldName = fieldName.Substring(0, match.Index);
+                    case SortType.Score:
+                        defaultSort = SortField.SCORE;
+                        break;
+                    case SortType.DocumentOrder:
+                        defaultSort = SortField.DOC;
+                        break;
+                    case SortType.String:
+                        defaultSort = SortField.STRING;
+                        break;
+                    case SortType.Int:
+                        defaultSort = SortField.INT;
+                        break;
+                    case SortType.Float:
+                        defaultSort = SortField.FLOAT;
+                        break;
+                    case SortType.Long:
+                        defaultSort = SortField.LONG;
+                        break;
+                    case SortType.Double:
+                        defaultSort = SortField.DOUBLE;
+                        break;
+                    case SortType.Short:
+                        defaultSort = SortField.SHORT;
+                        break;
+                    case SortType.Byte:
+                        defaultSort = SortField.BYTE;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
 
-                this.SortFields.Add(new SortField(LuceneIndex.SortedFieldNamePrefix + fieldName, defaultSort, descending));
+                //get the sortable field name if this field type has one
+                var valType = _criteriaContext.GetValueType(fieldName);
+                if (valType != null)
+                    fieldName = valType.SortableFieldName;
+
+                this.SortFields.Add(new SortField(fieldName, defaultSort, descending));
             }
 
             return new LuceneBooleanOperation(this);
@@ -475,7 +459,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// bodyText: "hello" bodyText: "world" pageTitle: "hello" pageTitle: "world"
         /// 
         /// </remarks>        
-        protected internal BooleanQuery GetMultiFieldQuery(
+        private BooleanQuery GetMultiFieldQuery(
             string[] fields,
             IExamineValue[] fieldVals,
             Occur occurrence,
@@ -578,7 +562,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fieldValue"></param>
         /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        protected internal Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
+        private Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
             Query queryToAdd;
 
@@ -687,7 +671,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </remarks>
         /// <param name="rawQuery"></param>
         /// <returns></returns>
-        protected internal Query ParseRawQuery(string rawQuery)
+        private Query ParseRawQuery(string rawQuery)
         {
             var parser = new QueryParser(_luceneVersion, "", new KeywordAnalyzer());
             return parser.Parse(rawQuery);
@@ -719,7 +703,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             return FieldInternal(fieldName, fieldValue, occurrence, true);
         }
 
-        protected internal LuceneBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence, bool useQueryParser)
+        private LuceneBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence, bool useQueryParser)
         {
             Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
 

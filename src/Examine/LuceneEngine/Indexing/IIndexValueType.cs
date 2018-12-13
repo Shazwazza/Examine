@@ -11,6 +11,11 @@ namespace Examine.LuceneEngine.Indexing
     {
         string FieldName { get; }
 
+        /// <summary>
+        /// Returns the sortable field name or null if the value isn't sortable
+        /// </summary>
+        string SortableFieldName { get; }
+
         bool Store { get; }
 
         void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer);

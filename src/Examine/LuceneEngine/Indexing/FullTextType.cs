@@ -37,6 +37,11 @@ namespace Examine.LuceneEngine.Indexing
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
         }
 
+        /// <summary>
+        /// Can be sorted by a concatenated field name since to be sortable it cannot be analyzed
+        /// </summary>
+        public override string SortableFieldName => _sortable ? LuceneIndex.SortedFieldNamePrefix + FieldName : null;
+
         public override void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
         {
             base.SetupAnalyzers(analyzer);
@@ -53,6 +58,7 @@ namespace Examine.LuceneEngine.Indexing
 
                 if (_sortable)
                 {
+                    //to be sortable it cannot be analyzed so we have to make a different field
                     doc.Add(new Field(LuceneIndex.SortedFieldNamePrefix + FieldName, str,
                         Field.Store.YES,
                         Field.Index.NOT_ANALYZED, Field.TermVector.NO));

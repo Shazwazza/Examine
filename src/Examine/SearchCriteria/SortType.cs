@@ -1,4 +1,4 @@
-﻿namespace Examine.LuceneEngine.SearchCriteria
+﻿namespace Examine.SearchCriteria
 {
     /// <summary>
     /// Used during a sort operation to specify how the field should be sorted
@@ -16,7 +16,7 @@
         ///             values are at the front.
         /// 
         /// </summary>
-        Doc,
+        DocumentOrder,
         /// <summary>
         /// Sort using term values as Strings.  Sort values are String and lower
         ///             values are at the front.

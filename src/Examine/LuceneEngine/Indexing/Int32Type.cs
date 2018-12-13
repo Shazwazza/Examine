@@ -11,30 +11,29 @@ namespace Examine.LuceneEngine.Indexing
         {
         }
 
+        /// <summary>
+        /// Can be sorted by the normal field name
+        /// </summary>
+        public override string SortableFieldName => FieldName;
+
         protected override void AddSingleValue(Document doc, object value)
         {
-            int parsedVal;
-            if (!TryConvert(value, out parsedVal))
+            if (!TryConvert(value, out int parsedVal))
                 return;
 
             doc.Add(new NumericField(FieldName, Store ? Field.Store.YES : Field.Store.NO, true).SetIntValue(parsedVal));
-            doc.Add(new NumericField(LuceneIndex.SortedFieldNamePrefix + FieldName, Field.Store.YES, true).SetIntValue(parsedVal));
         }
 
         public override Query GetQuery(string query, Searcher searcher)
         {
-            int parsedVal;
-            if (!TryConvert(query, out parsedVal))
-                return null;
-
-            return GetQuery(parsedVal, parsedVal);
+            return !TryConvert(query, out int parsedVal) ? null : GetQuery(parsedVal, parsedVal);
         }
 
         public Query GetQuery(int? lower, int? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
             return NumericRangeQuery.NewIntRange(FieldName,
-                lower != null ? lower.Value : (int?)null,
-                upper != null ? upper.Value : (int?)null, lowerInclusive, upperInclusive);
+                lower,
+                upper, lowerInclusive, upperInclusive);
         }
     }
 }
