@@ -23,6 +23,6 @@ namespace Examine.LuceneEngine.Directories
         /// </summary>
         public static Func<DirectoryInfo, LockFactory> DefaultLockFactory { get; set; }
 
-        public abstract Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder);
+        public abstract Directory CreateDirectory(DirectoryInfo luceneIndexFolder);
     }
 }

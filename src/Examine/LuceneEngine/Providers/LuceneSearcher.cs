@@ -534,14 +534,14 @@ namespace Examine.LuceneEngine.Providers
             protected override void DisposeResources()
             {
                 _searcher._disposed = true;
-                if (_searcher._reader != null)
+                if (_searcher?._reader != null)
                 {
                     try
                     {
                         //this will close if there are no readers remaining, otherwise if there 
                         // are readers remaining they will be auto-shut down based on the DecrementReaderResult
                         // that would still have it in use (i.e. this actually just called DecRef underneath)
-                        _searcher._reader.Close();
+                        _searcher?._reader.Dispose();
                     }
                     catch (AlreadyClosedException)
                     {
@@ -551,7 +551,7 @@ namespace Examine.LuceneEngine.Providers
                     }
                 }
                 //close the reopener
-                _searcher._reopener.Dispose();                
+                _searcher?._reopener.Dispose();                
             }
         }
 

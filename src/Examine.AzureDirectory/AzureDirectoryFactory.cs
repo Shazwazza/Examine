@@ -39,25 +39,22 @@ namespace Examine.AzureDirectory
         /// Only a master server can write to it.
         /// For each slave server, the blob storage index files are synced to the local machine.
         /// </summary>
-        /// <param name="index">
-        /// The indexer.
-        /// </param>
         /// <param name="luceneIndexFolder">
         /// The lucene index folder.
         /// </param>
         /// <returns>
         /// The <see cref="Lucene.Net.Store.Directory"/>.
         /// </returns>
-        public override Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
+        public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            var indexFolder = new DirectoryInfo(luceneIndexFolder);
+            var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
 
             return new AzureDirectory(
                 CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),                
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 new SimpleFSDirectory(tempFolder),
-                rootFolder: index.Name,
+                rootFolder: luceneIndexFolder.Name,
                 isReadOnly: _isReadOnly);
         }
         

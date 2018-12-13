@@ -12,11 +12,10 @@ namespace Examine.LuceneEngine.Directories
     public class SyncAspNetCodeGenDirectoryFactory : DirectoryFactory
     {
         
-        public override Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
+        public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            var indexFolder = new DirectoryInfo(luceneIndexFolder);
-            var codeGen = GetLocalStorageDirectory(indexFolder);
-            var master = new DirectoryInfo(luceneIndexFolder);
+            var master = luceneIndexFolder;
+            var codeGen = GetLocalStorageDirectory(master);
             var masterDir = new SimpleFSDirectory(master);
             var cacheDir = new SimpleFSDirectory(codeGen);            
             masterDir.SetLockFactory(DefaultLockFactory(master));

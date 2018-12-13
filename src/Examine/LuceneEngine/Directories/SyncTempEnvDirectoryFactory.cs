@@ -18,11 +18,10 @@ namespace Examine.LuceneEngine.Directories
     public class SyncTempEnvDirectoryFactory : TempEnvDirectoryFactory
     {
         
-        public override Lucene.Net.Store.Directory CreateDirectory(LuceneIndex index, string luceneIndexFolder)
+        public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            var indexFolder = new DirectoryInfo(luceneIndexFolder);
-            var tempFolder = GetLocalStorageDirectory(indexFolder);
-            var master = new DirectoryInfo(luceneIndexFolder);
+            var master = luceneIndexFolder;
+            var tempFolder = GetLocalStorageDirectory(master);
             var masterDir = new SimpleFSDirectory(master);
             var cacheDir = new SimpleFSDirectory(tempFolder);
             masterDir.SetLockFactory(DefaultLockFactory(master));

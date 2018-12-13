@@ -100,8 +100,8 @@ namespace Examine.LuceneEngine.Providers
             _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
 
-            DefaultAnalyzer = writer.Analyzer;
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            DefaultAnalyzer = writer.Analyzer;
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
@@ -708,7 +708,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
-        protected bool DeleteFromIndex(Term indexTerm, IndexWriter iw, bool performCommit = true)
+        private bool DeleteFromIndex(Term indexTerm, IndexWriter iw, bool performCommit = true)
         {
             string itemId = null;
             if (indexTerm.Field == "id")
@@ -853,7 +853,7 @@ namespace Examine.LuceneEngine.Providers
         /// Processes the queue and checks if optimization needs to occur at the end
         /// </summary>
         /// <param name="onComplete"></param>
-        void StartIndexing(Action<IndexOperationEventArgs> onComplete)
+        private void StartIndexing(Action<IndexOperationEventArgs> onComplete)
         {
             if (!_isIndexing)
             {
@@ -897,8 +897,7 @@ namespace Examine.LuceneEngine.Providers
         /// that the correct machine processes the items into the index. SafelyQueueItems calls this method
         /// if it confirms that this machine is the one to process the queue.
         /// </remarks>
-
-        protected int ForceProcessQueueItems()
+        private int ForceProcessQueueItems()
         {
             return ForceProcessQueueItems(false);
         }
@@ -1098,7 +1097,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation
         /// </summary>
         /// <param name="op"></param>
-        protected void QueueIndexOperation(IndexOperation op)
+        private void QueueIndexOperation(IndexOperation op)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
@@ -1117,7 +1116,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation batch
         /// </summary>
         /// <param name="ops"></param>
-        protected void QueueIndexOperation(IEnumerable<IndexOperation> ops)
+        private void QueueIndexOperation(IEnumerable<IndexOperation> ops)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
@@ -1137,10 +1136,12 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Initialize the directory
         /// </summary>
+        /// <remarks>
+        /// This is not thread safe
+        /// </remarks>
         private Directory InitializeDirectory()
         {
             if (_directory != null) return _directory;
-
 
             //ensure all of the folders are created at startup
             if (!VerifyFolder(LuceneIndexFolder))
@@ -1153,7 +1154,7 @@ namespace Examine.LuceneEngine.Providers
                 return simpleFsDirectory;
             }
 
-            return DirectoryFactory.CreateDirectory(this, LuceneIndexFolder.FullName);
+            return DirectoryFactory.CreateDirectory(LuceneIndexFolder);
         }
 
         private Directory _directory;
@@ -1167,8 +1168,7 @@ namespace Examine.LuceneEngine.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-
-        public virtual Directory GetLuceneDirectory()
+        public Directory GetLuceneDirectory()
         {
             return _writer != null ? _writer.Directory : _directory;
         }
@@ -1179,8 +1179,7 @@ namespace Examine.LuceneEngine.Providers
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
         /// <returns></returns>
-
-        protected virtual IndexWriter CreateIndexWriter()
+        private IndexWriter CreateIndexWriter()
         {
             var writer = WriterTracker.Current.GetWriter(
                 GetLuceneDirectory(),
