@@ -41,6 +41,8 @@ namespace Examine.LuceneEngine.Providers
             _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
+            //initialize the field types
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes());
             WaitForIndexQueueOnShutdown = true;
         }
 
@@ -1255,10 +1257,18 @@ namespace Examine.LuceneEngine.Providers
 
         private LuceneSearcher CreateSearcher()
         {
-            //trim the "Indexer" / "Index" suffix if it exists
-            var name = Name.EndsWith("Indexer") ? Name.Substring(0, Name.LastIndexOf("Indexer", StringComparison.Ordinal)) : Name;
-            name = name.EndsWith("Index") ? Name.Substring(0, Name.LastIndexOf("Index", StringComparison.Ordinal)) : Name;
+            var possibleSuffixes = new[] { "Index", "Indexer" };
+            var name = Name;
+            foreach (var suffix in possibleSuffixes)
+            {
+                //trim the "Indexer" / "Index" suffix if it exists
+                if (!name.EndsWith(suffix)) continue;
+                name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
+            }
+
             return new LuceneSearcher(name + "Searcher", GetIndexWriter(), FieldAnalyzer, FieldValueTypeCollection);
+
+
         }
 
 

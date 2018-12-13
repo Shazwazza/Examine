@@ -21,7 +21,10 @@ namespace Examine.Providers
         /// <summary>
         /// Constructor for creating a provider/config based index
         /// </summary>
-        protected BaseIndexProvider() { }
+        protected BaseIndexProvider()
+        {
+            FieldDefinitionCollection = new FieldDefinitionCollection();
+        }
 
         /// <summary>
         /// Constructor for creating an indexer at runtime

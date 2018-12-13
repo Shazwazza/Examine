@@ -42,6 +42,15 @@ namespace Examine
         }
 
         /// <summary>
+        /// Replace any definition with the specified one, if one doesn't exist then it is added
+        /// </summary>
+        /// <param name="definition"></param>
+        public void AddOrUpdate(FieldDefinition definition)
+        {
+            _definitions.AddOrUpdate(definition.Name, definition, (s, factory) => definition);
+        }
+
+        /// <summary>
         /// Tries to get a <see cref="FieldDefinition"/> by field name
         /// </summary>
         /// <param name="fieldName"></param>

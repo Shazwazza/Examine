@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// Manages the collection of <see cref="IFieldValueTypeFactory"/>
     /// </summary>
-    public class ValueTypeFactoryCollection
+    public class ValueTypeFactoryCollection : IEnumerable<KeyValuePair<string, IFieldValueTypeFactory>>
     {
         public bool TryGetFactory(string valueTypeName, out IFieldValueTypeFactory fieldValueTypeFactory)
         {
@@ -32,7 +33,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <param name="valueTypeName"></param>
         /// <param name="fieldValueTypeFactory"></param>
-        public void Replace(string valueTypeName, IFieldValueTypeFactory fieldValueTypeFactory)
+        public void AddOrUpdate(string valueTypeName, IFieldValueTypeFactory fieldValueTypeFactory)
         {
             _valueTypeFactories.AddOrUpdate(valueTypeName, fieldValueTypeFactory, (s, factory) => fieldValueTypeFactory);
         }
@@ -49,6 +50,8 @@ namespace Examine.LuceneEngine
 
             return fieldValueTypeFactory;
         }
+
+        public int Count => _valueTypeFactories.Count;
 
         private readonly ConcurrentDictionary<string, IFieldValueTypeFactory> _valueTypeFactories = new ConcurrentDictionary<string, IFieldValueTypeFactory>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -81,5 +84,15 @@ namespace Examine.LuceneEngine
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerValueType(name, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerValueType(name, new EmailAddressAnalyzer())}
             };
+
+        public IEnumerator<KeyValuePair<string, IFieldValueTypeFactory>> GetEnumerator()
+        {
+            return _valueTypeFactories.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 }
