@@ -53,7 +53,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneDirectory"></param>
         /// <param name="analyzer">Specifies the default analyzer to use per field</param>
         /// <param name="indexValueTypesFactory">
-        /// Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="DefaultIndexValueTypes"/> will be used.
+        /// Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.DefaultValueTypes"/> will be used.
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
         public LuceneIndex(
@@ -62,7 +62,7 @@ namespace Examine.LuceneEngine.Providers
             Directory luceneDirectory,
             Analyzer analyzer,
             IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             : base(name, fieldDefinitions, validator)
         {
             _disposer = new DisposableIndex(this);
@@ -94,7 +94,7 @@ namespace Examine.LuceneEngine.Providers
             FieldDefinitionCollection fieldDefinitions,
             IndexWriter writer,
             IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             : base(name, fieldDefinitions, validator)
         {
             _disposer = new DisposableIndex(this);
@@ -265,32 +265,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public FieldValueTypeCollection FieldValueTypeCollection => _fieldValueTypeCollection.Value;
 
-        /// <summary>
-        /// Returns the default index value types that is used in normal construction of an indexer
-        /// </summary>
-        /// <returns></returns>
-        public static IReadOnlyDictionary<string, Func<string, IIndexValueType>> DefaultIndexValueTypes
-            => new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
-            {
-                {"number", name => new Int32Type(name)},
-                {FieldDefinitionTypes.Integer, name => new Int32Type(name)},
-                {FieldDefinitionTypes.Float, name => new SingleType(name)},
-                {FieldDefinitionTypes.Double, name => new DoubleType(name)},
-                {FieldDefinitionTypes.Long, name => new Int64Type(name)},
-                {"date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, DateTools.Resolution.YEAR)},
-                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, DateTools.Resolution.MONTH)},
-                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, DateTools.Resolution.DAY)},
-                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, DateTools.Resolution.HOUR)},
-                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
-                {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
-                {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, null, true)},
-                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerValueType(name, new CultureInvariantWhitespaceAnalyzer())},
-                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerValueType(name, new EmailAddressAnalyzer())}
-            };
-        
         /// <summary>
         /// this flag indicates if Examine should wait for the current index queue to be fully processed during appdomain shutdown
         /// </summary>
@@ -624,11 +598,11 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="indexValueTypesFactory"></param>
         /// <returns></returns>
-        protected virtual FieldValueTypeCollection CreateFieldValueTypes(IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
+        protected virtual FieldValueTypeCollection CreateFieldValueTypes(IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
         {
             //copy to writable dictionary
-            var defaults = new Dictionary<string, Func<string, IIndexValueType>>();
-            foreach (var defaultIndexValueType in DefaultIndexValueTypes)
+            var defaults = new Dictionary<string, IFieldValueTypeFactory>();
+            foreach (var defaultIndexValueType in ValueTypeFactoryCollection.DefaultValueTypes)
             {
                 defaults[defaultIndexValueType.Key] = defaultIndexValueType.Value;
             }
@@ -773,13 +747,13 @@ namespace Examine.LuceneEngine.Providers
         protected virtual void AddDocument(Document doc, ValueSet valueSet, IndexWriter writer)
         {
             //add node id
-            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.Raw]);
+            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
             nodeIdValueType.AddValue(doc, valueSet.Id);
             //add the category
-            var categoryValueType = FieldValueTypeCollection.GetValueType(CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.InvariantCultureIgnoreCase]);
+            var categoryValueType = FieldValueTypeCollection.GetValueType(CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             categoryValueType.AddValue(doc, valueSet.Category);
             //add the item type
-            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.InvariantCultureIgnoreCase]);
+            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
             foreach (var field in valueSet.Values)
@@ -789,9 +763,9 @@ namespace Examine.LuceneEngine.Providers
                 {
                     var valueType = FieldValueTypeCollection.GetValueType(
                         definedFieldDefinition.Name,
-                        FieldValueTypeCollection.ValueTypeFactories.TryGetValue(definedFieldDefinition.Type, out var valTypeFactory)
+                        FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type, out var valTypeFactory)
                             ? valTypeFactory
-                            : FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.FullText]);
+                            : FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
 
                     foreach (var o in field.Value)
                     {
@@ -802,7 +776,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
-                    var valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.InvariantCultureIgnoreCase]);
+                    var valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -813,7 +787,7 @@ namespace Examine.LuceneEngine.Providers
                     //try to find the field definition for this field, if nothing is found use the default
                     var def = FieldDefinitionCollection.GetOrAdd(field.Key, s => new FieldDefinition(s, FieldDefinitionTypes.FullText));
 
-                    var valueType = FieldValueTypeCollection.GetValueType(def.Name, FieldValueTypeCollection.ValueTypeFactories[FieldDefinitionTypes.FullText]);
+                    var valueType = FieldValueTypeCollection.GetValueType(def.Name, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -828,7 +802,6 @@ namespace Examine.LuceneEngine.Providers
 
             writer.UpdateDocument(new Term(ItemIdFieldName, valueSet.Id), doc);
         }
-
 
         /// <summary>
         /// Process all of the queue items

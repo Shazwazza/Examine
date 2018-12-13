@@ -24,7 +24,7 @@ namespace Examine.LuceneEngine
         /// <param name="fieldDefinitionCollection"></param>
         public FieldValueTypeCollection(
             PerFieldAnalyzerWrapper analyzer, 
-            IReadOnlyDictionary<string, Func<string, IIndexValueType>> valueTypeFactories, 
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> valueTypeFactories, 
             FieldDefinitionCollection fieldDefinitionCollection)
         {
             Analyzer = analyzer;
@@ -40,17 +40,19 @@ namespace Examine.LuceneEngine
 
                 foreach (var field in fieldDefinitionCollection)
                 {
-                    if (!string.IsNullOrWhiteSpace(field.Type) && ValueTypeFactories.TryGetValue(field.Type, out var valueTypeFactory))
+                    if (!string.IsNullOrWhiteSpace(field.Type) && ValueTypeFactories.TryGetFactory(field.Type, out var valueTypeFactory))
                     {
-                        var valueType = valueTypeFactory(field.Name);
+                        var valueType = valueTypeFactory.Create(field.Name);
                         valueType.SetupAnalyzers(Analyzer);
                         result.TryAdd(valueType.FieldName, valueType);
                     }
                     else
                     {
                         //Define the default!
-                        var fulltext = ValueTypeFactories[FieldDefinitionTypes.FullText];
-                        var valueType = fulltext(field.Name);
+                        if (!ValueTypeFactories.TryGetFactory(FieldDefinitionTypes.FullText, out var fullText))
+                            throw new InvalidOperationException($"The value type factory {FieldDefinitionTypes.FullText} was not found");
+
+                        var valueType = fullText.Create(field.Name);
                         valueType.SetupAnalyzers(Analyzer);
                         result.TryAdd(valueType.FieldName, valueType);
                     }
@@ -63,16 +65,16 @@ namespace Examine.LuceneEngine
         /// Returns the <see cref="IIndexValueType"/> for the field name specified
         /// </summary>
         /// <param name="fieldName"></param>
-        /// <param name="indexValueTypeFactory"></param>
+        /// <param name="fieldValueTypeFactory"></param>
         /// <returns></returns>
         /// <remarks>
         /// If it's not found it will create one with the factory supplied and initialize it.
         /// </remarks>
-        public IIndexValueType GetValueType(string fieldName, Func<string, IIndexValueType> indexValueTypeFactory)
+        public IIndexValueType GetValueType(string fieldName, IFieldValueTypeFactory fieldValueTypeFactory)
         {
             return _resolvedValueTypes.Value.GetOrAdd(fieldName, n =>
             {
-                var t = indexValueTypeFactory(n);
+                var t = fieldValueTypeFactory.Create(n);
                 t.SetupAnalyzers(Analyzer);
                 return t;
             });
@@ -95,7 +97,7 @@ namespace Examine.LuceneEngine
         /// <remarks>
         /// This collection is mutable but must be changed before the EnsureIndex method is fired (i.e. on startup)
         /// </remarks>
-        public ConcurrentDictionary<string, Func<string, IIndexValueType>> ValueTypeFactories { get; } = new ConcurrentDictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase);
+        public ValueTypeFactoryCollection ValueTypeFactories { get; } = new ValueTypeFactoryCollection();
 
         private readonly Lazy<ConcurrentDictionary<string, IIndexValueType>> _resolvedValueTypes;
 

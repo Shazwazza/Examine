@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.LuceneEngine;
 using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
@@ -11,7 +12,7 @@ namespace Examine.Test
 {
     public class TestIndex : LuceneIndex
     {
-        public TestIndex(FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, Func<string, IIndexValueType>> indexValueTypesFactory = null)
+        public TestIndex(FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             : base("testIndexer", fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
         {
             RunAsync = false;

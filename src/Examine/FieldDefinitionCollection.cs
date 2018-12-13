@@ -11,7 +11,7 @@ namespace Examine
     /// </summary>
     public class FieldDefinitionCollection : IEnumerable<FieldDefinition>
     {
-        private readonly ConcurrentDictionary<string, FieldDefinition> _definitions = new ConcurrentDictionary<string, FieldDefinition>();
+        private readonly ConcurrentDictionary<string, FieldDefinition> _definitions = new ConcurrentDictionary<string, FieldDefinition>(StringComparer.InvariantCultureIgnoreCase);
 
         public FieldDefinitionCollection()
             : this(Enumerable.Empty<FieldDefinition>())
@@ -58,9 +58,9 @@ namespace Examine
             return _definitions.TryGetValue(fieldName, out fieldDefinition);
         }
 
-        public bool TryAdd(string fieldName, FieldDefinition definition)
+        public bool TryAdd(FieldDefinition definition)
         {
-            return _definitions.TryAdd(fieldName, definition);
+            return _definitions.TryAdd(definition.Name, definition);
         }
 
         public int Count => _definitions.Count;

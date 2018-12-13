@@ -111,6 +111,7 @@
     <Compile Include="IndexOperationEventArgs.cs" />
     <Compile Include="IOHelper.cs" />
     <Compile Include="ISearchResult.cs" />
+    <Compile Include="LuceneEngine\DelegateFieldValueTypeFactory.cs" />
     <Compile Include="LuceneEngine\Directories\DirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
     <Compile Include="LuceneEngine\EmailAddressAnalyzer.cs" />
+    <Compile Include="LuceneEngine\IFieldValueTypeFactory.cs" />
     <Compile Include="LuceneEngine\Indexing\GenericAnalyzerValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\CultureInvariantWhitespaceAnalyzer.cs" />
@@ -155,6 +157,7 @@
     <Compile Include="IValueSetValidator.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndex.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\CriteriaContext.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchOptions.cs" />
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\ValueSetValidatorDelegate.cs" />
@@ -166,9 +169,11 @@
     <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchExtensions.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\SortField.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\MultiCriteriaContext.cs" />
+    <Compile Include="LuceneEngine\SearchCriteria\SortableField.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\SortType.cs" />
     <Compile Include="LuceneEngine\LuceneSearchResults.cs" />
+    <Compile Include="LuceneEngine\ValueTypeFactoryCollection.cs" />
     <Compile Include="LuceneEngine\WriterTracker.cs" />
     <Compile Include="ObjectExtensions.cs" />
     <Compile Include="OrderedDictionary.cs" />
