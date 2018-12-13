@@ -1097,7 +1097,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation
         /// </summary>
         /// <param name="op"></param>
-        private void QueueIndexOperation(IndexOperation op)
+        protected void QueueIndexOperation(IndexOperation op)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
@@ -1116,7 +1116,7 @@ namespace Examine.LuceneEngine.Providers
         /// Queues an indexing operation batch
         /// </summary>
         /// <param name="ops"></param>
-        private void QueueIndexOperation(IEnumerable<IndexOperation> ops)
+        protected void QueueIndexOperation(IEnumerable<IndexOperation> ops)
         {
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
