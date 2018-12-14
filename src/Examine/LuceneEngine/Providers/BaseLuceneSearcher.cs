@@ -154,7 +154,7 @@ namespace Examine.LuceneEngine.Providers
             if (searchParams == null) throw new ArgumentNullException(nameof(searchParams));
 
             if (!(searchParams is LuceneSearchCriteria luceneParams))
-                throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
+                throw new ArgumentException("Provided ISearchCriteria was not created with the CreateCriteria method of this searcher");
 
             var searcher = GetLuceneSearcher();
             if (searcher == null) return EmptySearchResults.Instance;

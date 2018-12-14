@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Examine.LuceneEngine
+namespace Examine
 {
-	internal class EmptySearchResults : ISearchResults
+	public sealed class EmptySearchResults : ISearchResults
 	{
         private EmptySearchResults()
         {   
