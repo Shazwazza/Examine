@@ -417,7 +417,7 @@ namespace Examine.LuceneEngine.SearchCriteria
 
                 //get the sortable field name if this field type has one
                 var valType = _criteriaContext.GetValueType(fieldName);
-                if (valType != null)
+                if (valType?.SortableFieldName != null)
                     fieldName = valType.SortableFieldName;
 
                 this.SortFields.Add(new SortField(fieldName, defaultSort, descending));
