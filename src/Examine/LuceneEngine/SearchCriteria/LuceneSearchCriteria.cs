@@ -31,7 +31,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public QueryParser QueryParser => _queryParser;
 
         internal readonly Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
-        internal BooleanQuery Query => Queries.Peek();
+        public BooleanQuery Query => Queries.Peek();
         internal readonly List<SortField> SortFields = new List<SortField>();
         
         private Occur _occurrence;

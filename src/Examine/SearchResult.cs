@@ -13,10 +13,9 @@ namespace Examine
         /// <summary>
         /// Constructor
         /// </summary>
-        public SearchResult(string id, int docId, float score, Func<IDictionary<string, List<string>>> lazyFieldVals)
+        public SearchResult(string id, float score, Func<IDictionary<string, List<string>>> lazyFieldVals)
         {
             Id = id;
-            DocId = docId;
             Score = score;
             _fieldValues = new Lazy<OrderedDictionary<string, IReadOnlyList<string>>>(() =>
             {
@@ -34,7 +33,6 @@ namespace Examine
             });
         }
 
-        public int DocId { get; }
         public string Id { get;  }
         public float Score { get; }
 
