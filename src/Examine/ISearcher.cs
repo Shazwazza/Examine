@@ -29,6 +29,6 @@ namespace Examine
         /// <returns>
         /// An instance of <see cref="IQueryExecutor"/>
         /// </returns>
-        IQuery CreateCriteria(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
+        IQuery CreateQuery(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
     }
 }

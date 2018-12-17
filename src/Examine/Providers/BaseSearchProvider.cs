@@ -24,7 +24,7 @@ namespace Examine.Providers
         public abstract ISearchResults Search(string searchText, int maxResults = 500);
 
         /// <inheritdoc />
-		public abstract IQuery CreateCriteria(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
+		public abstract IQuery CreateQuery(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
         
     }
 }

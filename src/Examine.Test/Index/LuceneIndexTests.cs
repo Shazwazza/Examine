@@ -392,7 +392,7 @@ namespace Examine.Test.Index
                 writer.WaitForMerges();
 
                 //ensure no data since it's a new index
-                var results = customSearcher.CreateCriteria().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
+                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
                     
                 //should be less than the total inserted because we overwrote it in the middle of processing
                 Debug.WriteLine("TOTAL RESULTS: " + results.TotalItemCount);
@@ -466,7 +466,7 @@ namespace Examine.Test.Index
                 //ensure no duplicates
 
                 var customSearcher = (LuceneSearcher) customIndexer.GetSearcher();
-                var results = customSearcher.CreateCriteria().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Execute();
+                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Execute();
                 Assert.AreEqual(3, results.Count());
             }
         }
@@ -525,7 +525,7 @@ namespace Examine.Test.Index
                             if (idQueue.TryDequeue(out docId))
                             {
                                 idQueue.Enqueue(docId);
-                                var r = s.CreateCriteria().Id(docId.ToString()).Execute();
+                                var r = s.CreateQuery().Id(docId.ToString()).Execute();
                                 Debug.WriteLine("searching thread: {0}, id: {1}, found: {2}", Thread.CurrentThread.ManagedThreadId, docId, r.Count());
                                 Thread.Sleep(50);
                             }
@@ -604,7 +604,7 @@ namespace Examine.Test.Index
 
                 writer.WaitForMerges();
 
-                var results = customSearcher.CreateCriteria().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
+                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
                 Assert.AreEqual(10, results.Count());
             }
         }

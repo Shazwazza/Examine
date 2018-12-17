@@ -53,7 +53,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var numberSortedCriteria = searcher.CreateCriteria()
+                var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01, 02), new DateTime(2000, 01, 05), maxInclusive: false);
 
                 var numberSortedResult = numberSortedCriteria.Execute();
@@ -136,7 +136,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var numberSortedCriteria = searcher.CreateCriteria()
+                var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<int>(new[] { "parentID" }, 122, 124);
 
                 var numberSortedResult = numberSortedCriteria.Execute();
@@ -183,7 +183,7 @@ namespace Examine.Test.Search
                 
                 var searcher = indexer.GetSearcher();
 
-                var numberSortedCriteria = searcher.CreateCriteria()
+                var numberSortedCriteria = searcher.CreateQuery()
                     .Field("parentID", 123)
                     .OrderBy(new SortableField("sortOrder", SortType.Int));
 
@@ -232,7 +232,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
-                var criteria = searcher.CreateCriteria("content");
+                var criteria = searcher.CreateQuery("content");
 
                 //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
                 var filter = criteria.GroupedOr(
@@ -255,35 +255,35 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, MULTI VAL");
-                var criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, MULTI VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, EQUAL MULTI VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3 blahID:1 blahID:2 blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, SINGLE VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, SINGLE VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
@@ -313,35 +313,35 @@ namespace Examine.Test.Search
                     //new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
-                var criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, SINGLE VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
@@ -363,35 +363,35 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");
-                var criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, MULTI VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, EQUAL MULTI VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3 -blahID:1 -blahID:2 -blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, SINGLE VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias (-id:1 -parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, SINGLE VAL");
-                criteria = (LuceneSearchQuery)searcher.CreateCriteria();
+                criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1" });
                 Console.WriteLine(criteria.Query);
@@ -424,7 +424,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
-                var criteria = searcher.CreateCriteria("content");
+                var criteria = searcher.CreateQuery("content");
                 var filter = criteria.GroupedOr(new[] { "nodeName", "bodyText", "headerText" }, "ipsum").Not().Field("umbracoNaviHide", "1");
                 var results = filter.Execute();
                 Assert.AreEqual(1, results.TotalItemCount);
@@ -432,7 +432,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void Exact_Match_By_Escaped_Path()
+        public void Match_By_Path()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
 
@@ -465,16 +465,27 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
-                var criteria = searcher.CreateCriteria("content");
+                var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("__Path", "-1,123,456,789");
                 var results1 = filter.Execute();
                 Assert.AreEqual(0, results1.TotalItemCount);
 
                 //now escape it
-                var exactcriteria = searcher.CreateCriteria("content");
+                var exactcriteria = searcher.CreateQuery("content");
                 var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
                 var results2 = exactfilter.Execute();
                 Assert.AreEqual(1, results2.TotalItemCount);
+
+                //now try wildcards
+                var wildcardcriteria = searcher.CreateQuery("content");
+                var wildcardfilter = wildcardcriteria.Field("__Path", "-1,123,456,".MultipleCharacterWildcard());
+                var results3 = wildcardfilter.Execute();
+                Assert.AreEqual(2, results3.TotalItemCount);
+                //not found
+                wildcardcriteria = searcher.CreateQuery("content");
+                wildcardfilter = wildcardcriteria.Field("__Path", "-1,123,457,".MultipleCharacterWildcard());
+                results3 = wildcardfilter.Execute();
+                Assert.AreEqual(0, results3.TotalItemCount);
             }
 
 
@@ -507,7 +518,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria("content");
+                var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("parentID", 1139);
 
                 var results = filter.Execute();
@@ -555,7 +566,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria("content");
+                var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Escape());
 
                 var results = filter.Execute();
@@ -587,7 +598,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria();
+                var criteria = searcher.CreateQuery();
                 var filter = criteria.Field("bodyText", "into")
                     .Or().Field("nodeName", "into");
 
@@ -634,7 +645,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria("content");
+                var criteria = searcher.CreateQuery("content");
                 
                 var results = criteria.NativeQuery("nodeTypeAlias:CWS_Home").Execute();
 
@@ -666,7 +677,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria("media");
+                var criteria = searcher.CreateQuery("media");
                 var filter = criteria.Field("nodeTypeAlias", "image");
 
                 var results = filter.Execute();
@@ -699,7 +710,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria(defaultOperation: BooleanOperation.Or);
+                var criteria = searcher.CreateQuery(defaultOperation: BooleanOperation.Or);
                 var filter = criteria
                     .Field(LuceneIndex.CategoryFieldName, "media")
                     .Or()
@@ -738,7 +749,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var sc = searcher.CreateCriteria("content");
+                var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("sortOrder", SortType.Int));
 
                 var results1 = sc1.Execute().ToArray();
@@ -783,7 +794,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var sc = searcher.CreateCriteria("content");
+                var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("updateDate", SortType.Double));
 
                 var results1 = sc1.Execute().ToArray();
@@ -828,11 +839,11 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var sc = searcher.CreateCriteria("content");
+                var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("writerName", "administrator")
                     .OrderBy(new SortableField("nodeName", SortType.String));
 
-                sc = searcher.CreateCriteria("content");
+                sc = searcher.CreateQuery("content");
                 var sc2 = sc.Field("writerName", "administrator")
                     .OrderByDescending(new SortableField("nodeName", SortType.String));
 
@@ -870,7 +881,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var sc = searcher.CreateCriteria("content", BooleanOperation.Or);
+                var sc = searcher.CreateQuery("content", BooleanOperation.Or);
                 var sc1 = sc.Field("nodeName", "umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco");
 
                 var results = sc1.Execute();
@@ -915,7 +926,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //Arrange
-                var sc = searcher.CreateCriteria("content").Field("writerName", "administrator");
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
 
                 //Act
                 var results = sc.Execute();
@@ -953,7 +964,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //Arrange
-                var sc = searcher.CreateCriteria("content").Field("nodeName", "codegarden 09".Escape());
+                var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Escape());
 
                 //Act
                 var results = sc.Execute();
@@ -991,7 +1002,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //Arrange
-                var criteria = searcher.CreateCriteria("content");
+                var criteria = searcher.CreateQuery("content");
 
                 //get all node type aliases starting with CWS and all nodees starting with "A"
                 var filter = criteria.GroupedAnd(
@@ -1032,7 +1043,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //Arrange
-                var criteria = searcher.CreateCriteria("content");
+                var criteria = searcher.CreateQuery("content");
 
                 //get all nodes that contain the words warren and creative within 5 words of each other
                 var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5));
@@ -1079,10 +1090,10 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //all numbers should be between 0 and 100 based on the data source
-                var criteria1 = searcher.CreateCriteria();
+                var criteria1 = searcher.CreateQuery();
                 var filter1 = criteria1.RangeQuery<float>(new []{"SomeFloat" }, 0f, 100f, true, true);
 
-                var criteria2 = searcher.CreateCriteria();
+                var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<float>(new[] { "SomeFloat" }, 101f, 200f, true, true);
 
                 //Act
@@ -1128,10 +1139,10 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //all numbers should be between 0 and 100 based on the data source
-                var criteria1 = searcher.CreateCriteria();
+                var criteria1 = searcher.CreateQuery();
                 var filter1 = criteria1.RangeQuery<int>(new[]{ "SomeNumber" }, 0, 100, true, true);
 
-                var criteria2 = searcher.CreateCriteria();
+                var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<int>(new[] { "SomeNumber" }, 101, 200, true, true);
 
                 //Act
@@ -1175,10 +1186,10 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //all numbers should be between 0 and 100 based on the data source
-                var criteria1 = searcher.CreateCriteria();
+                var criteria1 = searcher.CreateQuery();
                 var filter1 = criteria1.RangeQuery<double>(new[]{ "SomeDouble" }, 0d, 100d, true, true);
 
-                var criteria2 = searcher.CreateCriteria();
+                var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true);
 
                 //Act
@@ -1222,10 +1233,10 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //all numbers should be between 0 and 100 based on the data source
-                var criteria1 = searcher.CreateCriteria();
+                var criteria1 = searcher.CreateQuery();
                 var filter1 = criteria1.RangeQuery<long>(new[]{ "SomeLong" }, 0L, 100L, true, true);
 
-                var criteria2 = searcher.CreateCriteria();
+                var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<long>(new[] { "SomeLong" }, 101L, 200L, true, true);
 
                 //Act
@@ -1530,10 +1541,10 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria();
+                var criteria = searcher.CreateQuery();
                 var filter = criteria.RangeQuery<DateTime>(new []{ "DateCreated" }, reIndexDateTime, DateTime.Now, true, true);
 
-                var criteria2 = searcher.CreateCriteria();
+                var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true);
 
                 ////Act
@@ -1572,10 +1583,10 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria();
+                var criteria = searcher.CreateQuery();
                 var filter = criteria.Field("Content", "think".Fuzzy(0.1F));
 
-                var criteria2 = searcher.CreateCriteria();
+                var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.Field("Content", "thought".Fuzzy());
 
                 ////Act
@@ -1616,7 +1627,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria();
+                var criteria = searcher.CreateQuery();
                 var filter = criteria.Field("Content", "hello");
 
                 //Act
@@ -1658,7 +1669,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria();
+                var criteria = searcher.CreateQuery();
 
                 //Query = 
                 //  +Type:type1 +(Content:world Content:something)
@@ -1700,7 +1711,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria();
+                var criteria = searcher.CreateQuery();
 
                 //Query = 
                 //  +Type:type1 +(+Content:world +Content:hello)
@@ -1742,7 +1753,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria();
+                var criteria = searcher.CreateQuery();
 
                 //Query = 
                 //  +Type:type1 +(+Content:world -Content:something)
@@ -1784,7 +1795,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
 
-                var criteria = searcher.CreateCriteria(defaultOperation: BooleanOperation.Or);
+                var criteria = searcher.CreateQuery(defaultOperation: BooleanOperation.Or);
 
                 //Query = 
                 //  (Type:type1 +(Content:world Content:something)) (Type:type2 +(+Content:world +Content:cruel))

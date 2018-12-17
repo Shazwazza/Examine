@@ -33,7 +33,7 @@ namespace Examine.Web.Demo.Controllers
             if (!ExamineManager.Instance.TryGetSearcher("MultiIndexSearcher", out var multi))
                 return HttpNotFound();
 
-            var criteria = multi.CreateCriteria();
+            var criteria = multi.CreateQuery();
             var result = criteria.NativeQuery(id).Execute();
 
             var sb = new StringBuilder();
@@ -53,7 +53,7 @@ namespace Examine.Web.Demo.Controllers
                 return HttpNotFound();
 
             var searcher = index.GetSearcher();
-            var criteria = searcher.CreateCriteria();
+            var criteria = searcher.CreateQuery();
             var result = criteria.NativeQuery(id).Execute();
             var sb = new StringBuilder();
             sb.AppendLine($"Results :{result.TotalItemCount}");

@@ -143,16 +143,12 @@ namespace Examine.Search
         /// <returns></returns>
         IBooleanOperation All();
 
-
         /// <summary>
         /// The index will determine the most appropriate way to search given the query and the fields provided
         /// </summary>
         /// <param name="query"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
-        /// <remarks>
-        /// 
-        /// </remarks>
         IBooleanOperation ManagedQuery(string query, string[] fields = null);
 
         /// <summary>

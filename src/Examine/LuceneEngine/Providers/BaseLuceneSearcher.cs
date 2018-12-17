@@ -105,9 +105,9 @@ namespace Examine.LuceneEngine.Providers
         public abstract ISearchContext GetSearchContext();
 
         /// <inheritdoc />
-		public override IQuery CreateCriteria(string type = null, BooleanOperation defaultOperation = BooleanOperation.And)
+		public override IQuery CreateQuery(string type = null, BooleanOperation defaultOperation = BooleanOperation.And)
         {
-            return CreateCriteria(type, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
+            return CreateQuery(type, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneAnalyzer"></param>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        public IQuery CreateCriteria(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
+        public IQuery CreateQuery(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null) throw new ArgumentNullException(nameof(luceneAnalyzer));
 
@@ -128,7 +128,7 @@ namespace Examine.LuceneEngine.Providers
         /// <inheritdoc />
         public override ISearchResults Search(string searchText, int maxResults = 500)
         {
-            var sc = CreateCriteria().ManagedQuery(searchText);
+            var sc = CreateQuery().ManagedQuery(searchText);
             return sc.Execute(maxResults);
         }
 
