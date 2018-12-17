@@ -3,13 +3,13 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Security;
 using System.Text;
-using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
-using Examine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using System.Linq;
+using Examine.LuceneEngine.Search;
+using Examine.Search;
 using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.Providers
@@ -102,15 +102,10 @@ namespace Examine.LuceneEngine.Providers
 		
         public abstract Searcher GetLuceneSearcher();
 
-        public abstract ICriteriaContext GetCriteriaContext();
+        public abstract ISearchContext GetSearchContext();
 
-        /// <summary>
-        /// Creates an instance of SearchCriteria for the provider
-        /// </summary>
-        /// <param name="type">The type of data in the index.</param>
-        /// <param name="defaultOperation">The default operation.</param>
-        /// <returns>A blank SearchCriteria</returns>		
-		public override ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation)
+        /// <inheritdoc />
+		public override IQuery CreateCriteria(string type = null, BooleanOperation defaultOperation = BooleanOperation.And)
         {
             return CreateCriteria(type, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
         }
@@ -123,44 +118,18 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="luceneAnalyzer"></param>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        public ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
+        public IQuery CreateCriteria(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null) throw new ArgumentNullException(nameof(luceneAnalyzer));
 
-            return new LuceneSearchCriteria(GetCriteriaContext(), type, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
+            return new LuceneSearchQuery(GetSearchContext(), type, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
         }
 
-        /// <summary>
-        /// Simple search method which defaults to searching content nodes
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="maxResults"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// This will search every field for any words matching in search text. Each word in the search text will be encapsulated 
-        /// in a wild card search too.
-        /// </remarks>
+        /// <inheritdoc />
         public override ISearchResults Search(string searchText, int maxResults = 500)
         {
-            var sc = CreateCriteria().ManagedQuery(searchText).Compile();
-            return Search(sc, maxResults);
-        }
-
-        /// <summary>
-        /// Performs a search with a maximum number of results
-        /// </summary>
-        public override ISearchResults Search(ISearchCriteria searchParams, int maxResults = 500)
-        {
-            if (searchParams == null) throw new ArgumentNullException(nameof(searchParams));
-
-            if (!(searchParams is LuceneSearchCriteria luceneParams))
-                throw new ArgumentException("Provided ISearchCriteria dos not match the allowed ISearchCriteria. Ensure you only use an ISearchCriteria created from the current SearcherProvider");
-
-            var searcher = GetLuceneSearcher();
-            if (searcher == null) return EmptySearchResults.Instance;
-
-            var pagesResults = new LuceneSearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);
-            return pagesResults;
+            var sc = CreateCriteria().ManagedQuery(searchText);
+            return sc.Execute(maxResults);
         }
 
         /// <summary>
@@ -212,30 +181,5 @@ namespace Examine.LuceneEngine.Providers
 
         public static RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance => _errorCheckingScoringBooleanQueryRewriteInstance ?? (_errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite());
         
-        /// <summary>
-        /// Creates search criteria that defaults to IndexType.Any and BooleanOperation.And
-        /// </summary>
-        /// <returns></returns>
-        
-        public override ISearchCriteria CreateCriteria()
-        {
-            return CreateCriteria(string.Empty, BooleanOperation.And);
-        }
-
-        /// <summary>
-        /// Creates an instance of SearchCriteria for the provider
-        /// </summary>
-        public override ISearchCriteria CreateCriteria(string type)
-        {
-            return CreateCriteria(type, BooleanOperation.And);
-        }
-
-		
-        public override ISearchCriteria CreateCriteria(BooleanOperation defaultOperation)
-        {
-            return CreateCriteria(string.Empty, defaultOperation);
-        }
-
-
     }
 }

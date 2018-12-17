@@ -71,9 +71,6 @@ Global
 		{1667E2A1-051D-48F6-A2DE-301788613870} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {1FD5A35C-59D2-4BF3-B524-2F84242A42AA}
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {468B7BF7-F220-4717-85F6-69D8E7C7F2B0}
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution

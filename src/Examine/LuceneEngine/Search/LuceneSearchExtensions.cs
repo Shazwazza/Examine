@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Security;
-using Examine.SearchCriteria;
-using Lucene.Net.QueryParsers;
+using Examine.Search;
 using Lucene.Net.Search;
-using System.Linq;
 
-namespace Examine.LuceneEngine.SearchCriteria
+namespace Examine.LuceneEngine.Search
 {
     /// <summary>
     /// A set of helpers for working with Lucene.Net in Examine

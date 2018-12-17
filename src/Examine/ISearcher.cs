@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Examine.SearchCriteria;
+using Examine.Search;
 
 namespace Examine
 {
@@ -22,35 +22,13 @@ namespace Examine
         ISearchResults Search(string searchText, int maxResults = 500);
 
         /// <summary>
-        /// Searches using the specified search query parameters
-        /// </summary>
-        /// <param name="searchParameters">The search parameters.</param>
-        /// <param name="maxResults"></param>
-        /// <returns>Search Results</returns>
-        ISearchResults Search(ISearchCriteria searchParameters, int maxResults = 500);
-
-        /// <summary>
-        /// Creates a search criteria instance as required by the implementation
-        /// </summary>
-        /// <returns></returns>
-        ISearchCriteria CreateCriteria();
-
-        ISearchCriteria CreateCriteria(BooleanOperation defaultOperation);
-
-        /// <summary>
-        /// Creates a search criteria instance as required by the implementation
-        /// </summary>
-        /// <param name="type">The type of index (i.e. Media or Content )</param>
-        ISearchCriteria CreateCriteria(string type);
-
-        /// <summary>
         /// Creates a search criteria instance as required by the implementation
         /// </summary>
         /// <param name="type">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>
-        /// An instance of <see cref="Examine.SearchCriteria.ISearchCriteria"/>
+        /// An instance of <see cref="IQueryExecutor"/>
         /// </returns>
-        ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation);
+        IQuery CreateCriteria(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
     }
 }

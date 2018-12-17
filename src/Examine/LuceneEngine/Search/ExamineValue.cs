@@ -1,6 +1,6 @@
-﻿using Examine.SearchCriteria;
+﻿using Examine.Search;
 
-namespace Examine.LuceneEngine.SearchCriteria
+namespace Examine.LuceneEngine.Search
 {
     public struct ExamineValue : IExamineValue
     {

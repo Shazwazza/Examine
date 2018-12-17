@@ -34,7 +34,7 @@ namespace Examine.Web.Demo.Controllers
                 return HttpNotFound();
 
             var criteria = multi.CreateCriteria();
-            var result = multi.Search(criteria.RawQuery(id));
+            var result = criteria.NativeQuery(id).Execute();
 
             var sb = new StringBuilder();
             sb.AppendLine($"Results :{result.TotalItemCount}");
@@ -54,7 +54,7 @@ namespace Examine.Web.Demo.Controllers
 
             var searcher = index.GetSearcher();
             var criteria = searcher.CreateCriteria();
-            var result = searcher.Search(criteria.RawQuery(id));
+            var result = criteria.NativeQuery(id).Execute();
             var sb = new StringBuilder();
             sb.AppendLine($"Results :{result.TotalItemCount}");
             foreach (var searchResult in result)

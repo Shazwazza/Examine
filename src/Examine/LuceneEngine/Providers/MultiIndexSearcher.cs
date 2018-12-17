@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using Examine.LuceneEngine.SearchCriteria;
+using Examine.LuceneEngine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 
@@ -117,9 +117,9 @@ namespace Examine.LuceneEngine.Providers
 			return new MultiSearcher(searchables.ToArray());
         }
 
-        public override ICriteriaContext GetCriteriaContext()
+        public override ISearchContext GetSearchContext()
         {
-            return new MultiCriteriaContext(GetLuceneSearcher(), Searchers.Select(s => s.GetCriteriaContext()).ToArray());
+            return new MultiSearchContext(GetLuceneSearcher(), Searchers.Select(s => s.GetSearchContext()).ToArray());
         }
 
 

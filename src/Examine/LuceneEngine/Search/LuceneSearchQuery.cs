@@ -1,31 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Security;
-using System.Text.RegularExpressions;
-using Examine;
 using Examine.LuceneEngine.Indexing;
-using Examine.SearchCriteria;
+using Examine.LuceneEngine.Providers;
+using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
-using Lucene.Net.Search.Spans;
-using Lucene.Net.Index;
-using Lucene.Net.Documents;
-using Examine.LuceneEngine.Providers;
 using Version = Lucene.Net.Util.Version;
 
-namespace Examine.LuceneEngine.SearchCriteria
+namespace Examine.LuceneEngine.Search
 {
     /// <summary>
     /// This class is used to query against Lucene.Net
     /// </summary>
     [DebuggerDisplay("Category: {Category}, LuceneQuery: {Query}")]
-    public class LuceneSearchCriteria : ISearchCriteria
+    public class LuceneSearchQuery : IQuery, IQueryExecutor
     {
-        private readonly ICriteriaContext _criteriaContext;
+        private readonly ISearchContext _searchContext;
 
         private readonly CustomMultiFieldQueryParser _queryParser;
         public QueryParser QueryParser => _queryParser;
@@ -37,28 +31,24 @@ namespace Examine.LuceneEngine.SearchCriteria
         private Occur _occurrence;
         private BooleanOperation _boolOp;
 
-        private readonly Version _luceneVersion = Version.LUCENE_30;
+        private const Version LuceneVersion = Version.LUCENE_30;
 
-		
-        internal LuceneSearchCriteria(
-            ICriteriaContext criteriaContext,
+        internal LuceneSearchQuery(
+            ISearchContext searchContext,
             string type, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
             if (fields == null) throw new ArgumentNullException(nameof(fields));
             
-            _criteriaContext = criteriaContext;
+            _searchContext = searchContext;
 
             Category = type;
             Queries.Push(new BooleanQuery());
-            this.BooleanOperation = occurance;
-            this._queryParser = new CustomMultiFieldQueryParser(_luceneVersion, fields, analyzer);
-            this._queryParser.AllowLeadingWildcard = searchOptions.AllowLeadingWildcard;
+            BooleanOperation = occurance;
+            _queryParser = new CustomMultiFieldQueryParser(LuceneVersion, fields, analyzer);
+            _queryParser.AllowLeadingWildcard = searchOptions.AllowLeadingWildcard;
         }
 
-        /// <summary>
-        /// Gets the boolean operation which this query method will be added as
-        /// </summary>
-        /// <value>The boolean operation.</value>
+        /// <inheritdoc />
         public BooleanOperation BooleanOperation
         {
             get => _boolOp;
@@ -75,32 +65,21 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns>
         /// A <see cref="System.String"/> that represents this instance.
         /// </returns>
-
         public override string ToString()
         {
-            return $"{{ Category: {this.Category}, LuceneQuery: {Query} }}";
+            return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
 
         #region ISearchCriteria Members
         
-        /// <summary>
-        /// The index category
-        /// </summary>
-        /// <remarks>
-        /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
-        /// </remarks>
+        /// <inheritdoc />
         public string Category { get; }
         
         #endregion
 
         #region ISearch Members
 
-        /// <summary>
-        /// Creates an inner group query
-        /// </summary>
-        /// <param name="inner"></param>
-        /// <param name="defaultOp">The default operation is OR, generally a grouped query would have complex inner queries with an OR against another complex group query</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public IBooleanOperation Group(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or)
         {
             var bo = new LuceneBooleanOperation(this);
@@ -117,14 +96,14 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             if (fieldName == null) throw new ArgumentNullException(nameof(fieldName));
             if (fieldValue == null) throw new ArgumentNullException(nameof(fieldValue));
-            return this.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), _occurrence);
+            return FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), _occurrence);
         }
 
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
         {
             if (fieldName == null) throw new ArgumentNullException(nameof(fieldName));
             if (fieldValue == null) throw new ArgumentNullException(nameof(fieldValue));
-            return this.FieldInternal(fieldName, fieldValue, _occurrence);
+            return FieldInternal(fieldName, fieldValue, _occurrence);
         }
 
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
@@ -137,7 +116,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
-            return this.GroupedAnd(fields.ToArray(), fieldVals.ToArray());
+            return GroupedAnd(fields.ToArray(), fieldVals.ToArray());
         }
 
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] fieldVals)
@@ -145,7 +124,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             if (fields == null) throw new ArgumentNullException(nameof(fields));
             if (fieldVals == null) throw new ArgumentNullException(nameof(fieldVals));
 
-            return this.GroupedAndInternal(fields.ToArray(), fieldVals.ToArray(), _occurrence);
+            return GroupedAndInternal(fields.ToArray(), fieldVals.ToArray(), _occurrence);
         }
 
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
@@ -159,7 +138,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
 
-            return this.GroupedOr(fields.ToArray(), fieldVals.ToArray());
+            return GroupedOr(fields.ToArray(), fieldVals.ToArray());
         }
 
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
@@ -167,7 +146,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             if (fields == null) throw new ArgumentNullException(nameof(fields));
             if (query == null) throw new ArgumentNullException(nameof(query));
 
-            return this.GroupedOrInternal(fields.ToArray(), query, _occurrence);
+            return GroupedOrInternal(fields.ToArray(), query, _occurrence);
         }
 
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
@@ -181,7 +160,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
 
-            return this.GroupedNot(fields.ToArray(), fieldVals.ToArray());
+            return GroupedNot(fields.ToArray(), fieldVals.ToArray());
         }
 
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
@@ -189,7 +168,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             if (fields == null) throw new ArgumentNullException(nameof(fields));
             if (query == null) throw new ArgumentNullException(nameof(query));
 
-            return this.GroupedNotInternal(fields.ToArray(), query);
+            return GroupedNotInternal(fields.ToArray(), query);
         }
 
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
@@ -204,7 +183,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
 
-            return this.GroupedFlexible(fields.ToArray(), operations.ToArray(), fieldVals.ToArray());
+            return GroupedFlexible(fields.ToArray(), operations.ToArray(), fieldVals.ToArray());
         }
 
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query)
@@ -213,7 +192,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             if (operations == null) throw new ArgumentNullException(nameof(operations));
             if (query == null) throw new ArgumentNullException(nameof(query));
 
-            return this.GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, _occurrence);
+            return GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, _occurrence);
 
         }
 
@@ -221,14 +200,14 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             if (fields == null) throw new ArgumentNullException(nameof(fields));
 
-            return this.OrderByInternal(false, fields);
+            return OrderByInternal(false, fields);
         }
 
         public IBooleanOperation OrderByDescending(params SortableField[] fields)
         {
             if (fields == null) throw new ArgumentNullException(nameof(fields));
 
-            return this.OrderByInternal(true, fields);
+            return OrderByInternal(true, fields);
         }
 
         public IBooleanOperation All()
@@ -243,13 +222,13 @@ namespace Examine.LuceneEngine.SearchCriteria
             Query.Add(new LateBoundQuery(() =>
             {
                 var types = fields != null
-                                ? fields.Select(f => _criteriaContext.GetValueType(f)).Where(t => t != null)
-                                : _criteriaContext.ValueTypes;
+                                ? fields.Select(f => _searchContext.GetValueType(f)).Where(t => t != null)
+                                : _searchContext.ValueTypes;
 
                 var bq = new BooleanQuery();
                 foreach (var type in types)
                 {
-                    var q = type.GetQuery(query, _criteriaContext.Searcher);
+                    var q = type.GetQuery(query, _searchContext.Searcher);
                     if (q != null)
                     {
                         //CriteriaContext.ManagedQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
@@ -271,7 +250,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 var bq = new BooleanQuery();
                 foreach (var f in fields)
                 {
-                    if (_criteriaContext.GetValueType(f) is IIndexRangeValueType<T> type)
+                    if (_searchContext.GetValueType(f) is IIndexRangeValueType<T> type)
                     {
                         var q = type.GetQuery(min, max, minInclusive, maxInclusive);
                         if (q != null)
@@ -282,7 +261,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                     }
                     else
                     {
-                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, _criteriaContext.GetValueType(f).GetType());
+                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, _searchContext.GetValueType(f).GetType());
                     }
                 }
                 return bq;
@@ -297,17 +276,32 @@ namespace Examine.LuceneEngine.SearchCriteria
             return IdInternal(id, _occurrence);
         }
 
-        /// <summary>
-        /// Passes a raw search query to the provider to handle
-        /// </summary>
-        /// <param name="query">The query.</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        public ISearchCriteria RawQuery(string query)
+        /// <inheritdoc />
+        public ISearchResults Execute(int maxResults = 500)
         {
-            this.Query.Add(this._queryParser.Parse(query), this._occurrence);
-            return this;
+            return Search(maxResults);
         }
-        
+
+        /// <inheritdoc />
+        public IBooleanOperation NativeQuery(string query)
+        {
+            Query.Add(_queryParser.Parse(query), _occurrence);
+
+            return new LuceneBooleanOperation(this);
+        }
+
+        /// <summary>
+        /// Performs a search with a maximum number of results
+        /// </summary>
+        private ISearchResults Search(int maxResults = 500)
+        {
+            var searcher = _searchContext.Searcher;
+            if (searcher == null) return EmptySearchResults.Instance;
+
+            var pagesResults = new LuceneSearchResults(Query, SortFields, searcher, maxResults);
+            return pagesResults;
+        }
+
         /// <summary>
         /// Adds a true Lucene Query 
         /// </summary>
@@ -316,7 +310,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public LuceneBooleanOperation LuceneQuery(Query query, BooleanOperation? op = null)
         {
-            this.Query.Add(query, (op ?? this.BooleanOperation).ToLuceneOccurrence());
+            Query.Add(query, (op ?? BooleanOperation).ToLuceneOccurrence());
             return new LuceneBooleanOperation(this);
         }
 
@@ -363,7 +357,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 }
             }
 
-            this.Query.Add(qry, occurance);
+            Query.Add(qry, occurance);
 
             return new LuceneBooleanOperation(this);
         }
@@ -373,7 +367,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// </summary>
         /// <param name="descending">if set to <c>true</c> [descending].</param>
         /// <param name="fields">The field names.</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         private LuceneBooleanOperation OrderByInternal(bool descending, params SortableField[] fields)
         {
             foreach (var f in fields)
@@ -416,11 +410,11 @@ namespace Examine.LuceneEngine.SearchCriteria
                 }
 
                 //get the sortable field name if this field type has one
-                var valType = _criteriaContext.GetValueType(fieldName);
+                var valType = _searchContext.GetValueType(fieldName);
                 if (valType?.SortableFieldName != null)
                     fieldName = valType.SortableFieldName;
 
-                this.SortFields.Add(new SortField(fieldName, defaultSort, descending));
+                SortFields.Add(new SortField(fieldName, defaultSort, descending));
             }
 
             return new LuceneBooleanOperation(this);
@@ -433,7 +427,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fieldVals"></param>
         /// <param name="occurrence"></param>
         /// <param name="matchAllCombinations">If true will match all combinations, if not will only match the values corresponding with fields</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         /// <remarks>
         /// 
         /// if matchAllCombinations == false then...
@@ -550,7 +544,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         protected internal IBooleanOperation IdInternal(string id, Occur occurrence)
         {
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(this._queryParser.GetFieldQueryInternal(LuceneIndex.ItemIdFieldName, id), occurrence);
+            Query.Add(_queryParser.GetFieldQueryInternal(LuceneIndex.ItemIdFieldName, id), occurrence);
 
             return new LuceneBooleanOperation(this);
         }
@@ -561,7 +555,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="fieldName"></param>
         /// <param name="fieldValue"></param>
         /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         private Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
             Query queryToAdd;
@@ -571,7 +565,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.Fuzzy:
                     if (useQueryParser)
                     {
-                        queryToAdd = this._queryParser.GetFuzzyQueryInternal(fieldName, fieldValue.Value, fieldValue.Level);
+                        queryToAdd = _queryParser.GetFuzzyQueryInternal(fieldName, fieldValue.Value, fieldValue.Level);
                     }
                     else
                     {
@@ -584,7 +578,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.ComplexWildcard:
                     if (useQueryParser)
                     {
-                        queryToAdd = this._queryParser.GetWildcardQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = _queryParser.GetWildcardQueryInternal(fieldName, fieldValue.Value);
                     }
                     else
                     {
@@ -597,7 +591,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 case Examineness.Boosted:
                     if (useQueryParser)
                     {
-                        queryToAdd = this._queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
                         queryToAdd.Boost = fieldValue.Level;
                     }
                     else
@@ -647,7 +641,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                 default:
                     if (useQueryParser)
                     {
-                        queryToAdd = this._queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
                     }
                     else
                     {
@@ -673,7 +667,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         private Query ParseRawQuery(string rawQuery)
         {
-            var parser = new QueryParser(_luceneVersion, "", new KeywordAnalyzer());
+            var parser = new QueryParser(LuceneVersion, "", new KeywordAnalyzer());
             return parser.Parse(rawQuery);
         }
 

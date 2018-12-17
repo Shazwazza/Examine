@@ -1,4 +1,4 @@
-﻿namespace Examine.SearchCriteria
+﻿namespace Examine.Search
 {
     /// <summary>
     /// Represents a field used to sort results

@@ -3,13 +3,13 @@ using System.Linq;
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Search;
 
-namespace Examine.LuceneEngine.SearchCriteria
+namespace Examine.LuceneEngine.Search
 {
-    public class MultiCriteriaContext : ICriteriaContext
+    public class MultiSearchContext : ISearchContext
     {
-        private readonly ICriteriaContext[] _inner;
+        private readonly ISearchContext[] _inner;
         
-        public MultiCriteriaContext(Searcher searcher, ICriteriaContext[] inner)
+        public MultiSearchContext(Searcher searcher, ISearchContext[] inner)
         {
             _inner = inner;
             Searcher = searcher;

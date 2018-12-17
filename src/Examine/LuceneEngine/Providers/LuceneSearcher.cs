@@ -4,10 +4,10 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Examine.LuceneEngine.Search;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
-using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Directory = Lucene.Net.Store.Directory;
 
@@ -122,9 +122,9 @@ namespace Examine.LuceneEngine.Providers
             return _searcher;
         }
 
-        public override ICriteriaContext GetCriteriaContext()
+        public override ISearchContext GetSearchContext()
         {
-            return new CriteriaContext(FieldValueTypeCollection, GetLuceneSearcher());
+            return new SearchContext(FieldValueTypeCollection, GetLuceneSearcher());
         }
 
         /// <inheritdoc />

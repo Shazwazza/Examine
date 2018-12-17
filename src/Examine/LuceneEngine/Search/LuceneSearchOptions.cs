@@ -1,7 +1,7 @@
-﻿namespace Examine.LuceneEngine.SearchCriteria
+﻿namespace Examine.LuceneEngine.Search
 {
     /// <summary>
-    /// Options to configure <see cref="LuceneSearchCriteria"/>
+    /// Options to configure <see cref="LuceneSearchQuery"/>
     /// </summary>
     public class LuceneSearchOptions
     {
