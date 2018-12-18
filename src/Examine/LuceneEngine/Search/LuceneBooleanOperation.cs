@@ -101,6 +101,9 @@ namespace Examine.LuceneEngine.Search
             return _search.LuceneQuery(_search.Queries.Pop(), outerOp);
         }
 
-        
+        public override string ToString()
+        {
+            return _search.ToString();
+        }
     }
 }

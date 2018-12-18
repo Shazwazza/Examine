@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Specialized;
-using System.IO;
-using System.Security;
-using System.Text;
 using Examine.Providers;
 using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
-using System.Linq;
 using Examine.LuceneEngine.Search;
 using Examine.Search;
-using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -19,8 +12,6 @@ namespace Examine.LuceneEngine.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
-        private readonly string _name;
-
         #region Constructors
 
         /// <summary>
@@ -39,7 +30,7 @@ namespace Examine.LuceneEngine.Providers
 		{
 		    if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
 		    LuceneAnalyzer = analyzer;
-		    _name = name;
+		    Name = name;
         }
 
 		#endregion
@@ -53,41 +44,7 @@ namespace Examine.LuceneEngine.Providers
 			private set;
 	    }
 
-        /// <summary>
-        /// Initializes the provider.
-        /// </summary>
-        /// <param name="name">The friendly name of the provider.</param>
-        /// <param name="config">A collection of the name/value pairs representing the provider-specific attributes specified in the configuration for this provider.</param>
-        /// <exception cref="T:System.ArgumentNullException">
-        /// The name of the provider is null.
-        /// </exception>
-        /// <exception cref="T:System.ArgumentException">
-        /// The name of the provider has a length of zero.
-        /// </exception>
-        /// <exception cref="T:System.InvalidOperationException">
-        /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
-        /// </exception>
-		
-        public override void Initialize(string name, NameValueCollection config)
-        {
-            base.Initialize(name, config);
-
-            if (config["analyzer"] != null)
-            {
-                //this should be a fully qualified type
-                var analyzerType = TypeHelper.FindType(config["analyzer"]);
-                if (typeof(StandardAnalyzer).IsAssignableFrom(analyzerType))
-                    LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType, Version.LUCENE_30);
-                else
-                    LuceneAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
-            }
-            else
-            {
-                LuceneAnalyzer = new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
-            }
-        }
-
-        public override string Name => _name ?? base.Name;
+        public override string Name { get; }
 
         /// <summary>
         /// Returns all field names that exist in the index
@@ -149,7 +106,6 @@ namespace Examine.LuceneEngine.Providers
         /// see https://lists.gt.net/lucene/java-user/92194
         /// 
         /// </remarks>
-        
         private void SetScoringBooleanQueryRewriteMethod(Query query)
         {
             

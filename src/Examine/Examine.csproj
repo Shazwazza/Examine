@@ -87,7 +87,6 @@
       <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.configuration" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -101,9 +100,6 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="Config\IndexProvidersSection.cs" />
-    <Compile Include="Config\SearchProvidersSection.cs" />
-    <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="FieldDefinition.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
     <Compile Include="IExamineManager.cs" />
@@ -192,8 +188,6 @@
     <Compile Include="SearchResult.cs" />
     <Compile Include="Providers\BaseIndexProvider.cs" />
     <Compile Include="Providers\BaseSearchProvider.cs" />
-    <Compile Include="Providers\IndexProviderCollection.cs" />
-    <Compile Include="Providers\SearchProviderCollection.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="ValueSet.cs" />

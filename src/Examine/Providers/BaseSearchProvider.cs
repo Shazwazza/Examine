@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Specialized;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security;
-using System.Text;
-using System.Configuration.Provider;
-using Examine;
-using Examine.Search;
+﻿using Examine.Search;
 
 namespace Examine.Providers
 {
     ///<summary>
     /// Abstract search provider object
     ///</summary>
-    public abstract class BaseSearchProvider : ProviderBase, ISearcher
+    public abstract class BaseSearchProvider : ISearcher
     {
+        public abstract string Name { get; }
+
         /// <summary>
         /// Searches the index
         /// </summary>

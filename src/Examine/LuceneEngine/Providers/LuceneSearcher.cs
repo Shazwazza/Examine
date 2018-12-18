@@ -22,16 +22,6 @@ namespace Examine.LuceneEngine.Providers
         #region Constructors
 
         /// <summary>
-        /// Protected constructor since this cannot be created via config
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected LuceneSearcher()
-        {
-            _disposer = new DisposableSearcher(this);
-            _reopener = new ReaderReopener(this);
-        }
-
-        /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
         /// <param name="name"></param>

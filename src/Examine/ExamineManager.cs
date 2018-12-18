@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using System.Threading;
-using System.Web.Configuration;
 using System.Web.Hosting;
-using Examine.Config;
 using Examine.LuceneEngine;
-using Examine.Providers;
 
 namespace Examine
 {
@@ -43,8 +40,9 @@ namespace Examine
         public static bool InstanceInitialized { get; private set; }
 
         /// <summary>
-        /// Singleton
+        /// Singleton instance - but it's much more preferable to use IExamineManager
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static IExamineManager Instance
         {
             get
@@ -56,94 +54,45 @@ namespace Examine
 
         private static readonly ExamineManager Manager = new ExamineManager();
 
-        private object _lock = new object();
         private readonly ConcurrentDictionary<string, IIndex> _indexers = new ConcurrentDictionary<string, IIndex>();
         private readonly ConcurrentDictionary<string, ISearcher> _searchers = new ConcurrentDictionary<string, ISearcher>();
 
-        private SearchProviderCollection ConfigBasedSearchProviders
-        {
-            get
-            {
-                EnsureProviders();
-                return _providerCollections.Item1;
-            }
-        }
-
-        private IndexProviderCollection ConfigBasedIndexProviders
-        {
-            get
-            {
-                EnsureProviders();
-                return _providerCollections.Item2;
-            }
-        }
-        
         /// <inheritdoc />
         public bool TryGetSearcher(string searcherName, out ISearcher searcher) => 
-            (searcher = (_searchers.TryGetValue(searcherName, out var s) ? s : null) ?? ConfigBasedSearchProviders[searcherName]) != null;
+            (searcher = _searchers.TryGetValue(searcherName, out var s) ? s : null) != null;
 
         /// <inheritdoc />
         public bool TryGetIndex(string indexName, out IIndex index) => 
-            (index = (_indexers.TryGetValue(indexName, out var i) ? i : null) ?? ConfigBasedIndexProviders[indexName]) != null;
+            (index = _indexers.TryGetValue(indexName, out var i) ? i : null) != null;
 
         /// <inheritdoc />
-        public IEnumerable<ISearcher> RegisteredSearchers => _searchers.Values.Concat(ConfigBasedSearchProviders);
+        public IEnumerable<ISearcher> RegisteredSearchers => _searchers.Values;
 
         /// <inheritdoc />
-        public IEnumerable<IIndex> Indexes => _indexers.Values.Concat(ConfigBasedIndexProviders);
+        public IEnumerable<IIndex> Indexes => _indexers.Values;
        
         /// <inheritdoc />
-        public void AddIndex(IIndex index)
+        public IIndex AddIndex(IIndex index)
         {
             //make sure this name doesn't exist in
-
-            if (ConfigBasedIndexProviders[index.Name] != null)
-            {
-                throw new InvalidOperationException("The indexer with name " + index.Name + " already exists");
-            }
             if (!_indexers.TryAdd(index.Name, index))
             {
                 throw new InvalidOperationException("The indexer with name " + index.Name + " already exists");
             }
+
+            return index;
         }
 
         /// <inheritdoc />
-        public void AddSearcher(ISearcher searcher)
+        public ISearcher AddSearcher(ISearcher searcher)
         {
             //make sure this name doesn't exist in
-
-            if (ConfigBasedSearchProviders[searcher.Name] != null)
-            {
-                throw new InvalidOperationException("The searcher with name " + searcher.Name + " already exists");
-            }
             if (!_searchers.TryAdd(searcher.Name, searcher))
             {
                 throw new InvalidOperationException("The searcher with name " + searcher.Name + " already exists");
             }
-        }
 
-
-        private bool _providersInit = false;
-        
-        private Tuple<SearchProviderCollection, IndexProviderCollection> _providerCollections;
-
-        /// <summary>
-        /// Before any of the index/search collections are accessed, the providers need to be loaded
-        /// </summary>
-        private void EnsureProviders()
-        {
-            LazyInitializer.EnsureInitialized(ref _providerCollections, ref _providersInit, ref _lock, () =>
-            {
-                // Load registered providers and point _provider to the default provider	`
-
-                var indexProviderCollection = new IndexProviderCollection();
-                ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.IndexProviders.Providers, indexProviderCollection, typeof(BaseIndexProvider));
-
-                var searchProviderCollection = new SearchProviderCollection();
-                ProvidersHelper.InstantiateProviders(ExamineSettings.Instance.SearchProviders.Providers, searchProviderCollection, typeof(BaseSearchProvider));
-
-                return new Tuple<SearchProviderCollection, IndexProviderCollection>(searchProviderCollection, indexProviderCollection);
-            });
+            return searcher;
         }
 
         /// <summary>
@@ -191,7 +140,7 @@ namespace Examine
                     // or always use a foreach loop which can't really be forced. The only alternative to using DecRef and IncRef would be to make the results
                     // not lazy which isn't good.
 
-                    foreach (var searcher in ConfigBasedSearchProviders.OfType<IDisposable>())
+                    foreach (var searcher in RegisteredSearchers.OfType<IDisposable>())
                     {
                         searcher.Dispose();
                     }

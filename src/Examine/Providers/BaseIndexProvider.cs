@@ -1,31 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration.Provider;
 using System.Linq;
-using System.Security;
-using Examine;
-using System.Xml.Linq;
-using Examine.LuceneEngine;
-using Examine.LuceneEngine.Providers;
 
 namespace Examine.Providers
 {
+    /// <inheritdoc />
     /// <summary>
     /// Base class for an Examine Index Provider
     /// </summary>
-    public abstract class BaseIndexProvider : ProviderBase, IIndex
+    public abstract class BaseIndexProvider : IIndex
     {
-        private readonly string _name;
-
-        /// <summary>
-        /// Constructor for creating a provider/config based index
-        /// </summary>
-        protected BaseIndexProvider()
-        {
-            FieldDefinitionCollection = new FieldDefinitionCollection();
-        }
-
         /// <summary>
         /// Constructor for creating an indexer at runtime
         /// </summary>
@@ -35,12 +19,12 @@ namespace Examine.Providers
         protected BaseIndexProvider(string name, FieldDefinitionCollection fieldDefinitions, IValueSetValidator validator)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
-            _name = name;
+            Name = name;
             FieldDefinitionCollection = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
             ValueSetValidator = validator;
         }
 
-        public override string Name => _name ?? base.Name;
+        public virtual string Name { get; }
 
         /// <summary>
         /// A validator to validate a value set before it's indexed
