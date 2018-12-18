@@ -99,6 +99,46 @@ namespace Examine.Test.Search
         }
 
         [Test]
+        public void Managed_Full_Text_With_Bool()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var indexer1 = new TestIndex(luceneDir1, analyzer))
+            {
+                indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
+                indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
+                indexer1.IndexItem(ValueSet.FromObject("3", "content", new { item1 = "value3", item2 = "They are expected to confront the darkness and show evidence that they have done so in their papers" }));
+                indexer1.IndexItem(ValueSet.FromObject("4", "content", new { item1 = "value4", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
+                indexer1.IndexItem(ValueSet.FromObject("5", "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
+                indexer1.IndexItem(ValueSet.FromObject("6", "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
+
+                var searcher = indexer1.GetSearcher();
+
+                var result = searcher.CreateQuery().ManagedQuery("darkness").And().Field("item1", "value1").Execute();
+
+                Assert.AreEqual(1, result.TotalItemCount);
+                Console.WriteLine("Search 1:");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+
+                var qry = searcher.CreateQuery().ManagedQuery("darkness")
+                    .And(query => query.Field("item1", "value1").Or().Field("item1", "value2"), BooleanOperation.Or);
+                Console.WriteLine(qry);
+                result = qry.Execute();
+
+                Assert.AreEqual(2, result.TotalItemCount);
+                Console.WriteLine("Search 2:");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+            }
+        }
+
+        [Test]
         public void Managed_Range_Int()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
