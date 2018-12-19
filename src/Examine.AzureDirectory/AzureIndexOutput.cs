@@ -15,7 +15,7 @@ namespace Examine.AzureDirectory
     public class AzureIndexOutput : IndexOutput
     {
         private readonly AzureDirectory _azureDirectory;
-        private CloudBlobContainer _blobContainer;
+        //private CloudBlobContainer _blobContainer;
         private readonly string _name;
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
@@ -24,17 +24,15 @@ namespace Examine.AzureDirectory
 
         public AzureIndexOutput(AzureDirectory azureDirectory, ICloudBlob blob, string name)
         {
-            if (azureDirectory == null) throw new ArgumentNullException(nameof(azureDirectory));
-
             //TODO: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19
             // I have changed this to be correct now
             _name = name;
-            _azureDirectory = azureDirectory;
+            _azureDirectory = azureDirectory ?? throw new ArgumentNullException(nameof(azureDirectory));
             _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name); 
             _fileMutex.WaitOne();
             try
             {                
-                _blobContainer = _azureDirectory.BlobContainer;
+                //_blobContainer = _azureDirectory.BlobContainer;
                 _blob = blob;
                 _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
 
@@ -57,50 +55,65 @@ namespace Examine.AzureDirectory
             _fileMutex.WaitOne();
             try
             {
-                string fileName = _name;
+                var fileName = _name;
 
-                // make sure it's all written out
-                _indexOutput.Flush();
-
-                long originalLength = _indexOutput.Length;
-                _indexOutput.Dispose();
-
-                Stream blobStream;
-
-                // optionally put a compressor around the blob stream
-                if (_azureDirectory.ShouldCompressFile(_name))
+                long originalLength = 0;
+                
+                //this can be null in some odd cases so we need to check
+                if (_indexOutput != null)
                 {
-                    blobStream = CompressStream(fileName, originalLength);
+                    try
+                    {
+                        // make sure it's all written out
+                        _indexOutput.Flush();
+                        originalLength = _indexOutput.Length;
+                    }
+                    finally
+                    {
+                        _indexOutput.Dispose();
+                    }
                 }
-                else
-                {
-                    blobStream = new StreamInput(CacheDirectory.OpenInput(fileName));
-                }
 
-                try
+                if (originalLength > 0)
                 {
-                    // push the blobStream up to the cloud
-                    _blob.UploadFromStream(blobStream);
+                    Stream blobStream;
 
-                    // set the metadata with the original index file properties
-                    _blob.Metadata["CachedLength"] = originalLength.ToString();
-                    _blob.Metadata["CachedLastModified"] = CacheDirectory.FileModified(fileName).ToString();
-                    _blob.SetMetadata();
+                    // optionally put a compressor around the blob stream
+                    if (_azureDirectory.ShouldCompressFile(_name))
+                    {
+                        blobStream = CompressStream(fileName, originalLength);
+                    }
+                    else
+                    {
+                        blobStream = new StreamInput(CacheDirectory.OpenInput(fileName));
+                    }
+
+                    try
+                    {
+                        // push the blobStream up to the cloud
+                        _blob.UploadFromStream(blobStream);
+
+                        // set the metadata with the original index file properties
+                        _blob.Metadata["CachedLength"] = originalLength.ToString();
+                        _blob.Metadata["CachedLastModified"] = CacheDirectory.FileModified(fileName).ToString();
+                        _blob.SetMetadata();
 #if FULLDEBUG
-                    Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
+                        Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
+#endif
+                    }
+                    finally
+                    {
+                        blobStream.Dispose();
+                    }
+
+#if FULLDEBUG
+                    Trace.WriteLine($"CLOSED WRITESTREAM {_name}");
 #endif
                 }
-                finally
-                {
-                    blobStream.Dispose();
-                }
 
-#if FULLDEBUG
-                Trace.WriteLine($"CLOSED WRITESTREAM {_name}");
-#endif
                 // clean up
                 _indexOutput = null;
-                _blobContainer = null;
+                //_blobContainer = null;
                 _blob = null;
                 GC.SuppressFinalize(this);
             }
@@ -142,8 +155,7 @@ namespace Examine.AzureDirectory
             }
             finally
             {
-                if (indexInput != null)
-                    indexInput.Close();
+                indexInput?.Close();
             }
             return compressedStream;
         }
