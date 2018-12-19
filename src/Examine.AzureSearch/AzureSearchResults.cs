@@ -87,6 +87,7 @@ namespace Examine.AzureSearch
             }
 
             //TODO: Get sorting working
+            //TODO: Get filtering/range working
 
             //TODO: We need to escape the resulting query
 

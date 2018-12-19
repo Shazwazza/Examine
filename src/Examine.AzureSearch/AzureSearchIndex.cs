@@ -18,8 +18,8 @@ namespace Examine.AzureSearch
     public class AzureSearchIndex : BaseIndexProvider, IDisposable
     {
         
-        private string _searchServiceName;
-        private string _apiKey;
+        private readonly string _searchServiceName;
+        private readonly string _apiKey;
         private bool? _exists;
         private ISearchIndexClient _indexer;
         private readonly Lazy<ISearchServiceClient> _client;
@@ -95,7 +95,7 @@ namespace Examine.AzureSearch
                 _client.Value.Indexes.Delete(Name);
             }
 
-            CreateIndex();
+            CreateNewIndex();
         }
 
         //protected override void IndexItem(string id, string type, IDictionary<string, string> values, Action onComplete)

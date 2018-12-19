@@ -1,4 +1,5 @@
-﻿using Examine.Search;
+﻿using System;
+using Examine.Search;
 
 namespace Examine.Providers
 {
@@ -7,7 +8,13 @@ namespace Examine.Providers
     ///</summary>
     public abstract class BaseSearchProvider : ISearcher
     {
-        public abstract string Name { get; }
+        protected BaseSearchProvider(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            Name = name;
+        }
+
+        public string Name { get; }
 
         /// <summary>
         /// Searches the index
@@ -18,7 +25,7 @@ namespace Examine.Providers
         public abstract ISearchResults Search(string searchText, int maxResults = 500);
 
         /// <inheritdoc />
-		public abstract IQuery CreateQuery(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
+		public abstract IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And);
         
     }
 }

@@ -1,27 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
-using Examine.LuceneEngine.SearchCriteria;
 using Examine.Providers;
-using Examine.SearchCriteria;
+using Examine.Search;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using StandardAnalyzer = Lucene.Net.Analysis.Standard.StandardAnalyzer;
-using Version = Lucene.Net.Util.Version;
 
 namespace Examine.AzureSearch
 {
     public class AzureSearchSearcher : BaseSearchProvider, IDisposable
     {
-        private string _indexName;
-        private string _searchServiceName;
-        private string _apiKey;
-        private readonly Lazy<ISearchIndexClient> _searchClient;
-        private readonly Lazy<ISearchServiceClient> _indexClient;
-        //TODO: maybe simple analyzer would be better just for query parsing?
-        private readonly StandardAnalyzer _standardAnalyzer = new StandardAnalyzer(Version.LUCENE_29);
+        private readonly string _searchServiceName;
+        private readonly string _apiKey;
+        private readonly Lazy<ISearchIndexClient> _indexClient;
+        private readonly Lazy<ISearchServiceClient> _serviceClient;
         private string[] _allFields;
         private bool? _exists;
         private static readonly string[] EmptyFields = new string[0];
@@ -29,16 +21,16 @@ namespace Examine.AzureSearch
         /// <summary>
         /// Constructor used for runtime based instances
         /// </summary>
-        /// <param name="indexName"></param>
+        /// <param name="name"></param>
         /// <param name="searchServiceName"></param>
         /// <param name="apiKey"></param>
-        public AzureSearchSearcher(string indexName, string searchServiceName, string apiKey)
+        public AzureSearchSearcher(string name, string searchServiceName, string apiKey)
+            : base(name.ToLowerInvariant())//TODO: Need to 'clean' the name according to Azure Search rules
         {
-            //TODO: Need to 'clean' the name according to Azure Search rules
-            _indexName = indexName.ToLowerInvariant();
             _searchServiceName = searchServiceName;
             _apiKey = apiKey;
-            
+            _indexClient = new Lazy<ISearchIndexClient>(CreateSearchIndexClient);
+            _serviceClient = new Lazy<ISearchServiceClient>(CreateSearchServiceClient);
         }
 
         public bool IndexExists
@@ -47,7 +39,7 @@ namespace Examine.AzureSearch
             {
                 if (_exists == null || !_exists.Value)
                 {
-                    _exists = _indexClient.Value.Indexes.Exists(_indexName);
+                    _exists = _serviceClient.Value.Indexes.Exists(Name);
                 }
                 return _exists.Value;
             }
@@ -62,7 +54,7 @@ namespace Examine.AzureSearch
 
                 if (!IndexExists) return EmptyFields;
 
-                var index = _indexClient.Value.Indexes.Get(_indexName);
+                var index = _serviceClient.Value.Indexes.Get(Name);
                 _allFields = index.Fields.Select(x => x.Name).ToArray();
                 return _allFields;
             }
@@ -153,7 +145,7 @@ namespace Examine.AzureSearch
 
         private ISearchIndexClient CreateSearchIndexClient()
         {
-            return new SearchIndexClient(_searchServiceName, _indexName, new SearchCredentials(_apiKey));
+            return new SearchIndexClient(_searchServiceName, Name, new SearchCredentials(_apiKey));
         }
 
         private ISearchServiceClient CreateSearchServiceClient()
@@ -163,50 +155,55 @@ namespace Examine.AzureSearch
 
         public void Dispose()
         {
-            if (_searchClient.IsValueCreated)
-                _searchClient.Value.Dispose();
             if (_indexClient.IsValueCreated)
                 _indexClient.Value.Dispose();
+            if (_serviceClient.IsValueCreated)
+                _serviceClient.Value.Dispose();
         }
 
         public override ISearchResults Search(string searchText, int maxResults = 500)
         {
             //just do a simple azure search
-            return new AzureSearchResults(_searchClient.Value.Documents, searchText, maxResults);
+            return new AzureSearchResults(_indexClient.Value.Documents, searchText, maxResults);
         }
 
-        public override ISearchResults Search(ISearchCriteria searchParameters, int maxResults = 500)
+        public override IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And)
         {
-            if (searchParameters == null) throw new ArgumentNullException(nameof(searchParameters));
-
-            if (!IndexExists)
-                return EmptySearchResults.Instance;
-
-            if (!(searchParameters is LuceneSearchCriteria luceneParams))
-                throw new ArgumentException("Provided ISearchCriteria was not created with the CreateCriteria method of this searcher");
-
-            var pagesResults = new AzureSearchResults(_searchClient.Value.Documents, luceneParams.Query, maxResults == 0 ? null : (int?)maxResults);
-            return pagesResults;
+            return new AzureQuery(_indexClient.Value, _serviceClient.Value, category, AllFields, defaultOperation);
         }
 
-        public override ISearchCriteria CreateCriteria()
-        {
-            throw new NotImplementedException();
-        }
+        //public override ISearchResults Search(ISearchCriteria searchParameters, int maxResults = 500)
+        //{
+        //    if (searchParameters == null) throw new ArgumentNullException(nameof(searchParameters));
 
-        public override ISearchCriteria CreateCriteria(BooleanOperation defaultOperation)
-        {
-            throw new NotImplementedException();
-        }
+        //    if (!IndexExists)
+        //        return EmptySearchResults.Instance;
 
-        public override ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation)
-        {
-            return new LuceneSearchCriteria(type, _standardAnalyzer, AllFields, true, defaultOperation);
-        }
+        //    if (!(searchParameters is LuceneSearchCriteria luceneParams))
+        //        throw new ArgumentException("Provided ISearchCriteria was not created with the CreateCriteria method of this searcher");
 
-        public override ISearchCriteria CreateCriteria(string type)
-        {
-            throw new NotImplementedException();
-        }
+        //    var pagesResults = new AzureSearchResults(_searchClient.Value.Documents, luceneParams.Query, maxResults == 0 ? null : (int?)maxResults);
+        //    return pagesResults;
+        //}
+
+        //public override ISearchCriteria CreateCriteria()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override ISearchCriteria CreateCriteria(BooleanOperation defaultOperation)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override ISearchCriteria CreateCriteria(string type, BooleanOperation defaultOperation)
+        //{
+        //    return new LuceneSearchCriteria(type, _standardAnalyzer, AllFields, true, defaultOperation);
+        //}
+
+        //public override ISearchCriteria CreateCriteria(string type)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }
