@@ -110,17 +110,16 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
         /// </summary>
-        /// <param name="docId">The doc id of the lucene document.</param>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
         /// <returns>A populated search result object</returns>
-        protected SearchResult CreateSearchResult(int docId, Document doc, float score)
+        protected SearchResult CreateSearchResult(Document doc, float score)
         {
-            var searchResult = PrepareSearchResult(docId, score, doc);
+            var searchResult = PrepareSearchResult(score, doc);
             return searchResult;
         }
 
-        private SearchResult PrepareSearchResult(int docId, float score, Document doc)
+        private SearchResult PrepareSearchResult(float score, Document doc)
         {
             var id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
@@ -128,7 +127,7 @@ namespace Examine.LuceneEngine
                 id = doc.Get(LuceneIndex.ItemIdFieldName);
             }
 
-            var sr = new SearchResult(id, docId, score, () =>
+            var sr = new SearchResult(id, score, () =>
             {
                 //we can use lucene to find out the fields which have been stored for this particular document
                 var fields = doc.GetFields();
@@ -170,7 +169,7 @@ namespace Examine.LuceneEngine
             var docId = TopDocs.ScoreDocs[i].Doc;
             var doc = LuceneSearcher.Doc(docId);
             var score = TopDocs.ScoreDocs[i].Score;
-            var result = CreateSearchResult(docId, doc, score);
+            var result = CreateSearchResult(doc, score);
             return result;
         }
 

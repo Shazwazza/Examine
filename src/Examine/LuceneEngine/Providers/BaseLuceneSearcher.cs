@@ -15,22 +15,15 @@ namespace Examine.LuceneEngine.Providers
         #region Constructors
 
         /// <summary>
-        /// Default constructor
-        /// </summary>
-        protected BaseLuceneSearcher()
-		{
-        }
-
-        /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="name"></param>
         /// <param name="analyzer"></param>
         protected BaseLuceneSearcher(string name, Analyzer analyzer)
+            : base(name)
 		{
 		    if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
 		    LuceneAnalyzer = analyzer;
-		    Name = name;
         }
 
 		#endregion
@@ -38,13 +31,7 @@ namespace Examine.LuceneEngine.Providers
 	    /// <summary>
 	    /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
 	    /// </summary>
-	    public Analyzer LuceneAnalyzer
-	    {
-		    get;
-			private set;
-	    }
-
-        public override string Name { get; }
+	    public Analyzer LuceneAnalyzer { get; }
 
         /// <summary>
         /// Returns all field names that exist in the index
@@ -62,24 +49,24 @@ namespace Examine.LuceneEngine.Providers
         public abstract ISearchContext GetSearchContext();
 
         /// <inheritdoc />
-		public override IQuery CreateQuery(string type = null, BooleanOperation defaultOperation = BooleanOperation.And)
+		public override IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And)
         {
-            return CreateQuery(type, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
+            return CreateQuery(category, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
         }
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
         /// </summary>
-        /// <param name="type">The type of data in the index.</param>
+        /// <param name="category">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <param name="luceneAnalyzer"></param>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        public IQuery CreateQuery(string type, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
+        public IQuery CreateQuery(string category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null) throw new ArgumentNullException(nameof(luceneAnalyzer));
 
-            return new LuceneSearchQuery(GetSearchContext(), type, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
+            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
         }
 
         /// <inheritdoc />

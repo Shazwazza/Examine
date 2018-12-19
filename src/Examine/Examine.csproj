@@ -153,6 +153,9 @@
     <Compile Include="IValueSetValidator.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndex.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
+    <Compile Include="LuceneEngine\Search\CustomMultiFieldQueryParser.cs" />
+    <Compile Include="LuceneEngine\Search\LuceneBooleanOperationBase.cs" />
+    <Compile Include="LuceneEngine\Search\LuceneSearchQueryBase.cs" />
     <Compile Include="LuceneEngine\Search\SearchContext.cs" />
     <Compile Include="LuceneEngine\Search\LuceneSearchOptions.cs" />
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />

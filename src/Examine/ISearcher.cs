@@ -24,11 +24,11 @@ namespace Examine
         /// <summary>
         /// Creates a search criteria instance as required by the implementation
         /// </summary>
-        /// <param name="type">The type of data in the index.</param>
+        /// <param name="category">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
         /// <returns>
         /// An instance of <see cref="IQueryExecutor"/>
         /// </returns>
-        IQuery CreateQuery(string type = null, BooleanOperation defaultOperation = BooleanOperation.And);
+        IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And);
     }
 }
