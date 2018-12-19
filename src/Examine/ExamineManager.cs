@@ -54,8 +54,8 @@ namespace Examine
 
         private static readonly ExamineManager Manager = new ExamineManager();
 
-        private readonly ConcurrentDictionary<string, IIndex> _indexers = new ConcurrentDictionary<string, IIndex>();
-        private readonly ConcurrentDictionary<string, ISearcher> _searchers = new ConcurrentDictionary<string, ISearcher>();
+        private readonly ConcurrentDictionary<string, IIndex> _indexers = new ConcurrentDictionary<string, IIndex>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly ConcurrentDictionary<string, ISearcher> _searchers = new ConcurrentDictionary<string, ISearcher>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <inheritdoc />
         public bool TryGetSearcher(string searcherName, out ISearcher searcher) => 

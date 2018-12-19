@@ -27,15 +27,16 @@ namespace Examine.AzureSearch
 
         public AzureSearchIndex(
             string name,
-            FieldDefinitionCollection fieldDefinitions,
-            string searchServiceName, string apiKey, string analyzer,
+            string searchServiceName, string apiKey,
+            FieldDefinitionCollection fieldDefinitions = null,
+            string analyzer = null,
             IValueSetValidator validator = null)
             : base(name.ToLowerInvariant(), //TODO: Need to 'clean' the name according to Azure Search rules
-                fieldDefinitions, validator)
+                fieldDefinitions ?? new FieldDefinitionCollection(), validator)
         {
             _searchServiceName = searchServiceName;
             _apiKey = apiKey;
-            Analyzer = analyzer;
+            Analyzer = analyzer ?? "standard.lucene";
             
             _client = new Lazy<ISearchServiceClient>(CreateSearchServiceClient);
         }
@@ -239,6 +240,12 @@ namespace Examine.AzureSearch
                     Analyzer = AnalyzerName.Whitespace
                 });
 
+                fields.Add(new Field(FormatFieldName(LuceneIndex.CategoryFieldName), DataType.String)
+                {
+                    IsSearchable = true,
+                    Analyzer = AnalyzerName.Whitespace
+                });
+
                 //TODO: We should have a custom event for devs to modify the AzureSearch data directly here
 
                 var index = _client.Value.Indexes.Create(new Index(Name, fields));
@@ -326,6 +333,8 @@ namespace Examine.AzureSearch
 
             var indexer = GetIndexClient();
 
+            var totalResults = 0;
+
             //batches can only contain 1000 records
             foreach (var rowGroup in op.InGroupsOf(1000))
             {
@@ -335,8 +344,7 @@ namespace Examine.AzureSearch
                 {
                     var indexResult = indexer.Documents.Index(batch);
                     //TODO: Do we need to check for errors in any of the results?
-
-                    onComplete(new IndexOperationEventArgs(this, indexResult.Results.Count));
+                    totalResults += indexResult.Results.Count;
                 }
                 catch (IndexBatchException e)
                 {
@@ -351,6 +359,8 @@ namespace Examine.AzureSearch
                         "Failed to index some of the documents: {0}",
                         string.Join(", ", e.IndexingResults.Where(r => !r.Succeeded).Select(r => r.Key)));
                 }
+
+                onComplete(new IndexOperationEventArgs(this, totalResults));
             }
         }
 

@@ -116,30 +116,35 @@ namespace Examine.Web.Demo.Controllers
         }
 
         [HttpPost]
-        public ActionResult RebuildIndex()
+        public ActionResult RebuildIndex(string indexName = null)
         {
-            if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
+            if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
-            var luceneIndex = (LuceneIndex) index;
-            using (luceneIndex.ProcessNonAsync())
-            {
-                try
-                {
-                    var timer = new Stopwatch();
-                    timer.Start();
-                    index.CreateIndex();
-                    var dataService = new TableDirectReaderDataService();
-                    index.IndexItems(dataService.GetAllData());
-                    timer.Stop();
+            if (index is LuceneIndex luceneIndex)
+                using (luceneIndex.ProcessNonAsync())
+                    return RebuildImpl(index);
 
-                    return View(timer.Elapsed.TotalSeconds);
-                }
-                catch (Exception ex)
-                {
-                    this.ModelState.AddModelError("DataError", ex.Message);
-                    return View(0.0);
-                }
+            return RebuildImpl(index);
+        }
+
+        private ActionResult RebuildImpl(IIndex index)
+        {
+            try
+            {
+                var timer = new Stopwatch();
+                timer.Start();
+                index.CreateIndex();
+                var dataService = new TableDirectReaderDataService();
+                index.IndexItems(dataService.GetAllData());
+                timer.Stop();
+
+                return View(timer.Elapsed.TotalSeconds);
+            }
+            catch (Exception ex)
+            {
+                this.ModelState.AddModelError("DataError", ex.Message);
+                return View(0.0);
             }
         }
 
