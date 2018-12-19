@@ -4,10 +4,10 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Examine.LuceneEngine.Search;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
-using Examine.LuceneEngine.SearchCriteria;
 using Lucene.Net.Analysis;
 using Directory = Lucene.Net.Store.Directory;
 
@@ -20,16 +20,6 @@ namespace Examine.LuceneEngine.Providers
     public class LuceneSearcher : BaseLuceneSearcher, IDisposable
     {
         #region Constructors
-
-        /// <summary>
-        /// Protected constructor since this cannot be created via config
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected LuceneSearcher()
-        {
-            _disposer = new DisposableSearcher(this);
-            _reopener = new ReaderReopener(this);
-        }
 
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
@@ -122,9 +112,9 @@ namespace Examine.LuceneEngine.Providers
             return _searcher;
         }
 
-        public override ICriteriaContext GetCriteriaContext()
+        public override ISearchContext GetSearchContext()
         {
-            return new CriteriaContext(FieldValueTypeCollection, GetLuceneSearcher());
+            return new SearchContext(FieldValueTypeCollection, GetLuceneSearcher());
         }
 
         /// <inheritdoc />

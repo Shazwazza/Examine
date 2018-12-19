@@ -2,9 +2,9 @@
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Search;
 
-namespace Examine.LuceneEngine.SearchCriteria
+namespace Examine.LuceneEngine.Search
 {
-    public interface ICriteriaContext
+    public interface ISearchContext
     {
         Searcher Searcher { get; }
         IEnumerable<IIndexValueType> ValueTypes { get; }

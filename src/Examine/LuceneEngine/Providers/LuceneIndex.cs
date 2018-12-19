@@ -1,26 +1,18 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Hosting;
-using Examine.LuceneEngine.Directories;
-using Examine.LuceneEngine.Indexing;
 using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
-using Version = Lucene.Net.Util.Version;
 
 
 namespace Examine.LuceneEngine.Providers
@@ -33,46 +25,31 @@ namespace Examine.LuceneEngine.Providers
         #region Constructors
 
         /// <summary>
-        /// Constructor used for provider instantiation
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public LuceneIndex()
-        {
-            _disposer = new DisposableIndex(this);
-            _committer = new IndexCommiter(this);
-            _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
-            //initialize the field types
-            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes());
-            WaitForIndexQueueOnShutdown = true;
-        }
-
-        /// <summary>
         /// Constructor to create an indexer at runtime
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="fieldDefinitions"></param>
-        /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
         /// <param name="luceneDirectory"></param>
+        /// <param name="fieldDefinitions"></param>
         /// <param name="analyzer">Specifies the default analyzer to use per field</param>
+        /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
         /// <param name="indexValueTypesFactory">
-        /// Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.DefaultValueTypes"/> will be used.
-        /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
+        ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.DefaultValueTypes"/> will be used.
+        ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
-        public LuceneIndex(
-            string name,
-            FieldDefinitionCollection fieldDefinitions,
+        public LuceneIndex(string name,
             Directory luceneDirectory,
-            Analyzer analyzer,
+            FieldDefinitionCollection fieldDefinitions = null,
+            Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : base(name, fieldDefinitions, validator)
+            : base(name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
         {
             _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
 
             LuceneIndexFolder = null;
 
-            DefaultAnalyzer = analyzer;
+            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
 
             _directory = luceneDirectory;
             //initialize the field types
@@ -110,69 +87,6 @@ namespace Examine.LuceneEngine.Providers
             LuceneIndexFolder = null;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
-        }
-
-        #endregion
-
-        #region Initialize
-
-        /// <summary>
-        /// Set up all properties for the indexer based on configuration information specified. This will ensure that
-        /// all of the folders required by the indexer are created and exist. This will also create an instruction
-        /// file declaring the computer name that is part taking in the indexing. This file will then be used to
-        /// determine the master indexer machine in a load balanced environment (if one exists).
-        /// </summary>
-        /// <param name="name">The friendly name of the provider.</param>
-        /// <param name="config">A collection of the name/value pairs representing the provider-specific attributes specified in the configuration for this provider.</param>
-        /// <exception cref="T:System.ArgumentNullException">
-        /// The name of the provider is null.
-        /// </exception>
-        /// <exception cref="T:System.ArgumentException">
-        /// The name of the provider has a length of zero.
-        /// </exception>
-        /// <exception cref="T:System.InvalidOperationException">
-        /// An attempt is made to call <see cref="M:System.Configuration.Provider.ProviderBase.Initialize(System.String,System.Collections.Specialized.NameValueCollection)"/> on a provider after the provider has already been initialized.
-        /// </exception>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public override void Initialize(string name, NameValueCollection config)
-        {
-            base.Initialize(name, config);
-
-            if (config["directoryFactory"] != null)
-            {
-                //this should be a fully qualified type
-                var factoryType = TypeHelper.FindType(config["directoryFactory"]);
-                if (factoryType == null) throw new NullReferenceException("No directory type found for value: " + config["directoryFactory"]);
-                DirectoryFactory = (IDirectoryFactory)Activator.CreateInstance(factoryType);
-            }
-
-            if (config["analyzer"] != null)
-            {
-                //this should be a fully qualified type
-                var analyzerType = TypeHelper.FindType(config["analyzer"]);
-                if (typeof(StandardAnalyzer).IsAssignableFrom(analyzerType))
-                    DefaultAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType, Version.LUCENE_30);
-                else
-                    DefaultAnalyzer = (Analyzer)Activator.CreateInstance(analyzerType);
-            }
-            else
-            {
-                DefaultAnalyzer = new CultureInvariantStandardAnalyzer(Version.LUCENE_30);
-            }
-
-            if (config["indexFolder"] != null)
-            {
-                LuceneIndexFolder = new DirectoryInfo(
-                    IOHelper.MapPath(
-                        IOHelper.ReplaceTokensInIndexPath(
-                            config["indexFolder"])));
-            }
-
-            _directory = InitializeDirectory();
-
-            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes());
-
-            CommitCount = 0;
         }
 
         #endregion
@@ -260,7 +174,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Properties
 
-        private Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
+        private readonly Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
 
         /// <summary>
         /// Returns the <see cref="FieldValueTypeCollection"/> configured for this index
@@ -279,10 +193,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The default analyzer to use when indexing content, by default, this is set to StandardAnalyzer
         /// </summary>
-        public Analyzer DefaultAnalyzer
-        {
-            get; private set;
-        }
+        public Analyzer DefaultAnalyzer { get; }
 
         private PerFieldAnalyzerWrapper _fieldAnalyzer;
         public PerFieldAnalyzerWrapper FieldAnalyzer => _fieldAnalyzer
@@ -450,8 +361,7 @@ namespace Examine.LuceneEngine.Providers
                             try
                             {
                                 //clear the queue
-                                IEnumerable<IndexOperation> op;
-                                while (_indexQueue.TryTake(out op))
+                                while (_indexQueue.TryTake(out _))
                                 {
                                 }
 
@@ -504,10 +414,7 @@ namespace Examine.LuceneEngine.Providers
             }
             finally
             {
-                if (writer != null)
-                {
-                    writer.Dispose();
-                }
+                writer?.Dispose();
                 _exists = true;
             }
         }
@@ -758,7 +665,8 @@ namespace Examine.LuceneEngine.Providers
             var indexTypeValueType = FieldValueTypeCollection.GetValueType(ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            foreach (var field in valueSet.Values)
+            //copy to a new dictionary, there has been cases of an exception "Collection was modified; enumeration operation may not execute."
+            foreach (var field in new Dictionary<string, List<object>>(valueSet.Values))
             {
                 //check if we have a defined one
                 if (FieldDefinitionCollection.TryGetValue(field.Key, out var definedFieldDefinition))
@@ -1132,39 +1040,8 @@ namespace Examine.LuceneEngine.Providers
                         "App is shutting down so index batch operation is ignored", null, null));
             }
         }
-
-       
-
-        /// <summary>
-        /// Initialize the directory
-        /// </summary>
-        /// <remarks>
-        /// This is not thread safe
-        /// </remarks>
-        private Directory InitializeDirectory()
-        {
-            if (_directory != null) return _directory;
-
-            //ensure all of the folders are created at startup
-            if (!VerifyFolder(LuceneIndexFolder))
-                throw new InvalidOperationException("The indexFolder was not specified");
-
-            if (DirectoryFactory == null)
-            {   
-                var simpleFsDirectory = new SimpleFSDirectory(LuceneIndexFolder);
-                simpleFsDirectory.SetLockFactory(Directories.DirectoryFactory.DefaultLockFactory(LuceneIndexFolder));
-                return simpleFsDirectory;
-            }
-
-            return DirectoryFactory.CreateDirectory(LuceneIndexFolder);
-        }
-
-        private Directory _directory;
-
-        /// <summary>
-        /// Gets the <see cref="IDirectoryFactory"/> if one is being used
-        /// </summary>
-        public IDirectoryFactory DirectoryFactory { get; private set; }
+        
+        private readonly Directory _directory;
 
         /// <summary>
         /// Returns the Lucene Directory used to store the index

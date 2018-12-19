@@ -2,13 +2,13 @@
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Search;
 
-namespace Examine.LuceneEngine.SearchCriteria
+namespace Examine.LuceneEngine.Search
 {
-    public class CriteriaContext : ICriteriaContext
+    public class SearchContext : ISearchContext
     {
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
 
-        public CriteriaContext(FieldValueTypeCollection fieldValueTypeCollection, Searcher searcher)
+        public SearchContext(FieldValueTypeCollection fieldValueTypeCollection, Searcher searcher)
         {
             _fieldValueTypeCollection = fieldValueTypeCollection;
             Searcher = searcher;

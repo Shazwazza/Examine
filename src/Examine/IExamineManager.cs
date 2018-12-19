@@ -24,13 +24,13 @@ namespace Examine
         /// Adds an indexer to the manager
         /// </summary>
         /// <param name="index"></param>
-        void AddIndex(IIndex index);
+        IIndex AddIndex(IIndex index);
 
         /// <summary>
         /// Adds an index searcher to the manager - generally this would be a multi index searcher since most searchers are created from an existing index
         /// </summary>
         /// <param name="searcher"></param>
-        void AddSearcher(ISearcher searcher);
+        ISearcher AddSearcher(ISearcher searcher);
 
         void Dispose();
 

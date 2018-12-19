@@ -87,7 +87,6 @@
       <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.configuration" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -101,9 +100,6 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="Config\IndexProvidersSection.cs" />
-    <Compile Include="Config\SearchProvidersSection.cs" />
-    <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="FieldDefinition.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
     <Compile Include="IExamineManager.cs" />
@@ -157,41 +153,41 @@
     <Compile Include="IValueSetValidator.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndex.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\CriteriaContext.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchOptions.cs" />
+    <Compile Include="LuceneEngine\Search\SearchContext.cs" />
+    <Compile Include="LuceneEngine\Search\LuceneSearchOptions.cs" />
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\ValueSetValidatorDelegate.cs" />
     <Compile Include="LuceneEngine\ReaderStatus.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\ICriteriaContext.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\LateBoundQuery.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\LuceneBooleanOperation.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\LuceneQuery.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchCriteria.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\LuceneSearchExtensions.cs" />
-    <Compile Include="LuceneEngine\SearchCriteria\MultiCriteriaContext.cs" />
-    <Compile Include="SearchCriteria\SortableField.cs" />
-    <Compile Include="SearchCriteria\SortType.cs" />
+    <Compile Include="Search\ExamineValue.cs" />
+    <Compile Include="LuceneEngine\Search\ISearchContext.cs" />
+    <Compile Include="LuceneEngine\Search\LateBoundQuery.cs" />
+    <Compile Include="LuceneEngine\Search\LuceneBooleanOperation.cs" />
+    <Compile Include="LuceneEngine\Search\LuceneQuery.cs" />
+    <Compile Include="LuceneEngine\Search\LuceneSearchQuery.cs" />
+    <Compile Include="LuceneEngine\Search\LuceneSearchExtensions.cs" />
+    <Compile Include="LuceneEngine\Search\MultiSearchContext.cs" />
+    <Compile Include="SearchExtensions.cs" />
+    <Compile Include="Search\IOrdering.cs" />
+    <Compile Include="Search\SortableField.cs" />
+    <Compile Include="Search\SortType.cs" />
     <Compile Include="LuceneEngine\LuceneSearchResults.cs" />
     <Compile Include="LuceneEngine\ValueTypeFactoryCollection.cs" />
     <Compile Include="LuceneEngine\WriterTracker.cs" />
     <Compile Include="ObjectExtensions.cs" />
     <Compile Include="OrderedDictionary.cs" />
     <Compile Include="FieldDefinitionCollection.cs" />
-    <Compile Include="SearchCriteria\BooleanOperation.cs" />
-    <Compile Include="SearchCriteria\IBooleanOperation.cs" />
-    <Compile Include="SearchCriteria\IQuery.cs" />
-    <Compile Include="SearchCriteria\ISearchCriteria.cs" />
+    <Compile Include="Search\BooleanOperation.cs" />
+    <Compile Include="Search\IBooleanOperation.cs" />
+    <Compile Include="Search\IQuery.cs" />
+    <Compile Include="Search\IQueryExecutor.cs" />
     <Compile Include="ISearcher.cs" />
     <Compile Include="ExamineManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SearchCriteria\IExamineValue.cs" />
-    <Compile Include="SearchCriteria\Examineness.cs" />
+    <Compile Include="Search\IExamineValue.cs" />
+    <Compile Include="Search\Examineness.cs" />
     <Compile Include="SearchResult.cs" />
     <Compile Include="Providers\BaseIndexProvider.cs" />
     <Compile Include="Providers\BaseSearchProvider.cs" />
-    <Compile Include="Providers\IndexProviderCollection.cs" />
-    <Compile Include="Providers\SearchProviderCollection.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="ValueSet.cs" />

@@ -1,5 +1,5 @@
 ﻿
-namespace Examine.SearchCriteria
+namespace Examine.Search
 {
     public interface IExamineValue
     {
