@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Security;
-using Examine.SearchCriteria;
-using Lucene.Net.QueryParsers;
+using Examine.Search;
 using Lucene.Net.Search;
-using System.Linq;
 
-namespace Examine.LuceneEngine.SearchCriteria
+namespace Examine
 {
     /// <summary>
     /// A set of helpers for working with Lucene.Net in Examine
     /// </summary>
-    public static class LuceneSearchExtensions
+    public static class SearchExtensions
     {
         /// <summary>
         /// Adds a single character wildcard to the string for Lucene wildcard matching
@@ -21,7 +18,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public static IExamineValue SingleCharacterWildcard(this string s)
         {
             if (System.String.IsNullOrEmpty(s))
-                throw new ArgumentException("Supplied string is null or empty.", "s");
+                throw new ArgumentException("Supplied string is null or empty.", nameof(s));
 
             return new ExamineValue(Examineness.SimpleWildcard, s + "?");
         }
@@ -35,7 +32,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public static IExamineValue MultipleCharacterWildcard(this string s)
         {
             if (String.IsNullOrEmpty(s))
-                throw new ArgumentException("Supplied string is null or empty.", "s");
+                throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             return new ExamineValue(Examineness.ComplexWildcard, s + "*");
         }
 
@@ -62,7 +59,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public static IExamineValue Fuzzy(this string s, float fuzzieness)
         {
             if (String.IsNullOrEmpty(s))
-                throw new ArgumentException("Supplied string is null or empty.", "s");
+                throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             return new ExamineValue(Examineness.Fuzzy, s, fuzzieness);
         }
 
@@ -78,7 +75,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public static IExamineValue Boost(this string s, float boost)
         {
             if (String.IsNullOrEmpty(s))
-                throw new ArgumentException("Supplied string is null or empty.", "s");
+                throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             return new ExamineValue(Examineness.Boosted, s, boost);
         }
 
@@ -94,7 +91,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public static IExamineValue Proximity(this string s, int proximity)
         {
             if (String.IsNullOrEmpty(s))
-                throw new ArgumentException("Supplied string is null or empty.", "s");
+                throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             return new ExamineValue(Examineness.Proximity, s, Convert.ToSingle(proximity));
         }
 
@@ -107,7 +104,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         public static IExamineValue Escape(this string s)
         {
             if (String.IsNullOrEmpty(s))
-                throw new ArgumentException("Supplied string is null or empty.", "s");
+                throw new ArgumentException("Supplied string is null or empty.", nameof(s));
 
             //NOTE: You would be tempted to use QueryParser.Escape(s) here but that is incorrect because
             // inside of LuceneSearchCriteria when we detect Escaped, we use a PhraseQuery which automatically
@@ -116,45 +113,5 @@ namespace Examine.LuceneEngine.SearchCriteria
             return new ExamineValue(Examineness.Escaped, s);
         }
 
-        /// <summary>
-        /// Converts an Examine boolean operation to a Lucene representation
-        /// </summary>
-        /// <param name="o">The operation.</param>
-        /// <returns>The translated Boolean operation</returns>        
-        public static Occur ToLuceneOccurrence(this BooleanOperation o)
-        {
-            switch (o)
-            {
-                case BooleanOperation.And:
-                    return Occur.MUST;
-                case BooleanOperation.Not:
-                    return Occur.MUST_NOT;
-                case BooleanOperation.Or:
-                default:
-                    return Occur.SHOULD;
-            }
-        }
-
-        /// <summary>
-        /// Converts a Lucene boolean occurrence to an Examine representation
-        /// </summary>
-        /// <param name="o">The occurrence to translate.</param>
-        /// <returns>The translated boolean occurrence</returns>
-
-        public static BooleanOperation ToBooleanOperation(this Occur o)
-        {
-            if (o == Occur.MUST)
-            {
-                return BooleanOperation.And;
-            }
-            else if (o == Occur.MUST_NOT)
-            {
-                return BooleanOperation.Not;
-            }
-            else
-            {
-                return BooleanOperation.Or;
-            }
-        }
     }
 }

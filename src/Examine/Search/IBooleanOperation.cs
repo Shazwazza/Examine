@@ -1,12 +1,12 @@
 ﻿
 using System;
 
-namespace Examine.SearchCriteria
+namespace Examine.Search
 {
     /// <summary>
     /// Defines the supported operation for addition of additional clauses in the fluent API
     /// </summary>
-    public interface IBooleanOperation
+    public interface IBooleanOperation : IOrdering
     {
         /// <summary>
         /// Sets the next operation to be AND
@@ -50,10 +50,5 @@ namespace Examine.SearchCriteria
         /// <returns></returns>
         IBooleanOperation AndNot(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
-        /// <summary>
-        /// Compiles this instance for fluent API conclusion
-        /// </summary>
-        /// <returns></returns>
-        ISearchCriteria Compile();
     }
 }

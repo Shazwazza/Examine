@@ -39,7 +39,7 @@ namespace Examine.Test.Search
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
                 var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1.GetSearcher(), indexer2.GetSearcher(), indexer3.GetSearcher(), indexer4.GetSearcher()}.OfType<LuceneSearcher>(), 
+                    new[] {indexer1, indexer2, indexer3, indexer4},
                     analyzer);
 
                 var result = searcher.Search("darkness");
@@ -72,9 +72,9 @@ namespace Examine.Test.Search
                 indexer4.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "are", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
-                
+
                 var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] { indexer1.GetSearcher(), indexer2.GetSearcher(), indexer3.GetSearcher(), indexer4.GetSearcher()}.OfType<LuceneSearcher>(), 
+                    new[] {indexer1, indexer2, indexer3, indexer4},
                     analyzer);
 
                 var result = searcher.GetAllIndexedFields();

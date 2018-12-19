@@ -1,12 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-namespace Examine.SearchCriteria
+
+namespace Examine.Search
 {
     /// <summary>
     /// Defines the query methods for the fluent search API
     /// </summary>
     public interface IQuery
     {
+        /// <summary>
+        /// Indicates the type of data to search on
+        /// </summary>
+        string Category { get; }
+
+        /// <summary>
+        /// Passes a text string which is preformatted for the underlying search API. Examine will not modify this
+        /// </summary>
+        /// <remarks>
+        /// This allows a developer to completely bypass and Examine logic and comprise their own query text which they are passing in.
+        /// It means that if the search is too complex to achieve with the fluent API, or too dynamic to achieve with a static language
+        /// the provider can still handle it.
+        /// </remarks>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        IBooleanOperation NativeQuery(string query);
+
         /// <summary>
         /// Creates an inner group query
         /// </summary>
@@ -120,26 +138,10 @@ namespace Examine.SearchCriteria
         IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query);
 
         /// <summary>
-        /// Orders the results by the specified fields
-        /// </summary>
-        /// <param name="fields">The field names.</param>
-        /// <returns></returns>
-        IBooleanOperation OrderBy(params SortableField[] fields);
-
-        /// <summary>
-        /// Orders the results by the specified fields in a descending order
-        /// </summary>
-        /// <param name="fields">The field names.</param>
-        /// <returns></returns>
-        IBooleanOperation OrderByDescending(params SortableField[] fields);
-
-
-        /// <summary>
         /// Matches all items
         /// </summary>
         /// <returns></returns>
         IBooleanOperation All();
-
 
         /// <summary>
         /// The index will determine the most appropriate way to search given the query and the fields provided
@@ -147,9 +149,6 @@ namespace Examine.SearchCriteria
         /// <param name="query"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
-        /// <remarks>
-        /// 
-        /// </remarks>
         IBooleanOperation ManagedQuery(string query, string[] fields = null);
 
         /// <summary>

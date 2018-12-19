@@ -19,8 +19,8 @@ using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using System.Threading;
 using Examine.LuceneEngine.Indexing;
-using Examine.LuceneEngine.SearchCriteria;
-using Examine.SearchCriteria;
+using Examine.LuceneEngine.Search;
+using Examine.Search;
 using Examine.Test.DataServices;
 using Examine.Test.UmbracoExamine;
 using Version = Lucene.Net.Util.Version;
@@ -392,8 +392,8 @@ namespace Examine.Test.Index
                 writer.WaitForMerges();
 
                 //ensure no data since it's a new index
-                var results = customSearcher.Search(customSearcher.CreateCriteria().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Compile());
-
+                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
+                    
                 //should be less than the total inserted because we overwrote it in the middle of processing
                 Debug.WriteLine("TOTAL RESULTS: " + results.TotalItemCount);
                 Assert.Less(results.Count(), 1000);
@@ -466,7 +466,7 @@ namespace Examine.Test.Index
                 //ensure no duplicates
 
                 var customSearcher = (LuceneSearcher) customIndexer.GetSearcher();
-                var results = customSearcher.Search(customSearcher.CreateCriteria().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Compile());
+                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Execute();
                 Assert.AreEqual(3, results.Count());
             }
         }
@@ -525,7 +525,7 @@ namespace Examine.Test.Index
                             if (idQueue.TryDequeue(out docId))
                             {
                                 idQueue.Enqueue(docId);
-                                var r = s.Search(s.CreateCriteria().Id(docId.ToString()).Compile());
+                                var r = s.CreateQuery().Id(docId.ToString()).Execute();
                                 Debug.WriteLine("searching thread: {0}, id: {1}, found: {2}", Thread.CurrentThread.ManagedThreadId, docId, r.Count());
                                 Thread.Sleep(50);
                             }
@@ -604,7 +604,7 @@ namespace Examine.Test.Index
 
                 writer.WaitForMerges();
 
-                var results = customSearcher.Search(customSearcher.CreateCriteria().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Compile());
+                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
                 Assert.AreEqual(10, results.Count());
             }
         }

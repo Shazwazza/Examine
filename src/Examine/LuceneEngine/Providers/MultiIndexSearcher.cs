@@ -4,8 +4,9 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using Examine.LuceneEngine.SearchCriteria;
+using Examine.LuceneEngine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Providers
@@ -15,15 +16,20 @@ namespace Examine.LuceneEngine.Providers
     ///</summary>
     public class MultiIndexSearcher : BaseLuceneSearcher, IDisposable
     {
+        private readonly Lazy<IEnumerable<ISearcher>> _searchers;
 
         #region Constructors
 
         /// <summary>
-        /// Constructor used for config providers
+        /// Constructor to allow for creating a searcher at runtime
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public MultiIndexSearcher()
+        /// <param name="name"></param>
+        /// <param name="indexes"></param>
+        /// <param name="analyzer"></param>
+        public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
+            : base(name, analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30))
         {
+            _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.GetSearcher()));
             _disposer = new DisposableSearcher(this);
         }
 
@@ -31,59 +37,22 @@ namespace Examine.LuceneEngine.Providers
         /// Constructor to allow for creating a searcher at runtime
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="luceneDirs"></param>
+        /// <param name="searchers"></param>
         /// <param name="analyzer"></param>
-        public MultiIndexSearcher(string name, IEnumerable<LuceneSearcher> searchers, Analyzer analyzer)
-            : base(name, analyzer)
+        public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, Analyzer analyzer = null)
+            : base(name, analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30))
         {
+            _searchers = searchers;
             _disposer = new DisposableSearcher(this);
-            _searchers = new Lazy<IEnumerable<LuceneSearcher>>(() => searchers);
         }
 
         #endregion
 
-        private List<string> _configuredIndexes;
-
-        public override void Initialize(string name, NameValueCollection config)
-        {
-            base.Initialize(name, config);
-
-            //need to check if the index set is specified, if it's not, we'll see if we can find one by convension
-            //if the folder is not null and the index set is null, we'll assume that this has been created at runtime.
-            if (config["indexes"] == null || string.IsNullOrWhiteSpace(config["indexes"]))
-            {
-                throw new ArgumentNullException("indexes on MultiIndexSearcher provider has not been set in configuration");
-            }
-
-            var indexes = config["indexes"].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            if (indexes.Length == 0)
-                throw new ArgumentNullException("indexes on MultiIndexSearcher provider has not been set in configuration");
-
-            _configuredIndexes = new List<string>(indexes);
-
-            _searchers = new Lazy<IEnumerable<LuceneSearcher>>(() =>
-            {
-                var result = new HashSet<LuceneSearcher>();
-                foreach (var x in _configuredIndexes)
-                {
-                    if (!ExamineManager.Instance.TryGetIndex(x, out var index)) 
-                        throw new InvalidOperationException($"The index {x} was not found");
-
-                    if (!(index.GetSearcher() is LuceneSearcher ls))
-                        throw new NotSupportedException($"The index {x} does not return a searcher of type {typeof(LuceneSearcher)}");
-
-                    result.Add(ls);
-                }
-                return result;
-            });
-        }
-
-        private Lazy<IEnumerable<LuceneSearcher>> _searchers;
 
         ///<summary>
         /// The underlying LuceneSearchers that will be searched across
         ///</summary>
-        public IEnumerable<LuceneSearcher> Searchers => _searchers.Value;
+        public IEnumerable<LuceneSearcher> Searchers => _searchers.Value.OfType<LuceneSearcher>();
 
         /// <summary>
         /// Returns a list of fields to search on based on all distinct fields found in the sub searchers
@@ -117,9 +86,9 @@ namespace Examine.LuceneEngine.Providers
 			return new MultiSearcher(searchables.ToArray());
         }
 
-        public override ICriteriaContext GetCriteriaContext()
+        public override ISearchContext GetSearchContext()
         {
-            return new MultiCriteriaContext(GetLuceneSearcher(), Searchers.Select(s => s.GetCriteriaContext()).ToArray());
+            return new MultiSearchContext(GetLuceneSearcher(), Searchers.Select(s => s.GetSearchContext()).ToArray());
         }
 
 

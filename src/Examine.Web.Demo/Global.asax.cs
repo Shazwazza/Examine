@@ -1,21 +1,49 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Examine.AzureDirectory;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
 
 namespace Examine.Web.Demo
 {
-    // Note: For instructions on enabling IIS6 or IIS7 classic mode, 
-    // visit http://go.microsoft.com/?LinkId=9394801
-
-    public class MvcApplication : System.Web.HttpApplication
+    public class MvcApplication : HttpApplication
     {
+
+        /// <summary>
+        /// Creates the application indexes
+        /// </summary>
+        /// <param name="examineManager"></param>
+        public void CreateIndexes(IExamineManager examineManager)
+        {
+            var adFactory = new AzureDirectoryFactory();
+
+            var simple2Indexer = examineManager.AddIndex(
+                new LuceneIndex(
+                    "Simple2Indexer",
+                    adFactory.CreateDirectory(
+                        new DirectoryInfo(Context.Server.MapPath("~/App_Data/Simple2IndexSet")))));
+
+            var secondIndexer = examineManager.AddIndex(
+                new LuceneIndex(
+                    "SecondIndexer",
+                    adFactory.CreateDirectory(
+                        new DirectoryInfo(Context.Server.MapPath("~/App_Data/SecondIndexSet")))));
+
+            var multiSearcher = examineManager.AddSearcher(
+                new MultiIndexSearcher(
+                    "MultiIndexSearcher",
+                    new[] {simple2Indexer, secondIndexer}));
+        }
+
+
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
             filters.Add(new HandleErrorAttribute());
@@ -39,6 +67,8 @@ namespace Examine.Web.Demo
                 Context.Server.MapPath("~/App_Data/" + DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), "ExamineListener"));
 
             Trace.WriteLine("App starting");
+
+            CreateIndexes(ExamineManager.Instance);
 
 #if FULLDEBUG
             foreach (var luceneIndexer in ExamineManager.Instance.Indexes.OfType<LuceneIndex>())
@@ -114,10 +144,7 @@ namespace Examine.Web.Demo
                     runtime,
                     null);
 
-                var shutdownMsg = string.Format("{0}\r\n\r\n_shutDownMessage={1}\r\n\r\n_shutDownStack={2}",
-                    HostingEnvironment.ShutdownReason,
-                    shutDownMessage,
-                    shutDownStack);
+                var shutdownMsg = $"{HostingEnvironment.ShutdownReason}\r\n\r\n_shutDownMessage={shutDownMessage}\r\n\r\n_shutDownStack={shutDownStack}";
 
                 Trace.TraceInformation("Application shutdown. Details: " + shutdownMsg);
             }

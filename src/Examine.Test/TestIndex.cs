@@ -13,13 +13,13 @@ namespace Examine.Test
     public class TestIndex : LuceneIndex
     {
         public TestIndex(FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : base("testIndexer", fieldDefinitions, luceneDirectory, analyzer, validator, indexValueTypesFactory)
+            : base("testIndexer", luceneDirectory, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
         {
             RunAsync = false;
         }
 
         public TestIndex(Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
-            : base("testIndexer", new FieldDefinitionCollection(), luceneDirectory, defaultAnalyzer, validator)
+            : base("testIndexer", luceneDirectory, new FieldDefinitionCollection(), defaultAnalyzer, validator)
         {
             RunAsync = false;
         }
