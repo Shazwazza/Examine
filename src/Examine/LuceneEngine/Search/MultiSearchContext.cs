@@ -17,14 +17,14 @@ namespace Examine.LuceneEngine.Search
 
         public Searcher Searcher { get; }
 
-        public IEnumerable<IIndexValueType> ValueTypes
+        public IEnumerable<IIndexFieldValueType> FieldValueTypes
         {
-            get { return _inner.SelectMany(cc => cc.ValueTypes); }
+            get { return _inner.SelectMany(cc => cc.FieldValueTypes); }
         }
 
-        public IIndexValueType GetValueType(string fieldName)
+        public IIndexFieldValueType GetFieldValueType(string fieldName)
         {
-            return _inner.Select(cc => cc.GetValueType(fieldName)).FirstOrDefault(type => type != null);
+            return _inner.Select(cc => cc.GetFieldValueType(fieldName)).FirstOrDefault(type => type != null);
         }
     }
 }

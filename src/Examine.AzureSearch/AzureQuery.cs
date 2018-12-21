@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Search;
 using Examine.Search;
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Search;
 using Microsoft.Azure.Search;
+using Microsoft.Azure.Search.Models;
+using Analyzer = Lucene.Net.Analysis.Analyzer;
+using StandardAnalyzer = Lucene.Net.Analysis.Standard.StandardAnalyzer;
 
 namespace Examine.AzureSearch
 {
@@ -16,7 +19,7 @@ namespace Examine.AzureSearch
         public ISearchServiceClient ServiceClient { get; }
 
         public AzureQuery(AzureQuery previous, BooleanOperation op)
-            : base(previous.Category, previous.DefaultAnalyzer, previous.Fields, EmptyOptions, op)
+            : base(previous.Category, previous.DefaultAnalyzer, null, EmptyOptions, op)
         {
             IndexClient = previous.IndexClient;
             ServiceClient = previous.ServiceClient;
@@ -41,14 +44,15 @@ namespace Examine.AzureSearch
             throw new NotImplementedException();
         }
 
-        public override IBooleanOperation All()
-        {
-            throw new NotImplementedException();
-        }
-
         public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
         {
-            throw new NotImplementedException();
+            //TODO: Instead of AllFields here we should have a reference to the FieldDefinitionCollection
+            foreach (var field in fields ?? AllFields)
+            {
+                var fullTextQuery = FullTextType.GenerateQuery(field, query, DefaultAnalyzer);
+                Query.Add(fullTextQuery, Occurrence);
+            }
+            return new AzureBooleanOperation(this);
         }
 
         public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) 

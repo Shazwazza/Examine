@@ -7,7 +7,7 @@ namespace Examine.LuceneEngine.Search
     public interface ISearchContext
     {
         Searcher Searcher { get; }
-        IEnumerable<IIndexValueType> ValueTypes { get; }
-        IIndexValueType GetValueType(string fieldName);
+        IEnumerable<IIndexFieldValueType> FieldValueTypes { get; }
+        IIndexFieldValueType GetFieldValueType(string fieldName);
     }
 }

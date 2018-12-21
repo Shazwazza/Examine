@@ -20,9 +20,7 @@ namespace Examine.LuceneEngine.Search
             ISearchContext searchContext,
             string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
             : base(category, analyzer, fields, searchOptions, occurance)
-        {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
-            
+        {   
             _searchContext = searchContext;
         }
 
@@ -44,21 +42,14 @@ namespace Examine.LuceneEngine.Search
 
             return OrderByInternal(true, fields);
         }
-
-        public override IBooleanOperation All()
-        {
-            Query.Add(new MatchAllDocsQuery(), BooleanOperation.ToLuceneOccurrence());
-
-            return new LuceneBooleanOperation(this);
-        }
-
+        
         public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
         {
             Query.Add(new LateBoundQuery(() =>
             {
                 var types = fields != null
-                                ? fields.Select(f => _searchContext.GetValueType(f)).Where(t => t != null)
-                                : _searchContext.ValueTypes;
+                                ? fields.Select(f => _searchContext.GetFieldValueType(f)).Where(t => t != null)
+                                : _searchContext.FieldValueTypes;
 
                 var bq = new BooleanQuery();
                 foreach (var type in types)
@@ -66,7 +57,7 @@ namespace Examine.LuceneEngine.Search
                     var q = type.GetQuery(query, _searchContext.Searcher);
                     if (q != null)
                     {
-                        //CriteriaContext.ManagedQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
+                        //CriteriaContext.ManagedQueries.Add(new KeyValuePair<IIndexFieldValueType, Query>(type, q));
                         bq.Add(q, Occur.SHOULD);
                     }
 
@@ -85,18 +76,18 @@ namespace Examine.LuceneEngine.Search
                 var bq = new BooleanQuery();
                 foreach (var f in fields)
                 {
-                    if (_searchContext.GetValueType(f) is IIndexRangeValueType<T> type)
+                    if (_searchContext.GetFieldValueType(f) is IIndexRangeValueType<T> type)
                     {
                         var q = type.GetQuery(min, max, minInclusive, maxInclusive);
                         if (q != null)
                         {
-                            //CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexValueType, Query>(type, q));
+                            //CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexFieldValueType, Query>(type, q));
                             bq.Add(q, Occur.SHOULD);
                         }
                     }
                     else
                     {
-                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, _searchContext.GetValueType(f).GetType());
+                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, _searchContext.GetFieldValueType(f).GetType());
                     }
                 }
                 return bq;
@@ -178,7 +169,7 @@ namespace Examine.LuceneEngine.Search
                 }
 
                 //get the sortable field name if this field type has one
-                var valType = _searchContext.GetValueType(fieldName);
+                var valType = _searchContext.GetFieldValueType(fieldName);
                 if (valType?.SortableFieldName != null)
                     fieldName = valType.SortableFieldName;
 

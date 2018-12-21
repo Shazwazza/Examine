@@ -7,7 +7,7 @@ namespace Examine.LuceneEngine.Indexing
     /// <summary>
     /// Indexes a raw string value - not analyzed
     /// </summary>
-    public class RawStringType : IndexValueTypeBase
+    public class RawStringType : IndexFieldValueTypeBase
     {
         /// <summary>
         /// Constructor

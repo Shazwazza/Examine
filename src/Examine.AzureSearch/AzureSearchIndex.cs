@@ -24,6 +24,7 @@ namespace Examine.AzureSearch
         private ISearchIndexClient _indexer;
         private readonly Lazy<ISearchServiceClient> _client;
         private static readonly object ExistsLocker = new object();
+        private readonly Lazy<AzureSearchSearcher> _searcher;
 
         public AzureSearchIndex(
             string name,
@@ -37,7 +38,8 @@ namespace Examine.AzureSearch
             _searchServiceName = searchServiceName;
             _apiKey = apiKey;
             Analyzer = analyzer ?? "standard.lucene";
-            
+            _searcher = new Lazy<AzureSearchSearcher>(CreateSearcher);
+
             _client = new Lazy<ISearchServiceClient>(CreateSearchServiceClient);
         }
 
@@ -212,9 +214,9 @@ namespace Examine.AzureSearch
             return new Field(FormatFieldName(field.Name), dataType)
             {
                 IsSearchable = dataType == DataType.String,
-                //TODO: We don't have an equivalent IIndexValueType thing for AzureSearch yet  so can't determine right now
+                //TODO: We don't have an equivalent IIndexFieldValueType thing for AzureSearch yet  so can't determine right now
                 IsSortable = dataType != DataType.String,
-                //TODO: We don't have an equivalent IIndexValueType thing for AzureSearch yet  so can't determine right now
+                //TODO: We don't have an equivalent IIndexFieldValueType thing for AzureSearch yet  so can't determine right now
                 Analyzer = dataType == DataType.String ? FromLuceneAnalyzer(Analyzer) : null
             };
         }
@@ -374,9 +376,14 @@ namespace Examine.AzureSearch
             onComplete(new IndexOperationEventArgs(this, result.Results.Count));
         }
 
+        private AzureSearchSearcher CreateSearcher()
+        {
+            return new AzureSearchSearcher(Name, _searchServiceName, _apiKey);
+        }
+
         public override ISearcher GetSearcher()
         {
-            throw new NotImplementedException();
+            return _searcher.Value;
         }
 
         public override void CreateIndex()

@@ -16,9 +16,9 @@ namespace Examine.LuceneEngine.Search
 
         public Searcher Searcher { get; }
 
-        public IEnumerable<IIndexValueType> ValueTypes => _fieldValueTypeCollection.ValueTypes;
+        public IEnumerable<IIndexFieldValueType> FieldValueTypes => _fieldValueTypeCollection.ValueTypes;
 
-        public IIndexValueType GetValueType(string fieldName)
+        public IIndexFieldValueType GetFieldValueType(string fieldName)
         {
             return _fieldValueTypeCollection.GetValueType(fieldName);
         }

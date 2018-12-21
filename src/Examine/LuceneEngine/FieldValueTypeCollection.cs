@@ -7,7 +7,7 @@ using Lucene.Net.Analysis;
 namespace Examine.LuceneEngine
 {
     /// <summary>
-    /// Maintains a collection of field names names and their <see cref="IIndexValueType"/> for an index
+    /// Maintains a collection of field names names and their <see cref="IIndexFieldValueType"/> for an index
     /// </summary>
     public class FieldValueTypeCollection
     {
@@ -33,10 +33,10 @@ namespace Examine.LuceneEngine
                 ValueTypeFactories.TryAdd(type.Key, type.Value);
             }
 
-            //initializes the collection of field aliases to it's correct IIndexValueType
-            _resolvedValueTypes = new Lazy<ConcurrentDictionary<string, IIndexValueType>>(() =>
+            //initializes the collection of field aliases to it's correct IIndexFieldValueType
+            _resolvedValueTypes = new Lazy<ConcurrentDictionary<string, IIndexFieldValueType>>(() =>
             {
-                var result = new ConcurrentDictionary<string, IIndexValueType>();
+                var result = new ConcurrentDictionary<string, IIndexFieldValueType>();
 
                 foreach (var field in fieldDefinitionCollection)
                 {
@@ -62,7 +62,7 @@ namespace Examine.LuceneEngine
         }
 
         /// <summary>
-        /// Returns the <see cref="IIndexValueType"/> for the field name specified
+        /// Returns the <see cref="IIndexFieldValueType"/> for the field name specified
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="fieldValueTypeFactory"></param>
@@ -70,7 +70,7 @@ namespace Examine.LuceneEngine
         /// <remarks>
         /// If it's not found it will create one with the factory supplied and initialize it.
         /// </remarks>
-        public IIndexValueType GetValueType(string fieldName, IFieldValueTypeFactory fieldValueTypeFactory)
+        public IIndexFieldValueType GetValueType(string fieldName, IFieldValueTypeFactory fieldValueTypeFactory)
         {
             return _resolvedValueTypes.Value.GetOrAdd(fieldName, n =>
             {
@@ -85,7 +85,7 @@ namespace Examine.LuceneEngine
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns>Returns null if a value type was not found</returns>
-        public IIndexValueType GetValueType(string fieldName)
+        public IIndexFieldValueType GetValueType(string fieldName)
         {
             return _resolvedValueTypes.Value.TryGetValue(fieldName, out var valueType) ? valueType : null;
         }
@@ -99,12 +99,12 @@ namespace Examine.LuceneEngine
         /// </remarks>
         public ValueTypeFactoryCollection ValueTypeFactories { get; } = new ValueTypeFactoryCollection();
 
-        private readonly Lazy<ConcurrentDictionary<string, IIndexValueType>> _resolvedValueTypes;
+        private readonly Lazy<ConcurrentDictionary<string, IIndexFieldValueType>> _resolvedValueTypes;
 
         /// <summary>
-        /// Returns the resolved collection of <see cref="IIndexValueType"/> for this index
+        /// Returns the resolved collection of <see cref="IIndexFieldValueType"/> for this index
         /// </summary>
-        public IEnumerable<IIndexValueType> ValueTypes => _resolvedValueTypes.Value.Values;
+        public IEnumerable<IIndexFieldValueType> ValueTypes => _resolvedValueTypes.Value.Values;
 
     }
 }

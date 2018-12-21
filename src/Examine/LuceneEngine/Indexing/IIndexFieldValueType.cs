@@ -7,7 +7,7 @@ namespace Examine.LuceneEngine.Indexing
     /// <summary>
     /// Defines how a field value is stored in the index and is responsible for generating a query for the field when a managed query is used
     /// </summary>
-    public interface IIndexValueType
+    public interface IIndexFieldValueType
     {
         string FieldName { get; }
 

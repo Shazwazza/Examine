@@ -64,7 +64,7 @@ namespace Examine.LuceneEngine
                 //this means that an analyzer has stipped out stop words and now there are
                 //no words left to search on
 
-                //it could also mean that potentially a IIndexValueType is throwing a null ref
+                //it could also mean that potentially a IIndexFieldValueType is throwing a null ref
                 TotalItemCount = 0;
                 return;
             }

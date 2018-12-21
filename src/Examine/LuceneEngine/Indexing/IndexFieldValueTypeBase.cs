@@ -9,7 +9,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing
 {
-    public abstract class IndexValueTypeBase : IIndexValueType
+    public abstract class IndexFieldValueTypeBase : IIndexFieldValueType
     {
         public string FieldName { get; }
 
@@ -18,7 +18,7 @@ namespace Examine.LuceneEngine.Indexing
 
         public bool Store { get; }
         
-        protected IndexValueTypeBase(string fieldName, bool store = true)
+        protected IndexFieldValueTypeBase(string fieldName, bool store = true)
         {
             FieldName = fieldName;
             Store = store;            
@@ -96,7 +96,7 @@ namespace Examine.LuceneEngine.Indexing
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceError("An error occurred in {0}.{1} inputConverter.ConvertTo(val, typeof(T)) : {2}", nameof(IndexValueTypeBase), nameof(TryConvert), ex);
+                    Trace.TraceError("An error occurred in {0}.{1} inputConverter.ConvertTo(val, typeof(T)) : {2}", nameof(IndexFieldValueTypeBase), nameof(TryConvert), ex);
 
                     parsedVal = default(T);
                     return false;
@@ -114,7 +114,7 @@ namespace Examine.LuceneEngine.Indexing
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceError("An error occurred in {0}.{1} outputConverter.ConvertFrom(val) : {2}", nameof(IndexValueTypeBase), nameof(TryConvert), ex);
+                    Trace.TraceError("An error occurred in {0}.{1} outputConverter.ConvertFrom(val) : {2}", nameof(IndexFieldValueTypeBase), nameof(TryConvert), ex);
 
                     parsedVal = default(T);
                     return false;
@@ -129,7 +129,7 @@ namespace Examine.LuceneEngine.Indexing
             }
             catch (Exception ex)
             {
-                Trace.TraceError("An error occurred in {0}.{1} Convert.ChangeType(val, typeof(T)) : {2}", nameof(IndexValueTypeBase), nameof(TryConvert), ex);
+                Trace.TraceError("An error occurred in {0}.{1} Convert.ChangeType(val, typeof(T)) : {2}", nameof(IndexFieldValueTypeBase), nameof(TryConvert), ex);
 
                 parsedVal = default(T);
                 return false;

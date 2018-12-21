@@ -4,7 +4,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing
 {
-    public class DoubleType : IndexValueTypeBase, IIndexRangeValueType<double>
+    public class DoubleType : IndexFieldValueTypeBase, IIndexRangeValueType<double>
     {
         public DoubleType(string fieldName, bool store= true)
             : base(fieldName, store)

@@ -5,18 +5,18 @@ namespace Examine.LuceneEngine
 {
     /// <inheritdoc />
     /// <summary>
-    /// A factory to create a <see cref="T:Examine.LuceneEngine.Indexing.IIndexValueType" /> for a field name based on a Func delegate
+    /// A factory to create a <see cref="T:Examine.LuceneEngine.Indexing.IIndexFieldValueType" /> for a field name based on a Func delegate
     /// </summary>
     public class DelegateFieldValueTypeFactory : IFieldValueTypeFactory
     {
-        private readonly Func<string, IIndexValueType> _factory;
+        private readonly Func<string, IIndexFieldValueType> _factory;
 
-        public DelegateFieldValueTypeFactory(Func<string, IIndexValueType> factory)
+        public DelegateFieldValueTypeFactory(Func<string, IIndexFieldValueType> factory)
         {
             _factory = factory;
         }
 
-        public IIndexValueType Create(string fieldName)
+        public IIndexFieldValueType Create(string fieldName)
         {
             return _factory(fieldName);
         }

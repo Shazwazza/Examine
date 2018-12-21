@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Search;
 using Microsoft.Azure.Search;
@@ -80,15 +81,14 @@ namespace Examine.AzureSearch
                 //HACK! we need to prefix any field starting with __ with z__ due to Azure Search not supporting fields starting with __
                 //TODO: We need to fix this properly, there could be __ in the search text so this could cause problems, we can probably do 
                 //this by iterating over the clauses of the _luceneQuery
-                
-                query = query.Replace("__", "z__");
+
+                query = Regex.Replace(query, "(^|\\+|\\-| |\\()(__|__)", "$1z$2", RegexOptions.Compiled);
 
                 isLucene = true;
             }
 
             //TODO: Get sorting working
             //TODO: Get filtering/range working
-
             //TODO: We need to escape the resulting query
 
 
