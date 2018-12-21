@@ -17,7 +17,7 @@ namespace Examine.LuceneEngine.Indexing
     /// do an exact match search if the term is less than 4 chars, else it will do a full text search on the phrase
     /// with a higher boost, then 
     /// </remarks>
-    public class FullTextType : IndexValueTypeBase
+    public class FullTextType : IndexFieldValueTypeBase
     {
         private readonly bool _sortable;
         private readonly Analyzer _analyzer;
@@ -66,13 +66,7 @@ namespace Examine.LuceneEngine.Indexing
             }
         }
 
-        /// <summary>
-        /// Builds a full text search query
-        /// </summary>
-        /// <param name="query"></param>
-        /// <param name="searcher"></param>
-        /// <returns></returns>
-        public override Query GetQuery(string query, Searcher searcher)
+        public static Query GenerateQuery(string fieldName, string query, Analyzer analyzer)
         {
             if (query == null)
             {
@@ -81,11 +75,11 @@ namespace Examine.LuceneEngine.Indexing
 
             var resultQuery = new BooleanQuery();
             var phraseQuery = new PhraseQuery { Slop = 0 };
-            
+
             //not much to search, only do exact match
             if (query.Length < 4)
             {
-                phraseQuery.Add(new Term(FieldName, query));
+                phraseQuery.Add(new Term(fieldName, query));
 
                 resultQuery.Add(phraseQuery, Occur.MUST);
                 return resultQuery;
@@ -95,17 +89,17 @@ namespace Examine.LuceneEngine.Indexing
             phraseQuery.Boost = 20;
             resultQuery.Add(phraseQuery, Occur.SHOULD);
 
-            var tokenStream = _analyzer.TokenStream("SearchText", new StringReader(query));
+            var tokenStream = analyzer.TokenStream("SearchText", new StringReader(query));
             var termAttribute = tokenStream.AddAttribute<ITermAttribute>();
 
             while (tokenStream.IncrementToken())
             {
                 var term = termAttribute.Term;
 
-                phraseQuery.Add(new Term(FieldName, term));
+                phraseQuery.Add(new Term(fieldName, term));
 
-                var exactMatch = new TermQuery(new Term(FieldName, term));
-                
+                var exactMatch = new TermQuery(new Term(fieldName, term));
+
                 //if the term is larger than 3, we'll do both exact match and wildcard/prefix
                 if (term.Length >= 3)
                 {
@@ -116,46 +110,10 @@ namespace Examine.LuceneEngine.Indexing
                     innerQuery.Add(exactMatch, Occur.SHOULD);
 
                     //add wildcard
-                    var pq = new PrefixQuery(new Term(FieldName, term));
+                    var pq = new PrefixQuery(new Term(fieldName, term));
                     //needed so that wildcard searches will return a score
                     pq.RewriteMethod = MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE; //new ErrorCheckingScoringBooleanQueryRewrite();
                     innerQuery.Add(pq, Occur.SHOULD);
-
-                    //foreach (var r in searcher.GetSubSearchers().Select(s => s.GetIndexReader()))
-                    //{
-                    //    bqInner.Add(pq.Rewrite(r), Occur.SHOULD);
-                    //}
-
-                    //var pops = GetPopularTerms(term, searcher, facetsLoader).GetTopItems(TermExpansions,
-                    //    new LambdaComparer<KeyValuePair<string, double>>((x, y) =>x.Value.CompareTo(y.Value))).ToArray();
-
-                    //if (pops.Length > 0)
-                    //{
-                    //    var max = pops.Max(p => p.Value);
-                    //    foreach (var p in pops)
-                    //    {
-                    //        var pq = new TermQuery(new Term(FieldName, p.Key));
-                    //        pq.Boost = ((float) (p.Value/max));
-                    //        bqInner.Add(pq, Occur.SHOULD);
-                    //    }
-                    //}
-
-                    //TODO: This is where all kinds of awesome should happen, including spell checking etc.
-                    //var pq = new PrefixQuery(new Term(FieldName, term));
-
-                    //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-
-                    //foreach (var r in searcher.GetSubSearchers().Select(s => s.GetIndexReader()))
-                    //{
-                    //    bqInner.Add(pq.Rewrite(r), Occur.SHOULD);
-                    //}
-
-                    //pq.SetRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE);
-                    //foreach (var ixs in searcher.GetSubSearchers())
-                    //{
-                    //    bqInner.Add(pq.Rewrite(ixs.GetIndexReader()), Occur.SHOULD);                        
-                    //}                    
-
 
                     resultQuery.Add(innerQuery, Occur.MUST);
                 }
@@ -166,6 +124,17 @@ namespace Examine.LuceneEngine.Indexing
             }
 
             return resultQuery.Clauses.Count > 0 ? resultQuery : null;
+        }
+
+        /// <summary>
+        /// Builds a full text search query
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="searcher"></param>
+        /// <returns></returns>
+        public override Query GetQuery(string query, Searcher searcher)
+        {
+            return GenerateQuery(FieldName, query, _analyzer);
         }
 
     }

@@ -141,7 +141,7 @@ namespace Examine.Search
         /// Matches all items
         /// </summary>
         /// <returns></returns>
-        IBooleanOperation All();
+        IOrdering All();
 
         /// <summary>
         /// The index will determine the most appropriate way to search given the query and the fields provided
@@ -152,7 +152,7 @@ namespace Examine.Search
         IBooleanOperation ManagedQuery(string query, string[] fields = null);
 
         /// <summary>
-        /// Matches items as defined by the IIndexValueType used for the fields specified. 
+        /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
         /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
         /// </summary>
         /// <typeparam name="T"></typeparam>

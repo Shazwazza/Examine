@@ -4,7 +4,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing
 {
-    public class Int32Type : IndexValueTypeBase, IIndexRangeValueType<int>
+    public class Int32Type : IndexFieldValueTypeBase, IIndexRangeValueType<int>
     {
         public Int32Type(string fieldName, bool store = true)
             : base(fieldName, store)

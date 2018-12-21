@@ -8,12 +8,12 @@ namespace Examine.LuceneEngine.Indexing
     /// <summary>
     /// A generic value type that will index a value based on the analyzer provider and will store the value with normal term vectors
     /// </summary>
-    public class GenericAnalyzerValueType : IndexValueTypeBase
+    public class GenericAnalyzerFieldValueType : IndexFieldValueTypeBase
     {
         private readonly Analyzer _analyzer;
         private readonly bool _sortable;
 
-        public GenericAnalyzerValueType(string fieldName, Analyzer analyzer, bool sortable = false) : base(fieldName, true)
+        public GenericAnalyzerFieldValueType(string fieldName, Analyzer analyzer, bool sortable = false) : base(fieldName, true)
         {
             _analyzer = analyzer ?? throw new ArgumentNullException(nameof(analyzer));
             _sortable = sortable;

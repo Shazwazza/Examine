@@ -107,7 +107,7 @@ namespace Examine.LuceneEngine.Search
             return _search.OrderByDescending(fields);
         }
 
-        public IBooleanOperation All()
+        public IOrdering All()
         {
             return _search.All();
         }

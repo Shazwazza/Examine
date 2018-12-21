@@ -5,7 +5,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing
 {
-    public class DateTimeType : IndexValueTypeBase, IIndexRangeValueType<DateTime>
+    public class DateTimeType : IndexFieldValueTypeBase, IIndexRangeValueType<DateTime>
     {
         public DateTools.Resolution Resolution { get; }
 

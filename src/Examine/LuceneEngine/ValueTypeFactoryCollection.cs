@@ -23,7 +23,7 @@ namespace Examine.LuceneEngine
             return _valueTypeFactories.TryAdd(valueTypeName, fieldValueTypeFactory);
         }
 
-        public bool TryAdd(string valueTypeName, Func<string, IIndexValueType> fieldValueTypeFactory)
+        public bool TryAdd(string valueTypeName, Func<string, IIndexFieldValueType> fieldValueTypeFactory)
         {
             return _valueTypeFactories.TryAdd(valueTypeName, new DelegateFieldValueTypeFactory(fieldValueTypeFactory));
         }
@@ -63,8 +63,8 @@ namespace Examine.LuceneEngine
             => DefaultValueTypesInternal.ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
 
         //define the defaults
-        private static readonly IReadOnlyDictionary<string, Func<string, IIndexValueType>> DefaultValueTypesInternal
-            = new Dictionary<string, Func<string, IIndexValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
+        private static readonly IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> DefaultValueTypesInternal
+            = new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
                 {"number", name => new Int32Type(name)},
                 {FieldDefinitionTypes.Integer, name => new Int32Type(name)},
@@ -81,8 +81,8 @@ namespace Examine.LuceneEngine
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, null, true)},
-                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerValueType(name, new CultureInvariantWhitespaceAnalyzer())},
-                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerValueType(name, new EmailAddressAnalyzer())}
+                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, new CultureInvariantWhitespaceAnalyzer())},
+                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, new EmailAddressAnalyzer())}
             };
 
         public IEnumerator<KeyValuePair<string, IFieldValueTypeFactory>> GetEnumerator()

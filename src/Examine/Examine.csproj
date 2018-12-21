@@ -127,13 +127,13 @@
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
     <Compile Include="LuceneEngine\EmailAddressAnalyzer.cs" />
     <Compile Include="LuceneEngine\IFieldValueTypeFactory.cs" />
-    <Compile Include="LuceneEngine\Indexing\GenericAnalyzerValueType.cs" />
+    <Compile Include="LuceneEngine\Indexing\GenericAnalyzerFieldValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\CultureInvariantWhitespaceAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\DateTimeType.cs" />
     <Compile Include="LuceneEngine\Indexing\DoubleType.cs" />
     <Compile Include="LuceneEngine\Indexing\FullTextType.cs" />
-    <Compile Include="LuceneEngine\Indexing\IndexValueTypeBase.cs" />
+    <Compile Include="LuceneEngine\Indexing\IndexFieldValueTypeBase.cs" />
     <Compile Include="LuceneEngine\Indexing\Int32Type.cs" />
     <Compile Include="LuceneEngine\Indexing\Int64Type.cs" />
     <Compile Include="LuceneEngine\Indexing\RawStringType.cs" />
@@ -148,7 +148,7 @@
     <Compile Include="IndexOperationType.cs" />
     <Compile Include="LuceneEngine\Directories\IDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Providers\ErrorCheckingScoringBooleanQueryRewrite.cs" />
-    <Compile Include="LuceneEngine\Indexing\IIndexValueType.cs" />
+    <Compile Include="LuceneEngine\Indexing\IIndexFieldValueType.cs" />
     <Compile Include="LuceneEngine\FieldValueTypeCollection.cs" />
     <Compile Include="IValueSetValidator.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndex.cs" />

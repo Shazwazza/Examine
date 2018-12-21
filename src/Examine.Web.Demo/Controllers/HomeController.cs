@@ -47,9 +47,9 @@ namespace Examine.Web.Demo.Controllers
 
         [ValidateInput(false)]
         [HttpGet]
-        public ActionResult Search(string id)
+        public ActionResult Search(string id, string indexName = null)
         {
-            if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
+            if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
             var searcher = index.GetSearcher();

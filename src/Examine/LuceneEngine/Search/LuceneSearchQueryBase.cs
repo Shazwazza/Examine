@@ -29,7 +29,7 @@ namespace Examine.LuceneEngine.Search
             string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
             Category = category;
-            Fields = fields ?? throw new ArgumentNullException(nameof(fields));
+            AllFields = fields ?? throw new ArgumentNullException(nameof(fields));
             SearchOptions = searchOptions;
             Queries.Push(new BooleanQuery());
             BooleanOperation = occurance;
@@ -53,7 +53,7 @@ namespace Examine.LuceneEngine.Search
         /// <inheritdoc />
         public string Category { get; }
 
-        public string[] Fields { get; }
+        public string[] AllFields { get; }
         public LuceneSearchOptions SearchOptions { get; }
 
         /// <inheritdoc />
@@ -62,6 +62,12 @@ namespace Examine.LuceneEngine.Search
             var bo = CreateOp();
             bo.Op(inner, defaultOp);
             return bo;
+        }
+
+        public IOrdering All()
+        {
+            Query.Add(new MatchAllDocsQuery(), BooleanOperation.ToLuceneOccurrence());
+            return CreateOp();
         }
 
         /// <inheritdoc />
@@ -195,7 +201,6 @@ namespace Examine.LuceneEngine.Search
 
         }
 
-        public abstract IBooleanOperation All();
         public abstract IBooleanOperation ManagedQuery(string query, string[] fields = null);
         public abstract IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
