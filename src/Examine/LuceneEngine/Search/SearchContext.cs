@@ -16,11 +16,12 @@ namespace Examine.LuceneEngine.Search
 
         public Searcher Searcher { get; }
 
-        public IEnumerable<IIndexValueType> ValueTypes => _fieldValueTypeCollection.ValueTypes;
-
         public IIndexValueType GetValueType(string fieldName)
         {
-            return _fieldValueTypeCollection.GetValueType(fieldName);
+            //Get the value type for the field, or use the default if not defined
+            return _fieldValueTypeCollection.GetValueType(
+                fieldName, 
+                _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
         }
     }
 }

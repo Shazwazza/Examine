@@ -20,6 +20,7 @@ namespace Examine.LuceneEngine.Search
     public class LuceneSearchQuery : IQuery, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
+        private readonly string[] _fields;
 
         private readonly CustomMultiFieldQueryParser _queryParser;
         public QueryParser QueryParser => _queryParser;
@@ -37,9 +38,8 @@ namespace Examine.LuceneEngine.Search
             ISearchContext searchContext,
             string type, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
-            
-            _searchContext = searchContext;
+            _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
+            _fields = fields ?? throw new ArgumentNullException(nameof(fields));
 
             Category = type;
             Queries.Push(new BooleanQuery());
@@ -221,9 +221,10 @@ namespace Examine.LuceneEngine.Search
         {
             Query.Add(new LateBoundQuery(() =>
             {
-                var types = fields != null
-                                ? fields.Select(f => _searchContext.GetValueType(f)).Where(t => t != null)
-                                : _searchContext.ValueTypes;
+                //if no fields are specified then use all fields
+                fields = fields ?? _fields;
+
+                var types = fields.Select(f => _searchContext.GetValueType(f)).Where(t => t != null);
 
                 var bq = new BooleanQuery();
                 foreach (var type in types)
@@ -250,7 +251,8 @@ namespace Examine.LuceneEngine.Search
                 var bq = new BooleanQuery();
                 foreach (var f in fields)
                 {
-                    if (_searchContext.GetValueType(f) is IIndexRangeValueType<T> type)
+                    var valueType = _searchContext.GetValueType(f);
+                    if (valueType is IIndexRangeValueType<T> type)
                     {
                         var q = type.GetQuery(min, max, minInclusive, maxInclusive);
                         if (q != null)
@@ -261,7 +263,7 @@ namespace Examine.LuceneEngine.Search
                     }
                     else
                     {
-                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, _searchContext.GetValueType(f).GetType());
+                        throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
                     }
                 }
                 return bq;

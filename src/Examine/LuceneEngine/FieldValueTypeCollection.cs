@@ -84,10 +84,16 @@ namespace Examine.LuceneEngine
         /// Returns the value type for the field name specified
         /// </summary>
         /// <param name="fieldName"></param>
-        /// <returns>Returns null if a value type was not found</returns>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">
+        /// Throws an exception if a value type was not found
+        /// </exception>
         public IIndexValueType GetValueType(string fieldName)
         {
-            return _resolvedValueTypes.Value.TryGetValue(fieldName, out var valueType) ? valueType : null;
+            if (!_resolvedValueTypes.Value.TryGetValue(fieldName, out var valueType))
+                throw new InvalidOperationException($"No {nameof(IIndexValueType)} was found for field name {fieldName}");
+
+            return valueType;
         }
 
 
