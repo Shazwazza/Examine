@@ -12,9 +12,6 @@ namespace Examine.LuceneEngine.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
-        #region Constructors
-
-        /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="name"></param>
@@ -26,8 +23,6 @@ namespace Examine.LuceneEngine.Providers
 		    LuceneAnalyzer = analyzer;
         }
 
-		#endregion
-        
 	    /// <summary>
 	    /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
 	    /// </summary>

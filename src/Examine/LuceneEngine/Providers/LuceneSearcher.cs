@@ -49,7 +49,6 @@ namespace Examine.LuceneEngine.Providers
         {
             _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
-            LuceneIndexFolder = null;
             _directory = luceneDirectory;
             FieldValueTypeCollection = fieldValueTypeCollection;
         }
@@ -67,33 +66,9 @@ namespace Examine.LuceneEngine.Providers
         private bool? _exists;
         private bool _disposed = false;
         private readonly ReaderReopener _reopener;
+        
 
-        /// <summary>
-        /// Do not access this object directly. The public property ensures that the folder state is always up to date
-        /// </summary>
-        private DirectoryInfo _indexFolder;
-
-        /// <summary>
-        /// Directory where the Lucene.NET Index resides
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)] //hidden by default
-        public DirectoryInfo LuceneIndexFolder
-        {
-            get
-            {
-                if (_indexFolder == null)
-                {
-                    return null;
-                }
-
-                //ensure's that it always up to date!
-                _indexFolder.Refresh();
-                return _indexFolder;
-            }
-            protected set => _indexFolder = value;
-        }
-
-        public FieldValueTypeCollection FieldValueTypeCollection { get; private set; }
+        public FieldValueTypeCollection FieldValueTypeCollection { get; }
 
 
 

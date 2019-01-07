@@ -366,12 +366,12 @@ namespace Examine.AzureSearch
             }
         }
 
-        protected override void PerformDeleteFromIndex(string itemId, Action<IndexOperationEventArgs> onComplete)
+        protected override void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs> onComplete)
         {
             var indexer = GetIndexClient();
 
             //TODO: Check exception: https://docs.microsoft.com/en-us/azure/search/search-howto-dotnet-sdk
-            var result = indexer.Documents.Index(IndexBatch.Delete(FormatFieldName(LuceneIndex.ItemIdFieldName), new[] { itemId }));
+            var result = indexer.Documents.Index(IndexBatch.Delete(FormatFieldName(LuceneIndex.ItemIdFieldName), itemIds));
             
             onComplete(new IndexOperationEventArgs(this, result.Results.Count));
         }

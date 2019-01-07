@@ -17,11 +17,6 @@ namespace Examine.LuceneEngine.Search
 
         public Searcher Searcher { get; }
 
-        public IEnumerable<IIndexFieldValueType> FieldValueTypes
-        {
-            get { return _inner.SelectMany(cc => cc.FieldValueTypes); }
-        }
-
         public IIndexFieldValueType GetFieldValueType(string fieldName)
         {
             return _inner.Select(cc => cc.GetFieldValueType(fieldName)).FirstOrDefault(type => type != null);
