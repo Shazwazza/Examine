@@ -163,7 +163,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// The async task that runs during an async indexing operation
         /// </summary>
-        private Task _asyncTask;
+        private Task<int> _asyncTask;
 
         /// <summary>
         /// Used to cancel the async operation
@@ -440,15 +440,15 @@ namespace Examine.LuceneEngine.Providers
         /// When a content node is deleted, we also need to delete it's children from the index so we need to perform a 
         /// custom Lucene search to find all decendents and create Delete item queues for them too.
         /// </remarks>
-        /// <param name="itemId">ID of the node to delete</param>
+        /// <param name="itemIds">ID of the node to delete</param>
         /// <param name="onComplete"></param>
-        protected override void PerformDeleteFromIndex(string itemId, Action<IndexOperationEventArgs> onComplete)
+        protected override void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs> onComplete)
         {
             Interlocked.Increment(ref _activeAddsOrDeletes);
 
             try
             {
-                QueueIndexOperation(new IndexOperation(new ValueSet(itemId), IndexOperationType.Delete));
+                QueueIndexOperation(itemIds.Select(x => new IndexOperation(new ValueSet(x), IndexOperationType.Delete)));
                 SafelyProcessQueueItems(onComplete);
             }
             finally
@@ -721,10 +721,12 @@ namespace Examine.LuceneEngine.Providers
         {
             if (!RunAsync)
             {
-                StartIndexing(onComplete);
+                var result = ProcessQueueItemsLocked();
+                onComplete?.Invoke(new IndexOperationEventArgs(this, result));
             }
             else
             {
+                var isNewTask = false;
                 if (!_isIndexing)
                 {
                     //don't run the worker if it's currently running since it will just pick up the rest of the queue during its normal operation                    
@@ -732,38 +734,45 @@ namespace Examine.LuceneEngine.Providers
                     {
                         if (!_isIndexing && (_asyncTask == null || _asyncTask.IsCompleted))
                         {
-                            //Trace.WriteLine("Examine: Launching task");
                             if (!_cancellationTokenSource.IsCancellationRequested)
                             {
+                                isNewTask = true;
+
                                 _asyncTask = Task.Factory.StartNew(
                                     () =>
                                     {
                                         //Ensure the indexing processes is using an invariant culture
                                         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                                        StartIndexing(onComplete);
+                                        return ProcessQueueItemsLocked();
                                     },
-                                    _cancellationTokenSource.Token,  //use our cancellation token
+                                    _cancellationTokenSource.Token, //use our cancellation token
                                     TaskCreationOptions.None,
-                                    TaskScheduler.Default).ContinueWith(task =>
-                                    {
-                                        if (task.IsCanceled)
-                                        {
-                                            //if this gets cancelled, we need to ... ?
-                                        }
-                                    });
+                                    TaskScheduler.Default);
+
+                                //when the task is done call the complete callback
+                                //TODO: Do we need to do anything if the task is canceled?
+                                _asyncTask.ContinueWith(task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)));
                             }
                         }
                     }
+                }
+
+                if (!isNewTask)
+                {
+                    //when the task is done call the complete callback
+                    //note: this adds the callback to the queue since this method can be called multiple times with different callbacks
+                    // but there is only one queue processing all requests. this ensures that all callbacks passed are executed, not just the first.
+                    _asyncTask?.ContinueWith(task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)));
                 }
             }
 
         }
 
         /// <summary>
-        /// Processes the queue and checks if optimization needs to occur at the end
+        /// Processes the queue
         /// </summary>
-        /// <param name="onComplete"></param>
-        private void StartIndexing(Action<IndexOperationEventArgs> onComplete)
+        ///// <param name="onComplete"></param>
+        private int ProcessQueueItemsLocked()
         {
             if (!_isIndexing)
             {
@@ -787,10 +796,12 @@ namespace Examine.LuceneEngine.Providers
                         //reset the flag
                         _isIndexing = false;
 
-                        onComplete?.Invoke(new IndexOperationEventArgs(this, totalProcessed));
+                        return totalProcessed;
                     }
                 }
             }
+
+            return 0;
 
         }
 

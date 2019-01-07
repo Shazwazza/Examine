@@ -56,11 +56,11 @@ namespace Examine.Providers
         /// <summary>
         /// Deletes an index item by id
         /// </summary>
-        /// <param name="nodeId"></param>
+        /// <param name="itemIds"></param>
         /// <param name="onComplete">
         /// Called by the implementor once the items have been indexed
         /// </param>
-        protected abstract void PerformDeleteFromIndex(string nodeId, Action<IndexOperationEventArgs> onComplete);
+        protected abstract void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs> onComplete);
 
         #region IIndex members
 
@@ -76,13 +76,10 @@ namespace Examine.Providers
             PerformIndexItems(values.Where(x => ValidateItem(x) != ValueSetValidationResult.Failed), OnIndexOperationComplete);
         }
 
-        /// <summary>
-        /// Deletes a node from the index
-        /// </summary>
-        /// <param name="nodeId">Node to delete</param>
-        public void DeleteFromIndex(string nodeId)
+        /// <inheritdoc />
+        public void DeleteFromIndex(IEnumerable<string> itemIds)
         {
-            PerformDeleteFromIndex(nodeId, OnIndexOperationComplete);
+            PerformDeleteFromIndex(itemIds, OnIndexOperationComplete);
         }
 
         /// <summary>
