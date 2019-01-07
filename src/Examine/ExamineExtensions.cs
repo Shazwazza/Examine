@@ -11,6 +11,11 @@ namespace Examine
     /// </summary>
     public static class ExamineExtensions
     {
+        public static void DeleteFromIndex(this IIndex index, string itemId)
+        {
+            index.DeleteFromIndex(new[] {itemId});
+        }
+
         /// <summary>
         /// Method to re-index specific data
         /// </summary>

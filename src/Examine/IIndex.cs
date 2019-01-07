@@ -27,8 +27,8 @@ namespace Examine
         /// <summary>
         /// Deletes a node from the index
         /// </summary>
-        /// <param name="itemId">Node to delete</param>
-        void DeleteFromIndex(string itemId);
+        /// <param name="itemIds">Node to delete</param>
+        void DeleteFromIndex(IEnumerable<string> itemIds);
         
         /// <summary>
         /// Creates a new index, any existing index will be deleted

@@ -47,9 +47,10 @@ namespace Examine.LuceneEngine.Search
         {
             Query.Add(new LateBoundQuery(() =>
             {
-                var types = fields != null
-                                ? fields.Select(f => _searchContext.GetFieldValueType(f)).Where(t => t != null)
-                                : _searchContext.FieldValueTypes;
+                //if no fields are specified then use all fields
+                fields = fields ?? AllFields;
+
+                var types = fields.Select(f => _searchContext.GetFieldValueType(f)).Where(t => t != null);
 
                 var bq = new BooleanQuery();
                 foreach (var type in types)
@@ -76,7 +77,8 @@ namespace Examine.LuceneEngine.Search
                 var bq = new BooleanQuery();
                 foreach (var f in fields)
                 {
-                    if (_searchContext.GetFieldValueType(f) is IIndexRangeValueType<T> type)
+                    var valueType = _searchContext.GetFieldValueType(f);
+                    if (valueType is IIndexRangeValueType<T> type)
                     {
                         var q = type.GetQuery(min, max, minInclusive, maxInclusive);
                         if (q != null)
@@ -87,7 +89,7 @@ namespace Examine.LuceneEngine.Search
                     }
                     else
                     {
-                        Trace.TraceError("Could not perform a range query on the field {0}, it's value type is {1}", f, _searchContext.GetFieldValueType(f).GetType());
+                        throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
                     }
                 }
                 return bq;
