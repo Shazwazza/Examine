@@ -55,18 +55,27 @@ namespace Examine.LuceneEngine.Search
 
                 var types = fields.Select(f => _searchContext.GetFieldValueType(f)).Where(t => t != null);
 
-                var bq = new BooleanQuery();
+                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
+                //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
+                //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
+                //so it might be the ToString() that is the issue.
+                var outer = new BooleanQuery();
+                var inner = new BooleanQuery();
+                
                 foreach (var type in types)
                 {
                     var q = type.GetQuery(query, _searchContext.Searcher);
                     if (q != null)
                     {
                         //CriteriaContext.ManagedQueries.Add(new KeyValuePair<IIndexFieldValueType, Query>(type, q));
-                        bq.Add(q, Occur.SHOULD);
+                        inner.Add(q, Occur.SHOULD);
                     }
 
                 }
-                return bq;
+
+                outer.Add(inner, Occur.SHOULD);
+
+                return outer;
             }), Occurrence);
 
 
@@ -78,7 +87,14 @@ namespace Examine.LuceneEngine.Search
         {
             Query.Add(new LateBoundQuery(() =>
             {
-                var bq = new BooleanQuery();
+
+                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
+                //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
+                //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
+                //so it might be the ToString() that is the issue.
+                var outer = new BooleanQuery();
+                var inner = new BooleanQuery();
+
                 foreach (var f in fields)
                 {
                     var valueType = _searchContext.GetFieldValueType(f);
@@ -88,7 +104,7 @@ namespace Examine.LuceneEngine.Search
                         if (q != null)
                         {
                             //CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexFieldValueType, Query>(type, q));
-                            bq.Add(q, Occur.SHOULD);
+                            inner.Add(q, Occur.SHOULD);
                         }
                     }
                     else
@@ -96,7 +112,9 @@ namespace Examine.LuceneEngine.Search
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
                     }
                 }
-                return bq;
+                outer.Add(inner, Occur.SHOULD);
+
+                return outer;
             }), Occurrence);
 
 
