@@ -11,7 +11,7 @@ using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.Search
 {
-    public abstract class LuceneSearchQueryBase : IQuery
+    public abstract class LuceneSearchQueryBase : IQuery, INestedQuery
     {
         private readonly CustomMultiFieldQueryParser _queryParser;
         public QueryParser QueryParser => _queryParser;
@@ -39,25 +39,23 @@ namespace Examine.LuceneEngine.Search
 
         protected abstract LuceneBooleanOperationBase CreateOp();
 
-        /// <inheritdoc />
         public BooleanOperation BooleanOperation
         {
             get => _boolOp;
-            protected internal set
+            set
             {
                 _boolOp = value;
                 Occurrence = _boolOp.ToLuceneOccurrence();
             }
         }
 
-        /// <inheritdoc />
         public string Category { get; }
 
         public string[] AllFields { get; }
         public LuceneSearchOptions SearchOptions { get; }
 
         /// <inheritdoc />
-        public IBooleanOperation Group(Func<IQuery, IBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or)
+        public IBooleanOperation Group(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or)
         {
             var bo = CreateOp();
             bo.Op(inner, defaultOp);
@@ -84,7 +82,7 @@ namespace Examine.LuceneEngine.Search
         /// <param name="query"></param>
         /// <param name="op"></param>
         /// <returns></returns>
-        public IBooleanOperation LuceneQuery(Query query, BooleanOperation? op = null)
+        public LuceneBooleanOperationBase LuceneQuery(Query query, BooleanOperation? op = null)
         {
             Query.Add(query, (op ?? BooleanOperation).ToLuceneOccurrence());
             return CreateOp();
@@ -96,55 +94,28 @@ namespace Examine.LuceneEngine.Search
         }
 
         public abstract IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct;
+        public abstract IBooleanOperation ManagedQuery(string query, string[] fields = null);
+        public abstract IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
         public IBooleanOperation Field(string fieldName, string fieldValue)
-        {
-            if (fieldName == null) throw new ArgumentNullException(nameof(fieldName));
-            if (fieldValue == null) throw new ArgumentNullException(nameof(fieldValue));
-            return FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
-        }
+            => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
 
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
-        {
-            if (fieldName == null) throw new ArgumentNullException(nameof(fieldName));
-            if (fieldValue == null) throw new ArgumentNullException(nameof(fieldValue));
-            return FieldInternal(fieldName, fieldValue, Occurrence);
-        }
+            => FieldInternal(fieldName, fieldValue, Occurrence);
 
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
-        {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
-            if (query == null) throw new ArgumentNullException(nameof(query));
-
-            var fieldVals = new List<IExamineValue>();
-            foreach (var f in query)
-            {
-                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
-            }
-            return GroupedAnd(fields.ToArray(), fieldVals.ToArray());
-        }
+            => GroupedAnd(fields, query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] fieldVals)
         {
             if (fields == null) throw new ArgumentNullException(nameof(fields));
             if (fieldVals == null) throw new ArgumentNullException(nameof(fieldVals));
 
-            return GroupedAndInternal(fields.ToArray(), fieldVals.ToArray(), Occurrence);
+            return GroupedAndInternal(fields.ToArray(), fieldVals, Occurrence);
         }
 
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
-        {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
-            if (query == null) throw new ArgumentNullException(nameof(query));
-
-            var fieldVals = new List<IExamineValue>();
-            foreach (var f in query)
-            {
-                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
-            }
-
-            return GroupedOr(fields.ToArray(), fieldVals.ToArray());
-        }
+            => GroupedOr(fields, query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
         {
@@ -155,18 +126,7 @@ namespace Examine.LuceneEngine.Search
         }
 
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
-        {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
-            if (query == null) throw new ArgumentNullException(nameof(query));
-
-            var fieldVals = new List<IExamineValue>();
-            foreach (var f in query)
-            {
-                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
-            }
-
-            return GroupedNot(fields.ToArray(), fieldVals.ToArray());
-        }
+            => GroupedNot(fields, query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
@@ -176,42 +136,123 @@ namespace Examine.LuceneEngine.Search
             return GroupedNotInternal(fields.ToArray(), query);
         }
 
-        public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
+        #region INested
+
+        private static readonly string[] EmptyStringArray = new string[0];
+        
+        protected abstract INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue) where T : struct;
+        protected abstract INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null);
+        protected abstract INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+
+        INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue) 
+            => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
+
+        INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue) 
+            => FieldInternal(fieldName, fieldValue, Occurrence);
+
+        INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
+
+        INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
+
+        INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params string[] query)
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
+
+        INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
+
+        INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params string[] query)
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+
+        INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query);
+
+        INestedBooleanOperation INestedQuery.ManagedQuery(string query, string[] fields) => ManagedQueryNested(query, fields);
+
+        INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
+            => RangeQueryNested(fields, min, max, minInclusive, maxInclusive);
+
+        INestedBooleanOperation INestedQuery.Field<T>(string fieldName, T fieldValue) => FieldNested(fieldName, fieldValue);
+
+        #endregion
+
+        #region Internal
+
+        protected internal LuceneBooleanOperationBase FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence)
         {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
-            if (operations == null) throw new ArgumentNullException(nameof(operations));
-            if (query == null) throw new ArgumentNullException(nameof(query));
-
-            var fieldVals = new List<IExamineValue>();
-            foreach (var f in query)
-            {
-                fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
-            }
-
-            return GroupedFlexible(fields.ToArray(), operations.ToArray(), fieldVals.ToArray());
+            if (fieldName == null) throw new ArgumentNullException(nameof(fieldName));
+            if (fieldValue == null) throw new ArgumentNullException(nameof(fieldValue));
+            return FieldInternal(fieldName, fieldValue, occurrence, true);
         }
 
-        public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params IExamineValue[] query)
+        private LuceneBooleanOperationBase FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence, bool useQueryParser)
         {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
-            if (operations == null) throw new ArgumentNullException(nameof(operations));
-            if (query == null) throw new ArgumentNullException(nameof(query));
+            Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
 
-            return GroupedFlexibleInternal(fields.ToArray(), operations.ToArray(), query, Occurrence);
+            if (queryToAdd != null)
+                Query.Add(queryToAdd, occurrence);
 
+            return CreateOp();
         }
 
-        public abstract IBooleanOperation ManagedQuery(string query, string[] fields = null);
-        public abstract IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
-
-
-        protected internal IBooleanOperation IdInternal(string id, Occur occurrence)
+        protected internal LuceneBooleanOperationBase GroupedAndInternal(string[] fields, IExamineValue[] fieldVals, Occur occurrence)
         {
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (fieldVals == null) throw new ArgumentNullException(nameof(fieldVals));
+
+            //if there's only 1 query text we want to build up a string like this:
+            //(+field1:query +field2:query +field3:query)
+            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
+
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.MUST), occurrence);
+
+            return CreateOp();
+        }
+
+        protected internal LuceneBooleanOperationBase GroupedNotInternal(string[] fields, IExamineValue[] fieldVals)
+        {
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (fieldVals == null) throw new ArgumentNullException(nameof(fieldVals));
+
+            //if there's only 1 query text we want to build up a string like this:
+            //(!field1:query !field2:query !field3:query)
+            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
+
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT, true),
+                //NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work. 
+                // for example, it cannot be:  +(-id:1 -id:2 -id:3)
+                // it just needs to be          (-id:1 -id:2 -id:3)
+                Occur.SHOULD);
+
+            return CreateOp();
+        }
+
+        protected internal LuceneBooleanOperationBase GroupedOrInternal(string[] fields, IExamineValue[] fieldVals, Occur occurrence)
+        {
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (fieldVals == null) throw new ArgumentNullException(nameof(fieldVals));
+
+            //if there's only 1 query text we want to build up a string like this:
+            //(field1:query field2:query field3:query)
+            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
+
+            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.SHOULD, true), occurrence);
+
+            return CreateOp();
+        }
+        
+        protected internal LuceneBooleanOperationBase IdInternal(string id, Occur occurrence)
+        {
+            if (id == null) throw new ArgumentNullException(nameof(id));
+
             //use a query parser (which uses the analyzer) to build up the field query which we want
             Query.Add(_queryParser.GetFieldQueryInternal(LuceneIndex.ItemIdFieldName, id), occurrence);
 
             return CreateOp();
         }
+        
+        #endregion
 
         /// <summary>
         /// Returns the Lucene query object for a field given an IExamineValue
@@ -356,59 +397,6 @@ namespace Examine.LuceneEngine.Search
             return phraseQuery;
         }
 
-        protected internal IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence)
-        {
-            return FieldInternal(fieldName, fieldValue, occurrence, true);
-        }
-
-        private IBooleanOperation FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence, bool useQueryParser)
-        {
-            Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
-
-            if (queryToAdd != null)
-                Query.Add(queryToAdd, occurrence);
-
-            return CreateOp();
-        }
-
-        protected internal IBooleanOperation GroupedFlexibleInternal(string[] fields, BooleanOperation[] operations, IExamineValue[] fieldVals, Occur occurance)
-        {
-            //if there's only 1 query text we want to build up a string like this:
-            //(field1:query field2:query field3:query)
-            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
-
-            var flags = new Occur[operations.Count()];
-            for (int i = 0; i < flags.Length; i++)
-                flags[i] = operations.ElementAt(i).ToLuceneOccurrence();
-
-            var queryVals = new IExamineValue[fields.Length];
-            if (fieldVals.Length == 1)
-            {
-                for (int i = 0; i < queryVals.Length; i++)
-                    queryVals[i] = fieldVals[0];
-            }
-            else
-            {
-                queryVals = fieldVals;
-            }
-
-            var qry = new BooleanQuery();
-            for (int i = 0; i < fields.Length; i++)
-            {
-                var q = GetFieldInternalQuery(fields[i], queryVals[i], true);
-                if (q != null)
-                {
-                    qry.Add(q, flags[i]);
-                }
-            }
-
-            Query.Add(qry, occurance);
-
-            return CreateOp();
-        }
-
-        
-
         /// <summary>
         /// Creates our own style 'multi field query' used internal for the grouped operations
         /// </summary>
@@ -443,7 +431,7 @@ namespace Examine.LuceneEngine.Search
         /// 
         /// </remarks>        
         private BooleanQuery GetMultiFieldQuery(
-            string[] fields,
+            IReadOnlyList<string> fields,
             IExamineValue[] fieldVals,
             Occur occurrence,
             bool matchAllCombinations = false)
@@ -466,7 +454,7 @@ namespace Examine.LuceneEngine.Search
             }
             else
             {
-                var queryVals = new IExamineValue[fields.Length];
+                var queryVals = new IExamineValue[fields.Count];
                 if (fieldVals.Length == 1)
                 {
                     for (int i = 0; i < queryVals.Length; i++)
@@ -477,7 +465,7 @@ namespace Examine.LuceneEngine.Search
                     queryVals = fieldVals;
                 }
 
-                for (int i = 0; i < fields.Length; i++)
+                for (int i = 0; i < fields.Count; i++)
                 {
                     var q = GetFieldInternalQuery(fields[i], queryVals[i], true);
                     if (q != null)
@@ -488,45 +476,6 @@ namespace Examine.LuceneEngine.Search
             }
 
             return qry;
-        }
-
-
-        protected internal IBooleanOperation GroupedAndInternal(string[] fields, IExamineValue[] fieldVals, Occur occurrence)
-        {
-
-            //if there's only 1 query text we want to build up a string like this:
-            //(+field1:query +field2:query +field3:query)
-            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
-
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.MUST), occurrence);
-
-            return CreateOp();
-        }
-
-        protected internal IBooleanOperation GroupedNotInternal(string[] fields, IExamineValue[] fieldVals)
-        {
-            //if there's only 1 query text we want to build up a string like this:
-            //(!field1:query !field2:query !field3:query)
-            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
-
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT, true),
-                //NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work. 
-                // for example, it cannot be:  +(-id:1 -id:2 -id:3)
-                // it just needs to be          (-id:1 -id:2 -id:3)
-                Occur.SHOULD);
-
-            return CreateOp();
-        }
-
-        protected internal IBooleanOperation GroupedOrInternal(string[] fields, IExamineValue[] fieldVals, Occur occurrence)
-        {
-            //if there's only 1 query text we want to build up a string like this:
-            //(field1:query field2:query field3:query)
-            //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
-
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.SHOULD, true), occurrence);
-
-            return CreateOp();
         }
 
         /// <summary>

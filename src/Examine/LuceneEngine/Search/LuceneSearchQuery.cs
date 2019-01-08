@@ -12,7 +12,7 @@ namespace Examine.LuceneEngine.Search
     /// This class is used to query against Lucene.Net
     /// </summary>
     [DebuggerDisplay("Category: {Category}, LuceneQuery: {Query}")]
-    public class LuceneSearchQuery : LuceneSearchQueryBase, IQuery, IQueryExecutor
+    public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
 
@@ -24,26 +24,29 @@ namespace Examine.LuceneEngine.Search
             _searchContext = searchContext;
         }
 
-        public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
-        {
-            return RangeQuery<T>(new[] { fieldName }, fieldValue, fieldValue);
-        }
+        public IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
-        public IBooleanOperation OrderBy(params SortableField[] fields)
-        {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
+        public IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
-            return OrderByInternal(false, fields);
-        }
+        public override IBooleanOperation Field<T>(string fieldName, T fieldValue) 
+            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
 
-        public IBooleanOperation OrderByDescending(params SortableField[] fields)
-        {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
-
-            return OrderByInternal(true, fields);
-        }
-        
         public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
+            => ManagedQueryInternal(query, fields);
+
+        public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
+            => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive);
+
+        protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue) 
+            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
+
+        protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
+            => ManagedQueryInternal(query, fields);
+
+        protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
+            => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive);
+
+        internal LuceneBooleanOperation ManagedQueryInternal(string query, string[] fields = null)
         {
             Query.Add(new LateBoundQuery(() =>
             {
@@ -70,7 +73,8 @@ namespace Examine.LuceneEngine.Search
             return new LuceneBooleanOperation(this);
         }
 
-        public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) 
+        internal LuceneBooleanOperation RangeQueryInternal<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
+            where T : struct
         {
             Query.Add(new LateBoundQuery(() =>
             {
@@ -99,15 +103,10 @@ namespace Examine.LuceneEngine.Search
             return new LuceneBooleanOperation(this);
         }
 
-        
 
         /// <inheritdoc />
-        public ISearchResults Execute(int maxResults = 500)
-        {
-            return Search(maxResults);
-        }
+        public ISearchResults Execute(int maxResults = 500) => Search(maxResults);
 
-        
 
         /// <summary>
         /// Performs a search with a maximum number of results
@@ -131,6 +130,8 @@ namespace Examine.LuceneEngine.Search
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         private LuceneBooleanOperation OrderByInternal(bool descending, params SortableField[] fields)
         {
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+
             foreach (var f in fields)
             {
                 var fieldName = f.FieldName;
@@ -181,9 +182,6 @@ namespace Examine.LuceneEngine.Search
             return new LuceneBooleanOperation(this);
         }
 
-        protected override LuceneBooleanOperationBase CreateOp()
-        {
-            return new LuceneBooleanOperation(this);
-        }
+        protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
     }
 }
