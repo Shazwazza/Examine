@@ -1,18 +1,14 @@
-﻿
-using System;
+﻿using System;
 
 namespace Examine.Search
 {
-    /// <summary>
-    /// Defines the supported operation for addition of additional clauses in the fluent API
-    /// </summary>
-    public interface IBooleanOperation : IOrdering
+    public interface INestedBooleanOperation
     {
         /// <summary>
         /// Sets the next operation to be AND
         /// </summary>
         /// <returns></returns>
-        IQuery And();
+        INestedQuery And();
 
         /// <summary>
         /// Adds the nested query
@@ -20,13 +16,13 @@ namespace Examine.Search
         /// <param name="inner"></param>
         /// <param name="defaultOp"></param>
         /// <returns></returns>
-        IBooleanOperation And(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+        INestedBooleanOperation And(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Sets the next operation to be OR
         /// </summary>
         /// <returns></returns>
-        IQuery Or();
+        INestedQuery Or();
 
         /// <summary>
         /// Adds the nested query
@@ -34,13 +30,13 @@ namespace Examine.Search
         /// <param name="inner"></param>
         /// <param name="defaultOp"></param>
         /// <returns></returns>
-        IBooleanOperation Or(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+        INestedBooleanOperation Or(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Sets the next operation to be NOT
         /// </summary>
         /// <returns></returns>
-        IQuery Not();
+        INestedQuery Not();
 
         /// <summary>
         /// Adds the nested query
@@ -48,7 +44,6 @@ namespace Examine.Search
         /// <param name="inner"></param>
         /// <param name="defaultOp"></param>
         /// <returns></returns>
-        IBooleanOperation AndNot(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
-
+        INestedBooleanOperation AndNot(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
     }
 }

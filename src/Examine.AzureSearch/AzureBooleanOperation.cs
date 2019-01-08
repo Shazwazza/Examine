@@ -16,27 +16,21 @@ namespace Examine.AzureSearch
         }
 
         /// <inheritdoc />
-        public override IQuery And()
-        {
-            return new AzureQuery(_search, BooleanOperation.And);
-        }
-        
-        /// <inheritdoc />
-        public override IQuery Or()
-        {
-            return new AzureQuery(_search, BooleanOperation.Or);
-        }
+        public override IQuery And() => new AzureQuery(_search, BooleanOperation.And);
 
         /// <inheritdoc />
-        public override IQuery Not()
-        {
-            return new AzureQuery(_search, BooleanOperation.Not);
-        }
+        public override IQuery Or() => new AzureQuery(_search, BooleanOperation.Or);
 
-        public override ISearchResults Execute(int maxResults = 500)
-        {
-            return _search.Execute(maxResults);
-        }
+        /// <inheritdoc />
+        public override IQuery Not() => new AzureQuery(_search, BooleanOperation.Not);
+
+        protected override INestedQuery AndNested() => new AzureQuery(_search, BooleanOperation.And);
+
+        protected override INestedQuery OrNested() => new AzureQuery(_search, BooleanOperation.Or);
+
+        protected override INestedQuery NotNested() => new AzureQuery(_search, BooleanOperation.Not);
+
+        public override ISearchResults Execute(int maxResults = 500) => _search.Execute(maxResults);
 
         #region IOrdering
 

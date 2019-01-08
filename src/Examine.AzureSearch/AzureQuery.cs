@@ -11,7 +11,7 @@ using StandardAnalyzer = Lucene.Net.Analysis.Standard.StandardAnalyzer;
 
 namespace Examine.AzureSearch
 {
-    public class AzureQuery : LuceneSearchQueryBase, IQuery, IQueryExecutor
+    public class AzureQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         internal Analyzer DefaultAnalyzer { get; } = new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_29);
         internal static readonly LuceneSearchOptions EmptyOptions = new LuceneSearchOptions();
@@ -56,6 +56,27 @@ namespace Examine.AzureSearch
         }
 
         public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) 
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
+        {
+            //TODO: Instead of AllFields here we should have a reference to the FieldDefinitionCollection
+            foreach (var field in fields ?? AllFields)
+            {
+                var fullTextQuery = FullTextType.GenerateQuery(field, query, DefaultAnalyzer);
+                Query.Add(fullTextQuery, Occurrence);
+            }
+            return new AzureBooleanOperation(this);
+        }
+
+        protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
         {
             throw new NotImplementedException();
         }

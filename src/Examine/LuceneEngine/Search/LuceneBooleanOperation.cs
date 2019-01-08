@@ -9,68 +9,50 @@ namespace Examine.LuceneEngine.Search
     /// An implementation of the fluent API boolean operations
     /// </summary>
     [DebuggerDisplay("{_search}")]
-    public class LuceneBooleanOperation : LuceneBooleanOperationBase, IBooleanOperation
+    public class LuceneBooleanOperation : LuceneBooleanOperationBase
     {
         private readonly LuceneSearchQuery _search;
         
         public LuceneBooleanOperation(LuceneSearchQuery search)
             : base(search)
         {
-            this._search = search;
+            _search = search;
         }
 
         #region IBooleanOperation Members
 
         /// <inheritdoc />
-        public override IQuery And()
-        {
-            return new LuceneQuery(this._search, Occur.MUST);
-        }
-
-        
+        protected override INestedQuery AndNested() => new LuceneQuery(this._search, Occur.MUST);
 
         /// <inheritdoc />
-        public override IQuery Or()
-        {
-            return new LuceneQuery(this._search, Occur.SHOULD);
-        }
-
-        
+        protected override INestedQuery OrNested() => new LuceneQuery(this._search, Occur.SHOULD);
 
         /// <inheritdoc />
-        public override IQuery Not()
-        {
-            return new LuceneQuery(this._search, Occur.MUST_NOT);
-        }
+        protected override INestedQuery NotNested() => new LuceneQuery(this._search, Occur.MUST_NOT);
 
-        
-        
+        /// <inheritdoc />
+        public override IQuery And() => new LuceneQuery(this._search, Occur.MUST);
+
+
+        /// <inheritdoc />
+        public override IQuery Or() => new LuceneQuery(this._search, Occur.SHOULD);
+
+
+        /// <inheritdoc />
+        public override IQuery Not() => new LuceneQuery(this._search, Occur.MUST_NOT);
+
         #endregion
 
-        public override ISearchResults Execute(int maxResults = 500)
-        {
-            return _search.Execute(maxResults);
-        }
+        public override ISearchResults Execute(int maxResults = 500) => _search.Execute(maxResults);
 
         #region IOrdering
 
-        public override IOrdering OrderBy(params SortableField[] fields)
-        {
-            return _search.OrderBy(fields);
-        }
+        public override IOrdering OrderBy(params SortableField[] fields) => _search.OrderBy(fields);
 
-        public override IOrdering OrderByDescending(params SortableField[] fields)
-        {
-            return _search.OrderByDescending(fields);
-        }
+        public override IOrdering OrderByDescending(params SortableField[] fields) => _search.OrderByDescending(fields);
 
         #endregion
 
-        
-
-        public override string ToString()
-        {
-            return _search.ToString();
-        }
+        public override string ToString() => _search.ToString();
     }
 }
