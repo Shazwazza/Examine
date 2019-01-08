@@ -115,7 +115,9 @@ namespace Examine.Test.Search
 
                 var searcher = indexer1.GetSearcher();
 
-                var result = searcher.CreateQuery().ManagedQuery("darkness").And().Field("item1", "value1").Execute();
+                var qry = searcher.CreateQuery().ManagedQuery("darkness").And().Field("item1", "value1");
+                Console.WriteLine(qry);
+                var result = qry.Execute();
 
                 Assert.AreEqual(1, result.TotalItemCount);
                 Console.WriteLine("Search 1:");
@@ -124,7 +126,7 @@ namespace Examine.Test.Search
                     Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
                 }
 
-                var qry = searcher.CreateQuery().ManagedQuery("darkness")
+                qry = searcher.CreateQuery().ManagedQuery("darkness")
                     .And(query => query.Field("item1", "value1").Or().Field("item1", "value2"), BooleanOperation.Or);
                 Console.WriteLine(qry);
                 result = qry.Execute();
