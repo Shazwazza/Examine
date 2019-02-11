@@ -42,20 +42,14 @@ namespace Examine.LuceneEngine.Directories
         }
 
         /// <summary>
-        /// Gets the index path name from the Dir Info object. By default Examine will store the index files into a folder like:
-        /// "External/Index" but we want to exact the "External" part. We cannot guarantee that this is how the index files are stored
-        /// so we'll try to extract it and if we can't we'll have to hash the whole path
+        /// Return a sub folder name to store under the temp folder
         /// </summary>
         /// <param name="indexPath"></param>
-        /// <returns></returns>
+        /// <returns>
+        /// A hash value of the original path
+        /// </returns>
         private static string GetIndexPathName(DirectoryInfo indexPath)
         {
-            var parts = indexPath.FullName.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length > 0 && string.Equals(parts[parts.Length - 1], "Index", StringComparison.OrdinalIgnoreCase))
-            {
-                //in theory this would be the Index name
-                return parts[parts.Length - 2];
-            }
             return indexPath.FullName.GenerateHash();
         }
 
