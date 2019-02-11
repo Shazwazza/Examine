@@ -647,6 +647,13 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
+        private static IEnumerable<KeyValuePair<string, List<object>>> CopyDictionary(IDictionary<string, List<object>> d)
+        {
+            var result = new KeyValuePair<string, List<object>>[d.Count];
+            d.CopyTo(result, 0);
+            return result;
+        }
+
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
@@ -666,7 +673,7 @@ namespace Examine.LuceneEngine.Providers
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
             //copy to a new dictionary, there has been cases of an exception "Collection was modified; enumeration operation may not execute."
-            foreach (var field in new Dictionary<string, List<object>>(valueSet.Values))
+            foreach (var field in CopyDictionary(valueSet.Values))
             {
                 //check if we have a defined one
                 if (FieldDefinitionCollection.TryGetValue(field.Key, out var definedFieldDefinition))
