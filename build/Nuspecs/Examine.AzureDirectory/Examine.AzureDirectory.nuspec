@@ -15,7 +15,7 @@
     <copyright>$copyright$</copyright>
     <dependencies>
         <group targetFramework="net452">
-            <dependency id="Examine" version="0.1.90-beta01" />
+            <dependency id="Examine" version="1.0.0" />
             <dependency id="WindowsAzure.Storage" version="9.3.1" />
         </group>
     </dependencies>
