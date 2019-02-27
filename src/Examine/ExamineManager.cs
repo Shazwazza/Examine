@@ -24,7 +24,11 @@ namespace Examine
         /// <returns></returns>
         public static void DisableDefaultHostingEnvironmentRegistration()
         {
+            if (!_defaultRegisteration) return;
             _defaultRegisteration = false;
+
+            var instance = Instance;
+            if (instance is ExamineManager e) HostingEnvironment.UnregisterObject(e);
         }
 
         private ExamineManager()
