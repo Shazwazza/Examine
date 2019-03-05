@@ -336,11 +336,6 @@ namespace Examine.Test.Search
 
         }
 
-        /// <summary>
-        /// Grouped AND is a special case as well since NOT and OR include all values, it doesn't make
-        /// logic sense that AND includes all fields and values because nothing would actually match. 
-        /// i.e. +id:1 +id2    --> Nothing matches
-        /// </summary>
         [Test]
         public void Grouped_And_Query_Output()
         {
@@ -359,13 +354,16 @@ namespace Examine.Test.Search
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
-                Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
+            //We used to assert this, but it must be allowed to do an add on the same field multiple times
+            //Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +id:2 +id:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
+            //The field/value array lengths are equal so we will match the key/value pairs
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
@@ -373,6 +371,7 @@ namespace Examine.Test.Search
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
+            //There are more than one field and there are more values than fields, in this case we align the key/value pairs
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
@@ -1566,6 +1565,9 @@ namespace Examine.Test.Search
                 new FieldDefinitionCollection(new FieldDefinition("DateCreated", "datetime")),
                 luceneDir, analyzer))
             
+            //since we're passing in the same number of fields as values, the result will be the aligned key/value pairs
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+(+nodeTypeAlias:cws* +nodeName:a*)", criteria.Query.ToString());
 
             {
                 
