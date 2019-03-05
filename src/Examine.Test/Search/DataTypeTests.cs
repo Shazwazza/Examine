@@ -258,7 +258,7 @@ namespace Examine.Test.Search
         private static DateTime _reIndexDateTime;
 		private Lucene.Net.Store.Directory _luceneDir;
 
-        [SetUp]
+        [OneTimeSetUp]
         public void TestSetup()
         {
 
@@ -273,7 +273,7 @@ namespace Examine.Test.Search
 			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
         }
 
-        [TearDown]
+        [OneTimeTearDown]
         public void TestTearDown()
 		{
 			_luceneDir.Dispose();

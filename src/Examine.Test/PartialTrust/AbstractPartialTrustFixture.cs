@@ -16,7 +16,7 @@ namespace Examine.Test.PartialTrust
 		/// for the duration of this test fixture, and a <see cref="PartialTrustHelper{T}"/> which will also
 		/// survive for the life of the test fixture.
 		/// </summary>
-		[SetUp]
+		[OneTimeSetUp]
 		protected virtual void FixtureSetup()
 		{
 			_partialTrustAppDomain = PartialTrustHelper<T>.CreatePartialTrustDomain();
@@ -26,7 +26,7 @@ namespace Examine.Test.PartialTrust
 		/// <summary>
 		/// Causes the partial-trust <see cref="AppDomain"/> to be unloaded.
 		/// </summary>
-		[TearDown]
+		[OneTimeTearDown]
 		protected void FixtureTearDown()
 		{
 			AppDomain.Unload(_partialTrustAppDomain);
@@ -43,7 +43,7 @@ namespace Examine.Test.PartialTrust
 		/// If the test failed in partial trust, it will be marked as failed as normal - including any errors specific
 		/// to running it in a partial trust environment.
 		/// </remarks>
-		[SetUp]
+		[OneTimeSetUp]
 		protected void PartialTrustSetup()
 		{
 			if (ShouldTestOnlyInFullTrust())
@@ -84,7 +84,7 @@ namespace Examine.Test.PartialTrust
 		/// This is run once after each test by the NUnit runner. It will cause <see cref="TestTearDown"/> to be 
 		/// run on the derived test class in the partial-trust domain.
 		/// </summary>
-		[TearDown]
+		[OneTimeTearDown]
 		public void PartialTrustTearDown()
 		{
 			if (ShouldTestOnlyInFullTrust())
