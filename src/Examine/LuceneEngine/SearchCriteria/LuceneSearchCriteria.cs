@@ -573,7 +573,8 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldVals.Add(new ExamineValue(Examineness.Explicit, f));
             }
-            return this.GroupedAnd(fields.ToArray(), fieldVals.ToArray());
+            var result = this.GroupedAnd(fields.ToArray(), fieldVals.ToArray());
+            return result;
         }
 
 		[SecuritySafeCritical]
@@ -681,9 +682,13 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <param name="matchAllCombinations">If true will match all combinations, if not will only match the values corresponding with fields</param>
         /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
         /// <remarks>
+        ///
+        /// docs about this are here: https://github.com/Shazwazza/Examine/wiki/Grouped-Operations
         /// 
         /// if matchAllCombinations == false then...
-        /// this will create a query that matches the field index to the value index
+        /// this will create a query that matches the field index to the value index if the value length is >= to the field length
+        /// otherwise we will have to match all combinations.
+        /// 
         /// For example if we have these fields:
         /// bodyText, pageTitle
         /// and these values:
@@ -712,9 +717,12 @@ namespace Examine.LuceneEngine.SearchCriteria
             BooleanClause.Occur occurance,
             bool matchAllCombinations = false)
         {
-
             var qry = new BooleanQuery();
-            if (matchAllCombinations)
+
+            //if there's only one field defined then we will match all combinations
+            //if matchAllCombinations is explicitly specified, or there's no way that the key/value pairs can be aligned,
+            //we will have to match all combinations
+            if (fields.Length == 1 || matchAllCombinations || fieldVals.Length < fields.Length)
             {
                 foreach (var f in fields)
                 {
@@ -727,35 +735,24 @@ namespace Examine.LuceneEngine.SearchCriteria
                         }
                     }
                 }
+                return qry;
             }
-            else
+            
+            //This will align the key value pairs:            
+            for (int i = 0; i < fields.Length; i++)
             {
-                var queryVals = new IExamineValue[fields.Length];
-                if (fieldVals.Length == 1)
+                var queryVal = fieldVals[i];
+                var q = GetFieldInternalQuery(fields[i], queryVal, true);
+                if (q != null)
                 {
-                    for (int i = 0; i < queryVals.Length; i++)
-                        queryVals[i] = fieldVals[0];
-                }
-                else
-                {
-                    queryVals = fieldVals;
-                }
-
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    for (int x = 0; x < queryVals.Length; x++)
-                    {
-                        var q = GetFieldInternalQuery(fields[i], queryVals[x], true);
-                        if (q != null)
-                        {
-                            qry.Add(q, occurance);
-                        }
-                    }
+                    qry.Add(q, occurance);
                 }
             }
 
             return qry;
+
         }
+        
 
         public IBooleanOperation GroupedFlexible(IEnumerable<string> fields, IEnumerable<BooleanOperation> operations, params string[] query)
         {

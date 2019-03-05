@@ -91,33 +91,35 @@ namespace Examine.Test.Search
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1)", criteria.Query.ToString());
         }
 
-        /// <summary>
-        /// Grouped AND is a special case as well since NOT and OR include all values, it doesn't make
-        /// logic sense that AND includes all fields and values because nothing would actually match. 
-        /// i.e. +id:1 +id2    --> Nothing matches
-        /// </summary>
         [Test]
         public void FluentApi_Grouped_And_Query_Output()
         {
+            //This block used to test that Grouped AND would not include several of the same field because
+            //that doesn't make sense for things like Ids, however that restriction doesn't apply to all field types, 
+            //see: https://github.com/Shazwazza/Examine/issues/91
             Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
             var criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
             criteria.NodeTypeAlias("myDocumentTypeAlias");
             criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
             Console.WriteLine(criteria.Query);
-            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
+            //We used to assert this, but it must be allowed to do an add on the same field multiple times
+            //Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +id:2 +id:3)", criteria.Query.ToString());
 
             Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
             criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
             criteria.NodeTypeAlias("myDocumentTypeAlias");
             criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
             Console.WriteLine(criteria.Query);
-            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
+            //The field/value array lengths are equal so we will match the key/value pairs
+            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());            
 
             Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
             criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
             criteria.NodeTypeAlias("myDocumentTypeAlias");
             criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
             Console.WriteLine(criteria.Query);
+            //There are more than one field and there are more values than fields, in this case we align the key/value pairs
             Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
 
             Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
@@ -485,20 +487,22 @@ namespace Examine.Test.Search
         [Test]
         public void FluentApiTests_Grouped_And_Examiness()
         {
-            ////Arrange
-            var criteria = _searcher.CreateSearchCriteria("content");
+            //Arrange
+            var criteria = (LuceneSearchCriteria)_searcher.CreateSearchCriteria("content");
 
             //get all node type aliases starting with CWS and all nodees starting with "A"
             var filter = criteria.GroupedAnd(
                 new string[] { "nodeTypeAlias", "nodeName" },
-                new IExamineValue[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() })
-                .Compile();
+                new IExamineValue[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() });
 
+            //since we're passing in the same number of fields as values, the result will be the aligned key/value pairs
+            Console.WriteLine(criteria.Query);
+            Assert.AreEqual("+(+nodeTypeAlias:cws* +nodeName:a*)", criteria.Query.ToString());
 
-            ////Act
-            var results = _searcher.Search(filter);
+            //Act
+            var results = _searcher.Search(filter.Compile());
 
-            ////Assert
+            //Assert
             Assert.IsTrue(results.TotalItemCount > 0);
         }
 
