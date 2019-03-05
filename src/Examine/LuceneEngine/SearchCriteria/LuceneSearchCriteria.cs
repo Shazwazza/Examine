@@ -740,14 +740,17 @@ namespace Examine.LuceneEngine.SearchCriteria
                 {
                     queryVals = fieldVals;
                 }
-                
+
                 for (int i = 0; i < fields.Length; i++)
                 {
-                    var q = GetFieldInternalQuery(fields[i], queryVals[i], true);
-                    if (q != null)
+                    for (int x = 0; x < queryVals.Length; x++)
                     {
-                        qry.Add(q, occurance);
-                    }                   
+                        var q = GetFieldInternalQuery(fields[i], queryVals[x], true);
+                        if (q != null)
+                        {
+                            qry.Add(q, occurance);
+                        }
+                    }
                 }
             }
 
