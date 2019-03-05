@@ -142,7 +142,7 @@ namespace Examine.Test.PartialTrust
 			public void Run(MethodInfo methodToRun)
 			{
 				// Verify that we are definitely running in an appdomain that we made ourselves
-				Assert.That(AppDomain.CurrentDomain.FriendlyName, Is.StringStarting(PartialTrustAppDomainName));
+                Assert.IsTrue(AppDomain.CurrentDomain.FriendlyName.StartsWith(PartialTrustAppDomainName));
 
 				try
 				{

@@ -16,7 +16,7 @@ namespace Examine.Test.PartialTrust
 		/// for the duration of this test fixture, and a <see cref="PartialTrustHelper{T}"/> which will also
 		/// survive for the life of the test fixture.
 		/// </summary>
-		[TestFixtureSetUp]
+		[SetUp]
 		protected virtual void FixtureSetup()
 		{
 			_partialTrustAppDomain = PartialTrustHelper<T>.CreatePartialTrustDomain();
@@ -26,7 +26,7 @@ namespace Examine.Test.PartialTrust
 		/// <summary>
 		/// Causes the partial-trust <see cref="AppDomain"/> to be unloaded.
 		/// </summary>
-		[TestFixtureTearDown]
+		[TearDown]
 		protected void FixtureTearDown()
 		{
 			AppDomain.Unload(_partialTrustAppDomain);

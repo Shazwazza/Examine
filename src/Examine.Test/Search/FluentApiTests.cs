@@ -566,7 +566,7 @@ namespace Examine.Test.Search
         #region Initialize and Cleanup
 
 
-        [TestFixtureSetUp]
+        [SetUp]
         public void TestSetup()
         {
 			_luceneDir = new RandomIdRAMDirectory();
@@ -578,7 +578,7 @@ namespace Examine.Test.Search
 			_searcher = IndexInitializer.GetUmbracoSearcher(_luceneDir);
         }
 
-        [TestFixtureTearDown]
+        [TearDown]
         public void TestTearDown()
 		{
 			_luceneDir.Dispose();	

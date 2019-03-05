@@ -74,7 +74,7 @@ namespace Examine.Test
         private static LuceneSearcher _searcher;
 		private Lucene.Net.Store.Directory _luceneDir;
 
-        [TestFixtureSetUp]
+        [SetUp]
         public void TestSetup()
 		{
 			_luceneDir = new RandomIdRAMDirectory();
@@ -83,7 +83,7 @@ namespace Examine.Test
 			_searcher = IndexInitializer.GetLuceneSearcher(_luceneDir);
 		}
 
-        [TestFixtureTearDown]
+        [TearDown]
         public void TestTearDown()
 		{
 			_luceneDir.Dispose();
