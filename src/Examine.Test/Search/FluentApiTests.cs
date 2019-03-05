@@ -12,7 +12,7 @@ using Version = Lucene.Net.Util.Version;
 namespace Examine.Test.Search
 {
     [TestFixture]
-	public class FluentApiTests
+    public class FluentApiTests
     {
         [Test]
         public void Managed_Range_Date()
@@ -20,7 +20,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("created", "datetime")), 
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime")),
                 luceneDir, analyzer))
             {
 
@@ -149,7 +149,7 @@ namespace Examine.Test.Search
                 new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
                 luceneDir, analyzer))
             {
-                
+
 
                 indexer.IndexItems(new[]
                 {
@@ -196,7 +196,7 @@ namespace Examine.Test.Search
                 new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
                 luceneDir, analyzer))
             {
-                
+
 
                 indexer.IndexItems(new[]
                 {
@@ -222,7 +222,7 @@ namespace Examine.Test.Search
                             nodeTypeAlias = "CWS_Page"
                         })
                 });
-                
+
                 var searcher = indexer.GetSearcher();
 
                 var numberSortedCriteria = searcher.CreateQuery()
@@ -244,7 +244,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
             {
-                
+
 
                 indexer.IndexItems(new[]
                 {
@@ -344,26 +344,24 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndex(luceneDir, analyzer))
 
             {
-
-
                 var searcher = indexer.GetSearcher();
-                    //new LuceneSearcher("testSearcher", luceneDir, analyzer);
+                //new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
-            //We used to assert this, but it must be allowed to do an add on the same field multiple times
-            //Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
-            Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +id:2 +id:3)", criteria.Query.ToString());
+                //We used to assert this, but it must be allowed to do an add on the same field multiple times
+                //Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
+                Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +id:2 +id:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
-            //The field/value array lengths are equal so we will match the key/value pairs
+                //The field/value array lengths are equal so we will match the key/value pairs
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
@@ -371,7 +369,7 @@ namespace Examine.Test.Search
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
                 criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
                 Console.WriteLine(criteria.Query);
-            //There are more than one field and there are more values than fields, in this case we align the key/value pairs
+                //There are more than one field and there are more values than fields, in this case we align the key/value pairs
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
@@ -453,7 +451,7 @@ namespace Examine.Test.Search
 
                 luceneDir, analyzer))
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -482,7 +480,7 @@ namespace Examine.Test.Search
                 new FieldDefinitionCollection(new FieldDefinition("__Path", "raw")),
                 luceneDir, analyzer))
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     new ValueSet(1.ToString(), "content",
@@ -541,10 +539,10 @@ namespace Examine.Test.Search
             using (var indexer = new TestIndex(
                 new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
                 luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -577,7 +575,7 @@ namespace Examine.Test.Search
                 new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw")),
                 luceneDir, analyzer))
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     new ValueSet(1.ToString(), "content",
@@ -623,10 +621,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -655,10 +653,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     new ValueSet(1.ToString(), "content",
@@ -687,7 +685,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 var criteria = searcher.CreateQuery("content");
-                
+
                 var results = criteria.NativeQuery("nodeTypeAlias:CWS_Home").Execute();
 
                 Assert.AreEqual(2, results.TotalItemCount);
@@ -702,10 +700,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "media",
@@ -733,10 +731,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "media",
@@ -772,10 +770,10 @@ namespace Examine.Test.Search
                 //Ensure it's set to a number, otherwise it's not sortable
                 new FieldDefinitionCollection(new FieldDefinition("sortOrder", "number"), new FieldDefinition("parentID", "number")),
                 luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -815,10 +813,10 @@ namespace Examine.Test.Search
                 //Ensure it's set to a date, otherwise it's not sortable
                 new FieldDefinitionCollection(new FieldDefinition("updateDate", "date"), new FieldDefinition("parentID", "number")),
                 luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 var now = DateTime.Now;
 
@@ -860,11 +858,11 @@ namespace Examine.Test.Search
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 new FieldDefinitionCollection(new FieldDefinition("nodeName", "fulltextsortable")),
                 luceneDir, analyzer))
-            
+
 
             {
 
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -876,7 +874,7 @@ namespace Examine.Test.Search
                     ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
                     });
-                
+
 
                 var searcher = indexer.GetSearcher();
 
@@ -903,11 +901,11 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
 
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -948,10 +946,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -985,10 +983,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
 
                 indexer.IndexItems(new[] {
@@ -1024,10 +1022,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1065,10 +1063,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1112,10 +1110,10 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new FieldDefinitionCollection(new FieldDefinition("SomeFloat", "float")),
                 luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1132,7 +1130,7 @@ namespace Examine.Test.Search
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateQuery();
-                var filter1 = criteria1.RangeQuery<float>(new []{"SomeFloat" }, 0f, 100f, true, true);
+                var filter1 = criteria1.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, true, true);
 
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<float>(new[] { "SomeFloat" }, 101f, 200f, true, true);
@@ -1161,10 +1159,10 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new FieldDefinitionCollection(new FieldDefinition("SomeNumber", "number")),
                 luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1181,7 +1179,7 @@ namespace Examine.Test.Search
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateQuery();
-                var filter1 = criteria1.RangeQuery<int>(new[]{ "SomeNumber" }, 0, 100, true, true);
+                var filter1 = criteria1.RangeQuery<int>(new[] { "SomeNumber" }, 0, 100, true, true);
 
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<int>(new[] { "SomeNumber" }, 101, 200, true, true);
@@ -1208,10 +1206,10 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new FieldDefinitionCollection(new FieldDefinition("SomeDouble", "double")),
                 luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1228,7 +1226,7 @@ namespace Examine.Test.Search
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateQuery();
-                var filter1 = criteria1.RangeQuery<double>(new[]{ "SomeDouble" }, 0d, 100d, true, true);
+                var filter1 = criteria1.RangeQuery<double>(new[] { "SomeDouble" }, 0d, 100d, true, true);
 
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true);
@@ -1255,10 +1253,10 @@ namespace Examine.Test.Search
                 //Ensure it's set to a float
                 new FieldDefinitionCollection(new FieldDefinition("SomeLong", "long")),
                 luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1275,7 +1273,7 @@ namespace Examine.Test.Search
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateQuery();
-                var filter1 = criteria1.RangeQuery<long>(new[]{ "SomeLong" }, 0L, 100L, true, true);
+                var filter1 = criteria1.RangeQuery<long>(new[] { "SomeLong" }, 0L, 100L, true, true);
 
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<long>(new[] { "SomeLong" }, 101L, 200L, true, true);
@@ -1306,7 +1304,7 @@ namespace Examine.Test.Search
 
         //        new[] { new FieldDefinition("MinuteCreated", "date.minute") },
         //        luceneDir, analyzer))
-            
+
 
         //    {
         //        
@@ -1322,7 +1320,7 @@ namespace Examine.Test.Search
         //                new { MinuteCreated = reIndexDateTime })
         //            });
 
-                
+
 
         //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
@@ -1359,7 +1357,7 @@ namespace Examine.Test.Search
 
         //        new[] { new FieldDefinition("HourCreated", "date.hour") },
         //        luceneDir, analyzer))
-            
+
 
         //    {
 
@@ -1376,7 +1374,7 @@ namespace Examine.Test.Search
         //                new { HourCreated = reIndexDateTime })
         //            });
 
-                
+
 
         //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
@@ -1410,7 +1408,7 @@ namespace Examine.Test.Search
 
         //        new[] { new FieldDefinition("DayCreated", "date.day") },
         //        luceneDir, analyzer))
-            
+
 
         //    {
         //        
@@ -1426,7 +1424,7 @@ namespace Examine.Test.Search
         //                new { DayCreated = reIndexDateTime })
         //            });
 
-                
+
 
         //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
@@ -1461,7 +1459,7 @@ namespace Examine.Test.Search
 
         //        new[] { new FieldDefinition("MonthCreated", "date.month") },
         //        luceneDir, analyzer))
-            
+
 
         //    {
         //        
@@ -1477,7 +1475,7 @@ namespace Examine.Test.Search
         //                new { MonthCreated = reIndexDateTime })
         //            });
 
-                
+
 
         //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
@@ -1513,7 +1511,7 @@ namespace Examine.Test.Search
 
         //        new[] { new FieldDefinition("YearCreated", "date.year") },
         //        luceneDir, analyzer))
-            
+
 
         //    {
         //        
@@ -1529,7 +1527,7 @@ namespace Examine.Test.Search
         //                new { YearCreated = reIndexDateTime })
         //            });
 
-                
+
 
         //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
@@ -1564,13 +1562,8 @@ namespace Examine.Test.Search
 
                 new FieldDefinitionCollection(new FieldDefinition("DateCreated", "datetime")),
                 luceneDir, analyzer))
-            
-            //since we're passing in the same number of fields as values, the result will be the aligned key/value pairs
-            Console.WriteLine(criteria.Query);
-            Assert.AreEqual("+(+nodeTypeAlias:cws* +nodeName:a*)", criteria.Query.ToString());
-
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1586,7 +1579,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 var criteria = searcher.CreateQuery();
-                var filter = criteria.RangeQuery<DateTime>(new []{ "DateCreated" }, reIndexDateTime, DateTime.Now, true, true);
+                var filter = criteria.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime, DateTime.Now, true, true);
 
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true);
@@ -1609,10 +1602,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1656,7 +1649,7 @@ namespace Examine.Test.Search
 
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1695,10 +1688,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1735,10 +1728,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1777,10 +1770,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1819,10 +1812,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-            
+
 
             {
-                
+
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1930,7 +1923,7 @@ namespace Examine.Test.Search
         //        //Act
 
         //        Assert.Throws<BooleanQuery.TooManyClauses>(() => _searcher.Search(sc));
-                
+
         //    }
         //    finally
         //    {
