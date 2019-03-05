@@ -133,7 +133,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation Range(string fieldName, DateTime start, DateTime end, bool includeLower, bool includeUpper, DateResolution resolution)
         {
-            return this.search.Range(fieldName, start, end, includeLower, includeUpper);
+            return this.search.Range(fieldName, start, end, includeLower, includeUpper, resolution);
         }
 
         /// <summary>
