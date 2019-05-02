@@ -13,6 +13,7 @@
     <summary>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it</summary>
     <tags>examine search lucene</tags>
     <copyright>$copyright$</copyright>
+    <repository type="git" url="https://github.com/Shazwazza/Examine" />
     <dependencies>
         <group targetFramework="net452">
             <dependency id="Lucene.Net" version="[3.0.3, 4.0.0)" />
