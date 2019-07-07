@@ -34,7 +34,8 @@ namespace Examine
         /// Creates a new index, any existing index will be deleted
         /// </summary>
         void CreateIndex();
-        
+
+        int GetCommitCount();
         /// <summary>
         /// Returns the field definitions for the index
         /// </summary>

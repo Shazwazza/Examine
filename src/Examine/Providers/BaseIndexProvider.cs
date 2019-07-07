@@ -101,6 +101,8 @@ namespace Examine.Providers
         /// <returns></returns>
         public abstract bool IndexExists();
 
+        public abstract int GetCommitCount();
+
         #endregion
 
         #region Events

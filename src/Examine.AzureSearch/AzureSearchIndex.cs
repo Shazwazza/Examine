@@ -362,8 +362,15 @@ namespace Examine.AzureSearch
                         string.Join(", ", e.IndexingResults.Where(r => !r.Succeeded).Select(r => r.Key)));
                 }
 
+                CommitCount = totalResults;
                 onComplete(new IndexOperationEventArgs(this, totalResults));
             }
+        }
+        public int CommitCount { get; protected internal set; }
+
+        public override int GetCommitCount()
+        {
+            return CommitCount;
         }
 
         protected override void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs> onComplete)
@@ -372,7 +379,7 @@ namespace Examine.AzureSearch
 
             //TODO: Check exception: https://docs.microsoft.com/en-us/azure/search/search-howto-dotnet-sdk
             var result = indexer.Documents.Index(IndexBatch.Delete(FormatFieldName(LuceneIndex.ItemIdFieldName), itemIds));
-            
+            CommitCount = result.Results.Count;
             onComplete(new IndexOperationEventArgs(this, result.Results.Count));
         }
 
