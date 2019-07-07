@@ -53,8 +53,7 @@ namespace Examine.LuceneEngine.Providers
 
             _directory = luceneDirectory;
             //initialize the field types
-            _fieldValueTypeCollection =
-                new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
         }
@@ -84,8 +83,7 @@ namespace Examine.LuceneEngine.Providers
             DefaultAnalyzer = writer.Analyzer;
 
             //initialize the field types
-            _fieldValueTypeCollection =
-                new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
             LuceneIndexFolder = null;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
@@ -160,8 +158,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// Each item in the collection is a collection itself, this allows us to have lazy access to a collection as part of the queue if added in bulk
         /// </remarks>
-        private readonly BlockingCollection<IEnumerable<IndexOperation>> _indexQueue =
-            new BlockingCollection<IEnumerable<IndexOperation>>();
+        private readonly BlockingCollection<IEnumerable<IndexOperation>> _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>();
 
         /// <summary>
         /// The async task that runs during an async indexing operation
@@ -199,12 +196,11 @@ namespace Examine.LuceneEngine.Providers
         public Analyzer DefaultAnalyzer { get; }
 
         private PerFieldAnalyzerWrapper _fieldAnalyzer;
-
         public PerFieldAnalyzerWrapper FieldAnalyzer => _fieldAnalyzer
-                                                        ?? (_fieldAnalyzer =
-                                                            (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
-                                                                ? pfa
-                                                                : new PerFieldAnalyzerWrapper(DefaultAnalyzer));
+            ?? (_fieldAnalyzer =
+                (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
+                    ? pfa
+                    : new PerFieldAnalyzerWrapper(DefaultAnalyzer));
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
@@ -226,7 +222,7 @@ namespace Examine.LuceneEngine.Providers
         /// The folder that stores the Lucene Index files
         /// </summary>
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
-
+        
         /// <summary>
         /// returns true if the indexer has been canceled (app is shutting down)
         /// </summary>
@@ -235,7 +231,7 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Events
-
+        
         /// <summary>
         /// Occurs when [document writing].
         /// </summary>
@@ -270,8 +266,7 @@ namespace Examine.LuceneEngine.Providers
             base.OnIndexingError(e);
 
 #if FULLDEBUG
-            Trace.TraceError("Indexing Error Occurred: " +
-                             (e.InnerException == null ? e.Message : e.Message + " -- " + e.InnerException));
+            Trace.TraceError("Indexing Error Occurred: " + (e.InnerException == null ? e.Message : e.Message + " -- " + e.InnerException));
 #endif
 
             if (!RunAsync)
@@ -281,6 +276,7 @@ namespace Examine.LuceneEngine.Providers
                     msg += ". ERROR: " + e.InnerException.Message;
                 throw new Exception(msg, e.InnerException);
             }
+
         }
 
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
@@ -292,8 +288,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Provider implementation
 
-        protected override void PerformIndexItems(IEnumerable<ValueSet> values,
-            Action<IndexOperationEventArgs> onComplete)
+        protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
         {
             //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             Monitor.Enter(_writerLocker);
@@ -321,7 +316,7 @@ namespace Examine.LuceneEngine.Providers
                 Monitor.Exit(_writerLocker);
             }
         }
-
+        
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
@@ -396,8 +391,7 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
-                    OnIndexingError(new IndexingErrorEventArgs(this,
-                        "Could not acquire lock in EnsureIndex so cannot create new index", null, null));
+                    OnIndexingError(new IndexingErrorEventArgs(this, "Could not acquire lock in EnsureIndex so cannot create new index", null, null));
                 }
             }
         }
@@ -415,7 +409,6 @@ namespace Examine.LuceneEngine.Providers
                     //unlock it!
                     IndexWriter.Unlock(dir);
                 }
-
                 //create the writer (this will overwrite old index files)
                 writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
             }
@@ -439,11 +432,9 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(new IndexingErrorEventArgs(this,
-                    "Cannot create a new index, indexing cancellation has been requested", null, null));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot create a new index, indexing cancellation has been requested", null, null));
                 return;
             }
-
             EnsureIndex(true);
         }
 
@@ -456,15 +447,13 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         /// <param name="itemIds">ID of the node to delete</param>
         /// <param name="onComplete"></param>
-        protected override void PerformDeleteFromIndex(IEnumerable<string> itemIds,
-            Action<IndexOperationEventArgs> onComplete)
+        protected override void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs> onComplete)
         {
             Interlocked.Increment(ref _activeAddsOrDeletes);
 
             try
             {
-                QueueIndexOperation(itemIds.Select(x =>
-                    new IndexOperation(new ValueSet(x), IndexOperationType.Delete)));
+                QueueIndexOperation(itemIds.Select(x => new IndexOperation(new ValueSet(x), IndexOperationType.Delete)));
                 SafelyProcessQueueItems(onComplete);
             }
             finally
@@ -485,9 +474,7 @@ namespace Examine.LuceneEngine.Providers
         {
             if (_cancellationTokenSource.IsCancellationRequested)
             {
-                OnIndexingError(
-                    new IndexingErrorEventArgs(this, "Cannot optimize index, index cancellation has been requested",
-                        null, null), true);
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, index cancellation has been requested", null, null), true);
                 return;
             }
 
@@ -499,9 +486,7 @@ namespace Examine.LuceneEngine.Providers
                 //check if the index is ready to be written to.
                 if (!IndexReady())
                 {
-                    OnIndexingError(
-                        new IndexingErrorEventArgs(this, "Cannot optimize index, the index is currently locked", null,
-                            null), true);
+                    OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, the index is currently locked", null, null), true);
                     return;
                 }
 
@@ -515,17 +500,19 @@ namespace Examine.LuceneEngine.Providers
             {
                 OnIndexingError(new IndexingErrorEventArgs(this, "Error optimizing Lucene index", null, ex));
             }
+
         }
 
         #region Protected
+
+        
 
         /// <summary>
         /// Creates the <see cref="FieldValueTypeCollection"/> for this index
         /// </summary>
         /// <param name="indexValueTypesFactory"></param>
         /// <returns></returns>
-        protected virtual FieldValueTypeCollection CreateFieldValueTypes(
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+        protected virtual FieldValueTypeCollection CreateFieldValueTypes(IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
         {
             //copy to writable dictionary
             var defaults = new Dictionary<string, IFieldValueTypeFactory>();
@@ -533,7 +520,6 @@ namespace Examine.LuceneEngine.Providers
             {
                 defaults[defaultIndexValueType.Key] = defaultIndexValueType.Value;
             }
-
             //copy the factory over the defaults
             if (indexValueTypesFactory != null)
             {
@@ -560,6 +546,7 @@ namespace Examine.LuceneEngine.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
+
         public override bool IndexExists()
         {
             return _writer != null || IndexExistsImpl();
@@ -593,7 +580,6 @@ namespace Examine.LuceneEngine.Providers
                 using (IndexReader.Open(GetLuceneDirectory(), true))
                 {
                 }
-
                 ex = null;
                 return true;
             }
@@ -612,6 +598,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// If the index does not exist, it will not store the value so subsequent calls to this will re-evaulate
         /// </remarks>
+
         private bool IndexExistsImpl()
         {
             //if it's been set and it's true, return true
@@ -625,6 +612,7 @@ namespace Examine.LuceneEngine.Providers
 
             return _exists.Value;
         }
+
 
 
         /// <summary>
@@ -664,8 +652,7 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        private static IEnumerable<KeyValuePair<string, List<object>>> CopyDictionary(
-            IDictionary<string, List<object>> d)
+        private static IEnumerable<KeyValuePair<string, List<object>>> CopyDictionary(IDictionary<string, List<object>> d)
         {
             var result = new KeyValuePair<string, List<object>>[d.Count];
             d.CopyTo(result, 0);
@@ -681,18 +668,13 @@ namespace Examine.LuceneEngine.Providers
         protected virtual void AddDocument(Document doc, ValueSet valueSet, IndexWriter writer)
         {
             //add node id
-            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ItemIdFieldName,
-                FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
+            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
             nodeIdValueType.AddValue(doc, valueSet.Id);
             //add the category
-            var categoryValueType = FieldValueTypeCollection.GetValueType(CategoryFieldName,
-                FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes
-                    .InvariantCultureIgnoreCase));
+            var categoryValueType = FieldValueTypeCollection.GetValueType(CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             categoryValueType.AddValue(doc, valueSet.Category);
             //add the item type
-            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ItemTypeFieldName,
-                FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes
-                    .InvariantCultureIgnoreCase));
+            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
             //copy to a new dictionary, there has been cases of an exception "Collection was modified; enumeration operation may not execute."
@@ -703,11 +685,9 @@ namespace Examine.LuceneEngine.Providers
                 {
                     var valueType = FieldValueTypeCollection.GetValueType(
                         definedFieldDefinition.Name,
-                        FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type,
-                            out var valTypeFactory)
+                        FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type, out var valTypeFactory)
                             ? valTypeFactory
-                            : FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes
-                                .FullText));
+                            : FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
 
                     foreach (var o in field.Value)
                     {
@@ -718,9 +698,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
-                    var valueType = FieldValueTypeCollection.GetValueType(field.Key,
-                        FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes
-                            .InvariantCultureIgnoreCase));
+                    var valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -729,11 +707,9 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     //try to find the field definition for this field, if nothing is found use the default
-                    var def = FieldDefinitionCollection.GetOrAdd(field.Key,
-                        s => new FieldDefinition(s, FieldDefinitionTypes.FullText));
+                    var def = FieldDefinitionCollection.GetOrAdd(field.Key, s => new FieldDefinition(s, FieldDefinitionTypes.FullText));
 
-                    var valueType = FieldValueTypeCollection.GetValueType(def.Name,
-                        FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+                    var valueType = FieldValueTypeCollection.GetValueType(def.Name, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -787,8 +763,7 @@ namespace Examine.LuceneEngine.Providers
 
                                 //when the task is done call the complete callback
                                 //TODO: Do we need to do anything if the task is canceled?
-                                _asyncTask.ContinueWith(task =>
-                                    onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)));
+                                _asyncTask.ContinueWith(task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)));
                             }
                         }
                     }
@@ -799,10 +774,10 @@ namespace Examine.LuceneEngine.Providers
                     //when the task is done call the complete callback
                     //note: this adds the callback to the queue since this method can be called multiple times with different callbacks
                     // but there is only one queue processing all requests. this ensures that all callbacks passed are executed, not just the first.
-                    _asyncTask?.ContinueWith(task =>
-                        onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)));
+                    _asyncTask?.ContinueWith(task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)));
                 }
             }
+
         }
 
         /// <summary>
@@ -817,6 +792,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     if (!_isIndexing && !_cancellationTokenSource.IsCancellationRequested)
                     {
+
                         _isIndexing = true;
 
                         var totalProcessed = 0;
@@ -838,6 +814,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             return 0;
+
         }
 
         /// <summary>
@@ -875,8 +852,7 @@ namespace Examine.LuceneEngine.Providers
             //check if the index is ready to be written to.
             if (!IndexReady())
             {
-                OnIndexingError(new IndexingErrorEventArgs(this,
-                    "Cannot index queue items, the index is currently locked", null, null));
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot index queue items, the index is currently locked", null, null));
                 return 0;
             }
 
@@ -897,9 +873,9 @@ namespace Examine.LuceneEngine.Providers
                     }
 
                     foreach (var batch in _indexQueue.GetConsumingEnumerable())
-                    foreach (var item in batch)
-                        if (ProcessQueueItem(item, writer))
-                            indexedNodes++;
+                        foreach (var item in batch)
+                            if (ProcessQueueItem(item, writer))
+                                indexedNodes++;
                 }
                 else
                 {
@@ -1059,7 +1035,7 @@ namespace Examine.LuceneEngine.Providers
             //don't queue if there's been a cancellation requested
             if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
             {
-                _indexQueue.Add(new[] {op});
+                _indexQueue.Add(new[] { op });
             }
             else
             {
@@ -1087,7 +1063,7 @@ namespace Examine.LuceneEngine.Providers
                         "App is shutting down so index batch operation is ignored", null, null));
             }
         }
-
+        
         private readonly Directory _directory;
 
         /// <summary>
@@ -1120,10 +1096,7 @@ namespace Examine.LuceneEngine.Providers
                 try
                 {
                     System.IO.Directory.CreateDirectory(LuceneIndexFolder.FullName);
-                    _logOutput =
-                        new FileStream(
-                            Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"),
-                            FileMode.Append);
+                    _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), FileMode.Append);
                     var w = new StreamWriter(_logOutput);
                     writer.SetInfoStream(w);
                 }
@@ -1172,6 +1145,7 @@ namespace Examine.LuceneEngine.Providers
                 {
                     Monitor.Exit(_writerLocker);
                 }
+
             }
 
             return _writer;
@@ -1183,7 +1157,7 @@ namespace Examine.LuceneEngine.Providers
 
         private LuceneSearcher CreateSearcher()
         {
-            var possibleSuffixes = new[] {"Index", "Indexer"};
+            var possibleSuffixes = new[] { "Index", "Indexer" };
             var name = Name;
             foreach (var suffix in possibleSuffixes)
             {
@@ -1193,6 +1167,8 @@ namespace Examine.LuceneEngine.Providers
             }
 
             return new LuceneSearcher(name + "Searcher", GetIndexWriter(), FieldAnalyzer, FieldValueTypeCollection);
+
+
         }
 
 
@@ -1204,6 +1180,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="performCommit"></param>
         private void ProcessDeleteQueueItem(IndexOperation op, IndexWriter iw, bool performCommit = true)
         {
+
             //if the id is empty then remove the whole type
             if (!string.IsNullOrEmpty(op.ValueSet.Id))
             {
@@ -1220,6 +1197,7 @@ namespace Examine.LuceneEngine.Providers
 
         private bool ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
         {
+            
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.ValueSet);
             OnTransformingIndexValues(indexingNodeDataArgs);
@@ -1304,13 +1282,14 @@ namespace Examine.LuceneEngine.Providers
             /// <summary>
             /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
             /// </summary>
+
             protected override void DisposeResources()
             {
+
                 if (_index.WaitForIndexQueueOnShutdown)
                 {
                     //if there are active adds, lets way/retry (5 seconds)
-                    RetryUntilSuccessOrTimeout(() => _index._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5),
-                        TimeSpan.FromSeconds(1));
+                    RetryUntilSuccessOrTimeout(() => _index._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
                 }
 
                 //cancel any operation currently in place
@@ -1334,8 +1313,7 @@ namespace Examine.LuceneEngine.Providers
                 //Don't close the writer until there are definitely no more writes
                 //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
                 //we are not terminating Lucene while it is actively writing to the index.
-                RetryUntilSuccessOrTimeout(() => _index._activeWrites == 0, TimeSpan.FromMinutes(1),
-                    TimeSpan.FromSeconds(1));
+                RetryUntilSuccessOrTimeout(() => _index._activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
 
                 //close the committer, this will ensure a final commit is made if one has been queued
                 _index._committer.Dispose();
@@ -1349,22 +1327,18 @@ namespace Examine.LuceneEngine.Providers
 
             private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)
             {
+
                 if (pause.TotalMilliseconds < 0)
                 {
                     throw new ArgumentException("pause must be >= 0 milliseconds");
                 }
-
                 var stopwatch = Stopwatch.StartNew();
                 do
                 {
-                    if (task())
-                    {
-                        return true;
-                    }
-
-                    Thread.Sleep((int) pause.TotalMilliseconds);
-                } while (stopwatch.Elapsed < timeout);
-
+                    if (task()) { return true; }
+                    Thread.Sleep((int)pause.TotalMilliseconds);
+                }
+                while (stopwatch.Elapsed < timeout);
                 return false;
             }
         }
@@ -1378,10 +1352,14 @@ namespace Examine.LuceneEngine.Providers
             {
                 _searcher.Value.Dispose();
             }
-
             _disposer.Dispose();
         }
 
         #endregion
+
+
     }
+
+    
 }
+
