@@ -4,6 +4,7 @@ using System.Linq;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.Search;
 using Examine.Search;
+using Examine.Test.UmbracoExamine;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 
@@ -811,10 +812,8 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a date, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("updateDate", "date"), new FieldDefinition("parentID", "number")),
+                new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.DateTime), new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
                 luceneDir, analyzer))
-
-
             {
 
 
@@ -834,7 +833,8 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 var sc = searcher.CreateQuery("content");
-                var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("updateDate", SortType.Double));
+                //note: dates internally are stored as Long, see DateTimeType
+                var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("updateDate", SortType.Long));
 
                 var results1 = sc1.Execute().ToArray();
 
