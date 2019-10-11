@@ -307,7 +307,7 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
             finally
-            {
+            {   
                 Monitor.Exit(_writerLocker);
             }
         }
@@ -745,20 +745,26 @@ namespace Examine.LuceneEngine.Providers
                             {
                                 isNewTask = true;
 
-                                _asyncTask = Task.Factory.StartNew(
+                                _asyncTask = Task.Run(
                                     () =>
                                     {
                                         //Ensure the indexing processes is using an invariant culture
                                         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
                                         return ProcessQueueItemsLocked();
                                     },
-                                    _cancellationTokenSource.Token, //use our cancellation token
-                                    TaskCreationOptions.None,
-                                    TaskScheduler.Default);
+                                    _cancellationTokenSource.Token);
 
-                                //when the task is done call the complete callback
-                                //TODO: Do we need to do anything if the task is canceled?
-                                _asyncTask.ContinueWith(task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)));
+                                // when the task is done call the complete callback
+                                // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
+                                // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
+                                if (onComplete != null)
+                                {
+                                    _asyncTask.ContinueWith(
+                                        task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
+                                        _cancellationTokenSource.Token,
+                                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
+                                        TaskScheduler.Default);
+                                }
                             }
                         }
                     }
@@ -766,13 +772,22 @@ namespace Examine.LuceneEngine.Providers
 
                 if (!isNewTask)
                 {
-                    //when the task is done call the complete callback
-                    //note: this adds the callback to the queue since this method can be called multiple times with different callbacks
-                    // but there is only one queue processing all requests. this ensures that all callbacks passed are executed, not just the first.
-                    _asyncTask?.ContinueWith(task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)));
+                    // This executes when calls to SafelyProcessQueueItems are made and the queue is already being consumed (i.e. no worker thread is spawned).                    
+                    // This adds the callback to the queue since this method can be called multiple times with different callbacks
+                    // but there is only one queue processing all requests. 
+                    // This ensures that all callbacks passed are executed, not just the first.
+                    // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
+                    // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
+                    if (onComplete != null)
+                    {
+                        _asyncTask?.ContinueWith(
+                            task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
+                            _cancellationTokenSource.Token,
+                            TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
+                            TaskScheduler.Default);
+                    }
                 }
             }
-
         }
 
         /// <summary>

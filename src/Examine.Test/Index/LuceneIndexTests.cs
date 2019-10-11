@@ -313,6 +313,8 @@ namespace Examine.Test.Index
         [Test]
         public void Can_Overwrite_Index_During_Indexing_Operation()
         {
+            const int ThreadCount = 1000;
+
             using (var d = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = new TestIndex(writer))
@@ -321,10 +323,18 @@ namespace Examine.Test.Index
 
                 var waitHandle = new ManualResetEvent(false);
 
+                var opCompleteCount = 0;
                 void OperationComplete(object sender, IndexOperationEventArgs e)
                 {
-                    //signal that we are done
-                    waitHandle.Set();
+                    Interlocked.Increment(ref opCompleteCount);
+
+                    Console.WriteLine($"OperationComplete: {opCompleteCount}");
+
+                    if (opCompleteCount == ThreadCount)
+                    {
+                        //signal that we are done
+                        waitHandle.Set();
+                    }
                 }
 
                 //add the handler for optimized since we know it will be optimized last based on the commit count
@@ -349,7 +359,7 @@ namespace Examine.Test.Index
                 var tasks = new List<Task>();
 
                 //reindex the same node a bunch of times - then while this is running we'll overwrite below
-                for (var i = 0; i < 1000; i++)
+                for (var i = 0; i < ThreadCount; i++)
                 {
                     var indexer = customIndexer;
                     tasks.Add(Task.Factory.StartNew(() =>
@@ -387,13 +397,16 @@ namespace Examine.Test.Index
                 customIndexer.RunAsync = false;
 
                 //wait until we are done
-                waitHandle.WaitOne();
+                waitHandle.WaitOne(TimeSpan.FromMinutes(2));
 
                 writer.WaitForMerges();
 
                 //ensure no data since it's a new index
                 var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
-                    
+
+                //the total times that OperationComplete event should be fired is 1000
+                Assert.AreEqual(1000, opCompleteCount);
+
                 //should be less than the total inserted because we overwrote it in the middle of processing
                 Debug.WriteLine("TOTAL RESULTS: " + results.TotalItemCount);
                 Assert.Less(results.Count(), 1000);
