@@ -6,6 +6,7 @@ using Examine.LuceneEngine.Search;
 using Examine.Search;
 using Examine.Test.UmbracoExamine;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Search;
 using NUnit.Framework;
 
 using Version = Lucene.Net.Util.Version;
@@ -1290,264 +1291,6 @@ namespace Examine.Test.Search
 
 
 
-        ///// <summary>
-        ///// test range query with a Date.Minute structure
-        ///// </summary>
-        //[Test]
-        //public void Date_Range_Minute_SimpleIndexSet()
-        //{
-        //    var reIndexDateTime = DateTime.Now.AddMinutes(-2);
-
-        //    var analyzer = new StandardAnalyzer(Version.LUCENE_30);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = new TestIndexer(
-
-        //        new[] { new FieldDefinition("MinuteCreated", "date.minute") },
-        //        luceneDir, analyzer))
-
-
-        //    {
-        //        
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { MinuteCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { MinuteCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { MinuteCreated = reIndexDateTime.AddMinutes(-10) }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { MinuteCreated = reIndexDateTime })
-        //            });
-
-
-
-        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
-
-        //        var criteria = searcher.CreateCriteria();
-        //        var filter = criteria.Range("MinuteCreated",
-        //            reIndexDateTime, DateTime.Now, true, true, DateResolution.Minute).Compile();
-
-        //        var criteria2 = searcher.CreateCriteria();
-        //        var filter2 = criteria2.Range("MinuteCreated",
-        //            reIndexDateTime.AddMinutes(-20), reIndexDateTime.AddMinutes(-1), true, true, DateResolution.Minute).Compile();
-
-        //        ////Act
-        //        var results = searcher.Search(filter);
-        //        var results2 = searcher.Search(filter2);
-
-        //        ////Assert
-        //        Assert.AreEqual(3, results.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-
-        //}
-
-        ///// <summary>
-        ///// test range query with a Date.Hour structure
-        ///// </summary>
-        //[Test]
-        //public void Date_Range_Hour_SimpleIndexSet()
-        //{
-        //    var reIndexDateTime = DateTime.Now.AddHours(-2);
-
-        //    var analyzer = new StandardAnalyzer(Version.LUCENE_30);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = new TestIndexer(
-
-        //        new[] { new FieldDefinition("HourCreated", "date.hour") },
-        //        luceneDir, analyzer))
-
-
-        //    {
-
-        //        
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { HourCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { HourCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { HourCreated = reIndexDateTime.AddHours(-10) }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { HourCreated = reIndexDateTime })
-        //            });
-
-
-
-        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
-
-        //        var criteria = searcher.CreateCriteria();
-        //        var filter = criteria.Range("HourCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Hour).Compile();
-
-        //        var criteria2 = searcher.CreateCriteria();
-        //        var filter2 = criteria2.Range("HourCreated", reIndexDateTime.AddHours(-20), reIndexDateTime.AddHours(-3), true, true, DateResolution.Hour).Compile();
-
-        //        ////Act
-        //        var results = searcher.Search(filter);
-        //        var results2 = searcher.Search(filter2);
-
-        //        ////Assert
-        //        Assert.AreEqual(3, results.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-        //}
-
-        ///// <summary>
-        ///// test range query with a Date.Day structure
-        ///// </summary>
-        //[Test]
-        //public void Date_Range_Day_SimpleIndexSet()
-        //{
-        //    var reIndexDateTime = DateTime.Now.AddDays(-2);
-
-        //    var analyzer = new StandardAnalyzer(Version.LUCENE_30);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = new TestIndexer(
-
-        //        new[] { new FieldDefinition("DayCreated", "date.day") },
-        //        luceneDir, analyzer))
-
-
-        //    {
-        //        
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { DayCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { DayCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { DayCreated = reIndexDateTime.AddDays(-10) }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { DayCreated = reIndexDateTime })
-        //            });
-
-
-
-        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
-
-        //        var criteria = searcher.CreateCriteria();
-        //        var filter = criteria.Range("DayCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Day).Compile();
-
-        //        var criteria2 = searcher.CreateCriteria();
-        //        var filter2 = criteria2.Range("DayCreated", reIndexDateTime.AddDays(-20), reIndexDateTime.AddDays(-3), true, true, DateResolution.Day).Compile();
-
-        //        ////Act
-        //        var results = searcher.Search(filter);
-        //        var results2 = searcher.Search(filter2);
-
-        //        ////Assert
-        //        Assert.AreEqual(3, results.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-
-        //}
-
-        ///// <summary>
-        ///// test range query with a Date.Month structure
-        ///// </summary>
-        //[Test]
-        //public void Date_Range_Month_SimpleIndexSet()
-        //{
-        //    var reIndexDateTime = DateTime.Now.AddMonths(-2);
-
-        //    var analyzer = new StandardAnalyzer(Version.LUCENE_30);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = new TestIndexer(
-
-        //        new[] { new FieldDefinition("MonthCreated", "date.month") },
-        //        luceneDir, analyzer))
-
-
-        //    {
-        //        
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { MonthCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { MonthCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { MonthCreated = reIndexDateTime.AddMonths(-10) }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { MonthCreated = reIndexDateTime })
-        //            });
-
-
-
-        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
-
-        //        var criteria = searcher.CreateCriteria();
-        //        var filter = criteria.Range("MonthCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Month).Compile();
-
-        //        var criteria2 = searcher.CreateCriteria();
-        //        var filter2 = criteria2.Range("MonthCreated", reIndexDateTime.AddMonths(-20), reIndexDateTime.AddMonths(-3), true, true, DateResolution.Month).Compile();
-
-        //        ////Act
-        //        var results = searcher.Search(filter);
-        //        var results2 = searcher.Search(filter2);
-
-        //        ////Assert
-        //        Assert.AreEqual(3, results.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-
-
-        //}
-
-        ///// <summary>
-        ///// test range query with a Date.Year structure
-        ///// </summary>
-        //[Test]
-        //public void Date_Range_Year_SimpleIndexSet()
-        //{
-        //    var reIndexDateTime = DateTime.Now.AddYears(-2);
-
-        //    var analyzer = new StandardAnalyzer(Version.LUCENE_30);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = new TestIndexer(
-
-        //        new[] { new FieldDefinition("YearCreated", "date.year") },
-        //        luceneDir, analyzer))
-
-
-        //    {
-        //        
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { YearCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { YearCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { YearCreated = reIndexDateTime.AddMonths(-10) }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { YearCreated = reIndexDateTime })
-        //            });
-
-
-
-        //        var searcher = new LuceneSearcher("testSearcher", luceneDir, analyzer);
-
-        //        var criteria = searcher.CreateCriteria();
-
-        //        var filter = criteria.Range("YearCreated", reIndexDateTime, DateTime.Now, true, true, DateResolution.Year).Compile();
-
-        //        var criteria2 = searcher.CreateCriteria();
-        //        var filter2 = criteria2.Range("YearCreated", DateTime.Now.AddYears(-20), DateTime.Now.AddYears(-3), true, true, DateResolution.Year).Compile();
-
-        //        ////Act
-        //        var results = searcher.Search(filter);
-        //        var results2 = searcher.Search(filter2);
-
-        //        ////Assert
-        //        Assert.AreEqual(3, results.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-        //}
-
         /// <summary>
         /// Test range query with a DateTime structure
         /// </summary>
@@ -1853,20 +1596,25 @@ namespace Examine.Test.Search
         }
 
 
-        //[Test]
-        //public void Custom_Lucene_Query_With_Raw()
-        //{
-        //    var criteria = (LuceneSearchCriteria)_searcher.CreateCriteria("content");
+        [Test]
+        public void Custom_Lucene_Query_With_Raw()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                var searcher = indexer.GetSearcher();
+                var criteria = (LuceneSearchQuery)searcher.CreateQuery();
 
-        //    //combine a custom lucene query with raw lucene query
-        //    criteria = (LuceneSearchCriteria)criteria.RawQuery("hello:world");
-        //    criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
+                //combine a custom lucene query with raw lucene query
+                var op = criteria.NativeQuery("hello:world").And();
+                                
+                criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
 
-        //    Console.WriteLine(criteria.Query);
-        //    Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
-        //}
-
-
+                Console.WriteLine(criteria.Query);
+                Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
+            }  
+        }
 
         //[Test]
         //public void Wildcard_Results_Sorted_By_Score()
