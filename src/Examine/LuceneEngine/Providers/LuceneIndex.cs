@@ -20,7 +20,7 @@ namespace Examine.LuceneEngine.Providers
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
-    public class LuceneIndex : BaseIndexProvider, IDisposable
+    public class LuceneIndex : BaseIndexProvider, IDisposable, IIndexStats
     {
         #region Constructors
 
@@ -1136,7 +1136,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Returns an index writer for the current directory
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The IndexWriter for the current directory. Do not dispose this result! This will be taken care of internally by Examine</returns>
         public IndexWriter GetIndexWriter()
         {
             EnsureIndex(false);
@@ -1358,6 +1358,8 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public void Dispose()
         {
+            //TODO: Dispose writer??
+
             if (_searcher.IsValueCreated)
             {
                 _searcher.Value.Dispose();
@@ -1367,6 +1369,18 @@ namespace Examine.LuceneEngine.Providers
 
         #endregion
 
+
+        public Task<long> GetDocumentCountAsync()
+        {
+            var writer = GetIndexWriter();
+            return Task.FromResult((long)writer.NumDocs());
+        }
+
+        public Task<IEnumerable<string>> GetFieldNamesAsync()
+        {
+            var writer = GetIndexWriter();
+            return Task.FromResult((IEnumerable<string>)writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL));               
+        }
 
     }
 

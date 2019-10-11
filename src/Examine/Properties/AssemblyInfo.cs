@@ -21,7 +21,9 @@ using System.Security;
 [assembly: Guid("427aeb03-603e-4fbb-9ab0-6b764521e92a")]
 
 [assembly: InternalsVisibleTo("UmbracoExamine")]
-[assembly: InternalsVisibleTo("Examine.Azure")]
+[assembly: InternalsVisibleTo("Examine.AzureDirectory")]
+[assembly: InternalsVisibleTo("Examine.AzureSearch")]
+[assembly: InternalsVisibleTo("Examine.Web.Demo")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
 [assembly: AssemblyVersion("1.0.0.0")]

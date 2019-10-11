@@ -4,6 +4,7 @@ using System.Data.SqlServerCe;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web.Http.Results;
 using System.Web.Mvc;
 using Examine;
@@ -121,68 +122,80 @@ namespace Examine.Web.Demo.Controllers
             if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
-            if (index is LuceneIndex luceneIndex)
-                using (luceneIndex.ProcessNonAsync())
-                    return RebuildImpl(index);
+            var elapsed = Execute(index, i =>
+            {
+                try
+                {
+                    var timer = new Stopwatch();
+                    timer.Start();
+                    index.CreateIndex();
+                    var dataService = new TableDirectReaderDataService();
+                    //NOTE: Max 10k for now since that is the azure search limit for testing.
+                    index.IndexItems(dataService.GetAllData().Take(10000));
+                    timer.Stop();
 
-            return RebuildImpl(index);
+                    return timer.Elapsed.TotalSeconds;
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+            });
+
+            return View(elapsed);
         }
 
-        private ActionResult RebuildImpl(IIndex index)
-        {
-            try
-            {
-                var timer = new Stopwatch();
-                timer.Start();
-                index.CreateIndex();
-                var dataService = new TableDirectReaderDataService();
-                index.IndexItems(dataService.GetAllData());
-                timer.Stop();
-
-                return View(timer.Elapsed.TotalSeconds);
-            }
-            catch (Exception ex)
-            {
-                this.ModelState.AddModelError("DataError", ex.Message);
-                return View(0.0);
-            }
-        }
 
         [HttpPost]
-        public ActionResult ReIndexItems()
+        public ActionResult ReIndexItems(string indexName = null)
         {
-            if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
+            if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
-            var luceneIndex = (LuceneIndex)index;
-            using (luceneIndex.ProcessNonAsync())
+            var items = Execute(index, i =>
             {
                 var dataService = new TableDirectReaderDataService();
                 var randomItems = dataService.GetRandomItems(10).ToArray();
                 index.IndexItems(randomItems);
-                return View(randomItems.Length);
-            }
+                return randomItems.Length;
+            });
+
+            return View(items);
         }
 
         [HttpPost]
-        public ActionResult TestIndex()
+        public async Task<ActionResult> TestIndex(string indexName = null)
         {
-            if (!ExamineManager.Instance.TryGetIndex("Simple2Indexer", out var index))
+            if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
-            var indexer = (LuceneIndex)index;
-            var writer = indexer.GetIndexWriter();
-
-            var model = new IndexInfo
+            if (index is IIndexStats stats)
             {
-                Docs = writer.NumDocs(),
-                Fields = writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL).Count
-            };
+                var model = new IndexInfo
+                {
+                    Docs = await stats.GetDocumentCountAsync(),
+                    Fields = (await stats.GetFieldNamesAsync()).Count()
+                };
+                return View(model);
+            }
 
-            return View(model);
-            
+            throw new InvalidCastException("The index was not IIndexStats");
         }
 
+
+        /// <summary>
+        /// Just checks if it's a lucene index and if so processes non async (for testing purposes)
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="action"></param>
+        private T Execute<T>(IIndex index, Func<IIndex, T> action)
+        {
+            if (index is LuceneIndex luceneIndex)
+                using (luceneIndex.ProcessNonAsync())
+                    return action(index);
+
+            return action(index);
+        }
 
     }
 }

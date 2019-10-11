@@ -5,6 +5,7 @@ using Examine.Providers;
 
 namespace Examine
 {
+
     /// <summary>
     /// Interface to represent an Examine Indexer
     /// </summary>

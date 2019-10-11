@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -39,7 +40,7 @@ namespace Examine.Web.Demo
                         new DirectoryInfo(Context.Server.MapPath("~/App_Data/SecondIndexSet")))));
 
             var azureIndexer = examineManager.AddIndex(
-                new AzureSearchIndex("AzureIndex", "examine-test", "F72FFB987CF9FEAF57EC007B7A2A592D",
+                new AzureSearchIndex("AzureIndex", "examine-test", ConfigurationManager.AppSettings["examine:AzureSearchKey"],
 
                     //TODO: Azure Search needs a static definition of fields! ack!
                     //However in the Azure Portal it says: Existing fields cannot be changed or deleted. New fields can be added to an existing index at any time.

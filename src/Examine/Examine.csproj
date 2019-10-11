@@ -108,6 +108,7 @@
     <Compile Include="FieldDefinition.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
     <Compile Include="IExamineManager.cs" />
+    <Compile Include="IIndexStats.cs" />
     <Compile Include="IndexingItemEventArgs.cs" />
     <Compile Include="IndexOperationEventArgs.cs" />
     <Compile Include="IOHelper.cs" />
