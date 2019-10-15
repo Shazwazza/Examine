@@ -10,7 +10,6 @@ using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Examine.AzureDirectory;
-using Examine.AzureSearch;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
 
@@ -37,21 +36,7 @@ namespace Examine.Web.Demo
                 new LuceneIndex(
                     "SecondIndexer",
                     adFactory.CreateDirectory(
-                        new DirectoryInfo(Context.Server.MapPath("~/App_Data/SecondIndexSet")))));
-
-            var azureIndexer = examineManager.AddIndex(
-                new AzureSearchIndex("AzureIndex", "examine-test", ConfigurationManager.AppSettings["examine:AzureSearchKey"],
-
-                    //TODO: Azure Search needs a static definition of fields! ack!
-                    //However in the Azure Portal it says: Existing fields cannot be changed or deleted. New fields can be added to an existing index at any time.
-
-                    new FieldDefinitionCollection(
-                        new FieldDefinition("Column1", FieldDefinitionTypes.FullText),
-                        new FieldDefinition("Column2", FieldDefinitionTypes.FullText),
-                        new FieldDefinition("Column3", FieldDefinitionTypes.FullText),
-                        new FieldDefinition("Column4", FieldDefinitionTypes.FullText),
-                        new FieldDefinition("Column5", FieldDefinitionTypes.FullText),
-                        new FieldDefinition("Column6", FieldDefinitionTypes.FullText))));
+                        new DirectoryInfo(Context.Server.MapPath("~/App_Data/SecondIndexSet")))));        
 
             var multiSearcher = examineManager.AddSearcher(
                 new MultiIndexSearcher(

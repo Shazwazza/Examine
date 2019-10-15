@@ -148,7 +148,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
                 luceneDir, analyzer))
             {
 
@@ -195,7 +195,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
                 luceneDir, analyzer))
             {
 
@@ -449,7 +449,7 @@ namespace Examine.Test.Search
 
                 //TODO: Making this a number makes the query fail - i wonder how to make it work correctly?
                 // It's because the searching is NOT using a managed search
-                //new[] { new FieldDefinition("umbracoNaviHide", "number") }, 
+                //new[] { new FieldDefinition("umbracoNaviHide", FieldDefinitionTypes.Integer) }, 
 
                 luceneDir, analyzer))
             {
@@ -532,20 +532,15 @@ namespace Examine.Test.Search
 
         }
 
-
         [Test]
         public void Find_By_ParentId()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", "number")),
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
                 luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", parentID = "1235" }),
@@ -555,12 +550,50 @@ namespace Examine.Test.Search
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
                     });
 
-
-
                 var searcher = indexer.GetSearcher();
 
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("parentID", 1139);
+
+                var results = filter.Execute();
+
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Find_By_ParentId_Native_Query()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ipsum", parentID = "1235" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", parentID = "1139" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var criteria = searcher.CreateQuery("content");
+
+                //NOTE: This will not work :/ 
+                // It seems that this answer is along the lines of why: https://stackoverflow.com/questions/45516870/apache-lucene-6-queryparser-range-query-is-not-working-with-intpoint
+                // because the field is numeric, this range query will generate a TermRangeQuery which isn't compatible with numerics and what is annoying
+                // is the query parser docs uses a numerical figure as examples: https://lucene.apache.org/core/2_9_4/queryparsersyntax.html#Range%20Searches
+                // BUT looking closely, those numeric figures are actually dates stored in a specific way that this will work.
+                var filter = criteria.NativeQuery("parentID:[1139 TO 1139]");
+
+                //This thread says we could potentially make this work by overriding the query parser: https://stackoverflow.com/questions/5026185/how-do-i-make-the-queryparser-in-lucene-handle-numeric-ranges
+
+                //We can use a Lucene query directly instead:
+                //((LuceneSearchQuery)criteria).LuceneQuery(NumericRangeQuery)
 
                 var results = filter.Execute();
 
@@ -770,7 +803,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a number, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("sortOrder", "number"), new FieldDefinition("parentID", "number")),
+                new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.Integer), new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
                 luceneDir, analyzer))
 
 
@@ -857,7 +890,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", "fulltextsortable")),
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable)),
                 luceneDir, analyzer))
 
 
@@ -1109,7 +1142,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", "float")),
+                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.Float)),
                 luceneDir, analyzer))
 
 
@@ -1158,7 +1191,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", "number")),
+                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.Integer)),
                 luceneDir, analyzer))
 
 
@@ -1205,7 +1238,7 @@ namespace Examine.Test.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", "double")),
+                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.Double)),
                 luceneDir, analyzer))
 
 
