@@ -1,10 +1,11 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/j4o4finsu8xs45r1?svg=true)](https://ci.appveyor.com/project/Shandem/examine)
 
-![Examine](/assets/ExamineLogo.png?raw=true)
+Examine
+===
 
 ## What is Examine?
 
-Examine allows you to index and search data easily and wraps the Lucene.Net indexing/searching engine. Lucene is _super_ fast and allows for very fast searching even on very large amounts of data. Examine is provider based so it is very extensible and allows you to configure as many indexes as you like and each may be configured individually. Out of the box Examine gives you abstract implementations of Lucene based indexers and searchers as well as a Fluent API that can be used to search for your data.
+<img align="right" src="/assets/logo_transparent_tiny.png?raw=true"> Examine allows you to index and search data easily and wraps the Lucene.Net indexing/searching engine. Lucene is _super_ fast and allows for very fast searching even on very large amounts of data. Examine is provider based so it is very extensible and allows you to configure as many indexes as you like and each may be configured individually. Out of the box Examine gives you abstract implementations of Lucene based indexers and searchers as well as a Fluent API that can be used to search for your data.
 
 ## Features
 * Examine is based on a provider model, so the sky is the limit with regards to functionality if you need to build it.
@@ -45,3 +46,5 @@ Documentation on using the Examine API
 &copy; 2019 by Shannon Deminick
 
 This is free software and is licensed under the [Microsoft Public License (Ms-PL)](http://opensource.org/licenses/MS-PL)
+
+<a href="https://www.freepik.com/free-photos-vectors/flat">Flat vector created by freepik - www.freepik.com</a>
