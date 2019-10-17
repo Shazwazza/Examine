@@ -5,10 +5,12 @@
 layout: default
 ---
 
+_[...Back to home](index)_
+
 Indexing
 ===
 
-Examine will index any data you give it within a `ValueSet`. You can index one or multiple items at once and there's a few different ways to do that. Each field in a `ValueSet` can also contain one or more values. An index can be configured in many ways including different configurations per field such as how those values are analyzed, indexed, tokenized ... basically how the data is stored and retrieved. 
+Examine will index any data you give it within a `ValueSet`. You can index one or multiple items at once and there's a few different ways to do that. Each field in a `ValueSet` can also contain one or more values. 
 
 A `ValueSet` is fairly simple, it is really just:
 
@@ -66,7 +68,7 @@ myIndex.IndexItems(new[]
         headphones.Id, 
         "Product",
         headphones,
-    new ValueSet(
+    ValueSet.FromObject(
         "SKU987", 
         "Product",
         new         //Anonymous objects work too
@@ -90,5 +92,21 @@ myIndex.IndexItem(new ValueSet(
         {"Name", new object[]{ "Frank" }},
         // For example, perhaps each address part is a separate value
         {"Address", new object[]{ "Beverly Hills", "90210" } } 
+    }));
+```
+
+### Strongly typed
+
+As you can see, the values being passed into the ValueSet are type `object`. Examine will determine if the object type maps to a [field definition](configuration#custom-field-definitions)
+
+```cs
+myIndex.IndexItem(new ValueSet(
+    "SKU987",
+    "Product",             
+    new Dictionary<string, object>()
+    {
+        {"Name", "USB-C Cable" },
+        {"Brand", "Cablez-R-Us" },
+        {"Price", 19.99}  // non-string value
     }));
 ```

@@ -63,3 +63,4 @@ _**Tip**: `IExamineManager` is the gateway to working with examine. It can be re
 _**Tip**: There are many unit tests in the source code that can be used as Examples of how to do things. There is also a test web project that has plenty of examples of how to configure indexes and search them._
 
 * [Indexing](indexing)
+* [Configuration](configuration)
