@@ -64,3 +64,4 @@ _**Tip**: There are many unit tests in the source code that can be used as Examp
 
 * [Indexing](indexing)
 * [Configuration](configuration)
+* [Searching](searching)

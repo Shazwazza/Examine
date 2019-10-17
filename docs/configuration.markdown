@@ -65,3 +65,11 @@ You can modify the field definitions for an index at runtime by using any of the
 * `myIndex.FieldDefinitionCollection.TryAdd`
 * `myIndex.FieldDefinitionCollection.AddOrUpdate`
 * `myIndex.FieldDefinitionCollection.GetOrAdd`
+
+## ValueSet validators
+
+_TODO: Fill this in__
+
+## Custom value types
+
+_TODO: Fill this in__
