@@ -46,3 +46,5 @@ Documentation on using the Examine API
 &copy; 2019 by Shannon Deminick
 
 This is free software and is licensed under the [Microsoft Public License (Ms-PL)](http://opensource.org/licenses/MS-PL)
+
+<a href="https://www.freepik.com/free-photos-vectors/flat">Flat vector created by freepik - www.freepik.com</a>
