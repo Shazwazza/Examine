@@ -21,7 +21,7 @@
 title: Examine
 # email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Flexible and configurable .Net indexing and search engine powered by Lucene.Net
+  A .NET indexing and search engine powered by Lucene.Net
 baseurl: "/Examine" # the subpath of your site, e.g. /blog
 url: "https://shazwazza.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: shazwazza
