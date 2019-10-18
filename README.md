@@ -57,9 +57,14 @@ _**Tip**: `IExamineManager` is the gateway to working with examine. It can be re
 
 Information and downloads for Examine releases
 
-## [Documentation](http://shazwazza.github.io/Examine/)
+## Documentation
 
-Documentation on using Examine
+_**Tip**: There are many unit tests in the source code that can be used as Examples of how to do things. There is also a test web project that has plenty of examples of how to configure indexes and search them._
+
+* [Indexing](http://shazwazza.github.io/Examine/indexing)
+* [Configuration](http://shazwazza.github.io/Examine/configuration)
+* [Searching](http://shazwazza.github.io/Examine/searching)
+* [Sorting](http://shazwazza.github.io/Examine/sorting)
 
 ## Copyright & Licence
 
