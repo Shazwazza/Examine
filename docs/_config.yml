@@ -31,6 +31,9 @@ github_username:  shazwazza
 theme: jekyll-theme-cayman
 # plugins:
 #  - jekyll-feed
+plugins:
+  - jekyll-feed
+  - jekyll-readme-index
 
 # Exclude from processing.
 # The following items will not be processed, by default.
