@@ -97,10 +97,10 @@ namespace Examine.LuceneEngine.Search
         public abstract IBooleanOperation ManagedQuery(string query, string[] fields = null);
         public abstract IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
-        public IBooleanOperation Field(string fieldName, string fieldValue)
+        public virtual IBooleanOperation Field(string fieldName, string fieldValue)
             => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
 
-        public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
+        public virtual IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)

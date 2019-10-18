@@ -26,3 +26,4 @@ src/packages/*
 /src/.vs/*
 /src/Examine.Web.Demo/_bin_deployableAssemblies/*
 /src/Examine.Web.Demo/App_Data/*
+.idea/
