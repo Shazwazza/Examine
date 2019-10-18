@@ -61,10 +61,10 @@ Information and downloads for Examine releases
 
 _**Tip**: There are many unit tests in the source code that can be used as Examples of how to do things. There is also a test web project that has plenty of examples of how to configure indexes and search them._
 
-* [Indexing](http://shazwazza.github.io/Examine/indexing)
-* [Configuration](http://shazwazza.github.io/Examine/configuration)
-* [Searching](http://shazwazza.github.io/Examine/searching)
-* [Sorting](http://shazwazza.github.io/Examine/sorting)
+* [Indexing](https://shazwazza.github.io/Examine/indexing)
+* [Configuration](https://shazwazza.github.io/Examine/configuration)
+* [Searching](https://shazwazza.github.io/Examine/searching)
+* [Sorting](https://shazwazza.github.io/Examine/sorting)
 
 ## Copyright & Licence
 
