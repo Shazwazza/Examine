@@ -18,7 +18,7 @@ _TODO: Fill this in..._
 
 ## Per field
 
-```aspnet
+```csharp
 _var searcher = myIndex.GetSearcher(); // Get a searcher
  var results = searcher.CreateQuery() // Create a query
  .Field("Address", "Hills") // Look for any "Hills" addresses
@@ -27,10 +27,24 @@ _var searcher = myIndex.GetSearcher(); // Get a searcher
 
 ## Range queries
 
-```aspnet
+### Float Range
+
+```csharp
 var searcher = indexer.GetSearcher();
 var criteria1 = searcher.CreateQuery();  
 var filter1 = criteria1.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, true, true);
+```
+
+### Date Range
+
+```csharp
+var searcher = indexer.GetSearcher();
+
+var numberSortedCriteria = searcher.CreateQuery()
+
+    .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01,      02), new DateTime(2000, 01, 05), maxInclusive: false);
+
+
 ```
 
 ## Booleans, Groups & Sub Groups
@@ -41,7 +55,7 @@ _TODO: Fill this in..._
 
 ### Native Query
 
-```aspnet
+```csharp
 var searcher = indexer.GetSearcher();  
 var criteria = (LuceneSearchQuery)searcher.CreateQuery();  
 //combine a custom lucene query with raw lucene query  
@@ -50,7 +64,7 @@ var op = criteria.NativeQuery("hello:world").And();
 
 ### Combine a custom lucene query with raw lucene query
 
-```aspnet
+```csharp
 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
 
 //combine a custom lucene query with raw lucene query
