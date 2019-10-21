@@ -40,11 +40,9 @@ var filter1 = criteria1.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, true,
 ```csharp
 var searcher = indexer.GetSearcher();
 
-var numberSortedCriteria = searcher.CreateQuery()
 
+var numberSortedCriteria = searcher.CreateQuery()
     .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01,      02), new DateTime(2000, 01, 05), maxInclusive: false);
-
-
 ```
 
 ## Booleans, Groups & Sub Groups
@@ -71,9 +69,52 @@ var criteria = (LuceneSearchQuery)searcher.CreateQuery();
 
 var op = criteria.NativeQuery("hello:world").And();                                
 
-               criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
+criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
 ```
 
 ## Boosting, Proximity, Fuzzy & Escape
 
-_TODO: Fill this in..._
+### Boosting
+
+```csharp
+var searcher = indexer.GetSearcher();
+
+
+var criteria = searcher.CreateQuery("content");
+
+var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Boost(20));
+```
+
+### Proximity
+
+```csharp
+var searcher = indexer.GetSearcher();
+
+
+//Arrange
+
+var criteria = searcher.CreateQuery("content");
+
+
+//get all nodes that contain the words warren and creative within 5 words of each other
+var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5));
+```
+
+### Fuzzy
+
+```csharp
+var searcher = indexer.GetSearcher();
+var criteria = searcher.CreateQuery();
+
+var filter = criteria.Field("Content", "think".Fuzzy(0.1F));
+```
+
+### Escape
+
+```csharp
+var exactcriteria = searcher.CreateQuery("content");
+
+var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
+
+var results2 = exactfilter.Execute();
+```
