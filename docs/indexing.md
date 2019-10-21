@@ -110,3 +110,7 @@ myIndex.IndexItem(new ValueSet(
         {"Price", 19.99}  // non-string value
     }));
 ```
+
+## Events
+
+_TODO: Fill this in..._
