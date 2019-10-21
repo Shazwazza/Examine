@@ -10,7 +10,7 @@ Examine
 
 ## What is Examine?
 
-<img align="right" src="https://github.com/Shazwazza/Examine/raw/master/assets/logo_transparent_tiny.png?raw=true"> Examine allows you to index and search data easily and wraps the Lucene.Net indexing/searching engine. Lucene is _super_ fast and allows for very fast searching even on very large amounts of data. Examine is provider based so it is very extensible and allows you to configure as many indexes as you like and each may be configured individually. Out of the box Examine gives you abstract implementations of Lucene based indexers and searchers as well as a Fluent API that can be used to search for your data.
+<img align="right" src="https://github.com/Shazwazza/Examine/raw/master/assets/logo_transparent_tiny.png?raw=true"> Examine allows you to index and search data easily and wraps the Lucene.Net indexing/searching engine. Lucene is _super_ fast and allows for very fast searching even on very large amounts of data. Examine is very extensible and allows you to configure as many indexes as you like and each may be configured individually. Out of the box Examine gives you a Lucene based index implementation as well as a Fluent API that can be used to search for your data.
 
 ## Minimum requirements
 
