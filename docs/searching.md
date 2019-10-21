@@ -18,11 +18,20 @@ _TODO: Fill this in..._
 
 ## Per field
 
-_TODO: Fill this in..._
+```aspnet
+_var searcher = myIndex.GetSearcher(); // Get a searcher
+ var results = searcher.CreateQuery() // Create a query
+ .Field("Address", "Hills") // Look for any "Hills" addresses
+ .Execute(); // Execute the search
+```
 
 ## Range queries
 
-_TODO: Fill this in..._
+```aspnet
+var searcher = indexer.GetSearcher();
+var criteria1 = searcher.CreateQuery();  
+var filter1 = criteria1.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, true, true);
+```
 
 ## Booleans, Groups & Sub Groups
 
@@ -30,7 +39,26 @@ _TODO: Fill this in..._
 
 ## Lucene queries
 
-_TODO: Fill this in..._
+### Native Query
+
+```aspnet
+var searcher = indexer.GetSearcher();  
+var criteria = (LuceneSearchQuery)searcher.CreateQuery();  
+//combine a custom lucene query with raw lucene query  
+var op = criteria.NativeQuery("hello:world").And();
+```
+
+### Combine a custom lucene query with raw lucene query
+
+```aspnet
+var criteria = (LuceneSearchQuery)searcher.CreateQuery();
+
+//combine a custom lucene query with raw lucene query
+
+var op = criteria.NativeQuery("hello:world").And();                                
+
+               criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
+```
 
 ## Boosting, Proximity, Fuzzy & Escape
 
