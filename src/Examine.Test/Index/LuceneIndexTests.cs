@@ -23,7 +23,7 @@ using Examine.LuceneEngine.Search;
 using Examine.Search;
 using Examine.Test.DataServices;
 using Examine.Test.UmbracoExamine;
-using Version = Lucene.Net.Util.Version;
+
 
 namespace Examine.Test.Index
 {
@@ -38,14 +38,14 @@ namespace Examine.Test.Index
         public void Rebuild_Index()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(d, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(d, new StandardAnalyzer(Util.Version)))
             {
                 indexer.CreateIndex();
                 indexer.IndexItems(indexer.AllData());
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(100, reader.NumDocs());
+                var reader = indexWriter.GetReader(true);
+                Assert.AreEqual(100, reader.NumDocs);
             }
         }
 
@@ -54,7 +54,7 @@ namespace Examine.Test.Index
         public void Index_Exists()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 indexer.EnsureIndex(true);
                 Assert.IsTrue(indexer.IndexExists());
@@ -65,7 +65,7 @@ namespace Examine.Test.Index
         public void Can_Add_One_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -77,8 +77,8 @@ namespace Examine.Test.Index
                     }));
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(1, reader.NumDocs());
+                var reader = indexWriter.GetReader(true);
+                Assert.AreEqual(1, reader.NumDocs);
             }
         }
 
@@ -86,7 +86,7 @@ namespace Examine.Test.Index
         public void Can_Add_Same_Document_Twice_Without_Duplication()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -101,8 +101,8 @@ namespace Examine.Test.Index
                 indexer.IndexItem(value);
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(1, reader.NumDocs());
+                var reader = indexWriter.GetReader(true);
+                Assert.AreEqual(1, reader.NumDocs);
             }
         }
 
@@ -110,7 +110,7 @@ namespace Examine.Test.Index
         public void Can_Add_Multiple_Docs()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -125,8 +125,8 @@ namespace Examine.Test.Index
                 }
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(10, reader.NumDocs());
+                var reader = indexWriter.GetReader(true);
+                Assert.AreEqual(10, reader.NumDocs);
             }
         }
 
@@ -134,7 +134,7 @@ namespace Examine.Test.Index
         public void Can_Delete()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -150,8 +150,8 @@ namespace Examine.Test.Index
                 indexer.DeleteFromIndex("9");
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(9, reader.NumDocs());
+                var reader = indexWriter.GetReader(true);
+                Assert.AreEqual(9, reader.NumDocs);
             }
         }
 
@@ -160,7 +160,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -175,18 +175,18 @@ namespace Examine.Test.Index
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
                 {
                     var luceneSearcher = s.GetLuceneSearcher();
-                    var fields = luceneSearcher.Doc(0).GetFields().ToArray();
+                    var fields = luceneSearcher.Doc(0).Fields.ToArray();;
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.ItemTypeFieldName));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.ItemIdFieldName));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.CategoryFieldName));
 
-                    Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").StringValue);
-                    Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").StringValue);
-                    Assert.AreEqual("test", fields.Single(x => x.Name == LuceneIndex.ItemTypeFieldName).StringValue);
-                    Assert.AreEqual("1", fields.Single(x => x.Name == LuceneIndex.ItemIdFieldName).StringValue);
-                    Assert.AreEqual("content", fields.Single(x => x.Name == LuceneIndex.CategoryFieldName).StringValue);
+                    Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").GetStringValue());
+                    Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").GetStringValue());
+                    Assert.AreEqual("test", fields.Single(x => x.Name == LuceneIndex.ItemTypeFieldName).GetStringValue());
+                    Assert.AreEqual("1", fields.Single(x => x.Name == LuceneIndex.ItemIdFieldName).GetStringValue());
+                    Assert.AreEqual("content", fields.Single(x => x.Name == LuceneIndex.CategoryFieldName).GetStringValue());
                 }
             }
         }
@@ -195,7 +195,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Easy_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -205,11 +205,11 @@ namespace Examine.Test.Index
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
                 {
                     var luceneSearcher = s.GetLuceneSearcher();
-                    var fields = luceneSearcher.Doc(0).GetFields().ToArray();
+                    var fields = luceneSearcher.Doc(0).Fields.ToArray();
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
-                    Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").StringValue);
-                    Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").StringValue);
+                    Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").GetStringValue());
+                    Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").GetStringValue());
                 }
             }
         }
@@ -218,7 +218,7 @@ namespace Examine.Test.Index
         public void Can_Have_Multiple_Values_In_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -236,16 +236,16 @@ namespace Examine.Test.Index
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
                 {
                     var luceneSearcher = s.GetLuceneSearcher();
-                    var fields = luceneSearcher.Doc(0).GetFields().ToArray();
+                    var fields = luceneSearcher.Doc(0).Fields.ToArray();;
                     Assert.AreEqual(2, fields.Count(x => x.Name == "item1"));
                     Assert.AreEqual(3, fields.Count(x => x.Name == "item2"));
 
-                    Assert.AreEqual("subval1", fields.Where(x => x.Name == "item1").ElementAt(0).StringValue);
-                    Assert.AreEqual("subval2", fields.Where(x => x.Name == "item1").ElementAt(1).StringValue);
+                    Assert.AreEqual("subval1", fields.Where(x => x.Name == "item1").ElementAt(0).GetStringValue());
+                    Assert.AreEqual("subval2", fields.Where(x => x.Name == "item1").ElementAt(1).GetStringValue());
 
-                    Assert.AreEqual("subval1", fields.Where(x => x.Name == "item2").ElementAt(0).StringValue);
-                    Assert.AreEqual("subval2", fields.Where(x => x.Name == "item2").ElementAt(1).StringValue);
-                    Assert.AreEqual("subval3", fields.Where(x => x.Name == "item2").ElementAt(2).StringValue);
+                    Assert.AreEqual("subval1", fields.Where(x => x.Name == "item2").ElementAt(0).GetStringValue());
+                    Assert.AreEqual("subval2", fields.Where(x => x.Name == "item2").ElementAt(1).GetStringValue());
+                    Assert.AreEqual("subval3", fields.Where(x => x.Name == "item2").ElementAt(2).GetStringValue());
                 }
             }
         }
@@ -254,7 +254,7 @@ namespace Examine.Test.Index
         public void Can_Update_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -267,11 +267,11 @@ namespace Examine.Test.Index
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
                 {
                     var luceneSearcher = s.GetLuceneSearcher();
-                    var fields = luceneSearcher.Doc(luceneSearcher.MaxDoc - 1).GetFields().ToArray();
+                    var fields = luceneSearcher.Doc(luceneSearcher.IndexReader.MaxDoc - 1).Fields.ToArray();
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
-                    Assert.AreEqual("value3", fields.Single(x => x.Name == "item1").StringValue);
-                    Assert.AreEqual("value4", fields.Single(x => x.Name == "item2").StringValue);
+                    Assert.AreEqual("value3", fields.Single(x => x.Name == "item1").GetStringValue());
+                    Assert.AreEqual("value4", fields.Single(x => x.Name == "item2").GetStringValue());
                 }
             }
         }
@@ -283,7 +283,7 @@ namespace Examine.Test.Index
             using (var indexer = new TestIndex(
                 new FieldDefinitionCollection(new FieldDefinition("item2", "number")),
                 luceneDir,
-                new StandardAnalyzer(Version.LUCENE_48)))
+                new StandardAnalyzer(Util.Version)))
             {
                 
 
@@ -297,7 +297,7 @@ namespace Examine.Test.Index
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
                 {
                     var luceneSearcher = s.GetLuceneSearcher();
-                    var fields = luceneSearcher.Doc(luceneSearcher.MaxDoc - 1).GetFields().ToArray();
+                    var fields = luceneSearcher.Doc(luceneSearcher.IndexReader.MaxDoc - 1).Fields.ToArray();
 
                     var valType = indexer.FieldValueTypeCollection.GetValueType("item2");
                     Assert.AreEqual(typeof(Int32Type), valType.GetType());
@@ -316,7 +316,7 @@ namespace Examine.Test.Index
             const int ThreadCount = 1000;
 
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_48), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d,new IndexWriterConfig(Util.Version, new CultureInvariantStandardAnalyzer(Util.Version))))
             using (var customIndexer = new TestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
@@ -421,7 +421,7 @@ namespace Examine.Test.Index
         public void Index_Ensure_No_Duplicates_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_48), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d,new IndexWriterConfig(Util.Version, new CultureInvariantStandardAnalyzer(Util.Version))))
             using (var customIndexer = new TestIndex(writer))
             //using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
@@ -488,7 +488,7 @@ namespace Examine.Test.Index
         public void Index_Read_And_Write_Ensure_No_Errors_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_48), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d,new IndexWriterConfig(Util.Version, new CultureInvariantStandardAnalyzer(Util.Version))))
             using (var customIndexer = new TestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {

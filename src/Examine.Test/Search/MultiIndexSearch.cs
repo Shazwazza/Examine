@@ -8,7 +8,7 @@ using Examine.LuceneEngine;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
 using NUnit.Framework;
-using Version = Lucene.Net.Util.Version;
+
 
 namespace Examine.Test.Search
 {
@@ -19,7 +19,7 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Simple_Search()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_48);
+            var analyzer = new StandardAnalyzer(Util.Version);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
@@ -55,7 +55,7 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Field_Count()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_48);
+            var analyzer = new StandardAnalyzer(Util.Version);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
