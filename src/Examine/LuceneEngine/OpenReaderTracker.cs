@@ -12,7 +12,7 @@ namespace Examine.LuceneEngine
     {
         private static readonly OpenReaderTracker Instance = new OpenReaderTracker();
 
-        private readonly List<Tuple<IndexReader, DateTime>> _oldReaders = new List<Tuple<IndexReader, DateTime>>(); 
+        private readonly List<Tuple<IndexReader, DateTime,Directory>> _oldReaders = new List<Tuple<IndexReader, DateTime,Directory>>(); 
 
         private readonly object _locker = new object();
 
@@ -21,12 +21,12 @@ namespace Examine.LuceneEngine
             get { return Instance; }
         }
 
-        public void AddOpenReader(IndexReader reader)
+        public void AddOpenReader(IndexReader reader, Directory directory)
         {
             lock (_locker)
             {
                 //reader.IncRef();
-                _oldReaders.Add(new Tuple<IndexReader, DateTime>(reader, DateTime.Now));
+                _oldReaders.Add(new Tuple<IndexReader, DateTime,Directory>(reader, DateTime.Now,directory));
             }
         }
 
@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine
             {
                 var now = DateTime.Now;
 
-                var readersForDir = _oldReaders.Where(x => x.Item1.GetLockId() == dir.GetLockId()).ToList();
+                var readersForDir = _oldReaders.Where(x => x.Item3.GetLockID() == dir.GetLockID()).ToList();
                 var newest = readersForDir.OrderByDescending(x => x.Item2).FirstOrDefault();
                 readersForDir.Remove(newest);
                 var stale = readersForDir.Where(x => now - x.Item2 >= ts).ToArray();
@@ -64,7 +64,7 @@ namespace Examine.LuceneEngine
         {
             lock (_locker)
             {
-                var readersForDir = _oldReaders.Where(x => x.Item1.Directory().GetLockId() == dir.GetLockId()).ToArray();
+                var readersForDir = _oldReaders.Where(x => x.Item3.GetLockID() == dir.GetLockID()).ToArray();
                 foreach (var reader in readersForDir)
                 {
                     //close reader and remove from list

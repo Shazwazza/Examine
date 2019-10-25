@@ -49,21 +49,14 @@ namespace Examine.LuceneEngine.Search
             set => Wrapped.Boost = value;
         }
 
-        public override Similarity GetSimilarity(IndexSearcher searcher)
-        {
-            return new DefaultSimilarity();
-        }
+     
 
         public override Query Rewrite(IndexReader reader)
         {
             return Wrapped.Rewrite(reader);
         }
 
-        public override Weight Weight(IndexSearcher searcher)
-        {
-            return CreateWeight(searcher);
-        }
-
+  
 
 
         public override string ToString(string field)

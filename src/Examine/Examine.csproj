@@ -168,7 +168,6 @@
     <Compile Include="LuceneEngine\CultureInvariantWhitespaceAnalyzer.cs" />
     <Compile Include="LuceneEngine\Indexing\DateTimeType.cs" />
     <Compile Include="LuceneEngine\Indexing\DoubleType.cs" />
-    <Compile Include="LuceneEngine\Indexing\FullTextType.cs" />
     <Compile Include="LuceneEngine\Indexing\IndexFieldValueTypeBase.cs" />
     <Compile Include="LuceneEngine\Indexing\Int32Type.cs" />
     <Compile Include="LuceneEngine\Indexing\Int64Type.cs" />

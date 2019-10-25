@@ -154,36 +154,36 @@ namespace Examine.LuceneEngine.Search
             {
                 var fieldName = f.FieldName;
 
-                var defaultSort = SortField.STRING;
+                var defaultSort =  SortFieldType.STRING;
 
                 switch (f.SortType)
                 {
                     case SortType.Score:
-                        defaultSort = SortField.SCORE;
+                        defaultSort = SortFieldType.SCORE;
                         break;
                     case SortType.DocumentOrder:
-                        defaultSort = SortField.DOC;
+                        defaultSort = SortFieldType.DOC;
                         break;
                     case SortType.String:
-                        defaultSort = SortField.STRING;
+                        defaultSort = SortFieldType.STRING;
                         break;
                     case SortType.Int:
-                        defaultSort = SortField.INT;
+                        defaultSort = SortFieldType.INT32;
                         break;
                     case SortType.Float:
-                        defaultSort = SortField.FLOAT;
+                        defaultSort = SortFieldType.DOUBLE;
                         break;
                     case SortType.Long:
-                        defaultSort = SortField.LONG;
+                        defaultSort = SortFieldType.INT64;
                         break;
                     case SortType.Double:
-                        defaultSort = SortField.DOUBLE;
+                        defaultSort = SortFieldType.DOUBLE;
                         break;
                     case SortType.Short:
-                        defaultSort = SortField.SHORT;
+                        defaultSort = SortFieldType.INT16;
                         break;
                     case SortType.Byte:
-                        defaultSort = SortField.BYTE;
+                        defaultSort = SortFieldType.BYTE;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

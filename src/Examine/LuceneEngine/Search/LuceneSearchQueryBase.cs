@@ -4,11 +4,12 @@ using System.Linq;
 using Examine.LuceneEngine.Providers;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Core;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
-using Version = Lucene.Net.Util.Version;
+using Lucene.Net.Util;
 
 namespace Examine.LuceneEngine.Search
 {
@@ -24,7 +25,7 @@ namespace Examine.LuceneEngine.Search
         protected Occur Occurrence;
         private BooleanOperation _boolOp;
 
-        private const Version LuceneVersion = Version.LUCENE_48;
+    
 
         protected LuceneSearchQueryBase(
             string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -34,7 +35,7 @@ namespace Examine.LuceneEngine.Search
             SearchOptions = searchOptions;
             Queries.Push(new BooleanQuery());
             BooleanOperation = occurance;
-            _queryParser = new CustomMultiFieldQueryParser(LuceneVersion, fields, analyzer);
+            _queryParser = new CustomMultiFieldQueryParser(Util.Version, fields, analyzer);
             _queryParser.AllowLeadingWildcard = searchOptions.AllowLeadingWildcard;
         }
 
@@ -248,7 +249,7 @@ namespace Examine.LuceneEngine.Search
             if (id == null) throw new ArgumentNullException(nameof(id));
 
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(_queryParser.GetFieldQueryInternal(LuceneIndex.ItemIdFieldName, id), occurrence);
+            Query.Add(_queryParser.GetFieldQueryInternal(LuceneIndex.ItemIdFieldName, id,false), occurrence);
 
             return CreateOp();
         }
@@ -297,7 +298,7 @@ namespace Examine.LuceneEngine.Search
                 case Examineness.Boosted:
                     if (useQueryParser)
                     {
-                        queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value,false);
                         queryToAdd.Boost = fieldValue.Level;
                     }
                     else
@@ -347,7 +348,7 @@ namespace Examine.LuceneEngine.Search
                 default:
                     if (useQueryParser)
                     {
-                        queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value,false);
                     }
                     else
                     {
@@ -373,7 +374,7 @@ namespace Examine.LuceneEngine.Search
         /// <returns></returns>
         private Query ParseRawQuery(string rawQuery)
         {
-            var parser = new QueryParser(LuceneVersion, "", new KeywordAnalyzer());
+            var parser = new QueryParser(Util.Version, "", new KeywordAnalyzer());
             return parser.Parse(rawQuery);
         }
 

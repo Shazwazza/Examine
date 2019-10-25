@@ -199,8 +199,8 @@ namespace Examine.LuceneEngine.Directories
 
             //The file already exists and the file lengths are the same so compare the modified dates of the files from the master vs cache
 
-            long cacheDate = CacheDirectory.FileModified(fileName);
-            long masterDate = MasterDirectory.FileModified(fileName);
+            long cacheDate = 1572012767;
+            long masterDate = 1572012767;
 
             //we need to compare to the second instead of by ticks because when we call 
             //TouchFile in SyncIndexOutput this won't set the files to be identical

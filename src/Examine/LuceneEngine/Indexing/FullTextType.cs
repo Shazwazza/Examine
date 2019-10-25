@@ -90,7 +90,7 @@ namespace Examine.LuceneEngine.Indexing
             resultQuery.Add(phraseQuery, Occur.SHOULD);
 
             var tokenStream = analyzer.GetTokenStream("SearchText", new StringReader(query));
-            var termAttribute = tokenStream.AddAttribute<ICharTermAttribute>();
+            var termAttribute = tokenStream.AddAttribute<Term>();
 
             while (tokenStream.IncrementToken())
             {

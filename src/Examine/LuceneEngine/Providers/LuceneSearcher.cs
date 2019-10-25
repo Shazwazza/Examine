@@ -199,11 +199,13 @@ namespace Examine.LuceneEngine.Providers
                             _reader = _nrtWriter == null
                                 ? OpenNewReader()
                                 : _nrtWriter.GetReader(true);
-
+                            var luceneDirectory = _nrtWriter == null
+                                ? GetLuceneDirectory()
+                                : _nrtWriter.Directory;
                             _searcher = new IndexSearcher(_reader);
 
                             //track it!
-                            OpenReaderTracker.Current.AddOpenReader(_reader);
+                            OpenReaderTracker.Current.AddOpenReader(_reader,luceneDirectory);
                         }
                         catch (IOException ex)
                         {
@@ -423,11 +425,13 @@ namespace Examine.LuceneEngine.Providers
                             _luceneSearcher._reader = _luceneSearcher._nrtWriter == null
                                 ? _luceneSearcher.OpenNewReader()
                                 : _luceneSearcher._nrtWriter.GetReader(true);
-
+                            var luceneDirectory = _luceneSearcher._nrtWriter == null
+                                ? _luceneSearcher.GetLuceneDirectory()
+                                : _luceneSearcher._nrtWriter.Directory;
                             _luceneSearcher._searcher = new IndexSearcher(_luceneSearcher._reader);
 
                             //track it!
-                            OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader);
+                            OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader,luceneDirectory);
                         }
                         break;
                     case ReaderStatus.NotCurrent:
@@ -466,9 +470,11 @@ namespace Examine.LuceneEngine.Providers
                                 // but that will cause problems since the old reader might be in use on another thread.
                                 _luceneSearcher._reader = newReader;
                                 _luceneSearcher._searcher = new IndexSearcher(_luceneSearcher._reader);
-
+                                var luceneDirectory = _luceneSearcher._nrtWriter == null
+                                    ? _luceneSearcher.GetLuceneDirectory()
+                                    : _luceneSearcher._nrtWriter.Directory;
                                 //track it!
-                                OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader);
+                                OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader,luceneDirectory);
 
                                 //get rid of old ones (anything a minute or older)
                                 OpenReaderTracker.Current.CloseStaleReaders(_luceneSearcher.GetLuceneDirectory(), TimeSpan.FromMinutes(1));

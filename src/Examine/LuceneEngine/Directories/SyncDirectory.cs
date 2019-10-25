@@ -124,15 +124,7 @@ namespace Examine.LuceneEngine.Directories
             return _masterDirectory.FileExists(name);
         }
 
-        /// <summary>Returns the time the named file was last modified. </summary>
-        
-        public override long FileModified(string name)
-        {
-            CheckDirty();
 
-        //    return _inSync ? _cacheDirectory.FileModified(name) : _masterDirectory.FileModified(name);
-        return DateTools.Round(new DateTime(), new DateTools.Resolution()).Ticks;
-        }
 
      
 
@@ -248,7 +240,7 @@ namespace Examine.LuceneEngine.Directories
 
         public override LockFactory LockFactory => _lockFactory;
 
-        public override string GetLockId()
+        public override string GetLockID()
         {
             return string.Concat(_masterDirectory.GetLockID(), _cacheDirectory.GetLockID());
         }
@@ -267,7 +259,7 @@ namespace Examine.LuceneEngine.Directories
         //TODO: This isn't used
         internal StreamInput OpenCachedInputAsStream(string name)
         {
-            return new StreamInput(CacheDirectory.OpenInput(name));
+            return new StreamInput(CacheDirectory.OpenInput(name, new IOContext()));
         }
 
         //TODO: This isn't used
@@ -287,8 +279,8 @@ namespace Examine.LuceneEngine.Directories
                     {
                         //these methods don't throw exceptions, will return -1 if something has gone wrong
                         // in which case we'll consider them not in sync
-                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(_masterDirectory);
-                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(_cacheDirectory);
+                        var masterSeg = SegmentInfos.GetLastCommitGeneration(_masterDirectory);
+                        var localSeg = SegmentInfos.GetLastCommitGeneration(_cacheDirectory);
                         _inSync = masterSeg == localSeg && masterSeg != -1;
                         _dirty = false;
                     }
