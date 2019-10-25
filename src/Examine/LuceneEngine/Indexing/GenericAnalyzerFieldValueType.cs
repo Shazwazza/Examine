@@ -28,7 +28,7 @@ namespace Examine.LuceneEngine.Indexing
         public override void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
         {
             base.SetupAnalyzers(analyzer);
-            analyzer.AddAnalyzer(FieldName, _analyzer);
+         
         }
 
         protected override void AddSingleValue(Document doc, object value)

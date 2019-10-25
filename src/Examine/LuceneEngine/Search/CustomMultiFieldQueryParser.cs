@@ -55,7 +55,7 @@ namespace Examine.LuceneEngine.Search
         public Query GetFieldQueryInternal(string field, string queryText,
             bool quoted)
         {
-            return GetFieldQuery(field, queryText,bool);
+            return GetFieldQuery(field, queryText,true);
         }
     }
 }

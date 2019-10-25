@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine
             {
                 var now = DateTime.Now;
 
-                var readersForDir = _oldReaders.Where(x => x.Item1.Directory().GetLockId() == dir.GetLockId()).ToList();
+                var readersForDir = _oldReaders.Where(x => x.Item1.GetLockId() == dir.GetLockId()).ToList();
                 var newest = readersForDir.OrderByDescending(x => x.Item2).FirstOrDefault();
                 readersForDir.Remove(newest);
                 var stale = readersForDir.Where(x => now - x.Item2 >= ts).ToArray();
@@ -46,9 +46,9 @@ namespace Examine.LuceneEngine
                     //close reader and remove from list
                     try
                     {
-                        reader.Item1.Close();
+                        reader.Item1.Dispose();
                     }
-                    catch (AlreadyClosedException)
+                    catch (ObjectDisposedException)
                     {
                         //if this happens, more than one instance has decreased referenced, this could occur if this 
                         //somehow gets called in conjuction with the shutdown code or manually, etc...
@@ -70,9 +70,9 @@ namespace Examine.LuceneEngine
                     //close reader and remove from list
                     try
                     {
-                        reader.Item1.Close();
+                        reader.Item1.Dispose();
                     }
-                    catch (AlreadyClosedException)
+                    catch (ObjectDisposedException)
                     {
                         //if this happens, more than one instance has decreased referenced, this could occur if this 
                         //somehow gets called in conjuction with the shutdown code or manually, etc...
@@ -94,9 +94,9 @@ namespace Examine.LuceneEngine
                     //close reader and remove from list
                     try
                     {
-                        reader.Item1.Close();
+                        reader.Item1.Dispose();
                     }
-                    catch (AlreadyClosedException)
+                    catch (ObjectDisposedException)
                     {
                         //if this happens, more than one instance has decreased referenced, this could occur if this 
                         //somehow gets called in conjuction with the shutdown code or manually, etc...

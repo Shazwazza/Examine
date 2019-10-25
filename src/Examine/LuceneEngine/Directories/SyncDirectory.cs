@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security;
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
@@ -129,17 +130,11 @@ namespace Examine.LuceneEngine.Directories
         {
             CheckDirty();
 
-            return _inSync ? _cacheDirectory.FileModified(name) : _masterDirectory.FileModified(name);            
+        //    return _inSync ? _cacheDirectory.FileModified(name) : _masterDirectory.FileModified(name);
+        return DateTools.Round(new DateTime(), new DateTools.Resolution()).Ticks;
         }
 
-        /// <summary>Set the modified time of an existing file to now. </summary>
-        [Obsolete("This is actually never used")]        
-        public override void TouchFile(string name)
-        {
-            //just update the cache file - the Lucene source actually never calls this method!
-            _cacheDirectory.TouchFile(name);
-            SetDirty();
-        }
+     
 
         /// <summary>Removes an existing file in the directory. </summary>
         
@@ -183,24 +178,26 @@ namespace Examine.LuceneEngine.Directories
             return _inSync ? _cacheDirectory.FileLength(name) : _masterDirectory.FileLength(name);
         }
 
-        /// <summary>Creates a new, empty file in the directory with the given name.
-        /// Returns a stream writing this file. 
-        /// </summary>
-        
-        public override IndexOutput CreateOutput(string name)
+        public override IndexOutput CreateOutput(string name, IOContext context)
         {
             SetDirty();
 
             //This is what enables "Copy on write" semantics
             return new SyncIndexOutput(this, name);
-
-            //If we returned this instead, this essentially becomes only "Copy on read" and not "Copy on write"
-            //return _masterDirectory.CreateOutput(name);
         }
+
+        public override void Sync(ICollection<string> names)
+        {
+            throw new NotImplementedException();
+        }
+
+        
+
+
 
         /// <summary>Returns a stream reading an existing file. </summary>
         
-        public override IndexInput OpenInput(string name)
+        public override IndexInput OpenInput(string name, IOContext context)
         {
             //There's a project called Jackrabbit which performs a copy on read/copy on write semantics as well and it appears
             //that they also experienced the file not found issue. I noticed that their implementation only ever reads the segments.gen
@@ -221,7 +218,7 @@ namespace Examine.LuceneEngine.Directories
 
             if (RemoteOnlyFiles.Contains(name))
             {
-                return _masterDirectory.OpenInput(name);
+                return _masterDirectory.OpenInput(name,context);
             }
 
             try
@@ -253,13 +250,18 @@ namespace Examine.LuceneEngine.Directories
 
         public override string GetLockId()
         {
-            return string.Concat(_masterDirectory.GetLockId(), _cacheDirectory.GetLockId());
+            return string.Concat(_masterDirectory.GetLockID(), _cacheDirectory.GetLockID());
         }
         
         protected override void Dispose(bool disposing)
         {
             _masterDirectory.Dispose();
             _cacheDirectory.Dispose();
+        }
+
+        public override void SetLockFactory(LockFactory lockFactory)
+        {
+            throw new NotImplementedException();
         }
 
         //TODO: This isn't used
@@ -271,7 +273,7 @@ namespace Examine.LuceneEngine.Directories
         //TODO: This isn't used
         internal StreamOutput CreateCachedOutputAsStream(string name)
         {
-            return new StreamOutput(CacheDirectory.CreateOutput(name));
+            return new StreamOutput(CacheDirectory.CreateOutput(name,new IOContext()));
         }
         
         private void CheckDirty()

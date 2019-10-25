@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Similarities;
 
 namespace Examine.LuceneEngine.Search
 {
@@ -22,7 +23,7 @@ namespace Examine.LuceneEngine.Search
             return Wrapped.Clone();
         }
 
-        public override Weight CreateWeight(Searcher searcher)
+        public override Weight CreateWeight(IndexSearcher searcher)
         {
             return Wrapped.CreateWeight(searcher);
         }
@@ -48,9 +49,9 @@ namespace Examine.LuceneEngine.Search
             set => Wrapped.Boost = value;
         }
 
-        public override Similarity GetSimilarity(Searcher searcher)
+        public override Similarity GetSimilarity(IndexSearcher searcher)
         {
-            return Wrapped.GetSimilarity(searcher);
+            return new DefaultSimilarity();
         }
 
         public override Query Rewrite(IndexReader reader)
@@ -58,16 +59,12 @@ namespace Examine.LuceneEngine.Search
             return Wrapped.Rewrite(reader);
         }
 
-        public override Weight Weight(Searcher searcher)
+        public override Weight Weight(IndexSearcher searcher)
         {
-            return Wrapped.Weight(searcher);
+            return CreateWeight(searcher);
         }
 
 
-        public override Query Combine(Query[] queries)
-        {
-            return Wrapped.Combine(queries);
-        }
 
         public override string ToString(string field)
         {

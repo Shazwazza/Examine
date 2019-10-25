@@ -68,7 +68,7 @@ namespace Examine.LuceneEngine.Directories
 
         public static Mutex GrabMutex(Lucene.Net.Store.Directory directory, string name)
         {
-            var mgr = MutexManagers.GetOrAdd(directory, d => new SyncMutexManager(d.GetLockId()));
+            var mgr = MutexManagers.GetOrAdd(directory, d => new SyncMutexManager(d.GetLockID()));
             return mgr.CreateMutex(name);
         }
     }

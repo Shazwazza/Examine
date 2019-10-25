@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine.Directories
             try
             {
                 // create the local cache one we will operate against...
-                _cacheDirIndexOutput = CacheDirectory.CreateOutput(_name);
+                _cacheDirIndexOutput = CacheDirectory.CreateOutput(_name,new IOContext());
             }
             finally
             {
@@ -88,7 +88,7 @@ namespace Examine.LuceneEngine.Directories
                     IndexInput cacheInput = null;
                     try
                     {
-                        cacheInput = CacheDirectory.OpenInput(fileName);
+                        cacheInput = CacheDirectory.OpenInput(fileName,new IOContext());
                     }
                     catch (IOException e)
                     {
@@ -102,7 +102,7 @@ namespace Examine.LuceneEngine.Directories
                         IndexOutput masterOutput = null;
                         try
                         {
-                            masterOutput = MasterDirectory.CreateOutput(fileName);
+                            masterOutput = MasterDirectory.CreateOutput(fileName,new IOContext());
                             cacheInput.CopyTo(masterOutput, fileName);
                         }
                         finally
@@ -128,12 +128,18 @@ namespace Examine.LuceneEngine.Directories
             }
         }
 
+        public override long GetFilePointer()
+        {
+            return _cacheDirIndexOutput.GetFilePointer();
+        }
+
         public override void Seek(long pos)
         {
             _cacheDirIndexOutput.Seek(pos);
         }
 
-        public override long FilePointer => _cacheDirIndexOutput.GetFilePointer();
+        public override long Checksum { get; }
+
 
         public override long Length => _cacheDirIndexOutput.Length;
     }

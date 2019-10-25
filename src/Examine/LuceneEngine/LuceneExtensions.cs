@@ -65,7 +65,7 @@ namespace Examine.LuceneEngine
             ReaderStatus status = ReaderStatus.NotCurrent;
             try
             {
-                status = reader.Context.c ? ReaderStatus.Current : ReaderStatus.NotCurrent;
+                status =  ReaderStatus.Current;//todo: fix checking of status
             }
             catch (ObjectDisposedException)
             {

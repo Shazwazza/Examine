@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine.Directories
         /// This will not work for the segments.gen file because it doesn't compare to master and segments.gen is not write-once!
         /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
         /// </remarks>
-        public SyncIndexInput(SyncDirectory directory, string name): base()
+        public SyncIndexInput(SyncDirectory directory, string name): base("")
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
 
@@ -79,7 +79,7 @@ namespace Examine.LuceneEngine.Directories
                 if (fileNeeded)
                 {
                     SyncLocally(fileName);
-                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName);
+                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName, new IOContext());
                 }
                 else
                 {
@@ -87,7 +87,7 @@ namespace Examine.LuceneEngine.Directories
                     Trace.WriteLine($"Using cached file for {_name}");
 #endif
 
-                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName);
+                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName, new IOContext());
                 }
             }
             finally
@@ -100,7 +100,7 @@ namespace Examine.LuceneEngine.Directories
         /// Constructor used for cloning
         /// </summary>
         /// <param name="cloneInput"></param>
-        public SyncIndexInput(SyncIndexInput cloneInput)
+        public SyncIndexInput(SyncIndexInput cloneInput) : base("")
         {
             _name = cloneInput._name;
             _syncDirectory = cloneInput._syncDirectory;
@@ -141,7 +141,7 @@ namespace Examine.LuceneEngine.Directories
             IndexInput masterInput = null;
             try
             {
-                masterInput = MasterDirectory.OpenInput(fileName);                
+                masterInput = MasterDirectory.OpenInput(fileName,new IOContext());                
             }
             catch (IOException ex)
             {
@@ -163,14 +163,14 @@ namespace Examine.LuceneEngine.Directories
                 IndexOutput cacheOutput = null;
                 try
                 {
-                    cacheOutput = CacheDirectory.CreateOutput(fileName);
+                    cacheOutput = CacheDirectory.CreateOutput(fileName,new IOContext());
                     masterInput.CopyTo(cacheOutput, fileName);
 
                 }
                 finally
                 {
-                    cacheOutput?.Close();
-                    masterInput?.Close();
+                    cacheOutput?.Dispose();
+                    masterInput?.Dispose();
                 }
             }
             
@@ -261,15 +261,17 @@ namespace Examine.LuceneEngine.Directories
             }
         }
 
+        public override long GetFilePointer()
+        {
+            return _cacheDirIndexInput.GetFilePointer();
+        }
+
         public override void Seek(long pos)
         {
             _cacheDirIndexInput.Seek(pos);
         }
 
-        public override long Length()
-        {
-            return _cacheDirIndexInput.Length;
-        }
+
 
         
         public override object Clone()
@@ -293,6 +295,11 @@ namespace Examine.LuceneEngine.Directories
             return clone;
         }
 
-        public override long FilePointer => _cacheDirIndexInput.GetFilePointer();
+        public override long Length {
+            get
+            {
+                return _cacheDirIndexInput.Length;
+            }
+        }
     }
 }

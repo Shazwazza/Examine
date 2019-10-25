@@ -1,3 +1,4 @@
+using System;
 using System.Security;
 using Lucene.Net.Store;
 
@@ -34,7 +35,7 @@ namespace Examine.LuceneEngine.Directories
             return child;
         }
 
-        
+        /* ToDo: Figure out how to override that
         public override bool Obtain(long lockWaitTimeout)
         {
             var master = _dirMaster.Obtain(lockWaitTimeout);
@@ -53,26 +54,45 @@ namespace Examine.LuceneEngine.Directories
             try
             {
                 //try to release master
-                _dirMaster.Release();
+                _dirMaster.Dispose();
 
                 //if that succeeds try to release child
                 isChild = true;
-                _dirChild.Release();
+                _dirChild.Dispose();
             }
             catch (System.Exception ex2)
             {
                 //if an error occurs above for the master still attempt to release child
                 if (!isChild)
-                    _dirChild.Release();
+                    _dirChild.Dispose();
 
                 throw;
             }
             
-        }
+        }*/
 
         protected override void Dispose(bool disposing)
         {
-            throw new System.NotImplementedException();
+            var isChild = false;
+            try
+            {
+                //try to release master
+                _dirMaster.Dispose();
+
+                //if that succeeds try to release child
+                isChild = true;
+                _dirChild.Dispose();
+            }
+            catch (System.Exception ex2)
+            {
+                //if an error occurs above for the master still attempt to release child
+                if (!isChild)
+                    _dirChild.Dispose();
+
+                throw;
+            }
+            this.Dispose(true);
+     
         }
 
         /// <summary>

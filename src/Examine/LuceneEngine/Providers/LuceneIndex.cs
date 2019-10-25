@@ -407,7 +407,7 @@ namespace Examine.LuceneEngine.Providers
                     IndexWriter.Unlock(dir);
                 }
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                writer = new IndexWriter(dir, new IndexWriterConfig(Util.Version,FieldAnalyzer));
             }
             catch (Exception ex)
             {
@@ -491,7 +491,7 @@ namespace Examine.LuceneEngine.Providers
                 var writer = GetIndexWriter();
 
                 //wait for optimization to complete (true)
-                writer.Optimize(true);
+                //writer.Optimize(true); TODO:Figure out if Optimase exist in Lucene.net 4.8
             }
             catch (Exception ex)
             {
@@ -559,7 +559,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 try
                 {
-                    using (_writer.GetReader())
+                    using (_writer.GetReader(true))
                     {
                         ex = null;
                         return true;
@@ -574,7 +574,7 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                using (IndexReader.Open(GetLuceneDirectory(), true))
+                using (IndexReader.Open(GetLuceneDirectory()))
                 {
                 }
                 ex = null;
@@ -604,7 +604,7 @@ namespace Examine.LuceneEngine.Providers
             //if it's not been set or it just doesn't exist, re-read the lucene files
             if (!_exists.HasValue || !_exists.Value)
             {
-                _exists = IndexReader.IndexExists(GetLuceneDirectory());
+                _exists = DirectoryReader.IndexExists(GetLuceneDirectory());
             }
 
             return _exists.Value;
@@ -624,7 +624,7 @@ namespace Examine.LuceneEngine.Providers
             string itemId = null;
             if (indexTerm.Field == "id")
             {
-                itemId = indexTerm.Text;
+                itemId = indexTerm.Text();
             }
 
             try
@@ -1109,8 +1109,8 @@ namespace Examine.LuceneEngine.Providers
                 {
                     System.IO.Directory.CreateDirectory(LuceneIndexFolder.FullName);
                     _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), FileMode.Append);
-                    var w = new StreamWriter(_logOutput);
-                    writer.SetInfoStream(w);
+           
+            
                 }
                 catch (Exception ex)
                 {
@@ -1131,7 +1131,7 @@ namespace Examine.LuceneEngine.Providers
         private IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
-            var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            var writer = new IndexWriter(d, new IndexWriterConfig(Util.Version,FieldAnalyzer));
             return writer;
         }
 
@@ -1375,13 +1375,13 @@ namespace Examine.LuceneEngine.Providers
         public Task<long> GetDocumentCountAsync()
         {
             var writer = GetIndexWriter();
-            return Task.FromResult((long)writer.NumDocs());
+            return Task.FromResult((long)writer.GetReader(true).NumDocs);
         }
 
         public Task<IEnumerable<string>> GetFieldNamesAsync()
         {
             var writer = GetIndexWriter();
-            return Task.FromResult((IEnumerable<string>)writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL));               
+            return Task.FromResult((IEnumerable<string>)writer.GetReader(true).Context.Leaves.FirstOrDefault()?.AtomicReader.Fields);               
         }
 
     }

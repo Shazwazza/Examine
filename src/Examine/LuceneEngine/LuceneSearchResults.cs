@@ -73,9 +73,9 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.MaxDoc) : LuceneSearcher.MaxDoc;
+            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.IndexReader.MaxDoc) : LuceneSearcher.IndexReader.MaxDoc;
 
-            Collector topDocsCollector;
+            ICollector topDocsCollector;
             var sortFields = sortField as SortField[] ?? sortField.ToArray();
             if (sortFields.Length > 0)
             {
@@ -90,8 +90,8 @@ namespace Examine.LuceneEngine
             LuceneSearcher.Search(query, topDocsCollector);
 
             TopDocs = sortFields.Length > 0
-                ? ((TopFieldCollector)topDocsCollector).TopDocs()
-                : ((TopScoreDocCollector)topDocsCollector).TopDocs();
+                ? ((TopFieldCollector)topDocsCollector).GetTopDocs()
+                : ((TopScoreDocCollector)topDocsCollector).GetTopDocs();
 
             TotalItemCount = TopDocs.TotalHits;
         }
@@ -130,7 +130,7 @@ namespace Examine.LuceneEngine
             var sr = new SearchResult(id, score, () =>
             {
                 //we can use lucene to find out the fields which have been stored for this particular document
-                var fields = doc.GetFields();
+                var fields = doc.Fields;
 
                 var resultVals = new Dictionary<string, List<string>>();
 
@@ -222,7 +222,7 @@ namespace Examine.LuceneEngine
             private readonly IndexSearcher _searcher;
 
             
-            public DecrementReaderResult(IEnumerator<ISearchResult> baseEnumerator, Searcher searcher)
+            public DecrementReaderResult(IEnumerator<ISearchResult> baseEnumerator, IndexSearcher searcher)
             {
                 _baseEnumerator = baseEnumerator;
                 _searcher = searcher as IndexSearcher;

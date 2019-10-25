@@ -40,7 +40,7 @@ namespace Examine.LuceneEngine.Indexing
             return DateTools.Round(date, Resolution).Ticks;
         }
 
-        public override Query GetQuery(string query, Searcher searcher)
+        public override Query GetQuery(string query, IndexSearcher searcher)
         {
             if (!TryConvert(query, out DateTime parsedVal))
                 return null;
