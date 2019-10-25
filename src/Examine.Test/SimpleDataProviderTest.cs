@@ -22,7 +22,7 @@
 //        [Test]
 //        public void SimpleData_RebuildIndex()
 //        {
-//            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+//            var analyzer = new StandardAnalyzer(Version.LUCENE_48);
 //            using (var luceneDir = new RAMDirectory())
 //            using (var indexer = GetSimpleIndexer(luceneDir, analyzer, new TestSimpleDataProvider()))
 //            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
@@ -56,7 +56,7 @@
 //        public void SimpleData_Reindex_Node()
 //        {
 //            var dataProvider = new TestSimpleDataProvider();
-//            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+//            var analyzer = new StandardAnalyzer(Version.LUCENE_48);
 //            using (var luceneDir = new RAMDirectory())
 //            using (var indexer = GetSimpleIndexer(luceneDir, analyzer, dataProvider))
 //            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))
@@ -91,7 +91,7 @@
 //        public void SimpleDataProviderTest_Range_Search_On_Year()
 //        {
 //            var dataProvider = new TestSimpleDataProvider();
-//            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+//            var analyzer = new StandardAnalyzer(Version.LUCENE_48);
 //            using (var luceneDir = new RAMDirectory())
 //            using (var indexer = GetSimpleIndexer(luceneDir, analyzer, dataProvider))
 //            using (var session = new ThreadScopedIndexSession(indexer.SearcherContext))

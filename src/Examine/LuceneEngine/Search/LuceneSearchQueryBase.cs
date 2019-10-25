@@ -6,8 +6,9 @@ using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
+using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
-using Version = Lucene.Net.Util.Version;
+using Version = Lucene.Net.Util.LuceneVersion;
 
 namespace Examine.LuceneEngine.Search
 {
@@ -23,7 +24,7 @@ namespace Examine.LuceneEngine.Search
         protected Occur Occurrence;
         private BooleanOperation _boolOp;
 
-        private const Version LuceneVersion = Version.LUCENE_30;
+        private const Version LuceneVersion = Version.LUCENE_48;
 
         protected LuceneSearchQueryBase(
             string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)

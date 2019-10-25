@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine
         private readonly ISet<string> _stopWords;
         private readonly bool _enableStopPositionIncrements;
 
-        public CultureInvariantStandardAnalyzer() : this(Version.LUCENE_30)
+        public CultureInvariantStandardAnalyzer() : this(Version.LUCENE_48)
         {
             
         }

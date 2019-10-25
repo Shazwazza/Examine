@@ -63,8 +63,25 @@
     <Reference Include="itextsharp">
       <HintPath>..\DLLs\itextsharp.dll</HintPath>
     </Reference>
-    <Reference Include="Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
-      <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
+    <Reference Include="Lucene.Net, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
+      <HintPath>..\packages\Lucene.Net.4.8.0-beta00006\lib\net45\Lucene.Net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Lucene.Net.Analysis.Common, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
+      <HintPath>..\packages\Lucene.Net.Analysis.Common.4.8.0-beta00006\lib\net45\Lucene.Net.Analysis.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Lucene.Net.Queries, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
+      <HintPath>..\packages\Lucene.Net.Queries.4.8.0-beta00006\lib\net45\Lucene.Net.Queries.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Lucene.Net.QueryParser, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
+      <HintPath>..\packages\Lucene.Net.QueryParser.4.8.0-beta00006\lib\net45\Lucene.Net.QueryParser.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Lucene.Net.Sandbox, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
+      <HintPath>..\packages\Lucene.Net.Sandbox.4.8.0-beta00006\lib\net45\Lucene.Net.Sandbox.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

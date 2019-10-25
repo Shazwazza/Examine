@@ -23,7 +23,7 @@ using Examine.LuceneEngine.Search;
 using Examine.Search;
 using Examine.Test.DataServices;
 using Examine.Test.UmbracoExamine;
-using Version = Lucene.Net.Util.Version;
+using Version = Lucene.Net.Util.LuceneVersion;
 
 namespace Examine.Test.Index
 {
@@ -38,7 +38,7 @@ namespace Examine.Test.Index
         public void Rebuild_Index()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(d, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(d, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 indexer.CreateIndex();
                 indexer.IndexItems(indexer.AllData());
@@ -54,7 +54,7 @@ namespace Examine.Test.Index
         public void Index_Exists()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 indexer.EnsureIndex(true);
                 Assert.IsTrue(indexer.IndexExists());
@@ -65,7 +65,7 @@ namespace Examine.Test.Index
         public void Can_Add_One_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -86,7 +86,7 @@ namespace Examine.Test.Index
         public void Can_Add_Same_Document_Twice_Without_Duplication()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -110,7 +110,7 @@ namespace Examine.Test.Index
         public void Can_Add_Multiple_Docs()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -134,7 +134,7 @@ namespace Examine.Test.Index
         public void Can_Delete()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -160,7 +160,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -195,7 +195,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Easy_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -218,7 +218,7 @@ namespace Examine.Test.Index
         public void Can_Have_Multiple_Values_In_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -254,7 +254,7 @@ namespace Examine.Test.Index
         public void Can_Update_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -283,7 +283,7 @@ namespace Examine.Test.Index
             using (var indexer = new TestIndex(
                 new FieldDefinitionCollection(new FieldDefinition("item2", "number")),
                 luceneDir,
-                new StandardAnalyzer(Version.LUCENE_30)))
+                new StandardAnalyzer(Version.LUCENE_48)))
             {
                 
 
@@ -316,7 +316,7 @@ namespace Examine.Test.Index
             const int ThreadCount = 1000;
 
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_48), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = new TestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
@@ -421,7 +421,7 @@ namespace Examine.Test.Index
         public void Index_Ensure_No_Duplicates_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_48), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = new TestIndex(writer))
             //using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
@@ -488,7 +488,7 @@ namespace Examine.Test.Index
         public void Index_Read_And_Write_Ensure_No_Errors_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
+            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_48), IndexWriter.MaxFieldLength.LIMITED))
             using (var customIndexer = new TestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {

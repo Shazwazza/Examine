@@ -49,7 +49,7 @@ namespace Examine.LuceneEngine.Providers
 
             LuceneIndexFolder = null;
 
-            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
+            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_48);
 
             _directory = luceneDirectory;
             //initialize the field types

@@ -1,5 +1,7 @@
-﻿using Lucene.Net.Analysis;
+﻿using System;
+using Lucene.Net.Analysis;
 using Lucene.Net.QueryParsers;
+using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
 
@@ -11,7 +13,7 @@ namespace Examine.LuceneEngine.Search
     public class CustomMultiFieldQueryParser : MultiFieldQueryParser
     {
 
-        public CustomMultiFieldQueryParser(Version matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
+        public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
         {
         }
 
@@ -21,7 +23,7 @@ namespace Examine.LuceneEngine.Search
         /// <param name="field"></param>
         /// <param name="part1"></param>
         /// <param name="part2"></param>
-        /// <param name="inclusive"></param>
+        /// <param name="startInclusive"></param>
         /// <returns></returns>
         /// <remarks>
         /// By Default the lucene query parser only deals with strings and the result is a TermRangeQuery, however for numerics it needs to be a
@@ -31,9 +33,9 @@ namespace Examine.LuceneEngine.Search
         /// 
         /// TODO: We could go further and override the field query and check if it is a numeric field, if so then we can automatically generate a numeric range query for the single digit too.
         /// </remarks>
-        protected override Query GetRangeQuery(string field, string part1, string part2, bool inclusive)
+        protected override Query GetRangeQuery(string field, string part1, string part2, bool startInclusive,bool endInclusive)
         {
-            return base.GetRangeQuery(field, part1, part2, inclusive);
+            return base.GetRangeQuery(field, part1, part2, startInclusive,endInclusive);
         }
 
         public Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
