@@ -19,7 +19,12 @@ namespace Examine.AzureDirectory
             _lockFile = lockFile;
             _azureDirectory = directory;
         }
-        
+
+        protected override void Dispose(bool disposing)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool IsLocked()
         {
             var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(_lockFile);
@@ -43,21 +48,7 @@ namespace Examine.AzureDirectory
             return true;            
         }        
 
-        public override void Release()
-        {
-            var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(_lockFile);
-            var flag1 = blob.Exists();
-            bool flag2;
-            if (blob.Exists())
-            {
-                blob.Delete();
-                flag2 = true;
-            }           
-            else
-                flag2 = false;
-            if (flag1 && !flag2)
-                throw new LockReleaseFailedException("failed to delete " + _lockFile);
-        }
+       
                
 
     }

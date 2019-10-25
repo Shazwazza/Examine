@@ -5,15 +5,16 @@ using System.Linq;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Lucene.Net.Store.Azure;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 
 namespace Examine.AzureDirectory
 {
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
-    public class AzureDirectory : Lucene.Net.Store.Directory
+    public class AzureDirectory : Lucene.Net.Store.Azure.AzureDirectory
     {
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
@@ -44,7 +45,7 @@ namespace Examine.AzureDirectory
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false,
             string rootFolder = null,
-            bool isReadOnly = false)
+            bool isReadOnly = false):base(storageAccount,containerName,cacheDirectory)
         {            
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
@@ -140,16 +141,13 @@ namespace Examine.AzureDirectory
                 return false;
             }
         }
-
+/* TODO: CHECK IF IT IS STILL REQUIRED
         /// <summary>Returns the time the named file was last modified. </summary>
         public override long FileModified(String name)
         {
             CheckDirty();
 
-            if (_inSync)
-            {
-                return CacheDirectory.FileModified(name);
-            }
+          
 
             try
             {
@@ -180,7 +178,7 @@ namespace Examine.AzureDirectory
             CacheDirectory.TouchFile(name);
             SetDirty();
         }
-
+*/
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(string name)
         {
@@ -253,22 +251,23 @@ namespace Examine.AzureDirectory
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
         /// </summary>
-        public override IndexOutput CreateOutput(string name)
+        public override IndexOutput CreateOutput(string name, IOContext context)
         {
             SetDirty();
 
             //if we are readonly, then we are only modifying local storage
             if (_isReadOnly)
             {
-                return CacheDirectory.CreateOutput(name);
+                return CacheDirectory.CreateOutput(name,context);
             }
 
-            var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
-            return new AzureIndexOutput(this, blob, name);
+            CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(name);
+            AzureIndexOutput azureIndexOutput = new AzureIndexOutput(this, name, blockBlobReference);
+            return (IndexOutput) azureIndexOutput;
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
-        public override IndexInput OpenInput(string name)
+        public override IndexInput OpenInput(string name, IOContext context)
         {
             CheckDirty();
             
@@ -276,7 +275,7 @@ namespace Examine.AzureDirectory
             {
                 try
                 {
-                    return CacheDirectory.OpenInput(name);
+                    return CacheDirectory.OpenInput(name, context);
                 }
                 catch (FileNotFoundException)
                 {
@@ -293,13 +292,13 @@ namespace Examine.AzureDirectory
 
             try
             {
-                var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
-                blob.FetchAttributes();
-                return new AzureIndexInput(this, blob);
+                CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(name);
+                blockBlobReference.FetchAttributes((AccessCondition) null, (BlobRequestOptions) null, (OperationContext) null);
+                return (IndexInput) new AzureIndexInput(this, name, (CloudBlob) blockBlobReference);
             }
-            catch (StorageException err)
+            catch (Exception ex)
             {
-                throw new FileNotFoundException(name, err);
+                throw new FileNotFoundException(name, ex);
             }
         }
 
@@ -331,9 +330,9 @@ namespace Examine.AzureDirectory
         /// are considered "the same index".  This is how locking
         /// "scopes" to the right index.
         /// </summary>
-        public override string GetLockId()
+        public override string GetLockID()
         {
-            return string.Concat(base.GetLockId(), CacheDirectory.GetLockId());
+            return string.Concat(base.GetLockID(), CacheDirectory.GetLockID());
         }
 
         public virtual bool ShouldCompressFile(string path)
@@ -380,8 +379,8 @@ namespace Examine.AzureDirectory
                         //these methods don't throw exceptions, will return -1 if something has gone wrong
                         // in which case we'll consider them not in sync
                         var blobFiles = GetAllBlobFiles();
-                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(blobFiles);
-                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
+                        var masterSeg = SegmentInfos.GetLastCommitGeneration(blobFiles);
+                        var localSeg = SegmentInfos.GetLastCommitGeneration(CacheDirectory);
                         _inSync = masterSeg == localSeg && masterSeg != -1;
                         _dirty = false;
                         return blobFiles;

@@ -3,7 +3,7 @@ using System.IO;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
-using Microsoft.WindowsAzure.Storage;
+using Microsoft.Azure.Storage;
 
 namespace Examine.AzureDirectory
 {
