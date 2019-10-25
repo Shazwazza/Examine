@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Core;
+using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Util;
 
@@ -11,37 +13,37 @@ namespace Examine.LuceneEngine
     /// </summary>
     public sealed class CultureInvariantStandardAnalyzer : StandardAnalyzer
     {
-        private readonly Version _matchVersion;
+        private readonly LuceneVersion _matchVersion;
         private readonly ISet<string> _stopWords;
         private readonly bool _enableStopPositionIncrements;
 
-        public CultureInvariantStandardAnalyzer() : this(Version.LUCENE_48)
+        public CultureInvariantStandardAnalyzer() : this(LuceneVersion.LUCENE_48)
         {
             
         }
 
-        public CultureInvariantStandardAnalyzer(Version matchVersion, ISet<string> stopWords) : base(matchVersion, stopWords)
+        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion, ISet<string> stopWords) : base(matchVersion, stopWords)
         {
             _matchVersion = matchVersion;
             _stopWords = stopWords;
             _enableStopPositionIncrements = StopFilter.GetEnablePositionIncrementsVersionDefault(matchVersion);
         }
 
-        public CultureInvariantStandardAnalyzer(Version matchVersion) : this(matchVersion, StandardAnalyzer.STOP_WORDS_SET)
+        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion) : this(matchVersion, StandardAnalyzer.STOP_WORDS_SET)
         {
         }
 
-        public CultureInvariantStandardAnalyzer(Version matchVersion, TextReader stopwords) : base(matchVersion, stopwords)
+        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion, TextReader stopwords) : base(matchVersion, stopwords)
         {
         }
 
         public override TokenStream TokenStream(string fieldName, TextReader reader)
         {
-            return new StopFilter(_enableStopPositionIncrements,
+            return new StopFilter(LuceneVersion.LUCENE_48,_enableStopPositionIncrements,
                 new ASCIIFoldingFilter(
                     new LowerCaseFilter(
-                        new StandardFilter(
-                            new StandardTokenizer(_matchVersion, reader)
+                        new StandardFilter(LuceneVersion.LUCENE_48,
+                        new StandardTokenizer(_matchVersion,reader)
                             {
                                 MaxTokenLength = MaxTokenLength
                             }))), _stopWords);

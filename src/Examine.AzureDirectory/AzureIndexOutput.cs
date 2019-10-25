@@ -177,7 +177,7 @@ namespace Examine.AzureDirectory
             _indexOutput.WriteBytes(b, offset, length);
         }
 
-        public override long FilePointer => _indexOutput.FilePointer;
+        public override long FilePointer => _indexOutput.GetFilePointer();
 
         public override void Seek(long pos)
         {

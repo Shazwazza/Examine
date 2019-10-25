@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Miscellaneous;
 
 namespace Examine.LuceneEngine
 {

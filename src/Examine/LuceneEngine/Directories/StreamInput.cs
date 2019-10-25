@@ -33,13 +33,13 @@ namespace Examine.LuceneEngine.Directories
         public override long Length
         {
             
-            get { return Input.Length(); }
+            get { return Input.Length; }
         }
 
         public override long Position
         {
             
-            get { return Input.FilePointer; }
+            get { return Input.GetFilePointer(); }
             
             set { Input.Seek(value); }
         }
@@ -47,16 +47,16 @@ namespace Examine.LuceneEngine.Directories
         
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var pos = Input.FilePointer;
+            var pos = Input.GetFilePointer();
             //try
             //{
-                var len = Input.Length();
+                var len = Input.Length;
                 if (count > (len - pos))
                     count = (int)(len - pos);
                 Input.ReadBytes(buffer, offset, count);
             //}
             //catch (Exception) { }
-            return (int)(Input.FilePointer - pos);
+            return (int)(Input.GetFilePointer() - pos);
         }
 
         
@@ -68,12 +68,12 @@ namespace Examine.LuceneEngine.Directories
                     Input.Seek(offset);
                     break;
                 case SeekOrigin.Current:
-                    Input.Seek(Input.FilePointer + offset);
+                    Input.Seek(Input.GetFilePointer() + offset);
                     break;
                 case SeekOrigin.End:
                     throw new System.NotImplementedException();
             }
-            return Input.FilePointer;
+            return Input.GetFilePointer();
         }
 
         public override void SetLength(long value)
@@ -89,7 +89,7 @@ namespace Examine.LuceneEngine.Directories
         
         public override void Close()
         {
-            Input.Close();
+            Input.Dispose();
             base.Close();
         }
     }

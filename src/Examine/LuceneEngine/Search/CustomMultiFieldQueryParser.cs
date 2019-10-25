@@ -48,9 +48,14 @@ namespace Examine.LuceneEngine.Search
             return GetWildcardQuery(field, termStr);
         }
 
-        public Query GetFieldQueryInternal(string field, string queryText)
+        public Query GetFieldQueryInternal(string field, string queryText, int slop)
         {
-            return GetFieldQuery(field, queryText);
+            return GetFieldQuery(field, queryText,slop);
+        }
+        public Query GetFieldQueryInternal(string field, string queryText,
+            bool quoted)
+        {
+            return GetFieldQuery(field, queryText,bool);
         }
     }
 }

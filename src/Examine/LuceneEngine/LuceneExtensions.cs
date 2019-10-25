@@ -32,7 +32,7 @@ namespace Examine.LuceneEngine
         {
             var buffer = new byte[32768];
 
-            long length = indexInput.Length();
+            long length = indexInput.Length;
             long remainder = length;
             int chunk = buffer.Length;
 
@@ -65,9 +65,9 @@ namespace Examine.LuceneEngine
             ReaderStatus status = ReaderStatus.NotCurrent;
             try
             {
-                status = reader.IsCurrent() ? ReaderStatus.Current : ReaderStatus.NotCurrent;
+                status = reader.Context.c ? ReaderStatus.Current : ReaderStatus.NotCurrent;
             }
-            catch (AlreadyClosedException)
+            catch (ObjectDisposedException)
             {
                 status = ReaderStatus.Closed;
             }

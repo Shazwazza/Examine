@@ -133,7 +133,7 @@ namespace Examine.LuceneEngine.Directories
             _cacheDirIndexOutput.Seek(pos);
         }
 
-        public override long FilePointer => _cacheDirIndexOutput.FilePointer;
+        public override long FilePointer => _cacheDirIndexOutput.GetFilePointer();
 
         public override long Length => _cacheDirIndexOutput.Length;
     }

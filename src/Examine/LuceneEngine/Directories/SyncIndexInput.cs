@@ -36,7 +36,7 @@ namespace Examine.LuceneEngine.Directories
         /// This will not work for the segments.gen file because it doesn't compare to master and segments.gen is not write-once!
         /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
         /// </remarks>
-        public SyncIndexInput(SyncDirectory directory, string name)
+        public SyncIndexInput(SyncDirectory directory, string name): base()
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
 
@@ -268,7 +268,7 @@ namespace Examine.LuceneEngine.Directories
 
         public override long Length()
         {
-            return _cacheDirIndexInput.Length();
+            return _cacheDirIndexInput.Length;
         }
 
         
@@ -293,6 +293,6 @@ namespace Examine.LuceneEngine.Directories
             return clone;
         }
 
-        public override long FilePointer => _cacheDirIndexInput.FilePointer;
+        public override long FilePointer => _cacheDirIndexInput.GetFilePointer();
     }
 }

@@ -70,6 +70,11 @@ namespace Examine.LuceneEngine.Directories
             
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            throw new System.NotImplementedException();
+        }
+
         /// <summary>
         /// Returns true if the resource is currently locked.  Note that one must
         ///             still call <see cref="M:Lucene.Net.Store.Lock.Obtain"/> before using the resource. 

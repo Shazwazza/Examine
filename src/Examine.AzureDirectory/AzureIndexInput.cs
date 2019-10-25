@@ -202,7 +202,7 @@ namespace Examine.AzureDirectory
             _indexInput.ReadBytes(b, offset, len);
         }
 
-        public override long FilePointer => _indexInput.FilePointer;
+        public override long FilePointer => _indexInput.GetFilePointer();
 
         public override void Seek(long pos)
         {
@@ -232,7 +232,7 @@ namespace Examine.AzureDirectory
 
         public override long Length()
         {
-            return _indexInput.Length();
+            return _indexInput.Length;
         }
 
         public override object Clone()
