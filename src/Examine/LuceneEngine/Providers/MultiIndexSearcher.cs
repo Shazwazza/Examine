@@ -7,6 +7,7 @@ using System.Linq;
 using Examine.LuceneEngine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
 
@@ -74,17 +75,17 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
 		
-        public override Searcher GetLuceneSearcher()
+        public override IndexSearcher GetLuceneSearcher()
         {
-	        var searchables = new List<Searchable>();
+	        var searchables = new List<IndexReader>();
 			//NOTE: Do not convert this to Linq as it will fail the Code Analysis because Linq screws with it.
 			foreach(var s in Searchers)
 			{
 			    var searcher = s.GetLuceneSearcher();
                 if (searcher != null)
-                    searchables.Add(searcher);
+                    searchables.Add(searcher.IndexReader);
 			}
-			return new MultiSearcher(searchables.ToArray());
+			return new IndexSearcher(new MultiReader(searchables.ToArray()));
         }
 
         public override ISearchContext GetSearchContext()

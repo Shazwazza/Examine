@@ -76,6 +76,10 @@
       <HintPath>..\packages\Lucene.Net.Join.4.8.0-beta00006\lib\net45\Lucene.Net.Join.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Lucene.Net.Memory, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
+      <HintPath>..\packages\Lucene.Net.Memory.4.8.0-beta00006\lib\net45\Lucene.Net.Memory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Lucene.Net.Queries, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
       <HintPath>..\packages\Lucene.Net.Queries.4.8.0-beta00006\lib\net45\Lucene.Net.Queries.dll</HintPath>
       <Private>True</Private>

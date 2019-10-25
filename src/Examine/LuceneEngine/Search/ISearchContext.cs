@@ -6,7 +6,7 @@ namespace Examine.LuceneEngine.Search
 {
     public interface ISearchContext
     {
-        Searcher Searcher { get; }
+        IndexSearcher Searcher { get; }
         IIndexFieldValueType GetFieldValueType(string fieldName);
     }
 }
