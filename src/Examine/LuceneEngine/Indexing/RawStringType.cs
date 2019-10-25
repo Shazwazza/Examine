@@ -1,5 +1,7 @@
 ﻿using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
+using Lucene.Net.Index;
+using Lucene.Net.QueryParsers.Flexible.Core.Nodes;
 
 namespace Examine.LuceneEngine.Indexing
 {
@@ -23,7 +25,7 @@ namespace Examine.LuceneEngine.Indexing
         {
             switch (value)
             {
-                case IFieldable f:
+                case IIndexableField f:
                     doc.Add(f);
                     break;
                 case TokenStream ts:

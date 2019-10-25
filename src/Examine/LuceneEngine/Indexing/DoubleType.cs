@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Indexing
             if (!TryConvert(value, out double parsedVal))
                 return;
 
-            doc.Add(new NumericField(FieldName, Store ? Field.Store.YES : Field.Store.NO, true).SetDoubleValue(parsedVal));
+            doc.Add(new DoubleField(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));
         }
 
         public override Query GetQuery(string query, Searcher searcher)

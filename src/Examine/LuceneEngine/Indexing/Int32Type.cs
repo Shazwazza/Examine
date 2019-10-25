@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Indexing
             if (!TryConvert(value, out int parsedVal))
                 return;
 
-            doc.Add(new NumericField(FieldName, Store ? Field.Store.YES : Field.Store.NO, true).SetIntValue(parsedVal));
+            doc.Add(new Int32Field(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));;
         }
 
         public override Query GetQuery(string query, Searcher searcher)
@@ -31,7 +31,7 @@ namespace Examine.LuceneEngine.Indexing
 
         public Query GetQuery(int? lower, int? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
-            return NumericRangeQuery.NewIntRange(FieldName,
+            return NumericRangeQuery.NewInt32Range(FieldName,
                 lower,
                 upper, lowerInclusive, upperInclusive);
         }

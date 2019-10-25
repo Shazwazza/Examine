@@ -1,6 +1,7 @@
 ﻿using System;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
 
 namespace Examine.LuceneEngine.Indexing

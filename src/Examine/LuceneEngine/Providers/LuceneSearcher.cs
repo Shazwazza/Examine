@@ -78,12 +78,12 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>
         /// Returns null if the underlying index doesn't exist
         /// </returns>
-        public override Searcher GetLuceneSearcher()
+        public override IndexSearcher GetLuceneSearcher()
         {
             if (!ValidateSearcher()) return null;
 
             //ensure scoring is turned on for sorting
-            _searcher.SetDefaultFieldSortScoring(true, true);
+            _searcher.(true, true);
             return _searcher;
         }
 

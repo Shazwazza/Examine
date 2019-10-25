@@ -40,7 +40,7 @@ namespace Examine.LuceneEngine
 
             protected override bool IsTokenChar(int c)
             {
-                return   Character.IsLetter(c);
+                return   Character.IsLetter(c) || c.IsNumber();
             }
         }
 
