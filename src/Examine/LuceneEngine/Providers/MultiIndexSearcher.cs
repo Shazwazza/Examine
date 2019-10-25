@@ -8,6 +8,7 @@ using Examine.LuceneEngine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
+using Lucene.Net.Util;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -27,7 +28,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexes"></param>
         /// <param name="analyzer"></param>
         public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_48))
+            : base(name, analyzer ?? new StandardAnalyzer(Util.Version))
         {
             _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.GetSearcher()));
             _disposer = new DisposableSearcher(this);
@@ -40,7 +41,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="searchers"></param>
         /// <param name="analyzer"></param>
         public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, Analyzer analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_48))
+            : base(name, analyzer ?? new StandardAnalyzer(Util.Version))
         {
             _searchers = searchers;
             _disposer = new DisposableSearcher(this);

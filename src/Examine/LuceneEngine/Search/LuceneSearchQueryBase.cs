@@ -8,7 +8,7 @@ using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
-using Version = Lucene.Net.Util.LuceneVersion;
+using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.Search
 {

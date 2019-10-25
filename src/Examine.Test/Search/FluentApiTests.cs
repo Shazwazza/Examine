@@ -9,7 +9,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using NUnit.Framework;
 
-using Version = Lucene.Net.Util.LuceneVersion;
+using Version = Lucene.Net.Util.Version;
 
 namespace Examine.Test.Search
 {

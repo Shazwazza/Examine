@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine
         public class EmailAddressTokenizer : CharTokenizer
         {
             public EmailAddressTokenizer(TextReader input)
-                : base(LuceneVersion.LUCENE_48,input)
+                : base(Util.Version,input)
             {
             }
             
@@ -35,7 +35,7 @@ namespace Examine.LuceneEngine
         protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
         {
             EmailAddressTokenizer src = new EmailAddressTokenizer( reader);
-            TokenStream tok = (TokenStream)   new LowerCaseFilter(LuceneVersion.LUCENE_48,                 //case insensitive
+            TokenStream tok = (TokenStream)   new LowerCaseFilter(Util.Version,                 //case insensitive
                 src);
           
             return new TokenStreamComponentsAnonymousInnerClassHelper(this, src, tok, reader);

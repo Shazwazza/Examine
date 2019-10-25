@@ -17,7 +17,7 @@ namespace Examine.LuceneEngine
         private readonly ISet<string> _stopWords;
         private readonly bool _enableStopPositionIncrements;
 
-        public CultureInvariantStandardAnalyzer() : this(LuceneVersion.LUCENE_48)
+        public CultureInvariantStandardAnalyzer() : this(Util.Version)
         {
             
         }
@@ -39,10 +39,10 @@ namespace Examine.LuceneEngine
 
         public override TokenStream TokenStream(string fieldName, TextReader reader)
         {
-            return new StopFilter(LuceneVersion.LUCENE_48,_enableStopPositionIncrements,
+            return new StopFilter(Util.Version,_enableStopPositionIncrements,
                 new ASCIIFoldingFilter(
                     new LowerCaseFilter(
-                        new StandardFilter(LuceneVersion.LUCENE_48,
+                        new StandardFilter(Util.Version,
                         new StandardTokenizer(_matchVersion,reader)
                             {
                                 MaxTokenLength = MaxTokenLength

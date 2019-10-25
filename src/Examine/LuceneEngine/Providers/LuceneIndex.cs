@@ -9,9 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Examine.Providers;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Util;
 using Directory = Lucene.Net.Store.Directory;
 
 
@@ -49,7 +51,7 @@ namespace Examine.LuceneEngine.Providers
 
             LuceneIndexFolder = null;
 
-            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_48);
+            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Util.Version);
 
             _directory = luceneDirectory;
             //initialize the field types
