@@ -27,7 +27,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Exposes the internal Lucene searcher
         /// </summary>
-        public Searcher LuceneSearcher { get; }
+        public IndexSearcher LuceneSearcher { get; }
 
         /// <summary>
         /// Exposes the internal lucene query to run the search
@@ -37,7 +37,7 @@ namespace Examine.LuceneEngine
         public TopDocs TopDocs { get; private set; }
 
 
-        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, IndexSearcher searcher, int maxResults)
         {
             LuceneQuery = query;
 
