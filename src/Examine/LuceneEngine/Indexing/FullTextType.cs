@@ -90,11 +90,11 @@ namespace Examine.LuceneEngine.Indexing
             resultQuery.Add(phraseQuery, Occur.SHOULD);
 
             var tokenStream = analyzer.GetTokenStream("SearchText", new StringReader(query));
-            var termAttribute = tokenStream.AddAttribute<Term>();
+            var termAttribute = tokenStream.AddAttribute<ITermToBytesRefAttribute>();
 
             while (tokenStream.IncrementToken())
             {
-                var term = tokenStream.GetAttribute<ICharTermAttribute>();
+                var term = termAttribute.BytesRef;
 
                 phraseQuery.Add(new Term(fieldName, term));
 

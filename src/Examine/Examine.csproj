@@ -163,6 +163,7 @@
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
     <Compile Include="LuceneEngine\EmailAddressAnalyzer.cs" />
     <Compile Include="LuceneEngine\IFieldValueTypeFactory.cs" />
+    <Compile Include="LuceneEngine\Indexing\FullTextType.cs" />
     <Compile Include="LuceneEngine\Indexing\GenericAnalyzerFieldValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
     <Compile Include="LuceneEngine\CultureInvariantWhitespaceAnalyzer.cs" />
