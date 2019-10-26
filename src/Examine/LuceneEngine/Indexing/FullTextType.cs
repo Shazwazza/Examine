@@ -90,11 +90,11 @@ namespace Examine.LuceneEngine.Indexing
             resultQuery.Add(phraseQuery, Occur.SHOULD);
 
             var tokenStream = analyzer.GetTokenStream("SearchText", new StringReader(query));
-            var termAttribute = tokenStream.AddAttribute<ITermToBytesRefAttribute>();
-
+            var termAttribute = tokenStream.AddAttribute<ICharTermAttribute>();
+            tokenStream.Reset();
             while (tokenStream.IncrementToken())
             {
-                var term = termAttribute.BytesRef;
+                var term = termAttribute.ToString();
 
                 phraseQuery.Add(new Term(fieldName, term));
 
@@ -122,7 +122,8 @@ namespace Examine.LuceneEngine.Indexing
                     resultQuery.Add(exactMatch, Occur.MUST);
                 }
             }
-
+            tokenStream.End();
+            tokenStream.Dispose();
             return resultQuery.Clauses.Count > 0 ? resultQuery : null;
         }
 

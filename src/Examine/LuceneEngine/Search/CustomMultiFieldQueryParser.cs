@@ -38,7 +38,7 @@ namespace Examine.LuceneEngine.Search
             return base.GetRangeQuery(field, part1, part2, startInclusive,endInclusive);
         }
 
-        public Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
+        public  Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
         {
             return GetFuzzyQuery(field, termStr, minSimilarity);
         }

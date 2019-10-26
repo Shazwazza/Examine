@@ -99,7 +99,7 @@ namespace Examine.LuceneEngine.Providers
             if (!ValidateSearcher()) return new string[] {};
 
             //var reader = _searcherIndexReader;
-            var fields = new List<string>();
+            var fields =_reader.Context.Leaves.FirstOrDefault()?.AtomicReader.Fields;
             //exclude the special index fields
             var searchFields = fields
                 .Where(x => !x.StartsWith(LuceneIndex.SpecialFieldPrefix))

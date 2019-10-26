@@ -47,7 +47,7 @@ namespace Examine.LuceneEngine
             src.MaxTokenLength = this.maxTokenLength;
             TokenStream tok = (TokenStream) new StopFilter(Util.Version,
                 (TokenStream) new LowerCaseFilter(Util.Version, (TokenStream) new StandardFilter(Util.Version, (TokenStream) src)), STOP_WORDS_SET);
-            return (TokenStreamComponents) new TokenStreamComponentsAnonymousInnerClassHelper(this, src, tok, reader);
+            return (TokenStreamComponents) new CultureInvariantStandardAnalyzer.TokenStreamComponentsAnonymousInnerClassHelper(this, src, tok, reader);
         }
         public int MaxTokenLength
         {
