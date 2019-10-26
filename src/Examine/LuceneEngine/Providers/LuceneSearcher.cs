@@ -10,6 +10,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Analysis;
+using Lucene.Net.Support.Compatibility;
 using Directory = Lucene.Net.Store.Directory;
 
 
@@ -100,7 +101,7 @@ namespace Examine.LuceneEngine.Providers
 
             //var reader = _searcherIndexReader;
         //todo: find better way of getting AtomicReaderContext as it will slowdown examine
-            var fields = SlowCompositeReaderWrapper.Wrap(_reader).Fields ?? ;
+            var fields = SlowCompositeReaderWrapper.Wrap(_reader).Fields != null ? SlowCompositeReaderWrapper.Wrap(_reader).Fields.ToList() : new List<string>();
             //exclude the special index fields
             var searchFields = fields
                 .Where(x => !x.StartsWith(LuceneIndex.SpecialFieldPrefix))
