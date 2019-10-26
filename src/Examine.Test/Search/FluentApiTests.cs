@@ -5,6 +5,7 @@ using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.Search;
 using Examine.Search;
 using Examine.Test.UmbracoExamine;
+using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using NUnit.Framework;
@@ -242,7 +243,7 @@ namespace Examine.Test.Search
         [Test]
         public void Grouped_Or_Examiness()
         {
-            var analyzer = new StandardAnalyzer(Util.Version);
+            var analyzer = new SimpleAnalyzer(Util.Version);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
             {
