@@ -73,7 +73,7 @@ namespace Examine.LuceneEngine
                 //swallow this exception, we should continue if this occurs.
             }
 
-            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.IndexReader.MaxDoc>0 ? LuceneSearcher.IndexReader.MaxDoc : maxResults) : LuceneSearcher.IndexReader.MaxDoc>0 ? LuceneSearcher.IndexReader.MaxDoc : 1;
+            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.IndexReader.MaxDoc>0 ? LuceneSearcher.IndexReader.MaxDoc : maxResults) : LuceneSearcher.IndexReader.MaxDoc>0 ? LuceneSearcher.IndexReader.MaxDoc : 500;
 
             ICollector topDocsCollector;
             var sortFields = sortField as SortField[] ?? sortField.ToArray();
