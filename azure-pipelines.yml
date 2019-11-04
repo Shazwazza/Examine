@@ -19,7 +19,6 @@ steps:
 - task: PowerShell@2
   inputs:
     filePath: '.\Build\Build-Release.ps1'
-    arguments: '1'
 
 # - task: NuGetToolInstaller@1
 
