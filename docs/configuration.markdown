@@ -84,7 +84,7 @@ Field value types are responsible for:
 
 A common base class that can be used for field value types is: `IndexFieldValueTypeBase`.
 
-A common implementation taht can be used for field value types for custom Analyzers is: `GenericAnalyzerFieldValueType`.
+A common implementation that can be used for field value types for custom Analyzers is: `GenericAnalyzerFieldValueType`.
 
 ### Example - Phone Number
 
