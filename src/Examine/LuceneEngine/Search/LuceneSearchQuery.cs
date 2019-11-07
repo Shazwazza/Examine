@@ -19,10 +19,13 @@ namespace Examine.LuceneEngine.Search
         public LuceneSearchQuery(
             ISearchContext searchContext,
             string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
-            : base(category, analyzer, fields, searchOptions, occurance)
+            : base(CreateQueryParser(searchContext, fields, analyzer), category, fields, searchOptions, occurance)
         {   
             _searchContext = searchContext;
         }
+
+        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, string[] fields, Analyzer analyzer) 
+            => new ExamineMultiFieldQueryParser(searchContext, LuceneVersion, fields, analyzer);
 
         public IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 

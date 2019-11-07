@@ -76,6 +76,8 @@ namespace Examine.LuceneEngine.Indexing
             var resultQuery = new BooleanQuery();
             var phraseQuery = new PhraseQuery { Slop = 0 };
 
+            //var phraseQueryTerms = new List<Term>();
+
             //not much to search, only do exact match
             if (query.Length < 4)
             {
@@ -96,6 +98,8 @@ namespace Examine.LuceneEngine.Indexing
             {
                 var term = termAttribute.Term;
 
+                //phraseQueryTerms.Add(new Term(fieldName, term));
+                //phraseQuery.Add(new[] { new Term(fieldName, term) });
                 phraseQuery.Add(new Term(fieldName, term));
 
                 var exactMatch = new TermQuery(new Term(fieldName, term));
@@ -122,6 +126,8 @@ namespace Examine.LuceneEngine.Indexing
                     resultQuery.Add(exactMatch, Occur.MUST);
                 }
             }
+
+            //phraseQuery.Add(phraseQueryTerms.ToArray());
 
             return resultQuery.Clauses.Count > 0 ? resultQuery : null;
         }

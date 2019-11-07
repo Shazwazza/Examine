@@ -23,8 +23,20 @@ namespace Examine.LuceneEngine.Search
         protected Occur Occurrence;
         private BooleanOperation _boolOp;
 
-        private const Version LuceneVersion = Version.LUCENE_30;
+        public const Version LuceneVersion = Version.LUCENE_30;
 
+        protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
+            string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
+        {
+            Category = category;
+            AllFields = fields ?? throw new ArgumentNullException(nameof(fields));
+            SearchOptions = searchOptions;
+            Queries.Push(new BooleanQuery());
+            BooleanOperation = occurance;
+            _queryParser = queryParser;
+        }
+
+        [Obsolete("Use the ctor specifying a query parser instead")]
         protected LuceneSearchQueryBase(
             string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
