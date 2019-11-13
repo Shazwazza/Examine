@@ -137,7 +137,23 @@ namespace Examine.LuceneEngine.Search
             var searcher = _searchContext.Searcher;
             if (searcher == null) return EmptySearchResults.Instance;
 
-            var pagesResults = new LuceneSearchResults(Query, SortFields, searcher, maxResults);
+            // capture local
+            var query = Query;
+
+            if (!string.IsNullOrEmpty(Category))
+            {
+                // if category is supplied then wrap the query
+                query = new BooleanQuery
+                {
+                    { query, Occur.MUST }
+                };
+
+                // and then add the category field query as a must
+                var categoryQuery = GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
+                query.Add(categoryQuery, Occur.MUST);                
+            }
+
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults);
             return pagesResults;
         }
 

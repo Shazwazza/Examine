@@ -70,7 +70,7 @@ namespace Examine.LuceneEngine.Search
         public IBooleanOperation Group(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or)
         {
             var bo = CreateOp();
-            bo.Op(inner, defaultOp);
+            bo.Op(inner, BooleanOperation, defaultOp);
             return bo;
         }
 
@@ -273,7 +273,7 @@ namespace Examine.LuceneEngine.Search
         /// <param name="fieldValue"></param>
         /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
-        private Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
+        protected Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
             Query queryToAdd;
 
@@ -345,7 +345,7 @@ namespace Examine.LuceneEngine.Search
                 case Examineness.Escaped:
 
                     //This uses the KeywordAnalyzer to parse the 'phrase'
-                    var stdQuery = fieldName + ":" + fieldValue.Value;
+                    //var stdQuery = fieldName + ":" + fieldValue.Value;
 
                     //NOTE: We used to just use this but it's more accurate/exact with the below usage of phrase query
                     //queryToAdd = ParseRawQuery(stdQuery);
