@@ -1612,19 +1612,29 @@ namespace Examine.Test.Search
                 var criteria = searcher.CreateQuery(defaultOperation: BooleanOperation.Or);
 
                 //Query = 
-                //  (Type:type1 +(Content:world Content:something)) (Type:type2 +(+Content:world +Content:cruel))
+                //  (+Type:type1 +(Content:world Content:something)) (+Type:type2 +(+Content:world +Content:cruel))
 
                 var filter = criteria
                     .Group(group => group.Field("Type", "type1")
-                        .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or))
+                        .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or),
+                        // required so that the type1 query is required
+                        BooleanOperation.And)
                     .Or()
                     .Group(group => group.Field("Type", "type2")
-                        .And(query => query.Field("Content", "world").And().Field("Content", "cruel")));
+                        .And(query => query.Field("Content", "world").And().Field("Content", "cruel")),
+                        // required so that the type2 query is required
+                        BooleanOperation.And);
+
+                Console.WriteLine(filter);
 
                 //Act
                 var results = filter.Execute();
 
                 //Assert
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Result Id: {r.Id}");
+                }
                 Assert.AreEqual(3, results.TotalItemCount);
             }
         }
@@ -1642,12 +1652,13 @@ namespace Examine.Test.Search
 
                 //combine a custom lucene query with raw lucene query
                 var op = criteria.NativeQuery("hello:world").And();
-                                
+
                 criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
 
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
-            }  
+            }
+        }
 
         [Test]
         public void Category()
