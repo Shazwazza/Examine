@@ -1648,6 +1648,37 @@ namespace Examine.Test.Search
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
             }  
+
+        [Test]
+        public void Category()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "hello you guys", Type = "type1" }),
+                    ValueSet.FromObject(4.ToString(), "media",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    ValueSet.FromObject(5.ToString(), "media",
+                        new { Content = "hi there, hello world", Type = "type2" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content").ManagedQuery("hello");
+                Console.WriteLine(query);
+
+                var results = query.Execute();
+
+                //Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+            }
         }
 
         //[Test]
