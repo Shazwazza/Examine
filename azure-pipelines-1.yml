@@ -14,6 +14,7 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   nugetVersion: 1.0.3-alpha.$(Build.BuildNumber)
+  copyright: 'Copyright © Shannon Deminick $(Date:yyyy)'
 
 steps:
 - task: NuGetToolInstaller@1
@@ -33,10 +34,16 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-
 - task: NuGetCommand@2
   inputs:
     command: 'pack'
     packagesToPack: '**/*.csproj'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'nugetVersion'
+    buildProperties: '$copyright=$(copyright)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
