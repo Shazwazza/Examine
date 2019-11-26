@@ -50,14 +50,15 @@ steps:
     versionEnvVar: 'nugetVersion'
     buildProperties: 'copyright=$(copyright)'
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
-
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)'
     artifact: 'Nuget'
     publishLocation: 'pipeline'
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: 'd11973ab-03e9-497f-bc94-e3f06abceea2/c8782af5-9b38-42ea-bb11-2dd85542c3bd'
