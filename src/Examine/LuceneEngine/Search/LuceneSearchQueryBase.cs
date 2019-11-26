@@ -273,7 +273,7 @@ namespace Examine.LuceneEngine.Search
         /// <param name="fieldValue"></param>
         /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
-        protected Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
+        protected virtual Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
             Query queryToAdd;
 
@@ -293,15 +293,17 @@ namespace Examine.LuceneEngine.Search
                     break;
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
+
+                    var searchValue = fieldValue.Value + (fieldValue.Examineness == Examineness.ComplexWildcard ? "*" : "?");
+
                     if (useQueryParser)
                     {
-                        queryToAdd = _queryParser.GetWildcardQueryInternal(fieldName, fieldValue.Value);
+                        queryToAdd = _queryParser.GetWildcardQueryInternal(fieldName, searchValue);
                     }
                     else
                     {
-                        //this will already have a * or a . suffixed based on the extension methods
                         //REFERENCE: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html#Wildcard%20Searches
-                        var proxQuery = fieldName + ":" + fieldValue.Value;
+                        var proxQuery = fieldName + ":" + searchValue;
                         queryToAdd = ParseRawQuery(proxQuery);
                     }
                     break;

@@ -16,17 +16,17 @@ namespace Examine.LuceneEngine.Search
         {
         }
 
-        public Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
+        public virtual Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
         {
             return GetFuzzyQuery(field, termStr, minSimilarity);
         }
 
-        public Query GetWildcardQueryInternal(string field, string termStr)
+        public virtual Query GetWildcardQueryInternal(string field, string termStr)
         {
             return GetWildcardQuery(field, termStr);
         }
 
-        public Query GetFieldQueryInternal(string field, string queryText)
+        public virtual Query GetFieldQueryInternal(string field, string queryText)
         {
             return GetFieldQuery(field, queryText);
         }
