@@ -40,7 +40,7 @@ steps:
     packagesToPack: '**/*.csproj'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'nugetVersion'
-    buildProperties: '$copyright=$(copyright)'
+    buildProperties: 'copyright=$(copyright)'
 
 - task: PublishBuildArtifacts@1
   inputs:
