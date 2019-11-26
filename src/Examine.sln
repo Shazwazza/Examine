@@ -17,14 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768
 	ProjectSection(SolutionItems) = preProject
 		..\appveyor.build.yml = ..\appveyor.build.yml
 		..\appveyor.yml = ..\appveyor.yml
+		..\azure-pipelines-1.yml = ..\azure-pipelines-1.yml
+		..\azure-pipelines.yml = ..\azure-pipelines.yml
 		..\build\Build-Release.ps1 = ..\build\Build-Release.ps1
 		..\build\build.xml = ..\build\build.xml
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine", "Examine", "{976F400B-2ABA-4C36-8FD6-B0B35D0911D0}"
-	ProjectSection(SolutionItems) = preProject
-		..\build\Nuspecs\Examine\Examine.nuspec = ..\build\Nuspecs\Examine\Examine.nuspec
-		..\build\Nuspecs\Examine\web.config.transform = ..\build\Nuspecs\Examine\web.config.transform
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine\Examine.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"
@@ -34,11 +30,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.AzureDirectory", "Examine.AzureDirectory\Examine.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examine.AzureDirectory", "Examine.AzureDirectory", "{1667E2A1-051D-48F6-A2DE-301788613870}"
-	ProjectSection(SolutionItems) = preProject
-		..\build\Nuspecs\Examine.AzureDirectory\Examine.AzureDirectory.nuspec = ..\build\Nuspecs\Examine.AzureDirectory\Examine.AzureDirectory.nuspec
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,10 +56,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{976F400B-2ABA-4C36-8FD6-B0B35D0911D0} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
-		{1667E2A1-051D-48F6-A2DE-301788613870} = {EE632768-6ECD-40EF-84BD-5594670EA7A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {468B7BF7-F220-4717-85F6-69D8E7C7F2B0}

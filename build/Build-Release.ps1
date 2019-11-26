@@ -105,18 +105,8 @@ if (-not $?)
 }
 
 # Iterate projects and output them
-$include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
-foreach($project in $root.ChildNodes) {
-	$projectRelease = Join-Path -Path $ReleaseFolder -ChildPath "$($project.id)";
-	New-Item $projectRelease -Type directory
-
-	$projectBin = Join-Path -Path $SolutionRoot -ChildPath "$($project.id)\bin\Release";
-	Copy-Item "$projectBin\*.*" -Destination $projectRelease -Include $include
-
-	$nuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\$($project.id)\*";
-	Copy-Item $nuSpecSource -Destination $projectRelease
-	$nuSpec = Join-Path -Path $projectRelease -ChildPath "$($project.id).nuspec";
-		
+foreach($project in $root.ChildNodes) {	
+	$nuSpec = Join-Path -Path $SolutionRoot -ChildPath "$($project.id)\$($project.id).nuspec";	
 	& $NuGet pack $nuSpec -OutputDirectory $ReleaseFolder -Version $project.version -Properties copyright=$Copyright
 }
 
