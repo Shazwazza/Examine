@@ -14,9 +14,17 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   nugetVersion: 1.0.3-alpha.$(Build.BuildNumber)
-  copyright: 'Copyright © Shannon Deminick $(Date:yyyy)'
 
 steps:
+
+# This sets the copyright variable
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $copyright='Copyright © Shannon Deminick ' + $(Get-Date -Format yyyy);
+      Write-Host "##vso[task.setvariable variable=copyright]$copyright"
+
 - task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
@@ -37,7 +45,7 @@ steps:
 - task: NuGetCommand@2
   inputs:
     command: 'pack'
-    packagesToPack: '**/*.csproj'
+    packagesToPack: '**/*.nuspec'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'nugetVersion'
     buildProperties: 'copyright=$(copyright)'
