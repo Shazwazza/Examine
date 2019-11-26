@@ -22,7 +22,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $copyright='Copyright © Shannon Deminick$(Get-Date -Format yyyy)';
+      $copyright='Copyright © Shannon Deminick ' + $(Get-Date -Format yyyy);
       Write-Host "##vso[task.setvariable variable=copyright]$copyright"
 
 - task: NuGetToolInstaller@1
