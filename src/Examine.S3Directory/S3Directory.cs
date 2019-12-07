@@ -23,9 +23,9 @@ namespace Examine.S3Directory
         private bool _inSync;
         private readonly object _locker = new object();
                 
-        private readonly string _containerName;
+        protected internal readonly string _containerName;
         private string _bucketURL;
-        private AmazonS3Client _blobClient;
+        protected internal AmazonS3Client _blobClient;
         private readonly LockFactory _lockFactory;
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Amazon.S3.IO;
 using Lucene.Net.Store;
 
 namespace Examine.S3Directory
@@ -30,10 +31,10 @@ namespace Examine.S3Directory
 
             var lockFile = _s3Directory.RootFolder + name;
 
-            var blob = _s3Directory.BlobContainer.GetBlockBlobReference(lockFile);
-            var flag1 = blob.Exists();
+            var blob = new S3FileInfo(_s3Directory._blobClient, _s3Directory._containerName, lockFile);
+            var flag1 = blob.Exists;
             bool flag2;
-            if (blob.Exists())
+            if (blob.Exists)
             {
                 blob.Delete();
                 flag2 = true;

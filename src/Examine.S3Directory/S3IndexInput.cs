@@ -16,8 +16,7 @@ namespace Examine.S3Directory
     public class S3IndexInput : IndexInput
     {
         private S3Directory _s3Directory;
-        private CloudBlobContainer _blobContainer;
-        private ICloudBlob _blob;
+
         private readonly string _name;
 
         private IndexInput _indexInput;
@@ -35,10 +34,7 @@ namespace Examine.S3Directory
             _fileMutex = SyncMutexManager.GrabMutex(_s3Directory, _name);
             _fileMutex.WaitOne();
             try
-            {                
-                _blobContainer = azuredirectory.BlobContainer;
-                _blob = blob;
-
+            {
                 var fileName = _name;
 
                 var fFileNeeded = false;
