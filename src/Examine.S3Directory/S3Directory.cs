@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.IO;
 using Amazon.S3.Model;
@@ -22,7 +23,7 @@ namespace Examine.S3Directory
         private volatile bool _dirty = true;
         private bool _inSync;
         private readonly object _locker = new object();
-                
+
         protected internal readonly string _containerName;
         private string _bucketURL;
         protected internal AmazonS3Client _blobClient;
@@ -42,23 +43,24 @@ namespace Examine.S3Directory
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
         public S3Directory(
-            string accessKey,      
+            string accessKey,
             string secretKey,
             string containerName,
             Directory cacheDirectory,
             bool compressBlobs = false,
             string rootFolder = null,
             bool isReadOnly = false)
-        {            
+        {
             if (accessKey == null) throw new ArgumentNullException(nameof(accessKey));
             if (secretKey == null) throw new ArgumentNullException(nameof(secretKey));
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
-            if (string.IsNullOrWhiteSpace(containerName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
+            if (string.IsNullOrWhiteSpace(containerName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
             _isReadOnly = isReadOnly;
 
             CacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
-            
+
             _lockFactory = isReadOnly
                 ? CacheDirectory.LockFactory
                 : new MultiIndexLockFactory(new S3DirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
@@ -71,7 +73,8 @@ namespace Examine.S3Directory
                 RootFolder = rootFolder + "/";
             }
 
-            _blobClient = new AmazonS3Client(accessKey, secretKey);
+            var credentials = new BasicAWSCredentials(accessKey, secretKey);
+            _blobClient = new AmazonS3Client(credentials);
 
             EnsureContainer();
             CompressBlobs = compressBlobs;
@@ -91,7 +94,7 @@ namespace Examine.S3Directory
 
         public void EnsureContainer()
         {
-            if (!AmazonS3Util.DoesS3BucketExist(_blobClient, _containerName))
+            if (!AmazonS3Util.DoesS3BucketExistV2(_blobClient, _containerName))
             {
                 var putBucketRequest = new PutBucketRequest
                 {
@@ -99,40 +102,43 @@ namespace Examine.S3Directory
                     UseClientRegion = true
                 };
 
-                PutBucketResponse putBucketResponse =  _blobClient.PutBucket(putBucketRequest);
+                PutBucketResponse putBucketResponse = _blobClient.PutBucket(putBucketRequest);
                 _bucketURL = FindBucketLocationAsync(_blobClient);
             }
             else
             {
                 _bucketURL = FindBucketLocationAsync(_blobClient);
-            }   
+            }
         }
+
         private string FindBucketLocationAsync(IAmazonS3 client)
         {
             string bucketLocation;
             var request = new GetBucketLocationRequest
             {
-                
                 BucketName = _containerName
             };
-            GetBucketLocationResponse response =  client.GetBucketLocation(request);
+            GetBucketLocationResponse response = client.GetBucketLocation(request);
             bucketLocation = response.Location.ToString();
             return bucketLocation;
         }
-    
+
         public override string[] ListAll()
         {
             var blobFiles = CheckDirty();
 
-            return _inSync 
-                ? CacheDirectory.ListAll() 
+            return _inSync
+                ? CacheDirectory.ListAll()
                 : (blobFiles ?? GetAllBlobFiles());
         }
 
         private string[] GetAllBlobFiles()
         {
-            ListObjectsV2Request request = new ListObjectsV2Request();
-            var results = _blobClient.ListObjectsV2(request).S3Objects.Select(x=>x.Key);
+            ListObjectsV2Request request = new ListObjectsV2Request
+            {
+                BucketName = _containerName
+            };
+            var results = _blobClient.ListObjectsV2(request).S3Objects.Select(x => x.Key);
             return results.ToArray();
         }
 
@@ -152,7 +158,7 @@ namespace Examine.S3Directory
                     //revert to checking the master - what implications would this have?
                     try
                     {
-                        S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder+name);
+                        S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder + name);
 
                         return s3FileInfo.Exists;
                     }
@@ -165,7 +171,7 @@ namespace Examine.S3Directory
 
             try
             {
-                S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder+name);
+                S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder + name);
 
                 return s3FileInfo.Exists;
             }
@@ -187,7 +193,8 @@ namespace Examine.S3Directory
 
             try
             {
-                var blob = new S3FileInfo(_blobClient, _containerName, RootFolder+name);;
+                var blob = new S3FileInfo(_blobClient, _containerName, RootFolder + name);
+                ;
 
                 if (blob.Exists)
                 {
@@ -195,7 +202,7 @@ namespace Examine.S3Directory
 
                     //This is the data structure of how the default Lucene FSDirectory returns this value so we want
                     // to be consistent with how Lucene works
-                    return (long)utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
+                    return (long) utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
                 }
 
                 return 0;
@@ -241,8 +248,9 @@ namespace Examine.S3Directory
             if (_isReadOnly) return;
 
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
-            
-            var blob = new S3FileInfo(_blobClient, _containerName, RootFolder+name);;
+
+            var blob = new S3FileInfo(_blobClient, _containerName, RootFolder + name);
+            ;
 
             if (blob.Exists)
             {
@@ -251,10 +259,10 @@ namespace Examine.S3Directory
 
             SetDirty();
 
-            Trace.WriteLine($"DELETE https://{_containerName}.s3.amazonaws.com+/{RootFolder+name}");
+            Trace.WriteLine($"DELETE https://{_containerName}.s3.amazonaws.com+/{RootFolder + name}");
         }
 
-        
+
         /// <summary>Returns the length of a file in the directory. </summary>
         public override long FileLength(string name)
         {
@@ -265,8 +273,8 @@ namespace Examine.S3Directory
                 return CacheDirectory.FileLength(name);
             }
 
-            S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder+name);
-            return s3FileInfo.Length; 
+            S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder + name);
+            return s3FileInfo.Length;
         }
 
         /// <summary>Creates a new, empty file in the directory with the given name.
@@ -282,7 +290,7 @@ namespace Examine.S3Directory
                 return CacheDirectory.CreateOutput(name);
             }
 
-            S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder+name);
+            S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder + name);
 
             return new S3IndexOutput(this, s3FileInfo, name);
         }
@@ -291,7 +299,7 @@ namespace Examine.S3Directory
         public override IndexInput OpenInput(string name)
         {
             CheckDirty();
-            
+
             if (_inSync)
             {
                 try
@@ -305,7 +313,9 @@ namespace Examine.S3Directory
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceError("Could not get local file though we are marked as inSync, reverting to try blob storage; " + ex);
+                    Trace.TraceError(
+                        "Could not get local file though we are marked as inSync, reverting to try blob storage; " +
+                        ex);
                 }
             }
 
@@ -313,8 +323,8 @@ namespace Examine.S3Directory
 
             try
             {
-                S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder+name);
-               
+                S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder + name);
+
                 return new S3IndexInput(this, s3FileInfo);
             }
             catch (AmazonS3Exception err)
@@ -328,12 +338,12 @@ namespace Examine.S3Directory
         /// </param>
         public override Lock MakeLock(string name)
         {
-            return _lockFactory.MakeLock(name);            
+            return _lockFactory.MakeLock(name);
         }
 
         public override void ClearLock(string name)
         {
-            _lockFactory.ClearLock(name);            
+            _lockFactory.ClearLock(name);
         }
 
         public override LockFactory LockFactory => _lockFactory;
@@ -377,9 +387,11 @@ namespace Examine.S3Directory
                     return true;
                 default:
                     return false;
-            };
+            }
+
+            ;
         }
-        
+
         /// <summary>
         /// Checks dirty flag and sets the _inSync flag after querying the blob strorage vs local storage segment gen
         /// </summary>
@@ -410,7 +422,7 @@ namespace Examine.S3Directory
 
             return null;
         }
-        
+
         private void SetDirty()
         {
             if (!_dirty)
@@ -422,5 +434,4 @@ namespace Examine.S3Directory
             }
         }
     }
-
 }

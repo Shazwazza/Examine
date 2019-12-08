@@ -24,10 +24,10 @@ namespace Examine.S3Directory
 
         public Directory CacheDirectory => _s3Directory.CacheDirectory;
 
-        public S3IndexInput(S3Directory azuredirectory, S3FileInfo blob)
+        public S3IndexInput(S3Directory S3directory, S3FileInfo blob)
         {
-            _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
-            _s3Directory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
+            _name = blob.Name;
+            _s3Directory = S3directory ?? throw new ArgumentNullException(nameof(S3directory));
 #if FULLDEBUG
             Trace.WriteLine($"opening {_name} ");
 #endif
@@ -45,16 +45,9 @@ namespace Examine.S3Directory
                 else
                 {
                     var cachedLength = CacheDirectory.FileLength(fileName);
-                    var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata); 
-                    var blobLength = blob.Properties.Length;
-                    if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
+                    var blobLength = blob.Length;
 
-                    var blobLastModifiedUtc = blob.Properties.LastModified.Value.UtcDateTime;
-                    if (blob.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
-                    {
-                        if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
-                            blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
-                    }
+                    var blobLastModifiedUtc = blob.LastWriteTimeUtc;
                     
                     if (cachedLength != blobLength)
                         fFileNeeded = true;
@@ -93,9 +86,12 @@ namespace Examine.S3Directory
                     else
                     {
                         using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
+                            using(var response = S3directory._blobClient.GetObject(S3directory._containerName,fileName))
+                                using(Stream responseStream =  response.ResponseStream)
                         {
+                            
                             // get the blob
-                            _blob.DownloadToStream(fileStream);
+                            responseStream.CopyTo(fileStream);
 
                             fileStream.Flush();
 #if FULLDEBUG
@@ -128,9 +124,12 @@ namespace Examine.S3Directory
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
             using (var deflatedStream = new MemoryStream())
+            using(var response = _s3Directory._blobClient.GetObject(_s3Directory._containerName,fileName))
+            using(Stream responseStream =  response.ResponseStream)
             {
-                // get the deflated blob
-                _blob.DownloadToStream(deflatedStream);
+                            
+                // get the blob
+                responseStream.CopyTo(deflatedStream);
 
 #if FULLDEBUG
                 Trace.WriteLine($"GET {_name} RETREIVED {deflatedStream.Length} bytes");
@@ -159,13 +158,10 @@ namespace Examine.S3Directory
         {
             _name = cloneInput._name;
             _s3Directory = cloneInput._s3Directory;
-            _blobContainer = cloneInput._blobContainer;
-            _blob = cloneInput._blob;
 
             if (string.IsNullOrWhiteSpace(_name)) throw new ArgumentNullException(nameof(cloneInput._name));
             if (_s3Directory == null) throw new ArgumentNullException(nameof(cloneInput._s3Directory));
-            if (_blobContainer == null) throw new ArgumentNullException(nameof(cloneInput._blobContainer));
-            if (_blob == null) throw new ArgumentNullException(nameof(cloneInput._blob));
+
 
             _fileMutex = SyncMutexManager.GrabMutex(cloneInput._s3Directory, cloneInput._name);
             _fileMutex.WaitOne();
@@ -217,8 +213,6 @@ namespace Examine.S3Directory
                 _indexInput.Dispose();
                 _indexInput = null;
                 _s3Directory = null;
-                _blobContainer = null;
-                _blob = null;
                 GC.SuppressFinalize(this);
             }
             finally

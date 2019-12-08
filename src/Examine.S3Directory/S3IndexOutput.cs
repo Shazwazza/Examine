@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using Amazon.S3.IO;
+using Amazon.S3.Transfer;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
@@ -19,7 +20,7 @@ namespace Examine.S3Directory
         private readonly string _name;
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
-        private ICloudBlob _blob;
+        private S3FileInfo _blob;
         public Directory CacheDirectory => _s3Directory.CacheDirectory;
 
         public S3IndexOutput(S3Directory s3Directory, S3FileInfo blob, string name)
@@ -34,7 +35,7 @@ namespace Examine.S3Directory
             {                
                 //_blobContainer = _azureDirectory.BlobContainer;
                 _blob = blob;
-                _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
+                _name = blob.Name;
 
                 // create the local cache one we will operate against...
                 _indexOutput = CacheDirectory.CreateOutput(_name);
@@ -91,12 +92,13 @@ namespace Examine.S3Directory
                     try
                     {
                         // push the blobStream up to the cloud
-                        _blob.UploadFromStream(blobStream);
-
+                        var fileTransferUtility =
+                            new TransferUtility(_s3Directory._blobClient);
+                            
+                        fileTransferUtility.Upload(blobStream,
+                            _s3Directory._containerName, fileName);
                         // set the metadata with the original index file properties
-                        _blob.Metadata["CachedLength"] = originalLength.ToString();
-                        _blob.Metadata["CachedLastModified"] = CacheDirectory.FileModified(fileName).ToString();
-                        _blob.SetMetadata();
+                   
 #if FULLDEBUG
                         Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
 #endif
