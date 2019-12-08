@@ -4,7 +4,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing
 {
-    public class SingleType : IndexFieldValueTypeBase, IIndexRangeValueType<float>
+    public class SingleType : IndexFieldRangeValueType<float>
     {
         public SingleType(string fieldName, bool store = true)
             : base(fieldName, store)
@@ -29,7 +29,7 @@ namespace Examine.LuceneEngine.Indexing
             return !TryConvert(query, out float parsedVal) ? null : GetQuery(parsedVal, parsedVal);
         }
 
-        public Query GetQuery(float? lower, float? upper, bool lowerInclusive = true, bool upperInclusive = true)
+        public override Query GetQuery(float? lower, float? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
             return NumericRangeQuery.NewFloatRange(FieldName,
                 lower ?? float.MinValue,

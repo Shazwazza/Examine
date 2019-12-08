@@ -78,6 +78,7 @@ namespace Examine.Test.Search
                 indexer1.IndexItem(ValueSet.FromObject("4", "content", new { item1 = "value4", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
                 indexer1.IndexItem(ValueSet.FromObject("5", "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer1.IndexItem(ValueSet.FromObject("6", "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
+                indexer1.IndexItem(ValueSet.FromObject("7", "content", new { SomeField = "value5", AnotherField = "another value" }));
 
                 var searcher = indexer1.GetSearcher();
 
@@ -282,6 +283,8 @@ namespace Examine.Test.Search
                 var filter = criteria.GroupedOr(
                     new[] { "nodeTypeAlias", "nodeName" },
                     new[] { "CWS\\_Home".Boost(10), "About".MultipleCharacterWildcard() });
+
+                Console.WriteLine(filter);
 
                 var results = filter.Execute();
                 Assert.AreEqual(2, results.TotalItemCount);
@@ -675,6 +678,8 @@ namespace Examine.Test.Search
                 var criteria = searcher.CreateQuery();
                 var filter = criteria.Field("bodyText", "into")
                     .Or().Field("nodeName", "into");
+
+                Console.WriteLine(filter);
 
                 var results = filter.Execute();
 
@@ -1514,11 +1519,11 @@ namespace Examine.Test.Search
                         new { Content = "hello world", Type = "type1" }),
                     ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or other", Type = "type1" }),
-                    ValueSet.FromObject(2.ToString(), "content",
-                        new { Content = "hello something or world", Type = "type1" }),
                     ValueSet.FromObject(3.ToString(), "content",
-                        new { Content = "hello you cruel world", Type = "type2" }),
+                        new { Content = "hello something or world", Type = "type1" }),
                     ValueSet.FromObject(4.ToString(), "content",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    ValueSet.FromObject(5.ToString(), "content",
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
@@ -1556,11 +1561,11 @@ namespace Examine.Test.Search
                         new { Content = "hello world", Type = "type1" }),
                     ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or other", Type = "type1" }),
-                    ValueSet.FromObject(2.ToString(), "content",
-                        new { Content = "hello something or world", Type = "type1" }),
                     ValueSet.FromObject(3.ToString(), "content",
-                        new { Content = "hello you cruel world", Type = "type2" }),
+                        new { Content = "hello something or world", Type = "type1" }),
                     ValueSet.FromObject(4.ToString(), "content",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    ValueSet.FromObject(5.ToString(), "content",
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
@@ -1588,21 +1593,17 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "hello world", Type = "type1" }),
                     ValueSet.FromObject(2.ToString(), "content",
                         new { Content = "hello something or other", Type = "type1" }),
-                    ValueSet.FromObject(2.ToString(), "content",
-                        new { Content = "hello you guys", Type = "type1" }),
                     ValueSet.FromObject(3.ToString(), "content",
-                        new { Content = "hello you cruel world", Type = "type2" }),
+                        new { Content = "hello you guys", Type = "type1" }),
                     ValueSet.FromObject(4.ToString(), "content",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    ValueSet.FromObject(5.ToString(), "content",
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
@@ -1611,19 +1612,29 @@ namespace Examine.Test.Search
                 var criteria = searcher.CreateQuery(defaultOperation: BooleanOperation.Or);
 
                 //Query = 
-                //  (Type:type1 +(Content:world Content:something)) (Type:type2 +(+Content:world +Content:cruel))
+                //  (+Type:type1 +(Content:world Content:something)) (+Type:type2 +(+Content:world +Content:cruel))
 
                 var filter = criteria
                     .Group(group => group.Field("Type", "type1")
-                        .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or))
+                        .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or),
+                        // required so that the type1 query is required
+                        BooleanOperation.And)
                     .Or()
                     .Group(group => group.Field("Type", "type2")
-                        .And(query => query.Field("Content", "world").And().Field("Content", "cruel")));
+                        .And(query => query.Field("Content", "world").And().Field("Content", "cruel")),
+                        // required so that the type2 query is required
+                        BooleanOperation.And);
+
+                Console.WriteLine(filter);
 
                 //Act
                 var results = filter.Execute();
 
                 //Assert
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Result Id: {r.Id}");
+                }
                 Assert.AreEqual(3, results.TotalItemCount);
             }
         }
@@ -1641,12 +1652,44 @@ namespace Examine.Test.Search
 
                 //combine a custom lucene query with raw lucene query
                 var op = criteria.NativeQuery("hello:world").And();
-                                
+
                 criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
 
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
-            }  
+            }
+        }
+
+        [Test]
+        public void Category()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "hello you guys", Type = "type1" }),
+                    ValueSet.FromObject(4.ToString(), "media",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    ValueSet.FromObject(5.ToString(), "media",
+                        new { Content = "hi there, hello world", Type = "type2" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content").ManagedQuery("hello");
+                Console.WriteLine(query);
+
+                var results = query.Execute();
+
+                //Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+            }
         }
 
         //[Test]

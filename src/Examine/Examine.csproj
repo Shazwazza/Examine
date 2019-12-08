@@ -139,6 +139,7 @@
     <Compile Include="LuceneEngine\Indexing\DateTimeType.cs" />
     <Compile Include="LuceneEngine\Indexing\DoubleType.cs" />
     <Compile Include="LuceneEngine\Indexing\FullTextType.cs" />
+    <Compile Include="LuceneEngine\Indexing\IndexFieldRangeValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IndexFieldValueTypeBase.cs" />
     <Compile Include="LuceneEngine\Indexing\Int32Type.cs" />
     <Compile Include="LuceneEngine\Indexing\Int64Type.cs" />
@@ -160,6 +161,7 @@
     <Compile Include="LuceneEngine\Providers\LuceneIndex.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\Search\CustomMultiFieldQueryParser.cs" />
+    <Compile Include="LuceneEngine\Search\ExamineMultiFieldQueryParser.cs" />
     <Compile Include="LuceneEngine\Search\LuceneBooleanOperationBase.cs" />
     <Compile Include="LuceneEngine\Search\LuceneSearchQueryBase.cs" />
     <Compile Include="LuceneEngine\Search\SearchContext.cs" />
@@ -208,6 +210,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Examine.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

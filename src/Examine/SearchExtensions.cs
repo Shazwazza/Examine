@@ -17,10 +17,10 @@ namespace Examine
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
         public static IExamineValue SingleCharacterWildcard(this string s)
         {
-            if (System.String.IsNullOrEmpty(s))
+            if (string.IsNullOrWhiteSpace(s))
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
 
-            return new ExamineValue(Examineness.SimpleWildcard, s + "?");
+            return new ExamineValue(Examineness.SimpleWildcard, s);
         }
 
         /// <summary>
@@ -31,9 +31,9 @@ namespace Examine
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
         public static IExamineValue MultipleCharacterWildcard(this string s)
         {
-            if (String.IsNullOrEmpty(s))
+            if (string.IsNullOrWhiteSpace(s))
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
-            return new ExamineValue(Examineness.ComplexWildcard, s + "*");
+            return new ExamineValue(Examineness.ComplexWildcard, s);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Examine
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
         public static IExamineValue Fuzzy(this string s, float fuzzieness)
         {
-            if (String.IsNullOrEmpty(s))
+            if (string.IsNullOrWhiteSpace(s))
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             return new ExamineValue(Examineness.Fuzzy, s, fuzzieness);
         }
@@ -74,7 +74,7 @@ namespace Examine
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
         public static IExamineValue Boost(this string s, float boost)
         {
-            if (String.IsNullOrEmpty(s))
+            if (string.IsNullOrWhiteSpace(s))
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             return new ExamineValue(Examineness.Boosted, s, boost);
         }
@@ -90,7 +90,7 @@ namespace Examine
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>
         public static IExamineValue Proximity(this string s, int proximity)
         {
-            if (String.IsNullOrEmpty(s))
+            if (string.IsNullOrWhiteSpace(s))
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
             return new ExamineValue(Examineness.Proximity, s, Convert.ToSingle(proximity));
         }
@@ -103,7 +103,7 @@ namespace Examine
         /// <exception cref="System.ArgumentException">Thrown when the string is null or empty</exception>        
         public static IExamineValue Escape(this string s)
         {
-            if (String.IsNullOrEmpty(s))
+            if (string.IsNullOrWhiteSpace(s))
                 throw new ArgumentException("Supplied string is null or empty.", nameof(s));
 
             //NOTE: You would be tempted to use QueryParser.Escape(s) here but that is incorrect because

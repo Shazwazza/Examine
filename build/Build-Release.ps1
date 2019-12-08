@@ -43,12 +43,9 @@ else {
 	   mv "$dir\$file" $vswhere   
 	 }
 
-	$MSBuild = &$vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
-	if ($MSBuild) {
-	  $MSBuild = join-path $MSBuild 'MSBuild\15.0\Bin\MSBuild.exe'
-	  if (-not (test-path $msbuild)) {
-		throw "MSBuild not found!"
-	  }
+	$MSBuild = &$vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | select-object -first 1
+	if (-not (test-path $MSBuild)) {
+	    throw "MSBuild not found!"
 	}
 }
 
@@ -108,18 +105,8 @@ if (-not $?)
 }
 
 # Iterate projects and output them
-$include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
-foreach($project in $root.ChildNodes) {
-	$projectRelease = Join-Path -Path $ReleaseFolder -ChildPath "$($project.id)";
-	New-Item $projectRelease -Type directory
-
-	$projectBin = Join-Path -Path $SolutionRoot -ChildPath "$($project.id)\bin\Release";
-	Copy-Item "$projectBin\*.*" -Destination $projectRelease -Include $include
-
-	$nuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\$($project.id)\*";
-	Copy-Item $nuSpecSource -Destination $projectRelease
-	$nuSpec = Join-Path -Path $projectRelease -ChildPath "$($project.id).nuspec";
-		
+foreach($project in $root.ChildNodes) {	
+	$nuSpec = Join-Path -Path $SolutionRoot -ChildPath "$($project.id)\$($project.id).nuspec";	
 	& $NuGet pack $nuSpec -OutputDirectory $ReleaseFolder -Version $project.version -Properties copyright=$Copyright
 }
 
