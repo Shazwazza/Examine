@@ -32,7 +32,8 @@ namespace Examine.S3Directory
         /// <summary>
         /// Create an AzureDirectory
         /// </summary>
-        /// <param name="storageAccount">storage account to use</param>
+        /// <param name="accessKey"></param>
+        /// <param name="secretKey"></param>
         /// <param name="containerName">name of container (folder in blob storage)</param>
         /// <param name="cacheDirectory">local Directory object to use for local cache</param>
         /// <param name="compressBlobs"></param>
@@ -42,6 +43,7 @@ namespace Examine.S3Directory
         /// a <see cref="MultiIndexLockFactory"/> which will create locks in both the cache and blob storage folders.
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
+   
         public S3Directory(
             string accessKey,
             string secretKey,

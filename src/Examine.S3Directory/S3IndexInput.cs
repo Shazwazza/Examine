@@ -26,7 +26,7 @@ namespace Examine.S3Directory
 
         public S3IndexInput(S3Directory S3directory, S3FileInfo blob)
         {
-            _name = blob.Name;
+            _name = blob.Name.Split('/')[1];
             _s3Directory = S3directory ?? throw new ArgumentNullException(nameof(S3directory));
 #if FULLDEBUG
             Trace.WriteLine($"opening {_name} ");
@@ -81,12 +81,12 @@ namespace Examine.S3Directory
                 {
                     if (_s3Directory.ShouldCompressFile(_name))
                     {
-                        InflateStream(fileName);
+                        InflateStream(blob,fileName);
                     }
                     else
                     {
                         using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
-                            using(var response = S3directory._blobClient.GetObject(S3directory._containerName,fileName))
+                            using(var response = S3directory._blobClient.GetObject(S3directory._containerName,blob.Name))
                                 using(Stream responseStream =  response.ResponseStream)
                         {
                             
@@ -119,12 +119,12 @@ namespace Examine.S3Directory
             }
         }
 
-        private void InflateStream(string fileName)
+        private void InflateStream(S3FileInfo blob, string name)
         {
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
             using (var deflatedStream = new MemoryStream())
-            using(var response = _s3Directory._blobClient.GetObject(_s3Directory._containerName,fileName))
+            using(var response = _s3Directory._blobClient.GetObject(_s3Directory._containerName,blob.Name))
             using(Stream responseStream =  response.ResponseStream)
             {
                             
@@ -139,7 +139,7 @@ namespace Examine.S3Directory
                 deflatedStream.Seek(0, SeekOrigin.Begin);
 
                 // open output file for uncompressed contents
-                using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
+                using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(name)))
                 using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
                 {
                     var bytes = new byte[65535];

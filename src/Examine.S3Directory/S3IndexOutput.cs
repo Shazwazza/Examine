@@ -35,7 +35,7 @@ namespace Examine.S3Directory
             {                
                 //_blobContainer = _azureDirectory.BlobContainer;
                 _blob = blob;
-                _name = blob.Name;
+                _name = blob.Name.Split('/')[1];
 
                 // create the local cache one we will operate against...
                 _indexOutput = CacheDirectory.CreateOutput(_name);
@@ -96,9 +96,9 @@ namespace Examine.S3Directory
                             new TransferUtility(_s3Directory._blobClient);
                             
                         fileTransferUtility.Upload(blobStream,
-                            _s3Directory._containerName, fileName);
+                            _s3Directory._containerName, _blob.Name);
                         // set the metadata with the original index file properties
-                   
+
 #if FULLDEBUG
                         Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
 #endif
