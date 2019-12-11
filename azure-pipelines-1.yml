@@ -10,14 +10,11 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
     script: |
-      $UsernameEncoded = [System.Web.HttpUtility]::UrlEncode($(gitUsername)))
+      $UsernameEncoded = [System.Web.HttpUtility]::UrlEncode($(gitUsername))
       $PasswordEncoded = [System.Web.HttpUtility]::UrlEncode($(gitPassword))
       $newRemoteUrlBuilder = New-Object System.UriBuilder($currentRemoteUri)
       $newRemoteUrlBuilder.UserName = $UsernameEncoded 
