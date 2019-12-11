@@ -14,8 +14,9 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $UsernameEncoded = [System.Web.HttpUtility]::UrlEncode($(gitUsername))
-      $PasswordEncoded = [System.Web.HttpUtility]::UrlEncode($(gitPassword))
+      $UsernameEncoded = [System.Web.HttpUtility]::UrlEncode("$(gitUsername)")
+      $PasswordEncoded = [System.Web.HttpUtility]::UrlEncode("$(gitPassword)")
+      $currentRemoteUri = New-Object System.Uri $(gitAddress)
       $newRemoteUrlBuilder = New-Object System.UriBuilder($currentRemoteUri)
       $newRemoteUrlBuilder.UserName = $UsernameEncoded 
       $newRemoteUrlBuilder.Password = $PasswordEncoded
