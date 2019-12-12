@@ -9,6 +9,16 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  # This builds all sln files, this could be updated to target what you want to build
+  solution: '**/*.sln'
+  # Typically none of these should be changed!
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  publishDir: '$(build.artifactStagingDirectory)\_Publish'
+  cloneDir: '$(build.artifactStagingDirectory)\_UmbracoCloud'
+  zipDir: '$(build.artifactStagingDirectory)\_Zip'
+
 steps:
 - task: PowerShell@2
   inputs:
@@ -21,4 +31,6 @@ steps:
       $newRemoteUrlBuilder.UserName = $UsernameEncoded 
       $newRemoteUrlBuilder.Password = $PasswordEncoded
       $gitAuthenticatedUrl = $newRemoteUrlBuilder.ToString()
+      Write-Host "Cloning Umbraco Cloud repository..."
       git clone $gitAuthenticatedUrl
+      Write-Host "Copying Build output to the Umbraco Cloud repository..."
