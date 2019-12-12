@@ -276,6 +276,17 @@ namespace Examine.S3Directory
             }
 
             S3FileInfo s3FileInfo = new S3FileInfo(_blobClient, _containerName, RootFolder + name);
+            GetObjectMetadataRequest request = new GetObjectMetadataRequest();
+            request.Key = RootFolder + name;
+            request.BucketName = _containerName;
+            
+            GetObjectMetadataResponse response = _blobClient.GetObjectMetadata(request);
+            var CachedLength = response.Metadata["CachedLength"];
+
+            if (!string.IsNullOrEmpty(CachedLength) && long.TryParse(CachedLength, out var blobLength))
+            {
+                return blobLength;
+            }
             return s3FileInfo.Length;
         }
 

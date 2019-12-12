@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using Amazon.S3.IO;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
@@ -94,9 +95,13 @@ namespace Examine.S3Directory
                         // push the blobStream up to the cloud
                         var fileTransferUtility =
                             new TransferUtility(_s3Directory._blobClient);
-                            
-                        fileTransferUtility.Upload(blobStream,
-                            _s3Directory._containerName, _blob.Name);
+                           var request = new TransferUtilityUploadRequest();
+                           request.Key = _blob.Name;
+                           request.BucketName = _s3Directory._containerName;
+                           request.InputStream = blobStream;
+                           request.Metadata.Add("CachedLength",originalLength.ToString());
+                           request.Metadata.Add("CachedLastModified",CacheDirectory.FileModified(fileName).ToString());
+                        fileTransferUtility.Upload(request);
                         // set the metadata with the original index file properties
 
 #if FULLDEBUG

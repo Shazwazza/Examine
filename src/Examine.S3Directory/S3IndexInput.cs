@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using Amazon.S3.IO;
+using Amazon.S3.Model;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
@@ -46,9 +47,16 @@ namespace Examine.S3Directory
                 {
                     var cachedLength = CacheDirectory.FileLength(fileName);
                     var blobLength = blob.Length;
-
                     var blobLastModifiedUtc = blob.LastWriteTimeUtc;
-                    
+                    GetObjectMetadataRequest request = new GetObjectMetadataRequest();
+                    request.Key = blob.Name;
+                    request.BucketName = S3directory._containerName;
+                    GetObjectMetadataResponse response = _s3Directory._blobClient.GetObjectMetadata(request);
+                    var CachedLength = response.Metadata["CachedLength"];
+
+                    if (!string.IsNullOrEmpty(CachedLength) && long.TryParse(CachedLength, out var longLastModified))
+                        blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
+                
                     if (cachedLength != blobLength)
                         fFileNeeded = true;
                     else
