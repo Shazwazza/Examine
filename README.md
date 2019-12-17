@@ -6,7 +6,7 @@ Examine
 ===
 
 ---
-_❤️ If you use and like Articulate please consider [becoming a GitHub Sponsor](https://github.com/sponsors/Shazwazza/) ❤️_
+_❤️ If you use and like Examine please consider [becoming a GitHub Sponsor](https://github.com/sponsors/Shazwazza/) ❤️_
 
 ## What is Examine?
 
