@@ -1654,7 +1654,7 @@ namespace Examine.Test.Search
                 //combine a custom lucene query with raw lucene query
                 var op = criteria.NativeQuery("hello:world").And();
 
-                criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
+                criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true));
                                 
                 criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true));
 
@@ -1666,7 +1666,7 @@ namespace Examine.Test.Search
         [Test]
         public void Category()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(Util.Version);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
             {

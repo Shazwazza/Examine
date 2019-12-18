@@ -25,7 +25,7 @@ namespace Examine.LuceneEngine.Search
         protected Occur Occurrence;
         private BooleanOperation _boolOp;
 
-        public const Version LuceneVersion = Version.LUCENE_30;
+        public LuceneVersion LuceneVersion = Util.Version;
     
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,

@@ -19,6 +19,9 @@ namespace Examine.LuceneEngine.Search
         }
 
         public virtual Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
+        {
+            return GetFuzzyQuery(field, termStr, minSimilarity);
+        }
         /// <summary>
         /// Override to provide support for numerical range query parsing
         /// </summary>
@@ -40,18 +43,12 @@ namespace Examine.LuceneEngine.Search
             return base.GetRangeQuery(field, part1, part2, startInclusive,endInclusive);
         }
 
-        public  Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
-        {
-            return GetFuzzyQuery(field, termStr, minSimilarity);
-        }
-
         public virtual Query GetWildcardQueryInternal(string field, string termStr)
         {
             return GetWildcardQuery(field, termStr);
         }
-
-        public virtual Query GetFieldQueryInternal(string field, string queryText)
-        public Query GetFieldQueryInternal(string field, string queryText, int slop)
+     
+        public virtual Query GetFieldQueryInternal(string field, string queryText, int slop)
         {
             return GetFieldQuery(field, queryText,slop);
         }
