@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Examine</id>
+    <version>0.0.0.0</version>
+    <title>Examine</title>
+    <authors>Shannon Deminick</authors>
+    <owners>Shannon Deminick</owners>
+    <projectUrl>https://github.com/Shazwazza/Examine</projectUrl>
+    <licenseUrl>http://www.opensource.org/licenses/ms-pl</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it. You can either use the Fluent API that the library comes with or use raw Lucene query syntax. The indexing is configurable and will allow both synchronous and asynchronous indexing and everything works happily in web projects too.</description>
+    <summary>Examine is a wrapper for getting a Lucene index up and running for any type of data and comes with an API to search it</summary>
+    <tags>examine search lucene</tags>
+    <copyright>$copyright$</copyright>
+    <repository type="git" url="https://github.com/Shazwazza/Examine" />
+    <dependencies>
+        <group targetFramework="net452">
+            <dependency id="Lucene.Net" version="[3.0.3, 4.0.0)" />
+        </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\Examine.dll" target="lib\net452\Examine.dll" />
+    <file src="bin\Release\Examine.pdb" target="lib\net452\Examine.pdb" />
+  </files>
+</package>

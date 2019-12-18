@@ -5,7 +5,8 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Indexing
 {
-    public class DateTimeType : IndexFieldValueTypeBase, IIndexRangeValueType<DateTime>
+
+    public class DateTimeType : IndexFieldRangeValueType<DateTime>
     {
         public DateTools.Resolution Resolution { get; }
 
@@ -48,7 +49,7 @@ namespace Examine.LuceneEngine.Indexing
             return GetQuery(parsedVal, parsedVal);
         }
 
-        public Query GetQuery(DateTime? lower, DateTime? upper, bool lowerInclusive = true, bool upperInclusive = true)
+        public override Query GetQuery(DateTime? lower, DateTime? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
             return NumericRangeQuery.NewInt64Range(FieldName,
                 lower != null ? DateToLong(lower.Value) : (long?)null,

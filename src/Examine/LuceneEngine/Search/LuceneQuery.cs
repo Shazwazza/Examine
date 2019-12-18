@@ -65,7 +65,7 @@ namespace Examine.LuceneEngine.Search
         public IBooleanOperation Group(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or)
         {
             var bo = new LuceneBooleanOperation(_search);
-            bo.Op(inner, defaultOp);
+            bo.Op(inner, _occurrence.ToBooleanOperation(), defaultOp);
             return bo;
         }
 

@@ -26,6 +26,6 @@ using System.Security;
 [assembly: InternalsVisibleTo("Examine.Web.Demo")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: AssemblyInformationalVersion("1.0.0")]
+[assembly: AssemblyVersion("1.0.3.0")]
+[assembly: AssemblyFileVersion("1.0.3.0")]
+[assembly: AssemblyInformationalVersion("1.0.3")]

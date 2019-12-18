@@ -7,6 +7,7 @@ using Lucene.Net.Util;
 
 namespace Examine.LuceneEngine.Search
 {
+
     /// <summary>
     /// We use this to get at the protected methods directly since the new version makes them not public
     /// </summary>
@@ -17,6 +18,7 @@ namespace Examine.LuceneEngine.Search
         {
         }
 
+        public virtual Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
         /// <summary>
         /// Override to provide support for numerical range query parsing
         /// </summary>
@@ -43,11 +45,12 @@ namespace Examine.LuceneEngine.Search
             return GetFuzzyQuery(field, termStr, minSimilarity);
         }
 
-        public Query GetWildcardQueryInternal(string field, string termStr)
+        public virtual Query GetWildcardQueryInternal(string field, string termStr)
         {
             return GetWildcardQuery(field, termStr);
         }
 
+        public virtual Query GetFieldQueryInternal(string field, string queryText)
         public Query GetFieldQueryInternal(string field, string queryText, int slop)
         {
             return GetFieldQuery(field, queryText,slop);
