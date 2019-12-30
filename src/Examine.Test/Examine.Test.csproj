@@ -56,40 +56,44 @@
     <Reference Include="itextsharp">
       <HintPath>..\DLLs\itextsharp.dll</HintPath>
     </Reference>
+    <Reference Include="J2N, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f39447d697a969af">
+      <HintPath>..\packages\J2N.1.0.0-beta-0002\lib\net45\J2N.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Lucene.Net, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.4.8.0-beta00006\lib\net45\Lucene.Net.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.4.8.0-beta00007\lib\net45\Lucene.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Lucene.Net.Analysis.Common, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Analysis.Common.4.8.0-beta00006\lib\net45\Lucene.Net.Analysis.Common.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.Analysis.Common.4.8.0-beta00007\lib\net45\Lucene.Net.Analysis.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Lucene.Net.Facet, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Facet.4.8.0-beta00006\lib\net45\Lucene.Net.Facet.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.Facet.4.8.0-beta00007\lib\net45\Lucene.Net.Facet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Lucene.Net.Grouping, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Grouping.4.8.0-beta00006\lib\net45\Lucene.Net.Grouping.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.Grouping.4.8.0-beta00007\lib\net45\Lucene.Net.Grouping.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Lucene.Net.Join, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Join.4.8.0-beta00006\lib\net45\Lucene.Net.Join.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.Join.4.8.0-beta00007\lib\net45\Lucene.Net.Join.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Lucene.Net.Memory, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Memory.4.8.0-beta00006\lib\net45\Lucene.Net.Memory.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.Memory.4.8.0-beta00007\lib\net45\Lucene.Net.Memory.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Lucene.Net.Queries, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Queries.4.8.0-beta00006\lib\net45\Lucene.Net.Queries.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.Queries.4.8.0-beta00007\lib\net45\Lucene.Net.Queries.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Lucene.Net.QueryParser, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.QueryParser.4.8.0-beta00006\lib\net45\Lucene.Net.QueryParser.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.QueryParser.4.8.0-beta00007\lib\net45\Lucene.Net.QueryParser.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Lucene.Net.Sandbox, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Sandbox.4.8.0-beta00006\lib\net45\Lucene.Net.Sandbox.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.Sandbox.4.8.0-beta00007\lib\net45\Lucene.Net.Sandbox.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
