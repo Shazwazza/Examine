@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Miscellaneous;
@@ -40,8 +41,20 @@ namespace Examine.LuceneEngine
 
             protected override bool IsTokenChar(int c)
             {
-                return   Character.IsLetter(c) || c.IsNumber();
+                return   Character.IsLetter(c) || IsNumber(c);
             }
+            private bool IsNumber(int c)
+            {
+                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory((char) c);
+                switch (unicodeCategory)
+                {
+                    case UnicodeCategory.DecimalDigitNumber:
+                    case UnicodeCategory.OtherNumber:
+                    case UnicodeCategory.LetterNumber:
+                        return true;
+                    default:
+                        return false;
+                }
         }
 
         protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)

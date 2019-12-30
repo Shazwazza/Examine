@@ -10,7 +10,6 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Analysis;
-using Lucene.Net.Support.Compatibility;
 using Directory = Lucene.Net.Store.Directory;
 
 
