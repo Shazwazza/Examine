@@ -1,7 +1,12 @@
+[![Build Status](https://shazwazza.visualstudio.com/Examine/_apis/build/status/Shazwazza.Examine?branchName=master)](https://shazwazza.visualstudio.com/Examine/_build/latest?definitionId=4&branchName=master)
+
 [![Build status](https://ci.appveyor.com/api/projects/status/j4o4finsu8xs45r1?svg=true)](https://ci.appveyor.com/project/Shandem/examine)
 
 Examine
 ===
+
+---
+_❤️ If you use and like Examine please consider [becoming a GitHub Sponsor](https://github.com/sponsors/Shazwazza/) ❤️_
 
 ## What is Examine?
 
