@@ -142,11 +142,14 @@ namespace Examine.LuceneEngine.Search
 
             if (!string.IsNullOrEmpty(Category))
             {
-                // if category is supplied then wrap the query
-                query = new BooleanQuery
+                // if category is supplied then wrap the query (if there's other queries to wrap!)
+                if (query.Clauses.Count > 0)
                 {
-                    { query, Occur.MUST }
-                };
+                    query = new BooleanQuery
+                    {
+                        { query, Occur.MUST }
+                    };
+                }
 
                 // and then add the category field query as a must
                 var categoryQuery = GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
