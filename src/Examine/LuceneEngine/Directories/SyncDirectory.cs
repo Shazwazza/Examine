@@ -99,6 +99,7 @@ namespace Examine.LuceneEngine.Directories
 
         /// <summary>Returns true if a file with the given name exists. </summary>
         
+        [Obsolete("this method will be removed in 5.0 of Lucene")]
         public override bool FileExists(string name)
         {
             CheckDirty();

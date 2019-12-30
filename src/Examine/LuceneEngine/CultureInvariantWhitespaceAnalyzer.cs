@@ -20,7 +20,7 @@ namespace Examine.LuceneEngine
 
         public CultureInvariantWhitespaceAnalyzer() : this(true, true)
         {
-            
+
         }
 
         public CultureInvariantWhitespaceAnalyzer(bool caseInsensitive, bool ignoreLanguageAccents)
@@ -34,15 +34,16 @@ namespace Examine.LuceneEngine
         private class LetterOrDigitTokenizer : CharTokenizer
         {
             public LetterOrDigitTokenizer(TextReader tr)
-                : base(Util.Version,tr)
+                : base(Util.Version, tr)
             {
             }
-            
+
 
             protected override bool IsTokenChar(int c)
             {
-                return   Character.IsLetter(c) || IsNumber(c);
+                return Character.IsLetter(c) || IsNumber(c);
             }
+
             private bool IsNumber(int c)
             {
                 UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory((char) c);
@@ -55,43 +56,44 @@ namespace Examine.LuceneEngine
                     default:
                         return false;
                 }
-        }
-
-        protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
-        {
-            LetterOrDigitTokenizer src = new LetterOrDigitTokenizer( reader);
-            
-            TokenStream tok = (TokenStream)   new LowerCaseFilter(Util.Version,                 //case insensitive
-                src);
-            if (_ignoreLanguageAccents)
-                tok = new ASCIIFoldingFilter(tok);
-            if (_caseInsensitive)
-                tok = new LowerCaseFilter(Util.Version,tok);  
-            return new TokenStreamComponentsAnonymousInnerClassHelper(this, src, tok, reader);
-        }
-        private class TokenStreamComponentsAnonymousInnerClassHelper : TokenStreamComponents
-        {
-            private readonly CultureInvariantWhitespaceAnalyzer outerInstance;
-            private TextReader reader;
-            private readonly LetterOrDigitTokenizer src;
-
-            public TokenStreamComponentsAnonymousInnerClassHelper(
-                CultureInvariantWhitespaceAnalyzer outerInstance,
-                LetterOrDigitTokenizer src,
-                TokenStream tok,
-                TextReader reader)
-                : base((Tokenizer) src, tok)
-            {
-                this.outerInstance = outerInstance;
-                this.reader = reader;
-                this.src = src;
-            }
-
-            protected override void SetReader(TextReader reader)
-            {
-                base.SetReader(reader);
             }
         }
-    }
+            protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
+            {
+                LetterOrDigitTokenizer src = new LetterOrDigitTokenizer(reader);
+
+                TokenStream tok = (TokenStream) new LowerCaseFilter(Util.Version, //case insensitive
+                    src);
+                if (_ignoreLanguageAccents)
+                    tok = new ASCIIFoldingFilter(tok);
+                if (_caseInsensitive)
+                    tok = new LowerCaseFilter(Util.Version, tok);
+                return new TokenStreamComponentsAnonymousInnerClassHelper(this, src, tok, reader);
+            }
+
+            private class TokenStreamComponentsAnonymousInnerClassHelper : TokenStreamComponents
+            {
+                private readonly CultureInvariantWhitespaceAnalyzer outerInstance;
+                private TextReader reader;
+                private readonly LetterOrDigitTokenizer src;
+
+                public TokenStreamComponentsAnonymousInnerClassHelper(
+                    CultureInvariantWhitespaceAnalyzer outerInstance,
+                    LetterOrDigitTokenizer src,
+                    TokenStream tok,
+                    TextReader reader)
+                    : base((Tokenizer) src, tok)
+                {
+                    this.outerInstance = outerInstance;
+                    this.reader = reader;
+                    this.src = src;
+                }
+
+                protected override void SetReader(TextReader reader)
+                {
+                    base.SetReader(reader);
+                }
+            }
+        }
 
 }

@@ -133,6 +133,7 @@ namespace Examine.LuceneEngine.Directories
             return _cacheDirIndexOutput.GetFilePointer();
         }
 
+        [Obsolete("(4.1) this method will be removed in Lucene 5.0 of Lucene")]
         public override void Seek(long pos)
         {
             _cacheDirIndexOutput.Seek(pos);
