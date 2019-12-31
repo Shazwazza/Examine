@@ -37,7 +37,7 @@ github:
 # Build settings
 # theme: minima
 # theme: jekyll-theme-cayman
-theme: jekyll-theme-cayman-blog
+theme: 
 
 plugins:
   - jekyll-feed
