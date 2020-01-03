@@ -3,6 +3,7 @@ using System.Security;
 using System.Web;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Examine.LuceneEngine.Directories
 {
@@ -11,7 +12,13 @@ namespace Examine.LuceneEngine.Directories
     /// </summary>
     public class SyncAspNetCodeGenDirectoryFactory : DirectoryFactory
     {
-        
+        private IMemoryCache _cache;
+
+        public SyncAspNetCodeGenDirectoryFactory(IMemoryCache cache)
+        {
+            _cache = cache;
+        }
+
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
             var master = luceneIndexFolder;
@@ -25,7 +32,7 @@ namespace Examine.LuceneEngine.Directories
 
         private DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {
-            var codegenPath = HttpRuntime.CodegenDir;
+            var codegenPath = Path.GetTempPath();
             var path = Path.Combine(codegenPath, "App_Data", "TEMP", "ExamineIndexes", indexPath.Name);
             return new DirectoryInfo(path);
         }
