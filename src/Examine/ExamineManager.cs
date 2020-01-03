@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Web.Hosting;
 using Examine.LuceneEngine;
 
 namespace Examine
@@ -11,7 +10,8 @@ namespace Examine
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : IDisposable, IRegisteredObject, IExamineManager
+    /// TODO: IRegisteredObject need replacement in .net Standard
+    public class ExamineManager : IDisposable, /*IRegisteredObject, */IExamineManager
     {
         //tracks if the ExamineManager should register itself with the HostingEnvironment
         private static volatile bool _defaultRegisteration = true;
@@ -28,14 +28,16 @@ namespace Examine
             _defaultRegisteration = false;
 
             var instance = Instance;
-            if (instance is ExamineManager e) HostingEnvironment.UnregisterObject(e);
+            /// TODO: HostingEnvironment need replacement in .net Standard
+           // if (instance is ExamineManager e) HostingEnvironment.UnregisterObject(e);
         }
 
         private ExamineManager()
         {
             if (!_defaultRegisteration) return;
             AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
-            HostingEnvironment.RegisterObject(this);
+            /// TODO: HostingEnvironment need replacement in .net Standard
+            //HostingEnvironment.RegisterObject(this);
         }
 
         /// <summary>
@@ -154,8 +156,9 @@ namespace Examine
                 finally
                 {
                     //unregister if the default registration was used
-                    if (_defaultRegisteration)
-                        HostingEnvironment.UnregisterObject(this);
+                   
+                    /// TODO: HostingEnvironment need replacement in .net Standard
+                    // if (_defaultRegisteration) HostingEnvironment.UnregisterObject(this);
                 }
             }
             else

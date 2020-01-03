@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Web;
-using System.Web.Hosting;
 
 namespace Examine
 {
@@ -49,7 +48,8 @@ namespace Examine
         internal static string ReplaceTokensInIndexPath(string path)
         {
             return path?.Replace("{machinename}", FileSafeMachineName)
-                .Replace("{appdomainappid}", (HttpRuntime.AppDomainAppId ?? string.Empty).ReplaceNonAlphanumericChars(""))
+                //todo: Find replacement for HttpRuntime.AppDomainAppId 
+                .Replace("{appdomainappid}", ( string.Empty).ReplaceNonAlphanumericChars(""))
                 .EnsureEndsWith('/');
         }
 
@@ -58,9 +58,9 @@ namespace Examine
             if (!configPath.StartsWith("~/")) return configPath;
 
             // Support unit testing scenario where hosting environment is not initialized.
-            var hostingRoot = HostingEnvironment.IsHosted
-                ? HostingEnvironment.MapPath("~/")
-                : AppDomain.CurrentDomain.BaseDirectory;
+            //todo find replacement fo = HostingEnvironment.IsHosted   HostingEnvironment.MapPath("~/")
+              
+            var hostingRoot = AppDomain.CurrentDomain.BaseDirectory;
 
             return Path.Combine(hostingRoot, configPath.Substring(2).Replace('/', '\\'));
         }

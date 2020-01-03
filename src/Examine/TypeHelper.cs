@@ -2,8 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Compilation;
-using System.Web.Hosting;
+
 
 namespace Examine
 {
@@ -19,9 +18,9 @@ namespace Examine
         /// </remarks>
         public static Type FindType(string typeName)
         {
-            var isHosted = HttpContext.Current != null || HostingEnvironment.IsHosted;
+         //  todo: replace  var isHosted = HttpContext.Current != null || HostingEnvironment.IsHosted; isHosted ? BuildManager.GetType(typeName, false) :
 
-            return isHosted ? BuildManager.GetType(typeName, false) : Type.GetType(typeName);
+            return  Type.GetType(typeName);
         }
     }
 }
