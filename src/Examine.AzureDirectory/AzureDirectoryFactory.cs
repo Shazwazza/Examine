@@ -10,7 +10,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for use on the server that can actively write to the index
     /// </summary>
-    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory
+    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
     {
         private readonly bool _isReadOnly;
 
@@ -45,7 +45,7 @@ namespace Examine.AzureDirectory
         /// <returns>
         /// The <see cref="Lucene.Net.Store.Directory"/>.
         /// </returns>
-        public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
+        public  Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
