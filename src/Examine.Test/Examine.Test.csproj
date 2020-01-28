@@ -136,9 +136,9 @@
       <Project>{ca2a20ce-1a61-4185-8b49-bd50993acfdf}</Project>
       <Name>Examine.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Examine\Examine.csproj">
+    <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
-      <Name>Examine</Name>
+      <Name>Examine.Lucene</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

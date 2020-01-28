@@ -67,6 +67,8 @@ namespace Examine.LuceneEngine.Indexing
         /// <returns></returns>        
         protected static bool TryConvert<T>(object val, out T parsedVal)
         {
+            // TODO: This throws all the time and then logs! 
+
             if (val == null)
             {
                 parsedVal = default(T);
