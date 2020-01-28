@@ -11,6 +11,7 @@ namespace Examine.LuceneEngine.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
+        /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="name"></param>

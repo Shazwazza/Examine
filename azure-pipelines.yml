@@ -13,7 +13,7 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  nugetVersion: 1.0.3-alpha.$(Build.BuildNumber)
+  nugetVersion: 2.0.0-alpha.$(Build.BuildNumber)
 
 steps:
 

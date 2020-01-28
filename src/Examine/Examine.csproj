@@ -193,7 +193,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine.Abstractions\Examine.Core.csproj">
+    <ProjectReference Include="..\Examine.Core\Examine.Core.csproj">
       <Project>{ca2a20ce-1a61-4185-8b49-bd50993acfdf}</Project>
       <Name>Examine.Core</Name>
     </ProjectReference>
