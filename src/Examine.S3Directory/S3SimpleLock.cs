@@ -6,7 +6,7 @@ using Lucene.Net.Store;
 namespace Examine.S3Directory
 {
     /// <summary>
-    /// Implements lock semantics on AzureDirectory via a lock file - just like SimpleFSLock
+    /// Implements lock semantics on S3Directory via a lock file - just like SimpleFSLock
     /// </summary>
     public class S3SimpleLock : Lock
     {

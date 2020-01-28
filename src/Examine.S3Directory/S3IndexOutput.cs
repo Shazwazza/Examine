@@ -17,6 +17,7 @@ namespace Examine.S3Directory
     public class S3IndexOutput : IndexOutput
     {
         private readonly S3Directory _s3Directory;
+
         //private CloudBlobContainer _blobContainer;
         private readonly string _name;
         private IndexOutput _indexOutput;
@@ -26,15 +27,12 @@ namespace Examine.S3Directory
 
         public S3IndexOutput(S3Directory s3Directory, S3FileInfo blob, string name)
         {
-            //TODO: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19
-            // I have changed this to be correct now
             _name = name;
             _s3Directory = s3Directory ?? throw new ArgumentNullException(nameof(s3Directory));
-            _fileMutex = SyncMutexManager.GrabMutex(_s3Directory, _name); 
+            _fileMutex = SyncMutexManager.GrabMutex(_s3Directory, _name);
             _fileMutex.WaitOne();
             try
-            {                
-                //_blobContainer = _azureDirectory.BlobContainer;
+            {
                 _blob = blob;
                 _name = blob.Name.Split('/')[1];
 
@@ -60,7 +58,7 @@ namespace Examine.S3Directory
                 var fileName = _name;
 
                 long originalLength = 0;
-                
+
                 //this can be null in some odd cases so we need to check
                 if (_indexOutput != null)
                 {
@@ -95,14 +93,15 @@ namespace Examine.S3Directory
                         // push the blobStream up to the cloud
                         var fileTransferUtility =
                             new TransferUtility(_s3Directory._blobClient);
-                           var request = new TransferUtilityUploadRequest();
-                           request.Key = _blob.Name;
-                           request.BucketName = _s3Directory._containerName;
-                           request.InputStream = blobStream;
-                           request.Metadata.Add("CachedLength",originalLength.ToString());
-                           request.Metadata.Add("CachedLastModified",CacheDirectory.FileModified(fileName).ToString());
-                        fileTransferUtility.Upload(request);
+                        var request = new TransferUtilityUploadRequest();
+                        request.Key = _blob.Name;
+                        request.BucketName = _s3Directory._containerName;
+                        request.InputStream = blobStream;
                         // set the metadata with the original index file properties
+                        request.Metadata.Add("CachedLength", originalLength.ToString());
+                        request.Metadata.Add("CachedLastModified", CacheDirectory.FileModified(fileName).ToString());
+                        fileTransferUtility.Upload(request);
+
 
 #if FULLDEBUG
                         Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
@@ -164,6 +163,7 @@ namespace Examine.S3Directory
             {
                 indexInput?.Close();
             }
+
             return compressedStream;
         }
 

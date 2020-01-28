@@ -33,10 +33,10 @@ namespace Examine.S3Directory
         public static string ConfigContainerKey { get; set; } = "examine:S3Container";
 
         /// <summary>
-        /// Return the AzureDirectory.
-        /// It stores the master index in Blob storage.
+        /// Return the S3Directory.
+        /// It stores the master index in S3 storage.
         /// Only a master server can write to it.
-        /// For each slave server, the blob storage index files are synced to the local machine.
+        /// For each slave server, the S3 storage index files are synced to the local machine.
         /// </summary>
         /// <param name="luceneIndexFolder">
         /// The lucene index folder.

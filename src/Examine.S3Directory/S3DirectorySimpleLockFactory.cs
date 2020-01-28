@@ -5,7 +5,7 @@ using Lucene.Net.Store;
 namespace Examine.S3Directory
 {
     /// <summary>
-    /// A lock factory used for azure blob storage using Simple Locking (file based)
+    /// A lock factory used for S3 storage using Simple Locking (file based)
     /// </summary>
     public class S3DirectorySimpleLockFactory : LockFactory
     {

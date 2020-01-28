@@ -15,7 +15,7 @@ using Directory = Lucene.Net.Store.Directory;
 namespace Examine.S3Directory
 {
     /// <summary>
-    /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
+    /// A Lucene directory used to store master index files in s3 storage and sync local files to a %temp% fast drive storage
     /// </summary>
     public class S3Directory : Directory
     {
@@ -30,7 +30,7 @@ namespace Examine.S3Directory
         private readonly LockFactory _lockFactory;
 
         /// <summary>
-        /// Create an AzureDirectory
+        /// Create an S3Directory
         /// </summary>
         /// <param name="accessKey"></param>
         /// <param name="secretKey"></param>

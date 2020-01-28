@@ -12,7 +12,7 @@ using Directory = Lucene.Net.Store.Directory;
 namespace Examine.S3Directory
 {
     /// <summary>
-    /// Implements IndexInput semantics for a read only blob
+    /// Implements IndexInput semantics for a read S3 blob
     /// </summary>
     public class S3IndexInput : IndexInput
     {
