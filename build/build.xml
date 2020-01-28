@@ -1,4 +1,5 @@
 <build>
-  <project id="Examine" version="1.0.3"/>
-  <project id="Examine.AzureDirectory" version="1.0.0-beta07"/>
+  <project id="Examine.Core" version="2.0.0"/>
+  <project id="Examine" version="2.0.0"/>
+  <project id="Examine.AzureDirectory" version="2.0.0-beta07"/>
 </build>
