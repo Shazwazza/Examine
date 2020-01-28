@@ -101,7 +101,7 @@ namespace Examine.LuceneEngine.Providers
             var fields = _reader.GetFieldNames(IndexReader.FieldOption.ALL);
             //exclude the special index fields
             var searchFields = fields
-                .Where(x => !x.StartsWith(LuceneIndex.SpecialFieldPrefix))
+                .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
                 .ToArray();
             return searchFields;
         }

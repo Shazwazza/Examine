@@ -178,15 +178,15 @@ namespace Examine.Test.Index
                     var fields = luceneSearcher.Doc(0).GetFields().ToArray();
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.ItemTypeFieldName));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.ItemIdFieldName));
-                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == LuceneIndex.CategoryFieldName));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == ExamineFieldNames.ItemTypeFieldName));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == ExamineFieldNames.ItemIdFieldName));
+                    Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == ExamineFieldNames.CategoryFieldName));
 
                     Assert.AreEqual("value1", fields.Single(x => x.Name == "item1").StringValue);
                     Assert.AreEqual("value2", fields.Single(x => x.Name == "item2").StringValue);
-                    Assert.AreEqual("test", fields.Single(x => x.Name == LuceneIndex.ItemTypeFieldName).StringValue);
-                    Assert.AreEqual("1", fields.Single(x => x.Name == LuceneIndex.ItemIdFieldName).StringValue);
-                    Assert.AreEqual("content", fields.Single(x => x.Name == LuceneIndex.CategoryFieldName).StringValue);
+                    Assert.AreEqual("test", fields.Single(x => x.Name == ExamineFieldNames.ItemTypeFieldName).StringValue);
+                    Assert.AreEqual("1", fields.Single(x => x.Name == ExamineFieldNames.ItemIdFieldName).StringValue);
+                    Assert.AreEqual("content", fields.Single(x => x.Name == ExamineFieldNames.CategoryFieldName).StringValue);
                 }
             }
         }

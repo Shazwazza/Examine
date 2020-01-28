@@ -124,7 +124,7 @@ namespace Examine.LuceneEngine
             var id = doc.Get("id");
             if (string.IsNullOrEmpty(id))
             {
-                id = doc.Get(LuceneIndex.ItemIdFieldName);
+                id = doc.Get(ExamineFieldNames.ItemIdFieldName);
             }
 
             var sr = new SearchResult(id, score, () =>

@@ -152,7 +152,7 @@ namespace Examine.LuceneEngine.Search
                 }
 
                 // and then add the category field query as a must
-                var categoryQuery = GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
+                var categoryQuery = GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
                 query.Add(categoryQuery, Occur.MUST);                
             }
 

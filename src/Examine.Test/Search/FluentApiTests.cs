@@ -791,9 +791,9 @@ namespace Examine.Test.Search
 
                 var criteria = searcher.CreateQuery(defaultOperation: BooleanOperation.Or);
                 var filter = criteria
-                    .Field(LuceneIndex.CategoryFieldName, "media")
+                    .Field(ExamineFieldNames.CategoryFieldName, "media")
                     .Or()
-                    .Field(LuceneIndex.CategoryFieldName, "content");
+                    .Field(ExamineFieldNames.CategoryFieldName, "content");
 
                 var results = filter.Execute();
 

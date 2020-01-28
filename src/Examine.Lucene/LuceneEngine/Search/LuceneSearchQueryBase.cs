@@ -259,7 +259,7 @@ namespace Examine.LuceneEngine.Search
             if (id == null) throw new ArgumentNullException(nameof(id));
 
             //use a query parser (which uses the analyzer) to build up the field query which we want
-            Query.Add(_queryParser.GetFieldQueryInternal(LuceneIndex.ItemIdFieldName, id), occurrence);
+            Query.Add(_queryParser.GetFieldQueryInternal(ExamineFieldNames.ItemIdFieldName, id), occurrence);
 
             return CreateOp();
         }

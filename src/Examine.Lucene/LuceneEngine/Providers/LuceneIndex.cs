@@ -16,6 +16,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Providers
 {
+
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
@@ -97,27 +98,7 @@ namespace Examine.LuceneEngine.Providers
         private int _activeWrites = 0;
         private int _activeAddsOrDeletes = 0;
 
-        /// <summary>
-        /// The prefix characters denoting a special field stored in the lucene index for use internally
-        /// </summary>
-        public const string SpecialFieldPrefix = "__";
-
-        /// <summary>
-        /// The prefix added to a field when it is included in the index for sorting
-        /// </summary>
-        public const string SortedFieldNamePrefix = "__Sort_";
-
-        /// <summary>
-        /// Used to store a non-tokenized key for the document for the Category
-        /// </summary>
-        public const string CategoryFieldName = "__IndexType";
-
-        /// <summary>
-        /// Used to store a non-tokenized type for the document
-        /// </summary>
-        public const string ItemIdFieldName = "__NodeId";
-
-        public const string ItemTypeFieldName = "__NodeTypeAlias";
+        
 
         /// <summary>
         /// Used to perform thread locking
@@ -662,13 +643,13 @@ namespace Examine.LuceneEngine.Providers
         protected virtual void AddDocument(Document doc, ValueSet valueSet, IndexWriter writer)
         {
             //add node id
-            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
+            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
             nodeIdValueType.AddValue(doc, valueSet.Id);
             //add the category
-            var categoryValueType = FieldValueTypeCollection.GetValueType(CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+            var categoryValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             categoryValueType.AddValue(doc, valueSet.Category);
             //add the item type
-            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
             //copy to a new dictionary, there has been cases of an exception "Collection was modified; enumeration operation may not execute."
@@ -688,7 +669,7 @@ namespace Examine.LuceneEngine.Providers
                         valueType.AddValue(doc, o);
                     }
                 }
-                else if (field.Key.StartsWith(SpecialFieldPrefix))
+                else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
                 {
                     //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
@@ -716,7 +697,7 @@ namespace Examine.LuceneEngine.Providers
             if (docArgs.Cancel)
                 return;
 
-            writer.UpdateDocument(new Term(ItemIdFieldName, valueSet.Id), doc);
+            writer.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
         }
 
         /// <summary>
@@ -1193,11 +1174,11 @@ namespace Examine.LuceneEngine.Providers
             //if the id is empty then remove the whole type
             if (!string.IsNullOrEmpty(op.ValueSet.Id))
             {
-                DeleteFromIndex(new Term(ItemIdFieldName, op.ValueSet.Id), iw, performCommit);
+                DeleteFromIndex(new Term(ExamineFieldNames.ItemIdFieldName, op.ValueSet.Id), iw, performCommit);
             }
             else if (!string.IsNullOrEmpty(op.ValueSet.Category))
             {
-                DeleteFromIndex(new Term(CategoryFieldName, op.ValueSet.Category), iw, performCommit);
+                DeleteFromIndex(new Term(ExamineFieldNames.CategoryFieldName, op.ValueSet.Category), iw, performCommit);
             }
 
             CommitCount++;
