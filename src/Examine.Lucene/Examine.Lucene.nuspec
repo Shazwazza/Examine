@@ -25,8 +25,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\Examine.dll" target="lib\net461\Examine.dll" />
-    <file src="bin\Release\Examine.pdb" target="lib\net461\Examine.pdb" />
+    <file src="bin\Release\Examine.Lucene.dll" target="lib\net461\Examine.Lucene.dll" />
+    <file src="bin\Release\Examine.Lucene.pdb" target="lib\net461\Examine.Lucene.pdb" />
     <file src="..\..\assets\logo-round.png" target="logo-round.png" />
   </files>
 </package>
