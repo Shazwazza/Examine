@@ -12,7 +12,7 @@ using Directory = Lucene.Net.Store.Directory;
 namespace Examine.S3Directory
 {
     /// <summary>
-    /// Implements IndexInput semantics for a read S3 blob
+    /// Implements IndexInput semantics for a read S3 object
     /// </summary>
     public class S3IndexInput : IndexInput
     {
@@ -25,9 +25,9 @@ namespace Examine.S3Directory
 
         public Directory CacheDirectory => _s3Directory.CacheDirectory;
 
-        public S3IndexInput(S3Directory S3directory, S3FileInfo blob)
+        public S3IndexInput(S3Directory S3directory, S3FileInfo s3Object)
         {
-            _name = blob.Name.Split('/')[1];
+            _name = s3Object.Name.Split('/')[1];
             _s3Directory = S3directory ?? throw new ArgumentNullException(nameof(S3directory));
 #if FULLDEBUG
             Trace.WriteLine($"opening {_name} ");
@@ -46,18 +46,18 @@ namespace Examine.S3Directory
                 else
                 {
                     var cachedLength = CacheDirectory.FileLength(fileName);
-                    var blobLength = blob.Length;
-                    var blobLastModifiedUtc = blob.LastWriteTimeUtc;
+                    var s3ObjectLength = s3Object.Length;
+                    var s3ObjectLastModifiedUtc = s3Object.LastWriteTimeUtc;
                     GetObjectMetadataRequest request = new GetObjectMetadataRequest();
-                    request.Key = blob.Name;
+                    request.Key = s3Object.Name;
                     request.BucketName = S3directory._containerName;
-                    GetObjectMetadataResponse response = _s3Directory._blobClient.GetObjectMetadata(request);
+                    GetObjectMetadataResponse response = _s3Directory.S3Client.GetObjectMetadata(request);
                     var CachedLength = response.Metadata["CachedLength"];
 
                     if (!string.IsNullOrEmpty(CachedLength) && long.TryParse(CachedLength, out var longLastModified))
-                        blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
+                        s3ObjectLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
                 
-                    if (cachedLength != blobLength)
+                    if (cachedLength != s3ObjectLength)
                         fFileNeeded = true;
                     else
                     {
@@ -67,9 +67,9 @@ namespace Examine.S3Directory
                         var start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                         var cachedLastModifiedUtc = start.AddMilliseconds(unixDate).ToUniversalTime();
                         
-                        if (cachedLastModifiedUtc != blobLastModifiedUtc)
+                        if (cachedLastModifiedUtc != s3ObjectLastModifiedUtc)
                         {
-                            var timeSpan = blobLastModifiedUtc.Subtract(cachedLastModifiedUtc);
+                            var timeSpan = s3ObjectLastModifiedUtc.Subtract(cachedLastModifiedUtc);
                             if (timeSpan.TotalSeconds > 1)
                                 fFileNeeded = true;
                             else
@@ -84,21 +84,21 @@ namespace Examine.S3Directory
                 }
 
                 // if the file does not exist
-                // or if it exists and it is older then the lastmodified time in the blobproperties (which always comes from the blob storage)
+                // or if it exists and it is older then the lastmodified time in the object properties (which always comes from the s3 storage)
                 if (fFileNeeded)
                 {
                     if (_s3Directory.ShouldCompressFile(_name))
                     {
-                        InflateStream(blob,fileName);
+                        InflateStream(s3Object,fileName);
                     }
                     else
                     {
                         using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
-                            using(var response = S3directory._blobClient.GetObject(S3directory._containerName,blob.Name))
+                            using(var response = S3directory.S3Client.GetObject(S3directory._containerName,s3Object.Name))
                                 using(Stream responseStream =  response.ResponseStream)
                         {
                             
-                            // get the blob
+                            // get the s3Object
                             responseStream.CopyTo(fileStream);
 
                             fileStream.Flush();
@@ -127,16 +127,16 @@ namespace Examine.S3Directory
             }
         }
 
-        private void InflateStream(S3FileInfo blob, string name)
+        private void InflateStream(S3FileInfo s3Object, string name)
         {
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
             using (var deflatedStream = new MemoryStream())
-            using(var response = _s3Directory._blobClient.GetObject(_s3Directory._containerName,blob.Name))
+            using(var response = _s3Directory.S3Client.GetObject(_s3Directory._containerName,s3Object.Name))
             using(Stream responseStream =  response.ResponseStream)
             {
                             
-                // get the blob
+                // get the s3Object
                 responseStream.CopyTo(deflatedStream);
 
 #if FULLDEBUG

@@ -18,14 +18,13 @@ namespace Examine.S3Directory
     {
         private readonly S3Directory _s3Directory;
 
-        //private CloudBlobContainer _blobContainer;
         private readonly string _name;
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
-        private S3FileInfo _blob;
+        private S3FileInfo _s3Object;
         public Directory CacheDirectory => _s3Directory.CacheDirectory;
 
-        public S3IndexOutput(S3Directory s3Directory, S3FileInfo blob, string name)
+        public S3IndexOutput(S3Directory s3Directory, S3FileInfo s3Object, string name)
         {
             _name = name;
             _s3Directory = s3Directory ?? throw new ArgumentNullException(nameof(s3Directory));
@@ -33,8 +32,8 @@ namespace Examine.S3Directory
             _fileMutex.WaitOne();
             try
             {
-                _blob = blob;
-                _name = blob.Name.Split('/')[1];
+                _s3Object = s3Object;
+                _name = s3Object.Name.Split('/')[1];
 
                 // create the local cache one we will operate against...
                 _indexOutput = CacheDirectory.CreateOutput(_name);
@@ -76,27 +75,27 @@ namespace Examine.S3Directory
 
                 if (originalLength > 0)
                 {
-                    Stream blobStream;
+                    Stream s3ObjectStream;
 
-                    // optionally put a compressor around the blob stream
+                    // optionally put a compressor around the s3Object stream
                     if (_s3Directory.ShouldCompressFile(_name))
                     {
-                        blobStream = CompressStream(fileName, originalLength);
+                        s3ObjectStream = CompressStream(fileName, originalLength);
                     }
                     else
                     {
-                        blobStream = new StreamInput(CacheDirectory.OpenInput(fileName));
+                        s3ObjectStream = new StreamInput(CacheDirectory.OpenInput(fileName));
                     }
 
                     try
                     {
-                        // push the blobStream up to the cloud
+                        // push the s3ObjectStream up to the cloud
                         var fileTransferUtility =
-                            new TransferUtility(_s3Directory._blobClient);
+                            new TransferUtility(_s3Directory.S3Client);
                         var request = new TransferUtilityUploadRequest();
-                        request.Key = _blob.Name;
+                        request.Key = _s3Object.Name;
                         request.BucketName = _s3Directory._containerName;
-                        request.InputStream = blobStream;
+                        request.InputStream = s3ObjectStream;
                         // set the metadata with the original index file properties
                         request.Metadata.Add("CachedLength", originalLength.ToString());
                         request.Metadata.Add("CachedLastModified", CacheDirectory.FileModified(fileName).ToString());
@@ -104,12 +103,12 @@ namespace Examine.S3Directory
 
 
 #if FULLDEBUG
-                        Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
+                        Trace.WriteLine($"PUT {s3ObjectStream.Length} bytes to {_name} in cloud");
 #endif
                     }
                     finally
                     {
-                        blobStream.Dispose();
+                        s3ObjectStream.Dispose();
                     }
 
 #if FULLDEBUG
@@ -119,8 +118,8 @@ namespace Examine.S3Directory
 
                 // clean up
                 _indexOutput = null;
-                //_blobContainer = null;
-                _blob = null;
+                //_s3ObjectContainer = null;
+                _s3Object = null;
                 GC.SuppressFinalize(this);
             }
             finally
@@ -132,7 +131,7 @@ namespace Examine.S3Directory
         private MemoryStream CompressStream(string fileName, long originalLength)
         {
             // unfortunately, deflate stream doesn't allow seek, and we need a seekable stream
-            // to pass to the blob storage stuff, so we compress into a memory stream
+            // to pass to the s3 storage stuff, so we compress into a memory stream
             MemoryStream compressedStream = new MemoryStream();
 
             IndexInput indexInput = null;

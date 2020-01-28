@@ -31,12 +31,12 @@ namespace Examine.S3Directory
 
             var lockFile = _s3Directory.RootFolder + name;
 
-            var blob = new S3FileInfo(_s3Directory._blobClient, _s3Directory._containerName, lockFile);
-            var flag1 = blob.Exists;
+            var s3Object = new S3FileInfo(_s3Directory.S3Client, _s3Directory._containerName, lockFile);
+            var flag1 = s3Object.Exists;
             bool flag2;
-            if (blob.Exists)
+            if (s3Object.Exists)
             {
-                blob.Delete();
+                s3Object.Delete();
                 flag2 = true;
             }
             else

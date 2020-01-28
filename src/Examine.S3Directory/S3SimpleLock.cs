@@ -27,7 +27,7 @@ namespace Examine.S3Directory
             try
             {
                 S3FileInfo s3FileInfo =
-                    new S3FileInfo(_s3Directory._blobClient, _s3Directory._containerName, _lockFile);
+                    new S3FileInfo(_s3Directory.S3Client, _s3Directory._containerName, _lockFile);
 
                 return s3FileInfo.Exists;
             }
@@ -39,13 +39,13 @@ namespace Examine.S3Directory
 
         public override bool Obtain()
         {
-            var blob = new S3FileInfo(_s3Directory._blobClient, _s3Directory._containerName, _lockFile);
-            var exists = blob.Exists;
+            var s3Object = new S3FileInfo(_s3Directory.S3Client, _s3Directory._containerName, _lockFile);
+            var exists = s3Object.Exists;
             if (exists)
                 return false;
 
             _s3Directory.EnsureContainer();
-            using (var s3Writer = blob.OpenWrite())
+            using (var s3Writer = s3Object.OpenWrite())
             using (var writer = new StreamWriter(s3Writer))
             {
                 writer.Write(_lockFile);
@@ -56,12 +56,12 @@ namespace Examine.S3Directory
 
         public override void Release()
         {
-            var blob = new S3FileInfo(_s3Directory._blobClient, _s3Directory._containerName, _lockFile);
-            var flag1 = blob.Exists;
+            var s3Object = new S3FileInfo(_s3Directory.S3Client, _s3Directory._containerName, _lockFile);
+            var flag1 = s3Object.Exists;
             bool flag2;
-            if (blob.Exists)
+            if (s3Object.Exists)
             {
-                blob.Delete();
+                s3Object.Delete();
                 flag2 = true;
             }
             else

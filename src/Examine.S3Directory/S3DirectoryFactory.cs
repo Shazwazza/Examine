@@ -7,7 +7,7 @@ using Directory = Lucene.Net.Store.Directory;
 namespace Examine.S3Directory
 {
     /// <summary>
-    /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for use on the server that can actively write to the index
+    /// The <see cref="IDirectoryFactory"/> for storing master index data in S3 storage for use on the server that can actively write to the index
     /// </summary>
     public class S3DirectoryFactory : SyncTempEnvDirectoryFactory
     {
