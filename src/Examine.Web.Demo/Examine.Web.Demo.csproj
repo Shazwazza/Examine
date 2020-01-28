@@ -13,7 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Examine.Web.Demo</RootNamespace>
     <AssemblyName>Examine.Web.Demo</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <FileUpgradeFlags>
@@ -229,6 +229,10 @@
     <Content Include="Views\Home\RebuildIndex.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Examine.Abstractions\Examine.Core.csproj">
+      <Project>{ca2a20ce-1a61-4185-8b49-bd50993acfdf}</Project>
+      <Name>Examine.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Examine.AzureDirectory\Examine.AzureDirectory.csproj">
       <Project>{c3880b59-8b08-4990-b3fa-0a8db9476319}</Project>
       <Name>Examine.AzureDirectory</Name>

@@ -13,7 +13,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Examine</RootNamespace>
     <AssemblyName>Examine</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>
     </SccProjectName>
@@ -105,14 +105,7 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="FieldDefinition.cs" />
-    <Compile Include="FieldDefinitionTypes.cs" />
-    <Compile Include="IExamineManager.cs" />
-    <Compile Include="IIndexStats.cs" />
-    <Compile Include="IndexingItemEventArgs.cs" />
-    <Compile Include="IndexOperationEventArgs.cs" />
     <Compile Include="IOHelper.cs" />
-    <Compile Include="ISearchResult.cs" />
     <Compile Include="LuceneEngine\DelegateFieldValueTypeFactory.cs" />
     <Compile Include="LuceneEngine\Directories\DirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
@@ -126,9 +119,6 @@
     <Compile Include="LuceneEngine\Directories\SyncIndexOutput.cs" />
     <Compile Include="LuceneEngine\Directories\SyncMutexManager.cs" />
     <Compile Include="DisposableObjectSlim.cs" />
-    <Compile Include="IndexingErrorEventArgs.cs" />
-    <Compile Include="IIndex.cs" />
-    <Compile Include="ISearchResults.cs" />
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
     <Compile Include="LuceneEngine\EmailAddressAnalyzer.cs" />
@@ -146,18 +136,13 @@
     <Compile Include="LuceneEngine\Indexing\RawStringType.cs" />
     <Compile Include="LuceneEngine\Indexing\SingleType.cs" />
     <Compile Include="LuceneEngine\DocumentWritingEventArgs.cs" />
-    <Compile Include="EmptySearchResults.cs" />
-    <Compile Include="ExamineExtensions.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
     <Compile Include="LuceneEngine\OpenReaderTracker.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
-    <Compile Include="IndexOperation.cs" />
-    <Compile Include="IndexOperationType.cs" />
     <Compile Include="LuceneEngine\Directories\IDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Providers\ErrorCheckingScoringBooleanQueryRewrite.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexFieldValueType.cs" />
     <Compile Include="LuceneEngine\FieldValueTypeCollection.cs" />
-    <Compile Include="IValueSetValidator.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndex.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\Search\CustomMultiFieldQueryParser.cs" />
@@ -169,7 +154,6 @@
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\ValueSetValidatorDelegate.cs" />
     <Compile Include="LuceneEngine\ReaderStatus.cs" />
-    <Compile Include="Search\ExamineValue.cs" />
     <Compile Include="LuceneEngine\Search\ISearchContext.cs" />
     <Compile Include="LuceneEngine\Search\LateBoundQuery.cs" />
     <Compile Include="LuceneEngine\Search\LuceneBooleanOperation.cs" />
@@ -177,34 +161,12 @@
     <Compile Include="LuceneEngine\Search\LuceneSearchQuery.cs" />
     <Compile Include="LuceneEngine\Search\LuceneSearchExtensions.cs" />
     <Compile Include="LuceneEngine\Search\MultiSearchContext.cs" />
-    <Compile Include="SearchExtensions.cs" />
-    <Compile Include="Search\INestedBooleanOperation.cs" />
-    <Compile Include="Search\INestedQuery.cs" />
-    <Compile Include="Search\IOrdering.cs" />
-    <Compile Include="Search\SortableField.cs" />
-    <Compile Include="Search\SortType.cs" />
     <Compile Include="LuceneEngine\LuceneSearchResults.cs" />
     <Compile Include="LuceneEngine\ValueTypeFactoryCollection.cs" />
     <Compile Include="LuceneEngine\WriterTracker.cs" />
-    <Compile Include="ObjectExtensions.cs" />
-    <Compile Include="OrderedDictionary.cs" />
-    <Compile Include="FieldDefinitionCollection.cs" />
-    <Compile Include="Search\BooleanOperation.cs" />
-    <Compile Include="Search\IBooleanOperation.cs" />
-    <Compile Include="Search\IQuery.cs" />
-    <Compile Include="Search\IQueryExecutor.cs" />
-    <Compile Include="ISearcher.cs" />
-    <Compile Include="ExamineManager.cs" />
+    <Compile Include="AspExamineManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Search\IExamineValue.cs" />
-    <Compile Include="Search\Examineness.cs" />
-    <Compile Include="SearchResult.cs" />
-    <Compile Include="Providers\BaseIndexProvider.cs" />
-    <Compile Include="Providers\BaseSearchProvider.cs" />
     <Compile Include="StringExtensions.cs" />
-    <Compile Include="TypeHelper.cs" />
-    <Compile Include="ValueSet.cs" />
-    <Compile Include="ValueSetValidationResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -230,6 +192,13 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Examine.Abstractions\Examine.Core.csproj">
+      <Project>{ca2a20ce-1a61-4185-8b49-bd50993acfdf}</Project>
+      <Name>Examine.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

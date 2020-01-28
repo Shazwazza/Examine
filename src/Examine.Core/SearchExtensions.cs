@@ -1,6 +1,5 @@
 ﻿using System;
 using Examine.Search;
-using Lucene.Net.Search;
 
 namespace Examine
 {

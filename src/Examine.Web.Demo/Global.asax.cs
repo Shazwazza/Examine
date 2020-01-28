@@ -69,10 +69,10 @@ namespace Examine.Web.Demo
 
             Trace.WriteLine("App starting");
 
-            CreateIndexes(ExamineManager.Instance);
+            CreateIndexes(AspExamineManager.Instance);
 
 #if FULLDEBUG
-            foreach (var luceneIndexer in ExamineManager.Instance.Indexes.OfType<LuceneIndex>())
+            foreach (var luceneIndexer in AspExamineManager.Instance.Indexes.OfType<LuceneIndex>())
             {
                 var dir = luceneIndexer.GetLuceneDirectory();
                 if (IndexWriter.IsLocked(dir))

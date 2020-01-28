@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using Examine.Providers;
 
 namespace Examine
 {
@@ -50,5 +49,11 @@ namespace Examine
         /// Raised once an index operation is completed
         /// </summary>
         event EventHandler<IndexOperationEventArgs> IndexOperationComplete;
+
+        /// <summary>
+        /// Raised before the item is indexed allowing developers to customize the data that get's stored in the index
+        /// </summary>
+        event EventHandler<IndexingItemEventArgs> TransformingIndexValues;
+
     }
 }

@@ -1,6 +1,4 @@
-﻿using Examine.LuceneEngine;
-
-namespace Examine
+﻿namespace Examine
 {
     /// <summary>
     /// Contains the names of field definition types
@@ -34,12 +32,12 @@ namespace Examine
         public const string FullTextSortable = "fulltextsortable";
 
         /// <summary>
-        /// Will be indexed with the <see cref="CultureInvariantWhitespaceAnalyzer"/>, this is what is used for 'special' prefixed fields
+        /// Will be indexed with a culture invariant whitespace analyzer, this is what is used for 'special' prefixed fields
         /// </summary>
         public const string InvariantCultureIgnoreCase = "invariantcultureignorecase";
 
         /// <summary>
-        /// Will be indexed with the <see cref="EmailAddressAnalyzer"/>
+        /// Will be indexed with an email address analyzer
         /// </summary>
         public const string EmailAddress = "emailaddress";
     }

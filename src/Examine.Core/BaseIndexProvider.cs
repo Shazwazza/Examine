@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Examine.Providers
+namespace Examine
 {
     /// <inheritdoc />
     /// <summary>

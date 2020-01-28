@@ -31,7 +31,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult MultiSearch(string id)
         {
-            if (!ExamineManager.Instance.TryGetSearcher("MultiIndexSearcher", out var multi))
+            if (!AspExamineManager.Instance.TryGetSearcher("MultiIndexSearcher", out var multi))
                 return HttpNotFound();
 
             var criteria = multi.CreateQuery();
@@ -50,7 +50,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult Search(string id, string indexName = null)
         {
-            if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+            if (!AspExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
             var searcher = index.GetSearcher();
@@ -119,7 +119,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult RebuildIndex(string indexName = null)
         {
-            if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+            if (!AspExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
             var elapsed = Execute(index, i =>
@@ -149,7 +149,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult ReIndexItems(string indexName = null)
         {
-            if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+            if (!AspExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
             var items = Execute(index, i =>
@@ -166,7 +166,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public async Task<ActionResult> TestIndex(string indexName = null)
         {
-            if (!ExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+            if (!AspExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return HttpNotFound();
 
             if (index is IIndexStats stats)

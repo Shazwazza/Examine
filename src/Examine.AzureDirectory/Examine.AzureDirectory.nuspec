@@ -14,14 +14,17 @@
     <tags>examine azure blobstorage search lucene</tags>
     <copyright>$copyright$</copyright>
     <dependencies>
-        <group targetFramework="net452">
-            <dependency id="Examine" version="1.0.0" />
-            <dependency id="WindowsAzure.Storage" version="9.3.1" />
-        </group>
+      <group targetFramework="net461">
+        <dependency id="Examine" version="2.0.0" />
+        <dependency id="WindowsAzure.Storage" version="9.3.1" />
+      </group>
+      <group targetFramework="netstandard2.0">
+        <dependency id="Examine.Core" version="2.0.0" />
+      </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\Examine.AzureDirectory.dll" target="lib\net452\Examine.AzureDirectory.dll" />
-    <file src="bin\Release\Examine.AzureDirectory.pdb" target="lib\net452\Examine.AzureDirectory.pdb" />
+    <file src="bin\Release\Examine.AzureDirectory.dll" target="lib\net461\Examine.AzureDirectory.dll" />
+    <file src="bin\Release\Examine.AzureDirectory.pdb" target="lib\net461\Examine.AzureDirectory.pdb" />
   </files>
 </package>

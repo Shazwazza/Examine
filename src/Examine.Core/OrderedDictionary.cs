@@ -10,7 +10,7 @@ namespace Examine
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TVal"></typeparam>
-    internal class OrderedDictionary<TKey, TVal> : KeyedCollection<TKey, KeyValuePair<TKey, TVal>>, IDictionary<TKey, TVal>, IReadOnlyDictionary<TKey, TVal>
+    public class OrderedDictionary<TKey, TVal> : KeyedCollection<TKey, KeyValuePair<TKey, TVal>>, IDictionary<TKey, TVal>, IReadOnlyDictionary<TKey, TVal>
     {
         public OrderedDictionary()
         {

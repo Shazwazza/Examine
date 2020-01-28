@@ -1,62 +1,18 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Web.Hosting;
-using Examine.LuceneEngine;
 
 namespace Examine
 {
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : IDisposable, IRegisteredObject, IExamineManager
+    public class ExamineManager : IDisposable, IExamineManager
     {
-        //tracks if the ExamineManager should register itself with the HostingEnvironment
-        private static volatile bool _defaultRegisteration = true;
-
-        /// <summary>
-        /// By default the <see cref="ExamineManager"/> will use itself to to register against the HostingEnvironment for tracking
-        /// app domain shutdown. In some cases a library may wish to manage this shutdown themselves in which case this can be called
-        /// on startup to disable the default registration.
-        /// </summary>        
-        /// <returns></returns>
-        public static void DisableDefaultHostingEnvironmentRegistration()
-        {
-            if (!_defaultRegisteration) return;
-            _defaultRegisteration = false;
-
-            var instance = Instance;
-            if (instance is ExamineManager e) HostingEnvironment.UnregisterObject(e);
+        public ExamineManager()
+        {            
         }
-
-        private ExamineManager()
-        {
-            if (!_defaultRegisteration) return;
-            AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
-            HostingEnvironment.RegisterObject(this);
-        }
-
-        /// <summary>
-        /// Returns true if this singleton has been initialized
-        /// </summary>
-        public static bool InstanceInitialized { get; private set; }
-
-        /// <summary>
-        /// Singleton instance - but it's much more preferable to use IExamineManager
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static IExamineManager Instance
-        {
-            get
-            {
-                InstanceInitialized = true;
-                return Manager;
-            }
-        }
-
-        private static readonly ExamineManager Manager = new ExamineManager();
 
         private readonly ConcurrentDictionary<string, IIndex> _indexers = new ConcurrentDictionary<string, IIndex>(StringComparer.InvariantCultureIgnoreCase);
         private readonly ConcurrentDictionary<string, ISearcher> _searchers = new ConcurrentDictionary<string, ISearcher>(StringComparer.InvariantCultureIgnoreCase);
@@ -111,7 +67,7 @@ namespace Examine
             GC.SuppressFinalize(this);
         }
         private bool _disposed = false;
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)
             {
@@ -127,10 +83,10 @@ namespace Examine
         }
 
         /// <summary>
-        /// Requests a registered object to unregister on app domain unload in a web project
+        /// Used to dispose the manager, can be overridden in web projects to control the unwinding of an appdomain
         /// </summary>
         /// <param name="immediate">true to indicate the registered object should unregister from the hosting environment before returning; otherwise, false.</param>
-        public void Stop(bool immediate)
+        public virtual void Stop(bool immediate)
         {
             if (immediate)
             {
@@ -148,15 +104,12 @@ namespace Examine
                     {
                         searcher.Dispose();
                     }
-
-                    OpenReaderTracker.Current.CloseAllReaders();
                 }
-                finally
+                catch
                 {
-                    //unregister if the default registration was used
-                    if (_defaultRegisteration)
-                        HostingEnvironment.UnregisterObject(this);
-                }
+                    // we don't want to kill the app or anything, even though it is terminating, best to just ensure that 
+                    // no strange lucene background thread stuff causes issues here.
+                }                
             }
             else
             {

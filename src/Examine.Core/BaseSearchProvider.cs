@@ -1,10 +1,10 @@
 ﻿using System;
 using Examine.Search;
 
-namespace Examine.Providers
+namespace Examine
 {
     ///<summary>
-    /// Abstract search provider object
+    /// Abstract searcher
     ///</summary>
     public abstract class BaseSearchProvider : ISearcher
     {

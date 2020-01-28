@@ -1,5 +1,4 @@
 ﻿using System;
-using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Search;

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Examine
 {
-    internal interface IIndexStats
+    public interface IIndexStats
     {
         Task<long> GetDocumentCountAsync();
         Task<IEnumerable<string>> GetFieldNamesAsync();
