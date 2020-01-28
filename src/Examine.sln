@@ -17,7 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768
 	ProjectSection(SolutionItems) = preProject
 		..\appveyor.build.yml = ..\appveyor.build.yml
 		..\appveyor.yml = ..\appveyor.yml
-		..\azure-pipelines-1.yml = ..\azure-pipelines-1.yml
 		..\azure-pipelines.yml = ..\azure-pipelines.yml
 		..\build\Build-Release.ps1 = ..\build\Build-Release.ps1
 		..\build\build.xml = ..\build\build.xml

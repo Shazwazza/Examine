@@ -22,7 +22,6 @@ using System.Security;
 
 [assembly: InternalsVisibleTo("UmbracoExamine")]
 [assembly: InternalsVisibleTo("Examine.AzureDirectory")]
-[assembly: InternalsVisibleTo("Examine.AzureSearch")]
 [assembly: InternalsVisibleTo("Examine.Web.Demo")]
 [assembly: InternalsVisibleTo("Examine.Test")]
 
