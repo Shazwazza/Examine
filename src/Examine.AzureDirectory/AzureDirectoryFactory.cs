@@ -45,18 +45,21 @@ namespace Examine.AzureDirectory
         /// <returns>
         /// The <see cref="Lucene.Net.Store.Directory"/>.
         /// </returns>
-        public  Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
+        public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
 
             return new AzureDirectory(
-                CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),                
+                CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 new SimpleFSDirectory(tempFolder),
                 rootFolder: luceneIndexFolder.Name,
                 isReadOnly: _isReadOnly);
         }
-        
+
+        // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
+        Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
+
     }
 }
