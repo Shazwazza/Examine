@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Examine.AzureDirectory</RootNamespace>
     <AssemblyName>Examine.AzureDirectory</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -139,9 +139,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine\Examine.csproj">
+    <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj">
       <Project>{da5e35c3-89ba-4a2e-a559-32cf7b23cbff}</Project>
-      <Name>Examine</Name>
+      <Name>Examine.Lucene</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

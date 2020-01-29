@@ -27,10 +27,18 @@ url: "https://shazwazza.github.io" # the base hostname & protocol for your site,
 twitter_username: shazwazza
 github_username:  shazwazza
 
+twitter:
+  username: shazwazza
+
+github:
+  owner_url: https://github.com/Shazwazza/Examine
+  owner_name: shazwazza
+
 # Build settings
-theme: jekyll-theme-cayman
-# plugins:
-#  - jekyll-feed
+# theme: minima
+# theme: jekyll-theme-cayman
+theme: 
+
 plugins:
   - jekyll-feed
   - jekyll-readme-index
@@ -54,3 +62,5 @@ plugins:
 #   - vendor/cache/
 #   - vendor/gems/
 #   - vendor/ruby/
+
+header_page_refs: ['configuration', 'indexing', 'searching', 'sorting']

@@ -17,19 +17,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768
 	ProjectSection(SolutionItems) = preProject
 		..\appveyor.build.yml = ..\appveyor.build.yml
 		..\appveyor.yml = ..\appveyor.yml
-		..\azure-pipelines-1.yml = ..\azure-pipelines-1.yml
 		..\azure-pipelines.yml = ..\azure-pipelines.yml
 		..\build\Build-Release.ps1 = ..\build\Build-Release.ps1
 		..\build\build.xml = ..\build\build.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine\Examine.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Lucene", "Examine.Lucene\Examine.Lucene.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.AzureDirectory", "Examine.AzureDirectory\Examine.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Core", "Examine.Core\Examine.Core.csproj", "{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +54,10 @@ Global
 		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

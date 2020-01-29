@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Examine</RootNamespace>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Description>Examine is an abstraction for indexing and search operations with implementations such as Lucene.Net</Description>
+    <PackageProjectUrl>https://github.com/Shazwazza/Examine</PackageProjectUrl>
+    <PackageIcon>logo-round.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/Shazwazza/Examine</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>examine search index</PackageTags>
+    <Copyright>$copyright$</Copyright>
+    <Version>2.0.0</Version>
+  </PropertyGroup>
+
+</Project>

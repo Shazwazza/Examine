@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Examine.Core</id>
+    <version>0.0.0.0</version>
+    <title>Examine</title>
+    <authors>Shannon Deminick</authors>
+    <owners>Shannon Deminick</owners>
+    <projectUrl>https://github.com/Shazwazza/Examine</projectUrl>
+    <licenseUrl>http://www.opensource.org/licenses/ms-pl</licenseUrl>
+    <icon>logo-round.png</icon>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Examine is an abstraction for indexing and search operations with implementations such as Lucene.Net</description>
+    <summary>Examine is an abstraction for indexing and search operations with implementations such as Lucene.Net</summary>
+    <tags>examine search index</tags>
+    <copyright>$copyright$</copyright>
+    <repository type="git" url="https://github.com/Shazwazza/Examine" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\netstandard2.0\Examine.Core.dll" target="lib\netstandard2.0\Examine.Core.dll" />
+    <file src="..\..\assets\logo-round.png" target="logo-round.png" />
+  </files>
+</package>

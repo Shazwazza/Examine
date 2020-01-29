@@ -24,13 +24,4 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $UsernameEncoded = [System.Web.HttpUtility]::UrlEncode("$(gitUsername)")
-      $PasswordEncoded = [System.Web.HttpUtility]::UrlEncode("$(gitPassword)")
-      $currentRemoteUri = New-Object System.Uri $(gitAddress)
-      $newRemoteUrlBuilder = New-Object System.UriBuilder($currentRemoteUri)
-      $newRemoteUrlBuilder.UserName = $UsernameEncoded 
-      $newRemoteUrlBuilder.Password = $PasswordEncoded
-      $gitAuthenticatedUrl = $newRemoteUrlBuilder.ToString()
-      Write-Host "Cloning Umbraco Cloud repository..."
-      git clone $gitAuthenticatedUrl
-      Write-Host "Copying Build output to the Umbraco Cloud repository..."
+      Install-Module -Name PowerShellForGitHub -Force

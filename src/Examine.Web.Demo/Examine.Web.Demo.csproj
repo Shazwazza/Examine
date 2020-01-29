@@ -262,13 +262,17 @@
     <Content Include="Views\Home\RebuildIndex.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Examine.Core\Examine.Core.csproj">
+      <Project>{ca2a20ce-1a61-4185-8b49-bd50993acfdf}</Project>
+      <Name>Examine.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Examine.AzureDirectory\Examine.AzureDirectory.csproj">
       <Project>{c3880b59-8b08-4990-b3fa-0a8db9476319}</Project>
       <Name>Examine.AzureDirectory</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Examine\Examine.csproj">
+    <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
-      <Name>Examine</Name>
+      <Name>Examine.Lucene</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

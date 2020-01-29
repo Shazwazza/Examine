@@ -3,8 +3,8 @@
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
-trigger:
-- master
+# trigger:
+# - master
 
 pool:
   vmImage: 'windows-latest'
@@ -13,7 +13,7 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  nugetVersion: 1.0.3-alpha.$(Build.BuildNumber)
+  nugetVersion: 2.0.0-alpha.$(Build.BuildNumber)
 
 steps:
 
