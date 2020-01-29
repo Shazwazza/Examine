@@ -1655,8 +1655,6 @@ namespace Examine.Test.Search
                 var op = criteria.NativeQuery("hello:world").And();
 
                 criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true));
-                                
-                criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true));
 
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
