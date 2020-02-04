@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using Lucene.Net.Store.Azure;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 
@@ -14,7 +14,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
-    public class AzureDirectory : Lucene.Net.Store.Azure.AzureDirectory
+    public class AzureDirectory : Lucene.Net.Store.Directory
     {
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
@@ -45,7 +45,7 @@ namespace Examine.AzureDirectory
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false,
             string rootFolder = null,
-            bool isReadOnly = false):base(storageAccount,containerName,cacheDirectory)
+            bool isReadOnly = false)
         {            
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
@@ -102,6 +102,10 @@ namespace Examine.AzureDirectory
 
         private string[] GetAllBlobFiles()
         {
+            if (!_blobContainer.Exists())
+            {
+                _blobContainer.Create();
+            }
             var results = from blob in _blobContainer.ListBlobs(RootFolder)
                           select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
             return results.ToArray();
@@ -141,7 +145,7 @@ namespace Examine.AzureDirectory
                 return false;
             }
         }
-/* TODO: CHECK IF IT IS STILL REQUIRED
+
         /// <summary>Returns the time the named file was last modified. </summary>
         public override long FileModified(String name)
         {
@@ -170,15 +174,8 @@ namespace Examine.AzureDirectory
             }
         }
 
-        /// <summary>Set the modified time of an existing file to now. </summary>
-        [Obsolete("This is actually never used")]
-        public override void TouchFile(string name)
-        {
-            //just update the cache file - the Lucene source actually never calls this method!
-            CacheDirectory.TouchFile(name);
-            SetDirty();
-        }
-*/
+
+
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(string name)
         {
@@ -266,6 +263,11 @@ namespace Examine.AzureDirectory
             return (IndexOutput) azureIndexOutput;
         }
 
+        public override void Sync(ICollection<string> names)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>Returns a stream reading an existing file. </summary>
         public override IndexInput OpenInput(string name, IOContext context)
         {
@@ -321,6 +323,11 @@ namespace Examine.AzureDirectory
         {
             _blobContainer = null;
             _blobClient = null;
+        }
+
+        public override void SetLockFactory(LockFactory lockFactory)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary> Return a string identifier that uniquely differentiates

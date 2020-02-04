@@ -70,10 +70,6 @@
       <HintPath>..\packages\Lucene.Net.Sandbox.4.8.0-beta00007\lib\net45\Lucene.Net.Sandbox.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Lucene.Net.Store.Azure, Version=4.8.0.7, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Lucene.Net.Store.Azure.4.8.0-beta006-2\lib\netstandard2.0\Lucene.Net.Store.Azure.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
     </Reference>
@@ -128,6 +124,8 @@
     <Compile Include="AzureDirectoryFactory.cs" />
     <Compile Include="AzureDirectoryNativeLockFactory.cs" />
     <Compile Include="AzureDirectorySimpleLockFactory.cs" />
+    <Compile Include="AzureIndexInput.cs" />
+    <Compile Include="AzureIndexOutput.cs" />
     <Compile Include="AzureSimpleLock.cs" />
     <Compile Include="AzureNativeLock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
