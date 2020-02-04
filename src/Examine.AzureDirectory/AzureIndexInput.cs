@@ -207,7 +207,7 @@ namespace Examine.AzureDirectory
 
         public override long GetFilePointer()
         {
-            throw new NotImplementedException();
+        return    _indexInput.GetFilePointer();
         }
 
         public override void Seek(long pos)
