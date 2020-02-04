@@ -146,33 +146,7 @@ namespace Examine.AzureDirectory
             }
         }
 
-        /// <summary>Returns the time the named file was last modified. </summary>
-        public override long FileModified(String name)
-        {
-            CheckDirty();
-
-          
-
-            try
-            {
-                var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
-                blob.FetchAttributes();
-                if (blob.Properties.LastModified != null)
-                {
-                    var utcDate = blob.Properties.LastModified.Value.UtcDateTime;
-
-                    //This is the data structure of how the default Lucene FSDirectory returns this value so we want
-                    // to be consistent with how Lucene works
-                    return (long)utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
-                }
-
-                return 0;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
+      
 
 
 
@@ -259,7 +233,7 @@ namespace Examine.AzureDirectory
             }
 
             CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(name);
-            AzureIndexOutput azureIndexOutput = new AzureIndexOutput(this, name, blockBlobReference);
+            AzureIndexOutput azureIndexOutput = new AzureIndexOutput(this, blockBlobReference, name);
             return (IndexOutput) azureIndexOutput;
         }
 
@@ -296,7 +270,7 @@ namespace Examine.AzureDirectory
             {
                 CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(name);
                 blockBlobReference.FetchAttributes((AccessCondition) null, (BlobRequestOptions) null, (OperationContext) null);
-                return (IndexInput) new AzureIndexInput(this, name, (CloudBlob) blockBlobReference);
+                return (IndexInput) new AzureIndexInput(this, (ICloudBlob) blockBlobReference);
             }
             catch (Exception ex)
             {
