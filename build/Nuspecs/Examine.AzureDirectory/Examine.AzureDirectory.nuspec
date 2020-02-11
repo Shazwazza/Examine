@@ -14,7 +14,7 @@
     <tags>examine azure blobstorage search lucene</tags>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="Examine" version="0.1.90-beta01" />
+      <dependency id="Examine" version="0.1.90" />
       <dependency id="WindowsAzure.Storage" version="9.3.1" />
     </dependencies>
   </metadata>
