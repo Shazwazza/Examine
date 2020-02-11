@@ -17,6 +17,19 @@ namespace Examine.Test.Search
     public class FluentApiTests
     {
         [Test]
+        public void NativeQuery_Single_Word()
+        {
+            //TODO: Fill this in, NativeQuery should support single word search + phrase too
+            Assert.Fail("FILL THIS IN");
+        }
+
+        [Test]
+        public void NativeQuery_Phrase()
+        {
+            Assert.Fail("FILL THIS IN");
+        }
+
+        [Test]
         public void Managed_Range_Date()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
@@ -662,8 +675,6 @@ namespace Examine.Test.Search
 
 
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "into 1", bodyText = "It was one thing to bring Carmen into it, but Jonathan was another story." }),
@@ -676,6 +687,10 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 var criteria = searcher.CreateQuery();
+
+                // TODO: This isn't testing correctly because the search parser is actually removing stop words to generate the search so we actually
+                // end up with an empty search and then by fluke this test passes.
+
                 var filter = criteria.Field("bodyText", "into")
                     .Or().Field("nodeName", "into");
 
