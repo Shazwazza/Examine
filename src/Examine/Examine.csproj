@@ -199,6 +199,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Examine.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

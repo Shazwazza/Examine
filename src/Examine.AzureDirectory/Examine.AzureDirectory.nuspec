@@ -19,7 +19,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Examine.AzureDirectory.dll" target="lib\Examine.AzureDirectory.dll" />
-    <file src="Examine.AzureDirectory.pdb" target="lib\Examine.AzureDirectory.pdb" />
+    <file src="bin\Release\Examine.AzureDirectory.dll" target="lib\net452\Examine.AzureDirectory.dll" />
+    <file src="bin\Release\Examine.AzureDirectory.pdb" target="lib\net452\Examine.AzureDirectory.pdb" />
   </files>
 </package>

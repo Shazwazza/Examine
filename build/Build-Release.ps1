@@ -43,12 +43,9 @@ else {
 	   mv "$dir\$file" $vswhere   
 	 }
 
-	$MSBuild = &$vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
-	if ($MSBuild) {
-	  $MSBuild = join-path $MSBuild 'MSBuild\15.0\Bin\MSBuild.exe'
-	  if (-not (test-path $msbuild)) {
-		throw "MSBuild not found!"
-	  }
+	$MSBuild = &$vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | select-object -first 1
+	if (-not (test-path $MSBuild)) {
+	    throw "MSBuild not found!"
 	}
 }
 
@@ -62,7 +59,7 @@ $buildXmlFile = (Join-Path $BuildFolder "build.xml")
 $SolutionInfoPath = Join-Path -Path $SolutionRoot -ChildPath "SolutionInfo.cs"
 
 # Set the copyright
-$Copyright = "Copyright © Shannon Deminick " + (Get-Date).year
+$Copyright = "Copyright " + [char]0x00A9 + " Shannon Deminick " + (Get-Date).year
 (gc -Path $SolutionInfoPath) `
 	-replace "(?<=AssemblyCopyright\(`").*(?=`"\))", $Copyright |
 	sc -Path $SolutionInfoPath -Encoding UTF8
@@ -80,19 +77,22 @@ foreach($project in $root.ChildNodes) {
 
 	$projectPath = Join-Path -Path $SolutionRoot -ChildPath $project.id
 	$projectAssemblyInfo = Join-Path -Path $projectPath -ChildPath "Properties\AssemblyInfo.cs"
-	$projectVersion = $project.version.Split("-")[0];
 
-	Write-Host "Updating verion for $projectPath to $($project.version) ($projectVersion)"
+	if (Test-Path -Path $projectAssemblyInfo){
+		$projectVersion = $project.version.Split("-")[0];
 
-	#update assembly infos with correct version
+		Write-Host "Updating verion for $projectPath to $($project.version) ($projectVersion)"
 
-	(gc -Path $projectAssemblyInfo) `
-		-replace "(?<=Version\(`")[.\d]*(?=`"\))", "$projectVersion.0" |
-		sc -Path $projectAssemblyInfo -Encoding UTF8
+		#update assembly infos with correct version
 
-	(gc -Path $projectAssemblyInfo) `
-		-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", $project.version |
-		sc -Path $projectAssemblyInfo -Encoding UTF8
+		(gc -Path $projectAssemblyInfo) `
+			-replace "(?<=Version\(`")[.\d]*(?=`"\))", "$projectVersion.0" |
+			sc -Path $projectAssemblyInfo -Encoding UTF8
+
+		(gc -Path $projectAssemblyInfo) `
+			-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", $project.version |
+			sc -Path $projectAssemblyInfo -Encoding UTF8
+	}
 }
 
 # Build the solution in release mode
@@ -108,18 +108,8 @@ if (-not $?)
 }
 
 # Iterate projects and output them
-$include = @('*Examine*.dll','*Examine*.pdb','*Lucene*.dll','ICSharpCode.SharpZipLib.dll')
-foreach($project in $root.ChildNodes) {
-	$projectRelease = Join-Path -Path $ReleaseFolder -ChildPath "$($project.id)";
-	New-Item $projectRelease -Type directory
-
-	$projectBin = Join-Path -Path $SolutionRoot -ChildPath "$($project.id)\bin\Release";
-	Copy-Item "$projectBin\*.*" -Destination $projectRelease -Include $include
-
-	$nuSpecSource = Join-Path -Path $BuildFolder -ChildPath "Nuspecs\$($project.id)\*";
-	Copy-Item $nuSpecSource -Destination $projectRelease
-	$nuSpec = Join-Path -Path $projectRelease -ChildPath "$($project.id).nuspec";
-		
+foreach($project in $root.ChildNodes) {	
+	$nuSpec = Join-Path -Path $SolutionRoot -ChildPath "$($project.id)\$($project.id).nuspec";	
 	& $NuGet pack $nuSpec -OutputDirectory $ReleaseFolder -Version $project.version -Properties copyright=$Copyright
 }
 
