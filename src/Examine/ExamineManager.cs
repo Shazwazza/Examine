@@ -31,7 +31,7 @@ namespace Examine
             if (instance is ExamineManager e) HostingEnvironment.UnregisterObject(e);
         }
 
-        private ExamineManager()
+        public ExamineManager()
         {
             if (!_defaultRegisteration) return;
             AppDomain.CurrentDomain.DomainUnload += (sender, args) => Dispose();
