@@ -19,14 +19,62 @@ namespace Examine.Test.Search
         [Test]
         public void NativeQuery_Single_Word()
         {
-            //TODO: Fill this in, NativeQuery should support single word search + phrase too
-            Assert.Fail("FILL THIS IN");
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content").NativeQuery("sydney");
+
+                Console.WriteLine(query);
+
+                var results = query.Execute();
+
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
         }
 
         [Test]
         public void NativeQuery_Phrase()
         {
-            Assert.Fail("FILL THIS IN");
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "location 3", bodyText = "In Australia there is a town called Bateau Bay in NSW"})
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content").NativeQuery("\"town called\"");
+
+                Console.WriteLine(query);
+                Assert.AreEqual("{ Category: content, LuceneQuery: +(nodeName:\"town called\" bodyText:\"town called\") }", query.ToString());
+
+                var results = query.Execute();
+
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
         }
 
         [Test]
@@ -703,7 +751,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void Search_Raw_Query()
+        public void Search_Native_Query()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
@@ -1656,7 +1704,7 @@ namespace Examine.Test.Search
 
 
         [Test]
-        public void Custom_Lucene_Query_With_Raw()
+        public void Custom_Lucene_Query_With_Native()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
