@@ -17,6 +17,67 @@ namespace Examine.Test.Search
     public class FluentApiTests
     {
         [Test]
+        public void NativeQuery_Single_Word()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content").NativeQuery("sydney");
+
+                Console.WriteLine(query);
+
+                var results = query.Execute();
+
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void NativeQuery_Phrase()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "location 3", bodyText = "In Australia there is a town called Bateau Bay in NSW"})
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content").NativeQuery("\"town called\"");
+
+                Console.WriteLine(query);
+                Assert.AreEqual("{ Category: content, LuceneQuery: +(nodeName:\"town called\" bodyText:\"town called\") }", query.ToString());
+
+                var results = query.Execute();
+
+                Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
+
+        [Test]
         public void Managed_Range_Date()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
@@ -662,8 +723,6 @@ namespace Examine.Test.Search
 
 
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "into 1", bodyText = "It was one thing to bring Carmen into it, but Jonathan was another story." }),
@@ -676,6 +735,10 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 var criteria = searcher.CreateQuery();
+
+                // TODO: This isn't testing correctly because the search parser is actually removing stop words to generate the search so we actually
+                // end up with an empty search and then by fluke this test passes.
+
                 var filter = criteria.Field("bodyText", "into")
                     .Or().Field("nodeName", "into");
 
@@ -688,7 +751,7 @@ namespace Examine.Test.Search
         }
 
         [Test]
-        public void Search_Raw_Query()
+        public void Search_Native_Query()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
@@ -1641,7 +1704,7 @@ namespace Examine.Test.Search
 
 
         [Test]
-        public void Custom_Lucene_Query_With_Raw()
+        public void Custom_Lucene_Query_With_Native()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
