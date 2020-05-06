@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.IO;
+using J2N;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Miscellaneous;
@@ -31,7 +32,7 @@ namespace Examine.LuceneEngine
 
 
 
-        private class LetterOrDigitTokenizer : CharTokenizer
+        private sealed class LetterOrDigitTokenizer : CharTokenizer
         {
             public LetterOrDigitTokenizer(TextReader tr)
                 : base(Util.Version, tr)

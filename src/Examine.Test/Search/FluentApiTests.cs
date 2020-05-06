@@ -78,7 +78,7 @@ namespace Examine.Test.Search
                 indexer1.IndexItem(ValueSet.FromObject("3", "content", new { item1 = "value3", item2 = "They are expected to confront the darkness and show evidence that they have done so in their papers" }));
                 indexer1.IndexItem(ValueSet.FromObject("4", "content", new { item1 = "value4", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
                 indexer1.IndexItem(ValueSet.FromObject("5", "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
-                indexer1.IndexItem(VsalueSet.FromObject("6", "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
+                indexer1.IndexItem(ValueSet.FromObject("6", "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
                 indexer1.IndexItem(ValueSet.FromObject("7", "content", new { SomeField = "value5", AnotherField = "another value" }));
 
                 var searcher = indexer1.GetSearcher();
@@ -1011,7 +1011,7 @@ namespace Examine.Test.Search
                 var results = sc.Execute();
 
                 //Assert
-                Assert.AreNotEqual(x.First(), results.Skip(2).First(), "Third result should be different");
+                Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
             }
 
 

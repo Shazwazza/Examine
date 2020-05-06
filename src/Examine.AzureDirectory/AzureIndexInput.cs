@@ -68,7 +68,7 @@ namespace Examine.AzureDirectory
                       //  var unixDate = CacheDirectory.FileModified(fileName);
                       
                         var start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                        var cachedLastModifiedUtc = start.AddMilliseconds(unixDate).ToUniversalTime();
+                        var cachedLastModifiedUtc = start.AddMilliseconds(0).ToUniversalTime();
                         
                         if (cachedLastModifiedUtc != blobLastModifiedUtc)
                         {

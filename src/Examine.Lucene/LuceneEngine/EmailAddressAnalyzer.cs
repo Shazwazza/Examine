@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using J2N;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Util;
@@ -18,7 +19,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Used for email addresses
         /// </summary>
-        public class EmailAddressTokenizer : CharTokenizer
+        public sealed class EmailAddressTokenizer : CharTokenizer
         {
             public EmailAddressTokenizer(TextReader input)
                 : base(Util.Version,input)
