@@ -20,7 +20,7 @@ namespace Examine.Test.Search
         [Test]
         public void NativeQuery_Single_Word()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(Util.Version);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
@@ -50,7 +50,7 @@ namespace Examine.Test.Search
         [Test]
         public void NativeQuery_Phrase()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(Util.Version);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
