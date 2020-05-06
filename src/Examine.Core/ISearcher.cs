@@ -16,7 +16,7 @@ namespace Examine
         /// <summary>
         /// Searches the index
         /// </summary>
-        /// <param name="searchText">The search text.</param>
+        /// <param name="searchText">The search text or a native query</param>
         /// <param name="maxResults"></param>
         /// <returns>Search Results</returns>
         ISearchResults Search(string searchText, int maxResults = 500);
