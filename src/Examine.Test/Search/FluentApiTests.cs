@@ -70,7 +70,7 @@ namespace Examine.Test.Search
                 var query = searcher.CreateQuery("content").NativeQuery("\"town called\"");
 
                 Console.WriteLine(query);
-                Assert.AreEqual("{ Category: content, LuceneQuery: +(nodeName:\"town called\" bodyText:\"town called\") }", query.ToString());
+                Assert.AreEqual("{ Category: content, LuceneQuery: +(bodyText:\"town called\" nodeName:\"town called\") }", query.ToString());
 
                 var results = query.Execute();
 
