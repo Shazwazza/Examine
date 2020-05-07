@@ -34,7 +34,7 @@ namespace Examine.LuceneEngine.Directories
     {
         private readonly Lucene.Net.Store.Directory _masterDirectory;
         private readonly Lucene.Net.Store.Directory _cacheDirectory;
-        private readonly MultiIndexLockFactory _lockFactory;
+        private MultiIndexLockFactory _lockFactory;
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
@@ -181,7 +181,7 @@ namespace Examine.LuceneEngine.Directories
 
         public override void Sync(ICollection<string> names)
         {
-            throw new NotImplementedException();
+            this.EnsureOpen();
         }
 
         
@@ -254,7 +254,7 @@ namespace Examine.LuceneEngine.Directories
 
         public override void SetLockFactory(LockFactory lockFactory)
         {
-            throw new NotImplementedException();
+            _lockFactory = (MultiIndexLockFactory) lockFactory;
         }
 
         //TODO: This isn't used

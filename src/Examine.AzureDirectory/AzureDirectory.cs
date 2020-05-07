@@ -25,7 +25,7 @@ namespace Examine.AzureDirectory
         private readonly string _containerName;        
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
-        private readonly LockFactory _lockFactory;
+        private LockFactory _lockFactory;
 
         /// <summary>
         /// Create an AzureDirectory
@@ -242,7 +242,7 @@ namespace Examine.AzureDirectory
 
         public override void Sync(ICollection<string> names)
         {
-            throw new NotImplementedException();
+            this.EnsureOpen();
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
@@ -304,7 +304,7 @@ namespace Examine.AzureDirectory
 
         public override void SetLockFactory(LockFactory lockFactory)
         {
-            throw new NotImplementedException();
+            _lockFactory = lockFactory;
         }
 
         /// <summary> Return a string identifier that uniquely differentiates
