@@ -123,10 +123,7 @@ namespace Examine.AzureDirectory
             }
         }
 
-        public override long GetFilePointer()
-        {
-            throw new NotImplementedException();
-        }
+        public override long GetFilePointer()=>_indexOutput.GetFilePointer();
 
         private MemoryStream CompressStream(string fileName, long originalLength)
         {

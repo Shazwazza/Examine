@@ -11,30 +11,40 @@ namespace Examine.AzureDirectory
     {
         private readonly string _lockFile;
         private readonly AzureDirectory _azureDirectory;
+        private bool _isDisposed = false;
 
         public AzureSimpleLock(string lockFile, AzureDirectory directory)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
-            if (string.IsNullOrWhiteSpace(lockFile)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
+            if (string.IsNullOrWhiteSpace(lockFile))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
             _lockFile = lockFile;
             _azureDirectory = directory;
         }
 
         protected override void Dispose(bool disposing)
         {
-            var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(_lockFile);
-            var flag1 = blob.Exists();
-            bool flag2;
-            if (blob.Exists())
+            if (disposing)
             {
-                blob.Delete();
-                flag2 = true;
-            }           
-            else
-                flag2 = false;
-            if (flag1 && !flag2)
-                throw new LockReleaseFailedException("failed to delete " + _lockFile);
+                if (!_isDisposed)
+                {
+                    var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(_lockFile);
+                    var flag1 = blob.Exists();
+                    bool flag2;
+                    if (blob.Exists())
+                    {
+                        blob.Delete();
+                        flag2 = true;
+                    }
+                    
+                    else
+                        flag2 = false;
 
+                    if (flag1 && !flag2)
+                        throw new LockReleaseFailedException("failed to delete " + _lockFile);
+                    _isDisposed = true;
+                }
+            }
         }
 
         public override bool IsLocked()
@@ -57,13 +67,8 @@ namespace Examine.AzureDirectory
                 writer.Write(_lockFile);
                 blob.UploadFromStream(stream);
             }
-            return true;            
-        }        
 
-       
-               
-
+            return true;
+        }
     }
-
-
 }
