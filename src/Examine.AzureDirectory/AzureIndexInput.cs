@@ -51,8 +51,10 @@ namespace Examine.AzureDirectory
                     var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata); 
                     var blobLength = blob.Properties.Length;
                     if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
+                      var unixDate = azuredirectory.CachedFileModified(fileName);
 
                     var blobLastModifiedUtc = blob.Properties.LastModified.Value.UtcDateTime;
+
                     if (blob.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
                     {
                         if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
@@ -68,7 +70,8 @@ namespace Examine.AzureDirectory
                       //  var unixDate = CacheDirectory.FileModified(fileName);
                       
                         var start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                        var cachedLastModifiedUtc = start.AddMilliseconds(0).ToUniversalTime();
+                        var cachedLastModifiedUtc = start.AddMilliseconds(unixDate).ToUniversalTime();
+
                         
                         if (cachedLastModifiedUtc != blobLastModifiedUtc)
                         {

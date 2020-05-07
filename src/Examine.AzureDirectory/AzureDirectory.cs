@@ -16,6 +16,7 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectory : Lucene.Net.Store.Directory
     {
+        private readonly DirectoryInfo _cachedindexFolder;
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
         private bool _inSync = false;
@@ -42,6 +43,7 @@ namespace Examine.AzureDirectory
         public AzureDirectory(
             CloudStorageAccount storageAccount,            
             string containerName,
+            DirectoryInfo indexFolder,
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false,
             string rootFolder = null,
@@ -50,6 +52,7 @@ namespace Examine.AzureDirectory
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
             if (string.IsNullOrWhiteSpace(containerName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
+            _cachedindexFolder = indexFolder;
             _isReadOnly = isReadOnly;
 
             CacheDirectory = cacheDirectory;
@@ -71,7 +74,7 @@ namespace Examine.AzureDirectory
             EnsureContainer();
             CompressBlobs = compressBlobs;
         }
-
+        
         public string RootFolder { get; }
         public CloudBlobContainer BlobContainer => _blobContainer;
         public bool CompressBlobs { get; }
@@ -381,6 +384,11 @@ namespace Examine.AzureDirectory
                     _dirty = true;
                 }
             }
+        }
+
+        public long CachedFileModified(string name)
+        {
+            return (long) new FileInfo(Path.Combine(_cachedindexFolder.FullName, name)).LastWriteTime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
         }
     }
 
