@@ -195,7 +195,7 @@ namespace Examine.AzureDirectory
             blob.DeleteIfExists();            
             SetDirty();
 
-            Trace.WriteLine($"DELETE {_blobContainer.Uri}/{name}");
+            Trace.WriteLine($"DELETE {_blobContainer.Uri}/{RootFolder}/{name}");
         }
 
         
@@ -235,8 +235,8 @@ namespace Examine.AzureDirectory
                 return CacheDirectory.CreateOutput(name,context);
             }
 
-            CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(name);
-            AzureIndexOutput azureIndexOutput = new AzureIndexOutput(this, blockBlobReference, name);
+            CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(RootFolder +name);
+            AzureIndexOutput azureIndexOutput = new AzureIndexOutput(this, blockBlobReference, RootFolder +name);
             return (IndexOutput) azureIndexOutput;
         }
 
@@ -271,7 +271,7 @@ namespace Examine.AzureDirectory
 
             try
             {
-                CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(name);
+                CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(RootFolder +name);
                 blockBlobReference.FetchAttributes((AccessCondition) null, (BlobRequestOptions) null, (OperationContext) null);
                 return (IndexInput) new AzureIndexInput(this, (ICloudBlob) blockBlobReference);
             }
