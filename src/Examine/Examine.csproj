@@ -158,6 +158,7 @@
     <Compile Include="LuceneEngine\Indexing\IIndexFieldValueType.cs" />
     <Compile Include="LuceneEngine\FieldValueTypeCollection.cs" />
     <Compile Include="IValueSetValidator.cs" />
+    <Compile Include="LuceneEngine\Providers\ErrorLoggingConcurrentMergeScheduler.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneIndex.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\Search\CustomMultiFieldQueryParser.cs" />
