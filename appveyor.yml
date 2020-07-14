@@ -1,4 +1,4 @@
-version: 1.0.3
+version: 1.0.4
 skip_non_tags: true
 image: Visual Studio 2017
 build_script:
