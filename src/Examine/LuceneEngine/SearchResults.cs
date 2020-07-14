@@ -218,9 +218,17 @@ namespace Examine.LuceneEngine
         [SecuritySafeCritical]
         private SearchResult CreateFromDocumentItem(int i)
         {
-            var docId = TopDocs.ScoreDocs[i].doc;
+            // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
+            // and from that one place "i" is always less than the size of this collection. 
+            // but we'll error check here anyways
+            if (TopDocs?.ScoreDocs.Length < i)
+                return null;
+
+            var scoreDoc = TopDocs.ScoreDocs[i];
+
+            var docId = scoreDoc.doc;
             var doc = LuceneSearcher.Doc(docId);
-            var score = TopDocs.ScoreDocs[i].score;
+            var score = scoreDoc.score;
             var result = CreateSearchResult(docId, doc, score);
             return result;
         }
@@ -253,6 +261,9 @@ namespace Examine.LuceneEngine
                 if (!Docs.ContainsKey(i))
                 {
                     var r = CreateFromDocumentItem(i);
+                    if (r == null)
+                        continue;
+
                     Docs.Add(i, r);
                 }
                 //using yield return means if the user breaks out we wont keep going
