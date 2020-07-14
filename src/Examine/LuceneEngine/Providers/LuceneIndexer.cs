@@ -26,6 +26,34 @@ using Version = Lucene.Net.Util.Version;
 
 namespace Examine.LuceneEngine.Providers
 {
+    /// <summary>
+    /// Used to prevent the appdomain from crashing when lucene runs into a concurrent merge scheduler failure
+    /// </summary>
+    internal class ErrorLoggingConcurrentMergeScheduler : ConcurrentMergeScheduler
+    {
+        private readonly Action<string, Exception> _logger;
+
+        public ErrorLoggingConcurrentMergeScheduler(string indexName, Action<string, Exception> logger)
+        {
+            IndexName = indexName;
+            _logger = logger;
+        }
+
+        public string IndexName { get; }
+
+        protected override void HandleMergeException(System.Exception exc)
+        {
+            try
+            {
+                base.HandleMergeException(exc);
+            }
+            catch (Exception e)
+            {
+                _logger($"Concurrent merge failed for index: {IndexName} if this error is persistent then index rebuilding is necessary", e);
+            }
+        }
+    }
+
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
@@ -732,6 +760,9 @@ namespace Examine.LuceneEngine.Providers
                 }
                 //create the writer (this will overwrite old index files)
                 writer = new IndexWriter(dir, IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                // set the error logging one
+                writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
+                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(s, -1, e))));
             }
             catch (Exception ex)
             {
@@ -1707,8 +1738,20 @@ namespace Examine.LuceneEngine.Providers
                         _timer.Dispose();
                         _timer = null;
 
-                        //perform the commit
-                        _indexer._writer?.Commit();
+                        try
+                        {
+                            //perform the commit
+                            _indexer._writer?.Commit();
+                        }
+                        catch (IndexOutOfRangeException e)
+                        {
+                            // It is unclear how/why this happens but probably indicates index corruption
+                            // see https://github.com/Shazwazza/Examine/issues/164
+                            _indexer.OnIndexingError(new IndexingErrorEventArgs(
+                                "An error occurred during the index commit operation, if this error is persistent then index rebuilding is necessary",
+                                -1,
+                                e));
+                        }
                     }
                 }
             }
@@ -1881,6 +1924,11 @@ namespace Examine.LuceneEngine.Providers
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
             var writer = new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+
+            // set the error logging one
+            writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
+                (s, e) => OnIndexingError(new IndexingErrorEventArgs(s, -1, e))));
+
             return writer;
         }
 
