@@ -407,6 +407,12 @@ namespace Examine.LuceneEngine.Providers
                 }
                 //create the writer (this will overwrite old index files)
                 writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+
+                // clear out current scheduler and set the error logging one
+                using (writer.MergeScheduler) { }
+                writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
+                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
+
             }
             catch (Exception ex)
             {
