@@ -45,7 +45,7 @@ namespace Examine.Test
                              };
 
             //act
-            var file = new FileInfo(Path.Combine(Environment.CurrentDirectory, "BufferedSerializedDictionary.txt"));
+            var file = new FileInfo(Path.Combine(TestContext.CurrentContext.WorkDirectory, "BufferedSerializedDictionary.txt"));
             target.SaveToDisk(file);
 
             //assert
@@ -77,7 +77,7 @@ namespace Examine.Test
                              };
 
             //act
-            var file = new FileInfo(Path.Combine(Environment.CurrentDirectory, "SerializedDictionary.txt"));
+            var file = new FileInfo(Path.Combine(TestContext.CurrentContext.WorkDirectory, "SerializedDictionary.txt"));
             target.SaveToDisk(file);
 
             //assert
@@ -103,7 +103,7 @@ namespace Examine.Test
             DictionaryExtensions.DefaultFileEncoding = Encoding.ASCII;
 
             //act
-            var file = new FileInfo(Path.Combine(Environment.CurrentDirectory, "SerializedDictionary.txt"));
+            var file = new FileInfo(Path.Combine(TestContext.CurrentContext.WorkDirectory, "SerializedDictionary.txt"));
             target.SaveToDisk(file);
 
             //assert
