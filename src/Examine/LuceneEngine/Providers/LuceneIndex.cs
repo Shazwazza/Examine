@@ -718,6 +718,7 @@ namespace Examine.LuceneEngine.Providers
             if (docArgs.Cancel)
                 return;
 
+            // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
             writer.UpdateDocument(new Term(ItemIdFieldName, valueSet.Id), doc);
         }
 
@@ -760,11 +761,17 @@ namespace Examine.LuceneEngine.Providers
                                 // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
                                 if (onComplete != null)
                                 {
-                                    _asyncTask.ContinueWith(
-                                        task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
-                                        _cancellationTokenSource.Token,
-                                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
-                                        TaskScheduler.Default);
+
+                                    // it is possible that the cancelation token can be canceled when this is called which will throw an exception
+                                    // and is only caught by the unhandled exception handler so we need to be pro-active here
+                                    if (!_cancellationTokenSource.IsCancellationRequested)
+                                    {
+                                        _asyncTask.ContinueWith(
+                                            task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
+                                            _cancellationTokenSource.Token,
+                                            TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
+                                            TaskScheduler.Default);
+                                    }
                                 }
                             }
                         }
@@ -781,11 +788,16 @@ namespace Examine.LuceneEngine.Providers
                     // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
                     if (onComplete != null)
                     {
-                        _asyncTask?.ContinueWith(
-                            task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
-                            _cancellationTokenSource.Token,
-                            TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
-                            TaskScheduler.Default);
+                        // it is possible that the cancelation token can be canceled when this is called which will throw an exception
+                        // and is only caught by the unhandled exception handler so we need to be pro-active here
+                        if (!_cancellationTokenSource.IsCancellationRequested)
+                        {
+                            _asyncTask?.ContinueWith(
+                                task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
+                                _cancellationTokenSource.Token,
+                                TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
+                                TaskScheduler.Default);
+                        }   
                     }
                 }
             }
