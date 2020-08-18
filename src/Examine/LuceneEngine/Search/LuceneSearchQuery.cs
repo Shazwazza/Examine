@@ -27,9 +27,9 @@ namespace Examine.LuceneEngine.Search
         private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, string[] fields, Analyzer analyzer) 
             => new ExamineMultiFieldQueryParser(searchContext, LuceneVersion, fields, analyzer);
 
-        public IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
+        public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
-        public IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
+        public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue) 
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
