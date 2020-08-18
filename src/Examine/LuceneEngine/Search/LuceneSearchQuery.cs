@@ -20,18 +20,18 @@ namespace Examine.LuceneEngine.Search
             ISearchContext searchContext,
             string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
             : base(CreateQueryParser(searchContext, fields, analyzer), category, fields, searchOptions, occurance)
-        {   
+        {
             _searchContext = searchContext;
         }
 
-        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, string[] fields, Analyzer analyzer) 
+        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, string[] fields, Analyzer analyzer)
             => new ExamineMultiFieldQueryParser(searchContext, LuceneVersion, fields, analyzer);
 
         public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
-        public override IBooleanOperation Field<T>(string fieldName, T fieldValue) 
+        public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
 
         public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
@@ -40,7 +40,7 @@ namespace Examine.LuceneEngine.Search
         public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive);
 
-        protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue) 
+        protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
 
         protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
@@ -64,7 +64,7 @@ namespace Examine.LuceneEngine.Search
                 //so it might be the ToString() that is the issue.
                 var outer = new BooleanQuery();
                 var inner = new BooleanQuery();
-                
+
                 foreach (var type in types)
                 {
                     var q = type.GetQuery(query, _searchContext.Searcher);
@@ -81,7 +81,7 @@ namespace Examine.LuceneEngine.Search
                 return outer;
             }), Occurrence);
 
-            return return CreateOp();
+            return CreateOp();
         }
 
         internal LuceneBooleanOperationBase RangeQueryInternal<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
@@ -153,7 +153,7 @@ namespace Examine.LuceneEngine.Search
                 // and then add the category field query as a must
                 var categoryQuery = GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
 
-                query.Add(categoryQuery, Occur.MUST);                
+                query.Add(categoryQuery, Occur.MUST);
             }
 
             var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults);

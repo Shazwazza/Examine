@@ -153,15 +153,15 @@ namespace Examine.LuceneEngine.Search
         #region INested
 
         private static readonly string[] EmptyStringArray = new string[0];
-        
+
         protected abstract INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue) where T : struct;
         protected abstract INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null);
         protected abstract INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
-        INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue) 
+        INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
             => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
 
-        INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue) 
+        INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue)
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
@@ -255,7 +255,7 @@ namespace Examine.LuceneEngine.Search
 
             return CreateOp();
         }
-        
+
         protected internal LuceneBooleanOperationBase IdInternal(string id, Occur occurrence)
         {
             if (id == null) throw new ArgumentNullException(nameof(id));
@@ -265,7 +265,7 @@ namespace Examine.LuceneEngine.Search
 
             return CreateOp();
         }
-        
+
         #endregion
 
         /// <summary>
