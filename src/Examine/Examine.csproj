@@ -149,6 +149,7 @@
     <Compile Include="EmptySearchResults.cs" />
     <Compile Include="ExamineExtensions.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
+    <Compile Include="LuceneEngine\LuceneSearchResultsBase.cs" />
     <Compile Include="LuceneEngine\OpenReaderTracker.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
     <Compile Include="IndexOperation.cs" />

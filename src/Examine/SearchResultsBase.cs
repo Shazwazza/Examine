@@ -22,7 +22,7 @@ namespace Examine
         /// <summary>
         /// Results for the search
         /// </summary>
-        public IDictionary<int, ISearchResult> Results { get; }
+        protected IDictionary<int, ISearchResult> Results { get; }
 
         /// <summary>
         /// Gets the total number of results for the search

@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.LuceneEngine.Providers;
-using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 
@@ -12,7 +10,7 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// An implementation of the search results returned from Lucene.Net
     /// </summary>
-    public class LuceneSearchResults : SearchResultsBase
+    public class LuceneSearchResults : LuceneSearchResultsBase
     {
         /// <summary>
         /// Exposes the internal Lucene searcher
@@ -85,60 +83,6 @@ namespace Examine.LuceneEngine
                 : ((TopScoreDocCollector)topDocsCollector).TopDocs();
 
             TotalItemCount = TopDocs.TotalHits;
-        }
-
-        /// <summary>
-        /// Internal cache of search results
-        /// </summary>
-        protected Dictionary<int, SearchResult> Docs = new Dictionary<int, SearchResult>();
-
-        /// <summary>
-        /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
-        /// </summary>
-        /// <param name="doc">The doc to convert.</param>
-        /// <param name="score">The score.</param>
-        /// <returns>A populated search result object</returns>
-        protected SearchResult CreateSearchResult(Document doc, float score)
-        {
-            var id = doc.Get("id");
-
-            if (string.IsNullOrEmpty(id) == true)
-            {
-                id = doc.Get(LuceneIndex.ItemIdFieldName);
-            }
-
-            var searchResult = new SearchResult(id, score, () =>
-            {
-                //we can use lucene to find out the fields which have been stored for this particular document
-                var fields = doc.GetFields();
-
-                var resultVals = new Dictionary<string, List<string>>();
-
-                foreach (var field in fields.Cast<Field>())
-                {
-                    var fieldName = field.Name;
-                    var values = doc.GetValues(fieldName);
-
-                    if (resultVals.TryGetValue(fieldName, out var resultFieldVals))
-                    {
-                        foreach (var value in values)
-                        {
-                            if (!resultFieldVals.Contains(value))
-                            {
-                                resultFieldVals.Add(value);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        resultVals[fieldName] = values.ToList();
-                    }
-                }
-
-                return resultVals;
-            });
-            
-            return searchResult;
         }
 
         //NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
