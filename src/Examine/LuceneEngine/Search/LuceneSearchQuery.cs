@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Examine.LuceneEngine.Indexing;
@@ -49,7 +49,7 @@ namespace Examine.LuceneEngine.Search
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive);
 
-        internal LuceneBooleanOperation ManagedQueryInternal(string query, string[] fields = null)
+        internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[] fields = null)
         {
             Query.Add(new LateBoundQuery(() =>
             {
@@ -68,12 +68,12 @@ namespace Examine.LuceneEngine.Search
                 foreach (var type in types)
                 {
                     var q = type.GetQuery(query, _searchContext.Searcher);
+
                     if (q != null)
                     {
                         //CriteriaContext.ManagedQueries.Add(new KeyValuePair<IIndexFieldValueType, Query>(type, q));
                         inner.Add(q, Occur.SHOULD);
                     }
-
                 }
 
                 outer.Add(inner, Occur.SHOULD);
@@ -81,16 +81,14 @@ namespace Examine.LuceneEngine.Search
                 return outer;
             }), Occurrence);
 
-
-            return new LuceneBooleanOperation(this);
+            return return CreateOp();
         }
 
-        internal LuceneBooleanOperation RangeQueryInternal<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
+        internal LuceneBooleanOperationBase RangeQueryInternal<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             where T : struct
         {
             Query.Add(new LateBoundQuery(() =>
             {
-
                 //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
                 //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
                 //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
@@ -101,9 +99,11 @@ namespace Examine.LuceneEngine.Search
                 foreach (var f in fields)
                 {
                     var valueType = _searchContext.GetFieldValueType(f);
+
                     if (valueType is IIndexRangeValueType<T> type)
                     {
                         var q = type.GetQuery(min, max, minInclusive, maxInclusive);
+
                         if (q != null)
                         {
                             //CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexFieldValueType, Query>(type, q));
@@ -115,19 +115,17 @@ namespace Examine.LuceneEngine.Search
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
                     }
                 }
+
                 outer.Add(inner, Occur.SHOULD);
 
                 return outer;
             }), Occurrence);
 
-
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
-
 
         /// <inheritdoc />
         public ISearchResults Execute(int maxResults = 500) => Search(maxResults);
-
 
         /// <summary>
         /// Performs a search with a maximum number of results
@@ -135,6 +133,7 @@ namespace Examine.LuceneEngine.Search
         private ISearchResults Search(int maxResults = 500)
         {
             var searcher = _searchContext.Searcher;
+
             if (searcher == null) return EmptySearchResults.Instance;
 
             // capture local
@@ -153,14 +152,14 @@ namespace Examine.LuceneEngine.Search
 
                 // and then add the category field query as a must
                 var categoryQuery = GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
+
                 query.Add(categoryQuery, Occur.MUST);                
             }
 
             var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults);
+
             return pagesResults;
         }
-
-        
 
         /// <summary>
         /// Internal operation for adding the ordered results
@@ -168,7 +167,7 @@ namespace Examine.LuceneEngine.Search
         /// <param name="descending">if set to <c>true</c> [descending].</param>
         /// <param name="fields">The field names.</param>
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
-        private LuceneBooleanOperation OrderByInternal(bool descending, params SortableField[] fields)
+        private LuceneBooleanOperationBase OrderByInternal(bool descending, params SortableField[] fields)
         {
             if (fields == null) throw new ArgumentNullException(nameof(fields));
 
@@ -213,13 +212,14 @@ namespace Examine.LuceneEngine.Search
 
                 //get the sortable field name if this field type has one
                 var valType = _searchContext.GetFieldValueType(fieldName);
+
                 if (valType?.SortableFieldName != null)
                     fieldName = valType.SortableFieldName;
 
                 SortFields.Add(new SortField(fieldName, defaultSort, descending));
             }
 
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
