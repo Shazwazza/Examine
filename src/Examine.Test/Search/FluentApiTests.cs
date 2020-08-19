@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using Examine.LuceneEngine;
@@ -603,6 +604,27 @@ namespace Examine.Test.Search
 
             var results = _searcher.Search(sc1);
             var expectedLoadedFields = new string[] { "writerName", "sortOrder", "updateDate" ,"id"};
+            var keys = results.First().Fields.Keys.ToArray();
+
+            //Contains only the expected fields
+            Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+            Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+        }
+
+        [Test]
+        public void FluentApi_Select_Fields_Hashtable()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName")
+                .And().SelectFields(new Hashtable{
+                    { "writerName",null },
+                    { "sortOrder",null },
+                    { "updateDate",null }
+                })
+                .Compile();
+
+            var results = _searcher.Search(sc1);
+            var expectedLoadedFields = new string[] { "writerName", "sortOrder", "updateDate", "id" };
             var keys = results.First().Fields.Keys.ToArray();
 
             //Contains only the expected fields

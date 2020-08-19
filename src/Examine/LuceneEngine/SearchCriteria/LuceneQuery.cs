@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
@@ -444,7 +445,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
         /// <summary>
-        /// Return only the specified fields
+        /// Return only the specified fields. Use <see cref="SelectFields(Hashtable)"></see> when possible as internally a new Hashtable is created on each call
         /// </summary>
         /// <remarks>The Id field will also be retrieved as it is a required field</remarks>
         /// <param name="fieldNames">The field names for fields to load</param>
@@ -455,7 +456,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         }
 
         /// <summary>
-        /// Return only the specified field
+        /// Return only the specified field. Use <see cref="SelectFields(Hashtable)"></see> when possible as internally a new Hashtable is created on each call
         /// </summary>
         /// <remarks>The Id field will also be retrieved as it is a required field</remarks>
         /// <param name="fieldNames">The field name of the field to load</param>
@@ -465,7 +466,6 @@ namespace Examine.LuceneEngine.SearchCriteria
             return ((IQuery)search).SelectField(fieldName);
         }
         /// <summary>
-        /// 
         /// Return only the first field in the index
         /// </summary>
         /// <remarks>This should be the Id field as it should be first in the index</remarks>
@@ -482,6 +482,16 @@ namespace Examine.LuceneEngine.SearchCriteria
         public IBooleanOperation SelectAllFields()
         {
             return ((IQuery)search).SelectAllFields();
+        }
+        /// <summary>
+        /// Return only the specified fields
+        /// </summary>
+        /// <remarks>The Id field will also be retrieved as it is a required field.</remarks>
+        /// <param name="fieldNames">The field names for fields to load. Key should be the field name, value should be null</param>
+        /// <returns></returns>
+        public IBooleanOperation SelectFields(Hashtable fieldNames)
+        {
+            return ((IQuery)search).SelectFields(fieldNames);
         }
 
         #endregion
