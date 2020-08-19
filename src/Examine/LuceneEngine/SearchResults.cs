@@ -71,7 +71,7 @@ namespace Examine.LuceneEngine
             DoSearch(query, sortField, maxResults);
         }
         [SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults,FieldSelector fieldSelector)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults, FieldSelector fieldSelector)
         {
             LuceneQuery = query;
 
@@ -204,19 +204,19 @@ namespace Examine.LuceneEngine
             //ignore our internal fields though
             foreach (var field in fields.Cast<Field>())
             {
-                    var fieldName = field.Name();
-                    var values = doc.GetValues(fieldName);
+                var fieldName = field.Name();
+                var values = doc.GetValues(fieldName);
 
-                    if (values.Length > 1)
-                    {
-                        sr.MultiValueFields[fieldName] = values.ToList();
-                        //ensure the first value is added to the normal fields
-                        sr.Fields[fieldName] = values[0];
-                    }
-                    else if (values.Length > 0)
-                    {
-                        sr.Fields[fieldName] = values[0];
-                    }
+                if (values.Length > 1)
+                {
+                    sr.MultiValueFields[fieldName] = values.ToList();
+                    //ensure the first value is added to the normal fields
+                    sr.Fields[fieldName] = values[0];
+                }
+                else if (values.Length > 0)
+                {
+                    sr.Fields[fieldName] = values[0];
+                }
             }
 
             return sr;
@@ -237,7 +237,8 @@ namespace Examine.LuceneEngine
 
             var docId = scoreDoc.doc;
             Document doc;
-            if (_fieldSelector != null) {
+            if (_fieldSelector != null)
+            {
                 doc = LuceneSearcher.Doc(docId, _fieldSelector);
             }
             else
