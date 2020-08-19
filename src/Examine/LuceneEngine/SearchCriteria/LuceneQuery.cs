@@ -443,6 +443,26 @@ namespace Examine.LuceneEngine.SearchCriteria
             return this.search.OrderByDescending(fieldNames);
         }
 
+        public IBooleanOperation SelectFields(params string[] fieldNames)
+        {
+            return ((IQuery)search).SelectFields(fieldNames);
+        }
+
+        public IBooleanOperation SelectField(string fieldName)
+        {
+            return ((IQuery)search).SelectField(fieldName);
+        }
+
+        public IBooleanOperation SelectFirstFieldOnly()
+        {
+            return ((IQuery)search).SelectFirstFieldOnly();
+        }
+
+        public IBooleanOperation SelectAllFields()
+        {
+            return ((IQuery)search).SelectAllFields();
+        }
+
         #endregion
 
     }

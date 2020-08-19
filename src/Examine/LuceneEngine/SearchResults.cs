@@ -70,6 +70,15 @@ namespace Examine.LuceneEngine
             LuceneSearcher = searcher;
             DoSearch(query, sortField, maxResults);
         }
+        [SecuritySafeCritical]
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults,FieldSelector fieldSelector)
+        {
+            LuceneQuery = query;
+
+            LuceneSearcher = searcher;
+            _fieldSelector = fieldSelector;
+            DoSearch(query, sortField, maxResults);
+        }
 
         [SecuritySafeCritical]
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
@@ -129,6 +138,7 @@ namespace Examine.LuceneEngine
         /// Internal cache of search results
         /// </summary>
         protected Dictionary<int, SearchResult> Docs = new Dictionary<int, SearchResult>();
+        private readonly FieldSelector _fieldSelector;
 
         // <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
@@ -192,22 +202,21 @@ namespace Examine.LuceneEngine
             var fields = doc.GetFields();
 
             //ignore our internal fields though
-
             foreach (var field in fields.Cast<Field>())
             {
-                var fieldName = field.Name();
-                var values = doc.GetValues(fieldName);
+                    var fieldName = field.Name();
+                    var values = doc.GetValues(fieldName);
 
-                if (values.Length > 1)
-                {
-                    sr.MultiValueFields[fieldName] = values.ToList();
-                    //ensure the first value is added to the normal fields
-                    sr.Fields[fieldName] = values[0];
-                }
-                else if (values.Length > 0)
-                {
-                    sr.Fields[fieldName] = values[0];
-                }
+                    if (values.Length > 1)
+                    {
+                        sr.MultiValueFields[fieldName] = values.ToList();
+                        //ensure the first value is added to the normal fields
+                        sr.Fields[fieldName] = values[0];
+                    }
+                    else if (values.Length > 0)
+                    {
+                        sr.Fields[fieldName] = values[0];
+                    }
             }
 
             return sr;
@@ -227,7 +236,14 @@ namespace Examine.LuceneEngine
             var scoreDoc = TopDocs.ScoreDocs[i];
 
             var docId = scoreDoc.doc;
-            var doc = LuceneSearcher.Doc(docId);
+            Document doc;
+            if (_fieldSelector != null) {
+                doc = LuceneSearcher.Doc(docId, _fieldSelector);
+            }
+            else
+            {
+                doc = LuceneSearcher.Doc(docId);
+            }
             var score = scoreDoc.score;
             var result = CreateSearchResult(docId, doc, score);
             return result;

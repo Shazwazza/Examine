@@ -563,6 +563,35 @@ namespace Examine.Test.Search
 
         }
 
+        [Test]
+        public void FluentApi_Select_Field()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName")
+                .And().SelectField("writerName")
+                .Compile();
+
+            var results = _searcher.Search(sc1);
+            var expectedLoadedFields = new string[] { "writerName", "id" };
+            var keys = results.First().Fields.Keys.ToArray();
+            Assert.False(!keys.Any(x => expectedLoadedFields.Contains(x)));
+        }
+        [Test]
+        public void FluentApi_Select_FirstField()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName")
+                .And().SelectFirstFieldOnly()
+                .Compile();
+
+            var results = _searcher.Search(sc1);
+            var expectedLoadedFields = new string[] { "id" };
+            var keys = results.First().Fields.Keys.ToArray();
+            Assert.False(!keys.Any(x => expectedLoadedFields.Contains(x)));
+        }
+
+
+
         private static ISearcher _searcher;
         private static IIndexer _indexer;
 		private Lucene.Net.Store.Directory _luceneDir;

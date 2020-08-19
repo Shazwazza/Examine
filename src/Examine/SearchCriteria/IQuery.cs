@@ -262,5 +262,33 @@ namespace Examine.SearchCriteria
         /// <param name="fieldNames">The field names.</param>
         /// <returns></returns>
         IBooleanOperation OrderByDescending(params string[] fieldNames);
+
+        /// <summary>
+        /// Return only the specified fields, lazy load additionalFields
+        /// </summary>
+        /// <param name="fieldNames">The field names for fields to load immediately</param>
+        /// <param name="lazyLoadFieldNames">The field names for fields to load lazily</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        IBooleanOperation SelectFields(string[] fieldNames, string[] lazyLoadFieldNames);
+
+        /// <summary>
+        /// Return only the specified field
+        /// </summary>
+        /// <param name="fieldNames">The field name of the field to load</param>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        IBooleanOperation SelectField(string fieldName);
+
+        
+        /// <summary>
+        /// Return only the first field in the index (id)
+        /// </summary>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        IBooleanOperation SelectFirstFieldOnly();
+
+        /// <summary>
+        /// Return all fields in the index
+        /// </summary>
+        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        IBooleanOperation SelectAllFields();
     }
 }
