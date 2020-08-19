@@ -14,6 +14,7 @@ using Lucene.Net.Search.Spans;
 using Lucene.Net.Index;
 using Lucene.Net.Documents;
 using Examine.LuceneEngine.Providers;
+using System.Collections;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
@@ -45,6 +46,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         internal List<SortField> SortFields = new List<SortField>();
         private readonly BooleanClause.Occur _occurance;
         private readonly Lucene.Net.Util.Version _luceneVersion = Lucene.Net.Util.Version.LUCENE_29;
+        internal FieldSelector Selector = null;
 
         #region Field Name properties
 
@@ -938,7 +940,79 @@ namespace Examine.LuceneEngine.SearchCriteria
 
             return new LuceneBooleanOperation(this);
         }
+        public IBooleanOperation SelectFields(Hashtable fieldNames)
+        {
+            return SelectFieldsInternal(fieldNames);
+        }
 
+        /// <summary>
+        /// Return only the specified fields
+        /// </summary>
+        /// <remarks>The Id field will also be retrieved as it is a required field</remarks>
+        /// <param name="fieldNames">The field names for fields to load</param>
+        /// <returns></returns>
+        public IBooleanOperation SelectFields(params string[] fieldNames)
+        {
+            var load = new Hashtable(fieldNames.ToDictionary(f => f, null));
+            return SelectFieldsInternal(load);
+        }
+
+
+        /// <summary>
+        /// Return only the specified field
+        /// </summary>
+        /// <remarks>The Id field will also be retrieved as it is a required field</remarks>
+        /// <param name="fieldNames">The field name of the field to load</param>
+        /// <returns></returns>
+        public IBooleanOperation SelectField(string fieldName)
+        {
+            var load = new Hashtable()
+            {
+                { fieldName,null }
+            };
+            return SelectFieldsInternal(load);
+        }
+
+        /// <summary>
+        /// Return only the first field in the index
+        /// </summary>
+        /// <remarks>This should be the Id field as it should be first in the index</remarks>
+        /// <returns></returns>
+        public IBooleanOperation SelectFirstFieldOnly()
+        {
+            return SelectFirstFieldOnlyInternal();
+        }
+
+        /// <summary>
+        /// Return all fields in the index
+        /// </summary>
+        /// <returns></returns>
+        public IBooleanOperation SelectAllFields()
+        {
+            return SelectAllFieldsInternal();
+        }
+        [SecuritySafeCritical]
+        public IBooleanOperation SelectFieldsInternal(Hashtable fieldNames)
+        {
+            if (!fieldNames.ContainsKey("id"))
+            {
+                fieldNames.Add("id",null);
+            }
+            Selector = new SetBasedFieldSelector(fieldNames, new Hashtable());
+            return new LuceneBooleanOperation(this);
+        }
+        [SecuritySafeCritical]
+        public IBooleanOperation SelectFirstFieldOnlyInternal()
+        {
+            Selector = new LoadFirstFieldSelector();
+            return new LuceneBooleanOperation(this);
+        }
+        [SecuritySafeCritical]
+        public IBooleanOperation SelectAllFieldsInternal()
+        {
+            Selector = null;
+            return new LuceneBooleanOperation(this);
+        }
 
 
         #endregion

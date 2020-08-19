@@ -264,31 +264,33 @@ namespace Examine.SearchCriteria
         IBooleanOperation OrderByDescending(params string[] fieldNames);
 
         /// <summary>
-        /// Return only the specified fields, lazy load additionalFields
+        /// Return only the specified fields
         /// </summary>
-        /// <param name="fieldNames">The field names for fields to load immediately</param>
-        /// <param name="lazyLoadFieldNames">The field names for fields to load lazily</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
-        IBooleanOperation SelectFields(string[] fieldNames, string[] lazyLoadFieldNames);
+        /// <remarks>The Id field will also be retrieved as it is a required field</remarks>
+        /// <param name="fieldNames">The field names for fields to load</param>
+        /// <returns></returns>
+        IBooleanOperation SelectFields(params string[] fieldNames);
 
         /// <summary>
         /// Return only the specified field
         /// </summary>
+        /// <remarks>The Id field will also be retrieved as it is a required field</remarks>
         /// <param name="fieldNames">The field name of the field to load</param>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        /// <returns></returns>
         IBooleanOperation SelectField(string fieldName);
 
         
         /// <summary>
-        /// Return only the first field in the index (id)
+        /// Return only the first field in the index
         /// </summary>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        /// <remarks>This should be the Id field as it should be first in the index</remarks>
+        /// <returns></returns>
         IBooleanOperation SelectFirstFieldOnly();
 
         /// <summary>
         /// Return all fields in the index
         /// </summary>
-        /// <returns>A new <see cref="Examine.SearchCriteria.IBooleanOperation"/> with the clause appended</returns>
+        /// <returns></returns>
         IBooleanOperation SelectAllFields();
     }
 }

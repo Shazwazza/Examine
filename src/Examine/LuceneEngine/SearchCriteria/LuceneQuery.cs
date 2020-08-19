@@ -443,21 +443,42 @@ namespace Examine.LuceneEngine.SearchCriteria
             return this.search.OrderByDescending(fieldNames);
         }
 
+        /// <summary>
+        /// Return only the specified fields
+        /// </summary>
+        /// <remarks>The Id field will also be retrieved as it is a required field</remarks>
+        /// <param name="fieldNames">The field names for fields to load</param>
+        /// <returns></returns>
         public IBooleanOperation SelectFields(params string[] fieldNames)
         {
             return ((IQuery)search).SelectFields(fieldNames);
         }
 
+        /// <summary>
+        /// Return only the specified field
+        /// </summary>
+        /// <remarks>The Id field will also be retrieved as it is a required field</remarks>
+        /// <param name="fieldNames">The field name of the field to load</param>
+        /// <returns></returns>
         public IBooleanOperation SelectField(string fieldName)
         {
             return ((IQuery)search).SelectField(fieldName);
         }
-
+        /// <summary>
+        /// 
+        /// Return only the first field in the index
+        /// </summary>
+        /// <remarks>This should be the Id field as it should be first in the index</remarks>
+        /// <returns></returns>
         public IBooleanOperation SelectFirstFieldOnly()
         {
             return ((IQuery)search).SelectFirstFieldOnly();
         }
 
+        /// <summary>
+        /// Return all fields in the index
+        /// </summary>
+        /// <returns></returns>
         public IBooleanOperation SelectAllFields()
         {
             return ((IQuery)search).SelectAllFields();
