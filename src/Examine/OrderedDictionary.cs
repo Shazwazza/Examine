@@ -100,11 +100,8 @@ namespace Examine
             }
         }
 
-        private static readonly ICollection<TKey> EmptyCollection = new List<TKey>();
-        private static readonly ICollection<TVal> EmptyValues = new List<TVal>();
+        public ICollection<TKey> Keys => base.Dictionary != null ? base.Dictionary.Keys : new TKey[0];
 
-        public ICollection<TKey> Keys => base.Dictionary != null ? base.Dictionary.Keys : EmptyCollection;
-
-        public ICollection<TVal> Values => base.Dictionary != null ? base.Dictionary.Values.Select(x => x.Value).ToArray() : EmptyValues;
+        public ICollection<TVal> Values => base.Dictionary != null ? base.Dictionary.Values.Select(x => x.Value).ToArray() : new TVal[0];
     }
 }
