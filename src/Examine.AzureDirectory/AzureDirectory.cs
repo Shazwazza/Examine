@@ -287,17 +287,24 @@ namespace Examine.AzureDirectory
                 return CacheDirectory.FileLength(name);
             }
 
-            var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
-            blob.FetchAttributes();
-
-            // index files may be compressed so the actual length is stored in metatdata
-            var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
-
-            if (hasMetadataValue && long.TryParse(blobLegthMetadata, out var blobLength))
+            try
             {
-                return blobLength;
+                var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
+                blob.FetchAttributes();
+
+                // index files may be compressed so the actual length is stored in metatdata
+                var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
+
+                if (hasMetadataValue && long.TryParse(blobLegthMetadata, out var blobLength))
+                {
+                    return blobLength;
+                }
+                return blob.Properties.Length; // fall back to actual blob size
             }
-            return blob.Properties.Length; // fall back to actual blob size
+            catch (StorageException err)
+            {
+                throw new FileNotFoundException(name, err);
+            }
         }
 
         /// <summary>Creates a new, empty file in the directory with the given name.
