@@ -36,11 +36,12 @@ namespace Examine.LuceneEngine
 
         public TopDocs TopDocs { get; private set; }
 
+        public FieldSelector FieldSelector { get; }
 
-        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults, FieldSelector fieldSelector)
         {
             LuceneQuery = query;
-
+            FieldSelector = fieldSelector;
             LuceneSearcher = searcher;
             DoSearch(query, sortField, maxResults);
         }
@@ -175,7 +176,15 @@ namespace Examine.LuceneEngine
             var scoreDoc = TopDocs.ScoreDocs[i];
 
             var docId = scoreDoc.Doc;
-            var doc = LuceneSearcher.Doc(docId);
+            Document doc;
+            if(FieldSelector != null)
+            {
+                doc = LuceneSearcher.Doc(docId, FieldSelector);
+            }
+            else
+            {
+                doc = LuceneSearcher.Doc(docId);
+            }
             var score = scoreDoc.Score;
             var result = CreateSearchResult(doc, score);
             return result;

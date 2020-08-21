@@ -134,5 +134,40 @@ namespace Examine.Search
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
         IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+
+        /// <summary>
+        /// Return only the specified fields. Use <see cref="SelectFields(ISet{string})"/> when possible as internally a new HashSet is created on each call
+        /// </summary>
+        /// <param name="fieldNames">The field names for fields to load</param>
+        /// <returns></returns>
+        IBooleanOperation SelectFields(params string[] fieldNames);
+
+        /// <summary>
+        /// Return only the specified fields
+        /// </summary>
+         /// <param name="fieldNames">The field names for fields to load</param>
+        /// <returns></returns>
+        IBooleanOperation SelectFields(ISet<string> fieldNames);
+
+        /// <summary>
+        /// Return only the specified field. Use <see cref="SelectFields(ISet{string})"/> when possible as internally a new HashSet is created on each call
+        /// </summary>
+        /// <param name="fieldNames">The field name of the field to load</param>
+        /// <returns></returns>
+        IBooleanOperation SelectField(string fieldName);
+
+
+        /// <summary>
+        /// Return only the first field in the index
+        /// </summary>
+        /// <remarks>This should be the __NodeId field as it should be first in the index</remarks>
+        /// <returns></returns>
+        IBooleanOperation SelectFirstFieldOnly();
+
+        /// <summary>
+        /// Return all fields in the index
+        /// </summary>
+        /// <returns></returns>
+        IBooleanOperation SelectAllFields();
     }
 }

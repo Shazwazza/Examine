@@ -103,6 +103,14 @@ namespace Examine.LuceneEngine.Search
         INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive);
 
+        public IBooleanOperation SelectFields(params string[] fieldNames) => _search.SelectFields(fieldNames);
 
+        public IBooleanOperation SelectFields(ISet<string> fieldNames) => _search.SelectFields(fieldNames);
+
+        public IBooleanOperation SelectField(string fieldName) => _search.SelectField(fieldName);
+
+        public IBooleanOperation SelectFirstFieldOnly() => _search.SelectFirstFieldOnly();
+
+        public IBooleanOperation SelectAllFields() => _search.SelectAllFields();
     }
 }
