@@ -998,7 +998,7 @@ namespace Examine.LuceneEngine.SearchCriteria
             {
                 fieldNames.Add("id",null);
             }
-            Selector = new SetBasedFieldSelector(fieldNames, new Hashtable());
+            Selector = new SetBasedFieldSelector(fieldNames, new Hashtable(0));
             return new LuceneBooleanOperation(this);
         }
         [SecuritySafeCritical]
