@@ -33,7 +33,6 @@ namespace Examine
         /// <summary>
         /// Gets the total number of documents while enumerating results
         /// </summary>
-        //NOTE: This is totally retarded but it is required for medium trust as I cannot put this code inside the Skip method... wtf
         protected abstract int GetTotalDocs();
 
         /// <summary>
