@@ -12,6 +12,15 @@ namespace Examine.LuceneEngine
     /// </summary>
     public class LuceneSearchResults : LuceneSearchResultsBase
     {
+        ///<summary>
+        /// Returns an empty search result
+        ///</summary>
+        [Obsolete("Use the Empty property on SearchResultsBase instead")]
+        public static ISearchResults Empty()
+        {
+            return EmptySearchResults.Instance;
+        }
+
         /// <summary>
         /// Exposes the internal Lucene searcher
         /// </summary>
@@ -124,7 +133,7 @@ namespace Examine.LuceneEngine
             private readonly IEnumerator<ISearchResult> _baseEnumerator;
             private readonly IndexSearcher _searcher;
 
-            
+
             public DecrementReaderResult(IEnumerator<ISearchResult> baseEnumerator, Searcher searcher)
             {
                 _baseEnumerator = baseEnumerator;
@@ -133,7 +142,7 @@ namespace Examine.LuceneEngine
                 _searcher?.IndexReader.IncRef();
             }
 
-            
+
             public void Dispose()
             {
                 _baseEnumerator.Dispose();
