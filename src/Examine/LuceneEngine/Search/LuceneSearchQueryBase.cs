@@ -19,8 +19,7 @@ namespace Examine.LuceneEngine.Search
         internal readonly Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
         public BooleanQuery Query => Queries.Peek();
 
-        private readonly List<SortField> _sortFields = new List<SortField>();
-        public List<SortField> SortFields => _sortFields;
+        public List<SortField> SortFields => new List<SortField>();
 
         protected Occur Occurrence;
         private BooleanOperation _boolOp;
