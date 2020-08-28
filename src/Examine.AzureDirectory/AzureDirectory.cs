@@ -107,7 +107,7 @@ namespace Examine.AzureDirectory
                 : (blobFiles ?? GetAllBlobFiles());
         }
 
-        private string[] GetAllBlobFiles()
+        internal string[] GetAllBlobFiles()
         {
             var results = from blob in _blobContainer.ListBlobs(RootFolder)
                           select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
@@ -115,7 +115,7 @@ namespace Examine.AzureDirectory
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
-        public override bool FileExists(String name)
+        public override bool FileExists(string name)
         {
             CheckDirty();
 
@@ -150,7 +150,7 @@ namespace Examine.AzureDirectory
         }
 
         /// <summary>Returns the time the named file was last modified. </summary>
-        public override long FileModified(String name)
+        public override long FileModified(string name)
         {
             CheckDirty();
 
