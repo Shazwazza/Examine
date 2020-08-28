@@ -9,6 +9,7 @@ using Microsoft.Azure.Storage.Blob;
 
 namespace Examine.AzureDirectory
 {
+
     /// <summary>
     /// Implements IndexOutput semantics for a write/append only file
     /// </summary>
@@ -26,8 +27,7 @@ namespace Examine.AzureDirectory
         {
             if (azureDirectory == null) throw new ArgumentNullException(nameof(azureDirectory));
 
-            //TODO: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19
-            // I have changed this to be correct now
+            //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;
             _azureDirectory = azureDirectory;
             _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name); 

@@ -34,6 +34,7 @@ namespace Examine.Test.AzureDirectory
             return nodes[rand.Next(0, nodes.Count - 1)];
         }
 
+        [Explicit("Explicit because the azure storage emulator needs to be running")]
         [Test]
         public void Read_Only_Sync()
         {
@@ -68,12 +69,22 @@ namespace Examine.Test.AzureDirectory
             using (var readIndex = IndexInitializer.GetUmbracoIndexer(readDir))
             using (var readSearcher = IndexInitializer.GetUmbracoSearcher(readDir))
             {
+                // Cancel all writing for the reader index
+                // This is important! 
+                // TODO: It might mean we need to bake this into the bootstrapping of the readonly directory factory else devs
+                // will need to do this themselves. This is a requirement because the index should never be written to in readonly mode
+                // else there will be errors even though we are using Noop operations, see comment in AzureDirectory.FileLength at the bottom.
+                readIndex.DocumentWriting += (sender, args) =>
+                {
+                    args.Cancel = true;
+                };
+
                 writeIndex.EnsureIndex(true);
                 readIndex.EnsureIndex(true);
 
                 var tasks = new[]
                 {
-                    //new Task(() => writeIndex.RebuildIndex()),
+                    new Task(() => writeIndex.RebuildIndex()),
                     new Task(() => 
                     {
                         var cloned = new XElement(GetRandomNode());

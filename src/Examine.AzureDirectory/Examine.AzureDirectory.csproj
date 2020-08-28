@@ -87,6 +87,8 @@
     <Compile Include="AzureIndexOutput.cs" />
     <Compile Include="AzureSimpleLock.cs" />
     <Compile Include="AzureNativeLock.cs" />
+    <Compile Include="NoopIndexOutput.cs" />
+    <Compile Include="NoopLockFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadOnlyAzureDirectoryFactory.cs" />
   </ItemGroup>
