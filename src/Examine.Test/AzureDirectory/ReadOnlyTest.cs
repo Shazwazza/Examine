@@ -14,6 +14,7 @@ using Lucene.Net.Index;
 using Examine.Test.DataServices;
 using System.Xml.Linq;
 using UmbracoExamine;
+using System.Threading;
 
 namespace Examine.Test.AzureDirectory
 {
@@ -24,7 +25,7 @@ namespace Examine.Test.AzureDirectory
         private readonly TestContentService _contentService = new TestContentService();
 
         private XElement GetRandomNode()
-        {   
+        {
             //get a node from the data repo
             var nodes = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
                 .Root
@@ -82,18 +83,41 @@ namespace Examine.Test.AzureDirectory
                 writeIndex.EnsureIndex(true);
                 readIndex.EnsureIndex(true);
 
+                // Try to read/write with in parallel
+
                 var tasks = new[]
                 {
-                    new Task(() => writeIndex.RebuildIndex()),
-                    new Task(() => 
+                    new Task(() => writeIndex.RebuildIndex()),              // write index
+                    new Task(() =>
                     {
                         var cloned = new XElement(GetRandomNode());
-                        readIndex.ReIndexNode(cloned, IndexTypes.Content); 
+                        readIndex.ReIndexNode(cloned, IndexTypes.Content);  // readonly index doesn't write
                     }),
                     new Task(() =>
                     {
                         var cloned = new XElement(GetRandomNode());
-                        readIndex.ReIndexNode(cloned, IndexTypes.Content);
+                        readIndex.ReIndexNode(cloned, IndexTypes.Content);  // readonly index doesn't write
+                    }),
+                    new Task(() =>
+                    {
+                        for(var i = 0; i < 3; i++)                          // write index x 3
+                        {
+                            var cloned = new XElement(GetRandomNode());
+                            writeIndex.ReIndexNode(cloned, IndexTypes.Content);
+                        }
+                    }),
+                    new Task(() =>
+                    {
+                        for(var i = 0; i < 3; i++)
+                        {
+                            var s = readSearcher.Search("test", true);      // force the reader to sync
+                            Thread.Sleep(50);
+                        }   
+                    }),
+                    new Task(() =>
+                    {
+                        var cloned = new XElement(GetRandomNode());
+                        readIndex.ReIndexNode(cloned, IndexTypes.Content);  // readonly index doesn't write
                     })
                 };
                 foreach (var t in tasks) t.Start();
@@ -106,7 +130,7 @@ namespace Examine.Test.AzureDirectory
                 var blobFiles = writeDir.GetAllBlobFiles();
                 var readonlyCacheFiles = cacheDirectory2.GetDirectory().GetFiles("*.*").Select(x => x.Name).ToArray();
                 AssertSyncedFiles(blobFiles, readonlyCacheFiles);
-            }            
+            }
         }
 
         private void AssertSyncedFiles(string[] blobFiles, string[] cacheFiles)
@@ -114,7 +138,8 @@ namespace Examine.Test.AzureDirectory
             var sortedBlobFiles = blobFiles.Where(x => !x.EndsWith(".lock")).Select(x => x.ToLowerInvariant()).OrderBy(x => x).ToList();
             var sortedCacheFiles = cacheFiles.Select(x => x.ToLowerInvariant()).OrderBy(x => x).ToList();
 
-            CollectionAssert.AreEqual(sortedBlobFiles, sortedCacheFiles);
+            // Assert that all files in blob storage exist in the cache storage (there might be extras in cache storage and that's ok)
+            CollectionAssert.IsSubsetOf(sortedBlobFiles, sortedCacheFiles);
         }
     }
 }
