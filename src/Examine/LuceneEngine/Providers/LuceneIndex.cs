@@ -69,7 +69,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="writer"></param>
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
-        internal LuceneIndex(
+        public LuceneIndex(
             string name,
             FieldDefinitionCollection fieldDefinitions,
             IndexWriter writer,
