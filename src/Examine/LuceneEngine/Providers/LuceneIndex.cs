@@ -212,7 +212,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Indicates whether or this system will process the queue items asynchonously - used for testing
         /// </summary>
-        public bool RunAsync { get; protected set; } = true;
+        public bool RunAsync { get; protected internal set; } = true;
 
         /// <summary>
         /// The folder that stores the Lucene Index files
