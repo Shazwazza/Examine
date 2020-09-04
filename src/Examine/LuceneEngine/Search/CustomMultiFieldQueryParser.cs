@@ -18,16 +18,22 @@ namespace Examine.LuceneEngine.Search
 
         public virtual Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
         {
+            if (string.IsNullOrWhiteSpace(termStr)) throw new System.ArgumentException($"'{nameof(termStr)}' cannot be null or whitespace", nameof(termStr));
+
             return GetFuzzyQuery(field, termStr, minSimilarity);
         }
 
         public virtual Query GetWildcardQueryInternal(string field, string termStr)
         {
+            if (string.IsNullOrWhiteSpace(termStr)) throw new System.ArgumentException($"'{nameof(termStr)}' cannot be null or whitespace", nameof(termStr));
+            
             return GetWildcardQuery(field, termStr);
         }
 
         public virtual Query GetFieldQueryInternal(string field, string queryText)
         {
+            if (string.IsNullOrWhiteSpace(queryText)) throw new System.ArgumentException($"'{nameof(queryText)}' cannot be null or whitespace", nameof(queryText));
+
             return GetFieldQuery(field, queryText);
         }
     }

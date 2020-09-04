@@ -290,6 +290,10 @@ namespace Examine.LuceneEngine.Search
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         protected virtual Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
+            if (string.IsNullOrEmpty(fieldName)) throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
+            if (fieldValue is null) throw new ArgumentNullException(nameof(fieldValue));
+            if (string.IsNullOrEmpty(fieldValue.Value)) throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
+
             Query queryToAdd;
 
             switch (fieldValue.Examineness)
