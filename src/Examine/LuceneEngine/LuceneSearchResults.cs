@@ -44,8 +44,78 @@ namespace Examine.LuceneEngine
             LuceneSearcher = searcher;
             DoSearch(query, sortField, maxResults);
         }
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int skip, int? take = null)
+        {
+            LuceneQuery = query;
 
-        
+            LuceneSearcher = searcher;
+            DoSearch(query, sortField, skip, take);
+        }
+
+        private void DoSearch(Query query, IEnumerable<SortField> sortField, int skip, int? take = null)
+        {
+            int maxResults = take != null ? take.Value + skip : int.MaxValue;
+            //This try catch is because analyzers strip out stop words and sometimes leave the query
+            //with null values. This simply tries to extract terms, if it fails with a null
+            //reference then its an invalid null query, NotSupporteException occurs when the query is
+            //valid but the type of query can't extract terms.
+            //This IS a work-around, theoretically Lucene itself should check for null query parameters
+            //before throwing exceptions.
+            try
+            {
+                var set = new HashSet<Term>();
+                query.ExtractTerms(set);
+            }
+            catch (NullReferenceException)
+            {
+                //this means that an analyzer has stipped out stop words and now there are
+                //no words left to search on
+
+                //it could also mean that potentially a IIndexFieldValueType is throwing a null ref
+                TotalItemCount = 0;
+                return;
+            }
+            catch (NotSupportedException)
+            {
+                //swallow this exception, we should continue if this occurs.
+            }
+
+            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.MaxDoc) : LuceneSearcher.MaxDoc;
+
+            Collector topDocsCollector;
+            var sortFields = sortField as SortField[] ?? sortField.ToArray();
+            if (sortFields.Length > 0)
+            {
+                topDocsCollector = TopFieldCollector.Create(
+                    new Sort(sortFields), maxResults, false, false, false, false);
+            }
+            else
+            {
+                topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
+            }
+
+            LuceneSearcher.Search(query, topDocsCollector);
+
+            if (sortFields.Length > 0 && take != null && take.Value >= 0)
+            {
+                TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip,take.Value);
+            }
+            else if (sortFields.Length > 0 && take == null || take.Value < 0)
+            {
+                TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip);
+            }
+            else if ( take != null && take.Value >= 0)
+            {
+                TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip,take.Value);
+            }
+            else
+            {
+                TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip);
+            }
+
+            TotalItemCount = TopDocs.TotalHits;
+        }
+
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
         {
             //This try catch is because analyzers strip out stop words and sometimes leave the query
@@ -157,13 +227,13 @@ namespace Examine.LuceneEngine
 
                 return resultVals;
             });
-            
+
             return sr;
         }
 
         //NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
         // at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
-        
+
         private SearchResult CreateFromDocumentItem(int i)
         {
             // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
@@ -182,7 +252,7 @@ namespace Examine.LuceneEngine
         }
 
         //NOTE: This is totally retarded but it is required for medium trust as I cannot put this code inside the Skip method... wtf
-        
+
         private int GetScoreDocsLength()
         {
             if (TopDocs?.ScoreDocs == null)
@@ -200,7 +270,7 @@ namespace Examine.LuceneEngine
         /// </remarks>
         /// <param name="skip">The number of items in the results to skip.</param>
         /// <returns>A collection of the search results</returns>
-		
+
         public IEnumerable<ISearchResult> Skip(int skip)
         {
             for (int i = skip, n = GetScoreDocsLength(); i < n; i++)
@@ -209,7 +279,7 @@ namespace Examine.LuceneEngine
                 if (!Docs.ContainsKey(i))
                 {
                     var r = CreateFromDocumentItem(i);
-                    if (r == null) 
+                    if (r == null)
                         continue;
 
                     Docs.Add(i, r);
@@ -232,7 +302,7 @@ namespace Examine.LuceneEngine
             private readonly IEnumerator<ISearchResult> _baseEnumerator;
             private readonly IndexSearcher _searcher;
 
-            
+
             public DecrementReaderResult(IEnumerator<ISearchResult> baseEnumerator, Searcher searcher)
             {
                 _baseEnumerator = baseEnumerator;
@@ -241,7 +311,7 @@ namespace Examine.LuceneEngine
                 _searcher?.IndexReader.IncRef();
             }
 
-            
+
             public void Dispose()
             {
                 _baseEnumerator.Dispose();
@@ -268,7 +338,7 @@ namespace Examine.LuceneEngine
         /// Gets the enumerator starting at position 0
         /// </summary>
         /// <returns>A collection of the search results</returns>
-        
+
         public IEnumerator<ISearchResult> GetEnumerator()
         {
             return new DecrementReaderResult(
