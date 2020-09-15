@@ -45,12 +45,13 @@ namespace Examine.LuceneEngine
             LuceneSearcher = searcher;
             DoSearch(query, sortField, maxResults);
         }
-        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int skip, int? take = null)
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int skip, int? take = null, FieldSelector fieldSelector = null)
         {
             LuceneQuery = query;
 
             LuceneSearcher = searcher;
             DoSearch(query, sortField, skip, take);
+            FieldSelector = fieldSelector;
         }
 
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int skip, int? take = null)
