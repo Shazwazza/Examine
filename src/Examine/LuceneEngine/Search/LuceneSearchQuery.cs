@@ -130,10 +130,8 @@ namespace Examine.LuceneEngine.Search
         /// <inheritdoc />
         public ISearchResults Execute(int maxResults = 500) => Search(maxResults);
 
-<<<<<<< HEAD
         /// <inheritdoc />
         public ISearchResults ExecuteWithSkip(int skip, int? take =null) => Search(skip, take);
-=======
         public IBooleanOperation SelectFieldsInternal(ISet<string> loadedFieldNames)
         {
             Selector = new SetBasedFieldSelector(loadedFieldNames, new HashSet<string>());
@@ -165,7 +163,6 @@ namespace Examine.LuceneEngine.Search
             return new LuceneBooleanOperation(this);
         }
 
->>>>>>> Support for retrieving only the fields you require from the index
 
         /// <summary>
         /// Performs a search with a maximum number of results
@@ -225,11 +222,7 @@ namespace Examine.LuceneEngine.Search
                 query.Add(categoryQuery, Occur.MUST);
             }
 
-<<<<<<< HEAD
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, skip,take);
-=======
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, Selector);
->>>>>>> Support for retrieving only the fields you require from the index
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, skip,take, Selector);
             return pagesResults;
         }
 
