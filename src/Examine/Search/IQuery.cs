@@ -17,8 +17,9 @@ namespace Examine.Search
         /// the provider can still handle it.
         /// </remarks>
         /// <param name="query">The query.</param>
+        /// <param name="loadedFieldNames">The fields to load in the result set.</param>
         /// <returns></returns>
-        IBooleanOperation NativeQuery(string query);
+        IBooleanOperation NativeQuery(string query,ISet<string> loadedFieldNames = null);
 
         /// <summary>
         /// Creates an inner group query
