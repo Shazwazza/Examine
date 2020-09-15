@@ -222,8 +222,7 @@ namespace Examine.LuceneEngine.Search
                 query.Add(categoryQuery, Occur.MUST);
             }
 
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, skip,take);
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, Selector);
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, skip,take, Selector);
             return pagesResults;
         }
 
@@ -298,5 +297,7 @@ namespace Examine.LuceneEngine.Search
         public override IBooleanOperation SelectFirstFieldOnly() => SelectFirstFieldOnlyInternal();
 
         public override IBooleanOperation SelectAllFields() => SelectAllFieldsInternal();
+
+        public ISearchResults Execute(int take, int skip) => ExecuteWithSkip(skip, take);
     }
 }
