@@ -59,7 +59,7 @@ namespace Examine.LuceneEngine.Search
 
         public string Category => _search.Category;
 
-        public IBooleanOperation NativeQuery(string query) => _search.NativeQuery(query);
+        public IBooleanOperation NativeQuery(string query, ISet<string> loadedFieldNames = null) => _search.NativeQuery(query, loadedFieldNames);
 
         /// <inheritdoc />
         public IBooleanOperation Group(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or)
@@ -103,6 +103,14 @@ namespace Examine.LuceneEngine.Search
         INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive);
 
+        public IBooleanOperation SelectFields(params string[] fieldNames) => _search.SelectFields(fieldNames);
 
+        public IBooleanOperation SelectFields(ISet<string> fieldNames) => _search.SelectFields(fieldNames);
+
+        public IBooleanOperation SelectField(string fieldName) => _search.SelectField(fieldName);
+
+        public IBooleanOperation SelectFirstFieldOnly() => _search.SelectFirstFieldOnly();
+
+        public IBooleanOperation SelectAllFields() => _search.SelectAllFields();
     }
 }

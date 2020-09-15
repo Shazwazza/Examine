@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Examine.LuceneEngine.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Documents;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Search
@@ -130,6 +132,37 @@ namespace Examine.LuceneEngine.Search
 
         /// <inheritdoc />
         public ISearchResults ExecuteWithSkip(int skip, int? take =null) => Search(skip, take);
+        public IBooleanOperation SelectFieldsInternal(ISet<string> loadedFieldNames)
+        {
+            Selector = new SetBasedFieldSelector(loadedFieldNames, new HashSet<string>());
+            return new LuceneBooleanOperation(this);
+        }
+
+        internal IBooleanOperation SelectFieldsInternal(params string[] loadedFieldNames)
+        {
+            ISet<string> loaded = new HashSet<string>(loadedFieldNames);
+            Selector = new SetBasedFieldSelector(loaded, new HashSet<string>());
+            return new LuceneBooleanOperation(this);
+        }
+
+        internal IBooleanOperation SelectFieldInternal(string fieldName)
+        {
+            ISet<string> loaded = new HashSet<string>(new string[] { fieldName });
+            Selector = new SetBasedFieldSelector(loaded, new HashSet<string>());
+            return new LuceneBooleanOperation(this);
+        }
+
+        public IBooleanOperation SelectFirstFieldOnlyInternal()
+        {
+            Selector = new LoadFirstFieldSelector();
+            return new LuceneBooleanOperation(this);
+        }
+        public IBooleanOperation SelectAllFieldsInternal()
+        {
+            Selector = null;
+            return new LuceneBooleanOperation(this);
+        }
+
 
         /// <summary>
         /// Performs a search with a maximum number of results
@@ -190,6 +223,7 @@ namespace Examine.LuceneEngine.Search
             }
 
             var pagesResults = new LuceneSearchResults(query, SortFields, searcher, skip,take);
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, Selector);
             return pagesResults;
         }
 
@@ -254,5 +288,15 @@ namespace Examine.LuceneEngine.Search
         }
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
+
+        public override IBooleanOperation SelectFields(params string[] fieldNames) => SelectFieldsInternal(fieldNames);
+
+        public override IBooleanOperation SelectFields(ISet<string> fieldNames) => SelectFieldsInternal(fieldNames);
+
+        public override IBooleanOperation SelectField(string fieldName) => SelectFieldInternal(fieldName);
+
+        public override IBooleanOperation SelectFirstFieldOnly() => SelectFirstFieldOnlyInternal();
+
+        public override IBooleanOperation SelectAllFields() => SelectAllFieldsInternal();
     }
 }
