@@ -84,11 +84,16 @@ namespace Examine.LuceneEngine.Search
         }
 
         /// <inheritdoc />
-        public IBooleanOperation NativeQuery(string query)
+        public IBooleanOperation NativeQuery(string query, ISet<string> loadedFieldNames = null)
         {
             Query.Add(_queryParser.Parse(query), Occurrence);
 
-            return CreateOp();
+            var op = CreateOp();
+            if(loadedFieldNames != null)
+            {
+                op.And().SelectFields(loadedFieldNames);
+            }
+            return op;
         }
 
         /// <summary>

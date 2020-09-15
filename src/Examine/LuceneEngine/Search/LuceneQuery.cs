@@ -59,7 +59,7 @@ namespace Examine.LuceneEngine.Search
 
         public string Category => _search.Category;
 
-        public IBooleanOperation NativeQuery(string query) => _search.NativeQuery(query);
+        public IBooleanOperation NativeQuery(string query, ISet<string> loadedFieldNames = null) => _search.NativeQuery(query, loadedFieldNames);
 
         /// <inheritdoc />
         public IBooleanOperation Group(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.Or)
