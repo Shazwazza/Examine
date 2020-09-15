@@ -128,6 +128,8 @@ namespace Examine.LuceneEngine.Search
         /// <inheritdoc />
         public ISearchResults Execute(int maxResults = 500) => Search(maxResults);
 
+        /// <inheritdoc />
+        public ISearchResults ExecuteWithSkip(int skip, int? take =null) => Search(skip, take);
 
         /// <summary>
         /// Performs a search with a maximum number of results
@@ -160,6 +162,36 @@ namespace Examine.LuceneEngine.Search
             return pagesResults;
         }
 
+        /// <summary>
+        /// Performs a search using skip and take
+        /// </summary>
+        private ISearchResults Search(int skip,int? take)
+        {
+            var searcher = _searchContext.Searcher;
+            if (searcher == null) return EmptySearchResults.Instance;
+
+            // capture local
+            var query = Query;
+
+            if (!string.IsNullOrEmpty(Category))
+            {
+                // if category is supplied then wrap the query (if there's other queries to wrap!)
+                if (query.Clauses.Count > 0)
+                {
+                    query = new BooleanQuery
+                    {
+                        { query, Occur.MUST }
+                    };
+                }
+
+                // and then add the category field query as a must
+                var categoryQuery = GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
+                query.Add(categoryQuery, Occur.MUST);
+            }
+
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, skip,take);
+            return pagesResults;
+        }
 
         /// <summary>
         /// Internal operation for adding the ordered results
