@@ -73,5 +73,7 @@ namespace Examine.LuceneEngine.Search
         public abstract ISearchResults Execute(int take, int skip);
         public abstract IOrdering OrderBy(params SortableField[] fields);
         public abstract IOrdering OrderByDescending(params SortableField[] fields);
+
+        public abstract ISearchResults ExecuteWithSkip(int skip, int? take = null);
     }
 }

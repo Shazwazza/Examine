@@ -54,5 +54,9 @@ namespace Examine.LuceneEngine.Search
         #endregion
 
         public override string ToString() => _search.ToString();
+
+        public override ISearchResults Execute(int take, int skip) => _search.ExecuteWithSkip(skip, take);
+
+        public override ISearchResults ExecuteWithSkip(int skip, int? take = null) => _search.ExecuteWithSkip(skip, take);
     }
 }
