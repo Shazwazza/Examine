@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Providers;
@@ -27,6 +28,7 @@ namespace Examine.LuceneEngine.Search
         public const Version LuceneVersion = Version.LUCENE_30;
 
         protected internal FieldSelector Selector = null;
+        private static readonly ISet<string>  EmptySet =  new HashSet<string>();
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -84,16 +86,21 @@ namespace Examine.LuceneEngine.Search
         }
 
         /// <inheritdoc />
+        public IBooleanOperation NativeQuery(string query)
+        {
+            return NativeQuery(query, null);
+        }
+
+        /// <inheritdoc />
         public IBooleanOperation NativeQuery(string query, ISet<string> loadedFieldNames = null)
         {
             Query.Add(_queryParser.Parse(query), Occurrence);
 
-            var op = CreateOp();
-            if(loadedFieldNames != null)
+            if(loadedFieldNames != null && this is IFieldSelectableQuery)
             {
-                op.And().SelectFields(loadedFieldNames);
+                Selector = new SetBasedFieldSelector(loadedFieldNames, EmptySet);
             }
-            return op;
+             return CreateOp();
         }
 
         /// <summary>
@@ -514,5 +521,6 @@ namespace Examine.LuceneEngine.Search
         public abstract IBooleanOperation SelectField(string fieldName);
         public abstract IBooleanOperation SelectFirstFieldOnly();
         public abstract IBooleanOperation SelectAllFields();
+        public abstract IBooleanOperation SelectFields(Hashtable fieldNames);
     }
 }

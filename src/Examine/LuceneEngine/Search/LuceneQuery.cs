@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
@@ -6,7 +7,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Search
 {
-    public class LuceneQuery : IQuery, INestedQuery
+    public class LuceneQuery : IQuery, INestedQuery, IFieldSelectableQuery
     {
         private readonly LuceneSearchQuery _search;
 
@@ -59,6 +60,7 @@ namespace Examine.LuceneEngine.Search
 
         public string Category => _search.Category;
 
+        public IBooleanOperation NativeQuery(string query) => _search.NativeQuery(query);
         public IBooleanOperation NativeQuery(string query, ISet<string> loadedFieldNames = null) => _search.NativeQuery(query, loadedFieldNames);
 
         /// <inheritdoc />
@@ -112,5 +114,7 @@ namespace Examine.LuceneEngine.Search
         public IBooleanOperation SelectFirstFieldOnly() => _search.SelectFirstFieldOnly();
 
         public IBooleanOperation SelectAllFields() => _search.SelectAllFields();
+
+        public IBooleanOperation SelectFields(Hashtable fieldNames) => _search.SelectFields(fieldNames);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -136,6 +137,17 @@ namespace Examine.LuceneEngine.Search
             return new LuceneBooleanOperation(this);
         }
 
+        public IBooleanOperation SelectFieldsInternal(Hashtable loadedFieldNames)
+        {
+            HashSet<string> hs = new HashSet<string>();
+            foreach (string item in loadedFieldNames.Keys)
+            {
+                hs.Add(item);
+            }
+            Selector = new SetBasedFieldSelector(hs, new HashSet<string>());
+            return new LuceneBooleanOperation(this);
+        }
+
         internal IBooleanOperation SelectFieldsInternal(params string[] loadedFieldNames)
         {
             ISet<string> loaded = new HashSet<string>(loadedFieldNames);
@@ -266,5 +278,8 @@ namespace Examine.LuceneEngine.Search
         public override IBooleanOperation SelectFirstFieldOnly() => SelectFirstFieldOnlyInternal();
 
         public override IBooleanOperation SelectAllFields() => SelectAllFieldsInternal();
+
+        public override IBooleanOperation SelectFields(Hashtable fieldNames) => SelectFieldsInternal(fieldNames);
+
     }
 }
