@@ -54,48 +54,54 @@ namespace Examine.LuceneEngine
         }
 
         [SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, bool extractTermsNotSupported = false)
         {
             LuceneQuery = query;
 
             LuceneSearcher = searcher;
-            DoSearch(query, sortField, 0);
+            DoSearch(query, sortField, 0,extractTermsNotSupported);
         }
 
         [SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults, bool extractTermsNotSupported = false)
         {
             LuceneQuery = query;
 
             LuceneSearcher = searcher;
-            DoSearch(query, sortField, maxResults);
+            DoSearch(query, sortField, maxResults,extractTermsNotSupported);
         }
 
         [SecuritySafeCritical]
-        private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
+        private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults,bool extractTermsNotSupported)
         {
-            //This try catch is because analyzers strip out stop words and sometimes leave the query
-            //with null values. This simply tries to extract terms, if it fails with a null
-            //reference then its an invalid null query, NotSupporteException occurs when the query is
-            //valid but the type of query can't extract terms.
-            //This IS a work-around, theoretically Lucene itself should check for null query parameters
-            //before throwing exceptions.
-            try
+
+            //Avoid throwing NotSupportedException when we know calling ExtractTerms will throw
+            if (!extractTermsNotSupported)
             {
-                var set = new Hashtable();
-                query.ExtractTerms(set);
+                //This try catch is because analyzers strip out stop words and sometimes leave the query
+                //with null values. This simply tries to extract terms, if it fails with a null
+                //reference then its an invalid null query, NotSupporteException occurs when the query is
+                //valid but the type of query can't extract terms.
+                //This IS a work-around, theoretically Lucene itself should check for null query parameters
+                //before throwing exceptions.
+                try
+                {
+                    var set = new Hashtable();
+                    query.ExtractTerms(set);
+                }
+                catch (NullReferenceException)
+                {
+                    //this means that an analyzer has stipped out stop words and now there are
+                    //no words left to search on
+                    TotalItemCount = 0;
+                    return;
+                }
+                catch (NotSupportedException)
+                {
+                    //swallow this exception, we should continue if this occurs.
+                }
             }
-            catch (NullReferenceException)
-            {
-                //this means that an analyzer has stipped out stop words and now there are
-                //no words left to search on
-                TotalItemCount = 0;
-                return;
-            }
-            catch (NotSupportedException)
-            {
-                //swallow this exception, we should continue if this occurs.
-            }
+            
 
             maxResults = maxResults >= 1 ? maxResults : LuceneSearcher.MaxDoc();
 
