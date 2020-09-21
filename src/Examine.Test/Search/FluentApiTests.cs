@@ -1873,6 +1873,167 @@ namespace Examine.Test.Search
         //        BooleanQuery.MaxClauseCount = 1024;
         //    }      
         //}
+        [Test]
+        public void Select_Field()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+
+            {
+                indexer.IndexItems(new[] {
+                    new ValueSet(1.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"id","1" },
+                            {"nodeName", "my name 1"},
+                            {"bodyText", "lorem ipsum"},
+                            {"__Path", "-1,123,456,789"}
+                        }),
+                    new ValueSet(2.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"id","2" },
+                            {"nodeName", "my name 2"},
+                            {"bodyText", "lorem ipsum"},
+                            {"__Path", "-1,123,456,987"}
+                        })
+                    });
+
+                var searcher = indexer.GetSearcher();
+                var sc = searcher.CreateQuery("content");
+                var sc1 = sc.Field("nodeName", "my name 1")
+                .And().SelectField("__Path");
+
+                var results = sc1.Execute();
+                var expectedLoadedFields = new string[] { "__Path"};
+                var keys = results.First().Values.Keys.ToArray();
+                Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+            }
+               
+            
+        }
+        [Test]
+        public void Select_FirstField()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+
+            {
+                indexer.IndexItems(new[] {
+                    new ValueSet(1.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"id","1" },
+                            {"nodeName", "my name 1"},
+                            {"bodyText", "lorem ipsum"},
+                            {"__Path", "-1,123,456,789"}
+                        }),
+                    new ValueSet(2.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"id","2" },
+                            {"nodeName", "my name 2"},
+                            {"bodyText", "lorem ipsum"},
+                            {"__Path", "-1,123,456,987"}
+                        })
+                    });
+
+                var searcher = indexer.GetSearcher();
+                var sc = searcher.CreateQuery("content");
+                var sc1 = sc.Field("nodeName", "my name 1")
+                .And().SelectFirstFieldOnly();
+
+                var results = sc1.Execute();
+                var expectedLoadedFields = new string[] {  "__NodeId" };
+                var keys = results.First().Values.Keys.ToArray();
+                Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+            }
+        }
+
+        [Test]
+        public void Select_Fields()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+
+            {
+                indexer.IndexItems(new[] {
+                    new ValueSet(1.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"id","1" },
+                            {"nodeName", "my name 1"},
+                            {"bodyText", "lorem ipsum"},
+                            {"__Path", "-1,123,456,789"}
+                        }),
+                    new ValueSet(2.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"id","2" },
+                            {"nodeName", "my name 2"},
+                            {"bodyText", "lorem ipsum"},
+                            {"__Path", "-1,123,456,987"}
+                        })
+                    });
+
+                var searcher = indexer.GetSearcher();
+                var sc = searcher.CreateQuery("content");
+                var sc1 = sc.Field("nodeName", "my name 1")
+                .And().SelectFields("nodeName","bodyText", "id", "__NodeId");
+
+                var results = sc1.Execute();
+                var expectedLoadedFields = new string[] { "nodeName", "bodyText","id","__NodeId" };
+                var keys = results.First().Values.Keys.ToArray();
+                Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+            }
+
+        }
+
+        [Test]
+        public void Select_Fields_HashSet()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+
+            {
+                indexer.IndexItems(new[] {
+                    new ValueSet(1.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"id","1" },
+                            {"nodeName", "my name 1"},
+                            {"bodyText", "lorem ipsum"},
+                            {"__Path", "-1,123,456,789"}
+                        }),
+                    new ValueSet(2.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"id","2" },
+                            {"nodeName", "my name 2"},
+                            {"bodyText", "lorem ipsum"},
+                            {"__Path", "-1,123,456,987"}
+                        })
+                    });
+
+                var searcher = indexer.GetSearcher();
+                var sc = searcher.CreateQuery("content");
+                var sc1 = sc.Field("nodeName", "my name 1")
+                .And().SelectFields(new HashSet<string>(new string[]{ "nodeName", "bodyText" }));
+
+                var results = sc1.Execute();
+                var expectedLoadedFields = new string[] { "nodeName", "bodyText" };
+                var keys = results.First().Values.Keys.ToArray();
+                Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+            }
+        }
 
     }
 }

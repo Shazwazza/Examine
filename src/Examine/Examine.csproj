@@ -149,6 +149,7 @@
     <Compile Include="EmptySearchResults.cs" />
     <Compile Include="ExamineExtensions.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
+    <Compile Include="LuceneEngine\LuceneSearchResultsBase.cs" />
     <Compile Include="LuceneEngine\OpenReaderTracker.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
     <Compile Include="IndexOperation.cs" />
@@ -179,9 +180,11 @@
     <Compile Include="LuceneEngine\Search\LuceneSearchExtensions.cs" />
     <Compile Include="LuceneEngine\Search\MultiSearchContext.cs" />
     <Compile Include="SearchExtensions.cs" />
+    <Compile Include="Search\IFieldSelectableQuery.cs" />
     <Compile Include="Search\INestedBooleanOperation.cs" />
     <Compile Include="Search\INestedQuery.cs" />
     <Compile Include="Search\IOrdering.cs" />
+    <Compile Include="Search\QueryExtensions.cs" />
     <Compile Include="Search\SortableField.cs" />
     <Compile Include="Search\SortType.cs" />
     <Compile Include="LuceneEngine\LuceneSearchResults.cs" />
@@ -202,6 +205,7 @@
     <Compile Include="SearchResult.cs" />
     <Compile Include="Providers\BaseIndexProvider.cs" />
     <Compile Include="Providers\BaseSearchProvider.cs" />
+    <Compile Include="SearchResultsBase.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="ValueSet.cs" />
