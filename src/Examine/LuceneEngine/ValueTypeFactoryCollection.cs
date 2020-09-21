@@ -79,7 +79,7 @@ namespace Examine.LuceneEngine
                 {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, DateTools.Resolution.HOUR)},
                 {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
-                {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
+                {FieldDefinitionTypes.FullText, name => new FullTextType(name)}, // TODO: This is the default and it doesn't use the default analyzer
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, null, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, new EmailAddressAnalyzer())}
