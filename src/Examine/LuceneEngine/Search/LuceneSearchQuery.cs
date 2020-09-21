@@ -141,19 +141,20 @@ namespace Examine.LuceneEngine.Search
 
             if (!string.IsNullOrEmpty(Category))
             {
-                // if category is supplied then wrap the query (if there's other queries to wrap!)
-                if (query.Clauses.Count > 0)
+                // rebuild the query
+                var existingClauses = query.Clauses.ToList();
+                query = new BooleanQuery
                 {
-                    query = new BooleanQuery
-                    {
-                        { query, Occur.MUST }
-                    };
+                    // prefix the category field query as a must
+                    { GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false), Occur.MUST }
+                };
+
+                // add the ones that we're already existing
+                foreach (var c in existingClauses)
+                {
+                    query.Add(c);
                 }
 
-                // and then add the category field query as a must
-                var categoryQuery = GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
-
-                query.Add(categoryQuery, Occur.MUST);
             }
 
             var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults);
