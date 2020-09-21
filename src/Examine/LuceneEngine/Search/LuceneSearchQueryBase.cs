@@ -535,11 +535,29 @@ namespace Examine.LuceneEngine.Search
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
 
-        public abstract IBooleanOperation SelectFields(params string[] fieldNames);
-        public abstract IBooleanOperation SelectFields(ISet<string> fieldNames);
-        public abstract IBooleanOperation SelectField(string fieldName);
-        public abstract IBooleanOperation SelectFirstFieldOnly();
-        public abstract IBooleanOperation SelectAllFields();
-        public abstract IBooleanOperation SelectFields(Hashtable fieldNames);
+        public virtual IBooleanOperation SelectFields(params string[] fieldNames)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectFields(ISet<string> fieldNames)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectField(string fieldName)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectFirstFieldOnly()
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectAllFields()
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectFields(Hashtable fieldNames)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
