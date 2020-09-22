@@ -180,9 +180,11 @@
     <Compile Include="LuceneEngine\Search\LuceneSearchExtensions.cs" />
     <Compile Include="LuceneEngine\Search\MultiSearchContext.cs" />
     <Compile Include="SearchExtensions.cs" />
+    <Compile Include="Search\IFieldSelectableQuery.cs" />
     <Compile Include="Search\INestedBooleanOperation.cs" />
     <Compile Include="Search\INestedQuery.cs" />
     <Compile Include="Search\IOrdering.cs" />
+    <Compile Include="Search\QueryExtensions.cs" />
     <Compile Include="Search\SortableField.cs" />
     <Compile Include="Search\SortType.cs" />
     <Compile Include="LuceneEngine\LuceneSearchResults.cs" />

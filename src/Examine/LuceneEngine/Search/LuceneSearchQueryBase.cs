@@ -1,9 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Providers;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
@@ -25,6 +27,9 @@ namespace Examine.LuceneEngine.Search
         private BooleanOperation _boolOp;
 
         public const Version LuceneVersion = Version.LUCENE_30;
+
+        protected internal FieldSelector Selector = null;
+        private static readonly ISet<string>  EmptySet =  new HashSet<string>();
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -84,9 +89,19 @@ namespace Examine.LuceneEngine.Search
         /// <inheritdoc />
         public IBooleanOperation NativeQuery(string query)
         {
+            return NativeQuery(query, null);
+        }
+
+        /// <inheritdoc />
+        public IBooleanOperation NativeQuery(string query, ISet<string> loadedFieldNames = null)
+        {
             Query.Add(_queryParser.Parse(query), Occurrence);
 
-            return CreateOp();
+            if(loadedFieldNames != null && this is IFieldSelectableQuery)
+            {
+                Selector = new SetBasedFieldSelector(loadedFieldNames, EmptySet);
+            }
+             return CreateOp();
         }
 
         /// <summary>
@@ -519,6 +534,31 @@ namespace Examine.LuceneEngine.Search
         public override string ToString()
         {
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
+        }
+
+        public virtual IBooleanOperation SelectFields(params string[] fieldNames)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectFields(ISet<string> fieldNames)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectField(string fieldName)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectFirstFieldOnly()
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectAllFields()
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IBooleanOperation SelectFields(Hashtable fieldNames)
+        {
+            throw new NotImplementedException();
         }
     }
 }

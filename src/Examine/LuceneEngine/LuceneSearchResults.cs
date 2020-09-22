@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 
@@ -36,9 +37,12 @@ namespace Examine.LuceneEngine
         /// </summary>
         public TopDocs TopDocs { get; private set; }
 
-        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
+        public FieldSelector FieldSelector { get; }
+
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults, FieldSelector fieldSelector)
         {
             LuceneQuery = query;
+            FieldSelector = fieldSelector;
             LuceneSearcher = searcher;
 
             DoSearch(query, sortField, maxResults);
@@ -107,7 +111,15 @@ namespace Examine.LuceneEngine
             var scoreDoc = TopDocs.ScoreDocs[index];
 
             var docId = scoreDoc.Doc;
-            var doc = LuceneSearcher.Doc(docId);
+            Document doc;
+            if(FieldSelector != null)
+            {
+                doc = LuceneSearcher.Doc(docId, FieldSelector);
+            }
+            else
+            {
+                doc = LuceneSearcher.Doc(docId);
+            }
             var score = scoreDoc.Score;
             var result = CreateSearchResult(doc, score);
 
