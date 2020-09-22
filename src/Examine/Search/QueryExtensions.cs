@@ -8,45 +8,41 @@ namespace Examine.Search
 {
     public static class QueryExtensions
     {
-        public static IBooleanOperation NativeQuery(this IQuery searchQuery,string query, ISet<string> loadedFieldNames = null)
-        {
-            var fieldQuery = ToFieldSelectableQuery(searchQuery);
-            return fieldQuery.NativeQuery(query, loadedFieldNames);
-        }
+        // TODO: In v2.0 we can look at moving these to directly to IQuery instead of a separate IFieldSelectableQuery with casting
 
-        public static IBooleanOperation SelectAllFields(this IQuery searchQuery)
+        public static IOrdering SelectAllFields(this IBooleanOperation booleanOp)
         {
-            var fieldQuery = ToFieldSelectableQuery(searchQuery);
+            var fieldQuery = ToFieldSelectableOrdering(booleanOp);
             return fieldQuery.SelectAllFields();
         }
 
-        public static IBooleanOperation SelectField(this IQuery searchQuery,string fieldName)
+        public static IOrdering SelectField(this IBooleanOperation booleanOp,string fieldName)
         {
-            var fieldQuery = ToFieldSelectableQuery(searchQuery);
+            var fieldQuery = ToFieldSelectableOrdering(booleanOp);
             return fieldQuery.SelectField(fieldName);
         }
 
-        public static IBooleanOperation SelectFields(this IQuery searchQuery, params string[] fieldNames)
+        public static IOrdering SelectFields(this IBooleanOperation booleanOp, params string[] fieldNames)
         {
-            var fieldQuery = ToFieldSelectableQuery(searchQuery);
+            var fieldQuery = ToFieldSelectableOrdering(booleanOp);
             return fieldQuery.SelectFields(fieldNames);
         }
 
-        public static IBooleanOperation SelectFields(this IQuery searchQuery, ISet<string> fieldNames)
+        public static IOrdering SelectFields(this IBooleanOperation booleanOp, ISet<string> fieldNames)
         {
-            var fieldQuery = ToFieldSelectableQuery(searchQuery);
+            var fieldQuery = ToFieldSelectableOrdering(booleanOp);
             return fieldQuery.SelectFields(fieldNames);
         }
 
-        public static IBooleanOperation SelectFirstFieldOnly(this IQuery searchQuery)
+        public static IOrdering SelectFirstFieldOnly(this IBooleanOperation searchQuery)
         {
-            var fieldQuery = ToFieldSelectableQuery(searchQuery);
+            var fieldQuery = ToFieldSelectableOrdering(searchQuery);
             return fieldQuery.SelectFirstFieldOnly();
         }
 
-        private static IFieldSelectableQuery ToFieldSelectableQuery(IQuery searchQuery)
+        private static IFieldSelectableOrdering ToFieldSelectableOrdering(IBooleanOperation booleanOp)
         {
-            if(searchQuery is IFieldSelectableQuery fieldSelectableQuery)
+            if(booleanOp is IFieldSelectableOrdering fieldSelectableQuery)
             {
                 return fieldSelectableQuery;
             }

@@ -28,7 +28,7 @@ namespace Examine.LuceneEngine.Search
         public const Version LuceneVersion = Version.LUCENE_30;
 
         protected internal FieldSelector Selector = null;
-        private static readonly ISet<string>  EmptySet =  new HashSet<string>();
+        private static readonly ISet<string> EmptySet = new HashSet<string>();
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -88,19 +88,8 @@ namespace Examine.LuceneEngine.Search
         /// <inheritdoc />
         public IBooleanOperation NativeQuery(string query)
         {
-            return NativeQuery(query, null);
-        }
-
-        /// <inheritdoc />
-        public IBooleanOperation NativeQuery(string query, ISet<string> loadedFieldNames = null)
-        {
             Query.Add(_queryParser.Parse(query), Occurrence);
-
-            if(loadedFieldNames != null && this is IFieldSelectableQuery)
-            {
-                Selector = new SetBasedFieldSelector(loadedFieldNames, EmptySet);
-            }
-             return CreateOp();
+            return CreateOp();
         }
 
         /// <summary>
@@ -166,15 +155,15 @@ namespace Examine.LuceneEngine.Search
         #region INested
 
         private static readonly string[] EmptyStringArray = new string[0];
-        
+
         protected abstract INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue) where T : struct;
         protected abstract INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null);
         protected abstract INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
-        INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue) 
+        INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
             => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
 
-        INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue) 
+        INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue)
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
@@ -260,9 +249,9 @@ namespace Examine.LuceneEngine.Search
 
             // So we get all clauses 
             var subQueries = GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT, true);
-               
+
             // then add each individual one directly to the query
-            foreach(var c in subQueries.Clauses)
+            foreach (var c in subQueries.Clauses)
             {
                 Query.Add(c);
             }
@@ -283,7 +272,7 @@ namespace Examine.LuceneEngine.Search
 
             return CreateOp();
         }
-        
+
         protected internal LuceneBooleanOperationBase IdInternal(string id, Occur occurrence)
         {
             if (id == null) throw new ArgumentNullException(nameof(id));
@@ -293,7 +282,7 @@ namespace Examine.LuceneEngine.Search
 
             return CreateOp();
         }
-        
+
         #endregion
 
         /// <summary>
@@ -535,29 +524,6 @@ namespace Examine.LuceneEngine.Search
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
 
-        public virtual IBooleanOperation SelectFields(params string[] fieldNames)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual IBooleanOperation SelectFields(ISet<string> fieldNames)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual IBooleanOperation SelectField(string fieldName)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual IBooleanOperation SelectFirstFieldOnly()
-        {
-            throw new NotImplementedException();
-        }
-        public virtual IBooleanOperation SelectAllFields()
-        {
-            throw new NotImplementedException();
-        }
-        public virtual IBooleanOperation SelectFields(Hashtable fieldNames)
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }
