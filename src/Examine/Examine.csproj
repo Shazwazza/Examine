@@ -180,6 +180,7 @@
     <Compile Include="SearchCriteria\BooleanOperation.cs" />
     <Compile Include="SearchCriteria\DateResolution.cs" />
     <Compile Include="SearchCriteria\IBooleanOperation.cs" />
+    <Compile Include="SearchCriteria\IFieldSelectableQuery.cs" />
     <Compile Include="SearchCriteria\IQuery.cs" />
     <Compile Include="SearchCriteria\ISearchCriteria.cs" />
     <Compile Include="ISearcher.cs" />
@@ -188,6 +189,7 @@
     <Compile Include="IndexedNodeEventArgs.cs" />
     <Compile Include="SearchCriteria\IExamineValue.cs" />
     <Compile Include="SearchCriteria\Examineness.cs" />
+    <Compile Include="SearchCriteria\QueryExtensions.cs" />
     <Compile Include="SearchResult.cs" />
     <Compile Include="Providers\BaseIndexProvider.cs" />
     <Compile Include="Providers\BaseSearchProvider.cs" />

@@ -8,7 +8,7 @@ using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.SearchCriteria
 {
-    public class LuceneQuery : IQuery
+    public class LuceneQuery : IQuery, IFieldSelectableQuery
     {
         private LuceneSearchCriteria search;
         private BooleanClause.Occur occurance;
@@ -452,7 +452,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation SelectFields(params string[] fieldNames)
         {
-            return ((IQuery)search).SelectFields(fieldNames);
+            return search.SelectFields(fieldNames);
         }
 
         /// <summary>
@@ -463,7 +463,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation SelectField(string fieldName)
         {
-            return ((IQuery)search).SelectField(fieldName);
+            return search.SelectField(fieldName);
         }
         /// <summary>
         /// Return only the first field in the index
@@ -472,7 +472,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation SelectFirstFieldOnly()
         {
-            return ((IQuery)search).SelectFirstFieldOnly();
+            return search.SelectFirstFieldOnly();
         }
 
         /// <summary>
@@ -481,7 +481,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation SelectAllFields()
         {
-            return ((IQuery)search).SelectAllFields();
+            return search.SelectAllFields();
         }
         /// <summary>
         /// Return only the specified fields
@@ -491,7 +491,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         /// <returns></returns>
         public IBooleanOperation SelectFields(Hashtable fieldNames)
         {
-            return ((IQuery)search).SelectFields(fieldNames);
+            return search.SelectFields(fieldNames);
         }
 
         #endregion
