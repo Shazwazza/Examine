@@ -191,7 +191,7 @@ namespace Examine.LuceneEngine.Search
                 }
             }
 
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults);
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults,Selector);
             return pagesResults;
         }
 

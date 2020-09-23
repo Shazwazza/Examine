@@ -102,7 +102,7 @@ namespace Examine.LuceneEngine
             {
                 TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip,take.Value);
             }
-            else if (sortFields.Length > 0 && take == null || take.Value < 0)
+            else if (sortFields.Length > 0 && (take == null || take.Value < 0))
             {
                 TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip);
             }
