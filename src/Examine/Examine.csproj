@@ -183,6 +183,7 @@
     <Compile Include="Search\INestedQuery.cs" />
     <Compile Include="Search\IOrdering.cs" />
     <Compile Include="Search\IQueryExecutor2.cs" />
+    <Compile Include="Search\QueryExecutorExtensions.cs" />
     <Compile Include="Search\SortableField.cs" />
     <Compile Include="Search\SortType.cs" />
     <Compile Include="LuceneEngine\LuceneSearchResults.cs" />

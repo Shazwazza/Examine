@@ -9,7 +9,7 @@ namespace Examine.LuceneEngine.Search
     /// An implementation of the fluent API boolean operations
     /// </summary>
     [DebuggerDisplay("{_search}")]
-    public class LuceneBooleanOperation : LuceneBooleanOperationBase
+    public class LuceneBooleanOperation : LuceneBooleanOperationBase, IQueryExecutor2
     {
         private readonly LuceneSearchQuery _search;
         

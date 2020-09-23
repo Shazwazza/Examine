@@ -14,7 +14,7 @@ namespace Examine.LuceneEngine.Search
     /// This class is used to query against Lucene.Net
     /// </summary>
     [DebuggerDisplay("Category: {Category}, LuceneQuery: {Query}")]
-    public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
+    public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor, IQueryExecutor2
     {
         private readonly ISearchContext _searchContext;
 
