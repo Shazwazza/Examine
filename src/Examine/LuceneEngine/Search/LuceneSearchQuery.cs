@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -130,40 +131,6 @@ namespace Examine.LuceneEngine.Search
         /// <inheritdoc />
         public ISearchResults Execute(int maxResults = 500) => Search(maxResults);
 
-        /// <inheritdoc />
-        public ISearchResults ExecuteWithSkip(int skip, int? take =null) => Search(skip, take);
-        public IBooleanOperation SelectFieldsInternal(ISet<string> loadedFieldNames)
-        {
-            Selector = new SetBasedFieldSelector(loadedFieldNames, new HashSet<string>());
-            return new LuceneBooleanOperation(this);
-        }
-
-        internal IBooleanOperation SelectFieldsInternal(params string[] loadedFieldNames)
-        {
-            ISet<string> loaded = new HashSet<string>(loadedFieldNames);
-            Selector = new SetBasedFieldSelector(loaded, new HashSet<string>());
-            return new LuceneBooleanOperation(this);
-        }
-
-        internal IBooleanOperation SelectFieldInternal(string fieldName)
-        {
-            ISet<string> loaded = new HashSet<string>(new string[] { fieldName });
-            Selector = new SetBasedFieldSelector(loaded, new HashSet<string>());
-            return new LuceneBooleanOperation(this);
-        }
-
-        public IBooleanOperation SelectFirstFieldOnlyInternal()
-        {
-            Selector = new LoadFirstFieldSelector();
-            return new LuceneBooleanOperation(this);
-        }
-        public IBooleanOperation SelectAllFieldsInternal()
-        {
-            Selector = null;
-            return new LuceneBooleanOperation(this);
-        }
-
-
         /// <summary>
         /// Performs a search with a maximum number of results
         /// </summary>
@@ -198,7 +165,7 @@ namespace Examine.LuceneEngine.Search
         /// <summary>
         /// Performs a search using skip and take
         /// </summary>
-        private ISearchResults Search(int skip,int? take)
+        private ISearchResults SearchWithSkip(int skip,int? take)
         {
             var searcher = _searchContext.Searcher;
             if (searcher == null) return EmptySearchResults.Instance;
@@ -286,16 +253,50 @@ namespace Examine.LuceneEngine.Search
             return new LuceneBooleanOperation(this);
         }
 
+        internal IBooleanOperation SelectFieldsInternal(ISet<string> loadedFieldNames)
+        {
+            Selector = new SetBasedFieldSelector(loadedFieldNames, new HashSet<string>());
+            return CreateOp();
+        }
+
+        internal IBooleanOperation SelectFieldsInternal(Hashtable loadedFieldNames)
+        {
+            HashSet<string> hs = new HashSet<string>();
+            foreach (string item in loadedFieldNames.Keys)
+            {
+                hs.Add(item);
+            }
+            Selector = new SetBasedFieldSelector(hs, new HashSet<string>());
+            return CreateOp();
+        }
+
+        internal IBooleanOperation SelectFieldsInternal(params string[] loadedFieldNames)
+        {
+            ISet<string> loaded = new HashSet<string>(loadedFieldNames);
+            Selector = new SetBasedFieldSelector(loaded, new HashSet<string>());
+            return CreateOp();
+        }
+
+        internal IBooleanOperation SelectFieldInternal(string fieldName)
+        {
+            ISet<string> loaded = new HashSet<string>(new string[] { fieldName });
+            Selector = new SetBasedFieldSelector(loaded, new HashSet<string>());
+            return CreateOp();
+        }
+
+        public IBooleanOperation SelectFirstFieldOnlyInternal()
+        {
+            Selector = new LoadFirstFieldSelector();
+            return CreateOp();
+        }
+        public IBooleanOperation SelectAllFieldsInternal()
+        {
+            Selector = null;
+            return CreateOp();
+        }
+
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        public override IBooleanOperation SelectFields(params string[] fieldNames) => SelectFieldsInternal(fieldNames);
-
-        public override IBooleanOperation SelectFields(ISet<string> fieldNames) => SelectFieldsInternal(fieldNames);
-
-        public override IBooleanOperation SelectField(string fieldName) => SelectFieldInternal(fieldName);
-
-        public override IBooleanOperation SelectFirstFieldOnly() => SelectFirstFieldOnlyInternal();
-
-        public override IBooleanOperation SelectAllFields() => SelectAllFieldsInternal();
+        public ISearchResults ExecuteWithSkip(int skip, int? take = null) => SearchWithSkip(skip,take);
     }
 }

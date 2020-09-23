@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using Examine.LuceneEngine.Providers;
 using Examine.Search;
 using Lucene.Net.Search;
@@ -50,6 +51,17 @@ namespace Examine.LuceneEngine.Search
         public override IOrdering OrderBy(params SortableField[] fields) => _search.OrderBy(fields);
 
         public override IOrdering OrderByDescending(params SortableField[] fields) => _search.OrderByDescending(fields);
+
+        public override IOrdering SelectFields(params string[] fieldNames) => _search.SelectFieldsInternal(fieldNames);
+
+        public override IOrdering SelectFields(ISet<string> fieldNames) => _search.SelectFieldsInternal(fieldNames);
+
+        public override IOrdering SelectField(string fieldName) => _search.SelectFieldInternal(fieldName);
+
+        public override IOrdering SelectFirstFieldOnly() => _search.SelectFirstFieldOnlyInternal();
+
+        public override IOrdering SelectAllFields() => _search.SelectAllFieldsInternal();
+
 
         #endregion
 

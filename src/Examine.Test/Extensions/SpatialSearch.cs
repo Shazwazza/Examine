@@ -87,19 +87,19 @@ namespace Examine.Test.Extensions
                         new { nodeName = "location 4", bodyText = "Somewhere unknown", lat = 50, lng = 50 })
                     });
 
-                    DoSpatialSearch(ctx, strategy, indexer, SearchRadius, lat: -33, lng: 151, id3, createQuery);
-                    DoSpatialSearch(ctx, strategy, indexer, SearchRadius, lat: 46, lng: -60, id2, createQuery);
-                    DoSpatialSearch(ctx, strategy, indexer, SearchRadius, lat: -6, lng: 39, id1, createQuery);
-                    DoSpatialSearch(ctx, strategy, indexer, SearchRadius, lat: 50, lng: 50, id4, createQuery);
+                    DoSpatialSearch(ctx, strategy, indexer, SearchRadius, id3, createQuery, lat: -33, lng: 151);
+                    DoSpatialSearch(ctx, strategy, indexer, SearchRadius, id2, createQuery, lat: 46, lng: -60);
+                    DoSpatialSearch(ctx, strategy, indexer, SearchRadius, id1, createQuery, lat: -6, lng: 39);
+                    DoSpatialSearch(ctx, strategy, indexer, SearchRadius, id4, createQuery, lat: 50, lng: 50);
                 }
             }
             
         }
 
         private void DoSpatialSearch(
-            SpatialContext ctx, SpatialStrategy strategy, 
-            TestIndex indexer, double searchRadius, int lat, int lng, string idToMatch,
-            Func<SpatialArgs, Query> createQuery)
+            SpatialContext ctx, SpatialStrategy strategy,
+            TestIndex indexer, double searchRadius, string idToMatch, Func<SpatialArgs, Query> createQuery, int lat,
+            int lng)
         {
             var searcher = (LuceneSearcher)indexer.GetSearcher();
             var luceneSearcher = searcher.GetLuceneSearcher();

@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Examine.Search;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Search
 {
-    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation
+    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IFieldSelectableOrdering
     {
         private readonly LuceneSearchQueryBase _search;
 
@@ -72,6 +73,32 @@ namespace Examine.LuceneEngine.Search
         public abstract ISearchResults Execute(int maxResults = 500);
         public abstract IOrdering OrderBy(params SortableField[] fields);
         public abstract IOrdering OrderByDescending(params SortableField[] fields);
-        public abstract ISearchResults ExecuteWithSkip(int skip, int? take = null);
+
+        // TODO: In v2.0 we need to remove IFieldSelectableOrdering and attached directly to IOrdering
+        public virtual IOrdering SelectFields(params string[] fieldNames)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IOrdering SelectFields(ISet<string> fieldNames)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IOrdering SelectField(string fieldName)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IOrdering SelectFirstFieldOnly()
+        {
+            throw new NotImplementedException();
+        }
+        public virtual IOrdering SelectAllFields()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual ISearchResults ExecuteWithSkip(int skip, int? take = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
