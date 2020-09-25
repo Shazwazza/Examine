@@ -10,7 +10,7 @@ namespace Examine.LuceneEngine.Search
     /// An implementation of the fluent API boolean operations
     /// </summary>
     [DebuggerDisplay("{_search}")]
-    public class LuceneBooleanOperation : LuceneBooleanOperationBase, IQueryExecutor2
+    public class LuceneBooleanOperation : LuceneBooleanOperationBase, IQueryExecutor
     {
         private readonly LuceneSearchQuery _search;
         
@@ -66,7 +66,5 @@ namespace Examine.LuceneEngine.Search
         #endregion
 
         public override string ToString() => _search.ToString();
-
-        public override ISearchResults ExecuteWithSkip(int skip, int? take = null) => _search.ExecuteWithSkip(skip, take);
     }
 }

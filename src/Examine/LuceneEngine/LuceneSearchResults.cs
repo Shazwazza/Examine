@@ -13,6 +13,19 @@ namespace Examine.LuceneEngine
     /// </summary>
     public class LuceneSearchResults : LuceneSearchResultsBase
     {
+        private readonly IEnumerable<SortField> _sortField;
+        private readonly int _maxResults;
+        private ResultType? _searchResultType;
+
+        // used for testing
+        internal int ExecutionCount { get; private set; }
+
+        private enum ResultType
+        {
+            Default,
+            SkipTake
+        }
+
         ///<summary>
         /// Returns an empty search result
         ///</summary>
@@ -42,23 +55,15 @@ namespace Examine.LuceneEngine
         internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults, FieldSelector fieldSelector)
         {
             LuceneQuery = query;
+            
             FieldSelector = fieldSelector;
             LuceneSearcher = searcher;
-
-            DoSearch(query, sortField, maxResults);
-        }
-        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int skip, int? take = null, FieldSelector fieldSelector = null)
-        {
-            LuceneQuery = query;
-
-            LuceneSearcher = searcher;
-            DoSearch(query, sortField, skip, take);
-            FieldSelector = fieldSelector;
+            _maxResults = maxResults;
+            _sortField = sortField;
         }
 
-        private void DoSearch(Query query, IEnumerable<SortField> sortField, int skip, int? take = null)
-        {
-            int maxResults = take != null ? take.Value + skip : int.MaxValue;
+        private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults, int? skip = null, int? take = null)
+        {   
             //This try catch is because analyzers strip out stop words and sometimes leave the query
             //with null values. This simply tries to extract terms, if it fails with a null
             //reference then its an invalid null query, NotSupporteException occurs when the query is
@@ -100,78 +105,37 @@ namespace Examine.LuceneEngine
 
             LuceneSearcher.Search(query, topDocsCollector);
 
-            if (sortFields.Length > 0 && take != null && take.Value >= 0)
+            if (!skip.HasValue)
             {
-                TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip,take.Value);
-            }
-            else if (sortFields.Length > 0 && (take == null || take.Value < 0))
-            {
-                TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip);
-            }
-            else if ( take != null && take.Value >= 0)
-            {
-                TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip,take.Value);
+                TopDocs = sortFields.Length > 0
+                    ? ((TopFieldCollector)topDocsCollector).TopDocs()
+                    : ((TopScoreDocCollector)topDocsCollector).TopDocs();
             }
             else
             {
-                TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip);
+                if (sortFields.Length > 0 && take != null && take.Value >= 0)
+                {
+                    TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip.Value, take.Value);
+                }
+                else if (sortFields.Length > 0 && (take == null || take.Value < 0))
+                {
+                    TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip.Value);
+                }
+                else if (take != null && take.Value >= 0)
+                {
+                    TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip.Value, take.Value);
+                }
+                else
+                {
+                    TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip.Value);
+                }
             }
-
+           
             TotalItemCount = TopDocs.TotalHits;
+
+            ExecutionCount++;
         }
-
-        private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
-        {
-            //This try catch is because analyzers strip out stop words and sometimes leave the query
-            //with null values. This simply tries to extract terms, if it fails with a null
-            //reference then its an invalid null query, NotSupporteException occurs when the query is
-            //valid but the type of query can't extract terms.
-            //This IS a work-around, theoretically Lucene itself should check for null query parameters
-            //before throwing exceptions.
-            try
-            {
-                var set = new HashSet<Term>();
-                query.ExtractTerms(set);
-            }
-            catch (NullReferenceException)
-            {
-                //this means that an analyzer has stipped out stop words and now there are
-                //no words left to search on
-
-                //it could also mean that potentially a IIndexFieldValueType is throwing a null ref
-                TotalItemCount = 0;
-                return;
-            }
-            catch (NotSupportedException)
-            {
-                //swallow this exception, we should continue if this occurs.
-            }
-
-            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.MaxDoc) : LuceneSearcher.MaxDoc;
-
-            Collector topDocsCollector;
-            var sortFields = sortField as SortField[] ?? sortField.ToArray();
-            if (sortFields.Length > 0)
-            {
-                topDocsCollector = TopFieldCollector.Create(
-                    new Sort(sortFields), maxResults, false, false, false, false);
-            }
-            else
-            {
-                topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
-            }
-
-            LuceneSearcher.Search(query, topDocsCollector);
-
-            TopDocs = sortFields.Length > 0
-                ? ((TopFieldCollector)topDocsCollector).TopDocs()
-                : ((TopScoreDocCollector)topDocsCollector).TopDocs();
-
-            TotalItemCount = TopDocs.TotalHits;
-        }
-
-        //NOTE: If we moved this logic inside of the 'Skip' method like it used to be then we get the Code Analysis barking
-        // at us because of Linq requirements and 'MoveNext()'. This method is to work around this behavior.
+        
         protected override ISearchResult GetSearchResult(int index)
         {
             // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
@@ -184,7 +148,7 @@ namespace Examine.LuceneEngine
 
             var docId = scoreDoc.Doc;
             Document doc;
-            if(FieldSelector != null)
+            if (FieldSelector != null)
             {
                 doc = LuceneSearcher.Doc(docId, FieldSelector);
             }
@@ -201,6 +165,34 @@ namespace Examine.LuceneEngine
         ///<inheritdoc/>
         protected override int GetTotalDocs()
         {
+            // execute the search if it's not already been done or if the previous result was
+            // from the SkipTake method
+            if (TopDocs == null || _searchResultType == ResultType.SkipTake)
+            {
+                DoSearch(LuceneQuery, _sortField, _maxResults);
+                _searchResultType = ResultType.Default;
+            }
+
+            if (TopDocs?.ScoreDocs == null)
+                return 0;
+
+            var length = TopDocs.ScoreDocs.Length;
+            return length;
+        }
+
+        ///<inheritdoc/>
+        protected override int GetTotalDocs(int skip, int? take = null)
+        {
+            int maxResults = take != null ? take.Value + skip : int.MaxValue;
+
+            // execute the search if it's not already been done or if the previous result was
+            // from the Default (non SkipTake) method
+            if (TopDocs == null || _searchResultType == ResultType.Default)
+            {
+                DoSearch(LuceneQuery, _sortField, maxResults, skip, take);
+                _searchResultType = ResultType.SkipTake;
+            }
+
             if (TopDocs?.ScoreDocs == null)
                 return 0;
 

@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine.Search
     /// This class is used to query against Lucene.Net
     /// </summary>
     [DebuggerDisplay("Category: {Category}, LuceneQuery: {Query}")]
-    public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor, IQueryExecutor2
+    public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
 
@@ -158,40 +158,9 @@ namespace Examine.LuceneEngine.Search
                 }
             }
 
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults,Selector);
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, Selector);
             return pagesResults;
-        }
-
-        /// <summary>
-        /// Performs a search using skip and take
-        /// </summary>
-        private ISearchResults SearchWithSkip(int skip,int? take)
-        {
-            var searcher = _searchContext.Searcher;
-            if (searcher == null) return EmptySearchResults.Instance;
-
-            // capture local
-            var query = Query;
-
-            if (!string.IsNullOrEmpty(Category))
-            {
-                // if category is supplied then wrap the query (if there's other queries to wrap!)
-                if (query.Clauses.Count > 0)
-                {
-                    query = new BooleanQuery
-                    {
-                        { query, Occur.MUST }
-                    };
-                }
-
-                // and then add the category field query as a must
-                var categoryQuery = GetFieldInternalQuery(Providers.LuceneIndex.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
-                query.Add(categoryQuery, Occur.MUST);
-            }
-
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, skip,take, Selector);
-            return pagesResults;
-        }
+        }        
 
         /// <summary>
         /// Internal operation for adding the ordered results
@@ -297,6 +266,5 @@ namespace Examine.LuceneEngine.Search
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        public ISearchResults ExecuteWithSkip(int skip, int? take = null) => SearchWithSkip(skip,take);
     }
 }
