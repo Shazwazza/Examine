@@ -26,7 +26,7 @@ namespace Examine.LuceneEngine.Providers
         #region Constructors
 
         /// <summary>
-        /// Constructor to create an indexer at runtime
+        /// Constructor to create an indexer
         /// </summary>
         /// <param name="name"></param>
         /// <param name="luceneDirectory"></param>
@@ -43,8 +43,33 @@ namespace Examine.LuceneEngine.Providers
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : base(name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
+            : this(name, luceneDirectory, DefaultQueueCapacity, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
         {
+        }
+
+        /// <summary>
+        /// Constructor to create an indexer
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="luceneDirectory"></param>
+        /// <param name="queueCapacity">The capacity of the blocking collection, by default is <see cref="DefaultQueueCapacity"/></param>
+        /// <param name="fieldDefinitions"></param>
+        /// <param name="analyzer">Specifies the default analyzer to use per field</param>
+        /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
+        /// <param name="indexValueTypesFactory">
+        ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.DefaultValueTypes"/> will be used.
+        ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
+        /// </param>        
+        public LuceneIndex(string name,
+           Directory luceneDirectory,
+           int queueCapacity,
+           FieldDefinitionCollection fieldDefinitions = null,
+           Analyzer analyzer = null,
+           IValueSetValidator validator = null,
+           IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+           : base(name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
+        {
+            _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
 
@@ -59,8 +84,7 @@ namespace Examine.LuceneEngine.Providers
             WaitForIndexQueueOnShutdown = true;
         }
 
-        //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
-        // with all of the field definitions in place, etc... but that will most likely never happen
+        
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
         /// </summary>
@@ -70,13 +94,36 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
         public LuceneIndex(
-            string name,
-            FieldDefinitionCollection fieldDefinitions,
-            IndexWriter writer,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : base(name, fieldDefinitions, validator)
+                string name,
+                FieldDefinitionCollection fieldDefinitions,
+                IndexWriter writer,
+                IValueSetValidator validator = null,
+                IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+                : this(name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
+        {            
+        }
+
+        //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
+        // with all of the field definitions in place, etc... but that will most likely never happen
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime - using NRT
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="fieldDefinitions"></param>
+        /// <param name="writer"></param>
+        /// <param name="queueCapacity">The capacity of the blocking collection, by default is <see cref="DefaultQueueCapacity"/></param>
+        /// <param name="validator"></param>
+        /// <param name="indexValueTypesFactory"></param>
+        public LuceneIndex(
+               string name,
+               FieldDefinitionCollection fieldDefinitions,
+               IndexWriter writer,
+               int queueCapacity,
+               IValueSetValidator validator = null,
+               IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+               : base(name, fieldDefinitions, validator)
         {
+            _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
 
@@ -90,6 +137,8 @@ namespace Examine.LuceneEngine.Providers
             WaitForIndexQueueOnShutdown = true;
         }
 
+
+
         #endregion
 
         #region Constants & Fields
@@ -98,6 +147,8 @@ namespace Examine.LuceneEngine.Providers
 
         private int _activeWrites = 0;
         private int _activeAddsOrDeletes = 0;
+
+        public static int DefaultQueueCapacity = 1000; // This is mutable if set before this is constructed
 
         /// <summary>
         /// The prefix characters denoting a special field stored in the lucene index for use internally
@@ -159,7 +210,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// Each item in the collection is a collection itself, this allows us to have lazy access to a collection as part of the queue if added in bulk
         /// </remarks>
-        private readonly BlockingCollection<IEnumerable<IndexOperation>> _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>();
+        private readonly BlockingCollection<IEnumerable<IndexOperation>> _indexQueue;
 
         /// <summary>
         /// The async task that runs during an async indexing operation
@@ -218,7 +269,7 @@ namespace Examine.LuceneEngine.Providers
         /// The folder that stores the Lucene Index files
         /// </summary>
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
-        
+
         /// <summary>
         /// returns true if the indexer has been canceled (app is shutting down)
         /// </summary>
@@ -227,7 +278,7 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Events
-        
+
         /// <summary>
         /// Occurs when [document writing].
         /// </summary>
@@ -308,11 +359,11 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
             finally
-            {   
+            {
                 Monitor.Exit(_writerLocker);
             }
         }
-        
+
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
@@ -507,7 +558,7 @@ namespace Examine.LuceneEngine.Providers
 
         #region Protected
 
-        
+
 
         /// <summary>
         /// Creates the <see cref="FieldValueTypeCollection"/> for this index
@@ -803,7 +854,7 @@ namespace Examine.LuceneEngine.Providers
                                 _cancellationTokenSource.Token,
                                 TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
                                 TaskScheduler.Default);
-                        }   
+                        }
                     }
                 }
             }
@@ -1036,9 +1087,9 @@ namespace Examine.LuceneEngine.Providers
                             // It is unclear how/why this happens but probably indicates index corruption
                             // see https://github.com/Shazwazza/Examine/issues/164
                             _index.OnIndexingError(new IndexingErrorEventArgs(
-                                _index, 
-                                "An error occurred during the index commit operation, if this error is persistent then index rebuilding is necessary", 
-                                "-1", 
+                                _index,
+                                "An error occurred during the index commit operation, if this error is persistent then index rebuilding is necessary",
+                                "-1",
                                 e));
                         }
                     }
@@ -1105,7 +1156,7 @@ namespace Examine.LuceneEngine.Providers
                         "App is shutting down so index batch operation is ignored", null, null));
             }
         }
-        
+
         private readonly Directory _directory;
 
         /// <summary>
@@ -1164,8 +1215,8 @@ namespace Examine.LuceneEngine.Providers
             var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 
             // clear out current scheduler and set the error logging one
-            using (writer.MergeScheduler) { } 
-            writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name, 
+            using (writer.MergeScheduler) { }
+            writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
                 (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
 
             return writer;
@@ -1245,7 +1296,7 @@ namespace Examine.LuceneEngine.Providers
 
         private bool ProcessIndexQueueItem(IndexOperation op, IndexWriter writer)
         {
-            
+
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.ValueSet);
             OnTransformingIndexValues(indexingNodeDataArgs);
@@ -1417,11 +1468,11 @@ namespace Examine.LuceneEngine.Providers
         public Task<IEnumerable<string>> GetFieldNamesAsync()
         {
             var writer = GetIndexWriter();
-            return Task.FromResult((IEnumerable<string>)writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL));               
+            return Task.FromResult((IEnumerable<string>)writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL));
         }
 
     }
 
-    
+
 }
 
