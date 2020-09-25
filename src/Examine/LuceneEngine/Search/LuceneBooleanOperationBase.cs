@@ -95,5 +95,10 @@ namespace Examine.LuceneEngine.Search
         {
             throw new NotImplementedException();
         }
+
+        public virtual ISearchResults ExecuteWithSkip(int skip, int? take = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

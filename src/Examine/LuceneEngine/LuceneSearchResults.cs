@@ -47,6 +47,78 @@ namespace Examine.LuceneEngine
 
             DoSearch(query, sortField, maxResults);
         }
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int skip, int? take = null, FieldSelector fieldSelector = null)
+        {
+            LuceneQuery = query;
+
+            LuceneSearcher = searcher;
+            DoSearch(query, sortField, skip, take);
+            FieldSelector = fieldSelector;
+        }
+
+        private void DoSearch(Query query, IEnumerable<SortField> sortField, int skip, int? take = null)
+        {
+            int maxResults = take != null ? take.Value + skip : int.MaxValue;
+            //This try catch is because analyzers strip out stop words and sometimes leave the query
+            //with null values. This simply tries to extract terms, if it fails with a null
+            //reference then its an invalid null query, NotSupporteException occurs when the query is
+            //valid but the type of query can't extract terms.
+            //This IS a work-around, theoretically Lucene itself should check for null query parameters
+            //before throwing exceptions.
+            try
+            {
+                var set = new HashSet<Term>();
+                query.ExtractTerms(set);
+            }
+            catch (NullReferenceException)
+            {
+                //this means that an analyzer has stipped out stop words and now there are
+                //no words left to search on
+
+                //it could also mean that potentially a IIndexFieldValueType is throwing a null ref
+                TotalItemCount = 0;
+                return;
+            }
+            catch (NotSupportedException)
+            {
+                //swallow this exception, we should continue if this occurs.
+            }
+
+            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.MaxDoc) : LuceneSearcher.MaxDoc;
+
+            Collector topDocsCollector;
+            var sortFields = sortField as SortField[] ?? sortField.ToArray();
+            if (sortFields.Length > 0)
+            {
+                topDocsCollector = TopFieldCollector.Create(
+                    new Sort(sortFields), maxResults, false, false, false, false);
+            }
+            else
+            {
+                topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
+            }
+
+            LuceneSearcher.Search(query, topDocsCollector);
+
+            if (sortFields.Length > 0 && take != null && take.Value >= 0)
+            {
+                TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip,take.Value);
+            }
+            else if (sortFields.Length > 0 && (take == null || take.Value < 0))
+            {
+                TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip);
+            }
+            else if ( take != null && take.Value >= 0)
+            {
+                TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip,take.Value);
+            }
+            else
+            {
+                TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip);
+            }
+
+            TotalItemCount = TopDocs.TotalHits;
+        }
 
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
         {
