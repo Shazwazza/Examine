@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Directories;
+using Examine.LuceneEngine.MergeShedulers;
 using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
@@ -1823,8 +1824,7 @@ namespace Examine.LuceneEngine.Providers
             _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, InvokeDirectoryFactory);
             if (DirectoryFactory.IsReadOnly)
             {
-                var writer= GetIndexWriter();
-                MergePolicy = DirectoryFactory.GetMergePolicy(writer);
+         
                 DocumentWriting += (sender, args) =>
                 {
                     args.Cancel = true;
@@ -1912,10 +1912,19 @@ namespace Examine.LuceneEngine.Providers
             {
                 writer.SetMergePolicy(this.MergePolicy);
             }
-            // set the error logging one
-            writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
-                (s, e) => OnIndexingError(new IndexingErrorEventArgs(s, -1, e))));
+            MergePolicy = DirectoryFactory.GetMergePolicy(writer);
+            if (DirectoryFactory.IsReadOnly)
+            {
+                writer.SetMergeScheduler(new NoMergeSheduler());
+            }
+            else
+            {
+                writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
+                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(s, -1, e))));
 
+            }
+            // set the error logging one
+        
             return writer;
         }
 
