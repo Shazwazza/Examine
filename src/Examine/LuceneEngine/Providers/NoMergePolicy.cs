@@ -1,9 +1,10 @@
 ﻿using System.Collections;
+using System.Security;
 using Lucene.Net.Index;
 
 namespace Examine.LuceneEngine.MergePolicies
 {
-    public class NoMergePolicy : MergePolicy
+    internal class NoMergePolicy : MergePolicy
     {
         /// <summary>
         /// A singleton <see cref="T:Lucene.Net.Index.NoMergePolicy" /> which indicates the index does not use
@@ -17,7 +18,7 @@ namespace Examine.LuceneEngine.MergePolicies
         private bool useCompoundFile  = true;
         private bool useCompoundDocStore = true;
 
-    
+        [SecurityCritical]
         public NoMergePolicy(IndexWriter writer) : base(writer)
         {
         }
