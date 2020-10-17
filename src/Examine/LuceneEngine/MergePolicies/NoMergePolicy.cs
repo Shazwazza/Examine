@@ -5,38 +5,41 @@ namespace Examine.LuceneEngine.MergePolicies
 {
     public class NoMergePolicy : MergePolicy
     {
+        /// <summary>
+        /// A singleton <see cref="T:Lucene.Net.Index.NoMergePolicy" /> which indicates the index does not use
+        /// compound files.
+        /// </summary>
+        /// <summary>
+        /// A singleton <see cref="T:Lucene.Net.Index.NoMergePolicy" /> which indicates the index uses compound
+        /// files.
+        /// </summary>
+     
+        private bool useCompoundFile  = true;
+        private bool useCompoundDocStore = true;
+
+    
         public NoMergePolicy(IndexWriter writer) : base(writer)
         {
         }
 
         public override MergeSpecification FindMerges(SegmentInfos segmentInfos)
-        {
-            throw new System.NotImplementedException();
-        }
+            => (MergePolicy.MergeSpecification) null;
 
         public override MergeSpecification FindMergesForOptimize(SegmentInfos segmentInfos, int maxSegmentCount, Hashtable segmentsToOptimize)
-        {
-            throw new System.NotImplementedException();
-        }
+            => (MergePolicy.MergeSpecification) null;
 
         public override MergeSpecification FindMergesToExpungeDeletes(SegmentInfos segmentInfos)
-        {
-            throw new System.NotImplementedException();
-        }
+            => (MergePolicy.MergeSpecification) null;
 
         public override void Close()
         {
-            throw new System.NotImplementedException();
         }
+        public virtual bool GetUseCompoundFile() => this.useCompoundFile;
 
-        public override bool UseCompoundFile(SegmentInfos segments, SegmentInfo newSegment)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override bool UseCompoundDocStore(SegmentInfos segments)
-        {
-            throw new System.NotImplementedException();
-        }
+        public virtual void SetUseCompoundFile(bool useCompoundFile) => this.useCompoundFile = useCompoundFile;
+        public override bool UseCompoundFile(SegmentInfos segments, SegmentInfo newSegment) => useCompoundFile;
+        public virtual bool GetUseCompoundDocStore() => this.useCompoundDocStore;
+        public virtual void SetUseCompoundDocStore(bool useCompoundDocStore) => this.useCompoundFile = useCompoundDocStore;
+        public override bool UseCompoundDocStore(SegmentInfos segments) => useCompoundDocStore;
     }
 }

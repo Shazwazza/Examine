@@ -13,7 +13,10 @@ namespace Examine.LuceneEngine.Directories
     public class SyncAspNetCodeGenDirectoryFactory : IDirectoryFactory
     {
         public bool IsReadOnly { get; } = false;
-        public MergePolicy MergePolicy { get; }
+        public MergePolicy GetMergePolicy(IndexWriter writer)
+        {
+            return null;
+        }
 
         [SecuritySafeCritical]
         public Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)

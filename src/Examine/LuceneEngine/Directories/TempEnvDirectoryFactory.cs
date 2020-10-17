@@ -28,7 +28,10 @@ namespace Examine.LuceneEngine.Directories
         }
 
         public bool IsReadOnly { get; } = false;
-        public MergePolicy MergePolicy { get; }
+        public MergePolicy GetMergePolicy(IndexWriter writer)
+        {
+            return null;
+        }
 
         protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {

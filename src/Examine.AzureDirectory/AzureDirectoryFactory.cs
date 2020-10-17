@@ -15,7 +15,11 @@ namespace Examine.AzureDirectory
     public class AzureDirectoryFactory : NoMergePolicySyncTempEnvDirectoryFactory, IDirectoryFactory
     {
         private readonly bool _isReadOnly;
-        public MergePolicy MergePolicy { get; } = NoMergePolicy;
+
+        public MergePolicy GetMergePolicy(IndexWriter writer)
+        {
+            return new NoMergePolicy(writer);
+        } 
 
         public bool IsReadOnly => _isReadOnly;
 

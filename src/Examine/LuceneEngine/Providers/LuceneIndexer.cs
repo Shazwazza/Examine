@@ -1823,7 +1823,8 @@ namespace Examine.LuceneEngine.Providers
             _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, InvokeDirectoryFactory);
             if (DirectoryFactory.IsReadOnly)
             {
-                MergePolicy = DirectoryFactory.MergePolicy;
+                var writer= GetIndexWriter();
+                MergePolicy = DirectoryFactory.GetMergePolicy(writer);
                 DocumentWriting += (sender, args) =>
                 {
                     args.Cancel = true;
