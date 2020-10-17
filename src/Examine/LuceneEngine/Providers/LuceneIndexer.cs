@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Examine.LuceneEngine.Config;
 using Examine.LuceneEngine.Directories;
-using Examine.LuceneEngine.MergeShedulers;
 using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
@@ -734,9 +733,24 @@ namespace Examine.LuceneEngine.Providers
                 }
                 //create the writer (this will overwrite old index files)
                 writer = new IndexWriter(dir, IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-                // set the error logging one
-                writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
-                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(s, -1, e))));
+                MergePolicy = DirectoryFactory?.GetMergePolicy(writer);
+                if (this.MergePolicy != null)
+                {
+                    writer.SetMergePolicy(this.MergePolicy);
+                }
+                if (this.MergePolicy!= null)
+                {
+                    writer.SetMergeScheduler(new NoMergeScheduler());
+                }
+                else
+                {
+                    // set the error logging one
+
+                    writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
+                        (s, e) => OnIndexingError(new IndexingErrorEventArgs(s, -1, e))));
+
+                }
+               
             }
             catch (Exception ex)
             {
@@ -1909,14 +1923,14 @@ namespace Examine.LuceneEngine.Providers
             if (d == null) throw new ArgumentNullException(nameof(d));
             var writer = new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
         
-            MergePolicy = DirectoryFactory.GetMergePolicy(writer);
+            MergePolicy = DirectoryFactory?.GetMergePolicy(writer);
             if (this.MergePolicy != null)
             {
                 writer.SetMergePolicy(this.MergePolicy);
             }
             if (this.MergePolicy!= null)
             {
-                writer.SetMergeScheduler(new NoMergeSheduler());
+                writer.SetMergeScheduler(new NoMergeScheduler());
             }
             else
             {
@@ -1928,8 +1942,10 @@ namespace Examine.LuceneEngine.Providers
         
             return writer;
         }
-
-        public MergePolicy MergePolicy { get; set; }
+        public MergePolicy MergePolicy {         [SecuritySafeCritical]
+            get; 
+            [SecuritySafeCritical]
+            set; }
 
         /// <summary>
         /// Returns an index writer for the current directory

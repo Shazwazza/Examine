@@ -11,6 +11,7 @@ namespace Examine.LuceneEngine.Directories
         Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder);
 
         bool IsReadOnly { get; }
+        [SecuritySafeCritical]
         MergePolicy GetMergePolicy(IndexWriter writer);
     }
 }
