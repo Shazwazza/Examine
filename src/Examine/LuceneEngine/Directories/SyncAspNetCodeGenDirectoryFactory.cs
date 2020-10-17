@@ -2,6 +2,7 @@ using System.IO;
 using System.Security;
 using System.Web;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Index;
 using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine.Directories
@@ -11,6 +12,9 @@ namespace Examine.LuceneEngine.Directories
     /// </summary>
     public class SyncAspNetCodeGenDirectoryFactory : IDirectoryFactory
     {
+        public bool IsReadOnly { get; } = false;
+        public MergePolicy MergePolicy { get; }
+
         [SecuritySafeCritical]
         public Lucene.Net.Store.Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder)
         {

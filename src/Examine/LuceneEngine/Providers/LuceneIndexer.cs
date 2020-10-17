@@ -1818,7 +1818,17 @@ namespace Examine.LuceneEngine.Providers
                 VerifyFolder(LuceneIndexFolder);
                 _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder);
             }
+
+         
             _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, InvokeDirectoryFactory);
+            if (DirectoryFactory.IsReadOnly)
+            {
+                MergePolicy = DirectoryFactory.MergePolicy;
+                DocumentWriting += (sender, args) =>
+                {
+                    args.Cancel = true;
+                };
+            }
         }
 
         /// <summary>
@@ -1897,13 +1907,18 @@ namespace Examine.LuceneEngine.Providers
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
             var writer = new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
-
+            if (this.MergePolicy != null)
+            {
+                writer.SetMergePolicy(this.MergePolicy);
+            }
             // set the error logging one
             writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
                 (s, e) => OnIndexingError(new IndexingErrorEventArgs(s, -1, e))));
 
             return writer;
         }
+
+        public MergePolicy MergePolicy { get; set; }
 
         /// <summary>
         /// Returns an index writer for the current directory

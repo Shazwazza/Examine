@@ -108,6 +108,7 @@
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="LuceneEngine\Directories\NoMergePolicySyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\MultiIndexLock.cs" />
@@ -151,6 +152,7 @@
     <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
+    <Compile Include="LuceneEngine\MergePolicies\NoMergePolicy.cs" />
     <Compile Include="LuceneEngine\OpenReaderTracker.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
     <Compile Include="IndexItem.cs" />

@@ -3,6 +3,7 @@ using System.IO;
 using System.Security;
 using System.Web;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Index;
 using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine.Directories
@@ -25,6 +26,9 @@ namespace Examine.LuceneEngine.Directories
             simpleFsDirectory.SetLockFactory(DirectoryTracker.DefaultLockFactory(tempFolder));
             return simpleFsDirectory;
         }
+
+        public bool IsReadOnly { get; } = false;
+        public MergePolicy MergePolicy { get; }
 
         protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {

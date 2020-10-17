@@ -1,7 +1,9 @@
 using System.Configuration;
 using System.IO;
 using Examine.LuceneEngine.Directories;
+using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage;
 
@@ -10,15 +12,18 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for use on the server that can actively write to the index
     /// </summary>
-    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
+    public class AzureDirectoryFactory : NoMergePolicySyncTempEnvDirectoryFactory, IDirectoryFactory
     {
         private readonly bool _isReadOnly;
+        public MergePolicy MergePolicy { get; } = NoMergePolicy;
 
-        public AzureDirectoryFactory()
+        public bool IsReadOnly => _isReadOnly;
+
+        public AzureDirectoryFactory() : base()
         {
         }
 
-        public AzureDirectoryFactory(bool isReadOnly)
+        public AzureDirectoryFactory(bool isReadOnly) : base()
         {
             _isReadOnly = isReadOnly;
         }
