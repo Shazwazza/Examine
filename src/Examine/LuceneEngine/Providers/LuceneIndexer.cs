@@ -1908,12 +1908,13 @@ namespace Examine.LuceneEngine.Providers
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
             var writer = new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+        
+            MergePolicy = DirectoryFactory.GetMergePolicy(writer);
             if (this.MergePolicy != null)
             {
                 writer.SetMergePolicy(this.MergePolicy);
             }
-            MergePolicy = DirectoryFactory.GetMergePolicy(writer);
-            if (DirectoryFactory.IsReadOnly)
+            if (this.MergePolicy!= null)
             {
                 writer.SetMergeScheduler(new NoMergeSheduler());
             }
