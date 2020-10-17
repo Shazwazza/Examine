@@ -16,11 +16,6 @@ namespace Examine.AzureDirectory
     {
         private readonly bool _isReadOnly;
 
-        public MergePolicy GetMergePolicy(IndexWriter writer)
-        {
-            return new NoMergePolicy(writer);
-        } 
-
         public bool IsReadOnly => _isReadOnly;
 
         public AzureDirectoryFactory() : base()
