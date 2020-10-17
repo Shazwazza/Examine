@@ -4,7 +4,7 @@ using Lucene.Net.Index;
 
 namespace Examine.LuceneEngine.MergePolicies
 {
-    internal class NoMergePolicy : MergePolicy
+    public class NoMergePolicy : MergePolicy
     {
         /// <summary>
         /// A singleton <see cref="T:Lucene.Net.Index.NoMergePolicy" /> which indicates the index does not use
@@ -18,7 +18,6 @@ namespace Examine.LuceneEngine.MergePolicies
         private bool useCompoundFile  = true;
         private bool useCompoundDocStore = true;
 
-        [SecurityCritical]
         public NoMergePolicy(IndexWriter writer) : base(writer)
         {
         }
