@@ -1,6 +1,7 @@
 using System.IO;
 using System.Security;
 using Examine.LuceneEngine.Providers;
+using Lucene.Net.Index;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Directories
@@ -11,5 +12,7 @@ namespace Examine.LuceneEngine.Directories
     public interface IDirectoryFactory
     {   
         Directory CreateDirectory(DirectoryInfo luceneIndexFolder);
+        MergePolicy GetMergePolicy(IndexWriter writer);
+        bool IsReadOnly { get; }
     }
 }

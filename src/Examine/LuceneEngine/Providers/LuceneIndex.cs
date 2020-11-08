@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Examine.LuceneEngine.Directories;
 using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
@@ -458,12 +459,37 @@ namespace Examine.LuceneEngine.Providers
                 }
                 //create the writer (this will overwrite old index files)
                 writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                if(_directory is ExamineDirectory examineDirectory )
+                {
+                    if (examineDirectory.MergeScheduler != null)
+                    {
+                        writer.SetMergeScheduler(examineDirectory.MergeScheduler);
 
-                // clear out current scheduler and set the error logging one
-                using (writer.MergeScheduler) { }
-                writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
-                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
+                    }
 
+                    if (examineDirectory.IsReadOnly)
+                    {
+                        DocumentWriting += (sender, args) =>
+                        {
+                            args.Cancel = true;
+                        };
+                    }
+                    var mergePolicy = examineDirectory.GetMergePolicy(writer);
+                    if (mergePolicy != null)
+                    {
+                        writer.SetMergePolicy(mergePolicy);
+                    }
+
+                }
+                else
+                {
+                    // clear out current scheduler and set the error logging one
+                    using (writer.MergeScheduler) { }
+                    writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
+                        (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
+  
+                }
+               
             }
             catch (Exception ex)
             {

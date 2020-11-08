@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Examine.LuceneEngine.Directories;
+using Examine.LuceneEngine.MergeShedulers;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage;
@@ -13,7 +14,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
-    public class AzureDirectory : Lucene.Net.Store.Directory
+    public class AzureDirectory : ExamineDirectory
     {
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
@@ -50,10 +51,10 @@ namespace Examine.AzureDirectory
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
             if (string.IsNullOrWhiteSpace(containerName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
             _isReadOnly = isReadOnly;
-
+            IsReadOnly = _isReadOnly;
             CacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
-            
+            MergeScheduler = new NoMergeSheduler();
             _lockFactory = isReadOnly
                 ? CacheDirectory.LockFactory
                 : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);

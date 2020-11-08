@@ -1,6 +1,7 @@
 using System.Configuration;
 using System.IO;
 using Examine.LuceneEngine.Directories;
+using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage;
@@ -49,13 +50,18 @@ namespace Examine.AzureDirectory
         {
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
-
-            return new AzureDirectory(
+            var directory = new AzureDirectory(
                 CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 new SimpleFSDirectory(tempFolder),
                 rootFolder: luceneIndexFolder.Name,
                 isReadOnly: _isReadOnly);
+       
+
+            directory.IsReadOnly = _isReadOnly;
+            directory.SetMergePolicyAction(e => new NoMergePolicy(e));
+          
+            return directory;
         }
 
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
