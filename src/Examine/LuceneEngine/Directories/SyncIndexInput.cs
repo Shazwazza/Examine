@@ -145,10 +145,10 @@ namespace Examine.LuceneEngine.Directories
             }
             catch (IOException ex)
             {
-                //this will be a file not found
+                //this will be a file not found (FileNotFoundException)
 
                 //TODO: It has been seen that OpenInput on the master can throw an exception due to a lucene file not found - which is very odd
-                // we need to check if the master is being written frist before the sync dir. And if the file does not exist in the master, 
+                // we need to check if the master is being written first before the sync dir. And if the file does not exist in the master, 
                 // or the sync dir, then something has gone wrong, that shouldn't happen and we'll need to deal with that differently
                 // because the index will be in a state where it's just not readable.
                 //Hrmmm what to do?  There's actually nothing that can be done :/ if we return false here then the instance of this item would be null
