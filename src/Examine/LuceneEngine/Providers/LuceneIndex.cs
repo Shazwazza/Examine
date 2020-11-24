@@ -411,6 +411,9 @@ namespace Examine.LuceneEngine.Providers
                             //cancel any operation currently in place
                             _cancellationTokenSource.Cancel();
 
+                            // indicates that it was locked, this generally shouldn't happen but we don't want to have unhandled exceptions
+                            if (_writer == null) return;
+
                             try
                             {
                                 //clear the queue
@@ -1107,7 +1110,7 @@ namespace Examine.LuceneEngine.Providers
                             //perform the commit
                             _index._writer?.Commit();
                         }
-                        catch (IndexOutOfRangeException e)
+                        catch (Exception e)
                         {
                             // It is unclear how/why this happens but probably indicates index corruption
                             // see https://github.com/Shazwazza/Examine/issues/164
@@ -1201,8 +1204,26 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         private IndexWriter CreateIndexWriter()
         {
+            Directory dir = GetLuceneDirectory();
+
+            // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
+            // ensure that it's unlocked here in that case.
+            try
+            {
+                if (IndexWriter.IsLocked(dir))
+                {
+                    //unlock it!
+                    IndexWriter.Unlock(dir);
+                }
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs(this, "The index was locked and could not be unlocked", null, ex));
+                return null;
+            }
+
             var writer = WriterTracker.Current.GetWriter(
-                GetLuceneDirectory(),
+                dir,
                 WriterFactory);
 
 #if FULLDEBUG
