@@ -54,7 +54,6 @@ namespace Examine.AzureDirectory
             IsReadOnly = _isReadOnly;
             CacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
-            MergeScheduler = new NoMergeSheduler();
             _lockFactory = isReadOnly
                 ? CacheDirectory.LockFactory
                 : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
@@ -237,18 +236,48 @@ namespace Examine.AzureDirectory
             {
                 return CacheDirectory.FileLength(name);
             }
-
             var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
-            blob.FetchAttributes();
 
-            // index files may be compressed so the actual length is stored in metatdata
-            var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
-
-            if (hasMetadataValue && long.TryParse(blobLegthMetadata, out var blobLength))
+            try
             {
-                return blobLength;
+                blob.FetchAttributes();
+
+                // index files may be compressed so the actual length is stored in metatdata
+                var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
+
+                if (hasMetadataValue && long.TryParse(blobLegthMetadata, out var blobLength))
+                {
+                    return blobLength;
+                }
+                // fall back to actual blob size
+                return blob.Properties.Length; 
             }
-            return blob.Properties.Length; // fall back to actual blob size
+            catch (Exception e)
+            {
+              //  Sync(name);
+              return CacheDirectory.FileLength(name);
+            }
+           
+        }
+
+        public override void Sync(string name)
+        {
+            if (_isReadOnly)
+            {
+                var allBlobs = GetAllBlobFiles();
+                var list = CacheDirectory.ListAll();
+                foreach (var blobs in allBlobs)
+                {
+                    if(list.Contains(blobs)) continue;
+                    CacheDirectory.TouchFile(blobs);
+                    SetDirty();
+                }
+            }
+            else
+            {
+                base.Sync(name);
+            }
+            
         }
 
         /// <summary>Creates a new, empty file in the directory with the given name.
@@ -300,7 +329,9 @@ namespace Examine.AzureDirectory
             }
             catch (StorageException err)
             {
-                throw new FileNotFoundException(name, err);
+                SetDirty();
+                return CacheDirectory.OpenInput(name);
+             //   throw new FileNotFoundException(name, err);
             }
         }
 
@@ -314,7 +345,10 @@ namespace Examine.AzureDirectory
 
         public override void ClearLock(string name)
         {
-            _lockFactory.ClearLock(name);            
+            if (!_isReadOnly)
+            {
+                _lockFactory.ClearLock(name);
+            }
         }
 
         public override LockFactory LockFactory => _lockFactory;

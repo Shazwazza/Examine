@@ -18,8 +18,15 @@ namespace Examine.LuceneEngine.Directories
         }
 
 
-        public MergeScheduler MergeScheduler;
+        private MergeScheduler MergeScheduler {  get;  set; }
+        public virtual MergeScheduler GetMergeScheduler()
+        {
+            return MergeScheduler;
+        }
 
-       
+        public void SetMergeScheduler(MergeScheduler policy)
+        {
+            MergeScheduler = policy;
+        }       
     }
 }

@@ -371,7 +371,7 @@ namespace Examine.LuceneEngine.Providers
         public void EnsureIndex(bool forceOverwrite)
         {
             if (!forceOverwrite && _exists.HasValue && _exists.Value) return;
-
+            if(_directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly) return;
             var indexExists = IndexExists();
             if (!indexExists || forceOverwrite)
             {
@@ -461,10 +461,9 @@ namespace Examine.LuceneEngine.Providers
                 writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
                 if(_directory is ExamineDirectory examineDirectory )
                 {
-                    if (examineDirectory.MergeScheduler != null)
+                    if (examineDirectory.GetMergeScheduler() != null)
                     {
-                        writer.SetMergeScheduler(examineDirectory.MergeScheduler);
-
+                        writer.SetMergeScheduler(examineDirectory.GetMergeScheduler());
                     }
 
                     if (examineDirectory.IsReadOnly)

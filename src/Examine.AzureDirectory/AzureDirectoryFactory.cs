@@ -2,6 +2,7 @@ using System.Configuration;
 using System.IO;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
+using Examine.LuceneEngine.MergeShedulers;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 using Microsoft.WindowsAzure.Storage;
@@ -60,7 +61,7 @@ namespace Examine.AzureDirectory
 
             directory.IsReadOnly = _isReadOnly;
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
-          
+            directory.SetMergeScheduler(new NoMergeSheduler());
             return directory;
         }
 
