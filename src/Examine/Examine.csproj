@@ -114,6 +114,7 @@
     <Compile Include="IOHelper.cs" />
     <Compile Include="ISearchResult.cs" />
     <Compile Include="LuceneEngine\DelegateFieldValueTypeFactory.cs" />
+    <Compile Include="LuceneEngine\DeletePolicies\NoDeletionPolicy.cs" />
     <Compile Include="LuceneEngine\Directories\DirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\ExamineDirectory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />

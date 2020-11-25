@@ -27,6 +27,12 @@ namespace Examine.LuceneEngine.Directories
         public void SetMergeScheduler(MergeScheduler policy)
         {
             MergeScheduler = policy;
-        }       
+        }
+        private IndexDeletionPolicy DeletionPolicy {  get;  set; }
+        public IndexDeletionPolicy GetDeletionPolicy() => DeletionPolicy;
+        public void SetDeletion(IndexDeletionPolicy policy)
+        {
+            DeletionPolicy = policy;
+        }
     }
 }

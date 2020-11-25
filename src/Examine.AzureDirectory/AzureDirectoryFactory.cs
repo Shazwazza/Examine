@@ -1,5 +1,6 @@
 using System.Configuration;
 using System.IO;
+using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
@@ -62,6 +63,7 @@ namespace Examine.AzureDirectory
             directory.IsReadOnly = _isReadOnly;
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
+            directory.SetDeletion(NoDeletionPolicy.INSTANCE);
             return directory;
         }
 

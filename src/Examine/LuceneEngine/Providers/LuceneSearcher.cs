@@ -291,7 +291,19 @@ namespace Examine.LuceneEngine.Providers
                             //if we're on NRT then we should just try to re-open
                             if (_luceneSearcher._nrtWriter != null)
                             {
-                                MaybeReopen();
+                                try
+                                {
+                                    MaybeReopen();
+
+                                }
+                                catch (Exception e)
+                                {
+                                    //It's the initial call to this at the beginning or after successful commit
+                                    _timestamp = DateTime.Now;
+                                    _timer = new Timer(_ => TimerRelease());
+                                    _timer.Change(WaitMilliseconds, 0);
+                                    _isLongPoll = false;
+                                }
                             }
                             else
                             {
