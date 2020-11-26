@@ -2,7 +2,7 @@
 
 namespace Examine.LuceneEngine.MergeShedulers
 {
-    internal class NoMergeSheduler  : MergeScheduler
+    public class NoMergeSheduler  : MergeScheduler
     {
         public override void Merge(IndexWriter writer)
         {
