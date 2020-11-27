@@ -20,6 +20,7 @@ namespace Examine.AzureDirectory
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
         private ICloudBlob _blob;
+        
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
         public AzureIndexOutput(AzureDirectory azureDirectory, ICloudBlob blob, string name)

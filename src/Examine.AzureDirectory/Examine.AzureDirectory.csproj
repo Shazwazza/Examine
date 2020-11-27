@@ -82,6 +82,7 @@
     <Compile Include="AzureDirectorySimpleLockFactory.cs" />
     <Compile Include="AzureIndexInput.cs" />
     <Compile Include="AzureIndexOutput.cs" />
+    <Compile Include="AzureReadOnlyDirectory.cs" />
     <Compile Include="AzureSimpleLock.cs" />
     <Compile Include="AzureNativeLock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
