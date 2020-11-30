@@ -24,7 +24,6 @@ namespace Examine.LuceneEngine.SearchCriteria
     public class LuceneSearchCriteria : ISearchCriteria
     {
         internal static Regex SortMatchExpression = new Regex(@"(\[Type=(?<type>\w+?)\])", RegexOptions.Compiled);
-        internal bool ExtractTermsNotSupported = false;
 
         public MultiFieldQueryParser QueryParser
         {
@@ -357,10 +356,7 @@ namespace Examine.LuceneEngine.SearchCriteria
                     }
                     break;
             }
-            if(queryToAdd is TermRangeQuery || queryToAdd is WildcardQuery || queryToAdd is FuzzyQuery)
-            {
-                ExtractTermsNotSupported = true; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
-            }
+
             return queryToAdd;
         }
 
@@ -564,7 +560,6 @@ namespace Examine.LuceneEngine.SearchCriteria
         protected internal IBooleanOperation RangeInternal(string fieldName, string start, string end, bool includeLower, bool includeUpper, BooleanClause.Occur occurance)
         {
             Query.Add(new TermRangeQuery(fieldName, start, end, includeLower, includeUpper), occurance);
-            ExtractTermsNotSupported = true; //ExtractTerms() not supported by TermRangeQuery and will throw NotSupportedException 
             return new LuceneBooleanOperation(this);
         }
 
@@ -831,11 +826,7 @@ namespace Examine.LuceneEngine.SearchCriteria
         {
             var parsedQuery = QueryParser.Parse(query);
             this.Query.Add(parsedQuery, this._occurance);
-            if (parsedQuery is TermRangeQuery || parsedQuery is WildcardQuery || parsedQuery is FuzzyQuery)
-            {
-                ExtractTermsNotSupported = true; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
-            }
-
+            
             return this;
         }
 

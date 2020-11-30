@@ -54,29 +54,30 @@ namespace Examine.LuceneEngine
         }
 
         [SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, bool extractTermsNotSupported = false)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher)
         {
             LuceneQuery = query;
 
             LuceneSearcher = searcher;
-            DoSearch(query, sortField, 0,extractTermsNotSupported);
+            DoSearch(query, sortField, 0);
         }
 
         [SecuritySafeCritical]
-        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults, bool extractTermsNotSupported = false)
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults)
         {
             LuceneQuery = query;
 
             LuceneSearcher = searcher;
-            DoSearch(query, sortField, maxResults,extractTermsNotSupported);
+            DoSearch(query, sortField, maxResults);
         }
 
         [SecuritySafeCritical]
-        private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults,bool extractTermsNotSupported)
+        private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
         {
+            var extractTermsSupported = CheckQueryForExtractTerms(query);
 
             //Avoid throwing NotSupportedException when we know calling ExtractTerms will throw
-            if (!extractTermsNotSupported)
+            if (extractTermsSupported)
             {
                 //This try catch is because analyzers strip out stop words and sometimes leave the query
                 //with null values. This simply tries to extract terms, if it fails with a null
@@ -123,6 +124,31 @@ namespace Examine.LuceneEngine
                 : ((TopScoreDocCollector)topDocsCollector).TopDocs();
 
             TotalItemCount = TopDocs.TotalHits;
+        }
+
+        [SecuritySafeCritical]
+        private bool CheckQueryForExtractTerms(Query query)
+        {
+            if (query is TermRangeQuery || query is WildcardQuery || query is FuzzyQuery)
+            {
+                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
+            }
+
+            var bq = query as BooleanQuery;
+            if (bq != null)
+            {
+                foreach (BooleanClause clause in bq.GetClauses())
+                {
+                    //recurse
+                    var check = CheckQueryForExtractTerms(clause.GetQuery());
+                    if (!check)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
