@@ -108,6 +108,7 @@
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="LuceneEngine\DeletePolicies\NoDeletionPolicy.cs" />
     <Compile Include="LuceneEngine\Directories\ExamineDirectory.cs" />
     <Compile Include="LuceneEngine\Directories\NoMergePolicySyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
@@ -153,6 +154,8 @@
     <Compile Include="LuceneEngine\FileSystemExtensions.cs" />
     <Compile Include="LuceneEngine\ISimpleDataService.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
+    <Compile Include="LuceneEngine\MergePolicies\NoMergePolicy.cs" />
+    <Compile Include="LuceneEngine\MergePolicies\NoMergeSheduler.cs" />
     <Compile Include="LuceneEngine\OpenReaderTracker.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
     <Compile Include="IndexItem.cs" />
@@ -165,8 +168,6 @@
     <Compile Include="LuceneEngine\Providers\LuceneMemorySearcher.cs" />
     <Compile Include="LuceneEngine\Providers\LuceneSearcher.cs" />
     <Compile Include="LuceneEngine\Providers\MultiIndexSearcher.cs" />
-    <Compile Include="LuceneEngine\Providers\NoMergePolicy.cs" />
-    <Compile Include="LuceneEngine\Providers\NoMergeScheduler.cs" />
     <Compile Include="LuceneEngine\Providers\SimpleDataIndexer.cs" />
     <Compile Include="LuceneEngine\ReaderStatus.cs" />
     <Compile Include="LuceneEngine\SearchCriteria\ExamineValue.cs" />

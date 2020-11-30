@@ -733,14 +733,9 @@ namespace Examine.LuceneEngine.Providers
                 }
                 //create the writer (this will overwrite old index files)
                 writer = new IndexWriter(dir, IndexingAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-                MergePolicy = DirectoryFactory?.GetMergePolicy(writer);
-                if (this.MergePolicy != null)
+                if (dir is ExamineDirectory examineDirectory)
                 {
-                    writer.SetMergePolicy(this.MergePolicy);
-                }
-                if (this.MergePolicy!= null)
-                {
-                    writer.SetMergeScheduler(new NoMergeScheduler());
+                    
                 }
                 else
                 {
@@ -1922,15 +1917,10 @@ namespace Examine.LuceneEngine.Providers
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
             var writer = new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
-        
-            MergePolicy = DirectoryFactory?.GetMergePolicy(writer);
-            if (this.MergePolicy != null)
+
+            if (d is ExamineDirectory directory)
             {
-                writer.SetMergePolicy(this.MergePolicy);
-            }
-            if (this.MergePolicy!= null)
-            {
-                writer.SetMergeScheduler(new NoMergeScheduler());
+                
             }
             else
             {
