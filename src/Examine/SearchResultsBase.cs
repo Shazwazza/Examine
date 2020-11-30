@@ -28,7 +28,7 @@ namespace Examine
         /// Gets the total number of results for the search
         /// </summary>
         /// <value>The total items from the search.</value>
-        public long TotalItemCount { get; set; }
+        public long TotalItemCount { get; protected set; }
 
         /// <summary>
         /// Gets the total number of documents while enumerating results
