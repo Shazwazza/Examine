@@ -1,11 +1,12 @@
-﻿namespace Examine.AzureDirectory
+﻿using Examine.LuceneEngine.Directories;
+
+namespace Examine.AzureDirectory
 {
   using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using Examine.LuceneEngine.Directories;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage;
@@ -27,7 +28,6 @@ namespace Examine.AzureDirectory
         private readonly string _containerName;
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
-        private LockFactory _lockFactory;
         private string OldIndexFolderName;
         public string RootFolder { get; set; }
 
@@ -82,7 +82,6 @@ namespace Examine.AzureDirectory
                     var directory = subDirectories.FirstOrDefault();
                     OldIndexFolderName = directory.Name;
                     CacheDirectory = new SimpleFSDirectory(directory);
-                    _lockFactory = CacheDirectory.LockFactory;
                 }
                 else
                 {
@@ -124,7 +123,6 @@ namespace Examine.AzureDirectory
             newIndex = new SimpleFSDirectory(tempDir);
             
             CacheDirectory = newIndex;
-            _lockFactory = newIndex.LockFactory;
             if (oldIndex != null)
             {
                 oldIndex.ClearLock("write.lock");
@@ -175,20 +173,25 @@ namespace Examine.AzureDirectory
         /// </param>
         public override Lock MakeLock(string name)
         {
-            return _lockFactory.MakeLock(name);
+            return CacheDirectory.MakeLock(name);
         }
 
         public override void ClearLock(string name)
         {
-            if (!_isReadOnly)
-            {
-                _lockFactory.ClearLock(name);
-            }
 
             CacheDirectory.ClearLock(name);
         }
 
-        public override LockFactory LockFactory => _lockFactory;
+        public override void Close()
+        {
+            CacheDirectory.Close();
+        }
+
+        public override void Dispose()
+        {
+            CacheDirectory.Dispose();
+        }
+
 
         private void SyncFile(Directory newIndex, CloudBlockBlob blob, string fileName)
         {
@@ -247,6 +250,11 @@ namespace Examine.AzureDirectory
             return results.ToArray();
         }
 
+        public override string[] List()
+        {
+            return CacheDirectory.List();
+        }
+
         public override string[] ListAll()
         {
             return CacheDirectory.ListAll();
@@ -272,6 +280,11 @@ namespace Examine.AzureDirectory
             CacheDirectory.DeleteFile(name);
         }
 
+        public override void RenameFile(string @from, string to)
+        {
+             CacheDirectory.RenameFile(from,to);
+        }
+
         public override long FileLength(string name)
         {
             return CacheDirectory.FileLength(name);
@@ -288,10 +301,7 @@ namespace Examine.AzureDirectory
             return CacheDirectory.OpenInput(name);
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            CacheDirectory.Dispose();
-        }
+       
         private string[] CheckDirty()
         {
             if (_dirty)

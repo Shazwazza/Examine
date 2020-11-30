@@ -14,7 +14,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
-    public class AzureDirectory : Lucene.Net.Store.Directory
+    public class AzureDirectory : ExamineDirectory
     {
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;

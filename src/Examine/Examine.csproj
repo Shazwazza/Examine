@@ -108,6 +108,7 @@
     <Compile Include="Config\ExamineSettings.cs" />
     <Compile Include="DeleteIndexEventArgs.cs" />
     <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="LuceneEngine\Directories\ExamineDirectory.cs" />
     <Compile Include="LuceneEngine\Directories\NoMergePolicySyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
