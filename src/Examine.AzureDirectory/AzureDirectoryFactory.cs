@@ -56,13 +56,17 @@ namespace Examine.AzureDirectory
         {
             var indexFolder = new DirectoryInfo(luceneIndexFolder);
             var tempFolder = GetLocalStorageDirectory(indexFolder);
-
-            return new AzureDirectory(
-                CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),                
+            var directory = new AzureDirectory(
+                CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 new SimpleFSDirectory(tempFolder),
                 rootFolder: indexer.IndexSetName,
                 isReadOnly: _isReadOnly);
+      
+            directory.SetMergePolicyAction(e => new NoMergePolicy(e));
+            directory.SetMergeScheduler(new NoMergeSheduler());
+            directory.SetDeletion(NoDeletionPolicy.INSTANCE);
+            return directory;
         }
 
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
