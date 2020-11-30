@@ -50,30 +50,35 @@ namespace Examine.LuceneEngine
 
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
         {
-            //This try catch is because analyzers strip out stop words and sometimes leave the query
-            //with null values. This simply tries to extract terms, if it fails with a null
-            //reference then its an invalid null query, NotSupporteException occurs when the query is
-            //valid but the type of query can't extract terms.
-            //This IS a work-around, theoretically Lucene itself should check for null query parameters
-            //before throwing exceptions.
-            try
-            {
-                var set = new HashSet<Term>();
-                query.ExtractTerms(set);
-            }
-            catch (NullReferenceException)
-            {
-                //this means that an analyzer has stipped out stop words and now there are
-                //no words left to search on
+            var extractTermsSupported = CheckQueryForExtractTerms(query);
 
-                //it could also mean that potentially a IIndexFieldValueType is throwing a null ref
-                TotalItemCount = 0;
-                return;
-            }
-            catch (NotSupportedException)
+            if (extractTermsSupported)
             {
-                //swallow this exception, we should continue if this occurs.
-            }
+                //This try catch is because analyzers strip out stop words and sometimes leave the query
+                //with null values. This simply tries to extract terms, if it fails with a null
+                //reference then its an invalid null query, NotSupporteException occurs when the query is
+                //valid but the type of query can't extract terms.
+                //This IS a work-around, theoretically Lucene itself should check for null query parameters
+                //before throwing exceptions.
+                try
+                {
+                    var set = new HashSet<Term>();
+                    query.ExtractTerms(set);
+                }
+                catch (NullReferenceException)
+                {
+                    //this means that an analyzer has stipped out stop words and now there are
+                    //no words left to search on
+
+                    //it could also mean that potentially a IIndexFieldValueType is throwing a null ref
+                    TotalItemCount = 0;
+                    return;
+                }
+                catch (NotSupportedException)
+                {
+                    //swallow this exception, we should continue if this occurs.
+                }
+            }   
 
             maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.MaxDoc) : LuceneSearcher.MaxDoc;
 
@@ -134,6 +139,29 @@ namespace Examine.LuceneEngine
 
             var length = TopDocs.ScoreDocs.Length;
             return length;
+        }
+
+        private bool CheckQueryForExtractTerms(Query query)
+        {
+            if (query is TermRangeQuery || query is WildcardQuery || query is FuzzyQuery)
+            {
+                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
+            }
+
+            if (query is BooleanQuery bq)
+            {
+                foreach (BooleanClause clause in bq.Clauses)
+                {
+                    //recurse
+                    var check = CheckQueryForExtractTerms(clause.Query);
+                    if (!check)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
