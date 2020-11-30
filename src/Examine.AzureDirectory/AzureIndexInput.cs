@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Threading;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 
 namespace Examine.AzureDirectory
 {
