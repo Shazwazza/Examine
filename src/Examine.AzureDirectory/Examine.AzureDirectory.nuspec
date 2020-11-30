@@ -16,7 +16,7 @@
     <dependencies>
         <group targetFramework="net452">
             <dependency id="Examine" version="1.0.0" />
-            <dependency id="WindowsAzure.Storage" version="9.3.1" />
+            <dependency id="Microsoft.Azure.Storage.Blob" version="11.2.2.0" />
         </group>
     </dependencies>
   </metadata>

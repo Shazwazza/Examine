@@ -106,7 +106,7 @@ namespace Examine.AzureDirectory
         {
             var tempDir = new DirectoryInfo(
                 Path.Combine(_cacheDirectoryPath,
-                    _cacheDirectoryName, DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffffK")));
+                    _cacheDirectoryName, DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffff")));
             if (tempDir.Exists == false)
                 tempDir.Create();
             Lucene.Net.Store.Directory newIndex = new SimpleFSDirectory(tempDir);
