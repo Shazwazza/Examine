@@ -45,6 +45,7 @@ namespace Examine.LuceneEngine.Providers
             _committer = new IndexCommiter(this);
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
             WaitForIndexQueueOnShutdown = true;
+           
         }
 
         /// <summary>
@@ -1831,14 +1832,14 @@ namespace Examine.LuceneEngine.Providers
 
          
             _directory = DirectoryTracker.Current.GetDirectory(LuceneIndexFolder, InvokeDirectoryFactory);
-            if (DirectoryFactory.IsReadOnly)
+            if (_directory is ExamineDirectory)
             {
-         
                 DocumentWriting += (sender, args) =>
                 {
                     args.Cancel = true;
                 };
             }
+           
         }
 
         /// <summary>

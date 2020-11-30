@@ -1,7 +1,9 @@
 using System.Configuration;
 using System.IO;
+using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
+using Examine.LuceneEngine.MergeShedulers;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
