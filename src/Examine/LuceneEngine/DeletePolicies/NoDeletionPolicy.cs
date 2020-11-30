@@ -19,7 +19,6 @@ namespace Examine.LuceneEngine.DeletePolicies
 
         public void OnCommit(IList commits)
         {
-            throw new System.NotImplementedException()
         }
     }
 }

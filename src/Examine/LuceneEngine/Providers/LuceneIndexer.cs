@@ -1918,9 +1918,29 @@ namespace Examine.LuceneEngine.Providers
             if (d == null) throw new ArgumentNullException(nameof(d));
             var writer = new IndexWriter(d, IndexingAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 
-            if (d is ExamineDirectory directory)
+            if (d is ExamineDirectory examineDirectory)
             {
-                
+                if (examineDirectory.GetDeletionPolicy() != null)
+                {
+                    writer = new IndexWriter(d, IndexingAnalyzer, true, examineDirectory.GetDeletionPolicy(),
+                        IndexWriter.MaxFieldLength.UNLIMITED);
+                }
+
+                if (examineDirectory.GetMergeScheduler() != null)
+                {
+                    writer.SetMergeScheduler(examineDirectory.GetMergeScheduler());
+                }
+
+                if (examineDirectory.IsReadOnly)
+                {
+                    DocumentWriting += (sender, args) => { args.Cancel = true; };
+                }
+                    
+                var mergePolicy = examineDirectory.GetMergePolicy(writer);
+                if (mergePolicy != null)
+                {
+                    writer.SetMergePolicy(mergePolicy);
+                }
             }
             else
             {
