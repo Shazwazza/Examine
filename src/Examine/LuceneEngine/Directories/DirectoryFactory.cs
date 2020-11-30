@@ -7,7 +7,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Directories
 {
-    public abstract class DirectoryFactory : IDirectoryFactory2
+    public abstract class DirectoryFactory : IDirectoryFactory
     {
         static DirectoryFactory()
         {
@@ -25,11 +25,6 @@ namespace Examine.LuceneEngine.Directories
         public static Func<DirectoryInfo, LockFactory> DefaultLockFactory { get; set; }
 
         public abstract Directory CreateDirectory(DirectoryInfo luceneIndexFolder);
-        public MergePolicy GetMergePolicy(IndexWriter writer)
-        {
-            return null;
-        }
-
-        public bool IsReadOnly { get; } = false;
+   
     }
 }
