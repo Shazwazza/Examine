@@ -6,14 +6,14 @@ using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
-using Microsoft.WindowsAzure.Storage;
+using Microsoft.Azure.Storage;
 
 namespace Examine.AzureDirectory
 {
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for user on the server that only reads from the index
     /// </summary>
-    public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory, IDirectoryFactory
+    public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory, IDirectoryFactory2
     {
         private readonly bool _isReadOnly = true;
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)

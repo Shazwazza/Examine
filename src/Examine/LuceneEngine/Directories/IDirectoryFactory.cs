@@ -12,7 +12,6 @@ namespace Examine.LuceneEngine.Directories
     public interface IDirectoryFactory
     {   
         Directory CreateDirectory(DirectoryInfo luceneIndexFolder);
-        MergePolicy GetMergePolicy(IndexWriter writer);
-        bool IsReadOnly { get; }
+   
     }
 }

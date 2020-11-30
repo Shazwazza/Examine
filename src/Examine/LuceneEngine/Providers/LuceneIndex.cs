@@ -472,6 +472,7 @@ namespace Examine.LuceneEngine.Providers
                 writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
                 if (_directory is ExamineDirectory examineDirectory)
                 {
+                 
                     if (examineDirectory.GetDeletionPolicy() != null)
                     {
                         writer = new IndexWriter(dir, FieldAnalyzer, true, examineDirectory.GetDeletionPolicy(),
@@ -487,7 +488,7 @@ namespace Examine.LuceneEngine.Providers
                     {
                         DocumentWriting += (sender, args) => { args.Cancel = true; };
                     }
-
+                    
                     var mergePolicy = examineDirectory.GetMergePolicy(writer);
                     if (mergePolicy != null)
                     {

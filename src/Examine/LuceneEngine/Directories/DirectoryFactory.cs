@@ -7,7 +7,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Directories
 {
-    public abstract class DirectoryFactory : IDirectoryFactory
+    public abstract class DirectoryFactory : IDirectoryFactory2
     {
         static DirectoryFactory()
         {
