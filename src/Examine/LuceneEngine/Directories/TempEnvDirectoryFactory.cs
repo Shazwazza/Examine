@@ -13,7 +13,7 @@ namespace Examine.LuceneEngine.Directories
     /// <remarks>
     /// This works well for Azure Web Apps directory sync
     /// </remarks>
-    public class TempEnvDirectoryFactory : ExamineDirectoryFactory
+    public class TempEnvDirectoryFactory : DirectoryFactory
     {
         
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)

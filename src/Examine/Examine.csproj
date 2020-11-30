@@ -117,8 +117,6 @@
     <Compile Include="LuceneEngine\DeletePolicies\NoDeletionPolicy.cs" />
     <Compile Include="LuceneEngine\Directories\DirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\ExamineDirectory.cs" />
-    <Compile Include="LuceneEngine\Directories\ExamineDirectoryFactory.cs" />
-    <Compile Include="LuceneEngine\Directories\IDirectoryFactory2.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\MultiIndexLock.cs" />
