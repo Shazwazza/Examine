@@ -9,9 +9,5 @@ namespace Examine.LuceneEngine.Directories
     {
         [SecuritySafeCritical]
         Directory CreateDirectory(LuceneIndexer indexer, string luceneIndexFolder);
-
-        bool IsReadOnly { get; }
-        [SecuritySafeCritical]
-        MergePolicy GetMergePolicy(IndexWriter writer);
     }
 }
