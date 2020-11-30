@@ -6,7 +6,7 @@ using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
-using Microsoft.WindowsAzure.Storage;
+using Microsoft.Azure.Storage;
 
 namespace Examine.AzureDirectory
 {

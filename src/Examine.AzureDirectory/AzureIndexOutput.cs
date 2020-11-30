@@ -5,10 +5,11 @@ using System.IO.Compression;
 using System.Threading;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 
 namespace Examine.AzureDirectory
 {
+
     /// <summary>
     /// Implements IndexOutput semantics for a write/append only file
     /// </summary>
@@ -25,8 +26,7 @@ namespace Examine.AzureDirectory
 
         public AzureIndexOutput(AzureDirectory azureDirectory, ICloudBlob blob, string name)
         {
-            //TODO: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19
-            // I have changed this to be correct now
+            //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;
             _azureDirectory = azureDirectory ?? throw new ArgumentNullException(nameof(azureDirectory));
             _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name); 

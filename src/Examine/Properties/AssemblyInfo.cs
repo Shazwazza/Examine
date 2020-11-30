@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Security;
@@ -27,4 +27,4 @@ using System.Security;
 
 [assembly: AssemblyVersion("1.0.6.0")]
 [assembly: AssemblyFileVersion("1.0.6.0")]
-[assembly: AssemblyInformationalVersion("1.0.6-betaNovicell.27")]
+[assembly: AssemblyInformationalVersion("1.0.6")]

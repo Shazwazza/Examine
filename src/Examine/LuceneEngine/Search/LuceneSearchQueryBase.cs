@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +20,8 @@ namespace Examine.LuceneEngine.Search
 
         internal readonly Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
         public BooleanQuery Query => Queries.Peek();
-        internal readonly List<SortField> SortFields = new List<SortField>();
+
+        public IList<SortField> SortFields { get; } = new List<SortField>();
 
         protected Occur Occurrence;
         private BooleanOperation _boolOp;

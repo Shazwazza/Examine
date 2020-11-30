@@ -59,6 +59,18 @@
     <Reference Include="Lucene.Net.Contrib.Spatial, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
       <HintPath>..\packages\Lucene.Net.Contrib.Spatial.3.0.3\lib\net40\Lucene.Net.Contrib.Spatial.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Azure.Storage.Blob, Version=11.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Azure.Storage.Blob.11.2.2\lib\net452\Microsoft.Azure.Storage.Blob.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Azure.Storage.Common, Version=11.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Azure.Storage.Common.11.2.2\lib\net452\Microsoft.Azure.Storage.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=3.11.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.11.0\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
@@ -87,6 +99,7 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="Extensions\SpatialSearch.cs" />
+    <Compile Include="AzureDirectory\ReadOnlyTest.cs" />
     <Compile Include="OrderedDictionaryTests.cs" />
     <Compile Include="RandomIdRAMDirectory.cs" />
     <Compile Include="DataServices\TestContentService.cs" />
@@ -135,6 +148,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Examine.AzureDirectory\Examine.AzureDirectory.csproj">
+      <Project>{c3880b59-8b08-4990-b3fa-0a8db9476319}</Project>
+      <Name>Examine.AzureDirectory</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>
       <Name>Examine</Name>
