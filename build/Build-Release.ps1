@@ -62,7 +62,7 @@ $SolutionInfoPath = Join-Path -Path $SolutionRoot -ChildPath "SolutionInfo.cs"
 $Copyright = "Copyright " + [char]0x00A9 + " Shannon Deminick " + (Get-Date).year
 (gc -Path $SolutionInfoPath) `
 	-replace "(?<=AssemblyCopyright\(`").*(?=`"\))", $Copyright |
-	sc -Path $SolutionInfoPath -Encoding UTF8
+	Set-Content -Path $SolutionInfoPath -Encoding UTF8
 
 $SolutionPath = Join-Path -Path $SolutionRoot -ChildPath "Examine.sln"
 
@@ -77,19 +77,22 @@ foreach($project in $root.ChildNodes) {
 
 	$projectPath = Join-Path -Path $SolutionRoot -ChildPath $project.id
 	$projectAssemblyInfo = Join-Path -Path $projectPath -ChildPath "Properties\AssemblyInfo.cs"
-	$projectVersion = $project.version.Split("-")[0];
 
-	Write-Host "Updating verion for $projectPath to $($project.version) ($projectVersion)"
+	if (Test-Path -Path $projectAssemblyInfo){
+		$projectVersion = $project.version.Split("-")[0];
 
-	#update assembly infos with correct version
+		Write-Host "Updating verion for $projectPath to $($project.version) ($projectVersion)"
 
-	(gc -Path $projectAssemblyInfo) `
-		-replace "(?<=Version\(`")[.\d]*(?=`"\))", "$projectVersion.0" |
-		sc -Path $projectAssemblyInfo -Encoding UTF8
+		#update assembly infos with correct version
 
-	(gc -Path $projectAssemblyInfo) `
-		-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", $project.version |
-		sc -Path $projectAssemblyInfo -Encoding UTF8
+		(gc -Path $projectAssemblyInfo) `
+			-replace "(?<=Version\(`")[.\d]*(?=`"\))", "$projectVersion.0" |
+			Set-Content -Path $projectAssemblyInfo -Encoding UTF8
+
+		(gc -Path $projectAssemblyInfo) `
+			-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", $project.version |
+			Set-Content -Path $projectAssemblyInfo -Encoding UTF8
+	}
 }
 
 # Build the solution in release mode
