@@ -14,7 +14,7 @@ namespace Examine.AzureDirectory
         private readonly AzureLuceneDirectory _azureDirectory;
         private readonly ILogger _logger;
 
-        public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory,ILogger logger)
+        public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory, ILogger logger)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
             if (string.IsNullOrWhiteSpace(lockFile)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
@@ -22,7 +22,7 @@ namespace Examine.AzureDirectory
             _azureDirectory = directory;
             _logger = logger;
         }
-        
+
         public override bool IsLocked()
         {
             try
@@ -31,7 +31,7 @@ namespace Examine.AzureDirectory
                 var response = blob.Exists();
                 return response.Value;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while checking if index locked");
                 throw;
@@ -48,12 +48,22 @@ namespace Examine.AzureDirectory
                 var blob = _azureDirectory.BlobContainer.GetBlobClient(_lockFile);
 
                 _azureDirectory.EnsureContainer();
-                using (var stream = new MemoryStream())
-                using (var writer = new StreamWriter(stream))
+                try
                 {
-                    writer.Write(_lockFile);
-                    blob.Upload(stream);
+                    using (var stream = new MemoryStream())
+                    {
+                        using (var writer = new StreamWriter(stream))
+                        {
+                            writer.Write(_lockFile);
+                            blob.Upload(stream);
+                        }
+                    }
                 }
+                catch (Azure.RequestFailedException ex) when (ex.Status == 409)//already exists unable to overwrite
+                {
+                    return false;
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -61,7 +71,7 @@ namespace Examine.AzureDirectory
                 _logger.LogError(ex, "Error while obtaining lock");
                 throw;
             }
-        }        
+        }
 
         public override void Release()
         {
