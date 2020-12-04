@@ -30,10 +30,13 @@ namespace Examine.AzureDirectory
 
             var lockFile = _azureDirectory.RootFolder + name;
 
-            var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(lockFile);
-            var flag1 = blob.Exists();
+            var blob = _azureDirectory.BlobContainer.GetBlobClient(lockFile);
+            var flag1Response = blob.Exists();
+            var flag1 = flag1Response.Value;
             bool flag2;
-            if (blob.Exists())
+
+            var flag2Response = blob.Exists();
+            if (flag2Response.Value)
             {
                 blob.Delete();
                 flag2 = true;

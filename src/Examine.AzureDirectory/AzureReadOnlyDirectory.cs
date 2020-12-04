@@ -1,60 +1,32 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
+using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
-using Lucene.Net.Index;
 using Lucene.Net.Store;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.AzureDirectory
 {
-    public class AzureReadOnlyDirectory : ExamineDirectory
+    public class AzureReadOnlyDirectory : AzureDirectory
     {
         private readonly string _cacheDirectoryPath;
         private readonly string _cacheDirectoryName;
-        public Lucene.Net.Store.Directory CacheDirectory { get; private set; }
-        private readonly bool _isReadOnly;
-        private volatile bool _dirty = true;
-        private bool _inSync = false;
-        private readonly object _locker = new object();
-
-        private readonly string _containerName;
-        private CloudBlobClient _blobClient;
-        private CloudBlobContainer _blobContainer;
-        private LockFactory _lockFactory;
         private string OldIndexFolderName;
-        public string RootFolder { get; set; }
 
-        public CloudBlobContainer BlobContainer => _blobContainer;
-        public bool CompressBlobs { get; }
-
-        public AzureReadOnlyDirectory(
-            CloudStorageAccount storageAccount,
+        public AzureReadOnlyDirectory(ILogger logger,
+            string storageAccount,
             string containerName,
             string cacheDirectoryPath,
             string cacheDirectoryName,
             bool compressBlobs = false,
             string rootFolder = null,
-            bool isReadOnly = false)
+            bool isReadOnly = false) : base(logger,storageAccount, containerName,null,compressBlobs,rootFolder,isReadOnly)
         {
             _cacheDirectoryPath = cacheDirectoryPath;
             _cacheDirectoryName = cacheDirectoryName;
-            _containerName = containerName.ToLower();
-            _blobClient = storageAccount.CreateCloudBlobClient();
-            _isReadOnly = isReadOnly;
-            if (string.IsNullOrEmpty(rootFolder))
-                RootFolder = string.Empty;
-            else
-            {
-                rootFolder = rootFolder.Trim('/');
-                RootFolder = rootFolder + "/";
-            }
-
-            EnsureContainer();
             if (CacheDirectory == null)
             {
                 CreateOrReadCache();
@@ -63,10 +35,11 @@ namespace Examine.AzureDirectory
             {
                 CheckDirty();
             }
-           
-            CompressBlobs = compressBlobs;
         }
-
+        protected override void EnsureCacheDirectory(Lucene.Net.Store.Directory cacheDirectory)
+        {
+            //Do nothing
+        }
         private void CreateOrReadCache()
         {
             var indexParentFolder = new DirectoryInfo(
@@ -94,14 +67,6 @@ namespace Examine.AzureDirectory
             }
         }
 
-
-        public void EnsureContainer()
-        {
-            _blobContainer = _blobClient.GetContainerReference(_containerName);
-            
-            _blobContainer.CreateIfNotExists();
-        }
-
         public void RebuildCache()
         {
             var tempDir = new DirectoryInfo(
@@ -113,7 +78,7 @@ namespace Examine.AzureDirectory
             foreach (string file in GetAllBlobFiles())
             {
              //   newIndex.TouchFile(file);
-                var blob = _blobContainer.GetBlockBlobReference(RootFolder + file);
+                var blob = _blobContainer.GetBlobClient(RootFolder + file);
                 SyncFile(newIndex,blob, file);
             }
 
@@ -126,7 +91,7 @@ namespace Examine.AzureDirectory
             if (oldIndex != null)
             {
                 oldIndex.ClearLock("write.lock");
-                foreach (var file in   oldIndex.ListAll())
+                foreach (var file in oldIndex.ListAll())
                 {
                     if (oldIndex.FileExists(file))
                     {
@@ -140,66 +105,19 @@ namespace Examine.AzureDirectory
             }
             OldIndexFolderName = tempDir.Name;
        
-
         }
-        public virtual bool ShouldCompressFile(string path)
-        {
-            if (!CompressBlobs)
-                return false;
-
-            var ext = System.IO.Path.GetExtension(path);
-            switch (ext)
-            {
-                case ".cfs":
-                case ".fdt":
-                case ".fdx":
-                case ".frq":
-                case ".tis":
-                case ".tii":
-                case ".nrm":
-                case ".tvx":
-                case ".tvd":
-                case ".tvf":
-                case ".prx":
-                    return true;
-                default:
-                    return false;
-            }
-
-            ;
-        }
-        /// <summary>Construct a {@link Lock}.</summary>
-        /// <param name="name">the name of the lock file
-        /// </param>
-        public override Lock MakeLock(string name)
-        {
-            return _lockFactory.MakeLock(name);
-        }
-
-        public override void ClearLock(string name)
-        {
-            if (!_isReadOnly)
-            {
-                _lockFactory.ClearLock(name);
-            }
-
-            CacheDirectory.ClearLock(name);
-        }
-
-        public override LockFactory LockFactory => _lockFactory;
-
-        private void SyncFile(Directory newIndex, CloudBlockBlob blob, string fileName)
+        private void SyncFile(Directory newIndex, BlobClient blob, string fileName)
         {
             if (this.ShouldCompressFile(fileName))
             {
-                InflateStream(newIndex,blob,fileName);
+                InflateStream(newIndex, blob, fileName);
             }
             else
             {
                 using (var fileStream = new StreamOutput(newIndex.CreateOutput(fileName)))
                 {
                     // get the blob
-                    blob.DownloadToStream(fileStream);
+                    blob.DownloadTo(fileStream);
                     fileStream.Flush();
                     Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
 
@@ -209,42 +127,27 @@ namespace Examine.AzureDirectory
             }
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
-           
-        }
 
-        private void InflateStream(Directory newIndex, CloudBlockBlob blob, string fileName)
+        }
+        protected void InflateStream(Lucene.Net.Store.Directory newIndex, BlobClient blob, string fileName)
         {
-      
-            using (var deflatedStream = new MemoryStream())
+            if (this.ShouldCompressFile(fileName))
             {
-                // get the deflated blob
-                blob.DownloadToStream(deflatedStream);
-                Trace.WriteLine($"GET {fileName} RETREIVED {deflatedStream.Length} bytes");
-                // seek back to begininng
-                deflatedStream.Seek(0, SeekOrigin.Begin);
-                // open output file for uncompressed contents
+                InflateStream(newIndex, blob, fileName);
+            }
+            else
+            {
                 using (var fileStream = new StreamOutput(newIndex.CreateOutput(fileName)))
-                using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
                 {
-                    var bytes = new byte[65535];
-                    var nRead = 0;
-                    do
-                    {
-                        nRead = decompressor.Read(bytes, 0, 65535);
-                        if (nRead > 0)
-                            fileStream.Write(bytes, 0, nRead);
-                    } while (nRead == 65535);
+                    // get the blob
+                    blob.DownloadTo(fileStream);
+                    fileStream.Flush();
+                    Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
+
                 }
+
             }
         }
-
-        private string[] GetAllBlobFiles()
-        {
-            var results = from blob in _blobContainer.ListBlobs(RootFolder)
-                select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
-            return results.ToArray();
-        }
-
         public override string[] ListAll()
         {
             return CacheDirectory.ListAll();
@@ -290,33 +193,9 @@ namespace Examine.AzureDirectory
         {
             CacheDirectory.Dispose();
         }
-        private string[] CheckDirty()
+        protected virtual void HandleOutOfSync()
         {
-            if (_dirty)
-            {
-                lock (_locker)
-                {
-                    //double check locking
-                    if (_dirty)
-                    {
-                        //these methods don't throw exceptions, will return -1 if something has gone wrong
-                        // in which case we'll consider them not in sync
-                        var blobFiles = GetAllBlobFiles();
-                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(blobFiles);
-                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
-                        _inSync = masterSeg == localSeg && masterSeg != -1;
-                        if (!_inSync)
-                        {
-                            RebuildCache();
-                        }
-                        _dirty = false;
-                        
-                        return blobFiles;
-                    }
-                }
-            }
-
-            return null;
+            RebuildCache();
         }
     }
 }

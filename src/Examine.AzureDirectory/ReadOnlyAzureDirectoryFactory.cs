@@ -1,33 +1,43 @@
 using System;
-using System.Configuration;
 using System.IO;
 using System.Web;
 using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
-using Microsoft.Azure.Storage;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Examine.AzureDirectory
 {
+
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for user on the server that only reads from the index
     /// </summary>
     public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory, IDirectoryFactory
     {
         private readonly bool _isReadOnly = true;
+        private ILogger _logger;
+        public ReadOnlyAzureDirectoryFactory()
+        {
+            _logger = NullLogger.Instance;
+        }
+        public ReadOnlyAzureDirectoryFactory( ILogger logger)
+        {
+            _logger = logger ?? NullLogger.Instance;
+        }
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
             var indexName = GetIndexPathName(indexFolder);
-            var directory = new AzureReadOnlyDirectory(
-                CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),
-                ConfigurationManager.AppSettings[ConfigContainerKey],
+            var directory = new AzureReadOnlyDirectory(_logger,
+                GetStorageAccountConnectionString(),
+                GetContainerName(),
                 tempFolder,
                 indexName,
                 rootFolder: luceneIndexFolder.Name,
-                isReadOnly: _isReadOnly);
+                isReadOnly: GetIsReadOnly());
        
 
             directory.IsReadOnly = _isReadOnly;

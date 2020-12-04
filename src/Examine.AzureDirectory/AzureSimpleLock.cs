@@ -22,34 +22,35 @@ namespace Examine.AzureDirectory
         
         public override bool IsLocked()
         {
-            var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(_lockFile);
-            return blob.Exists();
+            var blob = _azureDirectory.BlobContainer.GetBlobClient(_lockFile);
+            var response = blob.Exists();
+            return response;
         }
+
 
         public override bool Obtain()
         {
-            var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(_lockFile);
-            var exists = blob.Exists();
-            if (exists)
+            if (IsLocked())
                 return false;
+            var blob = _azureDirectory.BlobContainer.GetBlobClient(_lockFile);
 
             _azureDirectory.EnsureContainer();
             using (var stream = new MemoryStream())
             using (var writer = new StreamWriter(stream))
             {
                 writer.Write(_lockFile);
-                blob.UploadFromStream(stream);
+                blob.Upload(stream);
             }
             return true;            
         }        
 
         public override void Release()
         {
-            var blob = _azureDirectory.BlobContainer.GetBlockBlobReference(_lockFile);
-            var flag1 = blob.Exists();
+            var flag1 = IsLocked();
             bool flag2;
-            if (blob.Exists())
+            if (IsLocked())
             {
+                var blob = _azureDirectory.BlobContainer.GetBlobClient(_lockFile);
                 blob.Delete();
                 flag2 = true;
             }           

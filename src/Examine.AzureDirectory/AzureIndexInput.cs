@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
+using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
-using Microsoft.Azure.Storage.Blob;
 
 namespace Examine.AzureDirectory
 {
@@ -15,8 +15,7 @@ namespace Examine.AzureDirectory
     public class AzureIndexInput : IndexInput
     {
         private AzureDirectory _azureDirectory;
-        private CloudBlobContainer _blobContainer;
-        private ICloudBlob _blob;
+        private BlobClient _blob;
         private readonly string _name;
 
         private IndexInput _indexInput;
@@ -24,7 +23,7 @@ namespace Examine.AzureDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob)
+        public AzureIndexInput(AzureDirectory azuredirectory, BlobClient blob)
         {
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
             _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
@@ -35,7 +34,6 @@ namespace Examine.AzureDirectory
             _fileMutex.WaitOne();
             try
             {                
-                _blobContainer = azuredirectory.BlobContainer;
                 _blob = blob;
 
                 var fileName = _name;
@@ -48,12 +46,15 @@ namespace Examine.AzureDirectory
                 else
                 {
                     var cachedLength = CacheDirectory.FileLength(fileName);
-                    var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata); 
-                    var blobLength = blob.Properties.Length;
+
+                    var blobPropertiesResponse = blob.GetProperties();
+                    var blobProperties = blobPropertiesResponse.Value;
+                    var hasMetadataValue = blobProperties.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata); 
+                    var blobLength = blobProperties.ContentLength;
                     if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
 
-                    var blobLastModifiedUtc = blob.Properties.LastModified.Value.UtcDateTime;
-                    if (blob.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
+                    var blobLastModifiedUtc = blobProperties.LastModified.UtcDateTime;
+                    if (blobProperties.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
                     {
                         if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
                             blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
@@ -98,7 +99,7 @@ namespace Examine.AzureDirectory
                         using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
                         {
                             // get the blob
-                            _blob.DownloadToStream(fileStream);
+                            _blob.DownloadTo(fileStream);
 
                             fileStream.Flush();
 #if FULLDEBUG
@@ -133,7 +134,7 @@ namespace Examine.AzureDirectory
             using (var deflatedStream = new MemoryStream())
             {
                 // get the deflated blob
-                _blob.DownloadToStream(deflatedStream);
+                _blob.DownloadTo(deflatedStream);
 
 #if FULLDEBUG
                 Trace.WriteLine($"GET {_name} RETREIVED {deflatedStream.Length} bytes");
@@ -162,12 +163,10 @@ namespace Examine.AzureDirectory
         {
             _name = cloneInput._name;
             _azureDirectory = cloneInput._azureDirectory;
-            _blobContainer = cloneInput._blobContainer;
             _blob = cloneInput._blob;
 
             if (string.IsNullOrWhiteSpace(_name)) throw new ArgumentNullException(nameof(cloneInput._name));
             if (_azureDirectory == null) throw new ArgumentNullException(nameof(cloneInput._azureDirectory));
-            if (_blobContainer == null) throw new ArgumentNullException(nameof(cloneInput._blobContainer));
             if (_blob == null) throw new ArgumentNullException(nameof(cloneInput._blob));
 
             _fileMutex = SyncMutexManager.GrabMutex(cloneInput._azureDirectory, cloneInput._name);
@@ -220,7 +219,6 @@ namespace Examine.AzureDirectory
                 _indexInput.Dispose();
                 _indexInput = null;
                 _azureDirectory = null;
-                _blobContainer = null;
                 _blob = null;
                 GC.SuppressFinalize(this);
             }
