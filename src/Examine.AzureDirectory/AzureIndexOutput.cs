@@ -92,7 +92,7 @@ namespace Examine.AzureDirectory
                     try
                     {
                         // push the blobStream up to the cloud
-                        _blob.Upload(blobStream);
+                        _blob.Upload(blobStream,overwrite:true);
 
                         // set the metadata with the original index file properties
                         var metadata = new Dictionary<string, string>();
