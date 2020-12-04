@@ -24,6 +24,7 @@ namespace Examine.Test.AzureDirectoryTests
         {
             _loggerProvider = LoggerFactory.Create(builder => builder.AddConsole());
             _logger = _loggerProvider.CreateLogger<IntegrationTests>();
+            _logger.LogInformation("Requires Azurite emulator to be running. Install nodejs, npm install -g azurite. Then azurite to run");
         }
         [TearDown]
         public void Teardown()
