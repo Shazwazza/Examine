@@ -21,7 +21,6 @@ namespace Examine.AzureDirectory
     {
         protected readonly ILogger _logger;
         private readonly string _storageAccountConnectionString;
-        private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
@@ -56,13 +55,12 @@ namespace Examine.AzureDirectory
 
             if (string.IsNullOrWhiteSpace(containerName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
-            _isReadOnly = isReadOnly;
-            IsReadOnly = _isReadOnly;
+            IsReadOnly = isReadOnly;
             _logger = logger ?? NullLogger.Instance;
             _storageAccountConnectionString = connectionString;
             CacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
-            _lockFactory = GetLockFactory(_isReadOnly);
+            _lockFactory = GetLockFactory();
             RootFolder = NormalizeContainerRootFolder(rootFolder);
 
             EnsureContainer();
@@ -84,9 +82,9 @@ namespace Examine.AzureDirectory
             return rootFolder;
         }
 
-        protected virtual LockFactory GetLockFactory(bool isReadOnly)
+        protected virtual LockFactory GetLockFactory()
         {
-            return  isReadOnly ? (LockFactory)new NoopLockFactory()
+            return  IsReadOnly ? (LockFactory)new NoopLockFactory()
                 : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
         }
         protected virtual BlobClient GetBlobClient(string blobName)
@@ -287,7 +285,7 @@ namespace Examine.AzureDirectory
             }
 
             //if we are readonly, then we are only modifying local storage
-            if (_isReadOnly) return;
+            if (IsReadOnly) return;
 
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
 
@@ -336,7 +334,7 @@ namespace Examine.AzureDirectory
 
         public override void Sync(string name)
         {
-            if (_isReadOnly)
+            if (IsReadOnly)
             {
                 var allBlobs = GetAllBlobFiles();
                 foreach (var toCheck in CacheDirectory.ListAll())
@@ -370,7 +368,7 @@ namespace Examine.AzureDirectory
             SetDirty();
 
             //if we are readonly, then we don't modify anything
-            if (_isReadOnly)
+            if (IsReadOnly)
             {
                 return _noopIndexOutput;
             }
@@ -427,7 +425,7 @@ namespace Examine.AzureDirectory
 
         public override void ClearLock(string name)
         {
-            if (!_isReadOnly)
+            if (!IsReadOnly)
             {
                 _lockFactory.ClearLock(name);
             }
