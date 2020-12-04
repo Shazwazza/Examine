@@ -16,6 +16,7 @@ namespace Examine.LuceneEngine.DeletePolicies
         public void OnCommit<T>(IList<T> commits) where T : IndexCommit
         {
         }
-        public static readonly IndexDeletionPolicy INSTANCE = new NoDeletionPolicy();
+        private static readonly IndexDeletionPolicy _instance = new NoDeletionPolicy();
+        public static IndexDeletionPolicy INSTANCE => _instance;
     }
 }

@@ -56,7 +56,7 @@
     <DefineConstants>TRACE;DEBUG;CODE_ANALYSIS;FULLDEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>SecurityRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Examine.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <DocumentationFile>
     </DocumentationFile>
@@ -71,7 +71,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>Examine.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>bin\Release\Examine.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
@@ -220,6 +220,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Examine.nuspec" />
+    <None Include="Examine.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
