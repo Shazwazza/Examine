@@ -131,7 +131,7 @@ namespace Examine.AzureDirectory
             }
         }
 
-        private MemoryStream CompressStream(string fileName, long originalLength)
+        protected virtual MemoryStream CompressStream(string fileName, long originalLength)
         {
             // unfortunately, deflate stream doesn't allow seek, and we need a seekable stream
             // to pass to the blob storage stuff, so we compress into a memory stream

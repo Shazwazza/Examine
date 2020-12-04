@@ -29,6 +29,8 @@ namespace Examine.AzureDirectory
         protected BlobContainerClient _blobContainer;
         protected LockFactory _lockFactory;
         private static readonly NoopIndexOutput _noopIndexOutput = new NoopIndexOutput();
+        private readonly IAzureIndexOutputFactory _azureIndexOutputFactory;
+        private readonly IAzureIndexInputFactory _azureIndexInputFactory;
 
         /// <summary>
         /// Create an AzureDirectory
@@ -64,8 +66,18 @@ namespace Examine.AzureDirectory
             RootFolder = NormalizeContainerRootFolder(rootFolder);
 
             EnsureContainer();
+            _azureIndexOutputFactory = GetAzureIndexOutputFactory();
+            _azureIndexInputFactory = GetAzureIndexInputFactory();
             GuardCacheDirectory(CacheDirectory);
             CompressBlobs = compressBlobs;
+        }
+        protected virtual IAzureIndexInputFactory GetAzureIndexInputFactory()
+        {
+            return new AzureIndexInputFactory();
+        }
+        protected virtual IAzureIndexOutputFactory GetAzureIndexOutputFactory()
+        {
+            return new AzureIndexOutputFactory();
         }
 
         protected virtual void GuardCacheDirectory(Lucene.Net.Store.Directory cacheDirectory)
@@ -374,7 +386,7 @@ namespace Examine.AzureDirectory
             }
 
             var blob = _blobContainer.GetBlobClient(RootFolder + name);
-            return new AzureIndexOutput(this, blob, name);
+            return _azureIndexOutputFactory.CreateIndexOutput(this, blob, name);
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
@@ -405,7 +417,7 @@ namespace Examine.AzureDirectory
 
             if (TryGetBlobFile(name, out var blob, out var err))
             {
-                return new AzureIndexInput(this, blob);
+                return _azureIndexInputFactory .GetIndexInput(this, blob);
             }
             else
             {
