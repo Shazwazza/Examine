@@ -29,6 +29,7 @@ namespace Examine.AzureDirectory
             _cacheDirectoryName = cacheDirectoryName;
             if (CacheDirectory == null)
             {
+                _logger.LogInformation("CacheDirectory null. Creating or rebuilding cache");
                 CreateOrReadCache();
             }
             else
@@ -36,7 +37,7 @@ namespace Examine.AzureDirectory
                 CheckDirty();
             }
         }
-        protected override void EnsureCacheDirectory(Lucene.Net.Store.Directory cacheDirectory)
+        protected override void GuardCacheDirectory(Lucene.Net.Store.Directory cacheDirectory)
         {
             //Do nothing
         }
@@ -69,6 +70,8 @@ namespace Examine.AzureDirectory
 
         public void RebuildCache()
         {
+
+            _logger.LogInformation("Rebuilding cache");
             var tempDir = new DirectoryInfo(
                 Path.Combine(_cacheDirectoryPath,
                     _cacheDirectoryName, DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffff")));
