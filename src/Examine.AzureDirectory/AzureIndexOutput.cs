@@ -34,9 +34,7 @@ namespace Examine.AzureDirectory
             _fileMutex.WaitOne();
             try
             {                
-                //_blobContainer = _azureDirectory.BlobContainer;
                 _blob = blob;
-                _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
 
                 // create the local cache one we will operate against...
                 _indexOutput = CacheDirectory.CreateOutput(_name);
