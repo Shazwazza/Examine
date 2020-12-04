@@ -10,13 +10,13 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.AzureDirectory
 {
-    public class AzureReadOnlyDirectory : AzureDirectory
+    public class AzureReadOnlyLuceneDirectory : AzureLuceneDirectory
     {
         private readonly string _cacheDirectoryPath;
         private readonly string _cacheDirectoryName;
         private string OldIndexFolderName;
 
-        public AzureReadOnlyDirectory(ILogger logger,
+        public AzureReadOnlyLuceneDirectory(ILogger logger,
             string storageAccount,
             string containerName,
             string cacheDirectoryPath,

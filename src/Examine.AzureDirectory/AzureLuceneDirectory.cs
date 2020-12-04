@@ -17,7 +17,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
-    public class AzureDirectory : ExamineDirectory
+    public class AzureLuceneDirectory : ExamineDirectory
     {
         protected readonly ILogger _logger;
         private readonly string _storageAccountConnectionString;
@@ -43,7 +43,7 @@ namespace Examine.AzureDirectory
         /// a <see cref="MultiIndexLockFactory"/> which will create locks in both the cache and blob storage folders.
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
-        public AzureDirectory(ILogger logger,
+        public AzureLuceneDirectory(ILogger logger,
             string connectionString,
             string containerName,
             Lucene.Net.Store.Directory cacheDirectory,
@@ -64,7 +64,7 @@ namespace Examine.AzureDirectory
             RootFolder = NormalizeContainerRootFolder(rootFolder);
 
             EnsureContainer();
-            GuardCacheDirectory(cacheDirectory);
+            GuardCacheDirectory(CacheDirectory);
             CompressBlobs = compressBlobs;
         }
 

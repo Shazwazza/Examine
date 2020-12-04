@@ -31,7 +31,7 @@ namespace Examine.AzureDirectory
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
             var indexName = GetIndexPathName(indexFolder);
-            var directory = new AzureReadOnlyDirectory(_logger,
+            var directory = new AzureReadOnlyLuceneDirectory(_logger,
                 GetStorageAccountConnectionString(),
                 GetContainerName(),
                 tempFolder,

@@ -56,7 +56,7 @@ namespace Examine.AzureDirectory
         /// </returns>
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            var directory = new AzureDirectory(_logger,
+            var directory = new AzureLuceneDirectory(_logger,
                 GetStorageAccountConnectionString(),
                 GetContainerName(),
                 GetLocalCacheDirectory(luceneIndexFolder),

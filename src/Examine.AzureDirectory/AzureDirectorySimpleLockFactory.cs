@@ -9,10 +9,10 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectorySimpleLockFactory : LockFactory
     {
-        private readonly AzureDirectory _azureDirectory;
+        private readonly AzureLuceneDirectory _azureDirectory;
         private readonly ILogger _logger;
 
-        public AzureDirectorySimpleLockFactory(AzureDirectory azureDirectory,ILogger logger)
+        public AzureDirectorySimpleLockFactory(AzureLuceneDirectory azureDirectory,ILogger logger)
         {
             _azureDirectory = azureDirectory;
             _logger = logger;

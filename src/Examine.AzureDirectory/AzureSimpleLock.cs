@@ -11,10 +11,10 @@ namespace Examine.AzureDirectory
     public class AzureSimpleLock : Lock
     {
         private readonly string _lockFile;
-        private readonly AzureDirectory _azureDirectory;
+        private readonly AzureLuceneDirectory _azureDirectory;
         private readonly ILogger _logger;
 
-        public AzureSimpleLock(string lockFile, AzureDirectory directory,ILogger logger)
+        public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory,ILogger logger)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
             if (string.IsNullOrWhiteSpace(lockFile)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));

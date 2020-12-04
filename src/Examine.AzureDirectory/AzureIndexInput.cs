@@ -14,7 +14,7 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureIndexInput : IndexInput
     {
-        private AzureDirectory _azureDirectory;
+        private AzureLuceneDirectory _azureDirectory;
         private BlobClient _blob;
         private readonly string _name;
 
@@ -23,7 +23,7 @@ namespace Examine.AzureDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexInput(AzureDirectory azuredirectory, BlobClient blob)
+        public AzureIndexInput(AzureLuceneDirectory azuredirectory, BlobClient blob)
         {
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
             _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));

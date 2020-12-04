@@ -123,13 +123,13 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="AzureDirectory.cs" />
+    <Compile Include="AzureLuceneDirectory.cs" />
     <Compile Include="AzureDirectoryFactory.cs" />
     <Compile Include="AzureDirectoryNativeLockFactory.cs" />
     <Compile Include="AzureDirectorySimpleLockFactory.cs" />
     <Compile Include="AzureIndexInput.cs" />
     <Compile Include="AzureIndexOutput.cs" />
-    <Compile Include="AzureReadOnlyDirectory.cs" />
+    <Compile Include="AzureReadOnlyLuceneDirectory.cs" />
     <Compile Include="AzureSimpleLock.cs" />
     <Compile Include="AzureNativeLock.cs" />
     <Compile Include="NoopIndexOutput.cs" />

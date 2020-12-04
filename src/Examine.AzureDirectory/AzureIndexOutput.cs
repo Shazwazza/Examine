@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 
@@ -16,7 +17,7 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureIndexOutput : IndexOutput
     {
-        private readonly AzureDirectory _azureDirectory;
+        private readonly AzureLuceneDirectory _azureDirectory;
         //private CloudBlobContainer _blobContainer;
         private readonly string _name;
         private IndexOutput _indexOutput;
@@ -25,7 +26,7 @@ namespace Examine.AzureDirectory
         
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexOutput(AzureDirectory azureDirectory, BlobClient blob, string name)
+        public AzureIndexOutput(AzureLuceneDirectory azureDirectory, BlobClient blob, string name)
         {
             //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;
@@ -91,7 +92,7 @@ namespace Examine.AzureDirectory
                     try
                     {
                         // push the blobStream up to the cloud
-                        _blob.Upload(blobStream);
+                        _blob.Upload(blobStream,overwrite: true);
 
                         // set the metadata with the original index file properties
                         var metadata = new Dictionary<string, string>();
@@ -102,6 +103,11 @@ namespace Examine.AzureDirectory
 #if FULLDEBUG
                         Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
 #endif
+                    }
+                    catch(Azure.RequestFailedException ex) when (ex.Status == 409)
+                    {
+                        //File already exists
+                        throw;
                     }
                     finally
                     {
