@@ -85,7 +85,7 @@ namespace Examine.AzureDirectory
         protected virtual LockFactory GetLockFactory()
         {
             return  IsReadOnly ? (LockFactory)new NoopLockFactory()
-                : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
+                : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this,_logger), CacheDirectory.LockFactory);
         }
         protected virtual BlobClient GetBlobClient(string blobName)
         {
