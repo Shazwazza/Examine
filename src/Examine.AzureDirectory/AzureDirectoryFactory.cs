@@ -18,6 +18,7 @@ namespace Examine.AzureDirectory
         private ILogger _logger;
         public AzureDirectoryFactory()
         {
+            _isReadOnly = false;
             _logger = NullLogger.Instance;
         }
 

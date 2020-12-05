@@ -14,8 +14,8 @@
     <tags>examine azure blobstorage search lucene</tags>
     <copyright>$copyright$</copyright>
     <dependencies>
-        <group targetFramework="net452">
-            <dependency id="Examine" version="1.0.6" />
+        <group targetFramework="net461">
+            <dependency id="Examine" version="1.0.7" />
             <dependency id="Azure.Storage.Blobs" version="12.7.0" />
           <dependency id="Microsoft.Extensions.Logging.Abstractions" version="3.1.10" />
           <dependency id="Microsoft.Extensions.Logging" version="3.1.10" />

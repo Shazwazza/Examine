@@ -22,7 +22,7 @@ namespace Examine.AzureDirectory
         {
             _logger = NullLogger.Instance;
         }
-        public ReadOnlyAzureDirectoryFactory( ILogger logger)
+        public ReadOnlyAzureDirectoryFactory(ILogger logger)
         {
             _logger = logger ?? NullLogger.Instance;
         }
