@@ -470,36 +470,6 @@ namespace Examine.LuceneEngine.Providers
 
                 //create the writer (this will overwrite old index files)
                 
-                if (_directory is ExamineDirectory examineDirectory)
-                {
-                    if (examineDirectory.GetDeletionPolicy() != null)
-                    {
-                        writer = new IndexWriter(dir, FieldAnalyzer, true, examineDirectory.GetDeletionPolicy(),
-                            IndexWriter.MaxFieldLength.UNLIMITED);
-                    }
-                    else
-                    {
-                        writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-
-                    }
-                    if (examineDirectory.GetMergeScheduler() != null)
-                    {
-                        writer.SetMergeScheduler(examineDirectory.GetMergeScheduler());
-                    }
-
-                    if (examineDirectory.IsReadOnly)
-                    {
-                        DocumentWriting += (sender, args) => { args.Cancel = true; };
-                    }
-                    
-                    var mergePolicy = examineDirectory.GetMergePolicy(writer);
-                    if (mergePolicy != null)
-                    {
-                        writer.SetMergePolicy(mergePolicy);
-                    }
-                }
-                else
-                {
                     writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
                     // clear out current scheduler and set the error logging one
                     using (writer.MergeScheduler)
@@ -508,7 +478,7 @@ namespace Examine.LuceneEngine.Providers
 
                     writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
                         (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
-                }
+               
             }
             catch (Exception ex)
             {

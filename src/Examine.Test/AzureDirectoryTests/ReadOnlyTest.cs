@@ -17,8 +17,7 @@
 //using Lucene.Net.Util;
 //using System;
 //using Version = Lucene.Net.Util.Version;
-
-// TODO: Port this to 1.x
+//using Microsoft.Extensions.Logging;
 
 //namespace Examine.Test.AzureDirectory
 //{
@@ -27,6 +26,21 @@
 //    {
 //        private const string ContainerName = "examine-azure-directory-test";
 //        private readonly TestContentService _contentService = new TestContentService();
+//        private ILogger _logger;
+//        private ILoggerFactory _loggerProvider;
+//        [SetUp]
+//        public void Setup()
+//        {
+//            _loggerProvider = LoggerFactory.Create(builder => builder.AddConsole());
+//            _logger = _loggerProvider.CreateLogger<ReadOnlyTest>();
+//            _logger.LogInformation("Requires Azurite emulator to be running. Install nodejs, npm install -g azurite. Then azurite to run");
+//        }
+//        [TearDown]
+//        public void Teardown()
+//        {
+//            _loggerProvider?.Dispose();
+//        }
+
 
 //        private XElement GetRandomNode()
 //        {
@@ -39,6 +53,7 @@
 //            return nodes[rand.Next(0, nodes.Count - 1)];
 //        }
 
+
 //        [Explicit("Explicit because the azure storage emulator needs to be running")]
 //        [Test]
 //        public void Read_Only_Sync()
@@ -50,23 +65,23 @@
 //            System.IO.Directory.CreateDirectory(tempFolder1);
 //            System.IO.Directory.CreateDirectory(tempFolder2);
 
-//            CloudStorageAccount storageAccount = CloudStorageAccount.Parse("UseDevelopmentStorage=true");
+//            var storageAccount = "UseDevelopmentStorage=true";
 
-//            SimpleFSDirectory cacheDirectory1 = new SimpleFSDirectory(new DirectoryInfo(tempFolder1));
-//            var writeDir = new Examine.AzureDirectory.AzureDirectory(
+//            var cacheDirectory1 = new SimpleFSDirectory(new DirectoryInfo(tempFolder1));
+//            var writeDir = new AzureLuceneDirectory(_logger,
 //                storageAccount,
 //                ContainerName,
 //                cacheDirectory1,
 //                rootFolder: temp1,
 //                isReadOnly: false);
 
-//            SimpleFSDirectory cacheDirectory2 = new SimpleFSDirectory(new DirectoryInfo(tempFolder2));
-//            var readDir = new Examine.AzureDirectory.AzureDirectory(
+//            var cacheDirectory2 = new SimpleFSDirectory(new DirectoryInfo(tempFolder2));
+//            var readDir = new AzureReadOnlyLuceneDirectory(_logger,
 //                storageAccount,
 //                ContainerName,
-//                cacheDirectory2,
-//                rootFolder: temp1,
-//                isReadOnly: true);
+//                tempFolder2,
+//                ContainerName,
+//                rootFolder: temp1);
 
 //            using (writeDir)
 //            using (readDir)
@@ -93,50 +108,58 @@
 
 //                var tasks = new[]
 //                {
-//                    new Task(() => writeIndex.RebuildIndex()),              // write index
+//                    new Task(() => writeIndex.EnsureIndex(false)),              // write index
 //                    new Task(() =>
-//                    {
-//                        var cloned = new XElement(GetRandomNode());
-//                        readIndex.ReIndexNode(cloned, IndexTypes.Content);  // readonly index doesn't write
+//                    { 
+//                        ValueSet cloned = GetRandomValueSet();
+//                        readIndex.IndexItem(cloned);  // readonly index doesn't write
 //                    }),
 //                    new Task(() =>
 //                    {
-//                        var cloned = new XElement(GetRandomNode());
-//                        readIndex.ReIndexNode(cloned, IndexTypes.Content);  // readonly index doesn't write
+//                       ValueSet cloned = GetRandomValueSet();
+//                        readIndex.IndexItem(cloned);  // readonly index doesn't write
 //                    }),
 //                    new Task(() =>
 //                    {
 //                        for(var i = 0; i < 3; i++)                          // write index x 3
 //                        {
-//                            var cloned = new XElement(GetRandomNode());
-//                            writeIndex.ReIndexNode(cloned, IndexTypes.Content);
+//                            ValueSet cloned = GetRandomValueSet();
+//                            writeIndex.IndexItem(cloned);
 //                        }
 //                    }),
 //                    new Task(() =>
 //                    {
 //                        for(var i = 0; i < 3; i++)
 //                        {
-//                            var s = readSearcher.Search("test", true);      // force the reader to sync
+//                            var s = readSearcher.GetSearcher().CreateQuery().NativeQuery("test");      // force the reader to sync
 //                            Thread.Sleep(50);
-//                        }   
+//                        }
 //                    }),
 //                    new Task(() =>
 //                    {
-//                        var cloned = new XElement(GetRandomNode());
-//                        readIndex.ReIndexNode(cloned, IndexTypes.Content);  // readonly index doesn't write
+//                        ValueSet cloned = GetRandomValueSet();
+//                        readIndex.IndexItem(cloned);  // readonly index doesn't write
 //                    })
 //                };
 //                foreach (var t in tasks) t.Start();
 //                Task.WaitAll(tasks);
 
 //                // force the reader to sync
-//                var search = readSearcher.Search("test", true);
+//                var search = readSearcher.GetSearcher().CreateQuery().NativeQuery("test");
 
 //                // verify that all files in the readonly cache dir have been synced from master blob storage
 //                var blobFiles = writeDir.GetAllBlobFiles();
-//                var readonlyCacheFiles = cacheDirectory2.GetDirectory().GetFiles("*.*").Select(x => x.Name).ToArray();
+//                var readonlyCacheFiles = new DirectoryInfo(tempFolder2).GetFiles("*.*").Select(x => x.Name).ToArray();
 //                AssertSyncedFiles(blobFiles, readonlyCacheFiles);
 //            }
+//        }
+
+//        private ValueSet GetRandomValueSet()
+//        {
+//            var x= new XElement(GetRandomNode());
+
+//            return ValueSet.FromObject(x.Attribute("id").Value, "content",
+//                 new { writerName = x.Attribute("writerName").Value, template = x.Attribute("template").Value, lat = -6.1357, lng = 39.3621 });
 //        }
 
 //        private void AssertSyncedFiles(string[] blobFiles, string[] cacheFiles)
