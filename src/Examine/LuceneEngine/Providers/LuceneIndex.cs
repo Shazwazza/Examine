@@ -1290,9 +1290,18 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        private IndexWriter WriterFactory(Directory d)
+        protected virtual IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
+
+            if(d is ExamineDirectory examineDirectory)
+            {
+                var indexWriter = examineDirectory.GetIndexWriter(FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED,this);
+                if(indexWriter != null)
+                {
+                    return indexWriter;
+                }
+            }
             var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 
             // clear out current scheduler and set the error logging one

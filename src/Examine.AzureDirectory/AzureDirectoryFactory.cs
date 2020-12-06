@@ -4,9 +4,14 @@ using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
+using Examine.Providers;
+using Lucene.Net.Analysis;
+using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using static Lucene.Net.Index.IndexWriter;
+
 namespace Examine.AzureDirectory
 {
     /// <summary>
@@ -63,12 +68,22 @@ namespace Examine.AzureDirectory
                 GetLocalCacheDirectory(luceneIndexFolder),
                 rootFolder: luceneIndexFolder.Name,
                 isReadOnly: GetIsReadOnly());
-       
+
             directory.IsReadOnly = _isReadOnly;
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
             directory.SetDeletion(NoDeletionPolicy.INSTANCE);
+            directory.SetIndexWriterFactory((luceneDirectory, analyzer, create, maxFieldLength, index) => IndexWriterFactory(luceneDirectory, analyzer, create, maxFieldLength, index));
             return directory;
+        }
+
+        protected virtual IndexWriter IndexWriterFactory(Lucene.Net.Store.Directory directory, Analyzer analyzer, bool create, MaxFieldLength maxFieldLength, BaseIndexProvider index)
+        {
+            var writer = new IndexWriter(directory, analyzer, create, maxFieldLength);
+
+            writer.UseCompoundFile = false;
+
+            return writer;
         }
 
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
