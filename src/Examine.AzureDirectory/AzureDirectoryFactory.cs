@@ -73,18 +73,9 @@ namespace Examine.AzureDirectory
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
             directory.SetDeletion(NoDeletionPolicy.INSTANCE);
-            directory.SetIndexWriterFactory((luceneDirectory, analyzer, create, maxFieldLength, index) => IndexWriterFactory(luceneDirectory, analyzer, create, maxFieldLength, index));
             return directory;
         }
 
-        protected virtual IndexWriter IndexWriterFactory(Lucene.Net.Store.Directory directory, Analyzer analyzer, bool create, MaxFieldLength maxFieldLength, BaseIndexProvider index)
-        {
-            var writer = new IndexWriter(directory, analyzer, create, maxFieldLength);
-
-            writer.UseCompoundFile = false;
-
-            return writer;
-        }
 
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
         Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);

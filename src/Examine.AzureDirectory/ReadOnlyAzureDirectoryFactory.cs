@@ -44,7 +44,6 @@ namespace Examine.AzureDirectory
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
             directory.SetDeletion(NoDeletionPolicy.INSTANCE);
-            directory.SetIndexWriterFactory((luceneDirectory, analyzer, create, maxFieldLength, index) => IndexWriterFactory(luceneDirectory, analyzer, create, maxFieldLength, index));
             return directory;
         }
         protected string GetLocalStorageDirectory(DirectoryInfo indexPath)
