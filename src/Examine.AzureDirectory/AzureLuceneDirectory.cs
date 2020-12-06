@@ -334,12 +334,6 @@ namespace Examine.AzureDirectory
             try
             {
                 var blob = GetBlobClient(RootFolder + name);
-                var blobExists = blob.Exists();
-                if (!blobExists)
-                {
-                    _logger.LogWarning("Blob file does not exists while retrieving file length of file {name} for {RootFolder}", name, RootFolder);
-                    return CacheDirectory.FileLength(name);
-                }
                 var blobProperties = blob.GetProperties();
 
                 // index files may be compressed so the actual length is stored in metadata
@@ -584,12 +578,6 @@ namespace Examine.AzureDirectory
             try
             {
                 blob = _blobContainer.GetBlobClient(RootFolder + name);
-                var exists = blob.Exists();
-                if (!exists.Value)
-                {
-                    err = null;
-                    return false;
-                }
                 var properties = blob.GetProperties();
                 err = null;
                 return true;
