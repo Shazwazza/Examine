@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -158,14 +159,19 @@ namespace Examine.AzureDirectory
 
         internal string[] GetAllBlobFiles()
         {
-            var results = from blob in _blobContainer.GetBlobs(prefix:RootFolder)
-                select blob.Name;
+            IEnumerable<string> results = GetAllBlobFileNames();
             if (string.IsNullOrWhiteSpace(RootFolder))
             {
                 return results.ToArray();
             }
-            var names = results.Select(x=> x.Replace(RootFolder,"")).ToArray();
+            var names = results.Select(x => x.Replace(RootFolder, "")).ToArray();
             return names;
+        }
+
+        protected virtual IEnumerable<string> GetAllBlobFileNames()
+        {
+            return from blob in _blobContainer.GetBlobs(prefix: RootFolder)
+                   select blob.Name;
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
@@ -328,6 +334,12 @@ namespace Examine.AzureDirectory
             try
             {
                 var blob = GetBlobClient(RootFolder + name);
+                var blobExists = blob.Exists();
+                if (!blobExists)
+                {
+                    _logger.LogWarning("Blob file does not exists while retrieving file length of file {name} for {RootFolder}", name, RootFolder);
+                    return CacheDirectory.FileLength(name);
+                }
                 var blobProperties = blob.GetProperties();
 
                 // index files may be compressed so the actual length is stored in metadata
