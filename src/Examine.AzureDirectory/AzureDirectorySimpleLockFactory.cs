@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using Lucene.Net.Store;
-using Microsoft.Extensions.Logging;
 
 namespace Examine.AzureDirectory
 {
@@ -10,12 +9,10 @@ namespace Examine.AzureDirectory
     public class AzureDirectorySimpleLockFactory : LockFactory
     {
         private readonly AzureLuceneDirectory _azureDirectory;
-        private readonly ILogger _logger;
 
-        public AzureDirectorySimpleLockFactory(AzureLuceneDirectory azureDirectory,ILogger logger)
+        public AzureDirectorySimpleLockFactory(AzureLuceneDirectory azureDirectory)
         {
             _azureDirectory = azureDirectory;
-            _logger = logger;
         }
         
         public override Lock MakeLock(string name)
@@ -23,7 +20,7 @@ namespace Examine.AzureDirectory
             if (LockPrefix != null)
                 name = LockPrefix + "-" + name;
 
-            return new AzureSimpleLock(_azureDirectory.RootFolder + name, _azureDirectory, _logger);           
+            return new AzureSimpleLock(_azureDirectory.RootFolder + name, _azureDirectory);           
         }
 
         public override void ClearLock(string name)

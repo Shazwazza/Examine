@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using Lucene.Net.Store;
-using Microsoft.Extensions.Logging;
 
 namespace Examine.AzureDirectory
 {
@@ -12,15 +12,13 @@ namespace Examine.AzureDirectory
     {
         private readonly string _lockFile;
         private readonly AzureLuceneDirectory _azureDirectory;
-        private readonly ILogger _logger;
 
-        public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory, ILogger logger)
+        public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
             if (string.IsNullOrWhiteSpace(lockFile)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
             _lockFile = lockFile;
             _azureDirectory = directory;
-            _logger = logger;
         }
 
         public override bool IsLocked()
@@ -33,7 +31,7 @@ namespace Examine.AzureDirectory
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while checking if index locked");
+                Trace.WriteLine($"ERROR {ex.ToString()} Error while checking if index locked");
                 throw;
             }
         }
@@ -68,7 +66,7 @@ namespace Examine.AzureDirectory
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while obtaining lock");
+                Trace.WriteLine($"ERROR {ex.ToString()} Error while obtaining lock");
                 throw;
             }
         }
@@ -92,7 +90,7 @@ namespace Examine.AzureDirectory
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while releasing lock");
+                Trace.WriteLine($"ERROR {ex.ToString()} Error while releasing lock");
                 throw;
             }
         }

@@ -5,7 +5,6 @@ using System.Linq;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
-using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.AzureDirectory
@@ -16,19 +15,19 @@ namespace Examine.AzureDirectory
         private readonly string _cacheDirectoryName;
         private string OldIndexFolderName;
 
-        public AzureReadOnlyLuceneDirectory(ILogger logger,
+        public AzureReadOnlyLuceneDirectory(
             string storageAccount,
             string containerName,
             string cacheDirectoryPath,
             string cacheDirectoryName,
             bool compressBlobs = false,
-            string rootFolder = null) : base(logger,storageAccount, containerName,null,compressBlobs,rootFolder,true)
+            string rootFolder = null) : base(storageAccount, containerName,null,compressBlobs,rootFolder,true)
         {
             _cacheDirectoryPath = cacheDirectoryPath;
             _cacheDirectoryName = cacheDirectoryName;
             if (CacheDirectory == null)
             {
-                _logger.LogInformation("CacheDirectory null. Creating or rebuilding cache");
+                Trace.WriteLine("INFO CacheDirectory null. Creating or rebuilding cache");
                 CreateOrReadCache();
             }
             else
@@ -71,7 +70,7 @@ namespace Examine.AzureDirectory
         public void RebuildCache()
         {
 
-            _logger.LogInformation("Rebuilding cache");
+            Trace.WriteLine("INFO Rebuilding cache");
             var tempDir = new DirectoryInfo(
                 Path.Combine(_cacheDirectoryPath,
                     _cacheDirectoryName, DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffff")));

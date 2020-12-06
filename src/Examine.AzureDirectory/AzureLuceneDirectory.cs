@@ -9,8 +9,6 @@ using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Examine.AzureDirectory
 {
@@ -20,7 +18,6 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureLuceneDirectory : ExamineDirectory
     {
-        protected readonly ILogger _logger;
         private readonly string _storageAccountConnectionString;
         private volatile bool _dirty = true;
         private bool _inSync = false;
@@ -46,7 +43,7 @@ namespace Examine.AzureDirectory
         /// a <see cref="MultiIndexLockFactory"/> which will create locks in both the cache and blob storage folders.
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
-        public AzureLuceneDirectory(ILogger logger,
+        public AzureLuceneDirectory(
             string connectionString,
             string containerName,
             Lucene.Net.Store.Directory cacheDirectory,
@@ -59,7 +56,6 @@ namespace Examine.AzureDirectory
             if (string.IsNullOrWhiteSpace(containerName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
             IsReadOnly = isReadOnly;
-            _logger = logger ?? NullLogger.Instance;
             _storageAccountConnectionString = connectionString;
             CacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
@@ -98,7 +94,7 @@ namespace Examine.AzureDirectory
         protected virtual LockFactory GetLockFactory()
         {
             return  IsReadOnly ? (LockFactory)new NoopLockFactory()
-                : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this,_logger), CacheDirectory.LockFactory);
+                : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
         }
         protected virtual BlobClient GetBlobClient(string blobName)
         {
@@ -115,23 +111,23 @@ namespace Examine.AzureDirectory
 
         public void ClearCache()
         {
-            _logger.LogInformation("Clearing index cache {RootFolder}", RootFolder);
+            Trace.WriteLine($"Clearing index cache {RootFolder}");
             foreach (string file in CacheDirectory.ListAll())
             {
-                _logger.LogDebug("Deleting cache file {file}", file);
+                Trace.WriteLine("DEBUG Deleting cache file {file}", file);
                 CacheDirectory.DeleteFile(file);
             }
         }
         public void RebuildCache()
         {
-            _logger.LogInformation("Rebuilding index cache {RootFolder}",RootFolder);
+            Trace.WriteLine($"INFO Rebuilding index cache {RootFolder}");
             try
             {
                 ClearCache();
             }
             catch (Exception e)
             {
-                _logger.LogWarning(e, "Exception thrown while rebuilding cache for {RootFolder}", RootFolder);
+                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while rebuilding cache for {RootFolder}");
             }
             foreach (string file in GetAllBlobFiles())
             {
@@ -143,7 +139,7 @@ namespace Examine.AzureDirectory
 
         public virtual void EnsureContainer()
         {
-            _logger.LogDebug("Ensuring container (_containerName) exists for cache {RootFolder}", RootFolder, _containerName);
+            Trace.WriteLine($"DEBUG Ensuring container ({_containerName}) exists for cache {RootFolder}");
             _blobContainer = GetBlobContainerClient(_containerName);
             _blobContainer.CreateIfNotExists();
         }
@@ -189,7 +185,7 @@ namespace Examine.AzureDirectory
                 {
                     // something isn't quite right, need to re-sync
 
-                    _logger.LogWarning(e, "Exception thrown while checking file ({name}) exists for {RootFolder}", RootFolder);
+                    Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while checking file ({name}) exists for {RootFolder}");
                     SetDirty();                    
                     return BlobExists(name);                    
                 }
@@ -226,7 +222,7 @@ namespace Examine.AzureDirectory
             }
             else
             {
-                _logger.LogWarning("Throwing exception as blob file ({name}) not found for {RootFolder}", RootFolder);
+                Trace.WriteLine($"WARNING Throwing exception as blob file ({name}) not found for {RootFolder}");
                 // Lucene expects this exception to be thrown
                 throw new FileNotFoundException(name, err);
             }
@@ -242,7 +238,7 @@ namespace Examine.AzureDirectory
         }
         protected void SyncFile(BlobClient _blob,string fileName)
         {
-            _logger.LogInformation("Syncing file {fileName} for {RootFolder}", fileName,RootFolder);
+            Trace.WriteLine($"INFO Syncing file {fileName} for {RootFolder}");
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
             using (var deflatedStream = new MemoryStream())
@@ -303,7 +299,7 @@ namespace Examine.AzureDirectory
                 // IndexFileDeleter uses. We could implement our own one of those to deal with this scenario too but it seems the easiest way it to just 
                 // let this throw so Lucene will retry when it can and when that is successful we'll also clear it from the master
 
-                _logger.LogError(ex, "Exception thrown while deleting file {name} for {RootFolder}", name,RootFolder);
+                Trace.WriteLine($"ERROR {ex.ToString()} Exception thrown while deleting file {name} for {RootFolder}");
                 throw;
             }
 
@@ -316,8 +312,8 @@ namespace Examine.AzureDirectory
             blob.DeleteIfExists();
             SetDirty();
 
-            _logger.LogInformation("Deleted {Uri}/{name} for {RootFolder}", _blobContainer.Uri, name, RootFolder);
-            Trace.WriteLine($"DELETE {_blobContainer.Uri}/{name}");
+            Trace.WriteLine($"INFO Deleted { _blobContainer.Uri}/{name} for {RootFolder}");
+            Trace.WriteLine($"INFO DELETE {_blobContainer.Uri}/{name}");
         }
 
 
@@ -350,7 +346,7 @@ namespace Examine.AzureDirectory
             catch (Exception e)
             {
                 //  Sync(name);
-                _logger.LogWarning(e, "Exception thrown while retrieving file length of file {name} for {RootFolder}", name, RootFolder);
+                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while retrieving file length of file {name} for {RootFolder}");
                 return CacheDirectory.FileLength(name);
             }
         }
@@ -373,7 +369,7 @@ namespace Examine.AzureDirectory
                     }
                     catch (Exception e)
                     {
-                        _logger.LogWarning(e, "Exception thrown while syncing {name} for {RootFolder}", name, RootFolder);
+                        Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while syncing {name} for {RootFolder}");
                     }
                 }
             }
@@ -414,7 +410,7 @@ namespace Examine.AzureDirectory
                 catch (FileNotFoundException ex)
                 {
                     //if it's not found then we need to re-read from blob so were not in sync
-                    _logger.LogDebug(ex, "File {name} not found. Will need to resync for {RootFolder}", name, RootFolder);
+                    Trace.WriteLine($"DEBUG {ex.ToString()} File {name} not found. Will need to resync for {RootFolder}");
                     SetDirty();
                 }
                 catch (Exception ex)
@@ -422,7 +418,7 @@ namespace Examine.AzureDirectory
                     Trace.TraceError(
                         "Could not get local file though we are marked as inSync, reverting to try blob storage; " +
                         ex);
-                    _logger.LogError(ex, "Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder}", name, RootFolder);
+                    Trace.WriteLine($"ERROR {ex.ToString()} Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder}");
                 }
             }
 
@@ -568,7 +564,7 @@ namespace Examine.AzureDirectory
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Exception thrown while checking blob ({name}) exists. Assuming blob does not exist for {RootFolder}", name, RootFolder);
+                Trace.WriteLine($"WARNING {ex.ToString()} Exception thrown while checking blob ({name}) exists. Assuming blob does not exist for {RootFolder}");
                 return false;
             }
         }
@@ -584,7 +580,7 @@ namespace Examine.AzureDirectory
             }
             catch (RequestFailedException e)
             {
-                _logger.LogWarning(e, "Exception thrown while trying to retrieve blob ({name}). Assuming blob does not exist for {RootFolder}", name, RootFolder);
+                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while trying to retrieve blob ({name}). Assuming blob does not exist for {RootFolder}");
                 err = e;
                 blob = null;
                 return false;

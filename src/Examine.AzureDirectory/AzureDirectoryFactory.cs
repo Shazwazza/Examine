@@ -8,8 +8,6 @@ using Examine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using static Lucene.Net.Index.IndexWriter;
 
 namespace Examine.AzureDirectory
@@ -20,22 +18,14 @@ namespace Examine.AzureDirectory
     public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
     {
         private readonly bool _isReadOnly;
-        private ILogger _logger;
         public AzureDirectoryFactory()
         {
             _isReadOnly = false;
-            _logger = NullLogger.Instance;
         }
 
         public AzureDirectoryFactory(bool isReadOnly)
         {
             _isReadOnly = isReadOnly;
-            _logger = NullLogger.Instance;
-        }
-        public AzureDirectoryFactory(bool isReadOnly, ILogger logger)
-        {
-            _isReadOnly = isReadOnly;
-            _logger = logger ?? NullLogger.Instance;
         }
 
         /// <summary>
@@ -62,7 +52,7 @@ namespace Examine.AzureDirectory
         /// </returns>
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            var directory = new AzureLuceneDirectory(_logger,
+            var directory = new AzureLuceneDirectory(
                 GetStorageAccountConnectionString(),
                 GetContainerName(),
                 GetLocalCacheDirectory(luceneIndexFolder),

@@ -10,7 +10,6 @@ using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
-using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System;
 using System.IO;
@@ -21,21 +20,7 @@ namespace Examine.Test.AzureDirectoryTests
     [TestFixture]
     public class IntegrationTests
     {
-        private ILogger _logger;
-        private ILoggerFactory _loggerProvider;
-        [SetUp]
-        public void Setup()
-        {
-            _loggerProvider = LoggerFactory.Create(builder => builder.AddConsole());
-            _logger = _loggerProvider.CreateLogger<IntegrationTests>();
-            _logger.LogInformation("Requires Azurite emulator to be running. Install nodejs, npm install -g azurite. Then azurite to run");
-        }
-        [TearDown]
-        public void Teardown()
-        {
-            _loggerProvider?.Dispose();
-        }
-
+      
         [Explicit("Requires storage emulator to be running")]
         [Test]
         public void TestReadAndWrite()
@@ -47,7 +32,7 @@ namespace Examine.Test.AzureDirectoryTests
             // default AzureDirectory stores cache in local temp folder
             using (var cacheDirectory = new RandomIdRAMDirectory())
             {
-                var azureDirectory = new AzureLuceneDirectory(_logger, cloudStorageAccount, containerName, cacheDirectory);
+                var azureDirectory = new AzureLuceneDirectory( cloudStorageAccount, containerName, cacheDirectory);
 
                 azureDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureDirectory.SetMergeScheduler(new NoMergeSheduler());
@@ -103,7 +88,7 @@ namespace Examine.Test.AzureDirectoryTests
             try
             {
                 // default AzureDirectory stores cache in local temp folder
-                var azureReadWriteDirectory = new AzureLuceneDirectory(_logger, connectionString, containerName, readWriteCacheDirectory);
+                var azureReadWriteDirectory = new AzureLuceneDirectory( connectionString, containerName, readWriteCacheDirectory);
 
                 azureReadWriteDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadWriteDirectory.SetMergeScheduler(new NoMergeSheduler());
@@ -139,7 +124,7 @@ namespace Examine.Test.AzureDirectoryTests
                 }
 
                 readonlyDirectoryFolder.Create();
-                var azureReadOnlyDirectory = new AzureReadOnlyLuceneDirectory(_logger, connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
+                var azureReadOnlyDirectory = new AzureReadOnlyLuceneDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
                 azureReadOnlyDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadOnlyDirectory.SetMergeScheduler(new NoMergeSheduler());
                 azureReadOnlyDirectory.SetDeletion(NoDeletionPolicy.INSTANCE);

@@ -5,8 +5,6 @@ using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Examine.AzureDirectory
 {
@@ -17,21 +15,12 @@ namespace Examine.AzureDirectory
     public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory, IDirectoryFactory
     {
         private readonly bool _isReadOnly = true;
-        private ILogger _logger;
-        public ReadOnlyAzureDirectoryFactory()
-        {
-            _logger = NullLogger.Instance;
-        }
-        public ReadOnlyAzureDirectoryFactory(ILogger logger)
-        {
-            _logger = logger ?? NullLogger.Instance;
-        }
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
             var indexName = GetIndexPathName(indexFolder);
-            var directory = new AzureReadOnlyLuceneDirectory(_logger,
+            var directory = new AzureReadOnlyLuceneDirectory(
                 GetStorageAccountConnectionString(),
                 GetContainerName(),
                 tempFolder,
