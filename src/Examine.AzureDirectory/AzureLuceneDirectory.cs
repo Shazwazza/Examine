@@ -160,6 +160,10 @@ namespace Examine.AzureDirectory
         {
             var results = from blob in _blobContainer.GetBlobs(prefix:RootFolder)
                 select blob.Name;
+            if (string.IsNullOrWhiteSpace(RootFolder))
+            {
+                return results.ToArray();
+            }
             var names = results.Select(x=> x.Replace(RootFolder,"")).ToArray();
             return names;
         }

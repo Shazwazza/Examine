@@ -36,8 +36,7 @@ namespace Examine.AzureDirectory
                 GetContainerName(),
                 tempFolder,
                 indexName,
-                rootFolder: luceneIndexFolder.Name,
-                isReadOnly: GetIsReadOnly());
+                rootFolder: luceneIndexFolder.Name);
        
 
             directory.IsReadOnly = _isReadOnly;

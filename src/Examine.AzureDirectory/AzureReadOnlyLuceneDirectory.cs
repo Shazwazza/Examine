@@ -22,8 +22,7 @@ namespace Examine.AzureDirectory
             string cacheDirectoryPath,
             string cacheDirectoryName,
             bool compressBlobs = false,
-            string rootFolder = null,
-            bool isReadOnly = false) : base(logger,storageAccount, containerName,null,compressBlobs,rootFolder,isReadOnly)
+            string rootFolder = null) : base(logger,storageAccount, containerName,null,compressBlobs,rootFolder,true)
         {
             _cacheDirectoryPath = cacheDirectoryPath;
             _cacheDirectoryName = cacheDirectoryName;
@@ -37,6 +36,7 @@ namespace Examine.AzureDirectory
                 CheckDirty();
             }
         }
+
         protected override void GuardCacheDirectory(Lucene.Net.Store.Directory cacheDirectory)
         {
             //Do nothing
