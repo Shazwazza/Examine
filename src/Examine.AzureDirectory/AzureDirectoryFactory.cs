@@ -87,10 +87,7 @@ namespace Examine.AzureDirectory
         /// <returns>The <see cref="Lucene.Net.Store.Directory"/> used by Lucence as the local cache directory</returns>
         protected virtual Lucene.Net.Store.Directory GetLocalCacheDirectory(DirectoryInfo luceneIndexFolder)
         {
-            var indexFolder = luceneIndexFolder;
-            var tempFolder = GetLocalStorageDirectory(indexFolder);
-
-            return new SimpleFSDirectory(tempFolder);
+            return new SimpleFSDirectory(luceneIndexFolder);
         }
 
         /// <summary>

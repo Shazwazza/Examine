@@ -469,16 +469,19 @@ namespace Examine.LuceneEngine.Providers
                 }
 
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                
                 if (_directory is ExamineDirectory examineDirectory)
                 {
-                 
                     if (examineDirectory.GetDeletionPolicy() != null)
                     {
                         writer = new IndexWriter(dir, FieldAnalyzer, true, examineDirectory.GetDeletionPolicy(),
                             IndexWriter.MaxFieldLength.UNLIMITED);
                     }
+                    else
+                    {
+                        writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
 
+                    }
                     if (examineDirectory.GetMergeScheduler() != null)
                     {
                         writer.SetMergeScheduler(examineDirectory.GetMergeScheduler());
@@ -497,6 +500,7 @@ namespace Examine.LuceneEngine.Providers
                 }
                 else
                 {
+                    writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
                     // clear out current scheduler and set the error logging one
                     using (writer.MergeScheduler)
                     {
@@ -1293,22 +1297,21 @@ namespace Examine.LuceneEngine.Providers
         protected virtual IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
-               
-            var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+
+            IndexWriter writer;
 
             if (_directory is ExamineDirectory examineDirectory)
             {
-                if (writer != null)
-                {
-                    return writer;
-                }
 
                 if (examineDirectory.GetDeletionPolicy() != null)
                 {
                     writer = new IndexWriter(d, FieldAnalyzer, false, examineDirectory.GetDeletionPolicy(),
                         IndexWriter.MaxFieldLength.UNLIMITED);
                 }
-
+                else
+                {
+                    writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+                }
                 if (examineDirectory.GetMergeScheduler() != null)
                 {
                     writer.SetMergeScheduler(examineDirectory.GetMergeScheduler());
@@ -1327,7 +1330,7 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-
+                writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
                 // clear out current scheduler and set the error logging one
                 using (writer.MergeScheduler)
                 {

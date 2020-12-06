@@ -160,7 +160,8 @@ namespace Examine.AzureDirectory
         {
             var results = from blob in _blobContainer.GetBlobs(prefix:RootFolder)
                 select blob.Name;
-            return results.ToArray();
+            var names = results.Select(x=> x.Replace(RootFolder,"")).ToArray();
+            return names;
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
@@ -567,6 +568,12 @@ namespace Examine.AzureDirectory
             try
             {
                 blob = _blobContainer.GetBlobClient(RootFolder + name);
+                var exists = blob.Exists();
+                if (!exists.Value)
+                {
+                    err = null;
+                    return false;
+                }
                 var properties = blob.GetProperties();
                 err = null;
                 return true;
