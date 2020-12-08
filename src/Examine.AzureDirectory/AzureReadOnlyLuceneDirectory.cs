@@ -66,47 +66,54 @@ namespace Examine.AzureDirectory
                 
             }
         }
-
-        public void RebuildCache()
+        private object _rebuildLock = new object();
+        public override void RebuildCache()
         {
-
-            Trace.WriteLine("INFO Rebuilding cache");
-            var tempDir = new DirectoryInfo(
-                Path.Combine(_cacheDirectoryPath,
-                    _cacheDirectoryName, DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffff")));
-            if (tempDir.Exists == false)
-                tempDir.Create();
-            Lucene.Net.Store.Directory newIndex = new SimpleFSDirectory(tempDir);
-            foreach (string file in GetAllBlobFiles())
+            lock (_rebuildLock)
             {
-             //   newIndex.TouchFile(file);
-                var blob = _blobContainer.GetBlobClient(RootFolder + file);
-                SyncFile(newIndex,blob, file);
-            }
 
-            var oldIndex = CacheDirectory;
-            newIndex.Dispose();
-            newIndex = new SimpleFSDirectory(tempDir);
-            
-            CacheDirectory = newIndex;
-            _lockFactory = newIndex.LockFactory;
-            if (oldIndex != null)
-            {
-                oldIndex.ClearLock("write.lock");
-                foreach (var file in oldIndex.ListAll())
+                //Needs locking
+                Trace.WriteLine("INFO Rebuilding cache");
+                var tempDir = new DirectoryInfo(
+                    Path.Combine(_cacheDirectoryPath,
+                        _cacheDirectoryName, DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffff")));
+                if (tempDir.Exists == false)
+                    tempDir.Create();
+                Lucene.Net.Store.Directory newIndex = new SimpleFSDirectory(tempDir);
+                foreach (string file in GetAllBlobFiles())
                 {
-                    if (oldIndex.FileExists(file))
+                    //   newIndex.TouchFile(file);
+                    if ("write.lock".Equals(file))
                     {
-                        oldIndex.DeleteFile(file);
+                        continue;
                     }
+                    var blob = _blobContainer.GetBlobClient(RootFolder + file);
+                    SyncFile(newIndex, blob, file);
                 }
-                oldIndex.Dispose();
-               DirectoryInfo oldindex  = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
-                   _cacheDirectoryName,OldIndexFolderName));
-               oldindex.Delete();
+
+                var oldIndex = CacheDirectory;
+                newIndex.Dispose();
+                newIndex = new SimpleFSDirectory(tempDir);
+
+                CacheDirectory = newIndex;
+                _lockFactory = newIndex.LockFactory;
+                if (oldIndex != null)
+                {
+                    oldIndex.ClearLock("write.lock");
+                    foreach (var file in oldIndex.ListAll())
+                    {
+                        if (oldIndex.FileExists(file))
+                        {
+                            oldIndex.DeleteFile(file);
+                        }
+                    }
+                    oldIndex.Dispose();
+                    DirectoryInfo oldindex = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
+                        _cacheDirectoryName, OldIndexFolderName));
+                    oldindex.Delete();
+                }
+                OldIndexFolderName = tempDir.Name;
             }
-            OldIndexFolderName = tempDir.Name;
-       
         }
         private void SyncFile(Directory newIndex, BlobClient blob, string fileName)
         {
@@ -150,52 +157,12 @@ namespace Examine.AzureDirectory
 
             }
         }
-        public override string[] ListAll()
-        {
-            return CacheDirectory.ListAll();
-        }
-
-        public override bool FileExists(string name)
-        {
-            return CacheDirectory.FileExists(name);
-        }
-
-        public override long FileModified(string name)
-        {
-            return CacheDirectory.FileModified(name);
-        }
-
-        public override void TouchFile(string name)
-        {
-             CacheDirectory.TouchFile(name);
-        }
-
-        public override void DeleteFile(string name)
-        {
-            CacheDirectory.DeleteFile(name);
-        }
-
-        public override long FileLength(string name)
-        {
-            return CacheDirectory.FileLength(name);
-        }
-
-        public override IndexOutput CreateOutput(string name)
-        {
-            return CacheDirectory.CreateOutput(name);
-        }
-
-        public override IndexInput OpenInput(string name)
-        {
-            CheckDirty();
-            return CacheDirectory.OpenInput(name);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            CacheDirectory.Dispose();
-        }
-        protected virtual void HandleOutOfSync()
+        
+        //protected override void Dispose(bool disposing)
+        //{
+        //    CacheDirectory.Dispose();
+        //}
+        protected override void HandleOutOfSync()
         {
             RebuildCache();
         }

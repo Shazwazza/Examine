@@ -39,5 +39,6 @@ namespace Examine.LuceneEngine.Directories
         {
             DeletionPolicy = policy;
         }
+        public Lucene.Net.Store.Directory CacheDirectory { get; protected set; }
     }
 }

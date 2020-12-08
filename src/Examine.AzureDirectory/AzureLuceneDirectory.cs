@@ -107,7 +107,6 @@ namespace Examine.AzureDirectory
 
         public string RootFolder { get; }
         public bool CompressBlobs { get; }
-        public Lucene.Net.Store.Directory CacheDirectory { get; protected set; }
 
         public void ClearCache()
         {
@@ -118,7 +117,7 @@ namespace Examine.AzureDirectory
                 CacheDirectory.DeleteFile(file);
             }
         }
-        public void RebuildCache()
+        public virtual void RebuildCache()
         {
             Trace.WriteLine($"INFO Rebuilding index cache {RootFolder}");
             try
@@ -160,7 +159,7 @@ namespace Examine.AzureDirectory
             {
                 return results.ToArray();
             }
-            var names = results.Select(x => x.Replace(RootFolder, "")).ToArray();
+            var names = results.Where(x => !x.EndsWith(".lock")).Select(x => x.Replace(RootFolder, "")).ToArray();
             return names;
         }
 

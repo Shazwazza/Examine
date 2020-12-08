@@ -36,14 +36,13 @@ namespace Examine.Test.AzureDirectoryTests
 
                 azureDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureDirectory.SetMergeScheduler(new NoMergeSheduler());
-                azureDirectory.SetDeletion(NoDeletionPolicy.INSTANCE);
+                azureDirectory.SetDeletion(new NoDeletionPolicy());
                 using (var indexWriter = new IndexWriter(azureDirectory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30), !IndexReader.IndexExists(azureDirectory),
                     azureDirectory.GetDeletionPolicy(), new Lucene.Net.Index.IndexWriter.MaxFieldLength(IndexWriter.DEFAULT_MAX_FIELD_LENGTH)))
                 {
                     indexWriter.SetRAMBufferSizeMB(10.0); 
                     indexWriter.SetMergePolicy(azureDirectory.GetMergePolicy(indexWriter));
                     indexWriter.SetMergeScheduler(azureDirectory.GetMergeScheduler());
-
                     for (int iDoc = 0; iDoc < 10000; iDoc++)
                     {
                         var doc = new Document();
@@ -92,7 +91,7 @@ namespace Examine.Test.AzureDirectoryTests
 
                 azureReadWriteDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadWriteDirectory.SetMergeScheduler(new NoMergeSheduler());
-                azureReadWriteDirectory.SetDeletion(NoDeletionPolicy.INSTANCE);
+                azureReadWriteDirectory.SetDeletion(new NoDeletionPolicy());
                 using (var indexWriter = new IndexWriter(azureReadWriteDirectory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
                     !IndexReader.IndexExists(azureReadWriteDirectory), azureReadWriteDirectory.GetDeletionPolicy(),
                     new Lucene.Net.Index.IndexWriter.MaxFieldLength(IndexWriter.DEFAULT_MAX_FIELD_LENGTH)))
@@ -127,7 +126,7 @@ namespace Examine.Test.AzureDirectoryTests
                 var azureReadOnlyDirectory = new AzureReadOnlyLuceneDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
                 azureReadOnlyDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadOnlyDirectory.SetMergeScheduler(new NoMergeSheduler());
-                azureReadOnlyDirectory.SetDeletion(NoDeletionPolicy.INSTANCE);
+                azureReadOnlyDirectory.SetDeletion(new NoDeletionPolicy());
                 for (var i = 0; i < 100; i++)
                 {
                     using (var searcher = new IndexSearcher(azureReadOnlyDirectory))
@@ -142,6 +141,100 @@ namespace Examine.Test.AzureDirectoryTests
             finally
             {
                 readWriteCacheDirectory?.Dispose();
+                // check the container exists, and delete it
+                var containerClient = new BlobContainerClient(connectionString, containerName);
+                var exists = containerClient.Exists();
+                if (exists)
+                    containerClient.Delete();
+
+                if (readonlyDirectoryFolder.Exists)
+                {
+                    readonlyDirectoryFolder.Delete(true);
+                }
+            }
+
+        }
+
+        [Explicit("Requires storage emulator to be running")]
+        [Test]
+        public void TestWritingToReadonly()
+        {
+            var connectionString = Environment.GetEnvironmentVariable("DataConnectionString") ?? "UseDevelopmentStorage=true";
+            string containerName = "testcatalog";
+
+            var readWriteCacheDirectory = new RandomIdRAMDirectory();
+            AzureLuceneDirectory azureReadWriteDirectory = null;
+            AzureReadOnlyLuceneDirectory azureReadOnlyDirectory = null;
+            var readonlyDirectoryFolder = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TEMP", containerName));
+            try
+            {
+                // default AzureDirectory stores cache in local temp folder
+                azureReadWriteDirectory = new AzureLuceneDirectory(connectionString, containerName, readWriteCacheDirectory);
+
+                azureReadWriteDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
+                azureReadWriteDirectory.SetMergeScheduler(new NoMergeSheduler());
+                azureReadWriteDirectory.SetDeletion(new NoDeletionPolicy());
+                using (var indexWriter = new IndexWriter(azureReadWriteDirectory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
+                    !IndexReader.IndexExists(azureReadWriteDirectory), azureReadWriteDirectory.GetDeletionPolicy(),
+                    new Lucene.Net.Index.IndexWriter.MaxFieldLength(IndexWriter.DEFAULT_MAX_FIELD_LENGTH)))
+                {
+
+                    indexWriter.SetRAMBufferSizeMB(10.0);
+                    indexWriter.SetMergePolicy(azureReadWriteDirectory.GetMergePolicy(indexWriter));
+                    indexWriter.SetMergeScheduler(azureReadWriteDirectory.GetMergeScheduler());
+
+                    for (int iDoc = 0; iDoc < 10000; iDoc++)
+                    {
+                        var doc = new Document();
+                        doc.Add(new Field("id", DateTime.Now.ToFileTimeUtc().ToString() + "-" + iDoc.ToString(), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.NO));
+                        doc.Add(new Field("Title", GeneratePhrase(10), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.NO));
+                        doc.Add(new Field("Body", GeneratePhrase(40), Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.NO));
+                        indexWriter.AddDocument(doc);
+                    }
+
+                    Console.WriteLine("Total docs is {0}", indexWriter.NumDocs());
+                }
+                for (var i = 0; i < 100; i++)
+                {
+                    using (var searcher = new IndexSearcher(azureReadWriteDirectory))
+                    {
+                        Assert.AreNotEqual(0, SearchForPhrase(searcher, "dog"));
+                        Assert.AreNotEqual(0, SearchForPhrase(searcher, "cat"));
+                        Assert.AreNotEqual(0, SearchForPhrase(searcher, "car"));
+                    }
+                }
+
+                readonlyDirectoryFolder.Create();
+                azureReadOnlyDirectory = new AzureReadOnlyLuceneDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
+                azureReadOnlyDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
+                azureReadOnlyDirectory.SetMergeScheduler(new NoMergeSheduler());
+                azureReadOnlyDirectory.SetDeletion(new NoDeletionPolicy());
+
+                using (var indexWriter = new IndexWriter(azureReadOnlyDirectory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
+                   !IndexReader.IndexExists(azureReadOnlyDirectory), azureReadOnlyDirectory.GetDeletionPolicy(),
+                   new Lucene.Net.Index.IndexWriter.MaxFieldLength(IndexWriter.DEFAULT_MAX_FIELD_LENGTH)))
+                {
+
+                    indexWriter.SetRAMBufferSizeMB(10.0);
+                    indexWriter.SetMergePolicy(azureReadOnlyDirectory.GetMergePolicy(indexWriter));
+                    indexWriter.SetMergeScheduler(azureReadOnlyDirectory.GetMergeScheduler());
+                    //TODO: Use Test index. adding documents should be blocked
+                }
+                for (var i = 0; i < 100; i++)
+                {
+                    using (var searcher = new IndexSearcher(azureReadOnlyDirectory))
+                    {
+                        Assert.AreEqual(0, SearchForPhrase(searcher, "Sony"));
+                        Assert.AreEqual(0, SearchForPhrase(searcher, "Nintendo"));
+                    }
+                }
+                //Use 
+            }
+            finally
+            {
+                readWriteCacheDirectory?.Dispose();
+                azureReadOnlyDirectory?.Dispose();
+                azureReadWriteDirectory?.Dispose();
                 // check the container exists, and delete it
                 var containerClient = new BlobContainerClient(connectionString, containerName);
                 var exists = containerClient.Exists();

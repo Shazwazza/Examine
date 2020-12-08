@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
@@ -26,6 +27,7 @@ namespace Examine.AzureDirectory
         public AzureIndexInput(AzureLuceneDirectory azuredirectory, BlobClient blob)
         {
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
+            _name = _name.Split(new string[] { "%2F" }, StringSplitOptions.RemoveEmptyEntries).Last();
             _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
 #if FULLDEBUG
             Trace.WriteLine($"opening {_name} ");

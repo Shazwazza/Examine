@@ -9,14 +9,12 @@ namespace Examine.LuceneEngine.DeletePolicies
         {
             
         }
-        private NoDeletionPolicy()
+        public NoDeletionPolicy()
         {
             // keep private to avoid instantiation
         }
         public void OnCommit<T>(IList<T> commits) where T : IndexCommit
         {
         }
-        private static readonly IndexDeletionPolicy _instance = new NoDeletionPolicy();
-        public static IndexDeletionPolicy INSTANCE => _instance;
     }
 }

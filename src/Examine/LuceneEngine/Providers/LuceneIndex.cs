@@ -392,7 +392,15 @@ namespace Examine.LuceneEngine.Providers
                         if (!indexExists)
                         {
                             //if there's no index, we need to create one
-                            CreateNewIndex(dir);
+                            //if (_directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+                            //{
+                            //    //Only clear out the local cache directory, don't clear out the remote directory for readonly indexes
+                            //    CreateNewIndex(examineDirectory.CacheDirectory);
+                            //}
+                            //else
+                            //{
+                                CreateNewIndex(dir);
+                            //}
                         }
                         else
                         {
@@ -469,8 +477,8 @@ namespace Examine.LuceneEngine.Providers
                 }
 
                 //create the writer (this will overwrite old index files)
-                
-                    writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+
+                writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
                     // clear out current scheduler and set the error logging one
                     using (writer.MergeScheduler)
                     {
@@ -1217,6 +1225,7 @@ namespace Examine.LuceneEngine.Providers
                                                   dir is ExamineDirectory examineDirectory &&
                                                   !examineDirectory.IsReadOnly))
                 {
+                    //TODO: if readonly index, unlock the local index?
                     //unlock it!
                     IndexWriter.Unlock(dir);
                 }
@@ -1269,10 +1278,8 @@ namespace Examine.LuceneEngine.Providers
             if (d == null) throw new ArgumentNullException(nameof(d));
 
             IndexWriter writer;
-
             if (_directory is ExamineDirectory examineDirectory)
             {
-
                 if (examineDirectory.GetDeletionPolicy() != null)
                 {
                     writer = new IndexWriter(d, FieldAnalyzer, false, examineDirectory.GetDeletionPolicy(),
@@ -1281,6 +1288,7 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+
                 }
                 if (examineDirectory.GetMergeScheduler() != null)
                 {

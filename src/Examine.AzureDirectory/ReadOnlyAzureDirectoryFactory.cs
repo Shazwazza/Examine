@@ -31,7 +31,7 @@ namespace Examine.AzureDirectory
             directory.IsReadOnly = _isReadOnly;
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
-            directory.SetDeletion(NoDeletionPolicy.INSTANCE);
+            directory.SetDeletion(new NoDeletionPolicy());
             return directory;
         }
         protected string GetLocalStorageDirectory(DirectoryInfo indexPath)
