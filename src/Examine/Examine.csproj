@@ -105,6 +105,7 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="LuceneEngine\Directories\ExamineDirectoryManifest.cs" />
     <Compile Include="FieldDefinition.cs" />
     <Compile Include="FieldDefinitionTypes.cs" />
     <Compile Include="IExamineManager.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
     <Compile Include="LuceneEngine\EmailAddressAnalyzer.cs" />
+    <Compile Include="LuceneEngine\ExamineIndexWriter.cs" />
     <Compile Include="LuceneEngine\IFieldValueTypeFactory.cs" />
     <Compile Include="LuceneEngine\Indexing\GenericAnalyzerFieldValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />

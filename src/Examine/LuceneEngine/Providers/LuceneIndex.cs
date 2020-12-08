@@ -13,6 +13,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 
 
@@ -49,6 +50,11 @@ namespace Examine.LuceneEngine.Providers
             if (luceneDirectory is ExamineDirectory dir)
             {
                 isReadonly = dir.IsReadOnly;
+                var fileDir = dir.CacheDirectory as SimpleFSDirectory;
+                if(fileDir != null)
+                {
+                    LuceneIndexFolder = fileDir.Directory;
+                }
             }
         }
 
@@ -83,6 +89,15 @@ namespace Examine.LuceneEngine.Providers
             DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
 
             _directory = luceneDirectory;
+            if (luceneDirectory is ExamineDirectory dir)
+            {
+                isReadonly = dir.IsReadOnly;
+                var fileDir = dir.CacheDirectory as SimpleFSDirectory;
+                if (fileDir != null)
+                {
+                    LuceneIndexFolder = fileDir.Directory;
+                }
+            }
             //initialize the field types
             _fieldValueTypeCollection =
                 new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
@@ -206,6 +221,11 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public override ISearcher GetSearcher()
         {
+            if(this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+            {
+               examineDirectory.SetDirty();
+               examineDirectory.CheckDirtyWithoutWriter();
+            }
             return _searcher.Value;
         }
 
@@ -442,7 +462,14 @@ namespace Examine.LuceneEngine.Providers
 
                                 //remove all of the index data
                                 _writer.DeleteAll();
-                                _writer.Commit();
+                                if(_writer is ExamineIndexWriter examineIndexWriter)
+                                {
+                                    examineIndexWriter.ExamineCommit();
+                                }
+                                else
+                                {
+                                    _writer.Commit();
+                                }
 
                                 //we're rebuilding so all old readers referencing this dir should be closed
                                 OpenReaderTracker.Current.CloseStaleReaders(dir, TimeSpan.FromMinutes(1));
@@ -483,7 +510,7 @@ namespace Examine.LuceneEngine.Providers
 
                 //create the writer (this will overwrite old index files)
 
-                writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                writer = new ExamineIndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
                     // clear out current scheduler and set the error logging one
                     using (writer.MergeScheduler)
                     {
@@ -726,7 +753,14 @@ namespace Examine.LuceneEngine.Providers
 
                 if (performCommit)
                 {
-                    iw.Commit();
+                    if (iw is ExamineIndexWriter examineIndexWriter)
+                    {
+                        examineIndexWriter.ExamineCommit();
+                    }
+                    else
+                    {
+                        iw.Commit();
+                    }
                 }
 
                 return true;
@@ -1015,7 +1049,19 @@ namespace Examine.LuceneEngine.Providers
                 if (!RunAsync || block)
                 {
                     //commit the changes (this will process the deletes too)
-                    writer.Commit();
+                    if(_directory is ExamineDirectory examineDirectory)
+                    {
+                        //Calling commit causes fdt,fdx,fnm,frq,nrm,prx,tii,tis,tvd,tvf,tvx files to be deleted.
+                        //TODO: 
+                    }
+                    if (writer is ExamineIndexWriter examineIndexWriter)
+                    {
+                        examineIndexWriter.ExamineCommit();
+                    }
+                    else
+                    {
+                        writer.Commit();
+                    }
 
                     writer.WaitForMerges();
                 }
@@ -1068,7 +1114,14 @@ namespace Examine.LuceneEngine.Providers
                         if (_index._cancellationTokenSource.IsCancellationRequested)
                         {
                             //perform the commit
-                            _index._writer?.Commit();
+                            if (_index._writer is ExamineIndexWriter examineIndexWriter)
+                            {
+                                examineIndexWriter?.ExamineCommit();
+                            }
+                            else
+                            {
+                                _index._writer?.Commit();
+                            }
                         }
                         else
                         {
@@ -1089,7 +1142,14 @@ namespace Examine.LuceneEngine.Providers
                             _timer = null;
 
                             //perform the commit
-                            _index._writer?.Commit();
+                            if (_index._writer is ExamineIndexWriter examineIndexWriter)
+                            {
+                                examineIndexWriter?.ExamineCommit();
+                            }
+                            else
+                            {
+                                _index._writer?.Commit();
+                            }
                         }
                         else if (
                             // must be less than the max
@@ -1124,7 +1184,14 @@ namespace Examine.LuceneEngine.Providers
                         try
                         {
                             //perform the commit
-                            _index._writer?.Commit();
+                            if (_index._writer is ExamineIndexWriter examineIndexWriter)
+                            {
+                                examineIndexWriter?.ExamineCommit();
+                            }
+                            else
+                            {
+                                _index._writer?.Commit();
+                            }
                         }
                         catch (Exception e)
                         {
@@ -1289,13 +1356,13 @@ namespace Examine.LuceneEngine.Providers
                 {
                     //This line is creating a lock on read directories
                     //Check dirty first so the folder is not locked.
-                    examineDirectory.CheckDirty();
-                    writer = new IndexWriter(d, FieldAnalyzer, false, examineDirectory.GetDeletionPolicy(),
+                    examineDirectory.CheckDirtyWithoutWriter();
+                    writer = new ExamineIndexWriter(d, FieldAnalyzer, false, examineDirectory.GetDeletionPolicy(),
                         IndexWriter.MaxFieldLength.UNLIMITED);
                 }
                 else
                 {
-                    writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+                    writer = new ExamineIndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 
                 }
                 if (examineDirectory.GetMergeScheduler() != null)
@@ -1316,7 +1383,7 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
-                writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+                writer = new ExamineIndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
                 // clear out current scheduler and set the error logging one
                 using (writer.MergeScheduler)
                 {

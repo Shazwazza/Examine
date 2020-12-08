@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Azure.Storage.Blobs;
+using Examine.LuceneEngine;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
@@ -70,6 +71,13 @@ namespace Examine.AzureDirectory
         public void ResyncCache()
         {
             Trace.WriteLine($"INFO Rebuilding index cache {RootFolder}");
+            var manifest = this.GetMostRecentManifest();
+            if (manifest != null)
+            {
+                //no files
+                return;
+                //SyncManifestFiles(manifest);
+            }
             try
             {
                 Trace.WriteLine($"Clearing index cache {RootFolder}");
@@ -198,6 +206,10 @@ namespace Examine.AzureDirectory
         {
             return base.MakeLock(name);
         }
-       
+
+        public override void SyncManifest(ExamineIndexWriter writer)
+        {
+            //DO nothing. Read only
+        }
     }
 }

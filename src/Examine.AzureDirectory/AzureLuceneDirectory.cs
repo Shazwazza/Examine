@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.Json;
 using Azure;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
@@ -86,14 +87,14 @@ namespace Examine.AzureDirectory
         {
             if (string.IsNullOrEmpty(rootFolder))
                 return string.Empty;
-                rootFolder = rootFolder.Trim('/');
-                rootFolder = rootFolder + "/";
+            rootFolder = rootFolder.Trim('/');
+            rootFolder = rootFolder + "/";
             return rootFolder;
         }
 
         protected virtual LockFactory GetLockFactory()
         {
-            return  IsReadOnly ? (LockFactory)new NoopLockFactory()
+            return IsReadOnly ? (LockFactory)new NoopLockFactory()
                 : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
         }
         protected virtual BlobClient GetBlobClient(string blobName)
@@ -132,7 +133,7 @@ namespace Examine.AzureDirectory
             {
                 CacheDirectory.TouchFile(file);
                 var blob = GetBlobClient(RootFolder + file);
-                SyncFile(blob,file);
+                SyncFile(blob, file);
             }
         }
 
@@ -185,8 +186,8 @@ namespace Examine.AzureDirectory
                     // something isn't quite right, need to re-sync
 
                     Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while checking file ({name}) exists for {RootFolder}");
-                    SetDirty();                    
-                    return BlobExists(name);                    
+                    SetDirty();
+                    return BlobExists(name);
                 }
             }
 
@@ -213,7 +214,7 @@ namespace Examine.AzureDirectory
 
                     //This is the data structure of how the default Lucene FSDirectory returns this value so we want
                     // to be consistent with how Lucene works
-                    return (long) utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
+                    return (long)utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
                 }
 
                 // TODO: Need to check lucene source, returning this value could be problematic
@@ -235,7 +236,7 @@ namespace Examine.AzureDirectory
             CacheDirectory.TouchFile(name);
             SetDirty();
         }
-        protected void SyncFile(BlobClient _blob,string fileName)
+        protected void SyncFile(BlobClient _blob, string fileName)
         {
             Trace.WriteLine($"INFO Syncing file {fileName} for {RootFolder}");
             // then we will get it fresh into local deflatedName 
@@ -281,7 +282,7 @@ namespace Examine.AzureDirectory
 #endif
                     }
                 }
-              
+
             }
         }
         /// <summary>Removes an existing file in the directory. </summary>
@@ -440,7 +441,7 @@ namespace Examine.AzureDirectory
 
             if (TryGetBlobFile(name, out var blob, out var err))
             {
-                return _azureIndexInputFactory .GetIndexInput(this, blob);
+                return _azureIndexInputFactory.GetIndexInput(this, blob);
             }
             else
             {
@@ -524,7 +525,7 @@ namespace Examine.AzureDirectory
         /// If _dirty is true and blob storage files are looked up, this will return those blob storage files, this is a performance gain so
         /// we don't double query blob storage.
         /// </returns>
-        public override string[] CheckDirty()
+        public string[] CheckDirty()
         {
             if (_dirty)
             {
@@ -553,6 +554,18 @@ namespace Examine.AzureDirectory
         }
 
         /// <summary>
+        /// Checks dirty flag and sets the _inSync flag after querying the blob strorage vs local storage segment gen
+        /// </summary>
+        /// <returns>
+        /// If _dirty is true and blob storage files are looked up, this will return those blob storage files, this is a performance gain so
+        /// we don't double query blob storage.
+        /// </returns>
+        public override string[] CheckDirtyWithoutWriter()
+        {
+            return CheckDirty();
+        }
+
+        /// <summary>
         /// Called when the index is out of sync with the master index
         /// </summary>
         protected virtual void HandleOutOfSync()
@@ -560,7 +573,7 @@ namespace Examine.AzureDirectory
             //Do nothing
         }
 
-        private void SetDirty()
+        public override void SetDirty()
         {
             if (!_dirty)
             {
@@ -602,5 +615,137 @@ namespace Examine.AzureDirectory
                 return false;
             }
         }
+
+        #region Sync
+        /// <summary>Creates a new, empty file in the directory with the given name.
+        /// Returns a stream writing this file. 
+        /// </summary>
+        public IndexOutput CreateOutput(string blobFileName, string name)
+        {
+            SetDirty();
+
+            //if we are readonly, then we don't modify anything
+            if (IsReadOnly)
+            {
+                return _noopIndexOutput;
+            }
+
+            var blob = _blobContainer.GetBlobClient(GenerateBlobName(blobFileName));
+            return _azureIndexOutputFactory.CreateIndexOutput(this, blob, name);
+        }
+
+        private string GenerateBlobName(string blobFileName)
+        {
+            return RootFolder + blobFileName;
+        }
+        private string CleanBlobName(string blobFileName)
+        {
+            return blobFileName.Replace(RootFolder, "");
+        }
+        protected override void CleanupRemoteFiles()
+        {
+            //TODO : Get all manifests on remote. Find older than x. Remove files older than x not referenced by a newer manifest, delete old manifest
+            List<ExamineDirectoryManifest> manifests = GetAllManifests();
+            var orderedManifests = manifests.OrderByDescending(x => x.Modified);
+            var retainedManifests = orderedManifests.Where((x, y) => y < 2 || !ManifestExpired(x));
+            var removableManifests = orderedManifests.Where(x => !retainedManifests.Contains(x));
+            var retainedFiles = removableManifests.SelectMany(x => x.Entries).Select(x => x.BlobFileName).ToDictionary(x => x, y => y);
+            foreach (var manifest in removableManifests)
+            {
+                foreach (var entry in manifest.Entries)
+                {
+                    if (!retainedFiles.ContainsKey(entry.BlobFileName))
+                    {
+                        _blobContainer.DeleteBlobIfExists(GenerateBlobName(entry.BlobFileName));
+                    }
+                }
+                _blobContainer.DeleteBlobIfExists(GenerateBlobName(GenerateManifestFileName(manifest)));
+            }
+        }
+
+        protected virtual bool ManifestExpired(ExamineDirectoryManifest manifest)
+        {
+            //Suggest tracking sync state
+           return manifest.Modified < DateTime.Now.AddHours(1).Ticks;
+        }
+        protected override void UploadToRemote(ExamineDirectoryManifest manifest)
+        {
+            foreach (var item in manifest.Entries)
+            {
+                if (item.OriginalManifestId == manifest.Id || !BlobExists(item.BlobFileName))
+                {
+                    //New/Updated/missing file
+                    CreateOutput(item.BlobFileName, item.LuceneFileName);
+                }
+            }
+
+            var jsonString = SerializeManifest(manifest);
+            using (var stream = new MemoryStream())
+            {
+                var sw = new StreamWriter(stream);
+                sw.Write(jsonString);
+                sw.Flush();
+                stream.Position = 0;
+                var client = _blobContainer.GetBlobClient(GenerateBlobName( GenerateManifestFileName(manifest)));
+                client.Upload(stream);
+            }
+        }
+
+        private string GenerateManifestFileName(ExamineDirectoryManifest manifest)
+        {
+            return MANIFEST_FILE_PREFIX + manifest.Id + MANIFEST_FILE_EXTENSION;
+        }
+
+        public const string MANIFEST_FILE_PREFIX = "cc-";
+        public const string MANIFEST_FILE_EXTENSION = ".manifest";
+        protected override ExamineDirectoryManifest GetMostRecentManifest()
+        {
+            List<ExamineDirectoryManifest> manifests = GetAllManifests();
+            return manifests.OrderByDescending(x => x.Modified).FirstOrDefault();
+        }
+
+        protected override List<ExamineDirectoryManifest> GetAllManifests()
+        {
+            List<ExamineDirectoryManifest> manifests = new List<ExamineDirectoryManifest>();
+            foreach (var blob in _blobContainer.GetBlobs(prefix: RootFolder + MANIFEST_FILE_PREFIX))
+            {
+                try
+                {
+                    if (!blob.Name.EndsWith(MANIFEST_FILE_EXTENSION))
+                    {
+                        continue;
+                    }
+                    var client = _blobContainer.GetBlobClient(blob.Name);
+                    using (var ms = new MemoryStream())
+                    {
+                        client.DownloadTo(ms);
+                        ms.Seek(0, SeekOrigin.Begin);
+                        using (StreamReader reader = new StreamReader(ms))
+                        {
+                            string text = reader.ReadToEnd();
+                            var manifest = DeserializeManifest(text);
+                            manifests.Add(manifest);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"ERROR Failed to download manifest {blob}. {ex.ToString()}");
+                }
+            }
+
+            return manifests;
+        }
+
+        public override string SerializeManifest(ExamineDirectoryManifest manifest)
+        {
+            return JsonSerializer.Serialize(manifest);
+        }
+        public override ExamineDirectoryManifest DeserializeManifest(string manifestText)
+        {
+            return JsonSerializer.Deserialize<ExamineDirectoryManifest>(manifestText);
+        }
+
+        #endregion
     }
 }

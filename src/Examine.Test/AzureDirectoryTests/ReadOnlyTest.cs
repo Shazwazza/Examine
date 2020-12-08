@@ -115,7 +115,7 @@ namespace Examine.Test.AzureDirectory
                     }),
                     new Task(() =>
                     {
-                        for(var i = 0; i < 3; i++)                          // write index x 3
+                        for(var a = 0; a < 3; a++)                          // write index x 3
                         {
                             ValueSet cloned = GetRandomValueSet();
                             writeIndex.IndexItem(cloned);
@@ -123,16 +123,18 @@ namespace Examine.Test.AzureDirectory
                     }),
                     new Task(() =>
                     {
-                        //for(var i = 0; i < 3; i++)
-                        //{
-                        //    var s = readSearcher.GetSearcher().CreateQuery().NativeQuery("test");      // force the reader to sync
-                        //    Thread.Sleep(50);
-                        //}
+                        for(var i = 0; i < 10; i++)
+                        {
+                            var s = readSearcher.GetSearcher().CreateQuery().NativeQuery("test");      // force the reader to sync
+                            var sr = s.Execute();
+                            var er = sr.Skip(0).ToList();
+                            Thread.Sleep(50);
+                        }
                     }),
                     new Task(() =>
                     {
                         ValueSet cloned = GetRandomValueSet();
-                      //  readIndex.IndexItem(cloned);  // readonly index doesn't write
+                      //  readIndex.IndexItem(cloned);  // readonly index doesn't write //don't do this
                     })
                 };
                 foreach (var t in tasks) t.Start();
