@@ -66,6 +66,37 @@ namespace Examine.AzureDirectory
                 
             }
         }
+
+        public void ResyncCache()
+        {
+            Trace.WriteLine($"INFO Rebuilding index cache {RootFolder}");
+            try
+            {
+                Trace.WriteLine($"Clearing index cache {RootFolder}");
+                foreach (string file in CacheDirectory.ListAll())
+                {
+                    Trace.WriteLine("DEBUG Deleting cache file {file}", file);
+                    CacheDirectory.DeleteFile(file);
+                }
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while rebuilding cache for {RootFolder}");
+            }
+            foreach (string file in GetAllBlobFiles())
+            {
+                if (CacheDirectory.FileExists(file))
+                {
+                    CacheDirectory.TouchFile(file);
+                }
+                var blob = GetBlobClient(RootFolder + file);
+                SyncFile(blob, file);
+            }
+        }
+        protected override void HandleOutOfSync()
+        {
+            ResyncCache();
+        }
         private object _rebuildLock = new object();
         public override void RebuildCache()
         {
@@ -99,7 +130,14 @@ namespace Examine.AzureDirectory
                 _lockFactory = newIndex.LockFactory;
                 if (oldIndex != null)
                 {
-                    oldIndex.ClearLock("write.lock");
+                    try
+                    {
+                        oldIndex.ClearLock("write.lock");
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
                     foreach (var file in oldIndex.ListAll())
                     {
                         if (oldIndex.FileExists(file))
@@ -131,8 +169,6 @@ namespace Examine.AzureDirectory
                     Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
 
                 }
-
-
             }
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
@@ -157,14 +193,11 @@ namespace Examine.AzureDirectory
 
             }
         }
-        
-        //protected override void Dispose(bool disposing)
-        //{
-        //    CacheDirectory.Dispose();
-        //}
-        protected override void HandleOutOfSync()
+
+        public override Lock MakeLock(string name)
         {
-            RebuildCache();
+            return base.MakeLock(name);
         }
+       
     }
 }

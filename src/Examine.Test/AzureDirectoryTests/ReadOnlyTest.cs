@@ -106,12 +106,12 @@ namespace Examine.Test.AzureDirectory
                     new Task(() =>
                     {
                         ValueSet cloned = GetRandomValueSet();
-                        readIndex.IndexItem(cloned);  // readonly index doesn't write
+                       // readIndex.IndexItem(cloned);  // readonly index doesn't write
                     }),
                     new Task(() =>
                     {
                        ValueSet cloned = GetRandomValueSet();
-                        readIndex.IndexItem(cloned);  // readonly index doesn't write
+                       // readIndex.IndexItem(cloned);  // readonly index doesn't write
                     }),
                     new Task(() =>
                     {
@@ -132,7 +132,7 @@ namespace Examine.Test.AzureDirectory
                     new Task(() =>
                     {
                         ValueSet cloned = GetRandomValueSet();
-                        readIndex.IndexItem(cloned);  // readonly index doesn't write
+                      //  readIndex.IndexItem(cloned);  // readonly index doesn't write
                     })
                 };
                 foreach (var t in tasks) t.Start();

@@ -252,19 +252,36 @@ namespace Examine.AzureDirectory
                 // seek back to begininng
                 deflatedStream.Seek(0, SeekOrigin.Begin);
 
-                // open output file for uncompressed contents
-                using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
-                using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
+                if (ShouldCompressFile(fileName))
                 {
-                    var bytes = new byte[65535];
-                    var nRead = 0;
-                    do
+                    // open output file for uncompressed contents
+                    using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
+                    using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
                     {
-                        nRead = decompressor.Read(bytes, 0, 65535);
-                        if (nRead > 0)
-                            fileStream.Write(bytes, 0, nRead);
-                    } while (nRead == 65535);
+                        var bytes = new byte[65535];
+                        var nRead = 0;
+                        do
+                        {
+                            nRead = decompressor.Read(bytes, 0, 65535);
+                            if (nRead > 0)
+                                fileStream.Write(bytes, 0, nRead);
+                        } while (nRead == 65535);
+                    }
                 }
+                else
+                {
+                    using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
+                    {
+                        // get the blob
+                        _blob.DownloadTo(fileStream);
+
+                        fileStream.Flush();
+#if FULLDEBUG
+                        Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
+#endif
+                    }
+                }
+              
             }
         }
         /// <summary>Removes an existing file in the directory. </summary>
@@ -458,7 +475,7 @@ namespace Examine.AzureDirectory
         protected override void Dispose(bool disposing)
         {
             _blobContainer = null;
-            CacheDirectory.Dispose();
+            CacheDirectory?.Dispose();
         }
 
         /// <summary> Return a string identifier that uniquely differentiates
@@ -507,7 +524,7 @@ namespace Examine.AzureDirectory
         /// If _dirty is true and blob storage files are looked up, this will return those blob storage files, this is a performance gain so
         /// we don't double query blob storage.
         /// </returns>
-        protected string[] CheckDirty()
+        public override string[] CheckDirty()
         {
             if (_dirty)
             {

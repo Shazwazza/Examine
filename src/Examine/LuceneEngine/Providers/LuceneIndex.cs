@@ -328,6 +328,11 @@ namespace Examine.LuceneEngine.Providers
                 var msg = "Indexing Error Occurred: " + e.Message;
                 if (e.InnerException != null)
                     msg += ". ERROR: " + e.InnerException.Message;
+                //if(this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+                //{
+                //    //Readonly index shouldn't be indexing anyway.
+                //    return;
+                //}
                 throw new Exception(msg, e.InnerException);
             }
         }
@@ -1282,6 +1287,9 @@ namespace Examine.LuceneEngine.Providers
             {
                 if (examineDirectory.GetDeletionPolicy() != null)
                 {
+                    //This line is creating a lock on read directories
+                    //Check dirty first so the folder is not locked.
+                    examineDirectory.CheckDirty();
                     writer = new IndexWriter(d, FieldAnalyzer, false, examineDirectory.GetDeletionPolicy(),
                         IndexWriter.MaxFieldLength.UNLIMITED);
                 }
