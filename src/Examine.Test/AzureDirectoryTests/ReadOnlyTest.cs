@@ -140,7 +140,8 @@ namespace Examine.Test.AzureDirectory
 
                 // force the reader to sync
                 var search = readSearcher.GetSearcher().CreateQuery().NativeQuery("test");
-
+                var searchResults = search.Execute();
+                var executedResults = searchResults.Skip(0).ToList();
                 // verify that all files in the readonly cache dir have been synced from master blob storage
                 var blobFiles = writeDir.GetAllBlobFiles();
                 SimpleFSDirectory readCacheDir = readDir.CacheDirectory as SimpleFSDirectory;
