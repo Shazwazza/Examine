@@ -475,6 +475,7 @@ namespace Examine.LuceneEngine.Providers
                  
                     if (examineDirectory.GetDeletionPolicy() != null)
                     {
+                        writer.Dispose();
                         writer = new IndexWriter(dir, FieldAnalyzer, true, examineDirectory.GetDeletionPolicy(),
                             IndexWriter.MaxFieldLength.UNLIMITED);
                     }
@@ -1295,13 +1296,42 @@ namespace Examine.LuceneEngine.Providers
             if (d == null) throw new ArgumentNullException(nameof(d));
             var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 
-            // clear out current scheduler and set the error logging one
-            using (writer.MergeScheduler)
+            if (_directory is ExamineDirectory examineDirectory)
             {
-            }
+                 
+                if (examineDirectory.GetDeletionPolicy() != null)
+                {
+                    writer.Dispose();
+                    writer = new IndexWriter(dir, FieldAnalyzer, true, examineDirectory.GetDeletionPolicy(),
+                        IndexWriter.MaxFieldLength.UNLIMITED);
+                }
 
-            writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
-                (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
+                if (examineDirectory.GetMergeScheduler() != null)
+                {
+                    writer.SetMergeScheduler(examineDirectory.GetMergeScheduler());
+                }
+
+                if (examineDirectory.IsReadOnly)
+                {
+                    DocumentWriting += (sender, args) => { args.Cancel = true; };
+                }
+                    
+                var mergePolicy = examineDirectory.GetMergePolicy(writer);
+                if (mergePolicy != null)
+                {
+                    writer.SetMergePolicy(mergePolicy);
+                }
+            }
+            else
+            {
+                // clear out current scheduler and set the error logging one
+                using (writer.MergeScheduler)
+                {
+                }
+
+                writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
+                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
+            }
 
             return writer;
         }
