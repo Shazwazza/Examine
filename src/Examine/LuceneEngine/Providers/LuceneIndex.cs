@@ -807,6 +807,10 @@ namespace Examine.LuceneEngine.Providers
                             {
                                 isNewTask = true;
 
+                                // TODO: Like the note below says, the token can be canceled before running here
+                                // so potentially that cancelation doesn't happen inside the same _indexingLocker and
+                                // have seen exceptions when passing this to Run or ContinueWith which we should prevent
+
                                 _asyncTask = Task.Run(
                                     () =>
                                     {
