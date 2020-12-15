@@ -7,6 +7,10 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// A whitespace analyzer that can be configured to be culture invariant
     /// </summary>
+    /// <remarks>
+    /// Includes a LetterOrDigitTokenizer which only includes letters or digits along with 
+    /// <see cref="ASCIIFoldingFilter"/> and <see cref="LowerCaseFilter"/>
+    /// </remarks>
     public sealed class CultureInvariantWhitespaceAnalyzer : Analyzer
     {
         private readonly bool _caseInsensitive;
