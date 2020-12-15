@@ -16,7 +16,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
-    public class AzureDirectory : ExamineDirectory
+    public class AzureDirectory : ExamineDirectory, IAzureDirectory
     {
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
@@ -71,10 +71,13 @@ namespace Examine.AzureDirectory
             }
 
             _blobClient = storageAccount.CreateCloudBlobClient();
-            EnsureContainer();
+            _blobContainer= this.EnsureContainer(_blobClient,_containerName);
             CompressBlobs = compressBlobs;
         }
-
+        public void EnsureContainer()
+        {
+            _blobContainer = this.EnsureContainer(_blobClient, _containerName);
+        }
         public string RootFolder { get; }
         public CloudBlobContainer BlobContainer => _blobContainer;
         public bool CompressBlobs { get; }
@@ -102,15 +105,10 @@ namespace Examine.AzureDirectory
             {
                 CacheDirectory.TouchFile(file);
                 var blob = _blobContainer.GetBlockBlobReference(RootFolder + file);
-                SyncFile(blob,file);
+                this.SyncFile(this,blob,file);
             }
         }
-
-        public void EnsureContainer()
-        {
-            _blobContainer = _blobClient.GetContainerReference(_containerName);
-            _blobContainer.CreateIfNotExists();
-        }
+        
 
         public override string[] ListAll()
         {
@@ -118,15 +116,10 @@ namespace Examine.AzureDirectory
 
             return _inSync
                 ? CacheDirectory.ListAll()
-                : (blobFiles ?? GetAllBlobFiles());
+                : (blobFiles ?? this.GetAllBlobFiles(_blobContainer, RootFolder));
         }
 
-        internal string[] GetAllBlobFiles()
-        {
-            var results = from blob in _blobContainer.ListBlobs(RootFolder)
-                select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
-            return results.ToArray();
-        }
+      
 
         /// <summary>Returns true if a file with the given name exists. </summary>
         public override bool FileExists(string name)
@@ -189,37 +182,7 @@ namespace Examine.AzureDirectory
             CacheDirectory.TouchFile(name);
             SetDirty();
         }
-        private void SyncFile(ICloudBlob _blob,string fileName)
-        {
-            // then we will get it fresh into local deflatedName 
-            // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
-            using (var deflatedStream = new MemoryStream())
-            {
-                // get the deflated blob
-                _blob.DownloadToStream(deflatedStream);
-
-#if FULLDEBUG
-                Trace.WriteLine($"GET {fileName} RETREIVED {deflatedStream.Length} bytes");
-#endif 
-
-                // seek back to begininng
-                deflatedStream.Seek(0, SeekOrigin.Begin);
-
-                // open output file for uncompressed contents
-                using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
-                using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
-                {
-                    var bytes = new byte[65535];
-                    var nRead = 0;
-                    do
-                    {
-                        nRead = decompressor.Read(bytes, 0, 65535);
-                        if (nRead > 0)
-                            fileStream.Write(bytes, 0, nRead);
-                    } while (nRead == 65535);
-                }
-            }
-        }
+        
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(string name)
         {
@@ -303,7 +266,7 @@ namespace Examine.AzureDirectory
         {
             if (_isReadOnly)
             {
-                var allBlobs = GetAllBlobFiles();
+                var allBlobs = this.GetAllBlobFiles(_blobContainer, RootFolder);
                 foreach (var toCheck in CacheDirectory.ListAll())
                 {
                     if (allBlobs.Contains(toCheck))
@@ -442,8 +405,6 @@ namespace Examine.AzureDirectory
                 default:
                     return false;
             }
-
-            ;
         }
 
         /// <summary>
@@ -464,7 +425,7 @@ namespace Examine.AzureDirectory
                     {
                         //these methods don't throw exceptions, will return -1 if something has gone wrong
                         // in which case we'll consider them not in sync
-                        var blobFiles = GetAllBlobFiles();
+                        var blobFiles = this.GetAllBlobFiles(_blobContainer, RootFolder);
                         var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(blobFiles);
                         var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
                         _inSync = masterSeg == localSeg && masterSeg != -1;

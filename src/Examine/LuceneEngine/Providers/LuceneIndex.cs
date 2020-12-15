@@ -1294,7 +1294,7 @@ namespace Examine.LuceneEngine.Providers
         private IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
-            var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            IndexWriter writer = null;
 
             if (_directory is ExamineDirectory examineDirectory)
             {
@@ -1302,8 +1302,12 @@ namespace Examine.LuceneEngine.Providers
                 if (examineDirectory.GetDeletionPolicy() != null)
                 {
                     writer.Dispose();
-                    writer = new IndexWriter(dir, FieldAnalyzer, true, examineDirectory.GetDeletionPolicy(),
+                    writer = new IndexWriter(d, FieldAnalyzer, true, examineDirectory.GetDeletionPolicy(),
                         IndexWriter.MaxFieldLength.UNLIMITED);
+                }
+                else
+                {
+                    writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
                 }
 
                 if (examineDirectory.GetMergeScheduler() != null)
@@ -1324,6 +1328,7 @@ namespace Examine.LuceneEngine.Providers
             }
             else
             {
+                writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
                 // clear out current scheduler and set the error logging one
                 using (writer.MergeScheduler)
                 {

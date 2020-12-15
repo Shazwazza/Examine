@@ -83,11 +83,13 @@
     <Compile Include="AzureDirectoryFactory.cs" />
     <Compile Include="AzureDirectoryNativeLockFactory.cs" />
     <Compile Include="AzureDirectorySimpleLockFactory.cs" />
+    <Compile Include="AzureHelper.cs" />
     <Compile Include="AzureIndexInput.cs" />
     <Compile Include="AzureIndexOutput.cs" />
     <Compile Include="AzureReadOnlyDirectory.cs" />
     <Compile Include="AzureSimpleLock.cs" />
     <Compile Include="AzureNativeLock.cs" />
+    <Compile Include="IAzureDirectory.cs" />
     <Compile Include="NoopIndexOutput.cs" />
     <Compile Include="NoopLockFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

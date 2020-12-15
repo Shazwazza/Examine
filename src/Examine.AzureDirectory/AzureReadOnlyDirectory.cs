@@ -12,7 +12,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.AzureDirectory
 {
-    public class AzureReadOnlyDirectory : ExamineDirectory
+    public class AzureReadOnlyDirectory : ExamineDirectory, IAzureDirectory
     {
         private readonly string _cacheDirectoryPath;
         private readonly string _cacheDirectoryName;
@@ -54,7 +54,7 @@ namespace Examine.AzureDirectory
                 RootFolder = rootFolder + "/";
             }
 
-            EnsureContainer();
+            _blobContainer= this.EnsureContainer(_blobClient,_containerName);
             if (CacheDirectory == null)
             {
                 CreateOrReadCache();
@@ -95,12 +95,7 @@ namespace Examine.AzureDirectory
         }
 
 
-        public void EnsureContainer()
-        {
-            _blobContainer = _blobClient.GetContainerReference(_containerName);
-            
-            _blobContainer.CreateIfNotExists();
-        }
+       
 
         public void RebuildCache()
         {
@@ -110,11 +105,11 @@ namespace Examine.AzureDirectory
             if (tempDir.Exists == false)
                 tempDir.Create();
             Lucene.Net.Store.Directory newIndex = new SimpleFSDirectory(tempDir);
-            foreach (string file in GetAllBlobFiles())
+            foreach (string file in this.GetAllBlobFiles(_blobContainer, RootFolder))
             {
              //   newIndex.TouchFile(file);
                 var blob = _blobContainer.GetBlockBlobReference(RootFolder + file);
-                SyncFile(newIndex,blob, file);
+                this.SyncFile(newIndex,blob, file);
             }
 
             var oldIndex = CacheDirectory;
@@ -187,64 +182,6 @@ namespace Examine.AzureDirectory
         }
 
         public override LockFactory LockFactory => _lockFactory;
-
-        private void SyncFile(Directory newIndex, CloudBlockBlob blob, string fileName)
-        {
-            if (this.ShouldCompressFile(fileName))
-            {
-                InflateStream(newIndex,blob,fileName);
-            }
-            else
-            {
-                using (var fileStream = new StreamOutput(newIndex.CreateOutput(fileName)))
-                {
-                    // get the blob
-                    blob.DownloadToStream(fileStream);
-                    fileStream.Flush();
-                    Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
-
-                }
-
-
-            }
-            // then we will get it fresh into local deflatedName 
-            // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
-           
-        }
-
-        private void InflateStream(Directory newIndex, CloudBlockBlob blob, string fileName)
-        {
-      
-            using (var deflatedStream = new MemoryStream())
-            {
-                // get the deflated blob
-                blob.DownloadToStream(deflatedStream);
-                Trace.WriteLine($"GET {fileName} RETREIVED {deflatedStream.Length} bytes");
-                // seek back to begininng
-                deflatedStream.Seek(0, SeekOrigin.Begin);
-                // open output file for uncompressed contents
-                using (var fileStream = new StreamOutput(newIndex.CreateOutput(fileName)))
-                using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
-                {
-                    var bytes = new byte[65535];
-                    var nRead = 0;
-                    do
-                    {
-                        nRead = decompressor.Read(bytes, 0, 65535);
-                        if (nRead > 0)
-                            fileStream.Write(bytes, 0, nRead);
-                    } while (nRead == 65535);
-                }
-            }
-        }
-
-        private string[] GetAllBlobFiles()
-        {
-            var results = from blob in _blobContainer.ListBlobs(RootFolder)
-                select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
-            return results.ToArray();
-        }
-
         public override string[] ListAll()
         {
             return CacheDirectory.ListAll();
@@ -301,7 +238,7 @@ namespace Examine.AzureDirectory
                     {
                         //these methods don't throw exceptions, will return -1 if something has gone wrong
                         // in which case we'll consider them not in sync
-                        var blobFiles = GetAllBlobFiles();
+                        var blobFiles = this.GetAllBlobFiles(_blobContainer, RootFolder);
                         var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(blobFiles);
                         var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
                         _inSync = masterSeg == localSeg && masterSeg != -1;
