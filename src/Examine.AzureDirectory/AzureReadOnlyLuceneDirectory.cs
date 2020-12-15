@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine;
@@ -22,7 +23,7 @@ namespace Examine.AzureDirectory
             string cacheDirectoryPath,
             string cacheDirectoryName,
             bool compressBlobs = false,
-            string rootFolder = null) : base(storageAccount, containerName,null,compressBlobs,rootFolder,true)
+            string rootFolder = null) : base(storageAccount, containerName, null, compressBlobs, rootFolder, true)
         {
             _cacheDirectoryPath = cacheDirectoryPath;
             _cacheDirectoryName = cacheDirectoryName;
@@ -64,7 +65,7 @@ namespace Examine.AzureDirectory
             else
             {
                 RebuildCache();
-                
+
             }
         }
 
@@ -161,44 +162,53 @@ namespace Examine.AzureDirectory
                 OldIndexFolderName = tempDir.Name;
             }
         }
-        private void SyncFile(Directory newIndex, BlobClient blob, string fileName)
+       
+        protected void SyncFile(Lucene.Net.Store.Directory newIndex, BlobClient blob, string fileName)
         {
-            if (this.ShouldCompressFile(fileName))
-            {
-                InflateStream(newIndex, blob, fileName);
-            }
-            else
-            {
-                using (var fileStream = new StreamOutput(newIndex.CreateOutput(fileName)))
-                {
-                    // get the blob
-                    blob.DownloadTo(fileStream);
-                    fileStream.Flush();
-                    Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
-
-                }
-            }
+            Trace.WriteLine($"INFO Syncing file {fileName} for {RootFolder}");
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
+            using (var deflatedStream = new MemoryStream())
+            {
+                // get the deflated blob
+                blob.DownloadTo(deflatedStream);
 
-        }
-        protected void InflateStream(Lucene.Net.Store.Directory newIndex, BlobClient blob, string fileName)
-        {
-            if (this.ShouldCompressFile(fileName))
-            {
-                InflateStream(newIndex, blob, fileName);
-            }
-            else
-            {
-                using (var fileStream = new StreamOutput(newIndex.CreateOutput(fileName)))
+#if FULLDEBUG
+                Trace.WriteLine($"GET {fileName} RETREIVED {deflatedStream.Length} bytes");
+#endif
+
+                // seek back to begininng
+                deflatedStream.Seek(0, SeekOrigin.Begin);
+
+                if (ShouldCompressFile(fileName))
                 {
-                    // get the blob
-                    blob.DownloadTo(fileStream);
-                    fileStream.Flush();
-                    Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
-
+                    // open output file for uncompressed contents
+                    using (var fileStream = new StreamOutput(newIndex.CreateOutput(fileName)))
+                    using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
+                    {
+                        var bytes = new byte[65535];
+                        var nRead = 0;
+                        do
+                        {
+                            nRead = decompressor.Read(bytes, 0, 65535);
+                            if (nRead > 0)
+                                fileStream.Write(bytes, 0, nRead);
+                        } while (nRead == 65535);
+                    }
                 }
+                else
+                {
+                    using (var fileStream = new StreamOutput(newIndex.CreateOutput(fileName)))
+                    {
+                        // get the blob
+                        blob.DownloadTo(fileStream);
 
+                        fileStream.Flush();
+#if FULLDEBUG
+                        Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
+#endif
+                    }
+                }
             }
         }
 
@@ -207,7 +217,7 @@ namespace Examine.AzureDirectory
             return base.MakeLock(name);
         }
 
-        public override void SyncManifest(ExamineIndexWriter writer)
+        public override void SyncManifestToRemote(ExamineIndexWriter writer)
         {
             //DO nothing. Read only
         }

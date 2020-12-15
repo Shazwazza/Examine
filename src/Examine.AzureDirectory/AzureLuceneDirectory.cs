@@ -525,7 +525,7 @@ namespace Examine.AzureDirectory
         /// If _dirty is true and blob storage files are looked up, this will return those blob storage files, this is a performance gain so
         /// we don't double query blob storage.
         /// </returns>
-        public string[] CheckDirty()
+        public virtual string[] CheckDirty()
         {
             if (_dirty)
             {

@@ -14,17 +14,4 @@ namespace Examine.LuceneEngine.Directories
 
         public List<ExamineDirectoryManifestEntry> Entries { get; set; }
     }
-
-    public class ExamineDirectoryManifestEntry
-    {
-        public string LuceneFileName { get; set; }
-
-        public string BlobFileName { get; set; }
-
-        public long ModifiedDate { get; set; }
-
-        public long Length { get; set; }
-
-        public string OriginalManifestId { get; set; }
-    }
 }

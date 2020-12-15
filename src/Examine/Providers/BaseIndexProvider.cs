@@ -71,13 +71,13 @@ namespace Examine.Providers
         /// Validates the items and calls <see cref="M:Examine.Providers.BaseIndexProvider.PerformIndexItems(System.Collections.Generic.IEnumerable{Examine.ValueSet})" />
         /// </summary>
         /// <param name="values"></param>
-        public void IndexItems(IEnumerable<ValueSet> values)
+        public virtual void IndexItems(IEnumerable<ValueSet> values)
         {
             PerformIndexItems(values.Where(x => ValidateItem(x) != ValueSetValidationResult.Failed), OnIndexOperationComplete);
         }
 
         /// <inheritdoc />
-        public void DeleteFromIndex(IEnumerable<string> itemIds)
+        public virtual void DeleteFromIndex(IEnumerable<string> itemIds)
         {
             PerformDeleteFromIndex(itemIds, OnIndexOperationComplete);
         }

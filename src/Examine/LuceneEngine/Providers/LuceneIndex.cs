@@ -1370,11 +1370,6 @@ namespace Examine.LuceneEngine.Providers
                     writer.SetMergeScheduler(examineDirectory.GetMergeScheduler());
                 }
 
-                if (examineDirectory.IsReadOnly)
-                {
-                    DocumentWriting += (sender, args) => { args.Cancel = true; };
-                }
-
                 var mergePolicy = examineDirectory.GetMergePolicy(writer);
                 if (mergePolicy != null)
                 {
@@ -1645,6 +1640,23 @@ namespace Examine.LuceneEngine.Providers
         {
             var writer = GetIndexWriter();
             return Task.FromResult((IEnumerable<string>) writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL));
+        }
+
+        public override void DeleteFromIndex(IEnumerable<string> itemIds)
+        {
+            if(_directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+            {
+                return;
+            }
+            base.DeleteFromIndex(itemIds);
+        }
+        public override void IndexItems(IEnumerable<ValueSet> values)
+        {
+            if (_directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+            {
+                return;
+            }
+            base.IndexItems(values);
         }
     }
 }

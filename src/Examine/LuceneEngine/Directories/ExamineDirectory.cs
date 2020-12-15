@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using Examine.LuceneEngine.Providers;
-using Examine.Providers;
-using Lucene.Net.Analysis;
 using Lucene.Net.Index;
-using Lucene.Net.Store;
 using static Lucene.Net.Index.IndexWriter;
 
 namespace Examine.LuceneEngine.Directories
@@ -17,12 +12,11 @@ namespace Examine.LuceneEngine.Directories
         public ExamineDirectory()
         {
             SyncOnCommit = true;
-            _onCommitAction = (indexWriter) => SyncManifest(indexWriter);
+            _onCommitAction = (indexWriter) => SyncManifestToRemote(indexWriter);
         }
         private Action<ExamineIndexWriter> _onCommitAction;
         public virtual void InvokeOnCommit(ExamineIndexWriter writer)
         {
-
             _onCommitAction?.Invoke(writer);
         }
 
@@ -75,8 +69,11 @@ namespace Examine.LuceneEngine.Directories
 
         public abstract void SetDirty();
 
-
-        public virtual void SyncManifest(ExamineIndexWriter writer)
+        /// <summary>
+        /// Syncs the local manifest to the remote directory
+        /// </summary>
+        /// <param name="writer"></param>
+        public virtual void SyncManifestToRemote(ExamineIndexWriter writer)
         {
             if (!SyncOnCommit)
             {
