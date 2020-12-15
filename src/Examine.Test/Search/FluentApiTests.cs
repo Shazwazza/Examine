@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.LuceneEngine;
+using Examine.LuceneEngine.Indexing;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.Search;
 using Examine.Search;
 using Examine.Test.UmbracoExamine;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using NUnit.Framework;
 
@@ -16,6 +20,59 @@ namespace Examine.Test.Search
     [TestFixture]
     public class FluentApiTests
     {
+        [Test]
+        public void Match_By_Prefixed_Wildcard()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(
+                // NOTE: in order to keep special chars in the index, the indexing analysis must be done 
+                // correctly. For special chars we'll use a whitespace analyzer so that everything else is retained
+                new FieldDefinitionCollection(new FieldDefinition("myName", "whitespace")),
+                luceneDir, 
+                analyzer,
+                indexValueTypesFactory: new Dictionary<string, IFieldValueTypeFactory>
+                {
+                    ["whitespace"] = new DelegateFieldValueTypeFactory(x => new GenericAnalyzerFieldValueType(x, new WhitespaceAnalyzer()))
+                }))
+            {
+                indexer.IndexItems(new[] {
+                    new ValueSet(1.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"myName", "blah blah *$hello! world"}
+                        }),
+                    new ValueSet(2.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"myName", "blah blah ?hi! there"}
+                        })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var criteria = searcher.CreateQuery("content");
+                var filter = criteria.Field("myName", "*$hello!".Escape());
+                var results1 = filter.Execute();
+                Assert.AreEqual(1, results1.TotalItemCount);
+
+                // TODO: The below fails. How to make this work?
+
+                criteria = searcher.CreateQuery("content");
+                filter = criteria.Field("myName", "*$hell".MultipleCharacterWildcard());
+                results1 = filter.Execute();
+                Assert.AreEqual(1, results1.TotalItemCount);
+
+                criteria = searcher.CreateQuery("content");
+                filter = criteria.Field("myName", "?h".MultipleCharacterWildcard());
+                results1 = filter.Execute();
+                Assert.AreEqual(1, results1.TotalItemCount);
+            }
+
+
+        }
+
         [Test]
         public void NativeQuery_Single_Word()
         {

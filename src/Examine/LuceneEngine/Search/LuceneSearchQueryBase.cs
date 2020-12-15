@@ -318,7 +318,10 @@ namespace Examine.LuceneEngine.Search
                 case Examineness.SimpleWildcard:
                 case Examineness.ComplexWildcard:
 
-                    var searchValue = QueryParser.Escape(fieldValue.Value) + (fieldValue.Examineness == Examineness.ComplexWildcard ? "*" : "?");
+                    var searchValue = !_queryParser.AllowLeadingWildcard && (fieldValue.Value.StartsWith("*") || fieldValue.Value.StartsWith("?"))
+                        // This would normally throw an exception but we'll handle it differently and escape it
+                        ? QueryParser.Escape(fieldValue.Value) + (fieldValue.Examineness == Examineness.ComplexWildcard ? "*" : "?")
+                        : fieldValue.Value + (fieldValue.Examineness == Examineness.ComplexWildcard ? "*" : "?");
 
                     if (useQueryParser)
                     {
