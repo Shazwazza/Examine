@@ -50,11 +50,15 @@ namespace Examine.LuceneEngine.Providers
             if (luceneDirectory is ExamineDirectory dir)
             {
                 isReadonly = dir.IsReadOnly;
-                var fileDir = dir.CacheDirectory as SimpleFSDirectory;
-                if(fileDir != null)
+                if (dir.WriteLogToLocalDirectory)
                 {
-                    LuceneIndexFolder = fileDir.Directory;
+                    var fileDir = dir.CacheDirectory as SimpleFSDirectory;
+                    if (fileDir != null)
+                    {
+                        LuceneIndexFolder = fileDir.Directory;
+                    }
                 }
+               
             }
         }
 
@@ -92,10 +96,13 @@ namespace Examine.LuceneEngine.Providers
             if (luceneDirectory is ExamineDirectory dir)
             {
                 isReadonly = dir.IsReadOnly;
-                var fileDir = dir.CacheDirectory as SimpleFSDirectory;
-                if (fileDir != null)
+                if (dir.WriteLogToLocalDirectory)
                 {
-                    LuceneIndexFolder = fileDir.Directory;
+                    var fileDir = dir.CacheDirectory as SimpleFSDirectory;
+                    if (fileDir != null)
+                    {
+                        LuceneIndexFolder = fileDir.Directory;
+                    }
                 }
             }
             //initialize the field types

@@ -85,15 +85,6 @@ namespace Examine.Test.AzureDirectory
             using (var readIndex = new TestIndex(readDir, new StandardAnalyzer(Version.LUCENE_30)))
             using (var readSearcher = new TestIndex(readDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                // Cancel all writing for the reader index
-                // This is important! 
-                // TODO: It might mean we need to bake this into the bootstrapping of the readonly directory factory else devs
-                // will need to do this themselves. This is a requirement because the index should never be written to in readonly mode
-                // else there will be errors even though we are using Noop operations, see comment in AzureDirectory.FileLength at the bottom.
-                readIndex.DocumentWriting += (sender, args) =>
-                {
-                    args.Cancel = true;
-                };
 
                 writeIndex.EnsureIndex(true);
                 readIndex.EnsureIndex(true);
@@ -125,7 +116,7 @@ namespace Examine.Test.AzureDirectory
                     {
                         for(var i = 0; i < 10; i++)
                         {
-                            var s = readSearcher.GetSearcher().CreateQuery().NativeQuery("test");      // force the reader to sync
+                            var s = readSearcher.GetSearcher().CreateQuery().NativeQuery("isTest:1");      // force the reader to sync
                             var sr = s.Execute();
                             var er = sr.Skip(0).ToList();
                             Thread.Sleep(50);
@@ -141,15 +132,29 @@ namespace Examine.Test.AzureDirectory
                 Task.WaitAll(tasks);
 
                 // force the reader to sync
-                var search = readSearcher.GetSearcher().CreateQuery().NativeQuery("test");
-                var searchResults = search.Execute();
-                var executedResults = searchResults.Skip(0).ToList();
-                // verify that all files in the readonly cache dir have been synced from master blob storage
-                var blobFiles = writeDir.GetAllBlobFiles();
-                SimpleFSDirectory readCacheDir = readDir.CacheDirectory as SimpleFSDirectory;
-                var readonlyCacheFiles = readCacheDir.Directory.GetFiles("*.*").Select(x => x.Name).ToArray();
-                AssertSyncedFiles(blobFiles, readonlyCacheFiles);
+                AsssertInSync(writeDir, readDir, readSearcher, "isTest:1");
+                writeDir.Sync("segments.gen");
+                //Now update the index and check it syncs again
+                ValueSet cloned1 = GetRandomValueSet();
+                cloned1.Add("UpdatedSync", 1);
+                writeIndex.IndexItem(cloned1);
+                writeIndex.ProcessNonAsync();
+
+                AsssertInSync(writeDir, readDir, readSearcher, "UpdatedSync:1");
             }
+        }
+
+        private void AsssertInSync(AzureLuceneDirectory writeDir, AzureReadOnlyLuceneDirectory readDir, TestIndex readSearcher,string query)
+        {
+            var search = readSearcher.GetSearcher().CreateQuery().NativeQuery("test");
+            var searchResults = search.Execute();
+            var executedResults = searchResults.Skip(0).ToList();
+            Assert.IsTrue(executedResults.Any());
+            // verify that all files in the readonly cache dir have been synced from master blob storage
+            var blobFiles = writeDir.GetAllBlobFiles();
+            SimpleFSDirectory readCacheDir = readDir.CacheDirectory as SimpleFSDirectory;
+            var readonlyCacheFiles = readCacheDir.Directory.GetFiles("*.*").Select(x => x.Name).ToArray();
+            AssertSyncedFiles(blobFiles, readonlyCacheFiles);
         }
 
         private ValueSet GetRandomValueSet()
@@ -157,7 +162,7 @@ namespace Examine.Test.AzureDirectory
             var x = new XElement(GetRandomNode());
 
             return ValueSet.FromObject(x.Attribute("id").Value, "content",
-                 new { writerName = x.Attribute("writerName").Value, template = x.Attribute("template").Value, lat = -6.1357, lng = 39.3621 });
+                 new { writerName = x.Attribute("writerName").Value, template = x.Attribute("template").Value, lat = -6.1357, lng = 39.3621, isTest = 1 });
         }
 
         private void AssertSyncedFiles(string[] blobFiles, string[] cacheFiles)

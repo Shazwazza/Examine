@@ -71,27 +71,7 @@ namespace Examine.AzureDirectory
 
         public void ResyncCache()
         {
-            Trace.WriteLine($"INFO Rebuilding index cache {RootFolder}");
-            var manifest = this.GetMostRecentManifest();
-            if (manifest != null)
-            {
-                //no files
-                return;
-                //SyncManifestFiles(manifest);
-            }
-            try
-            {
-                Trace.WriteLine($"Clearing index cache {RootFolder}");
-                foreach (string file in CacheDirectory.ListAll())
-                {
-                    Trace.WriteLine("DEBUG Deleting cache file {file}", file);
-                    CacheDirectory.DeleteFile(file);
-                }
-            }
-            catch (Exception e)
-            {
-                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while rebuilding cache for {RootFolder}");
-            }
+           
             foreach (string file in GetAllBlobFiles())
             {
                 if (CacheDirectory.FileExists(file))
@@ -217,9 +197,5 @@ namespace Examine.AzureDirectory
             return base.MakeLock(name);
         }
 
-        public override void SyncManifestToRemote(ExamineIndexWriter writer)
-        {
-            //DO nothing. Read only
-        }
     }
 }
