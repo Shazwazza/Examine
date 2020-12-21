@@ -407,15 +407,7 @@ namespace Examine.LuceneEngine.Providers
                         if (!indexExists)
                         {
                             //if there's no index, we need to create one
-                            //if (_directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
-                            //{
-                            //    //Only clear out the local cache directory, don't clear out the remote directory for readonly indexes
-                            //    CreateNewIndex(examineDirectory.CacheDirectory);
-                            //}
-                            //else
-                            //{
-                                CreateNewIndex(dir);
-                            //}
+                            CreateNewIndex(dir);
                         }
                         else
                         {
