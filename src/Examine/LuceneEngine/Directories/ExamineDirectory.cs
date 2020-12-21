@@ -15,10 +15,6 @@ namespace Examine.LuceneEngine.Directories
             _onCommitAction?.Invoke(writer);
         }
 
-        /// <summary>
-        /// Whether to write the lucene log to the local directory
-        /// </summary>
-        public bool WriteLogToLocalDirectory { get; set; }
 
         /// <summary>
         /// Called on commit
@@ -58,7 +54,6 @@ namespace Examine.LuceneEngine.Directories
         {
             DeletionPolicy = policy;
         }
-        public Lucene.Net.Store.Directory CacheDirectory { get; protected set; }
 
         public abstract string[] CheckDirtyWithoutWriter();
 

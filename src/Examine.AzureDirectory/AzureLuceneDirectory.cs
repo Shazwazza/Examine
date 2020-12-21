@@ -109,6 +109,7 @@ namespace Examine.AzureDirectory
         public string RootFolder { get; }
         public bool CompressBlobs { get; }
 
+        public Lucene.Net.Store.Directory CacheDirectory { get; protected set; }
         public void ClearCache()
         {
             Trace.WriteLine($"Clearing index cache {RootFolder}");
