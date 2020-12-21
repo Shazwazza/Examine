@@ -100,6 +100,7 @@
     </Compile>
     <Compile Include="Extensions\SpatialSearch.cs" />
     <Compile Include="AzureDirectory\ReadOnlyTest.cs" />
+    <Compile Include="Search\LuceneSearchResultsReaderTrackerTests.cs" />
     <Compile Include="OrderedDictionaryTests.cs" />
     <Compile Include="RandomIdRAMDirectory.cs" />
     <Compile Include="DataServices\TestContentService.cs" />

@@ -14,6 +14,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Providers
 {
+
     ///<summary>
     /// Standard object used to search a Lucene index
     ///</summary>
@@ -271,7 +272,6 @@ namespace Examine.LuceneEngine.Providers
                 _luceneSearcher = indexer;
             }
 
-            
             public void ScheduleReopen()
             {
                 lock (_locker)
@@ -349,7 +349,6 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            
             private void TimerRelease()
             {
                 lock (_locker)
@@ -398,7 +397,6 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            
             private void StartLongPoll()
             {
                 //if no timer, we are not NRT and we are not currently in long poll mode then
@@ -411,7 +409,6 @@ namespace Examine.LuceneEngine.Providers
                     _isLongPoll = true;
                 }
             }
-
             
             private void MaybeReopen()
             {
@@ -420,7 +417,9 @@ namespace Examine.LuceneEngine.Providers
                     case ReaderStatus.Current:
                         break;
                     case ReaderStatus.Closed:
-                        lock (_locker)
+                        // TODO: This _locker is not the same as the locker used in ValidateSearcher which can 
+                        // also create a new reader!
+                        lock (_locker) 
                         {
                             //get a reader - could be NRT or based on directly depending on how this was constructed
                             _luceneSearcher._reader = _luceneSearcher._nrtWriter == null
