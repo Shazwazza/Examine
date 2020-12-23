@@ -25,7 +25,6 @@ namespace Examine.LuceneEngine
         {
             lock (_locker)
             {
-                //reader.IncRef();
                 _oldReaders.Add(new Tuple<IndexReader, DateTime>(reader, DateTime.Now));
             }
         }
@@ -46,14 +45,17 @@ namespace Examine.LuceneEngine
                     //close reader and remove from list
                     try
                     {
-                        reader.Item1.Close();
+                        reader.Item1.Dispose();
                     }
                     catch (AlreadyClosedException)
                     {
                         //if this happens, more than one instance has decreased referenced, this could occur if this 
                         //somehow gets called in conjuction with the shutdown code or manually, etc...
                     }
-                    _oldReaders.Remove(reader);
+                    finally
+                    {
+                        _oldReaders.Remove(reader);
+                    }
                 }
                 return stale.Length;
             }
@@ -70,15 +72,17 @@ namespace Examine.LuceneEngine
                     //close reader and remove from list
                     try
                     {
-                        reader.Item1.Close();
+                        reader.Item1.Dispose();
                     }
                     catch (AlreadyClosedException)
                     {
                         //if this happens, more than one instance has decreased referenced, this could occur if this 
                         //somehow gets called in conjuction with the shutdown code or manually, etc...
                     }
-
-                    _oldReaders.Remove(reader);
+                    finally
+                    {
+                        _oldReaders.Remove(reader);
+                    }
                 }
                 return readersForDir.Length;
             }
@@ -94,15 +98,17 @@ namespace Examine.LuceneEngine
                     //close reader and remove from list
                     try
                     {
-                        reader.Item1.Close();
+                        reader.Item1.Dispose();
                     }
                     catch (AlreadyClosedException)
                     {
                         //if this happens, more than one instance has decreased referenced, this could occur if this 
                         //somehow gets called in conjuction with the shutdown code or manually, etc...
                     }
-
-                    _oldReaders.Remove(reader);
+                    finally
+                    {
+                        _oldReaders.Remove(reader);
+                    }                    
                 }
                 return readers.Length;
             }

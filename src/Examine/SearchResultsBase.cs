@@ -76,20 +76,9 @@ namespace Examine
         /// Gets the enumerator starting at position 0
         /// </summary>
         /// <returns>A collection of the search results</returns>
-        public virtual IEnumerator<ISearchResult> GetEnumerator()
-        {
-            return Skip(0).GetEnumerator();
-        }
+        public virtual IEnumerator<ISearchResult> GetEnumerator() => Skip(0).GetEnumerator();
 
-        /// <summary>
-        /// Returns an enumerator that iterates through a collection.
-        /// </summary>
-        /// <returns>
-        /// An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
-        /// </returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+        /// <inheritdoc />
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
