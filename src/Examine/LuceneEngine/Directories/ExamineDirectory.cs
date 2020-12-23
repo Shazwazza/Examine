@@ -27,7 +27,7 @@ namespace Examine.LuceneEngine.Directories
 
         private Func<IndexWriter, MergePolicy> _mergePolicy;
 
-        public virtual bool IsReadOnly { get; set; }
+        public bool IsReadOnly { get; set; }
         public virtual MergePolicy GetMergePolicy(IndexWriter writer)
         {
             return _mergePolicy?.Invoke(writer);

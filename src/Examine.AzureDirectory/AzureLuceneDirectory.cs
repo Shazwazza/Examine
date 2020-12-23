@@ -13,13 +13,12 @@ using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
 {
-
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
     public class AzureLuceneDirectory : ExamineDirectory
     {
-        private readonly string _storageAccountConnectionString;
+        internal readonly string _storageAccountConnectionString;
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
@@ -27,7 +26,6 @@ namespace Examine.AzureDirectory
         private readonly string _containerName;
         protected BlobContainerClient _blobContainer;
         protected LockFactory _lockFactory;
-        private static readonly NoopIndexOutput _noopIndexOutput = new NoopIndexOutput();
         private readonly IAzureIndexOutputFactory _azureIndexOutputFactory;
         private readonly IAzureIndexInputFactory _azureIndexInputFactory;
 
@@ -49,30 +47,29 @@ namespace Examine.AzureDirectory
             string containerName,
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false,
-            string rootFolder = null,
-            bool isReadOnly = false)
+            string rootFolder = null)
         {
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
             if (string.IsNullOrWhiteSpace(containerName))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
-            IsReadOnly = isReadOnly;
             _storageAccountConnectionString = connectionString;
             CacheDirectory = cacheDirectory;
             _containerName = containerName.ToLower();
             _lockFactory = GetLockFactory();
             RootFolder = NormalizeContainerRootFolder(rootFolder);
-
             EnsureContainer();
             _azureIndexOutputFactory = GetAzureIndexOutputFactory();
             _azureIndexInputFactory = GetAzureIndexInputFactory();
             GuardCacheDirectory(CacheDirectory);
             CompressBlobs = compressBlobs;
         }
+
         protected virtual IAzureIndexInputFactory GetAzureIndexInputFactory()
         {
             return new AzureIndexInputFactory();
         }
+
         protected virtual IAzureIndexOutputFactory GetAzureIndexOutputFactory()
         {
             return new AzureIndexOutputFactory();
@@ -94,22 +91,21 @@ namespace Examine.AzureDirectory
 
         protected virtual LockFactory GetLockFactory()
         {
-            return IsReadOnly ? (LockFactory)new NoopLockFactory()
-                : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
+            return new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
         }
+
         protected virtual BlobClient GetBlobClient(string blobName)
         {
             return new BlobClient(_storageAccountConnectionString, _containerName, blobName);
         }
-        protected virtual BlobContainerClient GetBlobContainerClient(string containerName)
-        {
-            return new BlobContainerClient(_storageAccountConnectionString, _containerName);
-        }
+
+        
 
         public string RootFolder { get; }
         public bool CompressBlobs { get; }
 
         public Lucene.Net.Store.Directory CacheDirectory { get; protected set; }
+
         public void ClearCache()
         {
             Trace.WriteLine($"Clearing index cache {RootFolder}");
@@ -119,6 +115,7 @@ namespace Examine.AzureDirectory
                 CacheDirectory.DeleteFile(file);
             }
         }
+
         public virtual void RebuildCache()
         {
             Trace.WriteLine($"INFO Rebuilding index cache {RootFolder}");
@@ -130,20 +127,16 @@ namespace Examine.AzureDirectory
             {
                 Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while rebuilding cache for {RootFolder}");
             }
+
             foreach (string file in GetAllBlobFiles())
             {
                 CacheDirectory.TouchFile(file);
                 var blob = GetBlobClient(RootFolder + file);
-                SyncFile(blob, file);
+                AzureHelper.SyncFile(CacheDirectory, blob, file, RootFolder, CompressBlobs);
             }
         }
 
-        public virtual void EnsureContainer()
-        {
-            Trace.WriteLine($"DEBUG Ensuring container ({_containerName}) exists for cache {RootFolder}");
-            _blobContainer = GetBlobContainerClient(_containerName);
-            _blobContainer.CreateIfNotExists();
-        }
+        
 
         public override string[] ListAll()
         {
@@ -161,6 +154,7 @@ namespace Examine.AzureDirectory
             {
                 return results.ToArray();
             }
+
             var names = results.Where(x => !x.EndsWith(".lock")).Select(x => x.Replace(RootFolder, "")).ToArray();
             return names;
         }
@@ -168,7 +162,7 @@ namespace Examine.AzureDirectory
         protected virtual IEnumerable<string> GetAllBlobFileNames()
         {
             return from blob in _blobContainer.GetBlobs(prefix: RootFolder)
-                   select blob.Name;
+                select blob.Name;
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
@@ -186,7 +180,8 @@ namespace Examine.AzureDirectory
                 {
                     // something isn't quite right, need to re-sync
 
-                    Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while checking file ({name}) exists for {RootFolder}");
+                    Trace.WriteLine(
+                        $"ERROR {e.ToString()}  Exception thrown while checking file ({name}) exists for {RootFolder}");
                     SetDirty();
                     return BlobExists(name);
                 }
@@ -215,7 +210,7 @@ namespace Examine.AzureDirectory
 
                     //This is the data structure of how the default Lucene FSDirectory returns this value so we want
                     // to be consistent with how Lucene works
-                    return (long)utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
+                    return (long) utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
                 }
 
                 // TODO: Need to check lucene source, returning this value could be problematic
@@ -237,55 +232,7 @@ namespace Examine.AzureDirectory
             CacheDirectory.TouchFile(name);
             SetDirty();
         }
-        protected void SyncFile(BlobClient _blob, string fileName)
-        {
-            Trace.WriteLine($"INFO Syncing file {fileName} for {RootFolder}");
-            // then we will get it fresh into local deflatedName 
-            // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
-            using (var deflatedStream = new MemoryStream())
-            {
-                // get the deflated blob
-                _blob.DownloadTo(deflatedStream);
 
-#if FULLDEBUG
-                Trace.WriteLine($"GET {fileName} RETREIVED {deflatedStream.Length} bytes");
-#endif 
-
-                // seek back to begininng
-                deflatedStream.Seek(0, SeekOrigin.Begin);
-
-                if (ShouldCompressFile(fileName))
-                {
-                    // open output file for uncompressed contents
-                    using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
-                    using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
-                    {
-                        var bytes = new byte[65535];
-                        var nRead = 0;
-                        do
-                        {
-                            nRead = decompressor.Read(bytes, 0, 65535);
-                            if (nRead > 0)
-                                fileStream.Write(bytes, 0, nRead);
-                        } while (nRead == 65535);
-                    }
-                }
-                else
-                {
-                    using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
-                    {
-                        // get the blob
-                        _blob.DownloadTo(fileStream);
-
-                        fileStream.Flush();
-#if FULLDEBUG
-                        Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
-#endif
-                    }
-                }
-
-            }
-        }
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(string name)
         {
@@ -321,16 +268,13 @@ namespace Examine.AzureDirectory
                 throw;
             }
 
-            //if we are readonly, then we are only modifying local storage
-            if (IsReadOnly) return;
-
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
 
             var blob = GetBlobClient(RootFolder + name);
             blob.DeleteIfExists();
             SetDirty();
 
-            Trace.WriteLine($"INFO Deleted { _blobContainer.Uri}/{name} for {RootFolder}");
+            Trace.WriteLine($"INFO Deleted {_blobContainer.Uri}/{name} for {RootFolder}");
             Trace.WriteLine($"INFO DELETE {_blobContainer.Uri}/{name}");
         }
 
@@ -351,7 +295,8 @@ namespace Examine.AzureDirectory
                 var blobProperties = blob.GetProperties();
 
                 // index files may be compressed so the actual length is stored in metadata
-                var hasMetadataValue = blobProperties.Value.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
+                var hasMetadataValue =
+                    blobProperties.Value.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
 
                 if (hasMetadataValue && long.TryParse(blobLegthMetadata, out var blobLength))
                 {
@@ -364,52 +309,17 @@ namespace Examine.AzureDirectory
             catch (Exception e)
             {
                 //  Sync(name);
-                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while retrieving file length of file {name} for {RootFolder}");
+                Trace.WriteLine(
+                    $"ERROR {e.ToString()}  Exception thrown while retrieving file length of file {name} for {RootFolder}");
                 return CacheDirectory.FileLength(name);
             }
         }
-
-        public override void Sync(string name)
-        {
-            if (IsReadOnly)
-            {
-                var allBlobs = GetAllBlobFiles();
-                foreach (var toCheck in CacheDirectory.ListAll())
-                {
-                    if (allBlobs.Contains(toCheck))
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        RebuildCache();
-                    }
-                    catch (Exception e)
-                    {
-                        Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while syncing {name} for {RootFolder}");
-                    }
-                }
-            }
-            else
-            {
-                base.Sync(name);
-            }
-        }
-
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
         /// </summary>
         public override IndexOutput CreateOutput(string name)
         {
             SetDirty();
-
-            //if we are readonly, then we don't modify anything
-            if (IsReadOnly)
-            {
-                return _noopIndexOutput;
-            }
-
             var blob = _blobContainer.GetBlobClient(RootFolder + name);
             return _azureIndexOutputFactory.CreateIndexOutput(this, blob, name);
         }
@@ -428,7 +338,8 @@ namespace Examine.AzureDirectory
                 catch (FileNotFoundException ex)
                 {
                     //if it's not found then we need to re-read from blob so were not in sync
-                    Trace.WriteLine($"DEBUG {ex.ToString()} File {name} not found. Will need to resync for {RootFolder}");
+                    Trace.WriteLine(
+                        $"DEBUG {ex.ToString()} File {name} not found. Will need to resync for {RootFolder}");
                     SetDirty();
                 }
                 catch (Exception ex)
@@ -436,7 +347,8 @@ namespace Examine.AzureDirectory
                     Trace.TraceError(
                         "Could not get local file though we are marked as inSync, reverting to try blob storage; " +
                         ex);
-                    Trace.WriteLine($"ERROR {ex.ToString()} Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder}");
+                    Trace.WriteLine(
+                        $"ERROR {ex.ToString()} Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder}");
                 }
             }
 
@@ -462,17 +374,16 @@ namespace Examine.AzureDirectory
 
         public override void ClearLock(string name)
         {
-            if (!IsReadOnly)
-            {
                 _lockFactory.ClearLock(name);
-            }
-
-            CacheDirectory.ClearLock(name);
         }
 
         public override LockFactory LockFactory => _lockFactory;
 
-        public BlobContainerClient BlobContainer { get => _blobContainer; set => _blobContainer = value; }
+        public BlobContainerClient BlobContainer
+        {
+            get => _blobContainer;
+            set => _blobContainer = value;
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -492,32 +403,6 @@ namespace Examine.AzureDirectory
             return string.Concat(base.GetLockId(), CacheDirectory.GetLockId());
         }
 
-        public virtual bool ShouldCompressFile(string path)
-        {
-            if (!CompressBlobs)
-                return false;
-
-            var ext = System.IO.Path.GetExtension(path);
-            switch (ext)
-            {
-                case ".cfs":
-                case ".fdt":
-                case ".fdx":
-                case ".frq":
-                case ".tis":
-                case ".tii":
-                case ".nrm":
-                case ".tvx":
-                case ".tvd":
-                case ".tvf":
-                case ".prx":
-                    return true;
-                default:
-                    return false;
-            }
-
-            ;
-        }
 
         /// <summary>
         /// Checks dirty flag and sets the _inSync flag after querying the blob strorage vs local storage segment gen
@@ -545,6 +430,7 @@ namespace Examine.AzureDirectory
                         {
                             HandleOutOfSync();
                         }
+
                         _dirty = false;
                         return blobFiles;
                     }
@@ -594,7 +480,8 @@ namespace Examine.AzureDirectory
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"WARNING {ex.ToString()} Exception thrown while checking blob ({name}) exists. Assuming blob does not exist for {RootFolder}");
+                Trace.WriteLine(
+                    $"WARNING {ex.ToString()} Exception thrown while checking blob ({name}) exists. Assuming blob does not exist for {RootFolder}");
                 return false;
             }
         }
@@ -610,7 +497,8 @@ namespace Examine.AzureDirectory
             }
             catch (RequestFailedException e)
             {
-                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while trying to retrieve blob ({name}). Assuming blob does not exist for {RootFolder}");
+                Trace.WriteLine(
+                    $"ERROR {e.ToString()}  Exception thrown while trying to retrieve blob ({name}). Assuming blob does not exist for {RootFolder}");
                 err = e;
                 blob = null;
                 return false;
@@ -618,19 +506,13 @@ namespace Examine.AzureDirectory
         }
 
         #region Sync
+
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
         /// </summary>
         public IndexOutput CreateOutput(string blobFileName, string name)
         {
             SetDirty();
-
-            //if we are readonly, then we don't modify anything
-            if (IsReadOnly)
-            {
-                return _noopIndexOutput;
-            }
-
             var blob = _blobContainer.GetBlobClient(GenerateBlobName(blobFileName));
             return _azureIndexOutputFactory.CreateIndexOutput(this, blob, name);
         }
@@ -639,8 +521,17 @@ namespace Examine.AzureDirectory
         {
             return RootFolder + blobFileName;
         }
-       
 
         #endregion
+
+        public virtual void EnsureContainer()
+        {
+            _blobContainer = AzureHelper.EnsureContainer(_storageAccountConnectionString, _containerName);
+        }
+
+        public virtual bool ShouldCompressFile(string name)
+        {
+           return AzureHelper.ShouldCompressFile(name, CompressBlobs);
+        }
     }
 }

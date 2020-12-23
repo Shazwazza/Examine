@@ -17,17 +17,9 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
     {
-        private readonly bool _isReadOnly;
         public AzureDirectoryFactory()
         {
-            _isReadOnly = false;
         }
-
-        public AzureDirectoryFactory(bool isReadOnly)
-        {
-            _isReadOnly = isReadOnly;
-        }
-
         /// <summary>
         /// Get/set the config storage key
         /// </summary>
@@ -56,10 +48,7 @@ namespace Examine.AzureDirectory
                 GetStorageAccountConnectionString(),
                 GetContainerName(),
                 GetLocalCacheDirectory(luceneIndexFolder),
-                rootFolder: luceneIndexFolder.Name,
-                isReadOnly: GetIsReadOnly());
-
-            directory.IsReadOnly = _isReadOnly;
+                rootFolder: luceneIndexFolder.Name);
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
             directory.SetDeletion(new NoDeletionPolicy());
@@ -98,15 +87,6 @@ namespace Examine.AzureDirectory
         protected virtual string GetContainerName()
         {
             return ConfigurationManager.AppSettings[ConfigContainerKey];
-        }
-
-        /// <summary>
-        /// Get whether the index is readonly
-        /// </summary>
-        /// <returns></returns>
-        protected virtual bool GetIsReadOnly()
-        {
-            return _isReadOnly;
         }
     }
 }

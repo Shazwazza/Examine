@@ -392,7 +392,7 @@ namespace Examine.LuceneEngine.Providers
         public void EnsureIndex(bool forceOverwrite)
         {
             if (!forceOverwrite && _exists.HasValue && _exists.Value) return;
-            if (_directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly) return;
+            if (isReadonly) return;
             var indexExists = IndexExists();
             if (!indexExists || forceOverwrite)
             {
@@ -1275,9 +1275,7 @@ namespace Examine.LuceneEngine.Providers
             // ensure that it's unlocked here in that case.
             try
             {
-                if (IndexWriter.IsLocked(dir) && (!(dir is ExamineDirectory) ||
-                                                  dir is ExamineDirectory examineDirectory &&
-                                                  !examineDirectory.IsReadOnly))
+                if (IndexWriter.IsLocked(dir) && !isReadonly)
                 {
                     //TODO: if readonly index, unlock the local index?
                     //unlock it!
@@ -1626,7 +1624,7 @@ namespace Examine.LuceneEngine.Providers
 
         public override void DeleteFromIndex(IEnumerable<string> itemIds)
         {
-            if(_directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+            if(isReadonly)
             {
                 return;
             }
@@ -1634,7 +1632,7 @@ namespace Examine.LuceneEngine.Providers
         }
         public override void IndexItems(IEnumerable<ValueSet> values)
         {
-            if (_directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+            if (isReadonly)
             {
                 return;
             }
