@@ -1,4 +1,4 @@
-version: 1.0.6-alpha.{build}
+version: 1.1.0-alpha.{build}
 skip_tags: true
 image: Visual Studio 2017
 build_script:
