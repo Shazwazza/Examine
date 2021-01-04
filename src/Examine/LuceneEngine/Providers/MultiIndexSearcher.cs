@@ -53,6 +53,9 @@ namespace Examine.LuceneEngine.Providers
         ///</summary>
         public IEnumerable<LuceneSearcher> Searchers => _searchers.Value.OfType<LuceneSearcher>();
 
+        // for tests
+        internal bool SearchersInitialized => _searchers.IsValueCreated;
+
         /// <summary>
         /// Returns a list of fields to search on based on all distinct fields found in the sub searchers
         /// </summary>
