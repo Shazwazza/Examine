@@ -165,14 +165,43 @@ namespace Examine.LuceneEngine
         }
 
         /// <summary>
+        /// Used as a custom enumerable to return a custom enumerator <see cref="DecrementReaderResult"/> in order to track open readers
+        /// </summary>
+        private struct SkipEnumerable : IEnumerable<ISearchResult>
+        {
+            // DO NOT use readonly for a wrapped enumerator, see https://www.red-gate.com/simple-talk/blogs/why-enumerator-structs-are-a-really-bad-idea/
+            // "…if the field is readonly and the reference occurs outside an instance constructor of the class in which the field is declared, then the result is a value, namely the value of the field I in the object referenced by E."
+#pragma warning disable IDE0044 // Add readonly modifier
+            private IEnumerator<ISearchResult> _enumerator;
+#pragma warning restore IDE0044 // Add readonly modifier
+            private readonly IndexSearcher _searcher;
+
+            public SkipEnumerable(IEnumerator<ISearchResult> enumerator, Searcher searcher)
+            {
+                _enumerator = enumerator;
+                _searcher = searcher as IndexSearcher;
+            }
+
+            public IEnumerator<ISearchResult> GetEnumerator()
+            {
+                return new DecrementReaderResult(_enumerator, _searcher);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        /// <summary>
         /// Used to Increment/Decrement the index reader so that when the app is shutdown, a reader doesn't actually
         /// get closed if one is open still and it will self close at the end of it's process.
         /// </summary>
         private struct DecrementReaderResult : IEnumerator<ISearchResult>
         {
-            private readonly IEnumerator<ISearchResult> _baseEnumerator;
+            // DO NOT use readonly for a wrapped enumerator, see https://www.red-gate.com/simple-talk/blogs/why-enumerator-structs-are-a-really-bad-idea/
+            // "…if the field is readonly and the reference occurs outside an instance constructor of the class in which the field is declared, then the result is a value, namely the value of the field I in the object referenced by E."
+#pragma warning disable IDE0044 // Add readonly modifier
+            private IEnumerator<ISearchResult> _baseEnumerator;
+#pragma warning restore IDE0044 // Add readonly modifier
             private readonly IndexSearcher _searcher;
-
 
             public DecrementReaderResult(IEnumerator<ISearchResult> baseEnumerator, Searcher searcher)
             {
@@ -181,7 +210,6 @@ namespace Examine.LuceneEngine
 
                 _searcher?.IndexReader.IncRef();
             }
-
 
             public void Dispose()
             {
@@ -205,10 +233,15 @@ namespace Examine.LuceneEngine
             object IEnumerator.Current => Current;
         }
 
-        ///<inheritdoc/>
-        public override IEnumerator<ISearchResult> GetEnumerator()
+        /// <summary>
+        /// Override skip to use a custom enumerator to track index reader usage
+        /// </summary>
+        /// <param name="skip"></param>
+        /// <returns></returns>
+        public override IEnumerable<ISearchResult> Skip(int skip)
         {
-            return new DecrementReaderResult(base.GetEnumerator(), LuceneSearcher);
+            return new SkipEnumerable(base.Skip(skip).GetEnumerator(), LuceneSearcher);
         }
+
     }
 }

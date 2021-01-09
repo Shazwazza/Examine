@@ -17,6 +17,32 @@ namespace Examine.Test.Search
     public class MultiIndexSearch
     {
         [Test]
+        public void Dont_Initialize_Searchers_On_Dispose_If_Not_Already_Initialized()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneDir2 = new RandomIdRAMDirectory())
+            using (var luceneDir3 = new RandomIdRAMDirectory())
+            using (var luceneDir4 = new RandomIdRAMDirectory())
+            using (var indexer1 = new TestIndex(luceneDir1, analyzer))
+            using (var indexer2 = new TestIndex(luceneDir2, analyzer))
+            using (var indexer3 = new TestIndex(luceneDir3, analyzer))
+            using (var indexer4 = new TestIndex(luceneDir4, analyzer))
+            {
+                var searcher = new MultiIndexSearcher("testSearcher",
+                    new[] { indexer1, indexer2, indexer3, indexer4 },
+                    analyzer);
+
+                Assert.IsFalse(searcher.SearchersInitialized);
+
+                searcher.Dispose();
+
+                Assert.IsFalse(searcher.SearchersInitialized);
+            }
+        }
+
+        [Test]
         public void MultiIndex_Simple_Search()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
@@ -38,17 +64,18 @@ namespace Examine.Test.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
-                var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] {indexer1, indexer2, indexer3, indexer4},
-                    analyzer);
-
-                var result = searcher.Search("darkness");
-
-                Assert.AreEqual(4, result.TotalItemCount);
-                foreach (var r in result)
+                using (var searcher = new MultiIndexSearcher("testSearcher",
+                    new[] { indexer1, indexer2, indexer3, indexer4 },
+                    analyzer))
                 {
-                    Console.WriteLine("Score = " + r.Score);
-                }
+                    var result = searcher.Search("darkness");
+
+                    Assert.AreEqual(4, result.TotalItemCount);
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine("Score = " + r.Score);
+                    }
+                }   
             }
         }
 
@@ -73,17 +100,18 @@ namespace Examine.Test.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
 
-                var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] {indexer1, indexer2, indexer3, indexer4},
-                    analyzer);
-
-                var result = searcher.GetAllIndexedFields();
-                //will be item1 , item2, item3, and item4
-                Assert.AreEqual(4, result.Count());
-                foreach (var s in new[] { "item1", "item2", "item3", "item4" })
+                using (var searcher = new MultiIndexSearcher("testSearcher",
+                    new[] { indexer1, indexer2, indexer3, indexer4 },
+                    analyzer))
                 {
-                    Assert.IsTrue(result.Contains(s));
-                }
+                    var result = searcher.GetAllIndexedFields();
+                    //will be item1 , item2, item3, and item4
+                    Assert.AreEqual(4, result.Count());
+                    foreach (var s in new[] { "item1", "item2", "item3", "item4" })
+                    {
+                        Assert.IsTrue(result.Contains(s));
+                    }
+                }   
             }
         }
 

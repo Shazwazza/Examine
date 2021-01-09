@@ -144,6 +144,7 @@
     </Compile>
     <Compile Include="AzureDirectoryTests\IntegrationTests.cs" />
     <Compile Include="Extensions\SpatialSearch.cs" />
+    <Compile Include="Search\LuceneSearchResultsReaderTrackerTests.cs" />
     <Compile Include="AzureDirectoryTests\ReadOnlyTest.cs" />
     <Compile Include="OrderedDictionaryTests.cs" />
     <Compile Include="RandomIdRAMDirectory.cs" />

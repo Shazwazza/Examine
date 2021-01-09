@@ -14,6 +14,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Providers
 {
+
     ///<summary>
     /// Standard object used to search a Lucene index
     ///</summary>
@@ -252,7 +253,7 @@ namespace Examine.LuceneEngine.Providers
             private readonly LuceneSearcher _luceneSearcher;
             private DateTime _timestamp;
             private Timer _timer;
-            private readonly object _locker = new object();
+            private readonly object _reopenerLocker = new object();
             private bool _isLongPoll = false;
             private const int WaitMilliseconds = 2000; //only wait 2 seconds to check
 
@@ -271,10 +272,9 @@ namespace Examine.LuceneEngine.Providers
                 _luceneSearcher = indexer;
             }
 
-            
             public void ScheduleReopen()
             {
-                lock (_locker)
+                lock (_reopenerLocker)
                 {
                     var wasLongPoll = _isLongPoll;
                     _isLongPoll = false;
@@ -361,10 +361,9 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            
             private void TimerRelease()
             {
-                lock (_locker)
+                lock (_reopenerLocker)
                 {
                     _isLongPoll = false;
 
@@ -399,7 +398,7 @@ namespace Examine.LuceneEngine.Providers
 
             protected override void DisposeResources()
             {
-                lock (_locker)
+                lock (_reopenerLocker)
                 {
                     //if the timer is not null then a commit has been scheduled
                     if (_timer != null)
@@ -410,7 +409,6 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            
             private void StartLongPoll()
             {
                 //if no timer, we are not NRT and we are not currently in long poll mode then
@@ -423,7 +421,6 @@ namespace Examine.LuceneEngine.Providers
                     _isLongPoll = true;
                 }
             }
-
             
             private void MaybeReopen()
             {
@@ -432,7 +429,10 @@ namespace Examine.LuceneEngine.Providers
                     case ReaderStatus.Current:
                         break;
                     case ReaderStatus.Closed:
-                        lock (_locker)
+
+                        // NOTE: Even though in ValidateSearcher a different _locker is used to open a reader, we know that this
+                        // will not have contenion on that lock since it's only used one time and after that the reader-reopener is used.
+                        lock (_reopenerLocker)
                         {
                             //get a reader - could be NRT or based on directly depending on how this was constructed
                             _luceneSearcher._reader = _luceneSearcher._nrtWriter == null
@@ -447,7 +447,7 @@ namespace Examine.LuceneEngine.Providers
                         break;
                     case ReaderStatus.NotCurrent:
 
-                        lock (_locker)
+                        lock (_reopenerLocker)
                         {
                             IndexReader newReader;
 

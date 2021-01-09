@@ -1103,11 +1103,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
@@ -1130,8 +1126,6 @@ namespace Examine.Test.Search
                 //Assert
                 Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
             }
-
-
         }
 
         [Test]
