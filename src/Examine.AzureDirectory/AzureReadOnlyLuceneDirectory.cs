@@ -80,7 +80,7 @@ namespace Examine.AzureDirectory
                     CacheDirectory.TouchFile(file);
                 }
                 var blob = GetBlobClient(RootFolder + file);
-                AzureHelper.SyncFile(CacheDirectory,blob, file,RootFolder,CompressBlobs);
+                _helper.SyncFile(CacheDirectory,blob, file,RootFolder,CompressBlobs);
             }
         }
         protected override void HandleOutOfSync()
@@ -110,7 +110,7 @@ namespace Examine.AzureDirectory
                         continue;
                     }
                     var blob = _blobContainer.GetBlobClient(RootFolder + file);
-                    AzureHelper.SyncFile(newIndex, blob, file,RootFolder,CompressBlobs);
+                    _helper.SyncFile(newIndex, blob, file,RootFolder,CompressBlobs);
                 }
 
                 var oldIndex = CacheDirectory;

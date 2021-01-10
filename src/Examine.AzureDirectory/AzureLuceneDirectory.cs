@@ -18,7 +18,7 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureLuceneDirectory : ExamineDirectory
     {
-        internal readonly string _storageAccountConnectionString;
+        private readonly string _storageAccountConnectionString;
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
@@ -26,6 +26,7 @@ namespace Examine.AzureDirectory
         private readonly string _containerName;
         protected BlobContainerClient _blobContainer;
         protected LockFactory _lockFactory;
+        protected readonly AzureHelper _helper;
         private readonly IAzureIndexOutputFactory _azureIndexOutputFactory;
         private readonly IAzureIndexInputFactory _azureIndexInputFactory;
 
@@ -45,8 +46,7 @@ namespace Examine.AzureDirectory
         public AzureLuceneDirectory(
             string connectionString,
             string containerName,
-            Lucene.Net.Store.Directory cacheDirectory,
-            bool compressBlobs = false,
+            Lucene.Net.Store.Directory cacheDirectory,  bool compressBlobs = false,
             string rootFolder = null)
         {
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
@@ -55,6 +55,7 @@ namespace Examine.AzureDirectory
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
             _storageAccountConnectionString = connectionString;
             CacheDirectory = cacheDirectory;
+            _helper = new AzureHelper();
             _containerName = containerName.ToLower();
             _lockFactory = GetLockFactory();
             RootFolder = NormalizeContainerRootFolder(rootFolder);
@@ -132,7 +133,7 @@ namespace Examine.AzureDirectory
             {
                 CacheDirectory.TouchFile(file);
                 var blob = GetBlobClient(RootFolder + file);
-                AzureHelper.SyncFile(CacheDirectory, blob, file, RootFolder, CompressBlobs);
+                _helper.SyncFile(CacheDirectory, blob, file, RootFolder, CompressBlobs);
             }
         }
 
@@ -526,12 +527,12 @@ namespace Examine.AzureDirectory
 
         public virtual void EnsureContainer()
         {
-            _blobContainer = AzureHelper.EnsureContainer(_storageAccountConnectionString, _containerName);
+            _blobContainer = _helper.EnsureContainer(_storageAccountConnectionString, _containerName);
         }
 
         public virtual bool ShouldCompressFile(string name)
         {
-           return AzureHelper.ShouldCompressFile(name, CompressBlobs);
+           return _helper.ShouldCompressFile(name, CompressBlobs);
         }
     }
 }

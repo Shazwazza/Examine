@@ -6,10 +6,10 @@ using Examine.LuceneEngine.Directories;
 
 namespace Examine.AzureDirectory
 {
-    public static class AzureHelper
+    public  class AzureHelper
     {
         /// <summary>. </summary>
-        public static void SyncFile(Lucene.Net.Store.Directory directory, BlobClient _blob, string fileName,string RootFolder, bool CompressBlobs)
+        public void SyncFile(Lucene.Net.Store.Directory directory, BlobClient _blob, string fileName,string RootFolder, bool CompressBlobs)
         {
             Trace.WriteLine($"INFO Syncing file {fileName} for {RootFolder}");
             // then we will get it fresh into local deflatedName 
@@ -58,18 +58,18 @@ namespace Examine.AzureDirectory
 
             }
         }
-        public static BlobContainerClient EnsureContainer(string _storageAccountConnectionString,string _containerName)
+        public BlobContainerClient EnsureContainer(string _storageAccountConnectionString,string _containerName)
         {
             Trace.WriteLine($"DEBUG Ensuring container ({_containerName}) exists");
            var blobContainer = GetBlobContainerClient(_storageAccountConnectionString,_containerName);
            blobContainer.CreateIfNotExists();
             return blobContainer;
         }
-        public static BlobContainerClient GetBlobContainerClient(string _storageAccountConnectionString,string containerName)
+        public BlobContainerClient GetBlobContainerClient(string _storageAccountConnectionString,string containerName)
         {
             return new BlobContainerClient(_storageAccountConnectionString, containerName);
         }
-        public static bool ShouldCompressFile(string path, bool compressBlobs)
+        public bool ShouldCompressFile(string path, bool compressBlobs)
         {
             if (!compressBlobs)
                 return false;
