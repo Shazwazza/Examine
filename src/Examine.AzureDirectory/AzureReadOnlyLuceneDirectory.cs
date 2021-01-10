@@ -123,18 +123,33 @@ namespace Examine.AzureDirectory
                 {
                     try
                     {
-                        oldIndex.ClearLock(lockprefix+"-write.lock");
+                        if (!string.IsNullOrEmpty(LockFactory.LockPrefix))
+                        {
+                            oldIndex.ClearLock(LockFactory.LockPrefix + "-write.lock");
+                        }
+                        else
+                        {
+                            oldIndex.ClearLock("write.lock");
+                        }
+                            
                     }
                     catch (Exception ex)
                     {
-
+                        Trace.WriteLine($"Error: {ex.ToString()}");
                     }
-                    foreach (var file in oldIndex.ListAll())
+                    try
                     {
-                        if (oldIndex.FileExists(file))
+                        foreach (var file in oldIndex.ListAll())
                         {
-                            oldIndex.DeleteFile(file);
+                            if (oldIndex.FileExists(file))
+                            {
+                                oldIndex.DeleteFile(file);
+                            }
                         }
+                    }
+                    catch (NoSuchDirectoryException ex)
+                    {
+                        Trace.WriteLine($"Error: Old Local Sync Directory Empty. {ex.ToString()}");
                     }
                     oldIndex.Dispose();
                     DirectoryInfo oldindex = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
