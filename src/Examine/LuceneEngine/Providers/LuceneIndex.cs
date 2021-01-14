@@ -135,6 +135,8 @@ namespace Examine.LuceneEngine.Providers
             LuceneIndexFolder = null;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
         }
 
 
@@ -220,7 +222,12 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Used to cancel the async operation
         /// </summary>
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource;
+
+        /// <summary>
+        /// Gets the token from the token source
+        /// </summary>
+        private CancellationToken _cancellationToken;
 
         #endregion
 
@@ -273,7 +280,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// returns true if the indexer has been canceled (app is shutting down)
         /// </summary>
-        protected bool IsCancellationRequested => _cancellationTokenSource.IsCancellationRequested;
+        protected bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
 
         #endregion
 
@@ -430,6 +437,7 @@ namespace Examine.LuceneEngine.Providers
                             finally
                             {
                                 _cancellationTokenSource = new CancellationTokenSource();
+                                _cancellationToken = _cancellationTokenSource.Token;
                             }
                         }
                     }
@@ -486,7 +494,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public override void CreateIndex()
         {
-            if (_cancellationTokenSource.IsCancellationRequested)
+            if (IsCancellationRequested)
             {
                 OnIndexingError(new IndexingErrorEventArgs(this, "Cannot create a new index, indexing cancellation has been requested", null, null));
                 return;
@@ -528,7 +536,7 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         public void OptimizeIndex()
         {
-            if (_cancellationTokenSource.IsCancellationRequested)
+            if (IsCancellationRequested)
             {
                 OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, index cancellation has been requested", null, null), true);
                 return;
@@ -734,6 +742,9 @@ namespace Examine.LuceneEngine.Providers
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
             //copy to a new dictionary, there has been cases of an exception "Collection was modified; enumeration operation may not execute."
+            // TODO: This is because ValueSet can be shared between indexes (same value set passed to each)
+            // we should remove this since this will cause mem overheads and it's not actually going to fix the problem since it's only copying
+            // this dictionary but not the entire value set
             foreach (var field in CopyDictionary(valueSet.Values))
             {
                 //check if we have a defined one
@@ -798,45 +809,37 @@ namespace Examine.LuceneEngine.Providers
                 var isNewTask = false;
                 if (!_isIndexing)
                 {
+                    // NOTE: If the cancellation token is canceled it just means the tasks will not run. Previously we were passing
+                    // in the cancelation token via the source like _cancellationTokenSource.Token which will throw an exception if
+                    // it's disposed and that was incorrect. Now we just pass in the token, an exception will not occur and the task
+                    // will respect the token.
+
                     //don't run the worker if it's currently running since it will just pick up the rest of the queue during its normal operation                    
                     lock (_indexingLocker)
                     {
                         if (!_isIndexing && (_asyncTask == null || _asyncTask.IsCompleted))
                         {
-                            if (!_cancellationTokenSource.IsCancellationRequested)
-                            {
-                                isNewTask = true;
+                            isNewTask = true;
 
-                                // TODO: Like the note below says, the token can be canceled before running here
-                                // so potentially that cancelation doesn't happen inside the same _indexingLocker and
-                                // have seen exceptions when passing this to Run or ContinueWith which we should prevent
-
-                                _asyncTask = Task.Run(
-                                    () =>
-                                    {
-                                        //Ensure the indexing processes is using an invariant culture
-                                        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                                        return ProcessQueueItemsLocked();
-                                    },
-                                    _cancellationTokenSource.Token);
-
-                                // when the task is done call the complete callback
-                                // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
-                                // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
-                                if (onComplete != null)
+                            _asyncTask = Task.Run(
+                                () =>
                                 {
+                                    //Ensure the indexing processes is using an invariant culture
+                                    Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+                                    return ProcessQueueItemsLocked();
+                                },
+                                _cancellationToken);
 
-                                    // it is possible that the cancelation token can be canceled when this is called which will throw an exception
-                                    // and is only caught by the unhandled exception handler so we need to be pro-active here
-                                    if (!_cancellationTokenSource.IsCancellationRequested)
-                                    {
-                                        _asyncTask.ContinueWith(
-                                            task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
-                                            _cancellationTokenSource.Token,
-                                            TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
-                                            TaskScheduler.Default);
-                                    }
-                                }
+                            // when the task is done call the complete callback
+                            // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
+                            // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
+                            if (onComplete != null)
+                            {
+                                _asyncTask.ContinueWith(
+                                        task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
+                                        _cancellationToken,
+                                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
+                                        TaskScheduler.Default);
                             }
                         }
                     }
@@ -852,16 +855,11 @@ namespace Examine.LuceneEngine.Providers
                     // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
                     if (onComplete != null)
                     {
-                        // it is possible that the cancelation token can be canceled when this is called which will throw an exception
-                        // and is only caught by the unhandled exception handler so we need to be pro-active here
-                        if (!_cancellationTokenSource.IsCancellationRequested)
-                        {
-                            _asyncTask?.ContinueWith(
+                        _asyncTask?.ContinueWith(
                                 task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
-                                _cancellationTokenSource.Token,
+                                _cancellationToken,
                                 TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
                                 TaskScheduler.Default);
-                        }
                     }
                 }
             }
@@ -877,7 +875,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 lock (_indexingLocker)
                 {
-                    if (!_isIndexing && !_cancellationTokenSource.IsCancellationRequested)
+                    if (!_isIndexing && !IsCancellationRequested)
                     {
 
                         _isIndexing = true;
@@ -967,7 +965,7 @@ namespace Examine.LuceneEngine.Providers
                 else
                 {
                     //index while we're not cancelled and while there's items in there
-                    while (!_cancellationTokenSource.IsCancellationRequested && _indexQueue.TryTake(out var batch))
+                    while (!IsCancellationRequested && _indexQueue.TryTake(out var batch))
                         foreach (var item in batch)
                             if (ProcessQueueItem(item, writer))
                                 indexedNodes++;
@@ -1028,7 +1026,7 @@ namespace Examine.LuceneEngine.Providers
                     if (_timer == null)
                     {
                         //if we've been cancelled then be sure to commit now
-                        if (_index._cancellationTokenSource.IsCancellationRequested)
+                        if (_index.IsCancellationRequested)
                         {
                             //perform the commit
                             _index._writer?.Commit();
@@ -1044,7 +1042,7 @@ namespace Examine.LuceneEngine.Providers
                     else
                     {
                         //if we've been cancelled then be sure to cancel the timer and commit now
-                        if (_index._cancellationTokenSource.IsCancellationRequested)
+                        if (_index.IsCancellationRequested)
                         {
                             //Stop the timer
                             _timer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -1133,7 +1131,7 @@ namespace Examine.LuceneEngine.Providers
         protected void QueueIndexOperation(IndexOperation op)
         {
             //don't queue if there's been a cancellation requested
-            if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
+            if (!IsCancellationRequested && !_indexQueue.IsAddingCompleted)
             {
                 _indexQueue.Add(new[] { op });
             }
@@ -1152,7 +1150,7 @@ namespace Examine.LuceneEngine.Providers
         protected void QueueIndexOperation(IEnumerable<IndexOperation> ops)
         {
             //don't queue if there's been a cancellation requested
-            if (!_cancellationTokenSource.IsCancellationRequested && !_indexQueue.IsAddingCompleted)
+            if (!IsCancellationRequested && !_indexQueue.IsAddingCompleted)
             {
                 _indexQueue.Add(ops);
             }
@@ -1335,30 +1333,6 @@ namespace Examine.LuceneEngine.Providers
             return true;
         }
 
-        /// <summary>
-        /// Creates the folder if it does not exist.
-        /// </summary>
-        /// <param name="folder"></param>
-        private bool VerifyFolder(DirectoryInfo folder)
-        {
-            if (folder == null)
-                return false;
-
-            if (!System.IO.Directory.Exists(folder.FullName))
-            {
-                lock (_folderLocker)
-                {
-                    if (!System.IO.Directory.Exists(folder.FullName))
-                    {
-                        System.IO.Directory.CreateDirectory(folder.FullName);
-                        folder.Refresh();
-                    }
-                }
-            }
-
-            return true;
-        }
-
         #endregion
 
         /// <summary>
@@ -1426,7 +1400,9 @@ namespace Examine.LuceneEngine.Providers
                 {
                     if (_index.WaitForIndexQueueOnShutdown)
                     {
-                        //process remaining items and block until complete
+                        // process remaining items and block until complete
+                        // NOTE: Even though the cancelation token is canceled, the 'true' value to block
+                        // will not check the cancelation token
                         _index.ForceProcessQueueItems(true);
                     }
                 }
