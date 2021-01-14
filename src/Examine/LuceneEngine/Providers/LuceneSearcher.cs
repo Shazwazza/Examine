@@ -71,8 +71,6 @@ namespace Examine.LuceneEngine.Providers
 
         public FieldValueTypeCollection FieldValueTypeCollection { get; }
 
-
-
         /// <summary>
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
@@ -183,9 +181,10 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private bool ValidateSearcher()
         {
-            //can't proceed if there's no index
-            if (!IndexExistsImpl()) return false;
             if (_disposed) return false;
+
+            //can't proceed if there's no index
+            if (!IndexExistsImpl()) return false;            
 
             //TODO: Would be nicer if this used LazyInitializer instead of double check locking
 

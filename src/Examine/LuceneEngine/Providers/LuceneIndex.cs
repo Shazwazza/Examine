@@ -473,7 +473,7 @@ namespace Examine.LuceneEngine.Providers
                 writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
 
                 // clear out current scheduler and set the error logging one
-                using (writer.MergeScheduler) { }
+                writer.MergeScheduler.Dispose();
                 writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
                     (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
 
@@ -979,8 +979,6 @@ namespace Examine.LuceneEngine.Providers
                 {
                     //commit the changes (this will process the deletes too)
                     writer.Commit();
-
-                    writer.WaitForMerges();
                 }
                 else
                 {
@@ -1240,7 +1238,7 @@ namespace Examine.LuceneEngine.Providers
             var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 
             // clear out current scheduler and set the error logging one
-            using (writer.MergeScheduler) { }
+            writer.MergeScheduler.Dispose();
             writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
                 (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
 
@@ -1385,6 +1383,10 @@ namespace Examine.LuceneEngine.Providers
 
             protected override void DisposeResources()
             {
+                if (_index._searcher.IsValueCreated)
+                {
+                    _index._searcher.Value.Dispose();
+                }
 
                 if (_index.WaitForIndexQueueOnShutdown)
                 {
@@ -1420,7 +1422,23 @@ namespace Examine.LuceneEngine.Providers
                 //close the committer, this will ensure a final commit is made if one has been queued
                 _index._committer.Dispose();
 
-                _index._writer?.Dispose();
+                try
+                {
+                    _index._writer.Analyzer.Dispose();
+                }
+                catch (Exception e)
+                {
+                    _index.OnIndexingError(new IndexingErrorEventArgs(_index, "Error closing the index analyzer", "-1", e));
+                }
+
+                try
+                {
+                    _index._writer.Dispose(true);
+                }
+                catch (Exception e)
+                {
+                    _index.OnIndexingError(new IndexingErrorEventArgs(_index, "Error closing the index", "-1", e));
+                }
 
                 _index._cancellationTokenSource.Dispose();
 
@@ -1450,12 +1468,6 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public void Dispose()
         {
-            //TODO: Dispose writer??
-
-            if (_searcher.IsValueCreated)
-            {
-                _searcher.Value.Dispose();
-            }
             _disposer.Dispose();
         }
 
