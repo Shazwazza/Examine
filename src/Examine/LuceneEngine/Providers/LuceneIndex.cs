@@ -82,6 +82,8 @@ namespace Examine.LuceneEngine.Providers
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
         }
 
         
