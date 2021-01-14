@@ -70,7 +70,6 @@ namespace Examine.LuceneEngine.Providers
            : base(name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
         {
             _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
-            _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
 
             LuceneIndexFolder = null;
@@ -126,7 +125,6 @@ namespace Examine.LuceneEngine.Providers
                : base(name, fieldDefinitions, validator)
         {
             _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
-            _disposer = new DisposableIndex(this);
             _committer = new IndexCommiter(this);
 
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
@@ -146,6 +144,11 @@ namespace Examine.LuceneEngine.Providers
         #endregion
 
         #region Constants & Fields
+
+        private readonly Directory _directory;
+        private FileStream _logOutput;
+        private bool _disposedValue;
+        private readonly IndexCommiter _committer;
 
         private volatile IndexWriter _writer;
 
@@ -1162,8 +1165,6 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        private readonly Directory _directory;
-
         /// <summary>
         /// Returns the Lucene Directory used to store the index
         /// </summary>
@@ -1172,8 +1173,6 @@ namespace Examine.LuceneEngine.Providers
         {
             return _writer != null ? _writer.Directory : _directory;
         }
-
-        private FileStream _logOutput;
 
         /// <summary>
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
@@ -1363,117 +1362,6 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        #region IDisposable Members
-
-        private readonly DisposableIndex _disposer;
-        private readonly IndexCommiter _committer;
-
-        private class DisposableIndex : DisposableObjectSlim
-        {
-            private readonly LuceneIndex _index;
-
-            public DisposableIndex(LuceneIndex index)
-            {
-                _index = index;
-            }
-
-            /// <summary>
-            /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
-            /// </summary>
-
-            protected override void DisposeResources()
-            {
-                if (_index._searcher.IsValueCreated)
-                {
-                    _index._searcher.Value.Dispose();
-                }
-
-                if (_index.WaitForIndexQueueOnShutdown)
-                {
-                    //if there are active adds, lets way/retry (5 seconds)
-                    RetryUntilSuccessOrTimeout(() => _index._activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
-                }
-
-                //cancel any operation currently in place
-                _index._cancellationTokenSource.Cancel();
-
-                //ensure nothing more can be added
-                _index._indexQueue.CompleteAdding();
-
-                if (_index._writer != null)
-                {
-                    if (_index.WaitForIndexQueueOnShutdown)
-                    {
-                        // process remaining items and block until complete
-                        // NOTE: Even though the cancelation token is canceled, the 'true' value to block
-                        // will not check the cancelation token
-                        _index.ForceProcessQueueItems(true);
-                    }
-                }
-
-                //dispose it now
-                _index._indexQueue.Dispose();
-
-                //Don't close the writer until there are definitely no more writes
-                //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
-                //we are not terminating Lucene while it is actively writing to the index.
-                RetryUntilSuccessOrTimeout(() => _index._activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
-
-                //close the committer, this will ensure a final commit is made if one has been queued
-                _index._committer.Dispose();
-
-                try
-                {
-                    _index._writer.Analyzer.Dispose();
-                }
-                catch (Exception e)
-                {
-                    _index.OnIndexingError(new IndexingErrorEventArgs(_index, "Error closing the index analyzer", "-1", e));
-                }
-
-                try
-                {
-                    _index._writer.Dispose(true);
-                }
-                catch (Exception e)
-                {
-                    _index.OnIndexingError(new IndexingErrorEventArgs(_index, "Error closing the index", "-1", e));
-                }
-
-                _index._cancellationTokenSource.Dispose();
-
-                _index._logOutput?.Close();
-            }
-
-            private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)
-            {
-
-                if (pause.TotalMilliseconds < 0)
-                {
-                    throw new ArgumentException("pause must be >= 0 milliseconds");
-                }
-                var stopwatch = Stopwatch.StartNew();
-                do
-                {
-                    if (task()) { return true; }
-                    Thread.Sleep((int)pause.TotalMilliseconds);
-                }
-                while (stopwatch.Elapsed < timeout);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            _disposer.Dispose();
-        }
-
-        #endregion
-
-
         public Task<long> GetDocumentCountAsync()
         {
             var writer = GetIndexWriter();
@@ -1486,6 +1374,94 @@ namespace Examine.LuceneEngine.Providers
             return Task.FromResult((IEnumerable<string>)writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL));
         }
 
+        private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)
+        {
+            if (pause.TotalMilliseconds < 0)
+            {
+                throw new ArgumentException("pause must be >= 0 milliseconds");
+            }
+            var stopwatch = Stopwatch.StartNew();
+            do
+            {
+                if (task()) { return true; }
+                Thread.Sleep((int)pause.TotalMilliseconds);
+            }
+            while (stopwatch.Elapsed < timeout);
+            return false;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    if (_searcher.IsValueCreated)
+                    {
+                        _searcher.Value.Dispose();
+                    }
+
+                    if (WaitForIndexQueueOnShutdown)
+                    {
+                        //if there are active adds, lets way/retry (5 seconds)
+                        RetryUntilSuccessOrTimeout(() => _activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
+                    }
+
+                    //cancel any operation currently in place
+                    _cancellationTokenSource.Cancel();
+
+                    //ensure nothing more can be added
+                    _indexQueue.CompleteAdding();
+
+                    if (_writer != null)
+                    {
+                        if (WaitForIndexQueueOnShutdown)
+                        {
+                            // process remaining items and block until complete
+                            // NOTE: Even though the cancelation token is canceled, the 'true' value to block
+                            // will not check the cancelation token
+                            ForceProcessQueueItems(true);
+                        }
+                    }
+
+                    //dispose it now
+                    _indexQueue.Dispose();
+
+                    //Don't close the writer until there are definitely no more writes
+                    //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
+                    //we are not terminating Lucene while it is actively writing to the index.
+                    RetryUntilSuccessOrTimeout(() => _activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
+
+                    //close the committer, this will ensure a final commit is made if one has been queued
+                    _committer.Dispose();
+
+                    try
+                    {
+                        _writer?.Analyzer.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index analyzer", "-1", e));
+                    }
+
+                    try
+                    {
+                        _writer?.Dispose(true);
+                    }
+                    catch (Exception e)
+                    {
+                        OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
+                    }
+
+                    _cancellationTokenSource.Dispose();
+
+                    _logOutput?.Close();
+                }
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose() => Dispose(disposing: true);
     }
 
 

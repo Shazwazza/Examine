@@ -32,7 +32,6 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher(string name, IndexWriter writer, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
-            _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
             _nrtWriter = writer ?? throw new ArgumentNullException(nameof(writer));
             FieldValueTypeCollection = fieldValueTypeCollection;
@@ -48,7 +47,6 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher(string name, Directory luceneDirectory, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
-            _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
             _directory = luceneDirectory;
             FieldValueTypeCollection = fieldValueTypeCollection;
@@ -482,56 +480,39 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        #region IDisposable Members
-
-        private readonly DisposableSearcher _disposer;
-
-        private class DisposableSearcher : DisposableObjectSlim
+        protected virtual void Dispose(bool disposing)
         {
-            private readonly LuceneSearcher _searcher;
-
-            public DisposableSearcher(LuceneSearcher searcher)
+            if (!_disposed)
             {
-                _searcher = searcher;
-            }
-
-            /// <summary>
-            /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
-            /// </summary>
-            
-            protected override void DisposeResources()
-            {
-                _searcher._disposed = true;
-                if (_searcher?._reader != null)
+                if (disposing)
                 {
-                    try
+                    if (_reader != null)
                     {
-                        //this will close if there are no readers remaining, otherwise if there 
-                        // are readers remaining they will be auto-shut down based on the DecrementReaderResult
-                        // that would still have it in use (i.e. this actually just called DecRef underneath)
-                        _searcher?._reader.Dispose();
+                        try
+                        {
+                            //this will close if there are no readers remaining, otherwise if there 
+                            // are readers remaining they will be auto-shut down based on the DecrementReaderResult
+                            // that would still have it in use (i.e. this actually just called DecRef underneath)
+                            _reader.Dispose();
+                        }
+                        catch (AlreadyClosedException)
+                        {
+                            //if this happens, more than one instance has decreased referenced, this could occur if the 
+                            // DecrementReaderResult never disposed, which occurs if people don't actually iterate the 
+                            // result collection.
+                        }
                     }
-                    catch (AlreadyClosedException)
-                    {
-                        //if this happens, more than one instance has decreased referenced, this could occur if the 
-                        // DecrementReaderResult never disposed, which occurs if people don't actually iterate the 
-                        // result collection.
-                    }
+
+                    //close the reopener
+                    _reopener.Dispose();
                 }
-                //close the reopener
-                _searcher?._reopener.Dispose();                
+
+                _disposed = true;
             }
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            _disposer.Dispose();
-        }
+        public void Dispose() => Dispose(disposing: true);
 
-        #endregion
     }
 
 }
