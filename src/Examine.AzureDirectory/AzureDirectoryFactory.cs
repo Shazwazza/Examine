@@ -29,7 +29,8 @@ namespace Examine.AzureDirectory
         /// Get/set the config container key
         /// </summary>
         public static string ConfigContainerKey { get; set; } = "examine:AzureStorageContainer";
-
+        
+        
         /// <summary>
         /// Return the AzureDirectory.
         /// It stores the master index in Blob storage.
@@ -47,6 +48,7 @@ namespace Examine.AzureDirectory
             var directory = new AzureLuceneDirectory(
                 GetStorageAccountConnectionString(),
                 GetContainerName(),
+                new AzureHelper(),
                 GetLocalCacheDirectory(luceneIndexFolder),
                 rootFolder: luceneIndexFolder.Name);
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));

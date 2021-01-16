@@ -10,9 +10,9 @@ namespace Examine.AzureDirectory
 {
     public class AzureIndexInputFactory : IAzureIndexInputFactory
     {
-        public IndexInput GetIndexInput(AzureLuceneDirectory azuredirectory, BlobClient blob)
+        public IndexInput GetIndexInput(AzureLuceneDirectory azuredirectory, BlobClient blob, AzureHelper helper)
         {
-            return new AzureIndexInput(azuredirectory, blob);
+            return new AzureIndexInput(azuredirectory, blob, helper);
         }
     }
 }

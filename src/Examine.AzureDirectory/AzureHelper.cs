@@ -6,7 +6,7 @@ using Examine.LuceneEngine.Directories;
 
 namespace Examine.AzureDirectory
 {
-    public  class AzureHelper
+    public class AzureHelper
     {
         /// <summary>. </summary>
         public void SyncFile(Lucene.Net.Store.Directory directory, BlobClient _blob, string fileName,string RootFolder, bool CompressBlobs)

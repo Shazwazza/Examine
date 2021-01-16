@@ -45,8 +45,10 @@ namespace Examine.AzureDirectory
         /// </param>
         public AzureLuceneDirectory(
             string connectionString,
-            string containerName,
-            Lucene.Net.Store.Directory cacheDirectory,  bool compressBlobs = false,
+            string containerName, 
+            AzureHelper azurelper,
+            Lucene.Net.Store.Directory cacheDirectory,  
+            bool compressBlobs = false,
             string rootFolder = null)
         {
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
@@ -55,7 +57,7 @@ namespace Examine.AzureDirectory
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
             _storageAccountConnectionString = connectionString;
             CacheDirectory = cacheDirectory;
-            _helper = new AzureHelper();
+            _helper =azurelper;
             _containerName = containerName.ToLower();
             _lockFactory = GetLockFactory();
             RootFolder = NormalizeContainerRootFolder(rootFolder);
@@ -355,7 +357,7 @@ namespace Examine.AzureDirectory
 
             if (TryGetBlobFile(name, out var blob, out var err))
             {
-                return _azureIndexInputFactory.GetIndexInput(this, blob);
+                return _azureIndexInputFactory.GetIndexInput(this, blob, _helper);
             }
             else
             {

@@ -25,6 +25,7 @@ namespace Examine.AzureDirectory
                 GetContainerName(),
                 tempFolder,
                 indexName,
+                new AzureHelper(),
                 rootFolder: luceneIndexFolder.Name);
        
 

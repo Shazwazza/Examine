@@ -5,6 +5,6 @@ namespace Examine.AzureDirectory
 {
     public interface IAzureIndexInputFactory
     {
-        IndexInput GetIndexInput(AzureLuceneDirectory azuredirectory, BlobClient blob);
+        IndexInput GetIndexInput(AzureLuceneDirectory azuredirectory, BlobClient blob, AzureHelper helper);
     }
 }

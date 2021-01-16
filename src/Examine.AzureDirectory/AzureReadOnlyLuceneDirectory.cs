@@ -21,9 +21,10 @@ namespace Examine.AzureDirectory
             string storageAccount,
             string containerName,
             string cacheDirectoryPath,
-            string cacheDirectoryName,
+            string cacheDirectoryName, 
+            AzureHelper azurelper,
             bool compressBlobs = false,
-            string rootFolder = null) : base(storageAccount, containerName, null, compressBlobs, rootFolder)
+            string rootFolder = null) : base(storageAccount, containerName, azurelper,null, compressBlobs, rootFolder)
         {
             _cacheDirectoryPath = cacheDirectoryPath;
             _cacheDirectoryName = cacheDirectoryName;
