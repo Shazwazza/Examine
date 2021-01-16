@@ -6,6 +6,7 @@ using System.Linq;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Directories;
+using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 
@@ -18,13 +19,10 @@ namespace Examine.AzureDirectory
         private string OldIndexFolderName;
 
         public AzureReadOnlyLuceneDirectory(
-            string storageAccount,
-            string containerName,
             string cacheDirectoryPath,
-            string cacheDirectoryName, 
-            AzureHelper azurelper,
-            bool compressBlobs = false,
-            string rootFolder = null) : base(storageAccount, containerName, azurelper,null, compressBlobs, rootFolder)
+            string cacheDirectoryName,
+            IRemoteDirectory azurelper,
+            bool compressBlobs = false) : base(azurelper, null, compressBlobs)
         {
             _cacheDirectoryPath = cacheDirectoryPath;
             _cacheDirectoryName = cacheDirectoryName;
@@ -44,6 +42,7 @@ namespace Examine.AzureDirectory
         {
             //Do nothing
         }
+
         private void CreateOrReadCache()
         {
             var indexParentFolder = new DirectoryInfo(
@@ -67,33 +66,33 @@ namespace Examine.AzureDirectory
             else
             {
                 RebuildCache();
-
             }
         }
 
         public void ResyncCache()
         {
-           
             foreach (string file in GetAllBlobFiles())
             {
                 if (CacheDirectory.FileExists(file))
                 {
                     CacheDirectory.TouchFile(file);
                 }
-                var blob = GetBlobClient(RootFolder + file);
-                _helper.SyncFile(CacheDirectory,blob, file,RootFolder,CompressBlobs);
+
+                _helper.SyncFile(CacheDirectory, file, CompressBlobs);
             }
         }
+
         protected override void HandleOutOfSync()
         {
             ResyncCache();
         }
+
         private object _rebuildLock = new object();
+
         public override void RebuildCache()
         {
             lock (_rebuildLock)
             {
-
                 //Needs locking
                 Trace.WriteLine("INFO Rebuilding cache");
                 var tempDir = new DirectoryInfo(
@@ -110,8 +109,8 @@ namespace Examine.AzureDirectory
                     {
                         continue;
                     }
-                    var blob = _blobContainer.GetBlobClient(RootFolder + file);
-                    _helper.SyncFile(newIndex, blob, file,RootFolder,CompressBlobs);
+
+                    _helper.SyncFile(newIndex, file, CompressBlobs);
                 }
 
                 var oldIndex = CacheDirectory;
@@ -132,12 +131,12 @@ namespace Examine.AzureDirectory
                         {
                             oldIndex.ClearLock("write.lock");
                         }
-                            
                     }
                     catch (Exception ex)
                     {
                         Trace.WriteLine($"Error: {ex.ToString()}");
                     }
+
                     try
                     {
                         foreach (var file in oldIndex.ListAll())
@@ -152,11 +151,13 @@ namespace Examine.AzureDirectory
                     {
                         Trace.WriteLine($"Error: Old Local Sync Directory Empty. {ex.ToString()}");
                     }
+
                     oldIndex.Dispose();
                     DirectoryInfo oldindex = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
                         _cacheDirectoryName, OldIndexFolderName));
                     oldindex.Delete();
                 }
+
                 OldIndexFolderName = tempDir.Name;
             }
         }

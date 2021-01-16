@@ -12,7 +12,7 @@ namespace Examine.AzureDirectory
     {
         public IndexOutput CreateIndexOutput(AzureLuceneDirectory azureDirectory, BlobClient blob, string name)
         {
-            return new AzureIndexOutput(azureDirectory, blob, name);
+            return new RemoteDirectoryIndexOutput(azureDirectory, blob, name);
         }
     }
 }

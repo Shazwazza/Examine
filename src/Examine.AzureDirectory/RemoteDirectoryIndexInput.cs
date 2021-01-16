@@ -13,7 +13,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// Implements IndexInput semantics for a read only blob
     /// </summary>
-    public class AzureIndexInput : IndexInput
+    public class RemoteDirectoryIndexInput : IndexInput
     {
         private AzureLuceneDirectory _azureDirectory;
         private BlobClient _blob;
@@ -24,7 +24,7 @@ namespace Examine.AzureDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexInput(AzureLuceneDirectory azuredirectory, BlobClient blob, AzureHelper helper)
+        public RemoteDirectoryIndexInput(AzureLuceneDirectory azuredirectory, AzureRemoteDirectory helper, string name)
         {
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
             _name = _name.Split(new string[] {"%2F"}, StringSplitOptions.RemoveEmptyEntries).Last();
@@ -92,8 +92,7 @@ namespace Examine.AzureDirectory
                 // or if it exists and it is older then the lastmodified time in the blobproperties (which always comes from the blob storage)
                 if (fFileNeeded)
                 {
-                    helper.SyncFile(CacheDirectory, _blob, fileName, _azureDirectory.RootFolder,
-                        azuredirectory.CompressBlobs);
+                    helper.SyncFile(CacheDirectory, fileName, azuredirectory.CompressBlobs);
 
                     // and open it as an input 
                     _indexInput = CacheDirectory.OpenInput(fileName);
@@ -115,7 +114,7 @@ namespace Examine.AzureDirectory
         }
 
 
-        public AzureIndexInput(AzureIndexInput cloneInput)
+        public RemoteDirectoryIndexInput(RemoteDirectoryIndexInput cloneInput)
         {
             _name = cloneInput._name;
             _azureDirectory = cloneInput._azureDirectory;
@@ -195,7 +194,7 @@ namespace Examine.AzureDirectory
             try
             {
                 _fileMutex.WaitOne();
-                var input = new AzureIndexInput(this);
+                var input = new RemoteDirectoryIndexInput(this);
                 clone = input;
             }
             catch (Exception err)

@@ -96,18 +96,18 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="AzureHelper.cs" />
-    <Compile Include="AzureIndexInputFactory.cs" />
+    <Compile Include="AzureRemoteDirectory.cs" />
+    <Compile Include="RemoteDirectoryIndexInputFactory.cs" />
     <Compile Include="AzureIndexOutputFactory.cs" />
     <Compile Include="AzureLuceneDirectory.cs" />
     <Compile Include="AzureDirectoryFactory.cs" />
     <Compile Include="AzureDirectoryNativeLockFactory.cs" />
-    <Compile Include="AzureDirectorySimpleLockFactory.cs" />
-    <Compile Include="AzureIndexInput.cs" />
-    <Compile Include="AzureIndexOutput.cs" />
+    <Compile Include="RemoteDirectorySimpleLockFactory.cs" />
+    <Compile Include="RemoteDirectoryIndexInput.cs" />
+    <Compile Include="RemoteDirectoryIndexOutput.cs" />
     <Compile Include="AzureReadOnlyLuceneDirectory.cs" />
     <Compile Include="AzureSimpleLock.cs" />
-    <Compile Include="IAzureIndexInputFactory.cs" />
+    <Compile Include="IRemoteDirectoryIndexInputFactory.cs" />
     <Compile Include="IAzureIndexOutputFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadOnlyAzureDirectoryFactory.cs" />

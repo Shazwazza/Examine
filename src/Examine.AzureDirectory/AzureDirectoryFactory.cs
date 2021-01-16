@@ -46,11 +46,8 @@ namespace Examine.AzureDirectory
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
             var directory = new AzureLuceneDirectory(
-                GetStorageAccountConnectionString(),
-                GetContainerName(),
-                new AzureHelper(),
-                GetLocalCacheDirectory(luceneIndexFolder),
-                rootFolder: luceneIndexFolder.Name);
+                new AzureRemoteDirectory(GetStorageAccountConnectionString(),GetContainerName(), luceneIndexFolder.Name),
+                GetLocalCacheDirectory(luceneIndexFolder) );
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
             directory.SetDeletion(new NoDeletionPolicy());

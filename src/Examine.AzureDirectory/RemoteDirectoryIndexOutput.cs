@@ -15,7 +15,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// Implements IndexOutput semantics for a write/append only file
     /// </summary>
-    public class AzureIndexOutput : IndexOutput
+    public class RemoteDirectoryIndexOutput : IndexOutput
     {
         private readonly AzureLuceneDirectory _azureDirectory;
         //private CloudBlobContainer _blobContainer;
@@ -26,7 +26,7 @@ namespace Examine.AzureDirectory
         
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexOutput(AzureLuceneDirectory azureDirectory, BlobClient blob, string name)
+        public RemoteDirectoryIndexOutput(AzureLuceneDirectory azureDirectory, BlobClient blob, string name)
         {
             //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;

@@ -8,6 +8,7 @@ using System.Text.Json;
 using Azure;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
+using Examine.RemoteDirectory;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
@@ -18,17 +19,14 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureLuceneDirectory : ExamineDirectory
     {
-        private readonly string _storageAccountConnectionString;
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
 
-        private readonly string _containerName;
-        protected BlobContainerClient _blobContainer;
         protected LockFactory _lockFactory;
-        protected readonly AzureHelper _helper;
+        protected readonly IRemoteDirectory _helper;
         private readonly IAzureIndexOutputFactory _azureIndexOutputFactory;
-        private readonly IAzureIndexInputFactory _azureIndexInputFactory;
+        private readonly IRemoteDirectoryIndexInputFactory _remoteDirectoryIndexInputFactory;
 
         /// <summary>
         /// Create an AzureDirectory
@@ -44,33 +42,25 @@ namespace Examine.AzureDirectory
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
         public AzureLuceneDirectory(
-            string connectionString,
-            string containerName, 
-            AzureHelper azurelper,
+            IRemoteDirectory azurelper,
             Lucene.Net.Store.Directory cacheDirectory,  
-            bool compressBlobs = false,
-            string rootFolder = null)
+            bool compressBlobs = false)
         {
-            if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
+          
 
-            if (string.IsNullOrWhiteSpace(containerName))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
-            _storageAccountConnectionString = connectionString;
+        
             CacheDirectory = cacheDirectory;
             _helper =azurelper;
-            _containerName = containerName.ToLower();
             _lockFactory = GetLockFactory();
-            RootFolder = NormalizeContainerRootFolder(rootFolder);
-            EnsureContainer();
             _azureIndexOutputFactory = GetAzureIndexOutputFactory();
-            _azureIndexInputFactory = GetAzureIndexInputFactory();
+            _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
             GuardCacheDirectory(CacheDirectory);
             CompressBlobs = compressBlobs;
         }
 
-        protected virtual IAzureIndexInputFactory GetAzureIndexInputFactory()
+        protected virtual IRemoteDirectoryIndexInputFactory GetAzureIndexInputFactory()
         {
-            return new AzureIndexInputFactory();
+            return new RemoteDirectoryIndexInputFactory();
         }
 
         protected virtual IAzureIndexOutputFactory GetAzureIndexOutputFactory()
@@ -83,24 +73,14 @@ namespace Examine.AzureDirectory
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
         }
 
-        protected string NormalizeContainerRootFolder(string rootFolder)
-        {
-            if (string.IsNullOrEmpty(rootFolder))
-                return string.Empty;
-            rootFolder = rootFolder.Trim('/');
-            rootFolder = rootFolder + "/";
-            return rootFolder;
-        }
+       
 
         protected virtual LockFactory GetLockFactory()
         {
-            return new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
+            return new MultiIndexLockFactory(new RemoteDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
         }
 
-        protected virtual BlobClient GetBlobClient(string blobName)
-        {
-            return new BlobClient(_storageAccountConnectionString, _containerName, blobName);
-        }
+     
 
         
 
@@ -134,8 +114,7 @@ namespace Examine.AzureDirectory
             foreach (string file in GetAllBlobFiles())
             {
                 CacheDirectory.TouchFile(file);
-                var blob = GetBlobClient(RootFolder + file);
-                _helper.SyncFile(CacheDirectory, blob, file, RootFolder, CompressBlobs);
+                _helper.SyncFile(CacheDirectory, file,  CompressBlobs);
             }
         }
 
@@ -164,8 +143,7 @@ namespace Examine.AzureDirectory
 
         protected virtual IEnumerable<string> GetAllBlobFileNames()
         {
-            return from blob in _blobContainer.GetBlobs(prefix: RootFolder)
-                select blob.Name;
+           return _helper.GetAllRemoteFileNames();
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
@@ -292,30 +270,7 @@ namespace Examine.AzureDirectory
                 return CacheDirectory.FileLength(name);
             }
 
-            try
-            {
-                var blob = GetBlobClient(RootFolder + name);
-                var blobProperties = blob.GetProperties();
-
-                // index files may be compressed so the actual length is stored in metadata
-                var hasMetadataValue =
-                    blobProperties.Value.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
-
-                if (hasMetadataValue && long.TryParse(blobLegthMetadata, out var blobLength))
-                {
-                    return blobLength;
-                }
-
-                // fall back to actual blob size
-                return blobProperties.Value.ContentLength;
-            }
-            catch (Exception e)
-            {
-                //  Sync(name);
-                Trace.WriteLine(
-                    $"ERROR {e.ToString()}  Exception thrown while retrieving file length of file {name} for {RootFolder}");
-                return CacheDirectory.FileLength(name);
-            }
+            return _helper.FileLength(name,CacheDirectory.FileLength(name))
         }
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
@@ -323,8 +278,8 @@ namespace Examine.AzureDirectory
         public override IndexOutput CreateOutput(string name)
         {
             SetDirty();
-            var blob = _blobContainer.GetBlobClient(RootFolder + name);
-            return _azureIndexOutputFactory.CreateIndexOutput(this, blob, name);
+         
+            return _azureIndexOutputFactory.CreateIndexOutput(this, name);
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
@@ -357,7 +312,7 @@ namespace Examine.AzureDirectory
 
             if (TryGetBlobFile(name, out var blob, out var err))
             {
-                return _azureIndexInputFactory.GetIndexInput(this, blob, _helper);
+                return _remoteDirectoryIndexInputFactory.GetIndexInput(this, _helper, name);
             }
             else
             {
@@ -382,15 +337,10 @@ namespace Examine.AzureDirectory
 
         public override LockFactory LockFactory => _lockFactory;
 
-        public BlobContainerClient BlobContainer
-        {
-            get => _blobContainer;
-            set => _blobContainer = value;
-        }
 
         protected override void Dispose(bool disposing)
         {
-            _blobContainer = null;
+       
             CacheDirectory?.Dispose();
         }
 
@@ -516,7 +466,6 @@ namespace Examine.AzureDirectory
         public IndexOutput CreateOutput(string blobFileName, string name)
         {
             SetDirty();
-            var blob = _blobContainer.GetBlobClient(GenerateBlobName(blobFileName));
             return _azureIndexOutputFactory.CreateIndexOutput(this, blob, name);
         }
 
@@ -527,14 +476,6 @@ namespace Examine.AzureDirectory
 
         #endregion
 
-        public virtual void EnsureContainer()
-        {
-            _blobContainer = _helper.EnsureContainer(_storageAccountConnectionString, _containerName);
-        }
-
-        public virtual bool ShouldCompressFile(string name)
-        {
-           return _helper.ShouldCompressFile(name, CompressBlobs);
-        }
+      
     }
 }

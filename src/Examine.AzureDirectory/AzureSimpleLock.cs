@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
@@ -12,28 +13,20 @@ namespace Examine.AzureDirectory
     {
         private readonly string _lockFile;
         private readonly AzureLuceneDirectory _azureDirectory;
+        private readonly IRemoteDirectory _remoteDirectory;
 
-        public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory)
+        public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory, IRemoteDirectory remoteDirectory)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
             if (string.IsNullOrWhiteSpace(lockFile)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
             _lockFile = lockFile;
             _azureDirectory = directory;
+            _remoteDirectory = remoteDirectory;
         }
 
         public override bool IsLocked()
         {
-            try
-            {
-                var blob = _azureDirectory.BlobContainer.GetBlobClient(_lockFile);
-                var response = blob.Exists();
-                return response.Value;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"ERROR {ex.ToString()} Error while checking if index locked");
-                throw;
-            }
+            return _remoteDirectory.FileExists(_lockFile);
         }
 
 

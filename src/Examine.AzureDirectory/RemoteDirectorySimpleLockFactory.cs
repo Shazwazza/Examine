@@ -6,11 +6,11 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// A lock factory used for azure blob storage using Simple Locking (file based)
     /// </summary>
-    public class AzureDirectorySimpleLockFactory : LockFactory
+    public class RemoteDirectorySimpleLockFactory : LockFactory
     {
         private readonly AzureLuceneDirectory _azureDirectory;
 
-        public AzureDirectorySimpleLockFactory(AzureLuceneDirectory azureDirectory)
+        public RemoteDirectorySimpleLockFactory(AzureLuceneDirectory azureDirectory)
         {
             _azureDirectory = azureDirectory;
         }
