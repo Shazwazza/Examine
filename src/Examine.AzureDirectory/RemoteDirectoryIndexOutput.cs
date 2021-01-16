@@ -7,6 +7,7 @@ using System.Threading;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Examine.LuceneEngine.Directories;
+using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
@@ -23,20 +24,20 @@ namespace Examine.AzureDirectory
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
         private BlobClient _blob;
-        
+        private IRemoteDirectory _azureRemoteDirectory;
+
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public RemoteDirectoryIndexOutput(AzureLuceneDirectory azureDirectory, BlobClient blob, string name)
+        public RemoteDirectoryIndexOutput(AzureLuceneDirectory azureDirectory, string name)
         {
             //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;
             _azureDirectory = azureDirectory ?? throw new ArgumentNullException(nameof(azureDirectory));
+            _azureRemoteDirectory = _azureDirectory.RemoteDirectory;
             _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name); 
             _fileMutex.WaitOne();
             try
-            {                
-                _blob = blob;
-
+            {
                 // create the local cache one we will operate against...
                 _indexOutput = CacheDirectory.CreateOutput(_name);
             }
@@ -78,7 +79,7 @@ namespace Examine.AzureDirectory
                 if (originalLength > 0)
                 {
                     Stream blobStream;
-
+                    _azureRemoteDirectory.Upload();
                     // optionally put a compressor around the blob stream
                     if (_azureDirectory.ShouldCompressFile(_name))
                     {

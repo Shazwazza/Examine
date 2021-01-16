@@ -111,8 +111,16 @@ namespace Examine.AzureDirectory
 
         public IEnumerable<string> GetAllRemoteFileNames()
         {
-            return from blob in _blobContainer.GetBlobs(prefix: RootFolder)
+            return from blob in _blobContainer.GetBlobs(prefix: _rootFolderName)
                 select blob.Name;
+        }
+
+        public void DeleteFile(string name)
+        {
+            var blob = _blobContainer.GetBlobClient(_rootFolderName + name);
+            Trace.WriteLine($"INFO Deleted {_blobContainer.Uri}/{name} for {_rootFolderName}");
+            Trace.WriteLine($"INFO DELETE {_blobContainer.Uri}/{name}");
+            blob.DeleteIfExists();
         }
 
         public void EnsureContainer(string _containerName)
@@ -176,5 +184,6 @@ namespace Examine.AzureDirectory
                 throw;
             }
         }
+        
     }
 }

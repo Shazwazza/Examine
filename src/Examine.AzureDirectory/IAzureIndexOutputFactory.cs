@@ -6,6 +6,6 @@ namespace Examine.AzureDirectory
 {
     public interface IAzureIndexOutputFactory
     {
-        IndexOutput CreateIndexOutput(AzureLuceneDirectory azureDirectory, IRemoteDirectory directory, string name);
+        IndexOutput CreateIndexOutput(AzureLuceneDirectory azureDirectory, string name);
     }
 }

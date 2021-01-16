@@ -78,7 +78,7 @@ namespace Examine.AzureDirectory
                     CacheDirectory.TouchFile(file);
                 }
 
-                _helper.SyncFile(CacheDirectory, file, CompressBlobs);
+                RemoteDirectory.SyncFile(CacheDirectory, file, CompressBlobs);
             }
         }
 
@@ -110,7 +110,7 @@ namespace Examine.AzureDirectory
                         continue;
                     }
 
-                    _helper.SyncFile(newIndex, file, CompressBlobs);
+                    RemoteDirectory.SyncFile(newIndex, file, CompressBlobs);
                 }
 
                 var oldIndex = CacheDirectory;

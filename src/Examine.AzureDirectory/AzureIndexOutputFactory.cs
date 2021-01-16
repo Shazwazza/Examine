@@ -10,9 +10,9 @@ namespace Examine.AzureDirectory
 {
     public class AzureIndexOutputFactory : IAzureIndexOutputFactory
     {
-        public IndexOutput CreateIndexOutput(AzureLuceneDirectory azureDirectory, BlobClient blob, string name)
+        public IndexOutput CreateIndexOutput(AzureLuceneDirectory azureDirectory,  string name)
         {
-            return new RemoteDirectoryIndexOutput(azureDirectory, blob, name);
+            return new RemoteDirectoryIndexOutput(azureDirectory, name);
         }
     }
 }

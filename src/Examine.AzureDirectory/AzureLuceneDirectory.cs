@@ -24,7 +24,7 @@ namespace Examine.AzureDirectory
         private readonly object _locker = new object();
 
         protected LockFactory _lockFactory;
-        protected readonly IRemoteDirectory _helper;
+        public readonly IRemoteDirectory RemoteDirectory;
         private readonly IAzureIndexOutputFactory _azureIndexOutputFactory;
         private readonly IRemoteDirectoryIndexInputFactory _remoteDirectoryIndexInputFactory;
 
@@ -50,7 +50,7 @@ namespace Examine.AzureDirectory
 
         
             CacheDirectory = cacheDirectory;
-            _helper =azurelper;
+            RemoteDirectory =azurelper;
             _lockFactory = GetLockFactory();
             _azureIndexOutputFactory = GetAzureIndexOutputFactory();
             _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
@@ -114,7 +114,7 @@ namespace Examine.AzureDirectory
             foreach (string file in GetAllBlobFiles())
             {
                 CacheDirectory.TouchFile(file);
-                _helper.SyncFile(CacheDirectory, file,  CompressBlobs);
+                RemoteDirectory.SyncFile(CacheDirectory, file,  CompressBlobs);
             }
         }
 
@@ -143,7 +143,7 @@ namespace Examine.AzureDirectory
 
         protected virtual IEnumerable<string> GetAllBlobFileNames()
         {
-           return _helper.GetAllRemoteFileNames();
+           return RemoteDirectory.GetAllRemoteFileNames();
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
@@ -251,12 +251,10 @@ namespace Examine.AzureDirectory
 
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
 
-            var blob = GetBlobClient(RootFolder + name);
-            blob.DeleteIfExists();
+            RemoteDirectory.DeleteFile(name);
             SetDirty();
 
-            Trace.WriteLine($"INFO Deleted {_blobContainer.Uri}/{name} for {RootFolder}");
-            Trace.WriteLine($"INFO DELETE {_blobContainer.Uri}/{name}");
+        
         }
 
 
@@ -270,7 +268,7 @@ namespace Examine.AzureDirectory
                 return CacheDirectory.FileLength(name);
             }
 
-            return _helper.FileLength(name,CacheDirectory.FileLength(name))
+            return RemoteDirectory.FileLength(name,CacheDirectory.FileLength(name))
         }
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
@@ -312,7 +310,7 @@ namespace Examine.AzureDirectory
 
             if (TryGetBlobFile(name, out var blob, out var err))
             {
-                return _remoteDirectoryIndexInputFactory.GetIndexInput(this, _helper, name);
+                return _remoteDirectoryIndexInputFactory.GetIndexInput(this, RemoteDirectory, name);
             }
             else
             {
