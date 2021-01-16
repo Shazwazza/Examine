@@ -12,13 +12,13 @@ using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
 {
-
     /// <summary>
     /// Implements IndexOutput semantics for a write/append only file
     /// </summary>
     public class RemoteDirectoryIndexOutput : IndexOutput
     {
         private readonly AzureLuceneDirectory _azureDirectory;
+
         //private CloudBlobContainer _blobContainer;
         private readonly string _name;
         private IndexOutput _indexOutput;
@@ -34,7 +34,7 @@ namespace Examine.AzureDirectory
             _name = name;
             _azureDirectory = azureDirectory ?? throw new ArgumentNullException(nameof(azureDirectory));
             _azureRemoteDirectory = _azureDirectory.RemoteDirectory;
-            _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name); 
+            _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name);
             _fileMutex.WaitOne();
             try
             {
@@ -60,7 +60,7 @@ namespace Examine.AzureDirectory
                 var fileName = _name;
 
                 long originalLength = 0;
-                
+
                 //this can be null in some odd cases so we need to check
                 if (_indexOutput != null)
                 {
@@ -78,41 +78,13 @@ namespace Examine.AzureDirectory
 
                 if (originalLength > 0)
                 {
-                    Stream blobStream;
-                    _azureRemoteDirectory.Upload();
-                    // optionally put a compressor around the blob stream
-                    if (_azureDirectory.ShouldCompressFile(_name))
+                    var result = _azureRemoteDirectory.Upload(CacheDirectory.OpenInput(fileName), fileName,
+                        originalLength,
+                        _azureDirectory.CompressBlobs, CacheDirectory.FileModified(fileName).ToString());
+                    // push the blobStream up to the cloud
+                    if (result)
                     {
-                        blobStream = CompressStream(fileName, originalLength);
-                    }
-                    else
-                    {
-                        blobStream = new StreamInput(CacheDirectory.OpenInput(fileName));
-                    }
-
-                    try
-                    {
-                        // push the blobStream up to the cloud
-                        _blob.Upload(blobStream,overwrite:true);
-
-                        // set the metadata with the original index file properties
-                        var metadata = new Dictionary<string, string>();
-                        metadata.Add("CachedLength", originalLength.ToString());
-                        metadata.Add("CachedLastModified", CacheDirectory.FileModified(fileName).ToString());
-
-                        var response = _blob.SetMetadata(metadata);
-#if FULLDEBUG
-                        Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
-#endif
-                    }
-                    catch(Azure.RequestFailedException ex) when (ex.Status == 409)
-                    {
-                        //File already exists
-                        throw;
-                    }
-                    finally
-                    {
-                        blobStream.Dispose();
+                        throw new Exception("File already exists");
                     }
 
 #if FULLDEBUG
@@ -132,42 +104,7 @@ namespace Examine.AzureDirectory
             }
         }
 
-        protected virtual MemoryStream CompressStream(string fileName, long originalLength)
-        {
-            // unfortunately, deflate stream doesn't allow seek, and we need a seekable stream
-            // to pass to the blob storage stuff, so we compress into a memory stream
-            MemoryStream compressedStream = new MemoryStream();
-
-            IndexInput indexInput = null;
-            try
-            {
-                indexInput = CacheDirectory.OpenInput(fileName);
-                using (var compressor = new DeflateStream(compressedStream, CompressionMode.Compress, true))
-                {
-                    // compress to compressedOutputStream
-                    byte[] bytes = new byte[indexInput.Length()];
-                    indexInput.ReadBytes(bytes, 0, (int) bytes.Length);
-                    compressor.Write(bytes, 0, (int) bytes.Length);
-                }
-
-                // seek back to beginning of comrpessed stream
-                compressedStream.Seek(0, SeekOrigin.Begin);
-#if FULLDEBUG
-                Trace.WriteLine($"COMPRESSED {originalLength} -> {compressedStream.Length} {((float) compressedStream.Length / (float) originalLength) * 100}% to {_name}");
-#endif
-            }
-            catch
-            {
-                // release the compressed stream resources if an error occurs
-                compressedStream.Dispose();
-                throw;
-            }
-            finally
-            {
-                indexInput?.Close();
-            }
-            return compressedStream;
-        }
+       
 
         public override long Length => _indexOutput.Length;
 

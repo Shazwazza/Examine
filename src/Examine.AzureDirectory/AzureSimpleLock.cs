@@ -18,7 +18,8 @@ namespace Examine.AzureDirectory
         public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory, IRemoteDirectory remoteDirectory)
         {
             if (directory == null) throw new ArgumentNullException(nameof(directory));
-            if (string.IsNullOrWhiteSpace(lockFile)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
+            if (string.IsNullOrWhiteSpace(lockFile))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
             _lockFile = lockFile;
             _azureDirectory = directory;
             _remoteDirectory = remoteDirectory;
@@ -36,24 +37,17 @@ namespace Examine.AzureDirectory
             {
                 if (IsLocked())
                     return false;
-                var blob = _azureDirectory.BlobContainer.GetBlobClient(_lockFile);
 
-                _azureDirectory.EnsureContainer();
-                try
+
+                using (var stream = new MemoryStream())
                 {
-                    using (var stream = new MemoryStream())
+                    using (var writer = new StreamWriter(stream))
                     {
-                        using (var writer = new StreamWriter(stream))
-                        {
-                            writer.Write(_lockFile);
-                            blob.Upload(stream);
-                        }
+                        writer.Write(_lockFile);
+                        return _remoteDirectory.Upload(stream, _lockFile);
                     }
                 }
-                catch (Azure.RequestFailedException ex) when (ex.Status == 409)//already exists unable to overwrite
-                {
-                    return false;
-                }
+
 
                 return true;
             }
@@ -72,12 +66,12 @@ namespace Examine.AzureDirectory
                 bool flag2;
                 if (IsLocked())
                 {
-                    var blob = _azureDirectory.BlobContainer.GetBlobClient(_lockFile);
-                    blob.Delete();
+                   _remoteDirectory.DeleteFile(_lockFile);
                     flag2 = true;
                 }
                 else
                     flag2 = false;
+
                 if (flag1 && !flag2)
                     throw new LockReleaseFailedException("failed to delete " + _lockFile);
             }
@@ -88,6 +82,4 @@ namespace Examine.AzureDirectory
             }
         }
     }
-
-
 }

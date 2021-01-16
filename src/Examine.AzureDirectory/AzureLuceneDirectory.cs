@@ -43,14 +43,11 @@ namespace Examine.AzureDirectory
         /// </param>
         public AzureLuceneDirectory(
             IRemoteDirectory azurelper,
-            Lucene.Net.Store.Directory cacheDirectory,  
+            Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false)
         {
-          
-
-        
             CacheDirectory = cacheDirectory;
-            RemoteDirectory =azurelper;
+            RemoteDirectory = azurelper;
             _lockFactory = GetLockFactory();
             _azureIndexOutputFactory = GetAzureIndexOutputFactory();
             _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
@@ -73,16 +70,12 @@ namespace Examine.AzureDirectory
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
         }
 
-       
 
         protected virtual LockFactory GetLockFactory()
         {
-            return new MultiIndexLockFactory(new RemoteDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
+            return new MultiIndexLockFactory(new RemoteDirectorySimpleLockFactory(this, RemoteDirectory), CacheDirectory.LockFactory);
         }
 
-     
-
-        
 
         public string RootFolder { get; }
         public bool CompressBlobs { get; }
@@ -114,11 +107,10 @@ namespace Examine.AzureDirectory
             foreach (string file in GetAllBlobFiles())
             {
                 CacheDirectory.TouchFile(file);
-                RemoteDirectory.SyncFile(CacheDirectory, file,  CompressBlobs);
+                RemoteDirectory.SyncFile(CacheDirectory, file, CompressBlobs);
             }
         }
 
-        
 
         public override string[] ListAll()
         {
@@ -143,7 +135,7 @@ namespace Examine.AzureDirectory
 
         protected virtual IEnumerable<string> GetAllBlobFileNames()
         {
-           return RemoteDirectory.GetAllRemoteFileNames();
+            return RemoteDirectory.GetAllRemoteFileNames();
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
@@ -164,11 +156,11 @@ namespace Examine.AzureDirectory
                     Trace.WriteLine(
                         $"ERROR {e.ToString()}  Exception thrown while checking file ({name}) exists for {RootFolder}");
                     SetDirty();
-                    return BlobExists(name);
+                    return RemoteDirectory.FileExists(name);;
                 }
             }
 
-            return BlobExists(name);
+            return RemoteDirectory.FileExists(name);
         }
 
         /// <summary>Returns the time the named file was last modified. </summary>
@@ -181,28 +173,8 @@ namespace Examine.AzureDirectory
                 return CacheDirectory.FileModified(name);
             }
 
-            if (TryGetBlobFile(name, out var blob, out var err))
-            {
-                var blobPropertiesResponse = blob.GetProperties();
-                var blobProperties = blobPropertiesResponse.Value;
-                if (blobProperties.LastModified != null)
-                {
-                    var utcDate = blobProperties.LastModified.UtcDateTime;
-
-                    //This is the data structure of how the default Lucene FSDirectory returns this value so we want
-                    // to be consistent with how Lucene works
-                    return (long) utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
-                }
-
-                // TODO: Need to check lucene source, returning this value could be problematic
-                return 0;
-            }
-            else
-            {
-                Trace.WriteLine($"WARNING Throwing exception as blob file ({name}) not found for {RootFolder}");
-                // Lucene expects this exception to be thrown
-                throw new FileNotFoundException(name, err);
-            }
+            return RemoteDirectory.FileModified(name);
+            
         }
 
         /// <summary>Set the modified time of an existing file to now. </summary>
@@ -253,8 +225,6 @@ namespace Examine.AzureDirectory
 
             RemoteDirectory.DeleteFile(name);
             SetDirty();
-
-        
         }
 
 
@@ -268,15 +238,16 @@ namespace Examine.AzureDirectory
                 return CacheDirectory.FileLength(name);
             }
 
-            return RemoteDirectory.FileLength(name,CacheDirectory.FileLength(name))
+            return RemoteDirectory.FileLength(name, CacheDirectory.FileLength(name));
         }
+
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
         /// </summary>
         public override IndexOutput CreateOutput(string name)
         {
             SetDirty();
-         
+
             return _azureIndexOutputFactory.CreateIndexOutput(this, name);
         }
 
@@ -308,7 +279,7 @@ namespace Examine.AzureDirectory
                 }
             }
 
-            if (TryGetBlobFile(name, out var blob, out var err))
+            if (RemoteDirectory.TryGetBlobFile(name))
             {
                 return _remoteDirectoryIndexInputFactory.GetIndexInput(this, RemoteDirectory, name);
             }
@@ -330,7 +301,7 @@ namespace Examine.AzureDirectory
 
         public override void ClearLock(string name)
         {
-                _lockFactory.ClearLock(name);
+            _lockFactory.ClearLock(name);
         }
 
         public override LockFactory LockFactory => _lockFactory;
@@ -338,7 +309,6 @@ namespace Examine.AzureDirectory
 
         protected override void Dispose(bool disposing)
         {
-       
             CacheDirectory?.Dispose();
         }
 
@@ -422,58 +392,6 @@ namespace Examine.AzureDirectory
             }
         }
 
-        private bool BlobExists(string name)
-        {
-            try
-            {
-                var client = _blobContainer.GetBlobClient(RootFolder + name);
-                return client.Exists().Value;
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(
-                    $"WARNING {ex.ToString()} Exception thrown while checking blob ({name}) exists. Assuming blob does not exist for {RootFolder}");
-                return false;
-            }
-        }
 
-        private bool TryGetBlobFile(string name, out BlobClient blob, out RequestFailedException err)
-        {
-            try
-            {
-                blob = _blobContainer.GetBlobClient(RootFolder + name);
-                var properties = blob.GetProperties();
-                err = null;
-                return true;
-            }
-            catch (RequestFailedException e)
-            {
-                Trace.WriteLine(
-                    $"ERROR {e.ToString()}  Exception thrown while trying to retrieve blob ({name}). Assuming blob does not exist for {RootFolder}");
-                err = e;
-                blob = null;
-                return false;
-            }
-        }
-
-        #region Sync
-
-        /// <summary>Creates a new, empty file in the directory with the given name.
-        /// Returns a stream writing this file. 
-        /// </summary>
-        public IndexOutput CreateOutput(string blobFileName, string name)
-        {
-            SetDirty();
-            return _azureIndexOutputFactory.CreateIndexOutput(this, blob, name);
-        }
-
-        private string GenerateBlobName(string blobFileName)
-        {
-            return RootFolder + blobFileName;
-        }
-
-        #endregion
-
-      
     }
 }

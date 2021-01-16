@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
@@ -9,10 +10,12 @@ namespace Examine.AzureDirectory
     public class RemoteDirectorySimpleLockFactory : LockFactory
     {
         private readonly AzureLuceneDirectory _azureDirectory;
+        private readonly IRemoteDirectory _remoteDirectory;
 
-        public RemoteDirectorySimpleLockFactory(AzureLuceneDirectory azureDirectory)
+        public RemoteDirectorySimpleLockFactory(AzureLuceneDirectory azureDirectory, IRemoteDirectory remoteDirectory)
         {
             _azureDirectory = azureDirectory;
+            _remoteDirectory = remoteDirectory;
         }
         
         public override Lock MakeLock(string name)
@@ -20,7 +23,7 @@ namespace Examine.AzureDirectory
             if (LockPrefix != null)
                 name = LockPrefix + "-" + name;
 
-            return new AzureSimpleLock(_azureDirectory.RootFolder + name, _azureDirectory);           
+            return new AzureSimpleLock(name, _azureDirectory, _remoteDirectory);           
         }
 
         public override void ClearLock(string name)

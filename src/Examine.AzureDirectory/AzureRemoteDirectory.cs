@@ -4,9 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Azure;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
 using Examine.RemoteDirectory;
+using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
 {
@@ -123,10 +125,158 @@ namespace Examine.AzureDirectory
             blob.DeleteIfExists();
         }
 
-        public void EnsureContainer(string _containerName)
+        public long FileModified(string name)
         {
-            Trace.WriteLine($"DEBUG Ensuring container ({_containerName}) exists");
-            var blobContainer = GetBlobContainerClient(_containerName);
+            if (TryGetBlobFile(name, out var blob, out var err))
+            {
+                var blobPropertiesResponse = blob.GetProperties();
+                var blobProperties = blobPropertiesResponse.Value;
+                if (blobProperties.LastModified != null)
+                {
+                    var utcDate = blobProperties.LastModified.UtcDateTime;
+
+                    //This is the data structure of how the default Lucene FSDirectory returns this value so we want
+                    // to be consistent with how Lucene works
+                    return (long) utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
+                }
+
+                // TODO: Need to check lucene source, returning this value could be problematic
+                return 0;
+            }
+            else
+            {
+                Trace.WriteLine($"WARNING Throwing exception as blob file ({name}) not found for {_rootFolderName}");
+                // Lucene expects this exception to be thrown
+                throw new FileNotFoundException(name, err);
+            }
+        }
+
+        public bool Upload(IndexInput input, string name, long originalLength, bool CompressBlobs,
+            string lastModified = null)
+        {
+            Stream stream;
+            // optionally put a compressor around the blob stream
+            if (ShouldCompressFile(name, CompressBlobs))
+            {
+                stream = CompressStream(input, name, originalLength);
+            }
+            else
+            {
+                stream = new StreamInput(input);
+            }
+
+            try
+            {
+                var blob = _blobContainer.GetBlobClient(_rootFolderName + name);
+                // push the blobStream up to the cloud
+                blob.Upload(stream, overwrite: true);
+
+                // set the metadata with the original index file properties
+                var metadata = new Dictionary<string, string>();
+                metadata.Add("CachedLength", originalLength.ToString());
+                if (!string.IsNullOrWhiteSpace(lastModified))
+                {
+                    metadata.Add("CachedLastModified", lastModified);
+                }
+
+
+                var response = blob.SetMetadata(metadata);
+#if FULLDEBUG
+                Trace.WriteLine($"PUT {stream.Length} bytes to {name} in cloud");
+#endif
+                return true;
+            }
+            catch (Azure.RequestFailedException ex) when (ex.Status == 409)
+            {
+                return false;
+            }
+        }
+
+        public bool TryGetBlobFile(string name)
+        {
+            if (TryGetBlobFile(name, out var blop, out var err))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool Upload(MemoryStream stream, string fileName)
+        {
+            var blob = _blobContainer.GetBlobClient(fileName);
+            EnsureContainer(_containerName);
+            try
+            {
+                blob.Upload(stream);
+                return true;
+            }
+            catch (RequestFailedException ex) when (ex.Status == 409) //already exists unable to overwrite
+            {
+                return false;
+            }
+        }
+
+        private bool TryGetBlobFile(string name, out BlobClient blob, out RequestFailedException err)
+        {
+            try
+            {
+                blob = _blobContainer.GetBlobClient(_rootFolderName + name);
+                var properties = blob.GetProperties();
+                err = null;
+                return true;
+            }
+            catch (RequestFailedException e)
+            {
+                Trace.WriteLine(
+                    $"ERROR {e.ToString()}  Exception thrown while trying to retrieve blob ({name}). Assuming blob does not exist for {_rootFolderName}");
+                err = e;
+                blob = null;
+                return false;
+            }
+        }
+
+        protected virtual MemoryStream CompressStream(IndexInput indexInput, string fileName, long originalLength)
+        {
+            // unfortunately, deflate stream doesn't allow seek, and we need a seekable stream
+            // to pass to the blob storage stuff, so we compress into a memory stream
+            MemoryStream compressedStream = new MemoryStream();
+
+            try
+            {
+                using (var compressor = new DeflateStream(compressedStream, CompressionMode.Compress, true))
+                {
+                    // compress to compressedOutputStream
+                    byte[] bytes = new byte[indexInput.Length()];
+                    indexInput.ReadBytes(bytes, 0, (int) bytes.Length);
+                    compressor.Write(bytes, 0, (int) bytes.Length);
+                }
+
+                // seek back to beginning of comrpessed stream
+                compressedStream.Seek(0, SeekOrigin.Begin);
+#if FULLDEBUG
+                Trace.WriteLine(
+                    $"COMPRESSED {originalLength} -> {compressedStream.Length} {((float) compressedStream.Length / (float) originalLength) * 100}% to {fileName}");
+#endif
+            }
+            catch
+            {
+                // release the compressed stream resources if an error occurs
+                compressedStream.Dispose();
+                throw;
+            }
+            finally
+            {
+                indexInput?.Close();
+            }
+
+            return compressedStream;
+        }
+
+        public void EnsureContainer(string containerName)
+        {
+            Trace.WriteLine($"DEBUG Ensuring container ({containerName}) exists");
+            var blobContainer = GetBlobContainerClient(containerName);
             blobContainer.CreateIfNotExists();
             _blobContainer = blobContainer;
         }
@@ -180,10 +330,10 @@ namespace Examine.AzureDirectory
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"ERROR {ex.ToString()} Error while checking if index locked");
+                Trace.WriteLine(
+                    $"WARNING {ex.ToString()} Exception thrown while checking blob ({filename}) exists. Assuming blob does not exist for {_rootFolderName}");
                 throw;
             }
         }
-        
     }
 }
