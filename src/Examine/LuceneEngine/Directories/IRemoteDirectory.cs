@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Lucene.Net.Store;
 
@@ -16,5 +17,6 @@ namespace Examine.RemoteDirectory
         bool Upload(IndexInput stream, string name, long originalLength, bool CompressBlobs, string lastModified = null);
         bool TryGetBlobFile(string name);
         bool Upload(MemoryStream stream, string fileName);
+        Tuple<long, DateTime> GetFileProperties(string filename);
     }
 }

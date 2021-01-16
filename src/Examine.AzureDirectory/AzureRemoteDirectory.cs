@@ -335,5 +335,25 @@ namespace Examine.AzureDirectory
                 throw;
             }
         }
+
+        public Tuple<long, DateTime> GetFileProperties(string filename)
+        {
+            var blob = _blobContainer.GetBlobClient(filename);
+            var blobPropertiesResponse = blob.GetProperties();
+            var blobProperties = blobPropertiesResponse.Value;
+            var hasMetadataValue =
+                blobProperties.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata);
+            var blobLength = blobProperties.ContentLength;
+            if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
+
+            var blobLastModifiedUtc = blobProperties.LastModified.UtcDateTime;
+            if (blobProperties.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
+            {
+                if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
+                    blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
+            }
+
+            return new Tuple<long, DateTime>(blobLength,blobLastModifiedUtc);
+        }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
+using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
@@ -24,9 +25,9 @@ namespace Examine.AzureDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public RemoteDirectoryIndexInput(AzureLuceneDirectory azuredirectory, AzureRemoteDirectory helper, string name)
+        public RemoteDirectoryIndexInput(AzureLuceneDirectory azuredirectory, IRemoteDirectory helper, string name)
         {
-            _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
+            _name = name;
             _name = _name.Split(new string[] {"%2F"}, StringSplitOptions.RemoveEmptyEntries).Last();
             _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
 #if FULLDEBUG
@@ -36,7 +37,6 @@ namespace Examine.AzureDirectory
             _fileMutex.WaitOne();
             try
             {
-                _blob = blob;
 
                 var fileName = _name;
 
@@ -48,22 +48,10 @@ namespace Examine.AzureDirectory
                 else
                 {
                     var cachedLength = CacheDirectory.FileLength(fileName);
+                    var blobProperties = helper.GetFileProperties(fileName);
+                   
 
-                    var blobPropertiesResponse = blob.GetProperties();
-                    var blobProperties = blobPropertiesResponse.Value;
-                    var hasMetadataValue =
-                        blobProperties.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata);
-                    var blobLength = blobProperties.ContentLength;
-                    if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
-
-                    var blobLastModifiedUtc = blobProperties.LastModified.UtcDateTime;
-                    if (blobProperties.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
-                    {
-                        if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
-                            blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
-                    }
-
-                    if (cachedLength != blobLength)
+                    if (cachedLength != blobProperties.Item1)
                         fFileNeeded = true;
                     else
                     {
@@ -72,9 +60,9 @@ namespace Examine.AzureDirectory
                         var start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                         var cachedLastModifiedUtc = start.AddMilliseconds(unixDate).ToUniversalTime();
 
-                        if (cachedLastModifiedUtc != blobLastModifiedUtc)
+                        if (cachedLastModifiedUtc != blobProperties.Item2)
                         {
-                            var timeSpan = blobLastModifiedUtc.Subtract(cachedLastModifiedUtc);
+                            var timeSpan = blobProperties.Item2.Subtract(cachedLastModifiedUtc);
                             if (timeSpan.TotalSeconds > 1)
                                 fFileNeeded = true;
                             else

@@ -17,13 +17,13 @@ namespace Examine.AzureDirectory
             _azureDirectory = azureDirectory;
             _remoteDirectory = remoteDirectory;
         }
-        
+
         public override Lock MakeLock(string name)
         {
             if (LockPrefix != null)
                 name = LockPrefix + "-" + name;
 
-            return new AzureSimpleLock(name, _azureDirectory, _remoteDirectory);           
+            return new AzureSimpleLock(name, _azureDirectory, _remoteDirectory);
         }
 
         public override void ClearLock(string name)
@@ -31,25 +31,22 @@ namespace Examine.AzureDirectory
             if (LockPrefix != null)
                 name = LockPrefix + "-" + name;
 
-            var lockFile = _azureDirectory.RootFolder + name;
 
-            var blob = _azureDirectory.BlobContainer.GetBlobClient(lockFile);
-            var flag1Response = blob.Exists();
-            var flag1 = flag1Response.Value;
+            var flag1 = _remoteDirectory.FileExists(name);
             bool flag2;
 
-            var flag2Response = blob.Exists();
-            if (flag2Response.Value)
+            if (_remoteDirectory.FileExists(name))
             {
-                blob.Delete();
+                _remoteDirectory.DeleteFile(name);
                 flag2 = true;
             }
             else
+            {
                 flag2 = false;
+            }
+
             if (flag1 && !flag2)
-                throw new IOException("Cannot delete " + lockFile);            
+                throw new IOException("Cannot delete " + name);
         }
     }
-
-   
 }
