@@ -5,6 +5,7 @@ using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
 using Examine.Providers;
+using Examine.RemoveDirectory;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
@@ -45,7 +46,7 @@ namespace Examine.AzureDirectory
         /// </returns>
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            var directory = new AzureLuceneDirectory(
+            var directory = new RemoteSyncDirectory(
                 new AzureRemoteDirectory(GetStorageAccountConnectionString(),GetContainerName(), luceneIndexFolder.Name),
                 GetLocalCacheDirectory(luceneIndexFolder) );
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
@@ -62,7 +63,7 @@ namespace Examine.AzureDirectory
         /// Gets the Local Cache Lucence Directory
         /// </summary>
         /// <param name="luceneIndexFolder">The lucene index folder.</param>
-        /// <returns>The <see cref="Lucene.Net.Store.Directory"/> used by Lucence as the local cache directory</returns>
+        /// <returns>The <see cref="Lucene.Net.Store.Directory"/> used by Lucence as the local cache syncDirectory</returns>
         protected virtual Lucene.Net.Store.Directory GetLocalCacheDirectory(DirectoryInfo luceneIndexFolder)
         {
             return new SimpleFSDirectory(luceneIndexFolder);

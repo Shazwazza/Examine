@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using Examine.RemoteDirectory;
+using Examine.RemoveDirectory;
 using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
@@ -9,19 +9,19 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// Implements lock semantics on AzureDirectory via a lock file - just like SimpleFSLock
     /// </summary>
-    public class AzureSimpleLock : Lock
+    public class RemoteSimpleLock : Lock
     {
         private readonly string _lockFile;
-        private readonly AzureLuceneDirectory _azureDirectory;
+        private readonly RemoteSyncDirectory _azureSyncDirectory;
         private readonly IRemoteDirectory _remoteDirectory;
 
-        public AzureSimpleLock(string lockFile, AzureLuceneDirectory directory, IRemoteDirectory remoteDirectory)
+        public RemoteSimpleLock(string lockFile, RemoteSyncDirectory syncDirectory, IRemoteDirectory remoteDirectory)
         {
-            if (directory == null) throw new ArgumentNullException(nameof(directory));
+            if (syncDirectory == null) throw new ArgumentNullException(nameof(syncDirectory));
             if (string.IsNullOrWhiteSpace(lockFile))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(lockFile));
             _lockFile = lockFile;
-            _azureDirectory = directory;
+            _azureSyncDirectory = syncDirectory;
             _remoteDirectory = remoteDirectory;
         }
 

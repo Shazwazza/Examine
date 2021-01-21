@@ -32,7 +32,7 @@ namespace Examine.Test.AzureDirectoryTests
             // default AzureDirectory stores cache in local temp folder
             using (var cacheDirectory = new RandomIdRAMDirectory())
             {
-                var azureDirectory = new AzureLuceneDirectory( cloudStorageAccount, containerName, cacheDirectory);
+                var azureDirectory = new Examine.AzureDirectory.RemoteSyncDirectory( cloudStorageAccount, containerName, cacheDirectory);
 
                 azureDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureDirectory.SetMergeScheduler(new NoMergeSheduler());
@@ -87,7 +87,7 @@ namespace Examine.Test.AzureDirectoryTests
             try
             {
                 // default AzureDirectory stores cache in local temp folder
-                var azureReadWriteDirectory = new AzureLuceneDirectory( connectionString, containerName, readWriteCacheDirectory);
+                var azureReadWriteDirectory = new Examine.AzureDirectory.RemoteSyncDirectory( connectionString, containerName, readWriteCacheDirectory);
 
                 azureReadWriteDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadWriteDirectory.SetMergeScheduler(new NoMergeSheduler());
@@ -123,7 +123,7 @@ namespace Examine.Test.AzureDirectoryTests
                 }
 
                 readonlyDirectoryFolder.Create();
-                var azureReadOnlyDirectory = new AzureReadOnlyLuceneDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
+                var azureReadOnlyDirectory = new RemoteReadOnlyLuceneSyncDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
                 azureReadOnlyDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadOnlyDirectory.SetMergeScheduler(new NoMergeSheduler());
                 azureReadOnlyDirectory.SetDeletion(new NoDeletionPolicy());
@@ -163,25 +163,25 @@ namespace Examine.Test.AzureDirectoryTests
             string containerName = "testcatalog";
 
             var readWriteCacheDirectory = new RandomIdRAMDirectory();
-            AzureLuceneDirectory azureReadWriteDirectory = null;
-            AzureReadOnlyLuceneDirectory azureReadOnlyDirectory = null;
+            Examine.AzureDirectory.RemoteSyncDirectory azureReadWriteSyncDirectory = null;
+            RemoteReadOnlyLuceneSyncDirectory remoteReadOnlySyncDirectory = null;
             var readonlyDirectoryFolder = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TEMP", containerName));
             try
             {
                 // default AzureDirectory stores cache in local temp folder
-                azureReadWriteDirectory = new AzureLuceneDirectory(connectionString, containerName, readWriteCacheDirectory);
+                azureReadWriteSyncDirectory = new Examine.AzureDirectory.RemoteSyncDirectory(connectionString, containerName, readWriteCacheDirectory);
 
-                azureReadWriteDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
-                azureReadWriteDirectory.SetMergeScheduler(new NoMergeSheduler());
-                azureReadWriteDirectory.SetDeletion(new NoDeletionPolicy());
-                using (var indexWriter = new IndexWriter(azureReadWriteDirectory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
-                    !IndexReader.IndexExists(azureReadWriteDirectory), azureReadWriteDirectory.GetDeletionPolicy(),
+                azureReadWriteSyncDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
+                azureReadWriteSyncDirectory.SetMergeScheduler(new NoMergeSheduler());
+                azureReadWriteSyncDirectory.SetDeletion(new NoDeletionPolicy());
+                using (var indexWriter = new IndexWriter(azureReadWriteSyncDirectory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
+                    !IndexReader.IndexExists(azureReadWriteSyncDirectory), azureReadWriteSyncDirectory.GetDeletionPolicy(),
                     new Lucene.Net.Index.IndexWriter.MaxFieldLength(IndexWriter.DEFAULT_MAX_FIELD_LENGTH)))
                 {
 
                     indexWriter.SetRAMBufferSizeMB(10.0);
-                    indexWriter.SetMergePolicy(azureReadWriteDirectory.GetMergePolicy(indexWriter));
-                    indexWriter.SetMergeScheduler(azureReadWriteDirectory.GetMergeScheduler());
+                    indexWriter.SetMergePolicy(azureReadWriteSyncDirectory.GetMergePolicy(indexWriter));
+                    indexWriter.SetMergeScheduler(azureReadWriteSyncDirectory.GetMergeScheduler());
 
                     for (int iDoc = 0; iDoc < 10000; iDoc++)
                     {
@@ -196,7 +196,7 @@ namespace Examine.Test.AzureDirectoryTests
                 }
                 for (var i = 0; i < 100; i++)
                 {
-                    using (var searcher = new IndexSearcher(azureReadWriteDirectory))
+                    using (var searcher = new IndexSearcher(azureReadWriteSyncDirectory))
                     {
                         Assert.AreNotEqual(0, SearchForPhrase(searcher, "dog"));
                         Assert.AreNotEqual(0, SearchForPhrase(searcher, "cat"));
@@ -205,24 +205,24 @@ namespace Examine.Test.AzureDirectoryTests
                 }
 
                 readonlyDirectoryFolder.Create();
-                azureReadOnlyDirectory = new AzureReadOnlyLuceneDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
-                azureReadOnlyDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
-                azureReadOnlyDirectory.SetMergeScheduler(new NoMergeSheduler());
-                azureReadOnlyDirectory.SetDeletion(new NoDeletionPolicy());
+                remoteReadOnlySyncDirectory = new RemoteReadOnlyLuceneSyncDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
+                remoteReadOnlySyncDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
+                remoteReadOnlySyncDirectory.SetMergeScheduler(new NoMergeSheduler());
+                remoteReadOnlySyncDirectory.SetDeletion(new NoDeletionPolicy());
 
-                using (var indexWriter = new IndexWriter(azureReadOnlyDirectory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
-                   !IndexReader.IndexExists(azureReadOnlyDirectory), azureReadOnlyDirectory.GetDeletionPolicy(),
+                using (var indexWriter = new IndexWriter(remoteReadOnlySyncDirectory, new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
+                   !IndexReader.IndexExists(remoteReadOnlySyncDirectory), remoteReadOnlySyncDirectory.GetDeletionPolicy(),
                    new Lucene.Net.Index.IndexWriter.MaxFieldLength(IndexWriter.DEFAULT_MAX_FIELD_LENGTH)))
                 {
 
                     indexWriter.SetRAMBufferSizeMB(10.0);
-                    indexWriter.SetMergePolicy(azureReadOnlyDirectory.GetMergePolicy(indexWriter));
-                    indexWriter.SetMergeScheduler(azureReadOnlyDirectory.GetMergeScheduler());
+                    indexWriter.SetMergePolicy(remoteReadOnlySyncDirectory.GetMergePolicy(indexWriter));
+                    indexWriter.SetMergeScheduler(remoteReadOnlySyncDirectory.GetMergeScheduler());
                     //TODO: Use Test index. adding documents should be blocked
                 }
                 for (var i = 0; i < 100; i++)
                 {
-                    using (var searcher = new IndexSearcher(azureReadOnlyDirectory))
+                    using (var searcher = new IndexSearcher(remoteReadOnlySyncDirectory))
                     {
                         Assert.AreEqual(0, SearchForPhrase(searcher, "Sony"));
                         Assert.AreEqual(0, SearchForPhrase(searcher, "Nintendo"));
@@ -233,8 +233,8 @@ namespace Examine.Test.AzureDirectoryTests
             finally
             {
                 readWriteCacheDirectory?.Dispose();
-                azureReadOnlyDirectory?.Dispose();
-                azureReadWriteDirectory?.Dispose();
+                remoteReadOnlySyncDirectory?.Dispose();
+                azureReadWriteSyncDirectory?.Dispose();
                 // check the container exists, and delete it
                 var containerClient = new BlobContainerClient(connectionString, containerName);
                 var exists = containerClient.Exists();

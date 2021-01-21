@@ -26,7 +26,7 @@ namespace Examine.Test.AzureDirectory
     [TestFixture]
     public class ReadOnlyTest
     {
-        private const string ContainerName = "examine-azure-directory-test";
+        private const string ContainerName = "examine-azure-syncDirectory-test";
         private readonly TestContentService _contentService = new TestContentService();
         
 
@@ -56,7 +56,7 @@ namespace Examine.Test.AzureDirectory
             var storageAccount = "UseDevelopmentStorage=true";
 
             var cacheDirectory1 = new SimpleFSDirectory(new DirectoryInfo(tempFolder1));
-            var writeDir = new AzureLuceneDirectory(
+            var writeDir = new Examine.AzureDirectory.RemoteSyncDirectory(
                 storageAccount,
                 ContainerName,
                 cacheDirectory1,
@@ -67,7 +67,7 @@ namespace Examine.Test.AzureDirectory
             writeDir.SetMergeScheduler(new NoMergeSheduler());
             writeDir.SetDeletion(new NoDeletionPolicy());
             var cacheDirectory2 = new SimpleFSDirectory(new DirectoryInfo(tempFolder2));
-            var readDir = new AzureReadOnlyLuceneDirectory(
+            var readDir = new RemoteReadOnlyLuceneSyncDirectory(
                 storageAccount,
                 ContainerName,
                 tempFolder2,
@@ -144,7 +144,7 @@ namespace Examine.Test.AzureDirectory
             }
         }
 
-        private void AsssertInSync(AzureLuceneDirectory writeDir, AzureReadOnlyLuceneDirectory readDir, TestIndex readSearcher,string query)
+        private void AsssertInSync(Examine.AzureDirectory.RemoteSyncDirectory writeDir, RemoteReadOnlyLuceneSyncDirectory readDir, TestIndex readSearcher,string query)
         {
             var search = readSearcher.GetSearcher().CreateQuery().NativeQuery(query);
             var searchResults = search.Execute();

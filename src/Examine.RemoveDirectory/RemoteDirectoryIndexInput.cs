@@ -1,43 +1,37 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading;
-using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
-using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 
-namespace Examine.AzureDirectory
+namespace Examine.RemoveDirectory
 {
     /// <summary>
     /// Implements IndexInput semantics for a read only blob
     /// </summary>
     public class RemoteDirectoryIndexInput : IndexInput
     {
-        private AzureLuceneDirectory _azureDirectory;
-        private BlobClient _blob;
+        private RemoteSyncDirectory _remoteSyncDirectory;
         private readonly string _name;
 
         private IndexInput _indexInput;
         private readonly Mutex _fileMutex;
 
-        public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
+        public Lucene.Net.Store.Directory CacheDirectory => _remoteSyncDirectory.CacheDirectory;
 
-        public RemoteDirectoryIndexInput(AzureLuceneDirectory azuredirectory, IRemoteDirectory helper, string name)
+        public RemoteDirectoryIndexInput(RemoteSyncDirectory azuredirectory, IRemoteDirectory helper, string name)
         {
             _name = name;
             _name = _name.Split(new string[] {"%2F"}, StringSplitOptions.RemoveEmptyEntries).Last();
-            _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
+            _remoteSyncDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
 #if FULLDEBUG
             Trace.WriteLine($"opening {_name} ");
 #endif
-            _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name);
+            _fileMutex = SyncMutexManager.GrabMutex(_remoteSyncDirectory, _name);
             _fileMutex.WaitOne();
             try
             {
-
                 var fileName = _name;
 
                 var fFileNeeded = false;
@@ -49,7 +43,7 @@ namespace Examine.AzureDirectory
                 {
                     var cachedLength = CacheDirectory.FileLength(fileName);
                     var blobProperties = helper.GetFileProperties(fileName);
-                   
+
 
                     if (cachedLength != blobProperties.Item1)
                         fFileNeeded = true;
@@ -105,14 +99,12 @@ namespace Examine.AzureDirectory
         public RemoteDirectoryIndexInput(RemoteDirectoryIndexInput cloneInput)
         {
             _name = cloneInput._name;
-            _azureDirectory = cloneInput._azureDirectory;
-            _blob = cloneInput._blob;
+            _remoteSyncDirectory = cloneInput._remoteSyncDirectory;
 
             if (string.IsNullOrWhiteSpace(_name)) throw new ArgumentNullException(nameof(cloneInput._name));
-            if (_azureDirectory == null) throw new ArgumentNullException(nameof(cloneInput._azureDirectory));
-            if (_blob == null) throw new ArgumentNullException(nameof(cloneInput._blob));
+            if (_remoteSyncDirectory == null) throw new ArgumentNullException(nameof(cloneInput._remoteSyncDirectory));
 
-            _fileMutex = SyncMutexManager.GrabMutex(cloneInput._azureDirectory, cloneInput._name);
+            _fileMutex = SyncMutexManager.GrabMutex(cloneInput._remoteSyncDirectory, cloneInput._name);
             _fileMutex.WaitOne();
 
             try
@@ -161,8 +153,7 @@ namespace Examine.AzureDirectory
 #endif
                 _indexInput.Dispose();
                 _indexInput = null;
-                _azureDirectory = null;
-                _blob = null;
+                _remoteSyncDirectory = null;
                 GC.SuppressFinalize(this);
             }
             finally

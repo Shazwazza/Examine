@@ -1,40 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
 using System.Threading;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Examine.LuceneEngine.Directories;
-using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 
-namespace Examine.AzureDirectory
+namespace Examine.RemoveDirectory
 {
     /// <summary>
     /// Implements IndexOutput semantics for a write/append only file
     /// </summary>
     public class RemoteDirectoryIndexOutput : IndexOutput
     {
-        private readonly AzureLuceneDirectory _azureDirectory;
+        private readonly RemoteSyncDirectory _azureSyncDirectory;
 
         //private CloudBlobContainer _blobContainer;
         private readonly string _name;
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
-        private BlobClient _blob;
         private IRemoteDirectory _azureRemoteDirectory;
 
-        public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
+        public Lucene.Net.Store.Directory CacheDirectory => _azureSyncDirectory.CacheDirectory;
 
-        public RemoteDirectoryIndexOutput(AzureLuceneDirectory azureDirectory, string name)
+        public RemoteDirectoryIndexOutput(RemoteSyncDirectory azureSyncDirectory, string name)
         {
             //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;
-            _azureDirectory = azureDirectory ?? throw new ArgumentNullException(nameof(azureDirectory));
-            _azureRemoteDirectory = _azureDirectory.RemoteDirectory;
-            _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name);
+            _azureSyncDirectory = azureSyncDirectory ?? throw new ArgumentNullException(nameof(azureSyncDirectory));
+            _azureRemoteDirectory = _azureSyncDirectory.RemoteDirectory;
+            _fileMutex = SyncMutexManager.GrabMutex(_azureSyncDirectory, _name);
             _fileMutex.WaitOne();
             try
             {
@@ -80,7 +72,7 @@ namespace Examine.AzureDirectory
                 {
                     var result = _azureRemoteDirectory.Upload(CacheDirectory.OpenInput(fileName), fileName,
                         originalLength,
-                        _azureDirectory.CompressBlobs, CacheDirectory.FileModified(fileName).ToString());
+                        _azureSyncDirectory.CompressBlobs, CacheDirectory.FileModified(fileName).ToString());
                     // push the blobStream up to the cloud
                     if (result)
                     {
@@ -95,7 +87,6 @@ namespace Examine.AzureDirectory
                 // clean up
                 _indexOutput = null;
                 //_blobContainer = null;
-                _blob = null;
                 GC.SuppressFinalize(this);
             }
             finally
@@ -104,7 +95,6 @@ namespace Examine.AzureDirectory
             }
         }
 
-       
 
         public override long Length => _indexOutput.Length;
 

@@ -51,7 +51,7 @@ namespace Examine.Test
         //public static UmbracoContentIndexer GetUmbracoIndexer(Lucene.Net.Store.Directory luceneDir)
         //{
         //    var i = new UmbracoContentIndexer(CreateCriteria(),
-        //        luceneDir, //custom lucene directory
+        //        luceneDir, //custom lucene syncDirectory
         //        new TestDataService(),
         //        new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
         //        false);

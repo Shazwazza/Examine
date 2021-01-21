@@ -7,7 +7,7 @@ using System.Linq;
 using Azure;
 using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
-using Examine.RemoteDirectory;
+using Examine.RemoveDirectory;
 using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory

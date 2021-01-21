@@ -1,20 +1,20 @@
 ﻿using System.IO;
-using Examine.RemoteDirectory;
+using Examine.AzureDirectory;
 using Lucene.Net.Store;
 
-namespace Examine.AzureDirectory
+namespace Examine.RemoveDirectory
 {
     /// <summary>
     /// A lock factory used for azure blob storage using Simple Locking (file based)
     /// </summary>
     public class RemoteDirectorySimpleLockFactory : LockFactory
     {
-        private readonly AzureLuceneDirectory _azureDirectory;
+        private readonly RemoteSyncDirectory _azureSyncDirectory;
         private readonly IRemoteDirectory _remoteDirectory;
 
-        public RemoteDirectorySimpleLockFactory(AzureLuceneDirectory azureDirectory, IRemoteDirectory remoteDirectory)
+        public RemoteDirectorySimpleLockFactory(RemoteSyncDirectory azureSyncDirectory, IRemoteDirectory remoteDirectory)
         {
-            _azureDirectory = azureDirectory;
+            _azureSyncDirectory = azureSyncDirectory;
             _remoteDirectory = remoteDirectory;
         }
 
@@ -23,7 +23,7 @@ namespace Examine.AzureDirectory
             if (LockPrefix != null)
                 name = LockPrefix + "-" + name;
 
-            return new AzureSimpleLock(name, _azureDirectory, _remoteDirectory);
+            return new RemoteSimpleLock(name, _azureSyncDirectory, _remoteDirectory);
         }
 
         public override void ClearLock(string name)

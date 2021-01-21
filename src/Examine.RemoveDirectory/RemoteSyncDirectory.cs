@@ -2,22 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Text.Json;
-using Azure;
-using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
-using Examine.RemoteDirectory;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
-namespace Examine.AzureDirectory
+namespace Examine.RemoveDirectory
 {
     /// <summary>
-    /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
+    /// A Lucene syncDirectory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
-    public class AzureLuceneDirectory : ExamineDirectory
+    public class RemoteSyncDirectory : ExamineDirectory
     {
         private volatile bool _dirty = true;
         private bool _inSync = false;
@@ -25,7 +20,7 @@ namespace Examine.AzureDirectory
 
         protected LockFactory _lockFactory;
         public readonly IRemoteDirectory RemoteDirectory;
-        private readonly IAzureIndexOutputFactory _azureIndexOutputFactory;
+        private readonly IRemoteIndexOutputFactory _remoteIndexOutputFactory;
         private readonly IRemoteDirectoryIndexInputFactory _remoteDirectoryIndexInputFactory;
 
         /// <summary>
@@ -37,11 +32,11 @@ namespace Examine.AzureDirectory
         /// <param name="compressBlobs"></param>
         /// <param name="rootFolder">path of the root folder inside the container</param>
         /// <param name="isReadOnly">
-        /// By default this is set to false which means that the <see cref="LockFactory"/> created for this directory will be 
+        /// By default this is set to false which means that the <see cref="LockFactory"/> created for this syncDirectory will be 
         /// a <see cref="MultiIndexLockFactory"/> which will create locks in both the cache and blob storage folders.
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
-        public AzureLuceneDirectory(
+        public RemoteSyncDirectory(
             IRemoteDirectory azurelper,
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false)
@@ -49,7 +44,7 @@ namespace Examine.AzureDirectory
             CacheDirectory = cacheDirectory;
             RemoteDirectory = azurelper;
             _lockFactory = GetLockFactory();
-            _azureIndexOutputFactory = GetAzureIndexOutputFactory();
+            _remoteIndexOutputFactory = GetAzureIndexOutputFactory();
             _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
             GuardCacheDirectory(CacheDirectory);
             CompressBlobs = compressBlobs;
@@ -60,9 +55,9 @@ namespace Examine.AzureDirectory
             return new RemoteDirectoryIndexInputFactory();
         }
 
-        protected virtual IAzureIndexOutputFactory GetAzureIndexOutputFactory()
+        protected virtual IRemoteIndexOutputFactory GetAzureIndexOutputFactory()
         {
-            return new AzureIndexOutputFactory();
+            return new RemoteIndexOutputFactory();
         }
 
         protected virtual void GuardCacheDirectory(Lucene.Net.Store.Directory cacheDirectory)
@@ -186,10 +181,10 @@ namespace Examine.AzureDirectory
             SetDirty();
         }
 
-        /// <summary>Removes an existing file in the directory. </summary>
+        /// <summary>Removes an existing file in the syncDirectory. </summary>
         public override void DeleteFile(string name)
         {
-            //We're going to try to remove this from the cache directory first,
+            //We're going to try to remove this from the cache syncDirectory first,
             // because the IndexFileDeleter will call this file to remove files 
             // but since some files will be in use still, it will retry when a reader/searcher
             // is refreshed until the file is no longer locked. So we need to try to remove 
@@ -228,7 +223,7 @@ namespace Examine.AzureDirectory
         }
 
 
-        /// <summary>Returns the length of a file in the directory. </summary>
+        /// <summary>Returns the length of a file in the syncDirectory. </summary>
         public override long FileLength(string name)
         {
             CheckDirty();
@@ -241,14 +236,14 @@ namespace Examine.AzureDirectory
             return RemoteDirectory.FileLength(name, CacheDirectory.FileLength(name));
         }
 
-        /// <summary>Creates a new, empty file in the directory with the given name.
+        /// <summary>Creates a new, empty file in the syncDirectory with the given name.
         /// Returns a stream writing this file. 
         /// </summary>
         public override IndexOutput CreateOutput(string name)
         {
             SetDirty();
 
-            return _azureIndexOutputFactory.CreateIndexOutput(this, name);
+            return _remoteIndexOutputFactory.CreateIndexOutput(this, name);
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>

@@ -1,24 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using Azure.Storage.Blobs;
-using Examine.LuceneEngine;
-using Examine.LuceneEngine.Directories;
-using Examine.RemoteDirectory;
 using Lucene.Net.Store;
-using Directory = Lucene.Net.Store.Directory;
 
-namespace Examine.AzureDirectory
+namespace Examine.RemoveDirectory
 {
-    public class AzureReadOnlyLuceneDirectory : AzureLuceneDirectory
+    public class RemoteReadOnlyLuceneSyncDirectory : RemoteSyncDirectory
     {
         private readonly string _cacheDirectoryPath;
         private readonly string _cacheDirectoryName;
         private string OldIndexFolderName;
 
-        public AzureReadOnlyLuceneDirectory(
+        public RemoteReadOnlyLuceneSyncDirectory(
             string cacheDirectoryPath,
             string cacheDirectoryName,
             IRemoteDirectory azurelper,

@@ -5,6 +5,7 @@ using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
+using Examine.RemoveDirectory;
 
 namespace Examine.AzureDirectory
 {
@@ -20,7 +21,7 @@ namespace Examine.AzureDirectory
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
             var indexName = GetIndexPathName(indexFolder);
-            var directory = new AzureReadOnlyLuceneDirectory(
+            var directory = new RemoteReadOnlyLuceneSyncDirectory(
                 tempFolder,
                 indexName,
                 new AzureRemoteDirectory(GetStorageAccountConnectionString(),GetContainerName(), luceneIndexFolder.Name));
