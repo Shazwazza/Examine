@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Lucene.Net.Store;
 
-namespace Examine.RemoveDirectory
+namespace Examine.RemoteDirectory
 {
     public interface IRemoteDirectory
     {

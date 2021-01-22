@@ -3,7 +3,7 @@ using System.Threading;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 
-namespace Examine.RemoveDirectory
+namespace Examine.RemoteDirectory
 {
     /// <summary>
     /// Implements IndexOutput semantics for a write/append only file

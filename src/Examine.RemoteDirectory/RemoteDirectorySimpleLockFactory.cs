@@ -2,7 +2,7 @@
 using Examine.AzureDirectory;
 using Lucene.Net.Store;
 
-namespace Examine.RemoveDirectory
+namespace Examine.RemoteDirectory
 {
     /// <summary>
     /// A lock factory used for azure blob storage using Simple Locking (file based)

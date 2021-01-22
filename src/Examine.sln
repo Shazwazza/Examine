@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Examine
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.AzureDirectory", "Examine.AzureDirectory\Examine.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.RemoveDirectory", "Examine.RemoveDirectory\Examine.RemoveDirectory.csproj", "{D3AA1219-AC57-48AE-BADA-66A488FAF773}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.RemoteDirectory", "Examine.RemoteDirectory\Examine.RemoteDirectory.csproj", "{D3AA1219-AC57-48AE-BADA-66A488FAF773}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -5,7 +5,7 @@ using System.Threading;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 
-namespace Examine.RemoveDirectory
+namespace Examine.RemoteDirectory
 {
     /// <summary>
     /// Implements IndexInput semantics for a read only blob

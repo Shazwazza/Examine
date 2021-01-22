@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Lucene.Net.Store;
 
-namespace Examine.RemoveDirectory
+namespace Examine.RemoteDirectory
 {
     public class RemoteReadOnlyLuceneSyncDirectory : RemoteSyncDirectory
     {

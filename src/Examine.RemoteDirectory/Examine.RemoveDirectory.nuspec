@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>Examine.RemoveDirectory</id>
+    <id>Examine.RemoteDirectory</id>
     <version>0.0.0.0</version>
-    <title>Examine.RemoveDirectory</title>
+    <title>Examine.RemoteDirectory</title>
     <authors>Shannon Deminick</authors>
     <owners>Shannon Deminick</owners>
     <projectUrl>https://github.com/Shazwazza/Examine</projectUrl>
@@ -20,7 +20,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\Examine.RemoveDirectory.dll" target="lib\net452\Examine.RemoveDirectory.dll" />
-    <file src="bin\Release\Examine.RemoveDirectory.pdb" target="lib\net452\Examine.RemoveDirectory.pdb" />
+    <file src="bin\Release\Examine.RemoteDirectory.dll" target="lib\net452\Examine.RemoteDirectory.dll" />
+    <file src="bin\Release\Examine.RemoteDirectory.pdb" target="lib\net452\Examine.RemoteDirectory.pdb" />
   </files>
 </package>

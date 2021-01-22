@@ -5,7 +5,7 @@ using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
 using Examine.Providers;
-using Examine.RemoveDirectory;
+using Examine.RemoteDirectory;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Store;

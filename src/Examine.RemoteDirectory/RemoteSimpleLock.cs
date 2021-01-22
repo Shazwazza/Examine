@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using Examine.RemoveDirectory;
+using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory

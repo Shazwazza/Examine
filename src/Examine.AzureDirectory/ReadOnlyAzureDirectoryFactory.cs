@@ -5,7 +5,7 @@ using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
 using Examine.LuceneEngine.MergeShedulers;
-using Examine.RemoveDirectory;
+using Examine.RemoteDirectory;
 
 namespace Examine.AzureDirectory
 {

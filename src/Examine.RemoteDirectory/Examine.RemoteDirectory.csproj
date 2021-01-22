@@ -4,7 +4,7 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{4801A9EA-17C2-430F-8098-17D369115B62}</ProjectGuid>
+        <ProjectGuid>{D3AA1219-AC57-48AE-BADA-66A488FAF773}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>Examine.RemoteDirectory</RootNamespace>
@@ -31,6 +31,35 @@
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
+    <ItemGroup>
+      <Compile Include="IRemoteDirectory.cs" />
+      <Compile Include="IRemoteDirectoryIndexInputFactory.cs" />
+      <Compile Include="IRemoteIndexOutputFactory.cs" />
+      <Compile Include="RemoteDirectoryIndexInput.cs" />
+      <Compile Include="RemoteDirectoryIndexInputFactory.cs" />
+      <Compile Include="RemoteDirectoryIndexOutput.cs" />
+      <Compile Include="RemoteDirectorySimpleLockFactory.cs" />
+      <Compile Include="RemoteIndexOutputFactory.cs" />
+      <Compile Include="RemoteReadOnlyLuceneSyncDirectory.cs" />
+      <Compile Include="RemoteSimpleLock.cs" />
+      <Compile Include="RemoteSyncDirectory.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="Examine.RemoveDirectory.nuspec" />
+      <None Include="packages.config" />
+    </ItemGroup>
+    <ItemGroup>
+      <Reference Include="Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
+        <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
+      </Reference>
+      <Reference Include="System" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Examine\Examine.csproj">
+        <Project>{da5e35c3-89ba-4a2e-a559-32cf7b23cbff}</Project>
+        <Name>Examine</Name>
+      </ProjectReference>
+    </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.

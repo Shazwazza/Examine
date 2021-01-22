@@ -7,7 +7,7 @@ using Examine.LuceneEngine.Directories;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
-namespace Examine.RemoveDirectory
+namespace Examine.RemoteDirectory
 {
     /// <summary>
     /// A Lucene syncDirectory used to store master index files in blob storage and sync local files to a %temp% fast drive storage

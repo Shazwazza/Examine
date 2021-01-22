@@ -1,6 +1,6 @@
 ﻿using Lucene.Net.Store;
 
-namespace Examine.RemoveDirectory
+namespace Examine.RemoteDirectory
 {
     public class RemoteIndexOutputFactory : IRemoteIndexOutputFactory
     {
