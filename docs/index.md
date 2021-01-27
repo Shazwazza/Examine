@@ -5,7 +5,7 @@
 layout: default
 ---
 
-Examine
+Examine Documentation
 ===
 
 ## What is Examine?
