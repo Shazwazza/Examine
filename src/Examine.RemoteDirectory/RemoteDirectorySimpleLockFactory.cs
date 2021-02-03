@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using Examine.AzureDirectory;
 using Lucene.Net.Store;
 
 namespace Examine.RemoteDirectory
