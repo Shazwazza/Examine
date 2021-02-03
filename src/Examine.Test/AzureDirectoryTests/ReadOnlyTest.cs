@@ -65,10 +65,7 @@ namespace Examine.Test.AzureDirectory
             writeDir.SetMergeScheduler(new NoMergeSheduler());
             writeDir.SetDeletion(new NoDeletionPolicy());
             var dir2 = new DirectoryInfo(tempFolder2);
-            var cacheDirectory2 = new SimpleFSDirectory(dir2);
-            var remoteDirectory2 = new AzureRemoteDirectory(storageAccount, ContainerName,dir2.Name);
-
-            var readDir = new RemoteReadOnlyLuceneSyncDirectory(dir2.FullName,temp2);
+            var readDir = new RemoteReadOnlyLuceneSyncDirectory(remoteDirectory, dir2.FullName, "test" );
 
             readDir.SetMergePolicyAction(e => new NoMergePolicy(e));
             readDir.SetMergeScheduler(new NoMergeSheduler());
