@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using Examine.RemoteDirectory;
 using Lucene.Net.Store;
 
-namespace Examine.AzureDirectory
+namespace Examine.RemoteDirectory
 {
     /// <summary>
     /// Implements lock semantics on AzureDirectory via a lock file - just like SimpleFSLock

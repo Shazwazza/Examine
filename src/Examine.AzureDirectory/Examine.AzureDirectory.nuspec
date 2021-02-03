@@ -20,7 +20,7 @@
         <dependencies>
             <group targetFramework="net461">
                 <dependency id="Examine" version="[1.1.0, 2.0.0)"/>
-                <dependency id="Examine.RemoteDirectory" version="[1.0.0,2.0.0)"/>
+                <dependency id="Examine.RemoteDirectory" version="[0.99999.99999,2.0.0)"/>
                 <dependency id="Azure.Storage.Blobs" version="12.7.0"/>
                 <dependency id="Microsoft.Extensions.Logging.Abstractions" version="3.1.10"/>
                 <dependency id="Microsoft.Extensions.Logging" version="3.1.10"/>

@@ -204,7 +204,7 @@ namespace Examine.AzureDirectory
 
         public bool Upload(MemoryStream stream, string fileName)
         {
-            var blob = _blobContainer.GetBlobClient(fileName);
+            var blob = _blobContainer.GetBlobClient(_rootFolderName + fileName);
             EnsureContainer(_containerName);
             try
             {
@@ -324,7 +324,7 @@ namespace Examine.AzureDirectory
         {
             try
             {
-                var blob = _blobContainer.GetBlobClient(filename);
+                var blob = _blobContainer.GetBlobClient(_rootFolderName + filename);
                 var response = blob.Exists();
                 return response.Value;
             }
@@ -338,7 +338,7 @@ namespace Examine.AzureDirectory
 
         public Tuple<long, DateTime> GetFileProperties(string filename)
         {
-            var blob = _blobContainer.GetBlobClient(filename);
+            var blob = _blobContainer.GetBlobClient(_rootFolderName + filename);
             var blobPropertiesResponse = blob.GetProperties();
             var blobProperties = blobPropertiesResponse.Value;
             var hasMetadataValue =
