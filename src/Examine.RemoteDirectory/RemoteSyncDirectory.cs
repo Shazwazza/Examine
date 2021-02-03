@@ -37,19 +37,39 @@ namespace Examine.RemoteDirectory
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
         public RemoteSyncDirectory(
-            IRemoteDirectory azurelper,
+            IRemoteDirectory remoteDirectory,
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false)
         {
             CacheDirectory = cacheDirectory;
-            RemoteDirectory = azurelper;
+            RemoteDirectory = remoteDirectory;
             _lockFactory = GetLockFactory();
             _remoteIndexOutputFactory = GetAzureIndexOutputFactory();
             _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
             GuardCacheDirectory(CacheDirectory);
             CompressBlobs = compressBlobs;
         }
-
+        /// <summary>
+        /// Create an AzureDirectory
+        /// </summary>
+        /// <param name="connectionString">storage account to use</param>
+        /// <param name="containerName">name of container (folder in blob storage)</param>
+        /// <param name="compressBlobs"></param>
+        /// <param name="rootFolder">path of the root folder inside the container</param>
+        /// <param name="isReadOnly">
+        /// By default this is set to false which means that the <see cref="LockFactory"/> created for this syncDirectory will be 
+        /// a <see cref="MultiIndexLockFactory"/> which will create locks in both the cache and blob storage folders.
+        /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
+        /// </param>
+        public RemoteSyncDirectory(
+            IRemoteDirectory remoteDirectory,
+            bool compressBlobs = false)
+        {
+            RemoteDirectory = remoteDirectory;
+            _remoteIndexOutputFactory = GetAzureIndexOutputFactory();
+            _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
+            CompressBlobs = compressBlobs;
+        }
         protected virtual IRemoteDirectoryIndexInputFactory GetAzureIndexInputFactory()
         {
             return new RemoteDirectoryIndexInputFactory();
@@ -119,12 +139,8 @@ namespace Examine.RemoteDirectory
         internal string[] GetAllBlobFiles()
         {
             IEnumerable<string> results = GetAllBlobFileNames();
-            if (string.IsNullOrWhiteSpace(RootFolder))
-            {
-                return results.ToArray();
-            }
-
-            var names = results.Where(x => !x.EndsWith(".lock")).Select(x => x.Replace(RootFolder, "")).ToArray();
+          
+            var names = results.Where(x => !x.EndsWith(".lock")).ToArray();
             return names;
         }
 

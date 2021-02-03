@@ -35,7 +35,7 @@ namespace Examine.AzureDirectory
         /// <summary>. </summary>
         public void SyncFile(Lucene.Net.Store.Directory directory, string fileName, bool CompressBlobs)
         {
-            var blob = _blobContainer.GetBlobClient(_rootFolderName + fileName);
+            var blob = _blobContainer.GetBlobClient(_rootFolderName+fileName);
             Trace.WriteLine($"INFO Syncing file {fileName} for {_rootFolderName}");
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
@@ -114,7 +114,7 @@ namespace Examine.AzureDirectory
         public IEnumerable<string> GetAllRemoteFileNames()
         {
             return from blob in _blobContainer.GetBlobs(prefix: _rootFolderName)
-                select blob.Name;
+                select blob.Name.Replace(_rootFolderName, "");
         }
 
         public void DeleteFile(string name)

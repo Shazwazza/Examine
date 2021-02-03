@@ -74,7 +74,7 @@ namespace Examine.RemoteDirectory
                         originalLength,
                         _azureSyncDirectory.CompressBlobs, CacheDirectory.FileModified(fileName).ToString());
                     // push the blobStream up to the cloud
-                    if (result)
+                    if (!result)
                     {
                         throw new Exception("File already exists");
                     }

@@ -145,7 +145,6 @@
     <Compile Include="AzureDirectoryTests\IntegrationTests.cs" />
     <Compile Include="Extensions\SpatialSearch.cs" />
     <Compile Include="Search\LuceneSearchResultsReaderTrackerTests.cs" />
-    <Compile Include="AzureDirectoryTests\ReadOnlyTest.cs" />
     <Compile Include="OrderedDictionaryTests.cs" />
     <Compile Include="RandomIdRAMDirectory.cs" />
     <Compile Include="DataServices\TestContentService.cs" />
@@ -197,6 +196,10 @@
     <ProjectReference Include="..\Examine.AzureDirectory\Examine.AzureDirectory.csproj">
       <Project>{c3880b59-8b08-4990-b3fa-0a8db9476319}</Project>
       <Name>Examine.AzureDirectory</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Examine.RemoteDirectory\Examine.RemoteDirectory.csproj">
+      <Project>{d3aa1219-ac57-48ae-bada-66a488faf773}</Project>
+      <Name>Examine.RemoteDirectory</Name>
     </ProjectReference>
     <ProjectReference Include="..\Examine\Examine.csproj">
       <Project>{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}</Project>

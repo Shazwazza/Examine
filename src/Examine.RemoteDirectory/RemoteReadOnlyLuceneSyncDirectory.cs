@@ -10,13 +10,13 @@ namespace Examine.RemoteDirectory
     {
         private readonly string _cacheDirectoryPath;
         private readonly string _cacheDirectoryName;
-        private string OldIndexFolderName;
+        private string _oldIndexFolderName;
 
         public RemoteReadOnlyLuceneSyncDirectory(
+            IRemoteDirectory remoteDirectory,
             string cacheDirectoryPath,
             string cacheDirectoryName,
-            IRemoteDirectory azurelper,
-            bool compressBlobs = false) : base(azurelper, null, compressBlobs)
+            bool compressBlobs = false) : base(remoteDirectory,  compressBlobs)
         {
             _cacheDirectoryPath = cacheDirectoryPath;
             _cacheDirectoryName = cacheDirectoryName;
@@ -48,7 +48,7 @@ namespace Examine.RemoteDirectory
                 if (subDirectories.Any())
                 {
                     var directory = subDirectories.FirstOrDefault();
-                    OldIndexFolderName = directory.Name;
+                    _oldIndexFolderName = directory.Name;
                     CacheDirectory = new SimpleFSDirectory(directory);
                     _lockFactory = CacheDirectory.LockFactory;
                 }
@@ -95,7 +95,6 @@ namespace Examine.RemoteDirectory
                 if (tempDir.Exists == false)
                     tempDir.Create();
                 Lucene.Net.Store.Directory newIndex = new SimpleFSDirectory(tempDir);
-                var lockprefix = LockFactory.LockPrefix;
                 foreach (string file in GetAllBlobFiles())
                 {
                     //   newIndex.TouchFile(file);
@@ -148,11 +147,11 @@ namespace Examine.RemoteDirectory
 
                     oldIndex.Dispose();
                     DirectoryInfo oldindex = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
-                        _cacheDirectoryName, OldIndexFolderName));
+                        _cacheDirectoryName, _oldIndexFolderName));
                     oldindex.Delete();
                 }
 
-                OldIndexFolderName = tempDir.Name;
+                _oldIndexFolderName = tempDir.Name;
             }
         }
     }

@@ -14,6 +14,7 @@ using NUnit.Framework;
 using System;
 using System.IO;
 using System.Text;
+using Examine.RemoteDirectory;
 
 namespace Examine.Test.AzureDirectoryTests
 {
@@ -32,7 +33,9 @@ namespace Examine.Test.AzureDirectoryTests
             // default AzureDirectory stores cache in local temp folder
             using (var cacheDirectory = new RandomIdRAMDirectory())
             {
-                var azureDirectory = new Examine.AzureDirectory.RemoteSyncDirectory( cloudStorageAccount, containerName, cacheDirectory);
+                var remoteDirectory = new AzureRemoteDirectory(cloudStorageAccount, containerName,"asdasd");
+
+                var azureDirectory = new Examine.RemoteDirectory.RemoteSyncDirectory( remoteDirectory, cacheDirectory );
 
                 azureDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureDirectory.SetMergeScheduler(new NoMergeSheduler());
@@ -87,7 +90,9 @@ namespace Examine.Test.AzureDirectoryTests
             try
             {
                 // default AzureDirectory stores cache in local temp folder
-                var azureReadWriteDirectory = new Examine.AzureDirectory.RemoteSyncDirectory( connectionString, containerName, readWriteCacheDirectory);
+                var remoteDirectory = new AzureRemoteDirectory(connectionString, containerName,"asdasd");
+
+                var azureReadWriteDirectory = new Examine.RemoteDirectory.RemoteSyncDirectory( remoteDirectory, readWriteCacheDirectory );
 
                 azureReadWriteDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadWriteDirectory.SetMergeScheduler(new NoMergeSheduler());
@@ -123,7 +128,7 @@ namespace Examine.Test.AzureDirectoryTests
                 }
 
                 readonlyDirectoryFolder.Create();
-                var azureReadOnlyDirectory = new RemoteReadOnlyLuceneSyncDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
+                var azureReadOnlyDirectory = new RemoteReadOnlyLuceneSyncDirectory(remoteDirectory, readonlyDirectoryFolder.FullName, containerName );
                 azureReadOnlyDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadOnlyDirectory.SetMergeScheduler(new NoMergeSheduler());
                 azureReadOnlyDirectory.SetDeletion(new NoDeletionPolicy());
@@ -163,13 +168,15 @@ namespace Examine.Test.AzureDirectoryTests
             string containerName = "testcatalog";
 
             var readWriteCacheDirectory = new RandomIdRAMDirectory();
-            Examine.AzureDirectory.RemoteSyncDirectory azureReadWriteSyncDirectory = null;
+            Examine.RemoteDirectory.RemoteSyncDirectory azureReadWriteSyncDirectory = null;
             RemoteReadOnlyLuceneSyncDirectory remoteReadOnlySyncDirectory = null;
             var readonlyDirectoryFolder = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TEMP", containerName));
             try
             {
+                var remoteDirectory = new AzureRemoteDirectory(connectionString, containerName,"asdasd");
+
                 // default AzureDirectory stores cache in local temp folder
-                azureReadWriteSyncDirectory = new Examine.AzureDirectory.RemoteSyncDirectory(connectionString, containerName, readWriteCacheDirectory);
+                azureReadWriteSyncDirectory = new RemoteSyncDirectory(remoteDirectory, readWriteCacheDirectory);
 
                 azureReadWriteSyncDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 azureReadWriteSyncDirectory.SetMergeScheduler(new NoMergeSheduler());
@@ -205,7 +212,8 @@ namespace Examine.Test.AzureDirectoryTests
                 }
 
                 readonlyDirectoryFolder.Create();
-                remoteReadOnlySyncDirectory = new RemoteReadOnlyLuceneSyncDirectory(connectionString, containerName, readonlyDirectoryFolder.FullName, containerName);
+                
+                remoteReadOnlySyncDirectory = new RemoteReadOnlyLuceneSyncDirectory(remoteDirectory, readonlyDirectoryFolder.FullName, containerName );;
                 remoteReadOnlySyncDirectory.SetMergePolicyAction(e => new NoMergePolicy(e));
                 remoteReadOnlySyncDirectory.SetMergeScheduler(new NoMergeSheduler());
                 remoteReadOnlySyncDirectory.SetDeletion(new NoDeletionPolicy());

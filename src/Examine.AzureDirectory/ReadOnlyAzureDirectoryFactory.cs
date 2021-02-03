@@ -22,9 +22,10 @@ namespace Examine.AzureDirectory
             var tempFolder = GetLocalStorageDirectory(indexFolder);
             var indexName = GetIndexPathName(indexFolder);
             var directory = new RemoteReadOnlyLuceneSyncDirectory(
+                new AzureRemoteDirectory(GetStorageAccountConnectionString(),GetContainerName(), luceneIndexFolder.Name),
                 tempFolder,
-                indexName,
-                new AzureRemoteDirectory(GetStorageAccountConnectionString(),GetContainerName(), luceneIndexFolder.Name));
+                indexName
+                );
        
 
             directory.IsReadOnly = _isReadOnly;
