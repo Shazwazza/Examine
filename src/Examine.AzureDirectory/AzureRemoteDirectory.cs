@@ -121,7 +121,6 @@ namespace Examine.AzureDirectory
         {
             var blob = _blobContainer.GetBlobClient(_rootFolderName + name);
             Trace.WriteLine($"INFO Deleted {_blobContainer.Uri}/{name} for {_rootFolderName}");
-            Trace.WriteLine($"INFO DELETE {_blobContainer.Uri}/{name}");
             blob.DeleteIfExists();
         }
 

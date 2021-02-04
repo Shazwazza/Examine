@@ -283,11 +283,9 @@ namespace Examine.RemoteDirectory
                 catch (Exception ex)
                 {
                     Trace.TraceError(
-                        "Could not get local file though we are marked as inSync, reverting to try blob storage; " +
+                        $"Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder} " +
                         ex);
-                    Trace.WriteLine(
-                        $"ERROR {ex.ToString()} Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder}");
-                }
+                  }
             }
 
             if (RemoteDirectory.TryGetBlobFile(name))

@@ -16,7 +16,7 @@ namespace Examine.RemoteDirectory
             IRemoteDirectory remoteDirectory,
             string cacheDirectoryPath,
             string cacheDirectoryName,
-            bool compressBlobs = false) : base(remoteDirectory,  compressBlobs)
+            bool compressBlobs = false) : base(remoteDirectory, compressBlobs)
         {
             _cacheDirectoryPath = cacheDirectoryPath;
             _cacheDirectoryName = cacheDirectoryName;
@@ -78,7 +78,7 @@ namespace Examine.RemoteDirectory
 
         protected override void HandleOutOfSync()
         {
-            ResyncCache();
+            RebuildCache();
         }
 
         private object _rebuildLock = new object();
@@ -130,25 +130,24 @@ namespace Examine.RemoteDirectory
                         Trace.WriteLine($"Error: {ex.ToString()}");
                     }
 
-                    try
-                    {
-                        foreach (var file in oldIndex.ListAll())
-                        {
-                            if (oldIndex.FileExists(file))
-                            {
-                                oldIndex.DeleteFile(file);
-                            }
-                        }
-                    }
-                    catch (NoSuchDirectoryException ex)
-                    {
-                        Trace.WriteLine($"Error: Old Local Sync Directory Empty. {ex.ToString()}");
-                    }
 
                     oldIndex.Dispose();
-                    DirectoryInfo oldindex = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
-                        _cacheDirectoryName, _oldIndexFolderName));
-                    oldindex.Delete();
+                    try
+                    {
+                        DirectoryInfo oldindex = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
+                            _cacheDirectoryName, _oldIndexFolderName));
+                        foreach (var file in oldindex.GetFiles())
+                        {
+                            file.Delete();
+                        }
+
+
+                        oldindex.Delete();
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.WriteLine($"Error: Cleaning of old directory failed. {ex.ToString()}");
+                    }
                 }
 
                 _oldIndexFolderName = tempDir.Name;
