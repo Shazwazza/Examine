@@ -49,6 +49,7 @@ namespace Examine.RemoteDirectory
             GuardCacheDirectory(CacheDirectory);
             CompressBlobs = compressBlobs;
         }
+
         /// <summary>
         /// Create an AzureDirectory
         /// </summary>
@@ -70,6 +71,7 @@ namespace Examine.RemoteDirectory
             _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
             CompressBlobs = compressBlobs;
         }
+
         protected virtual IRemoteDirectoryIndexInputFactory GetAzureIndexInputFactory()
         {
             return new RemoteDirectoryIndexInputFactory();
@@ -88,7 +90,8 @@ namespace Examine.RemoteDirectory
 
         protected virtual LockFactory GetLockFactory()
         {
-            return new MultiIndexLockFactory(new RemoteDirectorySimpleLockFactory(this, RemoteDirectory), CacheDirectory.LockFactory);
+            return new MultiIndexLockFactory(new RemoteDirectorySimpleLockFactory(this, RemoteDirectory),
+                CacheDirectory.LockFactory);
         }
 
 
@@ -139,7 +142,7 @@ namespace Examine.RemoteDirectory
         internal string[] GetAllBlobFiles()
         {
             IEnumerable<string> results = GetAllBlobFileNames();
-          
+
             var names = results.Where(x => !x.EndsWith(".lock")).ToArray();
             return names;
         }
@@ -167,7 +170,8 @@ namespace Examine.RemoteDirectory
                     Trace.WriteLine(
                         $"ERROR {e.ToString()}  Exception thrown while checking file ({name}) exists for {RootFolder}");
                     SetDirty();
-                    return RemoteDirectory.FileExists(name);;
+                    return RemoteDirectory.FileExists(name);
+                    ;
                 }
             }
 
@@ -185,7 +189,6 @@ namespace Examine.RemoteDirectory
             }
 
             return RemoteDirectory.FileModified(name);
-            
         }
 
         /// <summary>Set the modified time of an existing file to now. </summary>
@@ -285,7 +288,7 @@ namespace Examine.RemoteDirectory
                     Trace.TraceError(
                         $"Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder} " +
                         ex);
-                  }
+                }
             }
 
             if (RemoteDirectory.TryGetBlobFile(name))
@@ -350,12 +353,21 @@ namespace Examine.RemoteDirectory
                     //double check locking
                     if (_dirty)
                     {
-                        //these methods don't throw exceptions, will return -1 if something has gone wrong
-                        // in which case we'll consider them not in sync
                         var blobFiles = GetAllBlobFiles();
-                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(blobFiles);
-                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
-                        _inSync = masterSeg == localSeg && masterSeg != -1;
+
+                        try
+                        {
+                            //these methods don't throw exceptions, will return -1 if something has gone wrong
+                            // in which case we'll consider them not in sync
+                            var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(blobFiles);
+                            var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
+                            _inSync = masterSeg == localSeg && masterSeg != -1;
+                        }
+                        catch (Exception e)
+                        {
+                            _inSync = false;
+                        }
+
                         if (!_inSync)
                         {
                             HandleOutOfSync();
@@ -400,7 +412,5 @@ namespace Examine.RemoteDirectory
                 }
             }
         }
-
-
     }
 }

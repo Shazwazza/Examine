@@ -109,11 +109,19 @@ namespace Examine.LuceneEngine.Providers
         
         protected virtual Directory GetLuceneDirectory()
         {
+
+            
             if (_nrtWriter != null)
             {
+                if (_directory != null && _nrtWriter.Directory != _directory)
+                {
+                    _nrtWriter.Dispose();
+                    _nrtWriter = null;
+                    //TryEstablishNrtReader();
+                    return _directory;
+                }
                 return _nrtWriter.Directory;
             }
-            
             return _directory;
         }
 
@@ -196,6 +204,7 @@ namespace Examine.LuceneEngine.Providers
                     {
                         try
                         {
+                        
                             //get a reader - could be NRT or based on directly depending on how this was constructed
                             _reader = _nrtWriter == null
                                 ? OpenNewReader()

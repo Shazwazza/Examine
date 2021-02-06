@@ -130,19 +130,19 @@ namespace Examine.RemoteDirectory
                         Trace.WriteLine($"Error: {ex.ToString()}");
                     }
 
-
+                    
                     oldIndex.Dispose();
                     try
                     {
-                        DirectoryInfo oldindex = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
+                        DirectoryInfo oldindexDir = new DirectoryInfo(Path.Combine(_cacheDirectoryPath,
                             _cacheDirectoryName, _oldIndexFolderName));
-                        foreach (var file in oldindex.GetFiles())
+                        foreach (var file in oldindexDir.GetFiles())
                         {
                             file.Delete();
                         }
 
 
-                        oldindex.Delete();
+                        oldindexDir.Delete();
                     }
                     catch (Exception ex)
                     {

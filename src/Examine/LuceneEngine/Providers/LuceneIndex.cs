@@ -50,7 +50,22 @@ namespace Examine.LuceneEngine.Providers
             if (luceneDirectory is ExamineDirectory dir)
             {
                 isReadonly = dir.IsReadOnly;
+                dir.HandleOutOfSyncEvent += DirOnHandleOutOfSyncEvent;
             }
+        }
+
+        private void DirOnHandleOutOfSyncEvent(object sender, EventArgs e)
+        {
+            if(_searcher.IsValueCreated)
+            {
+                _searcher.Value.Dispose();
+            }
+            _writer.Dispose(false);
+            IndexWriter.Unlock(_directory);
+            GetIndexWriter();
+
+            _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
+
         }
 
         /// <summary>
@@ -86,12 +101,14 @@ namespace Examine.LuceneEngine.Providers
             if (luceneDirectory is ExamineDirectory dir)
             {
                 isReadonly = dir.IsReadOnly;
+                dir.HandleOutOfSyncEvent += DirOnHandleOutOfSyncEvent;
             }
 
             //initialize the field types
             _fieldValueTypeCollection =
                 new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
+          
             WaitForIndexQueueOnShutdown = true;
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
@@ -209,7 +226,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private volatile bool _isIndexing = false;
 
-        private readonly Lazy<LuceneSearcher> _searcher;
+        private Lazy<LuceneSearcher> _searcher;
 
         private bool? _exists;
 
@@ -1412,8 +1429,8 @@ namespace Examine.LuceneEngine.Providers
                 if (!name.EndsWith(suffix)) continue;
                 name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
             }
-
-            return new LuceneSearcher(name + "Searcher", GetIndexWriter(), FieldAnalyzer, FieldValueTypeCollection);
+            //todo: check with shannon why we passed writer there
+            return new LuceneSearcher(name + "Searcher", _directory, FieldAnalyzer, FieldValueTypeCollection);
         }
 
 

@@ -15,6 +15,12 @@ namespace Examine.LuceneEngine.Directories
             _onCommitAction?.Invoke(writer);
         }
 
+        public event EventHandler HandleOutOfSyncEvent;
+
+        public void HandleOutOfSyncDirectory()
+        {
+            HandleOutOfSyncEvent?.Invoke(this, null);
+        }
 
         /// <summary>
         /// Called on commit
