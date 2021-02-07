@@ -89,7 +89,7 @@ namespace Examine.LuceneEngine.Directories
         
         public override void Close()
         {
-            Input.Close();
+            Input.Dispose();
             base.Close();
         }
     }

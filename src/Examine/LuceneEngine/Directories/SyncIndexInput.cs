@@ -53,18 +53,14 @@ namespace Examine.LuceneEngine.Directories
                 var fileName = _name;
 
                 var fileNeeded = false;
-                bool fileExists;
 
                 //Check the cache folder for the file existing, it doesn't exist then the file is needed
                 if (!CacheDirectory.FileExists(fileName))
                 {
                     fileNeeded = true;
-                    fileExists = false;
                 }
                 else
                 {
-                    //Hrm, if the file already exists I think we're already in trouble but here's some logic to deal with that anyways.
-                    fileExists = true;
 
                     //Normally we'd compare the file attributes to see if we need to override it but Lucene has write-once semantics so
                     //this is unecessary. If the file already exists locally then we will have to assume it is the correct file!
@@ -169,8 +165,8 @@ namespace Examine.LuceneEngine.Directories
                 }
                 finally
                 {
-                    cacheOutput?.Close();
-                    masterInput?.Close();
+                    cacheOutput?.Dispose();
+                    masterInput?.Dispose();
                 }
             }
             

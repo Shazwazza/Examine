@@ -363,8 +363,10 @@ namespace Examine.RemoteDirectory
                             var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
                             _inSync = masterSeg == localSeg && masterSeg != -1;
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
+                            //these exceptions is mostly when local cache is broken and cant read current segments as file get corrupted/removed
+                            //so we need resync
                             _inSync = false;
                         }
 

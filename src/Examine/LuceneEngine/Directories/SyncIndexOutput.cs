@@ -90,7 +90,7 @@ namespace Examine.LuceneEngine.Directories
                     {
                         cacheInput = CacheDirectory.OpenInput(fileName);
                     }
-                    catch (IOException e)
+                    catch (IOException)
                     {
                         //This would occur if the file doesn't exist! we previously threw when that happens so we'll keep
                         //doing that for now but this is quicker than first checking if it exists and then opening it.

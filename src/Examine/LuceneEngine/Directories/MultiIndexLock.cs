@@ -59,7 +59,7 @@ namespace Examine.LuceneEngine.Directories
                 isChild = true;
                 _dirChild.Release();
             }
-            catch (System.Exception ex2)
+            catch (System.Exception)
             {
                 //if an error occurs above for the master still attempt to release child
                 if (!isChild)

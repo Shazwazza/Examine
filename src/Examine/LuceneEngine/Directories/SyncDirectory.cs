@@ -161,7 +161,7 @@ namespace Examine.LuceneEngine.Directories
                     SetDirty();
                 }
             }
-            catch (IOException ex)
+            catch (IOException)
             {
                 //This will occur because this file is locked, when this is the case, we don't really want to delete it from the master either because
                 // if we do that then this file will never get removed from the cache folder either! This is based on the Deletion Policy which the

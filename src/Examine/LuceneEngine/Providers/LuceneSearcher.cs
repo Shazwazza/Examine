@@ -302,7 +302,7 @@ namespace Examine.LuceneEngine.Providers
                                     MaybeReopen();
 
                                 }
-                                catch (Exception e)
+                                catch (Exception)
                                 {
                                     //It's the initial call to this at the beginning or after successful commit
                                     _timestamp = DateTime.Now;

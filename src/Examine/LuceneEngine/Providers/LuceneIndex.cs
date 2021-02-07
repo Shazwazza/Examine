@@ -1327,7 +1327,7 @@ namespace Examine.LuceneEngine.Providers
                     var w = new StreamWriter(_logOutput);
                     writer.SetInfoStream(w);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //if an exception is thrown here we won't worry about it, it will mean we cannot create the log file
                 }
