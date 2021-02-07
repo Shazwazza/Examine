@@ -82,7 +82,7 @@ namespace Examine.RemoteDirectory
         }
 
         private object _rebuildLock = new object();
-
+        //todo: make that as background task. Need input from someone how to handle that correctly as now it is as sync task to avoid issues, but need be change
         public override void RebuildCache()
         {
             lock (_rebuildLock)
