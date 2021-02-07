@@ -39,40 +39,30 @@ namespace Examine.RemoteDirectory
 
         private void CreateOrReadCache()
         {
-            var indexParentFolder = new DirectoryInfo(
-                Path.Combine(_cacheDirectoryPath,
-                    _cacheDirectoryName));
-            if (indexParentFolder.Exists)
+            lock (_rebuildLock)
             {
-                var subDirectories = indexParentFolder.GetDirectories();
-                if (subDirectories.Any())
+                var indexParentFolder = new DirectoryInfo(
+                    Path.Combine(_cacheDirectoryPath,
+                        _cacheDirectoryName));
+                if (indexParentFolder.Exists)
                 {
-                    var directory = subDirectories.FirstOrDefault();
-                    _oldIndexFolderName = directory.Name;
-                    CacheDirectory = new SimpleFSDirectory(directory);
-                    _lockFactory = CacheDirectory.LockFactory;
+                    var subDirectories = indexParentFolder.GetDirectories();
+                    if (subDirectories.Any())
+                    {
+                        var directory = subDirectories.FirstOrDefault();
+                        _oldIndexFolderName = directory.Name;
+                        CacheDirectory = new SimpleFSDirectory(directory);
+                        _lockFactory = CacheDirectory.LockFactory;
+                    }
+                    else
+                    {
+                        RebuildCache();
+                    }
                 }
                 else
                 {
                     RebuildCache();
                 }
-            }
-            else
-            {
-                RebuildCache();
-            }
-        }
-
-        public void ResyncCache()
-        {
-            foreach (string file in GetAllBlobFiles())
-            {
-                if (CacheDirectory.FileExists(file))
-                {
-                    CacheDirectory.TouchFile(file);
-                }
-
-                RemoteDirectory.SyncFile(CacheDirectory, file, CompressBlobs);
             }
         }
 
@@ -85,8 +75,7 @@ namespace Examine.RemoteDirectory
         //todo: make that as background task. Need input from someone how to handle that correctly as now it is as sync task to avoid issues, but need be change
         public override void RebuildCache()
         {
-            lock (_rebuildLock)
-            {
+           
                 //Needs locking
                 Trace.WriteLine("INFO Rebuilding cache");
                 var tempDir = new DirectoryInfo(
@@ -151,7 +140,6 @@ namespace Examine.RemoteDirectory
                 }
 
                 _oldIndexFolderName = tempDir.Name;
-            }
         }
     }
 }
