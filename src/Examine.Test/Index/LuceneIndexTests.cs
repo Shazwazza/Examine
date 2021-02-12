@@ -549,7 +549,7 @@ namespace Examine.Test.Index
                     //customIndexer.IndexingError -= IndexInitializer.IndexingError;
 
                     //run in async mode
-                    customIndexer.RunAsync = false;
+                    customIndexer.RunAsync = true;
 
                     //get all nodes
                     var nodes = _contentService.GetPublishedContentByXPath("//*[@isDoc]")
@@ -591,7 +591,7 @@ namespace Examine.Test.Index
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("ERROR!! {0}", ex);
+                            Console.WriteLine("Search ERROR!! {0}", ex);
                             throw;
                         }
                     };
@@ -619,7 +619,7 @@ namespace Examine.Test.Index
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("ERROR!! {0}", ex);
+                            Console.WriteLine("Index ERROR!! {0}", ex);
                             throw;
                         }
                     };
