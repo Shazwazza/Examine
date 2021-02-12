@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using Azure;
 using Azure.Storage.Blobs;
+using Examine.Logging;
 using Examine.LuceneEngine.Directories;
 using Examine.RemoteDirectory;
 using Lucene.Net.Store;
@@ -16,11 +17,12 @@ namespace Examine.AzureDirectory
     {
         private string _storageAccountConnectionString;
         private readonly string _containerName;
+        private readonly ILoggingService _loggingService;
         private readonly string _rootFolderName;
         private BlobContainerClient _blobContainer;
 
         public AzureRemoteDirectory(string storageAccountConnectionString, string containerName,
-            string rootFolderName)
+            string rootFolderName, ILoggingService loggingService)
         {
             if (storageAccountConnectionString == null)
                 throw new ArgumentNullException(nameof(storageAccountConnectionString));
@@ -28,6 +30,7 @@ namespace Examine.AzureDirectory
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
             _storageAccountConnectionString = storageAccountConnectionString;
             _containerName = containerName;
+            _loggingService = loggingService;
             _rootFolderName = NormalizeContainerRootFolder(rootFolderName);
             EnsureContainer(containerName);
         }
@@ -36,7 +39,7 @@ namespace Examine.AzureDirectory
         public void SyncFile(Lucene.Net.Store.Directory directory, string fileName, bool CompressBlobs)
         {
             var blob = _blobContainer.GetBlobClient(_rootFolderName+fileName);
-            Trace.WriteLine($"INFO Syncing file {fileName} for {_rootFolderName}");
+            _loggingService.Log(new LogEntry(LogLevel.Info,null,$"Syncing file {fileName} for {_rootFolderName}"));
             // then we will get it fresh into local deflatedName 
             // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
             using (var deflatedStream = new MemoryStream())
@@ -45,7 +48,7 @@ namespace Examine.AzureDirectory
                 blob.DownloadTo(deflatedStream);
 
 #if FULLDEBUG
-                Trace.WriteLine($"GET {fileName} RETREIVED {deflatedStream.Length} bytes");
+                _loggingService.Log(new LogEntry(LogLevel.Info,null,$"GET {fileName} RETREIVED {deflatedStream.Length} bytes"));
 #endif
 
                 // seek back to begininng
@@ -76,7 +79,7 @@ namespace Examine.AzureDirectory
 
                         fileStream.Flush();
 #if FULLDEBUG
-                        Trace.WriteLine($"GET {fileName} RETREIVED {fileStream.Length} bytes");
+                        _loggingService.Log(new LogEntry(LogLevel.Info,null,$"GET {fileName} RETREIVED {fileStream.Length} bytes"));
 #endif
                     }
                 }
@@ -105,8 +108,7 @@ namespace Examine.AzureDirectory
             catch (Exception e)
             {
                 //  Sync(name);
-                Trace.WriteLine(
-                    $"ERROR {e.ToString()}  Exception thrown while retrieving file length of file {filename} for {_rootFolderName}");
+                _loggingService.Log(new LogEntry(LogLevel.Error,e,$"Exception thrown while retrieving file length of file {filename} for {_rootFolderName}"));
                 return lenghtFallback;
             }
         }
@@ -120,7 +122,7 @@ namespace Examine.AzureDirectory
         public void DeleteFile(string name)
         {
             var blob = _blobContainer.GetBlobClient(_rootFolderName + name);
-            Trace.WriteLine($"INFO Deleted {_blobContainer.Uri}/{name} for {_rootFolderName}");
+            _loggingService.Log(new LogEntry(LogLevel.Info,null,$"Deleted {_blobContainer.Uri}/{name} for {_rootFolderName}"));
             blob.DeleteIfExists();
         }
 
@@ -144,7 +146,8 @@ namespace Examine.AzureDirectory
             }
             else
             {
-                Trace.WriteLine($"WARNING Throwing exception as blob file ({name}) not found for {_rootFolderName}");
+                _loggingService.Log(new LogEntry(LogLevel.Warning,null,$"Throwing exception as blob file ({name}) not found for {_rootFolderName}"));
+
                 // Lucene expects this exception to be thrown
                 throw new FileNotFoundException(name, err);
             }
@@ -181,7 +184,7 @@ namespace Examine.AzureDirectory
 
                 var response = blob.SetMetadata(metadata);
 #if FULLDEBUG
-                Trace.WriteLine($"PUT {stream.Length} bytes to {name} in cloud");
+                _loggingService.Log(new LogEntry(LogLevel.Info,null,$"PUT {stream.Length} bytes to {name} in cloud"));
 #endif
                 return true;
             }
@@ -227,8 +230,8 @@ namespace Examine.AzureDirectory
             }
             catch (RequestFailedException e)
             {
-                Trace.WriteLine(
-                    $"ERROR {e.ToString()}  Exception thrown while trying to retrieve blob ({name}). Assuming blob does not exist for {_rootFolderName}");
+                _loggingService.Log(new LogEntry(LogLevel.Error,e,$"Exception thrown while trying to retrieve blob ({name}). Assuming blob does not exist for {_rootFolderName}"));
+       
                 err = e;
                 blob = null;
                 return false;
@@ -254,8 +257,7 @@ namespace Examine.AzureDirectory
                 // seek back to beginning of comrpessed stream
                 compressedStream.Seek(0, SeekOrigin.Begin);
 #if FULLDEBUG
-                Trace.WriteLine(
-                    $"COMPRESSED {originalLength} -> {compressedStream.Length} {((float) compressedStream.Length / (float) originalLength) * 100}% to {fileName}");
+                _loggingService.Log(new LogEntry(LogLevel.Info,null,$"COMPRESSED {originalLength} -> {compressedStream.Length} {((float) compressedStream.Length / (float) originalLength) * 100}% to {fileName}"));
 #endif
             }
             catch
@@ -274,7 +276,7 @@ namespace Examine.AzureDirectory
 
         public void EnsureContainer(string containerName)
         {
-            Trace.WriteLine($"DEBUG Ensuring container ({containerName}) exists");
+            _loggingService.Log(new LogEntry(LogLevel.Debug,null,$"Ensuring container ({containerName}) exists"));
             var blobContainer = GetBlobContainerClient(containerName);
             blobContainer.CreateIfNotExists();
             _blobContainer = blobContainer;
@@ -329,8 +331,7 @@ namespace Examine.AzureDirectory
             }
             catch (Exception ex)
             {
-                Trace.WriteLine(
-                    $"WARNING {ex.ToString()} Exception thrown while checking blob ({filename}) exists. Assuming blob does not exist for {_rootFolderName}");
+                _loggingService.Log(new LogEntry(LogLevel.Debug,ex,$"Exception thrown while checking blob ({filename}) exists. Assuming blob does not exist for {_rootFolderName}"));
                 throw;
             }
         }

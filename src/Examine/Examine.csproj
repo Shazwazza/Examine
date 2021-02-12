@@ -113,6 +113,10 @@
     <Compile Include="IndexOperationEventArgs.cs" />
     <Compile Include="IOHelper.cs" />
     <Compile Include="ISearchResult.cs" />
+    <Compile Include="Logging\ILoggingService.cs" />
+    <Compile Include="Logging\LogEntry.cs" />
+    <Compile Include="Logging\LogLevel.cs" />
+    <Compile Include="Logging\TraceLoggingService.cs" />
     <Compile Include="LuceneEngine\DelegateFieldValueTypeFactory.cs" />
     <Compile Include="LuceneEngine\DeletePolicies\NoDeletionPolicy.cs" />
     <Compile Include="LuceneEngine\Directories\DirectoryFactory.cs" />

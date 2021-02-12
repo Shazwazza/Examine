@@ -139,7 +139,7 @@ namespace Examine.RemoteDirectory
                 : (blobFiles ?? GetAllBlobFiles());
         }
 
-        internal string[] GetAllBlobFiles()
+        internal virtual string[] GetAllBlobFiles()
         {
             IEnumerable<string> results = GetAllBlobFileNames();
 

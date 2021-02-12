@@ -1,5 +1,6 @@
 using System.Configuration;
 using System.IO;
+using Examine.Logging;
 using Examine.LuceneEngine.DeletePolicies;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.MergePolicies;
@@ -10,17 +11,19 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using static Lucene.Net.Index.IndexWriter;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.AzureDirectory
 {
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for use on the server that can actively write to the index
     /// </summary>
-    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
+    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory, IDirectoryFactory2
     {
         public AzureDirectoryFactory()
         {
         }
+
         /// <summary>
         /// Get/set the config storage key
         /// </summary>
@@ -30,8 +33,8 @@ namespace Examine.AzureDirectory
         /// Get/set the config container key
         /// </summary>
         public static string ConfigContainerKey { get; set; } = "examine:AzureStorageContainer";
-        
-        
+
+
         /// <summary>
         /// Return the AzureDirectory.
         /// It stores the master index in Blob storage.
@@ -46,18 +49,23 @@ namespace Examine.AzureDirectory
         /// </returns>
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
+            return CreateDirectory(luceneIndexFolder, new TraceLoggingService());
+        }
+        public virtual Directory CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService)
+        {
             var directory = new RemoteSyncDirectory(
-                new AzureRemoteDirectory(GetStorageAccountConnectionString(),GetContainerName(), luceneIndexFolder.Name),
-                GetLocalCacheDirectory(luceneIndexFolder) );
+                new AzureRemoteDirectory(GetStorageAccountConnectionString(), GetContainerName(),
+                    luceneIndexFolder.Name, loggingService),
+                GetLocalCacheDirectory(luceneIndexFolder));
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
             directory.SetDeletion(new NoDeletionPolicy());
             return directory;
         }
 
-
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
-        Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
+        Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) =>
+            CreateDirectory(luceneIndexFolder);
 
         /// <summary>
         /// Gets the Local Cache Lucence Directory
@@ -89,5 +97,7 @@ namespace Examine.AzureDirectory
         {
             return ConfigurationManager.AppSettings[ConfigContainerKey];
         }
+
+        
     }
 }

@@ -39,7 +39,7 @@ namespace Examine.RemoteDirectory
 
         private void CreateOrReadCache()
         {
-            lock (_rebuildLock)
+            lock (RebuildLock)
             {
                 var indexParentFolder = new DirectoryInfo(
                     Path.Combine(_cacheDirectoryPath,
@@ -71,11 +71,10 @@ namespace Examine.RemoteDirectory
             RebuildCache();
         }
 
-        private object _rebuildLock = new object();
         //todo: make that as background task. Need input from someone how to handle that correctly as now it is as sync task to avoid issues, but need be change
         public override void RebuildCache()
         {
-            lock (_rebuildLock)
+            lock (RebuildLock)
             {
                 //Needs locking
                 Trace.WriteLine("INFO Rebuilding cache");
@@ -141,6 +140,13 @@ namespace Examine.RemoteDirectory
                 }
 
                 _oldIndexFolderName = tempDir.Name;
+            }
+        }
+        internal override string[] GetAllBlobFiles()
+        {
+            lock (RebuildLock)
+            {
+             return  base.GetAllBlobFiles();
             }
         }
     }

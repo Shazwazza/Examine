@@ -50,22 +50,30 @@ namespace Examine.LuceneEngine.Providers
             if (luceneDirectory is ExamineDirectory dir)
             {
                 isReadonly = dir.IsReadOnly;
+                ExamineDir = dir;
                 dir.HandleOutOfSyncEvent += DirOnHandleOutOfSyncEvent;
             }
         }
 
+        public ExamineDirectory ExamineDir { get; set; }
+
         private void DirOnHandleOutOfSyncEvent(object sender, EventArgs e)
         {
-            if(_searcher.IsValueCreated)
+            lock (ExamineDir.RebuildLock)
             {
-                _searcher.Value.Dispose();
+                if (_searcher.IsValueCreated)
+                {
+                    _searcher.Value.Dispose();
+                }
+                OpenReaderTracker.Current.CloseStaleReaders(_writer.Directory, TimeSpan.FromMinutes(1));
+
+                _writer.Dispose(false); 
+
+                IndexWriter.Unlock(_directory);
+                GetIndexWriter();
+
+                _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             }
-            _writer.Dispose(false);
-            IndexWriter.Unlock(_directory);
-            GetIndexWriter();
-
-            _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
-
         }
 
         /// <summary>
@@ -108,7 +116,7 @@ namespace Examine.LuceneEngine.Providers
             _fieldValueTypeCollection =
                 new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
-          
+
             WaitForIndexQueueOnShutdown = true;
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
@@ -1429,6 +1437,7 @@ namespace Examine.LuceneEngine.Providers
                 if (!name.EndsWith(suffix)) continue;
                 name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
             }
+
             //todo: check with shannon why we passed writer there
             return new LuceneSearcher(name + "Searcher", _directory, FieldAnalyzer, FieldValueTypeCollection);
         }
@@ -1534,6 +1543,7 @@ namespace Examine.LuceneEngine.Providers
 
             return false;
         }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -1548,7 +1558,8 @@ namespace Examine.LuceneEngine.Providers
                     if (WaitForIndexQueueOnShutdown)
                     {
                         //if there are active adds, lets way/retry (5 seconds)
-                        RetryUntilSuccessOrTimeout(() => _activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
+                        RetryUntilSuccessOrTimeout(() => _activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5),
+                            TimeSpan.FromSeconds(1));
                     }
 
                     //cancel any operation currently in place
@@ -1574,7 +1585,8 @@ namespace Examine.LuceneEngine.Providers
                     //Don't close the writer until there are definitely no more writes
                     //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
                     //we are not terminating Lucene while it is actively writing to the index.
-                    RetryUntilSuccessOrTimeout(() => _activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
+                    RetryUntilSuccessOrTimeout(() => _activeWrites == 0, TimeSpan.FromMinutes(1),
+                        TimeSpan.FromSeconds(1));
 
                     //close the committer, this will ensure a final commit is made if one has been queued
                     _committer.Dispose();
@@ -1601,6 +1613,7 @@ namespace Examine.LuceneEngine.Providers
 
                     _logOutput?.Close();
                 }
+
                 _disposedValue = true;
             }
         }

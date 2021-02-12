@@ -64,6 +64,7 @@ namespace Examine.LuceneEngine.Directories
         public abstract string[] CheckDirtyWithoutWriter();
 
         public abstract void SetDirty();
+        public object RebuildLock = new object();
 
     }
 }
