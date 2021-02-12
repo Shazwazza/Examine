@@ -67,8 +67,8 @@ namespace Examine.LuceneEngine.Providers
                 }
                 OpenReaderTracker.Current.CloseStaleReaders(_writer.Directory, TimeSpan.FromMinutes(1));
 
-                _writer.Dispose(false); 
-
+                _writer.Dispose(false);
+                _writer = null;
                 IndexWriter.Unlock(_directory);
                 GetIndexWriter();
 
