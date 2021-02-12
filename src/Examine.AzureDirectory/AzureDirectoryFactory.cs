@@ -56,7 +56,7 @@ namespace Examine.AzureDirectory
             var directory = new RemoteSyncDirectory(
                 new AzureRemoteDirectory(GetStorageAccountConnectionString(), GetContainerName(),
                     luceneIndexFolder.Name, loggingService),
-                GetLocalCacheDirectory(luceneIndexFolder));
+                GetLocalCacheDirectory(luceneIndexFolder), loggingService);
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
             directory.SetDeletion(new NoDeletionPolicy());

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Examine.Logging;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.RemoteDirectory
 {
@@ -26,22 +28,25 @@ namespace Examine.RemoteDirectory
         /// <summary>
         /// Create an AzureDirectory
         /// </summary>
+        /// <param name="remoteDirectory"></param>
+        /// <param name="cacheDirectory">local Directory object to use for local cache</param>
+        /// <param name="loggingService"></param>
+        /// <param name="compressBlobs"></param>
         /// <param name="connectionString">storage account to use</param>
         /// <param name="containerName">name of container (folder in blob storage)</param>
-        /// <param name="cacheDirectory">local Directory object to use for local cache</param>
-        /// <param name="compressBlobs"></param>
         /// <param name="rootFolder">path of the root folder inside the container</param>
         /// <param name="isReadOnly">
         /// By default this is set to false which means that the <see cref="LockFactory"/> created for this syncDirectory will be 
         /// a <see cref="MultiIndexLockFactory"/> which will create locks in both the cache and blob storage folders.
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
-        public RemoteSyncDirectory(
-            IRemoteDirectory remoteDirectory,
-            Lucene.Net.Store.Directory cacheDirectory,
+        public RemoteSyncDirectory(IRemoteDirectory remoteDirectory,
+            Directory cacheDirectory,
+            ILoggingService loggingService,
             bool compressBlobs = false)
         {
             CacheDirectory = cacheDirectory;
+            LoggingService = loggingService;
             RemoteDirectory = remoteDirectory;
             _lockFactory = GetLockFactory();
             _remoteIndexOutputFactory = GetAzureIndexOutputFactory();
@@ -49,7 +54,19 @@ namespace Examine.RemoteDirectory
             GuardCacheDirectory(CacheDirectory);
             CompressBlobs = compressBlobs;
         }
-
+        public RemoteSyncDirectory(IRemoteDirectory remoteDirectory,
+            Directory cacheDirectory,
+            bool compressBlobs = false)
+        {
+            CacheDirectory = cacheDirectory;
+            LoggingService = new TraceLoggingService();
+            RemoteDirectory = remoteDirectory;
+            _lockFactory = GetLockFactory();
+            _remoteIndexOutputFactory = GetAzureIndexOutputFactory();
+            _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
+            GuardCacheDirectory(CacheDirectory);
+            CompressBlobs = compressBlobs;
+        }
         /// <summary>
         /// Create an AzureDirectory
         /// </summary>
@@ -64,14 +81,25 @@ namespace Examine.RemoteDirectory
         /// </param>
         public RemoteSyncDirectory(
             IRemoteDirectory remoteDirectory,
+            ILoggingService loggingService,
             bool compressBlobs = false)
         {
             RemoteDirectory = remoteDirectory;
             _remoteIndexOutputFactory = GetAzureIndexOutputFactory();
             _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
+            LoggingService = loggingService;
             CompressBlobs = compressBlobs;
         }
-
+        public RemoteSyncDirectory(
+            IRemoteDirectory remoteDirectory,
+            bool compressBlobs = false)
+        {
+            RemoteDirectory = remoteDirectory;
+            _remoteIndexOutputFactory = GetAzureIndexOutputFactory();
+            _remoteDirectoryIndexInputFactory = GetAzureIndexInputFactory();
+            LoggingService = new TraceLoggingService();
+            CompressBlobs = compressBlobs;
+        }
         protected virtual IRemoteDirectoryIndexInputFactory GetAzureIndexInputFactory()
         {
             return new RemoteDirectoryIndexInputFactory();
@@ -96,30 +124,33 @@ namespace Examine.RemoteDirectory
 
 
         public string RootFolder { get; }
+        public ILoggingService LoggingService { get; }
         public bool CompressBlobs { get; }
 
         public Lucene.Net.Store.Directory CacheDirectory { get; protected set; }
 
         public void ClearCache()
         {
-            Trace.WriteLine($"Clearing index cache {RootFolder}");
+            LoggingService.Log(new LogEntry(LogLevel.Info,null,$"Clearing index cache {RootFolder}"));
+   
             foreach (string file in CacheDirectory.ListAll())
             {
-                Trace.WriteLine("DEBUG Deleting cache file {file}", file);
+                LoggingService.Log(new LogEntry(LogLevel.Debug,null,$"Deleting cache file {file}"));
                 CacheDirectory.DeleteFile(file);
             }
         }
 
         public virtual void RebuildCache()
         {
-            Trace.WriteLine($"INFO Rebuilding index cache {RootFolder}");
+            LoggingService.Log(new LogEntry(LogLevel.Info,null,$"Rebuilding index cache {RootFolder}"));
             try
             {
                 ClearCache();
             }
             catch (Exception e)
             {
-                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while rebuilding cache for {RootFolder}");
+                LoggingService.Log(new LogEntry(LogLevel.Error,e,$"Exception thrown while rebuilding cache for {RootFolder}"));
+
             }
 
             foreach (string file in GetAllBlobFiles())
@@ -166,9 +197,7 @@ namespace Examine.RemoteDirectory
                 catch (Exception e)
                 {
                     // something isn't quite right, need to re-sync
-
-                    Trace.WriteLine(
-                        $"ERROR {e.ToString()}  Exception thrown while checking file ({name}) exists for {RootFolder}");
+                    LoggingService.Log(new LogEntry(LogLevel.Error,e,$"Exception thrown while checking file ({name}) exists for {RootFolder}"));
                     SetDirty();
                     return RemoteDirectory.FileExists(name);
                     ;
@@ -230,8 +259,7 @@ namespace Examine.RemoteDirectory
                 // if we do that then this file will never get removed from the cache folder either! This is based on the Deletion Policy which the
                 // IndexFileDeleter uses. We could implement our own one of those to deal with this scenario too but it seems the easiest way it to just 
                 // let this throw so Lucene will retry when it can and when that is successful we'll also clear it from the master
-
-                Trace.WriteLine($"ERROR {ex.ToString()} Exception thrown while deleting file {name} for {RootFolder}");
+                LoggingService.Log(new LogEntry(LogLevel.Error,ex,$"Exception thrown while deleting file {name} for {RootFolder}"));
                 throw;
             }
 
@@ -262,7 +290,7 @@ namespace Examine.RemoteDirectory
         {
             SetDirty();
 
-            return _remoteIndexOutputFactory.CreateIndexOutput(this, name);
+            return _remoteIndexOutputFactory.CreateIndexOutput(this, name, LoggingService);
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
@@ -278,22 +306,21 @@ namespace Examine.RemoteDirectory
                 }
                 catch (FileNotFoundException ex)
                 {
+
                     //if it's not found then we need to re-read from blob so were not in sync
-                    Trace.WriteLine(
-                        $"DEBUG {ex.ToString()} File {name} not found. Will need to resync for {RootFolder}");
+                    LoggingService.Log(new LogEntry(LogLevel.Debug,ex,$"File {name} not found. Will need to resync for {RootFolder}"));
+
                     SetDirty();
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceError(
-                        $"Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder} " +
-                        ex);
+                    LoggingService.Log(new LogEntry(LogLevel.Error,ex,$"Could not get local file though we are marked as inSync, reverting to try blob storage; {RootFolder} "));
                 }
             }
 
             if (RemoteDirectory.TryGetBlobFile(name))
             {
-                return _remoteDirectoryIndexInputFactory.GetIndexInput(this, RemoteDirectory, name);
+                return _remoteDirectoryIndexInputFactory.GetIndexInput(this, RemoteDirectory, name,  LoggingService);
             }
             else
             {

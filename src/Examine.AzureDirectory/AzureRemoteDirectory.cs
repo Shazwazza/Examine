@@ -34,7 +34,19 @@ namespace Examine.AzureDirectory
             _rootFolderName = NormalizeContainerRootFolder(rootFolderName);
             EnsureContainer(containerName);
         }
-
+        public AzureRemoteDirectory(string storageAccountConnectionString, string containerName,
+            string rootFolderName)
+        {
+            if (storageAccountConnectionString == null)
+                throw new ArgumentNullException(nameof(storageAccountConnectionString));
+            if (string.IsNullOrWhiteSpace(containerName))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
+            _storageAccountConnectionString = storageAccountConnectionString;
+            _containerName = containerName;
+            _loggingService = new TraceLoggingService();
+            _rootFolderName = NormalizeContainerRootFolder(rootFolderName);
+            EnsureContainer(containerName);
+        }
         /// <summary>. </summary>
         public void SyncFile(Lucene.Net.Store.Directory directory, string fileName, bool CompressBlobs)
         {

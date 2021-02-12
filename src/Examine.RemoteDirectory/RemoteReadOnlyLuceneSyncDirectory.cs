@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Examine.Logging;
 using Lucene.Net.Store;
 
 namespace Examine.RemoteDirectory
@@ -12,8 +13,27 @@ namespace Examine.RemoteDirectory
         private readonly string _cacheDirectoryName;
         private string _oldIndexFolderName;
 
-        public RemoteReadOnlyLuceneSyncDirectory(
-            IRemoteDirectory remoteDirectory,
+        public RemoteReadOnlyLuceneSyncDirectory(IRemoteDirectory remoteDirectory,
+            string cacheDirectoryPath,
+            string cacheDirectoryName,
+            ILoggingService loggingService,
+            bool compressBlobs = false) : base(remoteDirectory,loggingService, compressBlobs)
+        {
+            _cacheDirectoryPath = cacheDirectoryPath;
+            _cacheDirectoryName = cacheDirectoryName;
+            IsReadOnly = true;
+            if (CacheDirectory == null)
+            {
+                LoggingService.Log(new LogEntry(LogLevel.Error,null,$"CacheDirectory null. Creating or rebuilding cache"));
+
+                CreateOrReadCache();
+            }
+            else
+            {
+                CheckDirty();
+            }
+        }
+        public RemoteReadOnlyLuceneSyncDirectory(IRemoteDirectory remoteDirectory,
             string cacheDirectoryPath,
             string cacheDirectoryName,
             bool compressBlobs = false) : base(remoteDirectory, compressBlobs)
@@ -23,7 +43,8 @@ namespace Examine.RemoteDirectory
             IsReadOnly = true;
             if (CacheDirectory == null)
             {
-                Trace.WriteLine("INFO CacheDirectory null. Creating or rebuilding cache");
+                LoggingService.Log(new LogEntry(LogLevel.Error,null,$"CacheDirectory null. Creating or rebuilding cache"));
+
                 CreateOrReadCache();
             }
             else
@@ -31,7 +52,6 @@ namespace Examine.RemoteDirectory
                 CheckDirty();
             }
         }
-
         protected override void GuardCacheDirectory(Lucene.Net.Store.Directory cacheDirectory)
         {
             //Do nothing
@@ -65,8 +85,20 @@ namespace Examine.RemoteDirectory
                 }
             }
         }
-
+        public override IndexOutput CreateOutput(string name)
+        {
+            SetDirty();
+            LoggingService.Log(new LogEntry(LogLevel.Info,null,$"Opening output for {_oldIndexFolderName}"));
+            return CacheDirectory.CreateOutput(name);
+        }
+        public override IndexInput OpenInput(string name)
+        {
+            SetDirty();
+            LoggingService.Log(new LogEntry(LogLevel.Info,null,$"Opening input for {_oldIndexFolderName}"));
+            return CacheDirectory.OpenInput(name);
+        }
         protected override void HandleOutOfSync()
+        
         {
             RebuildCache();
         }
@@ -77,7 +109,8 @@ namespace Examine.RemoteDirectory
             lock (RebuildLock)
             {
                 //Needs locking
-                Trace.WriteLine("INFO Rebuilding cache");
+                LoggingService.Log(new LogEntry(LogLevel.Info,null,$"Rebuilding cache"));
+
                 var tempDir = new DirectoryInfo(
                     Path.Combine(_cacheDirectoryPath,
                         _cacheDirectoryName, DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffffff")));
@@ -116,7 +149,8 @@ namespace Examine.RemoteDirectory
                     }
                     catch (Exception ex)
                     {
-                        Trace.WriteLine($"Error: {ex.ToString()}");
+                        LoggingService.Log(new LogEntry(LogLevel.Error,ex,$"Exception on unlocking old cache index folder"));
+
                     }
 
                     
@@ -135,7 +169,8 @@ namespace Examine.RemoteDirectory
                     }
                     catch (Exception ex)
                     {
-                        Trace.WriteLine($"Error: Cleaning of old directory failed. {ex.ToString()}");
+                        LoggingService.Log(new LogEntry(LogLevel.Error,ex,$"Cleaning of old directory failed."));
+
                     }
                 }
 

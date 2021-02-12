@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Examine.Logging;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 
@@ -20,7 +21,8 @@ namespace Examine.RemoteDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _azureSyncDirectory.CacheDirectory;
 
-        public RemoteDirectoryIndexOutput(RemoteSyncDirectory azureSyncDirectory, string name)
+        public RemoteDirectoryIndexOutput(RemoteSyncDirectory azureSyncDirectory, string name,
+            ILoggingService loggingService)
         {
             //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;

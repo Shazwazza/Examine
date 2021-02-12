@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Examine.Logging;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 
@@ -20,7 +21,8 @@ namespace Examine.RemoteDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _remoteSyncDirectory.CacheDirectory;
 
-        public RemoteDirectoryIndexInput(RemoteSyncDirectory azuredirectory, IRemoteDirectory helper, string name)
+        public RemoteDirectoryIndexInput(RemoteSyncDirectory azuredirectory, IRemoteDirectory helper, string name,
+            ILoggingService loggingService)
         {
             _name = name;
             _name = _name.Split(new string[] {"%2F"}, StringSplitOptions.RemoveEmptyEntries).Last();

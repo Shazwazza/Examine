@@ -1,9 +1,10 @@
-﻿using Lucene.Net.Store;
+﻿using Examine.Logging;
+using Lucene.Net.Store;
 
 namespace Examine.RemoteDirectory
 {
     public interface IRemoteDirectoryIndexInputFactory
     {
-        IndexInput GetIndexInput(RemoteSyncDirectory azuredirectory, IRemoteDirectory helper, string name);
+        IndexInput GetIndexInput(RemoteSyncDirectory azuredirectory, IRemoteDirectory helper, string name, ILoggingService loggingService);
     }
 }
