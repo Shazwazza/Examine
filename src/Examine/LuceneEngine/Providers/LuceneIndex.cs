@@ -1296,6 +1296,11 @@ namespace Examine.LuceneEngine.Providers
         private IndexWriter CreateIndexWriter()
         {
             Directory dir = GetLuceneDirectory();
+            if (this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+            {
+                examineDirectory.SetDirty();
+                examineDirectory.CheckDirtyWithoutWriter();
+            }
 
             // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
