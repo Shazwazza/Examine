@@ -63,16 +63,26 @@ namespace Examine.LuceneEngine.Providers
             {
                 if (_searcher.IsValueCreated)
                 {
-                    _searcher.Value.Dispose();
+                    var value =  _searcher.Value;
+                    value.Dispose();
+                    
+                    _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
+
                 }
-                OpenReaderTracker.Current.CloseStaleReaders(_writer.Directory, TimeSpan.FromMinutes(1));
 
-                _writer.Dispose(false);
+                if (_writer != null)
+                {
+                    OpenReaderTracker.Current.CloseStaleReaders(_writer.Directory, TimeSpan.FromMinutes(1));
+                    _writer.Dispose();
+                  
+                }
+               
                 _writer = null;
-                IndexWriter.Unlock(_directory);
-                GetIndexWriter();
+            //    GetIndexWriter();
 
-                _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
+               
+
+                
             }
         }
 
@@ -1295,13 +1305,12 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         private IndexWriter CreateIndexWriter()
         {
-            Directory dir = GetLuceneDirectory();
             if (this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
             {
-                examineDirectory.SetDirty();
+               examineDirectory.SetDirty();
                 examineDirectory.CheckDirtyWithoutWriter();
             }
-
+            Directory dir = GetLuceneDirectory();
             // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
             try
@@ -1407,6 +1416,11 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>The IndexWriter for the current directory. Do not dispose this result! This will be taken care of internally by Examine</returns>
         public IndexWriter GetIndexWriter()
         {
+            if (this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+            {
+               examineDirectory.SetDirty();
+                examineDirectory.CheckDirtyWithoutWriter();
+            }
             EnsureIndex(false);
 
             if (_writer == null)
@@ -1424,7 +1438,7 @@ namespace Examine.LuceneEngine.Providers
                     Monitor.Exit(_writerLocker);
                 }
             }
-
+        
             return _writer;
         }
 
@@ -1434,6 +1448,7 @@ namespace Examine.LuceneEngine.Providers
 
         private LuceneSearcher CreateSearcher()
         {
+            
             var possibleSuffixes = new[] {"Index", "Indexer"};
             var name = Name;
             foreach (var suffix in possibleSuffixes)
@@ -1444,7 +1459,7 @@ namespace Examine.LuceneEngine.Providers
             }
 
             //todo: check with shannon why we passed writer there
-            return new LuceneSearcher(name + "Searcher", _directory, FieldAnalyzer, FieldValueTypeCollection);
+            return new LuceneSearcher(name + "Searcher", GetIndexWriter(), FieldAnalyzer, FieldValueTypeCollection);
         }
 
 

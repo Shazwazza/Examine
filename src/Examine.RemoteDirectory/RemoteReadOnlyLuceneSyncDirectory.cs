@@ -88,19 +88,26 @@ namespace Examine.RemoteDirectory
         public override IndexOutput CreateOutput(string name)
         {
             SetDirty();
+            CheckDirty();
             LoggingService.Log(new LogEntry(LogLevel.Info,null,$"Opening output for {_oldIndexFolderName}"));
             return CacheDirectory.CreateOutput(name);
         }
         public override IndexInput OpenInput(string name)
         {
             SetDirty();
+            CheckDirty();
             LoggingService.Log(new LogEntry(LogLevel.Info,null,$"Opening input for {_oldIndexFolderName}"));
             return CacheDirectory.OpenInput(name);
         }
         protected override void HandleOutOfSync()
         
         {
-            RebuildCache();
+
+            lock (RebuildLock)
+            {
+                RebuildCache();
+                HandleOutOfSyncDirectory();
+            }
         }
 
         //todo: make that as background task. Need input from someone how to handle that correctly as now it is as sync task to avoid issues, but need be change

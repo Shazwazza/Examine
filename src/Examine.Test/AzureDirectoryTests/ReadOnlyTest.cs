@@ -27,7 +27,7 @@ namespace Examine.Test.AzureDirectory
     [TestFixture]
     public class ReadOnlyTest
     {
-        private const string ContainerName = "examine-azure-syncDirectory-test";
+        private const string ContainerName = "examine-azure-syncdirectory-test";
         private readonly TestContentService _contentService = new TestContentService();
         
 
