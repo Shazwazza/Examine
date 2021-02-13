@@ -1209,7 +1209,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        private IndexWriter WriterFactory(Directory d)
+        protected virtual IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
             var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
