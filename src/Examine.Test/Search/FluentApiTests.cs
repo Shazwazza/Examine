@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using Examine.LuceneEngine.Search;
 using Examine.Search;
@@ -1901,7 +1902,7 @@ namespace Examine.Test.Search
                 var sc1 = sc.Field("nodeName", "my name 1").SelectField("__Path");
 
                 var results = sc1.Execute();
-                var expectedLoadedFields = new string[] { "__Path"};
+                var expectedLoadedFields = new string[] { "__Path" };
                 var keys = results.First().Values.Keys.ToArray();
                 Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
                 Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
@@ -1941,7 +1942,7 @@ namespace Examine.Test.Search
                 var sc1 = sc.Field("nodeName", "my name 1").SelectFirstFieldOnly();
 
                 var results = sc1.Execute();
-                var expectedLoadedFields = new string[] {  "__NodeId" };
+                var expectedLoadedFields = new string[] { "__NodeId" };
                 var keys = results.First().Values.Keys.ToArray();
                 Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
                 Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
@@ -1977,10 +1978,10 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
                 var sc = searcher.CreateQuery("content");
-                var sc1 = sc.Field("nodeName", "my name 1").SelectFields("nodeName","bodyText", "id", "__NodeId");
+                var sc1 = sc.Field("nodeName", "my name 1").SelectFields("nodeName", "bodyText", "id", "__NodeId");
 
                 var results = sc1.Execute();
-                var expectedLoadedFields = new string[] { "nodeName", "bodyText","id","__NodeId" };
+                var expectedLoadedFields = new string[] { "nodeName", "bodyText", "id", "__NodeId" };
                 var keys = results.First().Values.Keys.ToArray();
                 Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
                 Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
@@ -2017,7 +2018,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer.GetSearcher();
                 var sc = searcher.CreateQuery("content");
-                var sc1 = sc.Field("nodeName", "my name 1").SelectFields(new HashSet<string>(new string[]{ "nodeName", "bodyText" }));
+                var sc1 = sc.Field("nodeName", "my name 1").SelectFields(new HashSet<string>(new string[] { "nodeName", "bodyText" }));
 
                 var results = sc1.Execute();
                 var expectedLoadedFields = new string[] { "nodeName", "bodyText" };
@@ -2067,5 +2068,59 @@ namespace Examine.Test.Search
 
         }
 
+        [Test]
+        public void Lucene_Document_Skip_Results_Returns_Different_Results()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                //Arrange
+                
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+
+                //Act
+
+                var results = (LuceneSearchResults)sc.Execute();
+                // this will execute the default search (non skip take)
+                var first = results.First();
+                // Skip here doesn't re-execute the search since we've already done the default search,
+                // it just skips past the lucene documents that we don't want returned as to not allocate
+                // more ISearchResult than necessary
+                var third = results.Skip(2).First();
+
+                //Assert
+
+                // this will not re-execute since the total item count has already been resolved
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreNotEqual(first, third, "Third result should be different");
+
+                // This will re-execute the search as a skiptake search, the previous TopDocs will be replaced.
+                // Only the required lucene docs are returned, no need to skip over them, they are not allocated
+                // and neither are unnecessary ISearchResult instances.
+                var resultsLuceneSkip = results.SkipTake(2); 
+                Assert.AreEqual(1, resultsLuceneSkip.Count(), "More results fetched than expected");
+                // this will not re-execute since the total item count has already been resolved
+                Assert.AreEqual(3, results.TotalItemCount);
+
+                // The search will have executed twice. It will re-execute anytime the search changes from a Default to SkipTake search
+                Assert.AreEqual(2, results.ExecutionCount);
+            }
+
+
+        }
     }
 }

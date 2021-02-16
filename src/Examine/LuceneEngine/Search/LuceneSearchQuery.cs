@@ -163,7 +163,7 @@ namespace Examine.LuceneEngine.Search
             var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, Selector);
 
             return pagesResults;
-        }
+        }        
 
         /// <summary>
         /// Internal operation for adding the ordered results
@@ -229,7 +229,7 @@ namespace Examine.LuceneEngine.Search
         internal IBooleanOperation SelectFieldsInternal(ISet<string> loadedFieldNames)
         {
             Selector = new SetBasedFieldSelector(loadedFieldNames, new HashSet<string>());
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
 
         internal IBooleanOperation SelectFieldsInternal(Hashtable loadedFieldNames)
@@ -240,37 +240,35 @@ namespace Examine.LuceneEngine.Search
                 hs.Add(item);
             }
             Selector = new SetBasedFieldSelector(hs, new HashSet<string>());
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
 
         internal IBooleanOperation SelectFieldsInternal(params string[] loadedFieldNames)
         {
             ISet<string> loaded = new HashSet<string>(loadedFieldNames);
             Selector = new SetBasedFieldSelector(loaded, new HashSet<string>());
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
 
         internal IBooleanOperation SelectFieldInternal(string fieldName)
         {
             ISet<string> loaded = new HashSet<string>(new string[] { fieldName });
             Selector = new SetBasedFieldSelector(loaded, new HashSet<string>());
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
 
         public IBooleanOperation SelectFirstFieldOnlyInternal()
         {
             Selector = new LoadFirstFieldSelector();
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
         public IBooleanOperation SelectAllFieldsInternal()
         {
             Selector = null;
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
-
-        
 
     }
 }

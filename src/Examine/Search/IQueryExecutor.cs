@@ -11,8 +11,5 @@
         /// <param name="maxResults"></param>
         /// <returns></returns>
         ISearchResults Execute(int maxResults = 500);
-
-        
-
     }
 }
