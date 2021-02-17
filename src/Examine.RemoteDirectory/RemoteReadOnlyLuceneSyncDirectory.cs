@@ -131,8 +131,12 @@ namespace Examine.RemoteDirectory
                     {
                         continue;
                     }
-
-                    RemoteDirectory.SyncFile(newIndex, file, CompressBlobs);
+                    var status = RemoteDirectory.SyncFile(newIndex, file, CompressBlobs);
+                    if (!status)
+                    {
+                        LoggingService.Log(new LogEntry(LogLevel.Error,null,$"Rebuilding cache failed"));
+                        newIndex.Dispose();
+                    }
                 }
 
                 var oldIndex = CacheDirectory;

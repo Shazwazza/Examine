@@ -9,7 +9,7 @@ namespace Examine.RemoteDirectory
     {
         bool FileExists(string filename);
         void EnsureContainer(string containerName);
-        void SyncFile(Lucene.Net.Store.Directory directory, string fileName, bool CompressBlobs);
+        bool SyncFile(Lucene.Net.Store.Directory directory, string fileName, bool CompressBlobs);
         long FileLength(string filename, long lenghtFallback);
         IEnumerable<string> GetAllRemoteFileNames();
         void DeleteFile(string name);

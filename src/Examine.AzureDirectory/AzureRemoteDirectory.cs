@@ -48,54 +48,70 @@ namespace Examine.AzureDirectory
             EnsureContainer(containerName);
         }
         /// <summary>. </summary>
-        public void SyncFile(Lucene.Net.Store.Directory directory, string fileName, bool CompressBlobs)
+        public bool SyncFile(Lucene.Net.Store.Directory directory, string fileName, bool CompressBlobs)
         {
-            var blob = _blobContainer.GetBlobClient(_rootFolderName+fileName);
-            _loggingService.Log(new LogEntry(LogLevel.Info,null,$"Syncing file {fileName} for {_rootFolderName}"));
-            // then we will get it fresh into local deflatedName 
-            // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
-            using (var deflatedStream = new MemoryStream())
+            var success = false;
+            try
             {
-                // get the deflated blob
-                blob.DownloadTo(deflatedStream);
+                var blob = _blobContainer.GetBlobClient(_rootFolderName + fileName);
+                _loggingService.Log(new LogEntry(LogLevel.Info, null,
+                    $"Syncing file {fileName} for {_rootFolderName}"));
+                // then we will get it fresh into local deflatedName 
+                // StreamOutput deflatedStream = new StreamOutput(CacheDirectory.CreateOutput(deflatedName));
+                using (var deflatedStream = new MemoryStream())
+                {
+                    // get the deflated blob
+                    blob.DownloadTo(deflatedStream);
 
 #if FULLDEBUG
-                _loggingService.Log(new LogEntry(LogLevel.Info,null,$"GET {fileName} RETREIVED {deflatedStream.Length} bytes"));
+                    _loggingService.Log(new LogEntry(LogLevel.Info, null,
+                        $"GET {fileName} RETREIVED {deflatedStream.Length} bytes"));
 #endif
 
-                // seek back to begininng
-                deflatedStream.Seek(0, SeekOrigin.Begin);
+                    // seek back to begininng
+                    deflatedStream.Seek(0, SeekOrigin.Begin);
 
-                if (ShouldCompressFile(fileName, CompressBlobs))
-                {
-                    // open output file for uncompressed contents
-                    using (var fileStream = new StreamOutput(directory.CreateOutput(fileName)))
-                    using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
+                    if (ShouldCompressFile(fileName, CompressBlobs))
                     {
-                        var bytes = new byte[65535];
-                        var nRead = 0;
-                        do
+                        // open output file for uncompressed contents
+                        using (var fileStream = new StreamOutput(directory.CreateOutput(fileName)))
+                        using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
                         {
-                            nRead = decompressor.Read(bytes, 0, 65535);
-                            if (nRead > 0)
-                                fileStream.Write(bytes, 0, nRead);
-                        } while (nRead == 65535);
+                            var bytes = new byte[65535];
+                            var nRead = 0;
+                            do
+                            {
+                                nRead = decompressor.Read(bytes, 0, 65535);
+                                if (nRead > 0)
+                                    fileStream.Write(bytes, 0, nRead);
+                            } while (nRead == 65535);
+                        }
                     }
-                }
-                else
-                {
-                    using (var fileStream = new StreamOutput(directory.CreateOutput(fileName)))
+                    else
                     {
-                        // get the blob
-                        blob.DownloadTo(fileStream);
+                        using (var fileStream = new StreamOutput(directory.CreateOutput(fileName)))
+                        {
+                            // get the blob
+                            blob.DownloadTo(fileStream);
 
-                        fileStream.Flush();
+                            fileStream.Flush();
 #if FULLDEBUG
-                        _loggingService.Log(new LogEntry(LogLevel.Info,null,$"GET {fileName} RETREIVED {fileStream.Length} bytes"));
+                            _loggingService.Log(new LogEntry(LogLevel.Info, null,
+                                $"GET {fileName} RETREIVED {fileStream.Length} bytes"));
 #endif
+                        }
                     }
                 }
+
+                success = true;
             }
+            catch (Exception e)
+            {
+                _loggingService.Log(new LogEntry(LogLevel.Error, e,
+                    $"GET {fileName} RETREIVED failed"));
+            }
+
+            return success;
         }
 
         public long FileLength(string filename, long lenghtFallback)
@@ -350,22 +366,32 @@ namespace Examine.AzureDirectory
 
         public Tuple<long, DateTime> GetFileProperties(string filename)
         {
-            var blob = _blobContainer.GetBlobClient(_rootFolderName + filename);
-            var blobPropertiesResponse = blob.GetProperties();
-            var blobProperties = blobPropertiesResponse.Value;
-            var hasMetadataValue =
-                blobProperties.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata);
-            var blobLength = blobProperties.ContentLength;
-            if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
-
-            var blobLastModifiedUtc = blobProperties.LastModified.UtcDateTime;
-            if (blobProperties.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
+            try
             {
-                if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
-                    blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
-            }
+                var blob = _blobContainer.GetBlobClient(_rootFolderName + filename);
+                var blobPropertiesResponse = blob.GetProperties();
+                var blobProperties = blobPropertiesResponse.Value;
+                var hasMetadataValue =
+                    blobProperties.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata);
+                var blobLength = blobProperties.ContentLength;
+                if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
 
-            return new Tuple<long, DateTime>(blobLength,blobLastModifiedUtc);
+                var blobLastModifiedUtc = blobProperties.LastModified.UtcDateTime;
+                if (blobProperties.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
+                {
+                    if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
+                        blobLastModifiedUtc = new DateTime(longLastModified).ToUniversalTime();
+                }
+                return new Tuple<long, DateTime>(blobLength,blobLastModifiedUtc);
+
+            }
+            catch (Exception ex)
+            {
+                _loggingService.Log(new LogEntry(LogLevel.Debug,ex,$"Exception thrown while checking blob lenght. Assuming blob does not exist for {_rootFolderName}"));
+
+            }
+            return new Tuple<long, DateTime>(0,new DateTime());
+
         }
     }
 }
