@@ -86,7 +86,7 @@ namespace Examine.LuceneEngine.Providers
                 }
                
                 _writer = null;
-                GetIndexWriter(true);
+              //  GetIndexWriter(true);
 
                
 
@@ -1426,6 +1426,12 @@ namespace Examine.LuceneEngine.Providers
         {
             return GetIndexWriter(false);
         }
+        
+        /// <summary>
+        /// Returns an index writer for the current directory
+        /// </summary>
+        /// <returns>The IndexWriter for the current directory. Do not dispose this result! This will be taken care of internally by Examine</returns>
+
         public IndexWriter GetIndexWriter(bool skipDirty = false)
         {
             if (!skipDirty && this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
