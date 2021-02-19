@@ -74,19 +74,19 @@ namespace Examine.LuceneEngine.Providers
                 {
                     try
                     {
-                        OpenReaderTracker.Current.CloseStaleReaders(_writer.Directory, TimeSpan.FromMinutes(1));
-
+                        OpenReaderTracker.Current.CloseStaleReaders(_writer.Directory, TimeSpan.FromMinutes(2));
+                        WriterTracker.Current.MapAsOld(_writer.Directory);
+                        WriterTracker.Current.CloseStaleWriters(_writer.Directory, TimeSpan.FromMinutes(2));
                     }
                     catch (Exception)
                     {
                         //There could be not readers so swallow exception
                     }
-                    _writer.Dispose();
                   
                 }
                
                 _writer = null;
-            //    GetIndexWriter();
+                GetIndexWriter(true);
 
                
 
@@ -1422,9 +1422,9 @@ namespace Examine.LuceneEngine.Providers
         /// Returns an index writer for the current directory
         /// </summary>
         /// <returns>The IndexWriter for the current directory. Do not dispose this result! This will be taken care of internally by Examine</returns>
-        public IndexWriter GetIndexWriter()
+        public IndexWriter GetIndexWriter(bool skipDirty = false)
         {
-            if (this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
+            if (!skipDirty && this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
             {
                examineDirectory.SetDirty();
                 examineDirectory.CheckDirtyWithoutWriter();
