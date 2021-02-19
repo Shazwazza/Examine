@@ -72,7 +72,15 @@ namespace Examine.LuceneEngine.Providers
 
                 if (_writer != null)
                 {
-                    OpenReaderTracker.Current.CloseStaleReaders(_writer.Directory, TimeSpan.FromMinutes(1));
+                    try
+                    {
+                        OpenReaderTracker.Current.CloseStaleReaders(_writer.Directory, TimeSpan.FromMinutes(1));
+
+                    }
+                    catch (Exception)
+                    {
+                        //There could be not readers so swallow exception
+                    }
                     _writer.Dispose();
                   
                 }
