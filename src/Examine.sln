@@ -5,10 +5,6 @@ VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8F5756F2-7449-400C-BE52-A91F862967B0}"
 	ProjectSection(SolutionItems) = preProject
-		Examine.vsmdi = Examine.vsmdi
-		Local.testsettings = Local.testsettings
-		Performance1.psess = Performance1.psess
-		Performance2.psess = Performance2.psess
 		..\README.md = ..\README.md
 		SolutionInfo.cs = SolutionInfo.cs
 	EndProjectSection
