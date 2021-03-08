@@ -85,7 +85,7 @@ namespace Examine.LuceneEngine.Providers
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        
+
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
         /// </summary>
@@ -101,7 +101,7 @@ namespace Examine.LuceneEngine.Providers
                 IValueSetValidator validator = null,
                 IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
                 : this(name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
-        {            
+        {
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -826,25 +826,31 @@ namespace Examine.LuceneEngine.Providers
                         {
                             isNewTask = true;
 
-                            _asyncTask = Task.Run(
-                                () =>
-                                {
-                                    //Ensure the indexing processes is using an invariant culture
-                                    Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                                    return ProcessQueueItemsLocked();
-                                },
-                                _cancellationToken);
+                            using (ExecutionContext.SuppressFlow())
+                            {
+                                _asyncTask = Task.Run(
+                                    () =>
+                                    {
+                                        //Ensure the indexing processes is using an invariant culture
+                                        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+                                        return ProcessQueueItemsLocked();
+                                    },
+                                    _cancellationToken);
+                            }
 
                             // when the task is done call the complete callback
                             // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
                             // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
                             if (onComplete != null)
                             {
-                                _asyncTask.ContinueWith(
+                                using (ExecutionContext.SuppressFlow())
+                                {
+                                    _asyncTask.ContinueWith(
                                         task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
                                         _cancellationToken,
                                         TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
                                         TaskScheduler.Default);
+                                }
                             }
                         }
                     }
