@@ -474,7 +474,7 @@ namespace Examine.LuceneEngine.Providers
         /// within a reasonable time which can cause problems with overlapping appdomains.
         /// </remarks>
         public bool WaitForIndexQueueOnShutdown { get; set; }
-        
+
         [Obsolete("This is no longer used and will be removed in future versions")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool AutomaticallyOptimize { get; protected set; }
@@ -582,7 +582,7 @@ namespace Examine.LuceneEngine.Providers
             base.OnIndexingError(e);
 
 #if FULLDEBUG
-            Trace.TraceError("Indexing Error Occurred: " + (e.InnerException == null ?  e.Message : e.Message + " -- " + e.InnerException));
+            Trace.TraceError("Indexing Error Occurred: " + (e.InnerException == null ? e.Message : e.Message + " -- " + e.InnerException));
 #endif
 
             if (!RunAsync)
@@ -643,7 +643,7 @@ namespace Examine.LuceneEngine.Providers
             //now index the single node
             AddSingleNodeToIndex(node, type);
         }
-        
+
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
@@ -981,7 +981,7 @@ namespace Examine.LuceneEngine.Providers
             try
             {
                 using (IndexReader.Open(GetLuceneDirectory(), true))
-                {                    
+                {
                 }
                 ex = null;
                 return true;
@@ -1118,7 +1118,7 @@ namespace Examine.LuceneEngine.Providers
 
             if (!node.IsExamineElement())
                 return values;
-            
+
             //resolve all attributes now it is much faster to do this than to relookup all of the XML data
             //using Linq and the node.Attributes() methods re-gets all of them.
             var attributeValues = node.Attributes().ToDictionary(x => x.Name.LocalName, x => x.Value);
@@ -1134,7 +1134,7 @@ namespace Examine.LuceneEngine.Providers
                 var args = new IndexingFieldDataEventArgs(node, field.Name, val, true, nodeId);
                 OnGatheringFieldData(args);
                 val = args.FieldValue;
-                
+
                 //don't add if the value is empty/null                
                 if (!string.IsNullOrEmpty(val))
                 {
@@ -1153,7 +1153,7 @@ namespace Examine.LuceneEngine.Providers
             //resolve all element data now it is much faster to do this than to relookup all of the XML data
             //using Linq and the node.Elements() methods re-gets all of them.
             var elementValues = node.SelectExamineDataValues();
-            
+
             // Get all user data that we want to index and store into a dictionary 
             foreach (var field in IndexerData.UserFields)
             {
@@ -1249,7 +1249,7 @@ namespace Examine.LuceneEngine.Providers
                 return;
 
             var d = new Document();
-            
+
             foreach (var field in fields)
             {
                 //don't include the special fields if they exists     
@@ -1449,6 +1449,7 @@ namespace Examine.LuceneEngine.Providers
         /// <summary>
         /// Process all of the queue items
         /// </summary>
+        [SecuritySafeCritical]
         protected internal void SafelyProcessQueueItems()
         {
             if (!RunAsync)
@@ -1467,22 +1468,20 @@ namespace Examine.LuceneEngine.Providers
                             //Trace.WriteLine("Examine: Launching task");
                             if (!_cancellationTokenSource.IsCancellationRequested)
                             {
-                                _asyncTask = Task.Factory.StartNew(
-                                    () =>
-                                    {
-                                        //Ensure the indexing processes is using an invariant culture
-                                        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                                        StartIndexing();
-                                    },
-                                    _cancellationTokenSource.Token,  //use our cancellation token
-                                    TaskCreationOptions.None,
-                                    TaskScheduler.Default).ContinueWith(task =>
-                                    {
-                                        if (task.IsCanceled)
+                                using (ExecutionContext.SuppressFlow())
+                                {
+                                    _asyncTask = Task.Factory.StartNew(
+                                        () =>
                                         {
-                                            //if this gets cancelled, we need to ... ?
-                                        }
-                                    });
+                                            //Ensure the indexing processes is using an invariant culture
+                                            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+                                            StartIndexing();
+                                        },
+                                        _cancellationTokenSource.Token,  //use our cancellation token
+                                        TaskCreationOptions.None,
+                                        TaskScheduler.Default);
+                                }
+
                             }
                         }
                     }
@@ -1887,7 +1886,7 @@ namespace Examine.LuceneEngine.Providers
                 OnIndexingError(new IndexingErrorEventArgs("The index was locked and could not be unlocked", -1, ex));
                 return null;
             }
-            
+
             var writer = WriterTracker.Current.GetWriter(
                 dir,
                 WriterFactory);
@@ -1910,7 +1909,7 @@ namespace Examine.LuceneEngine.Providers
                     //if an exception is thrown here we won't worry about it, it will mean we cannot create the log file
                 }
             }
-            
+
 #endif
 
             return writer;
@@ -1965,12 +1964,12 @@ namespace Examine.LuceneEngine.Providers
 
         #endregion
 
-            #region Private
+        #region Private
 
-            /// <summary>
-            /// Stupid medium trust - that is the only reason this method exists
-            /// </summary>
-            /// <returns></returns>
+        /// <summary>
+        /// Stupid medium trust - that is the only reason this method exists
+        /// </summary>
+        /// <returns></returns>
         [SecuritySafeCritical]
         private LuceneSearcher GetSearcher()
         {
@@ -2126,7 +2125,7 @@ namespace Examine.LuceneEngine.Providers
             [SecuritySafeCritical]
             protected override void DisposeResources()
             {
-                
+
                 if (_indexer.WaitForIndexQueueOnShutdown)
                 {
                     //if there are active adds, lets way/retry (5 seconds)
