@@ -45,6 +45,8 @@ namespace Examine.LuceneEngine.Providers
             _committer = new IndexCommiter(this);
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
             WaitForIndexQueueOnShutdown = true;
+            _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>();
+
         }
 
         /// <summary>
@@ -74,6 +76,8 @@ namespace Examine.LuceneEngine.Providers
             InitializeDirectory();
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
             WaitForIndexQueueOnShutdown = true;
+            _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>();
+
         }
 
         /// <summary>
@@ -102,6 +106,8 @@ namespace Examine.LuceneEngine.Providers
             _directory = luceneDirectory;
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
             WaitForIndexQueueOnShutdown = true;
+            _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>();
+
         }
 
         /// <summary>
@@ -129,6 +135,8 @@ namespace Examine.LuceneEngine.Providers
             RunAsync = async;
             _internalSearcher = new Lazy<LuceneSearcher>(GetSearcher);
             WaitForIndexQueueOnShutdown = true;
+            _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>();
+
         }
 
         #endregion
@@ -337,7 +345,7 @@ namespace Examine.LuceneEngine.Providers
         /// <remarks>
         /// Each item in the collection is a collection itself, this allows us to have lazy access to a collection as part of the queue if added in bulk
         /// </remarks>
-        private readonly BlockingCollection<IEnumerable<IndexOperation>> _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>();
+        private readonly BlockingCollection<IEnumerable<IndexOperation>> _indexQueue;
 
         /// <summary>
         /// The async task that runs during an async indexing operation

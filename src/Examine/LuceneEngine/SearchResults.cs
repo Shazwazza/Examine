@@ -72,6 +72,16 @@ namespace Examine.LuceneEngine
         }
 
         [SecuritySafeCritical]
+        internal SearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults, FieldSelector fieldSelector)
+        {
+            LuceneQuery = query;
+
+            LuceneSearcher = searcher;
+            _fieldSelector = fieldSelector;
+            DoSearch(query, sortField, maxResults);
+        }
+
+        [SecuritySafeCritical]
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults)
         {
             var extractTermsSupported = CheckQueryForExtractTerms(query);
@@ -161,6 +171,7 @@ namespace Examine.LuceneEngine
         /// Internal cache of search results
         /// </summary>
         protected Dictionary<int, SearchResult> Docs = new Dictionary<int, SearchResult>();
+        private readonly FieldSelector _fieldSelector;
 
         // <summary>
         /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
@@ -224,7 +235,6 @@ namespace Examine.LuceneEngine
             var fields = doc.GetFields();
 
             //ignore our internal fields though
-
             foreach (var field in fields.Cast<Field>())
             {
                 var fieldName = field.Name();
@@ -259,7 +269,15 @@ namespace Examine.LuceneEngine
             var scoreDoc = TopDocs.ScoreDocs[i];
 
             var docId = scoreDoc.doc;
-            var doc = LuceneSearcher.Doc(docId);
+            Document doc;
+            if (_fieldSelector != null)
+            {
+                doc = LuceneSearcher.Doc(docId, _fieldSelector);
+            }
+            else
+            {
+                doc = LuceneSearcher.Doc(docId);
+            }
             var score = scoreDoc.score;
             var result = CreateSearchResult(docId, doc, score);
             return result;

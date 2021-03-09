@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 namespace Examine.SearchCriteria
 {
@@ -262,5 +263,7 @@ namespace Examine.SearchCriteria
         /// <param name="fieldNames">The field names.</param>
         /// <returns></returns>
         IBooleanOperation OrderByDescending(params string[] fieldNames);
+
+       
     }
 }

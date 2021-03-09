@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using Examine.LuceneEngine;
@@ -561,6 +562,74 @@ namespace Examine.Test.Search
 
             Assert.AreNotEqual(results.First().Id, results2.First().Id);
 
+        }
+
+        [Test]
+        public void FluentApi_Select_Field()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName")
+                .And().SelectField("writerName")
+                .Compile();
+
+            var results = _searcher.Search(sc1);
+            var expectedLoadedFields = new string[] { "writerName", "id" };
+            var keys = results.First().Fields.Keys.ToArray();
+            Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+            Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+        }
+        [Test]
+        public void FluentApi_Select_FirstField()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName")
+                .And().SelectFirstFieldOnly()
+                .Compile();
+
+            var results = _searcher.Search(sc1);
+            var expectedLoadedFields = new string[] { "id" };
+            var keys = results.First().Fields.Keys.ToArray(); 
+
+            Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+            Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+        }
+
+        [Test]
+        public void FluentApi_Select_Fields()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName")
+                .And().SelectFields("writerName", "sortOrder","updateDate")
+                .Compile();
+
+            var results = _searcher.Search(sc1);
+            var expectedLoadedFields = new string[] { "writerName", "sortOrder", "updateDate" ,"id"};
+            var keys = results.First().Fields.Keys.ToArray();
+
+            //Contains only the expected fields
+            Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+            Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+        }
+
+        [Test]
+        public void FluentApi_Select_Fields_Hashtable()
+        {
+            var sc = _searcher.CreateSearchCriteria("content");
+            var sc1 = sc.Field("writerName", "administrator").And().OrderBy("nodeName")
+                .And().SelectFields(new Hashtable{
+                    { "writerName",null },
+                    { "sortOrder",null },
+                    { "updateDate",null }
+                })
+                .Compile();
+
+            var results = _searcher.Search(sc1);
+            var expectedLoadedFields = new string[] { "writerName", "sortOrder", "updateDate", "id" };
+            var keys = results.First().Fields.Keys.ToArray();
+
+            //Contains only the expected fields
+            Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+            Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
         }
 
         private static ISearcher _searcher;

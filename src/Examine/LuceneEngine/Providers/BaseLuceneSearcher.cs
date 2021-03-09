@@ -178,7 +178,8 @@ namespace Examine.LuceneEngine.Providers
             var searcher = GetSearcher();
             if (searcher == null) return new EmptySearchResults();
 
-            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults);
+            var pagesResults = new SearchResults(luceneParams.Query, luceneParams.SortFields, searcher, maxResults,  luceneParams.Selector);
+
             return pagesResults;
         }
 
