@@ -51,10 +51,6 @@ namespace Examine.AzureDirectory
         {
            return CreateDirectory(luceneIndexFolder, new TraceLoggingService());
         }
-
-        // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
-        Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
-
         public Directory CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService)
         {
             var indexFolder = luceneIndexFolder;
@@ -67,5 +63,8 @@ namespace Examine.AzureDirectory
                 rootFolder: luceneIndexFolder.Name,
                 isReadOnly: _isReadOnly);
         }
+        // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
+        Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
+        Lucene.Net.Store.Directory IDirectoryFactory2.CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService) => CreateDirectory(luceneIndexFolder,loggingService);
     }
 }
