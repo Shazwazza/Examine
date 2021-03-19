@@ -281,8 +281,9 @@ namespace Examine.LuceneEngine.Providers
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
 
         /// <summary>
-        /// returns true if the indexer has been canceled (app is shutting down)
+        /// This should ONLY be used internally by the scheduled committer we should refactor this out in the future
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
 
         #endregion
@@ -350,16 +351,18 @@ namespace Examine.LuceneEngine.Providers
             // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             lock (_writerLocker)
             {
+                var currentToken = _cancellationToken;
+
                 if (RunAsync)
                 {
-                    QueueTask(() => PerformIndexItemsInternal(values), onComplete);
+                    QueueTask(() => PerformIndexItemsInternal(values, currentToken), onComplete);
                 }
                 else
                 {
                     var count = 0;
                     try
                     {
-                        count = PerformIndexItemsInternal(values);
+                        count = PerformIndexItemsInternal(values, currentToken);
                     }
                     finally
                     {
@@ -369,7 +372,7 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        private int PerformIndexItemsInternal(IEnumerable<ValueSet> valueSets)
+        private int PerformIndexItemsInternal(IEnumerable<ValueSet> valueSets, CancellationToken cancellationToken)
         {
             //check if the index is ready to be written to.
             if (!IndexReady())
@@ -387,9 +390,9 @@ namespace Examine.LuceneEngine.Providers
             {
                 var writer = GetIndexWriter();
 
-                foreach(var valueSet in valueSets)
+                foreach (var valueSet in valueSets)
                 {
-                    if (IsCancellationRequested) break;
+                    if (cancellationToken.IsCancellationRequested) break;
 
                     var op = new IndexOperation(valueSet, IndexOperationType.Add);
                     if (ProcessQueueItem(op, writer))
@@ -486,6 +489,7 @@ namespace Examine.LuceneEngine.Providers
                             }
                             finally
                             {
+                                _cancellationTokenSource.Dispose();
                                 _cancellationTokenSource = new CancellationTokenSource();
                                 _cancellationToken = _cancellationTokenSource.Token;
                             }
@@ -544,7 +548,7 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public override void CreateIndex()
         {
-            if (IsCancellationRequested)
+            if (_cancellationToken.IsCancellationRequested)
             {
                 OnIndexingError(new IndexingErrorEventArgs(this, "Cannot create a new index, indexing cancellation has been requested", null, null));
                 return;
@@ -566,16 +570,18 @@ namespace Examine.LuceneEngine.Providers
             // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
             lock (_writerLocker)
             {
+                var currentToken = _cancellationToken;
+
                 if (RunAsync)
                 {
-                    QueueTask(() => PerformDeleteFromIndexInternal(itemIds), onComplete);
+                    QueueTask(() => PerformDeleteFromIndexInternal(itemIds, currentToken), onComplete);
                 }
                 else
                 {
                     var count = 0;
                     try
                     {
-                        count = PerformDeleteFromIndexInternal(itemIds);
+                        count = PerformDeleteFromIndexInternal(itemIds, currentToken);
                     }
                     finally
                     {
@@ -597,7 +603,7 @@ namespace Examine.LuceneEngine.Providers
             //}
         }
 
-        private int PerformDeleteFromIndexInternal(IEnumerable<string> itemIds)
+        private int PerformDeleteFromIndexInternal(IEnumerable<string> itemIds, CancellationToken cancellationToken)
         {
             //check if the index is ready to be written to.
             if (!IndexReady())
@@ -617,7 +623,7 @@ namespace Examine.LuceneEngine.Providers
 
                 foreach (var id in itemIds)
                 {
-                    if (IsCancellationRequested) break;
+                    if (cancellationToken.IsCancellationRequested) break;
 
                     var op = new IndexOperation(new ValueSet(id), IndexOperationType.Delete);
                     if (ProcessQueueItem(op, writer))
@@ -659,7 +665,7 @@ namespace Examine.LuceneEngine.Providers
         /// </remarks>
         public void OptimizeIndex()
         {
-            if (IsCancellationRequested)
+            if (_cancellationToken.IsCancellationRequested)
             {
                 OnIndexingError(new IndexingErrorEventArgs(this, "Cannot optimize index, index cancellation has been requested", null, null), true);
                 return;
@@ -1086,7 +1092,7 @@ namespace Examine.LuceneEngine.Providers
         //                    }   
         //                }   
         //            }
-                        
+
         //        }
         //        else
         //        {
