@@ -18,7 +18,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for use on the server that can actively write to the index
     /// </summary>
-    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory, IDirectoryFactory2
+    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
     {
         private readonly ILoggingService _loggingService;
         private readonly bool _isReadOnly;

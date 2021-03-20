@@ -17,9 +17,4 @@ namespace Examine.LuceneEngine.Directories
         Directory CreateDirectory(DirectoryInfo luceneIndexFolder);
    
     }
-    public interface IDirectoryFactory2
-    {   
-        Directory CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService);
-   
-    }
 }
