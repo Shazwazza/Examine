@@ -9,6 +9,7 @@ namespace Examine.LuceneEngine.Directories
 {
     public abstract class DirectoryFactory : IDirectoryFactory
     {
+        
         static DirectoryFactory()
         {
             DefaultLockFactory = d =>

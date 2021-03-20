@@ -20,8 +20,14 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory, IDirectoryFactory2
     {
-        public AzureDirectoryFactory()
+        private readonly ILoggingService _loggingService;
+        private readonly bool _isReadOnly;
+        public AzureDirectoryFactory() : this(new TraceLoggingService())
         {
+        }
+        public AzureDirectoryFactory(ILoggingService loggingService)
+        {
+            _loggingService = loggingService;
         }
 
         /// <summary>
@@ -49,7 +55,7 @@ namespace Examine.AzureDirectory
         /// </returns>
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            return CreateDirectory(luceneIndexFolder, new TraceLoggingService());
+            return CreateDirectory(luceneIndexFolder, _loggingService);
         }
         public virtual Directory CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService)
         {
@@ -62,7 +68,6 @@ namespace Examine.AzureDirectory
             directory.SetDeletion(new NoDeletionPolicy());
             return directory;
         }
-
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
         Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) =>
             CreateDirectory(luceneIndexFolder);

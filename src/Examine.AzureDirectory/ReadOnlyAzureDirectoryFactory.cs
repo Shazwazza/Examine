@@ -13,13 +13,21 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for user on the server that only reads from the index
     /// </summary>
-    public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory, IDirectoryFactory, IDirectoryFactory2
+    public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory, IDirectoryFactory
     {
         private readonly bool _isReadOnly = true;
+        private readonly ILoggingService _loggingService;
+        public ReadOnlyAzureDirectoryFactory() : this(new TraceLoggingService())
+        {
+        }
+        public ReadOnlyAzureDirectoryFactory(ILoggingService loggingService)
+        {
+            _loggingService = loggingService;
+        }
 
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            return CreateDirectory(luceneIndexFolder, new TraceLoggingService());
+            return CreateDirectory(luceneIndexFolder, _loggingService);
         }
 
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService)
@@ -62,9 +70,6 @@ namespace Examine.AzureDirectory
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
         Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) =>
             CreateDirectory(luceneIndexFolder);
-
-        Lucene.Net.Store.Directory IDirectoryFactory2.CreateDirectory(DirectoryInfo luceneIndexFolder,
-            ILoggingService loggingService) =>
-            CreateDirectory(luceneIndexFolder, loggingService);
+        
     }
 }

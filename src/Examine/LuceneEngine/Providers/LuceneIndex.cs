@@ -150,12 +150,12 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
         public LuceneIndex(
-            string name,
-            FieldDefinitionCollection fieldDefinitions,
-            IndexWriter writer,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : this(name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
+                string name,
+                FieldDefinitionCollection fieldDefinitions,
+                IndexWriter writer,
+                IValueSetValidator validator = null,
+                IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+                : this(name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
         {
         }
 
@@ -923,26 +923,31 @@ namespace Examine.LuceneEngine.Providers
                         {
                             isNewTask = true;
 
-                            _asyncTask = Task.Run(
-                                () =>
-                                {
-                                    //Ensure the indexing processes is using an invariant culture
-                                    Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                                    return ProcessQueueItemsLocked();
-                                },
-                                _cancellationToken);
+                            using (ExecutionContext.SuppressFlow())
+                            {
+                                _asyncTask = Task.Run(
+                                    () =>
+                                    {
+                                        //Ensure the indexing processes is using an invariant culture
+                                        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+                                        return ProcessQueueItemsLocked();
+                                    },
+                                    _cancellationToken);
+                            }
 
                             // when the task is done call the complete callback
                             // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
                             // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
                             if (onComplete != null)
                             {
-                                _asyncTask.ContinueWith(
-                                    task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
-                                    _cancellationToken,
-                                    TaskContinuationOptions.OnlyOnRanToCompletion |
-                                    TaskContinuationOptions.DenyChildAttach,
-                                    TaskScheduler.Default);
+                                using (ExecutionContext.SuppressFlow())
+                                {
+                                    _asyncTask.ContinueWith(
+                                        task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
+                                        _cancellationToken,
+                                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
+                                        TaskScheduler.Default);
+                                }
                             }
                         }
                     }

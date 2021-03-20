@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security;
+using Examine.Logging;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
@@ -33,6 +34,7 @@ namespace Examine.LuceneEngine.Directories
     {
         private readonly Lucene.Net.Store.Directory _masterDirectory;
         private readonly Lucene.Net.Store.Directory _cacheDirectory;
+        private readonly ILoggingService _logging;
         private readonly MultiIndexLockFactory _lockFactory;
         private volatile bool _dirty = true;
         private bool _inSync = false;
@@ -55,8 +57,25 @@ namespace Examine.LuceneEngine.Directories
             _masterDirectory = masterDirectory;
             _cacheDirectory = cacheDirectory;
             _lockFactory = new MultiIndexLockFactory(_masterDirectory, _cacheDirectory);
+            _logging = new TraceLoggingService();
         }
-        
+        /// <summary>
+        /// Create a SyncDirectory
+        /// </summary>
+        /// <param name="masterDirectory"></param>
+        /// <param name="cacheDirectory">local Directory object to use for local cache</param>
+        /// <param name="loggingService">logging service use for tracking errors, info and warnings</param>
+        public SyncDirectory(
+            Lucene.Net.Store.Directory masterDirectory,
+            Lucene.Net.Store.Directory cacheDirectory, ILoggingService loggingService)
+        {
+            if (masterDirectory == null) throw new ArgumentNullException(nameof(masterDirectory));
+            if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
+            _masterDirectory = masterDirectory;
+            _cacheDirectory = cacheDirectory;
+            _lockFactory = new MultiIndexLockFactory(_masterDirectory, _cacheDirectory);
+            _logging = loggingService;
+        }
         public void ClearCache()
         {
             foreach (string file in _cacheDirectory.ListAll())
@@ -192,7 +211,7 @@ namespace Examine.LuceneEngine.Directories
             SetDirty();
 
             //This is what enables "Copy on write" semantics
-            return new SyncIndexOutput(this, name);
+            return new SyncIndexOutput(this, name, _logging);
 
             //If we returned this instead, this essentially becomes only "Copy on read" and not "Copy on write"
             //return _masterDirectory.CreateOutput(name);
@@ -226,7 +245,7 @@ namespace Examine.LuceneEngine.Directories
 
             try
             {
-                return new SyncIndexInput(this, name);
+                return new SyncIndexInput(this, name, _logging);
             }
             catch (Exception err)
             {

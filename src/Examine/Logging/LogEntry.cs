@@ -1,5 +1,4 @@
 ﻿using System;
-
 namespace Examine.Logging
 {
     public class LogEntry

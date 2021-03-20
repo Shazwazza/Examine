@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security;
 using System.Threading;
+using Examine.Logging;
 using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 
@@ -16,6 +17,7 @@ namespace Examine.LuceneEngine.Directories
     {
         private readonly SyncDirectory _syncDirectory;
         private readonly string _name;
+        private readonly ILoggingService _loggingService;
         private IndexOutput _cacheDirIndexOutput;
         private readonly Mutex _fileMutex;
 
@@ -23,13 +25,18 @@ namespace Examine.LuceneEngine.Directories
 
         public Directory MasterDirectory => _syncDirectory.MasterDirectory;
 
-        public SyncIndexOutput(SyncDirectory syncDirectory, string name)
+        public SyncIndexOutput(SyncDirectory syncDirectory, string name) : this(syncDirectory, name, new TraceLoggingService())
+        {
+           
+        }
+        public SyncIndexOutput(SyncDirectory syncDirectory, string name, ILoggingService loggingService)
         {
             if (syncDirectory == null) throw new ArgumentNullException(nameof(syncDirectory));
 
             //NOTE: _name was null here https://github.com/azure-contrib/AzureDirectory/issues/19
             // I have changed this to be correct now
             _name = name;
+            _loggingService = loggingService;
             _syncDirectory = syncDirectory;
             _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
             _fileMutex.WaitOne();
@@ -43,7 +50,6 @@ namespace Examine.LuceneEngine.Directories
                 _fileMutex.ReleaseMutex();
             }
         }
-
         
         public override void Flush()
         {
@@ -113,7 +119,7 @@ namespace Examine.LuceneEngine.Directories
                     }
 
 #if FULLDEBUG
-                    Trace.WriteLine($"CLOSED WRITESTREAM {_name}");
+                    _loggingService.Log(new LogEntry(LogLevel.Info, null,$"CLOSED WRITESTREAM {_name}"));
 #endif
 
                     // clean up
