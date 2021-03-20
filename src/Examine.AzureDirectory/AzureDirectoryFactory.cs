@@ -12,12 +12,16 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for use on the server that can actively write to the index
     /// </summary>
-    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory, IDirectoryFactory2
+    public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
     {
+        private readonly ILoggingService _loggingService;
         private readonly bool _isReadOnly;
-
-        public AzureDirectoryFactory()
+        public AzureDirectoryFactory() : this(new TraceLoggingService())
         {
+        }
+        public AzureDirectoryFactory(ILoggingService loggingService)
+        {
+            _loggingService = loggingService;
         }
 
         public AzureDirectoryFactory(bool isReadOnly)
@@ -49,7 +53,7 @@ namespace Examine.AzureDirectory
         /// </returns>
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-           return CreateDirectory(luceneIndexFolder, new TraceLoggingService());
+           return CreateDirectory(luceneIndexFolder, _loggingService);
         }
         public Directory CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService)
         {
@@ -65,6 +69,5 @@ namespace Examine.AzureDirectory
         }
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
         Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
-        Lucene.Net.Store.Directory IDirectoryFactory2.CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService) => CreateDirectory(luceneIndexFolder,loggingService);
     }
 }
