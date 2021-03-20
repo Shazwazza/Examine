@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Azure;
+using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+
 
 namespace Examine.AzureDirectory
 {
@@ -16,21 +18,22 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectory : Lucene.Net.Store.Directory
     {
+        private readonly string _storageAccountConnectionString;
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
 
         private readonly string _containerName;
-        private CloudBlobClient _blobClient;
-        private CloudBlobContainer _blobContainer;
+        protected BlobContainerClient _blobContainer;
         private readonly LockFactory _lockFactory;
         private static readonly NoopIndexOutput _noopIndexOutput = new NoopIndexOutput();
-
+        private readonly IAzureIndexOutputFactory _azureIndexOutputFactory;
+        private readonly IAzureIndexInputFactory _azureIndexInputFactory;
         /// <summary>
         /// Create an AzureDirectory
         /// </summary>
-        /// <param name="storageAccount">storage account to use</param>
+        /// <param name="connectionString">storage account to use</param>
         /// <param name="containerName">name of container (folder in blob storage)</param>
         /// <param name="cacheDirectory">local Directory object to use for local cache</param>
         /// <param name="compressBlobs"></param>
@@ -41,14 +44,14 @@ namespace Examine.AzureDirectory
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
         public AzureDirectory(
-            CloudStorageAccount storageAccount,
+            string connectionString,
             string containerName,
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false,
             string rootFolder = null,
             bool isReadOnly = false)
         {
-            if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
+            if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
             if (string.IsNullOrWhiteSpace(containerName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
             _isReadOnly = isReadOnly;
@@ -67,14 +70,28 @@ namespace Examine.AzureDirectory
                 rootFolder = rootFolder.Trim('/');
                 RootFolder = rootFolder + "/";
             }
-
-            _blobClient = storageAccount.CreateCloudBlobClient();
+            _azureIndexOutputFactory = GetAzureIndexOutputFactory();
+            _azureIndexInputFactory = GetAzureIndexInputFactory();
             EnsureContainer();
             CompressBlobs = compressBlobs;
         }
-
+        protected virtual IAzureIndexInputFactory GetAzureIndexInputFactory()
+        {
+            return new AzureIndexInputFactory();
+        }
+        protected virtual IAzureIndexOutputFactory GetAzureIndexOutputFactory()
+        {
+            return new AzureIndexOutputFactory();
+        }
+        protected virtual BlobClient GetBlobClient(string blobName)
+        {
+            return new BlobClient(_storageAccountConnectionString, _containerName, blobName);
+        }
+        protected virtual BlobContainerClient GetBlobContainerClient(string containerName)
+        {
+            return new BlobContainerClient(_storageAccountConnectionString, _containerName);
+        }
         public string RootFolder { get; }
-        public CloudBlobContainer BlobContainer => _blobContainer;
         public bool CompressBlobs { get; }
         public Lucene.Net.Store.Directory CacheDirectory { get; }
 
@@ -88,7 +105,8 @@ namespace Examine.AzureDirectory
 
         public void EnsureContainer()
         {
-            _blobContainer = _blobClient.GetContainerReference(_containerName);
+            Trace.WriteLine($"DEBUG Ensuring container ({_containerName}) exists for cache {RootFolder}");
+            _blobContainer = GetBlobContainerClient(_containerName);
             _blobContainer.CreateIfNotExists();
         }
         
@@ -103,11 +121,19 @@ namespace Examine.AzureDirectory
 
         internal string[] GetAllBlobFiles()
         {
-            var results = from blob in _blobContainer.ListBlobs(RootFolder)
-                          select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
-            return results.ToArray();
+            IEnumerable<string> results = GetAllBlobFileNames();
+            if (string.IsNullOrWhiteSpace(RootFolder))
+            {
+                return results.ToArray();
+            }
+            var names = results.Where(x => !x.EndsWith(".lock")).Select(x => x.Replace(RootFolder, "")).ToArray();
+            return names;
         }
-
+        protected virtual IEnumerable<string> GetAllBlobFileNames()
+        {
+            return from blob in _blobContainer.GetBlobs(prefix: RootFolder)
+                select blob.Name;
+        }
         /// <summary>Returns true if a file with the given name exists. </summary>
         public override bool FileExists(string name)
         {
@@ -142,9 +168,11 @@ namespace Examine.AzureDirectory
 
             if (TryGetBlobFile(name, out var blob, out var err))
             {
-                if (blob.Properties.LastModified != null)
+                var blobPropertiesResponse = blob.GetProperties();
+                var blobProperties = blobPropertiesResponse.Value;
+                if (blobProperties.LastModified != null)
                 {
-                    var utcDate = blob.Properties.LastModified.Value.UtcDateTime;
+                    var utcDate = blobProperties.LastModified.UtcDateTime;
 
                     //This is the data structure of how the default Lucene FSDirectory returns this value so we want
                     // to be consistent with how Lucene works
@@ -156,6 +184,7 @@ namespace Examine.AzureDirectory
             }
             else
             {
+                Trace.WriteLine($"WARNING Throwing exception as blob file ({name}) not found for {RootFolder}");
                 // Lucene expects this exception to be thrown
                 throw new FileNotFoundException(name, err);
             }
@@ -208,7 +237,7 @@ namespace Examine.AzureDirectory
 
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
 
-            var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
+            var blob = _blobContainer.GetBlobClient(RootFolder + name);
             blob.DeleteIfExists();
             SetDirty();
 
@@ -226,30 +255,26 @@ namespace Examine.AzureDirectory
                 return CacheDirectory.FileLength(name);
             }
 
-            if (TryGetBlobFile(name, out var blob, out var err))
+            try
             {
-                Debugger.Launch();
+                var blob = GetBlobClient(RootFolder + name);
+                var blobProperties = blob.GetProperties();
 
-                // index files may be compressed so the actual length is stored in metatdata
-                var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
+                // index files may be compressed so the actual length is stored in metadata
+                var hasMetadataValue = blobProperties.Value.Metadata.TryGetValue("CachedLength", out var blobLegthMetadata);
 
                 if (hasMetadataValue && long.TryParse(blobLegthMetadata, out var blobLength))
                 {
                     return blobLength;
                 }
-                return blob.Properties.Length; // fall back to actual blob size
+
+                // fall back to actual blob size
+                return blobProperties.Value.ContentLength;
             }
-            else
+            catch (Exception e)
             {
-                // NOTE: We cannot return 0 or something like that, this will end up throwing an exception in Lucene:
-                // https://github.com/apache/lucenenet/blob/3.0.3/src/core/Index/TermVectorsTermsWriter.cs#L115
-
-                // This method will be called after committing the index. Since the local index can be directly written to
-                // we need to return the real result.
-
-                // NOTE: In readonly mode we explicitly bind to the DocumentWriting event to cancel it so nothing is actually written
-                // so we'll never actually get here.
-
+                //  Sync(name);
+                Trace.WriteLine($"ERROR {e.ToString()}  Exception thrown while retrieving file length of file {name} for {RootFolder}");
                 return CacheDirectory.FileLength(name);
             }
         }
@@ -267,7 +292,7 @@ namespace Examine.AzureDirectory
                 return _noopIndexOutput;
             }
 
-            var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
+            var blob = _blobContainer.GetBlobClient(RootFolder + name);
             return new AzureIndexOutput(this, blob, name);
         }
 
@@ -321,11 +346,10 @@ namespace Examine.AzureDirectory
         }
 
         public override LockFactory LockFactory => _lockFactory;
-
+        public BlobContainerClient BlobContainer { get => _blobContainer; set => _blobContainer = value; }
         protected override void Dispose(bool disposing)
         {
             _blobContainer = null;
-            _blobClient = null;
         }
 
         /// <summary> Return a string identifier that uniquely differentiates
@@ -411,7 +435,7 @@ namespace Examine.AzureDirectory
         {
             try
             {
-                return _blobContainer.GetBlockBlobReference(RootFolder + name).Exists();
+                return _blobContainer.GetBlobClient(RootFolder + name).Exists();
             }
             catch (Exception)
             {
@@ -419,16 +443,16 @@ namespace Examine.AzureDirectory
             }
         }
 
-        private bool TryGetBlobFile(string name, out CloudBlockBlob blob, out StorageException err)
+        private bool TryGetBlobFile(string name, out BlobClient blob, out RequestFailedException err)
         {
             try
             {
-                blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
-                blob.FetchAttributes();
+                blob = _blobContainer.GetBlobClient(RootFolder + name);
+                var properties = blob.GetProperties();
                 err = null;
                 return true;
             }
-            catch (StorageException e)
+            catch (RequestFailedException e)
             {
                 err = e;
                 blob = null;

@@ -3,7 +3,6 @@ using System.IO;
 using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
-using Microsoft.Azure.Storage;
 
 namespace Examine.AzureDirectory
 {
@@ -51,13 +50,16 @@ namespace Examine.AzureDirectory
             var tempFolder = GetLocalStorageDirectory(indexFolder);
 
             return new AzureDirectory(
-                CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),
+                GetStorageAccountConnectionString(),
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 new SimpleFSDirectory(tempFolder),
                 rootFolder: luceneIndexFolder.Name,
                 isReadOnly: _isReadOnly);
         }
-
+        protected virtual string GetStorageAccountConnectionString()
+        {
+            return ConfigurationManager.AppSettings[ConfigStorageKey];
+        }
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
         Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
 

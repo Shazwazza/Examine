@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
+using Azure.Storage.Blobs;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
-using Microsoft.Azure.Storage.Blob;
 
 namespace Examine.AzureDirectory
 {
@@ -20,10 +21,10 @@ namespace Examine.AzureDirectory
         private readonly string _name;
         private IndexOutput _indexOutput;
         private readonly Mutex _fileMutex;
-        private ICloudBlob _blob;
+        private BlobClient _blob;
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexOutput(AzureDirectory azureDirectory, ICloudBlob blob, string name)
+        public AzureIndexOutput(AzureDirectory azureDirectory, BlobClient blob, string name)
         {
             //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;
@@ -91,12 +92,14 @@ namespace Examine.AzureDirectory
                     try
                     {
                         // push the blobStream up to the cloud
-                        _blob.UploadFromStream(blobStream);
+                        _blob.Upload(blobStream);
 
                         // set the metadata with the original index file properties
-                        _blob.Metadata["CachedLength"] = originalLength.ToString();
-                        _blob.Metadata["CachedLastModified"] = CacheDirectory.FileModified(fileName).ToString();
-                        _blob.SetMetadata();
+                        var metadata = new Dictionary<string, string>();
+                        metadata.Add("CachedLength", originalLength.ToString());
+                        metadata.Add("CachedLastModified", CacheDirectory.FileModified(fileName).ToString());
+
+                        var response = _blob.SetMetadata(metadata);
 #if FULLDEBUG
                         Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
 #endif
