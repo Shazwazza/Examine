@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Examine.Logging
 {
-    public class LogEntry
+    public struct LogEntry
     {
         public LogLevel Level { get; }
         public string Message { get; }
