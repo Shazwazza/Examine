@@ -1,0 +1,51 @@
+name: Examine Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    env:
+      Solution_File: src\Examine.sln
+      Configuration: Release
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Create copyright value
+      run: |
+        $Copyright = "Copyright " + [char]0x00A9 + " Shannon Deminick " + (Get-Date).year
+        echo ("Copyright=" + $Copyright) >> $Env:GITHUB_ENV
+      shell: pwsh
+      
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    
+    - uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: 'latest'
+    
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.7
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      uses: gittools/actions/gitversion/execute@v0.9.7
+    
+    - name: Nuget Restore
+      run: nuget restore $env:Solution_File
+    
+    - name: MSBuild Clean
+      run: msbuild $env:Solution_File /p:Configuration=Release /t:Clean
+    
+    - name: MSBuild Build
+      run: msbuild $env:Solution_File /p:Configuration=$env:Configuration
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
