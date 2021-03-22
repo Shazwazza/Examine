@@ -49,4 +49,10 @@ jobs:
       run: msbuild $env:Solution_File /p:Configuration=$env:Configuration
       
     - name: Test
-      run: dotnet vstest "{{ env.Test_Folder }}\bin\{{ env.Configuration }}\Examine.Test.dll" --no-build --verbosity normal
+      run: dotnet vstest "${{ env.Test_Folder }}\bin\${{ env.Configuration }}\Examine.Test.dll" --no-build --verbosity normal --results-directory ${{ github.workspace }}\_TestResults  --logger "trx;logfilename=tests.trx"
+    
+    - uses: actions/upload-artifact@v2  # upload test results
+      if: success() || failure()        # run this step even if previous step failed
+      with:
+        name: test-results
+        path:  ${{ github.workspace }}\_TestResults\tests.trx
