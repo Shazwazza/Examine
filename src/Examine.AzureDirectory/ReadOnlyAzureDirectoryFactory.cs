@@ -27,19 +27,15 @@ namespace Examine.AzureDirectory
 
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            return CreateDirectory(luceneIndexFolder, _loggingService);
-        }
-
-        public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService)
-        {
+       {
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);
             var indexName = GetIndexPathName(indexFolder);
             var directory = new RemoteReadOnlyLuceneSyncDirectory(
                 new AzureRemoteDirectory(GetStorageAccountConnectionString(), GetContainerName(),
-                    luceneIndexFolder.Name, loggingService),
+                    luceneIndexFolder.Name, _loggingService),
                 tempFolder,
-                indexName, loggingService
+                indexName, _loggingService
             );
 
 
