@@ -9,6 +9,7 @@ jobs:
 
     env:
       Solution_File: src\Examine.sln
+      Test_Folder: src\Examine.Test
       Configuration: Release
       
     steps:
@@ -48,4 +49,4 @@ jobs:
       run: msbuild $env:Solution_File /p:Configuration=$env:Configuration
       
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet vstest "{{ env.Test_Folder }}\bin\{{ env.Configuration }}\Examine.Test.dll" --no-build --verbosity normal
