@@ -55,14 +55,10 @@ namespace Examine.AzureDirectory
         /// </returns>
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
-            return CreateDirectory(luceneIndexFolder, _loggingService);
-        }
-        public virtual Directory CreateDirectory(DirectoryInfo luceneIndexFolder, ILoggingService loggingService)
-        {
             var directory = new RemoteSyncDirectory(
                 new AzureRemoteDirectory(GetStorageAccountConnectionString(), GetContainerName(),
-                    luceneIndexFolder.Name, loggingService),
-                GetLocalCacheDirectory(luceneIndexFolder), loggingService);
+                    luceneIndexFolder.Name, _loggingService),
+                GetLocalCacheDirectory(luceneIndexFolder), _loggingService);
             directory.SetMergePolicyAction(e => new NoMergePolicy(e));
             directory.SetMergeScheduler(new NoMergeSheduler());
             directory.SetDeletion(new NoDeletionPolicy());
