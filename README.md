@@ -1,6 +1,5 @@
-[![Build Status](https://dev.azure.com/shazwazza/Examine/_apis/build/status/Shazwazza.Examine?branchName=master)](https://dev.azure.com/shazwazza/Examine/_build/latest?definitionId=4&branchName=master)
-
-[![Build status](https://ci.appveyor.com/api/projects/status/j4o4finsu8xs45r1?svg=true)](https://ci.appveyor.com/project/Shandem/examine)
+| [![Examine Build](https://github.com/Shazwazza/Examine/actions/workflows/build.yml/badge.svg)](https://github.com/Shazwazza/Examine/actions/workflows/build.yml) | [![Build Status](https://dev.azure.com/shazwazza/Examine/_apis/build/status/Shazwazza.Examine?branchName=master)](https://dev.azure.com/shazwazza/Examine/_build/latest?definitionId=4&branchName=master) | [![Build status](https://ci.appveyor.com/api/projects/status/j4o4finsu8xs45r1?svg=true)](https://ci.appveyor.com/project/Shandem/examine) |
+|---|---|---|
 
 Examine
 ===
