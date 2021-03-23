@@ -1,0 +1,21 @@
+next-version: 1.0
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatchTag
+assembly-informational-format: '{InformationalVersion}'
+mode: ContinuousDelivery
+increment: Inherit
+continuous-delivery-fallback-tag: ci
+tag-prefix: '[vV]'
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+no-bump-message: '\+semver:\s?(none|skip)'
+legacy-semver-padding: 4
+build-metadata-padding: 4
+commits-since-version-source-padding: 4
+commit-message-incrementing: Enabled
+commit-date-format: 'yyyy-MM-dd'
+ignore:
+  sha: []
+  commits-before: 2020-12-21T00:00:00
+merge-message-formats: {}
