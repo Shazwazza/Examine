@@ -22,7 +22,7 @@ merge-message-formats: {}
 branches:
   main:
     regex: ^master(\-0\.x)?$|^main(\-0\.x)?$
-    source-branches:
+    source-branches: []
   develop:
     regex: ^dev(elop)?(ment)?(\-0\.x)?$
     source-branches:
