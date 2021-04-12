@@ -17,3 +17,14 @@ Projects/Examine.Web.Demo/App_Data/*.sdf
 Projects/Examine.Web.Demo/App_Data/SimpleIndexSet2/Index/*
 NDepend/*
 *.orig
+.Examine.boltdata/*
+src/Examine.Web.Demo/App_Data/SimpleIndexSet2/*
+src/Examine.Web.Demo/App_Data/Database1.sdf
+src/Examine.vsmdi
+src/Local.testsettings
+src/packages/*
+/src/.vs/*
+/src/Examine.Web.Demo/_bin_deployableAssemblies/*
+/src/Examine.Web.Demo/App_Data/*
+src/.idea
+.idea/

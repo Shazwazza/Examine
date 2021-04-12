@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8F5756F2-7449-400C-BE52-A91F862967B0}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+		SolutionInfo.cs = SolutionInfo.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768-6ECD-40EF-84BD-5594670EA7A8}"
+	ProjectSection(SolutionItems) = preProject
+		..\appveyor.build.yml = ..\appveyor.build.yml
+		..\appveyor.yml = ..\appveyor.yml
+		..\azure-pipelines.yml = ..\azure-pipelines.yml
+		..\build\Build-Release.ps1 = ..\build\Build-Release.ps1
+		..\build\build.xml = ..\build\build.xml
+		..\.github\workflows\build.yml = ..\.github\workflows\build.yml
+		..\GitVersion.yml = ..\GitVersion.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine\Examine.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.AzureDirectory", "Examine.AzureDirectory\Examine.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {468B7BF7-F220-4717-85F6-69D8E7C7F2B0}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = Examine.vsmdi
+	EndGlobalSection
+EndGlobal

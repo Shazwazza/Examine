@@ -1,0 +1,27 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # This builds all sln files, this could be updated to target what you want to build
+  solution: '**/*.sln'
+  # Typically none of these should be changed!
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  publishDir: '$(build.artifactStagingDirectory)\_Publish'
+  cloneDir: '$(build.artifactStagingDirectory)\_UmbracoCloud'
+  zipDir: '$(build.artifactStagingDirectory)\_Zip'
+
+steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      Install-Module -Name PowerShellForGitHub -Force
