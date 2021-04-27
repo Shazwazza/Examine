@@ -9,13 +9,129 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
 using NUnit.Framework;
 using Version = Lucene.Net.Util.Version;
+using Lucene.Net.Analysis;
+using Examine.Search;
+using Examine.LuceneEngine.Search;
 
 namespace Examine.Test.Search
 {
 
     [TestFixture]
-    public class MultiIndexSearch
+    public class MultiIndexSearchTests
     {
+        public class CustomAnalyzer : StandardAnalyzer
+        {
+            public static List<string> StopWords = new List<string>()
+            {
+                "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into",
+                "is", "it", "no", "not", "of", "on", "or", "such", "that", "their", "then",
+                "there", "these", "they", "this", "to", "was", "with"
+            };
+
+            public CustomAnalyzer()
+                : base(Version.LUCENE_30, new HashSet<string>(StopWords))
+            { }
+        }
+
+        [Test]
+        public void GivenCustomStopWords_WhenUsedOnlyForSearchingAndNotIndexing_TheDefaultWordsWillBeStrippedDuringIndexing()
+        {
+            var customAnalyzer = new CustomAnalyzer();
+            var standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30);
+
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneDir2 = new RandomIdRAMDirectory())
+            // using the StandardAnalyzer on the indexes means that the default stop words
+            // will get stripped from the text before being stored in the index.
+            using (var indexer1 = new TestIndex(luceneDir1, standardAnalyzer))
+            using (var indexer2 = new TestIndex(luceneDir2, standardAnalyzer))
+            {
+                indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
+                indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));                
+
+                using (var searcher = new MultiIndexSearcher("testSearcher",
+                    new[] { indexer1, indexer2 },
+                    customAnalyzer))
+                {
+                    // Even though the custom analyzer doesn't have a stop word of 'will'
+                    // it will still return nothing because the word has been stripped during indexing.
+                    var result = searcher.Search("will");
+                    Assert.AreEqual(0, result.TotalItemCount);
+                }
+            }
+        }
+
+        [Test]
+        public void GivenCustomStopWords_WhenUsedOnlyForIndexingAndNotForSearching_TheDefaultWordsWillNotBeStrippedDuringSearchingWithManagedQueries()
+        {
+            var customAnalyzer = new CustomAnalyzer();
+            var standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30);
+
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneDir2 = new RandomIdRAMDirectory())
+            // using the CustomAnalyzer on the indexes means that the custom stop words
+            // will get stripped from the text before being stored in the index.
+            using (var indexer1 = new TestIndex(luceneDir1, customAnalyzer))
+            using (var indexer2 = new TestIndex(luceneDir2, customAnalyzer))
+            {
+                indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
+                indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
+
+                using (var searcher = new MultiIndexSearcher("testSearcher",
+                    new[] { indexer1, indexer2 },
+                    // The Analyzer here is used for query parsing values when 
+                    // non ManagedQuery queries are executed.
+                    standardAnalyzer))
+                {
+                    // A text search like this will use a ManagedQuery which means it will
+                    // use the analyzer assigned to each field to parse the query
+                    // which means in this case the passed in StandardAnalyzer is NOT used
+                    // and therefor the 'will' word is not stripped and we still get results.
+                    var result = searcher.Search("will");
+                    Assert.AreEqual(2, result.TotalItemCount);
+                }
+            }
+        }
+
+//        [Test]
+//        public void GivenCustomStopWords_WhenUsedOnlyForIndexingAndNotForSearching_TheDefaultWordsWillNotBeStrippedDuringSearchingWithManagedQueries()
+//        {
+//            var customAnalyzer = new CustomAnalyzer();
+//            var standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30);
+
+//            using (var luceneDir1 = new RandomIdRAMDirectory())
+//            using (var luceneDir2 = new RandomIdRAMDirectory())
+//            // using the CustomAnalyzer on the indexes means that the custom stop words
+//            // will get stripped from the text before being stored in the index.
+//            using (var indexer1 = new TestIndex(luceneDir1, customAnalyzer))
+//            using (var indexer2 = new TestIndex(luceneDir2, customAnalyzer))
+//            {
+//                indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
+//                indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
+
+//                using (var searcher = new MultiIndexSearcher("testSearcher",
+//                    new[] { indexer1, indexer2 },
+//                    // The Analyzer here is used for query parsing values when 
+//                    // non ManagedQuery queries are executed.
+//                    standardAnalyzer))
+//                {
+//                    IQuery query = ((MultiIndexSearcher)searcher).CreateQuery(
+//                        "Search",
+//                        BooleanOperation.And,
+//                        new CustomAnalyzer(),
+//                        new LuceneSearchOptions());
+                    
+//                    IBooleanOperation filter = null;
+//                    ...
+//filter = query.GroupedOr(string.Format(config.SearchFields, currentCulture).Split(','), request.TokenizedTerm.ToArray());
+//                    ...
+//filter.Execute()
+
+//                    Assert.AreEqual(2, result.TotalItemCount);
+//                }
+//            }
+//        }
+
         [Test]
         public void Dont_Initialize_Searchers_On_Dispose_If_Not_Already_Initialized()
         {
@@ -75,7 +191,7 @@ namespace Examine.Test.Search
                     {
                         Console.WriteLine("Score = " + r.Score);
                     }
-                }   
+                }
             }
         }
 
@@ -111,7 +227,7 @@ namespace Examine.Test.Search
                     {
                         Assert.IsTrue(result.Contains(s));
                     }
-                }   
+                }
             }
         }
 
