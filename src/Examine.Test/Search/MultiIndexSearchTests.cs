@@ -93,44 +93,39 @@ namespace Examine.Test.Search
             }
         }
 
-//        [Test]
-//        public void GivenCustomStopWords_WhenUsedOnlyForIndexingAndNotForSearching_TheDefaultWordsWillNotBeStrippedDuringSearchingWithManagedQueries()
-//        {
-//            var customAnalyzer = new CustomAnalyzer();
-//            var standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30);
+        [Test]
+        public void GivenCustomStopWords_WhenUsedOnlyForIndexingAndNotForSearching_TheDefaultWordsWillBeStrippedDuringSearchingWithNonManagedQueries()
+        {
+            var customAnalyzer = new CustomAnalyzer();
+            var standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30);
 
-//            using (var luceneDir1 = new RandomIdRAMDirectory())
-//            using (var luceneDir2 = new RandomIdRAMDirectory())
-//            // using the CustomAnalyzer on the indexes means that the custom stop words
-//            // will get stripped from the text before being stored in the index.
-//            using (var indexer1 = new TestIndex(luceneDir1, customAnalyzer))
-//            using (var indexer2 = new TestIndex(luceneDir2, customAnalyzer))
-//            {
-//                indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
-//                indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var luceneDir2 = new RandomIdRAMDirectory())
+            // using the CustomAnalyzer on the indexes means that the custom stop words
+            // will get stripped from the text before being stored in the index.
+            using (var indexer1 = new TestIndex(luceneDir1, customAnalyzer))
+            using (var indexer2 = new TestIndex(luceneDir2, customAnalyzer))
+            {
+                indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras will gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
+                indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value4", item2 = "Scientists believe the lake will be home to cold-loving microbial life adapted to living in total darkness." }));
 
-//                using (var searcher = new MultiIndexSearcher("testSearcher",
-//                    new[] { indexer1, indexer2 },
-//                    // The Analyzer here is used for query parsing values when 
-//                    // non ManagedQuery queries are executed.
-//                    standardAnalyzer))
-//                {
-//                    IQuery query = ((MultiIndexSearcher)searcher).CreateQuery(
-//                        "Search",
-//                        BooleanOperation.And,
-//                        new CustomAnalyzer(),
-//                        new LuceneSearchOptions());
-                    
-//                    IBooleanOperation filter = null;
-//                    ...
-//filter = query.GroupedOr(string.Format(config.SearchFields, currentCulture).Split(','), request.TokenizedTerm.ToArray());
-//                    ...
-//filter.Execute()
+                using (var searcher = new MultiIndexSearcher("testSearcher",
+                    new[] { indexer1, indexer2 },
+                    // The Analyzer here is used for query parsing values when 
+                    // non ManagedQuery queries are executed.
+                    standardAnalyzer))
+                {
+                    var result = searcher
+                        .CreateQuery("content")
+                        // This is a non-ManagedQuery, so the searchers Query Parser
+                        // will execute and remove stop words
+                        .GroupedOr(new[] { "item1", "item2" }, "will")
+                        .Execute();
 
-//                    Assert.AreEqual(2, result.TotalItemCount);
-//                }
-//            }
-//        }
+                    Assert.AreEqual(0, result.TotalItemCount);
+                }
+            }
+        }
 
         [Test]
         public void Dont_Initialize_Searchers_On_Dispose_If_Not_Already_Initialized()
