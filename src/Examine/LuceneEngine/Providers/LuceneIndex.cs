@@ -34,7 +34,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="analyzer">Specifies the default analyzer to use per field</param>
         /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
         /// <param name="indexValueTypesFactory">
-        ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.DefaultValueTypes"/> will be used.
+        ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.GetDefaultValueTypes"/> will be used.
         ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
         public LuceneIndex(string name,
@@ -57,7 +57,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="analyzer">Specifies the default analyzer to use per field</param>
         /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
         /// <param name="indexValueTypesFactory">
-        ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.DefaultValueTypes"/> will be used.
+        ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.GetDefaultValueTypes"/> will be used.
         ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>        
         public LuceneIndex(string name,
@@ -79,6 +79,7 @@ namespace Examine.LuceneEngine.Providers
             _directory = luceneDirectory;
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
+
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             WaitForIndexQueueOnShutdown = true;
             _cancellationTokenSource = new CancellationTokenSource();
@@ -585,7 +586,7 @@ namespace Examine.LuceneEngine.Providers
         {
             //copy to writable dictionary
             var defaults = new Dictionary<string, IFieldValueTypeFactory>();
-            foreach (var defaultIndexValueType in ValueTypeFactoryCollection.DefaultValueTypes)
+            foreach (var defaultIndexValueType in ValueTypeFactoryCollection.GetDefaultValueTypes(DefaultAnalyzer))
             {
                 defaults[defaultIndexValueType.Key] = defaultIndexValueType.Value;
             }

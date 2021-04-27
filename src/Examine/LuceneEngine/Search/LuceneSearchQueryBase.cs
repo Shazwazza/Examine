@@ -16,6 +16,7 @@ namespace Examine.LuceneEngine.Search
     public abstract class LuceneSearchQueryBase : IQuery, INestedQuery
     {
         private readonly CustomMultiFieldQueryParser _queryParser;
+        private static readonly KeywordAnalyzer KeywordAnalyzer = new KeywordAnalyzer();
         public QueryParser QueryParser => _queryParser;
 
         internal readonly Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
@@ -29,7 +30,6 @@ namespace Examine.LuceneEngine.Search
         public const Version LuceneVersion = Version.LUCENE_30;
 
         protected internal FieldSelector Selector = null;
-        private static readonly ISet<string> EmptySet = new HashSet<string>();
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -410,7 +410,7 @@ namespace Examine.LuceneEngine.Search
         /// <returns></returns>
         private Query ParseRawQuery(string rawQuery)
         {
-            var parser = new QueryParser(LuceneVersion, "", new KeywordAnalyzer());
+            var parser = new QueryParser(LuceneVersion, string.Empty, KeywordAnalyzer);
             return parser.Parse(rawQuery);
         }
 

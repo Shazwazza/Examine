@@ -28,6 +28,8 @@ namespace Examine.LuceneEngine
             FieldDefinitionCollection fieldDefinitionCollection)
         {
             Analyzer = analyzer;
+            ValueTypeFactories = new ValueTypeFactoryCollection();
+
             foreach (var type in valueTypeFactories)
             {
                 ValueTypeFactories.TryAdd(type.Key, type.Value);
@@ -103,7 +105,7 @@ namespace Examine.LuceneEngine
         /// <remarks>
         /// This collection is mutable but must be changed before the EnsureIndex method is fired (i.e. on startup)
         /// </remarks>
-        public ValueTypeFactoryCollection ValueTypeFactories { get; } = new ValueTypeFactoryCollection();
+        public ValueTypeFactoryCollection ValueTypeFactories { get; }
 
         private readonly Lazy<ConcurrentDictionary<string, IIndexFieldValueType>> _resolvedValueTypes;
 
