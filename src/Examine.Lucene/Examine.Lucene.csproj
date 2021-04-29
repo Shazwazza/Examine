@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -82,43 +82,6 @@
     <AssemblyOriginatorKeyFile>..\Solution Items\TheFARM-Public.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="J2N, Version=2.0.0.0, Culture=neutral, PublicKeyToken=f39447d697a969af">
-      <HintPath>..\packages\J2N.2.0.0-beta-0007\lib\net45\J2N.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Lucene.Net, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.4.8.0-beta00008\lib\net45\Lucene.Net.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Lucene.Net.Analysis.Common, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Analysis.Common.4.8.0-beta00008\lib\net45\Lucene.Net.Analysis.Common.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Lucene.Net.Facet, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Facet.4.8.0-beta00008\lib\net45\Lucene.Net.Facet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Lucene.Net.Grouping, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Grouping.4.8.0-beta00008\lib\net45\Lucene.Net.Grouping.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Lucene.Net.Join, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Join.4.8.0-beta00008\lib\net45\Lucene.Net.Join.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Lucene.Net.Queries, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Queries.4.8.0-beta00008\lib\net45\Lucene.Net.Queries.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Lucene.Net.QueryParser, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.QueryParser.4.8.0-beta00008\lib\net45\Lucene.Net.QueryParser.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Lucene.Net.Sandbox, Version=4.0.0.0, Culture=neutral, PublicKeyToken=85089178b9ac3181">
-      <HintPath>..\packages\Lucene.Net.Sandbox.4.8.0-beta00008\lib\net45\Lucene.Net.Sandbox.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -230,15 +193,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Examine.Core\Examine.Core.csproj">
-      <Project>{ca2a20ce-1a61-4185-8b49-bd50993acfdf}</Project>
-      <Name>Examine.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\packages\Lucene.Net.4.8.0-beta00008\analyzers\dotnet\cs\Lucene.Net.CodeAnalysis.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="..\AssemblyCopyright.tt">
       <Link>Properties\AssemblyCopyright.tt</Link>
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -254,14 +208,17 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Lucene.Net">
-      <Version>3.0.3</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.SourceLink.GitHub">
       <Version>1.0.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Examine.Core\Examine.Core.csproj">
+      <Project>{ca2a20ce-1a61-4185-8b49-bd50993acfdf}</Project>
+      <Name>Examine.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

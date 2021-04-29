@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,10 +52,10 @@ namespace Examine.LuceneEngine
 
         public FieldSelector FieldSelector { get; }
 
-        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, Searcher searcher, int maxResults, FieldSelector fieldSelector)
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, IndexSearcher searcher, int maxResults, FieldSelector fieldSelector)
         {
             LuceneQuery = query;
-            
+
             FieldSelector = fieldSelector;
             LuceneSearcher = searcher;
             _maxResults = maxResults;
@@ -63,7 +63,7 @@ namespace Examine.LuceneEngine
         }
 
         private void DoSearch(Query query, IEnumerable<SortField> sortField, int maxResults, int? skip = null, int? take = null)
-        {   
+        {
             var extractTermsSupported = CheckQueryForExtractTerms(query);
 
             if (extractTermsSupported)
@@ -92,9 +92,9 @@ namespace Examine.LuceneEngine
                 {
                     //swallow this exception, we should continue if this occurs.
                 }
-            }   
+            }
 
-            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.IndexReader.MaxDoc>0 ? LuceneSearcher.IndexReader.MaxDoc : maxResults) : LuceneSearcher.IndexReader.MaxDoc>0 ? LuceneSearcher.IndexReader.MaxDoc : 500;
+            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.IndexReader.MaxDoc > 0 ? LuceneSearcher.IndexReader.MaxDoc : maxResults) : LuceneSearcher.IndexReader.MaxDoc > 0 ? LuceneSearcher.IndexReader.MaxDoc : 500;
 
             ICollector topDocsCollector;
             var sortFields = sortField as SortField[] ?? sortField.ToArray();
@@ -135,12 +135,12 @@ namespace Examine.LuceneEngine
                     TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip.Value);
                 }
             }
-           
+
             TotalItemCount = TopDocs.TotalHits;
 
             ExecutionCount++;
         }
-        
+
         protected override ISearchResult GetSearchResult(int index)
         {
             // I have seen IndexOutOfRangeException here which is strange as this is only called in one place

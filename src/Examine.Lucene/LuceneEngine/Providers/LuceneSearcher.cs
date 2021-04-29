@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -503,8 +503,7 @@ namespace Examine.LuceneEngine.Providers
                             // that would still have it in use (i.e. this actually just called DecRef underneath)
                             _reader.Dispose();
                         }
-                        catch (AlreadyClosedException)
-                        catch (ObjectDisposedException)
+                        catch (Exception e) when (e is AlreadyClosedException || e is ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if the 
                             // DecrementReaderResult never disposed, which occurs if people don't actually iterate the 

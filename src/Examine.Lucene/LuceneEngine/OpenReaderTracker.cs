@@ -63,8 +63,7 @@ namespace Examine.LuceneEngine
                         {
                             oldest.Item1.Dispose();
                         }
-                        catch (AlreadyClosedException)
-                        catch (ObjectDisposedException)
+                        catch (Exception e) when (e is AlreadyClosedException || e is ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if this 
                             //somehow gets called in conjuction with the shutdown code or manually, etc...
@@ -131,8 +130,7 @@ namespace Examine.LuceneEngine
                         {
                             reader.Item1.Dispose();
                         }
-                        catch (AlreadyClosedException)
-                        catch (ObjectDisposedException)
+                        catch (Exception e) when (e is AlreadyClosedException || e is ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if this 
                             //somehow gets called in conjuction with the shutdown code or manually, etc...
