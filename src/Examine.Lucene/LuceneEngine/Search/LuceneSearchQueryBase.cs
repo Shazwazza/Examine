@@ -19,17 +19,15 @@ namespace Examine.LuceneEngine.Search
         private static readonly KeywordAnalyzer KeywordAnalyzer = new KeywordAnalyzer();
         public QueryParser QueryParser => _queryParser;
 
-        internal readonly Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
+        internal Stack<BooleanQuery> Queries { get; } = new Stack<BooleanQuery>();
         public BooleanQuery Query => Queries.Peek();
 
         public IList<SortField> SortFields { get; } = new List<SortField>();
 
-        protected Occur Occurrence;
+        protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
         public const Version LuceneVersion = Version.LUCENE_30;
-
-        protected internal FieldSelector Selector = null;
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
