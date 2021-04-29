@@ -133,6 +133,6 @@ namespace Examine.Search
         /// <param name="minInclusive"></param>
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
-        IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+        IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;        
     }
 }

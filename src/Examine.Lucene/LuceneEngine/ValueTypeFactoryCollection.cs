@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Indexing;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 
 namespace Examine.LuceneEngine
@@ -59,12 +60,15 @@ namespace Examine.LuceneEngine
         /// Returns the default index value types that is used in normal construction of an indexer
         /// </summary>
         /// <returns></returns>
-        public static IReadOnlyDictionary<string, IFieldValueTypeFactory> DefaultValueTypes
-            => DefaultValueTypesInternal.ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
+        public static IReadOnlyDictionary<string, IFieldValueTypeFactory> GetDefaultValueTypes(Analyzer defaultAnalyzer)
+            => GetDefaults(defaultAnalyzer).ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
 
-        //define the defaults
-        private static readonly IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> DefaultValueTypesInternal
-            = new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
+        [Obsolete("This is no longer used and will be removed in future versions. Use the GetDefaultValueTypes instead.")]
+        public static IReadOnlyDictionary<string, IFieldValueTypeFactory> DefaultValueTypes
+            => GetDefaults().ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
+
+        private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(Analyzer defaultAnalyzer = null) =>
+            new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
                 {"number", name => new Int32Type(name)},
                 {FieldDefinitionTypes.Integer, name => new Int32Type(name)},
@@ -79,11 +83,13 @@ namespace Examine.LuceneEngine
                 {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, DateTools.Resolution.HOUR)},
                 {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
-                {FieldDefinitionTypes.FullText, name => new FullTextType(name)},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, null, true)},
+                // TODO: This is the default and it doesn't use the default analyzer
+                {FieldDefinitionTypes.FullText, name => new FullTextType(name, defaultAnalyzer)},
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, defaultAnalyzer, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, new EmailAddressAnalyzer())}
             };
+
 
         public IEnumerator<KeyValuePair<string, IFieldValueTypeFactory>> GetEnumerator()
         {

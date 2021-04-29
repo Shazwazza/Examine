@@ -110,6 +110,25 @@ myIndex.IndexItem(new ValueSet(
     }));
 ```
 
+### Synchronously
+
+Be default all indexing is done asynchronously. If you need to run indexing synchronously you should create a synchronous scope. This is for instance a necessary step for unit tests.
+
+```cs
+using (myIndex.ProcessNonAsync())
+{
+    myIndex.IndexItem(new ValueSet(
+        "SKU987",
+        "Product",             
+        new Dictionary<string, object>()
+        {
+            {"Name", "USB-C Cable" },
+            {"Brand", "Cablez-R-Us" },
+            {"Price", 19.99}  // non-string value
+        }));
+}
+```
+
 ## Events
 
 _TODO: Fill this in..._

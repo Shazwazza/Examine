@@ -67,7 +67,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 indexer.IndexItem(new ValueSet(1.ToString(), "content",
                     new Dictionary<string, IEnumerable<object>>
@@ -88,7 +88,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 var value = new ValueSet(1.ToString(), "content",
                     new Dictionary<string, IEnumerable<object>>
@@ -112,7 +112,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 for (var i = 0; i < 10; i++)
                 {
@@ -136,7 +136,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 for (var i = 0; i < 10; i++)
                 {
@@ -162,7 +162,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 indexer.IndexItem(new ValueSet(1.ToString(), "content", "test",
                     new Dictionary<string, IEnumerable<object>>
@@ -197,7 +197,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1", item2 = "value2" }));
@@ -220,7 +220,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 indexer.IndexItem(new ValueSet(1.ToString(), "content",
                     new Dictionary<string, IEnumerable<object>>
@@ -256,7 +256,7 @@ namespace Examine.Test.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1", item2 = "value2" }));
@@ -285,7 +285,7 @@ namespace Examine.Test.Index
                 luceneDir,
                 new StandardAnalyzer(Version.LUCENE_30)))
             {
-                
+
 
                 indexer.IndexItem(new ValueSet(1.ToString(), "content",
                     new Dictionary<string, IEnumerable<object>>
@@ -367,7 +367,7 @@ namespace Examine.Test.Index
                         //get next id and put it to the back of the list
                         int docId = i;
                         var cloned = new XElement(node);
-                        Debug.WriteLine("Indexing {0}", docId);
+                        Console.WriteLine("Indexing {0}", docId);
                         indexer.IndexItem(cloned.ConvertToValueSet(IndexTypes.Content));
                     }, TaskCreationOptions.LongRunning));
                 }
@@ -402,13 +402,13 @@ namespace Examine.Test.Index
                 writer.WaitForMerges();
 
                 //ensure no data since it's a new index
-                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
+                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Execute();
 
                 //the total times that OperationComplete event should be fired is 1000
                 Assert.AreEqual(1000, opCompleteCount);
 
                 //should be less than the total inserted because we overwrote it in the middle of processing
-                Debug.WriteLine("TOTAL RESULTS: " + results.TotalItemCount);
+                Console.WriteLine("TOTAL RESULTS: " + results.TotalItemCount);
                 Assert.Less(results.Count(), 1000);
             }
         }
@@ -461,7 +461,7 @@ namespace Examine.Test.Index
 
                         var cloned = new XElement(node);
                         cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
-                        Debug.WriteLine("Indexing {0}", docId);
+                        Console.WriteLine("Indexing {0}", docId);
                         customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
                         Thread.Sleep(100);
                     }
@@ -478,150 +478,214 @@ namespace Examine.Test.Index
 
                 //ensure no duplicates
 
-                var customSearcher = (LuceneSearcher) customIndexer.GetSearcher();
+                var customSearcher = (LuceneSearcher)customIndexer.GetSearcher();
                 var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Execute();
                 Assert.AreEqual(3, results.Count());
             }
         }
 
-        [Test]
-        public void Index_Read_And_Write_Ensure_No_Errors_In_Async()
+        //[TestCase(10000, 100700, 20, 50, 100, 50, true, Explicit = true)]
+        [TestCase(500, 2000, 20, 50, 100, 50, false)]
+        [TestCase(2000, 5000, 20, 50, 100, 50, true)]
+        public void Index_Read_And_Write_Ensure_No_Errors_In_Async(
+            int indexCount,
+            int searchCount,
+            int indexThreadCount,
+            int searchThreadCount,
+            int indexThreadWait,
+            int searchThreadWait,
+            bool inMemory)
         {
-            using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
-            using (var customIndexer = new TestIndex(writer))
-            using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
+            // TODO: In this test can we ensure all readers are tracked and closed?
+            // TODO: In the search part, we should be searching in various ways and also with skip
+
+            DirectoryInfo temp = null;
+            Lucene.Net.Store.Directory directory;
+            if (inMemory)
             {
-
-                var waitHandle = new ManualResetEvent(false);
-
-                void OperationComplete(object sender, IndexOperationEventArgs e)
-                {
-                    //signal that we are done
-                    waitHandle.Set();
-                }
-
-                //add the handler for optimized since we know it will be optimized last based on the commit count
-                customIndexer.IndexOperationComplete += OperationComplete;
-
-                //remove the normal indexing error handler
-                customIndexer.IndexingError -= IndexInitializer.IndexingError;
-
-                //run in async mode
-                customIndexer.RunAsync = false;
-
-                //get a node from the data repo
-                var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
-                    .Root
-                    .Elements()
-                    .First();
-
-                var idQueue = new ConcurrentQueue<int>(Enumerable.Range(1, 10));
-                var searchThreadCount = 500;
-                var indexThreadCount = 10;
-                var searchCount = 10700;
-                var indexCount = 100;
-                var searchCountPerThread = Convert.ToInt32(searchCount / searchThreadCount);
-                var indexCountPerThread = Convert.ToInt32(indexCount / indexThreadCount);
-
-                //spawn a bunch of threads to perform some reading                              
-                var tasks = new List<Task>();
-
-                Action<ISearcher> doSearch = (s) =>
+                directory = new RandomIdRAMDirectory();
+            }
+            else
+            {
+                // try to clear out old files
+                var tempBasePath = Path.Combine(Path.GetTempPath(), "ExamineTests");
+                if (System.IO.Directory.Exists(tempBasePath))
                 {
                     try
                     {
-                        for (var counter = 0; counter < searchCountPerThread; counter++)
+                        System.IO.Directory.Delete(tempBasePath, true);
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                var tempPath = Path.Combine(tempBasePath, Guid.NewGuid().ToString());
+                System.IO.Directory.CreateDirectory(tempPath);
+                temp = new DirectoryInfo(tempPath);
+                directory = new SimpleFSDirectory(temp);
+            }
+
+            try
+            {
+                using (var d = directory)
+                using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
+                using (var customIndexer = new TestIndex(writer))
+                using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
+                {
+
+                    var waitHandle = new ManualResetEvent(false);
+
+                    void OperationComplete(object sender, IndexOperationEventArgs e)
+                    {
+                        //signal that we are done
+                        waitHandle.Set();
+                    }
+
+                    //add the handler for optimized since we know it will be optimized last based on the commit count
+                    customIndexer.IndexOperationComplete += OperationComplete;
+
+                    //remove the normal indexing error handler
+                    //customIndexer.IndexingError -= IndexInitializer.IndexingError;
+
+                    //run in async mode
+                    customIndexer.RunAsync = true;
+
+                    //get all nodes
+                    var nodes = _contentService.GetPublishedContentByXPath("//*[@isDoc]")
+                        .Root
+                        .Elements()
+                        .ToList();
+
+                    Func<int, XElement> getNode = (index) =>
+                    {
+                        // clone it
+                        return new XElement(nodes[index]);
+                    };
+
+                    // we know there are 20 documents available, this is important for the getNode call
+                    var idQueue = new ConcurrentQueue<int>(Enumerable.Range(1, 20));
+
+                    var searchCountPerThread = Convert.ToInt32(searchCount / searchThreadCount);
+                    var indexCountPerThread = Convert.ToInt32(indexCount / indexThreadCount);
+
+                    //spawn a bunch of threads to perform some reading                              
+                    var tasks = new List<Task>();
+
+                    Action<ISearcher> doSearch = (s) =>
+                    {
+                        try
                         {
-                            //get next id and put it to the back of the list
-                            int docId;
-                            if (idQueue.TryDequeue(out docId))
+                            for (var counter = 0; counter < searchCountPerThread; counter++)
                             {
-                                idQueue.Enqueue(docId);
-                                var r = s.CreateQuery().Id(docId.ToString()).Execute();
-                                Debug.WriteLine("searching thread: {0}, id: {1}, found: {2}", Thread.CurrentThread.ManagedThreadId, docId, r.Count());
-                                Thread.Sleep(50);
+                                //get next id and put it to the back of the list
+                                int docId;
+                                if (idQueue.TryDequeue(out docId))
+                                {
+                                    idQueue.Enqueue(docId);
+                                    var r = s.CreateQuery().Id(docId.ToString()).Execute();
+                                    Console.WriteLine("searching thread: {0}, id: {1}, found: {2}", Thread.CurrentThread.ManagedThreadId, docId, r.Count());
+                                    Thread.Sleep(searchThreadWait);
+                                }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("ERROR!! {0}", ex);
-                        throw;
-                    }
-                };
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Search ERROR!! {0}", ex);
+                            throw;
+                        }
+                    };
 
-                Action<IIndex> doIndex = (ind) =>
+                    Action<IIndex> doIndex = (ind) =>
+                    {
+                        try
+                        {
+                            //reindex a nodes a bunch of times
+                            for (var i = 0; i < indexCountPerThread; i++)
+                            {
+                                //get next id and put it to the back of the list
+                                int docId;
+                                if (idQueue.TryDequeue(out docId))
+                                {
+                                    idQueue.Enqueue(docId);
+
+                                    var node = getNode(docId - 1);
+                                    node.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
+                                    Console.WriteLine("Indexing {0}", docId);
+                                    ind.IndexItems(new[] { node.ConvertToValueSet(IndexTypes.Content) });
+                                    Thread.Sleep(indexThreadWait);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Index ERROR!! {0}", ex);
+                            throw;
+                        }
+                    };
+
+                    //indexing threads
+                    for (var i = 0; i < indexThreadCount; i++)
+                    {
+                        var indexer = customIndexer;
+                        tasks.Add(Task.Run(() => doIndex(indexer)));
+                    }
+
+                    //searching threads
+                    for (var i = 0; i < searchThreadCount; i++)
+                    {
+                        var searcher = customSearcher;
+                        tasks.Add(Task.Run(() => doSearch(searcher)));
+                    }
+
+                    try
+                    {
+                        Task.WaitAll(tasks.ToArray());
+                    }
+                    catch (AggregateException e)
+                    {
+                        var sb = new StringBuilder();
+                        sb.Append(e.Message + ": ");
+                        foreach (var v in e.InnerExceptions)
+                        {
+                            sb.Append(v.Message + "; ");
+                        }
+                        Assert.Fail(sb.ToString());
+                    }
+
+                    var results = customSearcher.CreateQuery().All().Execute();
+                    Assert.AreEqual(20, results.Count());
+
+                    //reset the async mode and remove event handler
+                    //customIndexer.IndexingError += IndexInitializer.IndexingError;
+                    //customIndexer.RunAsync = false;
+
+                    //wait until we are done
+                    waitHandle.WaitOne();
+
+                    writer.WaitForMerges();
+                    writer.Dispose(true);
+
+                    results = customSearcher.CreateQuery().All().Execute();
+                    Assert.AreEqual(20, results.Count());
+                }
+            }
+            finally
+            {
+                if (temp != null)
                 {
                     try
                     {
-                        //reindex the same node a bunch of times
-                        for (var i = 0; i < indexCountPerThread; i++)
-                        {
-                            //get next id and put it to the back of the list
-                            int docId;
-                            if (idQueue.TryDequeue(out docId))
-                            {
-                                idQueue.Enqueue(docId);
-
-                                var cloned = new XElement(node);
-                                cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
-                                Debug.WriteLine("Indexing {0}", docId);
-                                ind.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
-                                Thread.Sleep(100);
-                            }
-                        }
+                        temp.Delete(true);
                     }
-                    catch (Exception ex)
+                    catch(Exception ex)
                     {
-                        Debug.WriteLine("ERROR!! {0}", ex);
-                        throw;
+                        Console.WriteLine("Could not delete temp folder {0}", ex);
                     }
-                };
-
-                //indexing threads
-                for (var i = 0; i < indexThreadCount; i++)
-                {
-                    var indexer = customIndexer;
-                    tasks.Add(Task.Factory.StartNew(() => doIndex(indexer), TaskCreationOptions.LongRunning));
                 }
-
-                //searching threads
-                for (var i = 0; i < searchThreadCount; i++)
-                {
-                    var searcher = customSearcher;
-                    tasks.Add(Task.Factory.StartNew(() => doSearch(searcher), TaskCreationOptions.LongRunning));
-                }
-
-                try
-                {
-                    Task.WaitAll(tasks.ToArray());
-                }
-                catch (AggregateException e)
-                {
-                    var sb = new StringBuilder();
-                    sb.Append(e.Message + ": ");
-                    foreach (var v in e.InnerExceptions)
-                    {
-                        sb.Append(v.Message + "; ");
-                    }
-                    Assert.Fail(sb.ToString());
-                }
-
-                //reset the async mode and remove event handler
-                customIndexer.IndexingError += IndexInitializer.IndexingError;
-                customIndexer.RunAsync = false;
-
-                //wait until we are done
-                waitHandle.WaitOne();
-
-                writer.WaitForMerges();
-
-                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue) new ExamineValue(Examineness.Explicit, "Home")).Execute();
-                Assert.AreEqual(10, results.Count());
             }
         }
-        
+
 
 
         private readonly TestContentService _contentService = new TestContentService();

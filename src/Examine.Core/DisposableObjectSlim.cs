@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace Examine
 {   
@@ -7,7 +6,7 @@ namespace Examine
     /// <summary>
     /// This should not be use if there are unmanaged resources to be disposed, use DisposableObject instead
     /// </summary>
-    internal abstract class DisposableObjectSlim : IDisposable
+    public abstract class DisposableObjectSlim : IDisposable
     {
         private readonly object _locko = new object();
 
@@ -19,7 +18,6 @@ namespace Examine
         public void Dispose()
         {
             Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         private void Dispose(bool disposing)

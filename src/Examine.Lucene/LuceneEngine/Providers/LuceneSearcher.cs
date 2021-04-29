@@ -14,6 +14,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Providers
 {
+
     ///<summary>
     /// Standard object used to search a Lucene index
     ///</summary>
@@ -31,7 +32,6 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher(string name, IndexWriter writer, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
-            _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
             _nrtWriter = writer ?? throw new ArgumentNullException(nameof(writer));
             FieldValueTypeCollection = fieldValueTypeCollection;
@@ -47,7 +47,6 @@ namespace Examine.LuceneEngine.Providers
         public LuceneSearcher(string name, Directory luceneDirectory, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
-            _disposer = new DisposableSearcher(this);
             _reopener = new ReaderReopener(this);
             _directory = luceneDirectory;
             FieldValueTypeCollection = fieldValueTypeCollection;
@@ -70,8 +69,6 @@ namespace Examine.LuceneEngine.Providers
 
         public FieldValueTypeCollection FieldValueTypeCollection { get; }
 
-
-
         /// <summary>
         /// Gets the searcher for this instance, this method will also ensure that the searcher is up to date whenever this method is called.
         /// </summary>
@@ -89,6 +86,9 @@ namespace Examine.LuceneEngine.Providers
 
         public override ISearchContext GetSearchContext()
         {
+            var searcher = GetLuceneSearcher();
+            if (searcher == null)
+                throw new InvalidOperationException($"Cannot create a {typeof(ISearchContext)}, the {Name} index either doesn't exist or the {typeof(LuceneSearcher)} has been disposed");
             return new SearchContext(FieldValueTypeCollection, GetLuceneSearcher());
         }
 
@@ -179,8 +179,10 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private bool ValidateSearcher()
         {
+            if (_disposed) return false;
+
             //can't proceed if there's no index
-            if (!IndexExistsImpl()) return false;
+            if (!IndexExistsImpl()) return false;            
 
             //TODO: Would be nicer if this used LazyInitializer instead of double check locking
 
@@ -248,7 +250,7 @@ namespace Examine.LuceneEngine.Providers
             private readonly LuceneSearcher _luceneSearcher;
             private DateTime _timestamp;
             private Timer _timer;
-            private readonly object _locker = new object();
+            private readonly object _reopenerLocker = new object();
             private bool _isLongPoll = false;
             private const int WaitMilliseconds = 2000; //only wait 2 seconds to check
 
@@ -267,10 +269,9 @@ namespace Examine.LuceneEngine.Providers
                 _luceneSearcher = indexer;
             }
 
-            
             public void ScheduleReopen()
             {
-                lock (_locker)
+                lock (_reopenerLocker)
                 {
                     var wasLongPoll = _isLongPoll;
                     _isLongPoll = false;
@@ -345,10 +346,9 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            
             private void TimerRelease()
             {
-                lock (_locker)
+                lock (_reopenerLocker)
                 {
                     _isLongPoll = false;
 
@@ -383,7 +383,7 @@ namespace Examine.LuceneEngine.Providers
 
             protected override void DisposeResources()
             {
-                lock (_locker)
+                lock (_reopenerLocker)
                 {
                     //if the timer is not null then a commit has been scheduled
                     if (_timer != null)
@@ -394,7 +394,6 @@ namespace Examine.LuceneEngine.Providers
                 }
             }
 
-            
             private void StartLongPoll()
             {
                 //if no timer, we are not NRT and we are not currently in long poll mode then
@@ -407,7 +406,6 @@ namespace Examine.LuceneEngine.Providers
                     _isLongPoll = true;
                 }
             }
-
             
             private void MaybeReopen()
             {
@@ -416,7 +414,10 @@ namespace Examine.LuceneEngine.Providers
                     case ReaderStatus.Current:
                         break;
                     case ReaderStatus.Closed:
-                        lock (_locker)
+
+                        // NOTE: Even though in ValidateSearcher a different _locker is used to open a reader, we know that this
+                        // will not have contenion on that lock since it's only used one time and after that the reader-reopener is used.
+                        lock (_reopenerLocker)
                         {
                             //get a reader - could be NRT or based on directly depending on how this was constructed
                             _luceneSearcher._reader = _luceneSearcher._nrtWriter == null
@@ -431,7 +432,7 @@ namespace Examine.LuceneEngine.Providers
                         break;
                     case ReaderStatus.NotCurrent:
 
-                        lock (_locker)
+                        lock (_reopenerLocker)
                         {
                             IndexReader newReader;
 
@@ -479,56 +480,39 @@ namespace Examine.LuceneEngine.Providers
             }
         }
 
-        #region IDisposable Members
-
-        private readonly DisposableSearcher _disposer;
-
-        private class DisposableSearcher : DisposableObjectSlim
+        protected virtual void Dispose(bool disposing)
         {
-            private readonly LuceneSearcher _searcher;
-
-            public DisposableSearcher(LuceneSearcher searcher)
+            if (!_disposed)
             {
-                _searcher = searcher;
-            }
-
-            /// <summary>
-            /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
-            /// </summary>
-            
-            protected override void DisposeResources()
-            {
-                _searcher._disposed = true;
-                if (_searcher?._reader != null)
+                if (disposing)
                 {
-                    try
+                    if (_reader != null)
                     {
-                        //this will close if there are no readers remaining, otherwise if there 
-                        // are readers remaining they will be auto-shut down based on the DecrementReaderResult
-                        // that would still have it in use (i.e. this actually just called DecRef underneath)
-                        _searcher?._reader.Dispose();
+                        try
+                        {
+                            //this will close if there are no readers remaining, otherwise if there 
+                            // are readers remaining they will be auto-shut down based on the DecrementReaderResult
+                            // that would still have it in use (i.e. this actually just called DecRef underneath)
+                            _reader.Dispose();
+                        }
+                        catch (AlreadyClosedException)
+                        {
+                            //if this happens, more than one instance has decreased referenced, this could occur if the 
+                            // DecrementReaderResult never disposed, which occurs if people don't actually iterate the 
+                            // result collection.
+                        }
                     }
-                    catch (AlreadyClosedException)
-                    {
-                        //if this happens, more than one instance has decreased referenced, this could occur if the 
-                        // DecrementReaderResult never disposed, which occurs if people don't actually iterate the 
-                        // result collection.
-                    }
+
+                    //close the reopener
+                    _reopener.Dispose();
                 }
-                //close the reopener
-                _searcher?._reopener.Dispose();                
+
+                _disposed = true;
             }
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            _disposer.Dispose();
-        }
+        public void Dispose() => Dispose(disposing: true);
 
-        #endregion
     }
 
 }

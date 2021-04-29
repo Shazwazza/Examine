@@ -17,6 +17,7 @@ namespace Examine.LuceneEngine.Providers
     public class MultiIndexSearcher : BaseLuceneSearcher, IDisposable
     {
         private readonly Lazy<IEnumerable<ISearcher>> _searchers;
+        private bool disposedValue;
 
         #region Constructors
 
@@ -30,7 +31,6 @@ namespace Examine.LuceneEngine.Providers
             : base(name, analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30))
         {
             _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.GetSearcher()));
-            _disposer = new DisposableSearcher(this);
         }
 
         /// <summary>
@@ -43,7 +43,6 @@ namespace Examine.LuceneEngine.Providers
             : base(name, analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30))
         {
             _searchers = searchers;
-            _disposer = new DisposableSearcher(this);
         }
 
         #endregion
@@ -53,6 +52,9 @@ namespace Examine.LuceneEngine.Providers
         /// The underlying LuceneSearchers that will be searched across
         ///</summary>
         public IEnumerable<LuceneSearcher> Searchers => _searchers.Value.OfType<LuceneSearcher>();
+
+        // for tests
+        internal bool SearchersInitialized => _searchers.IsValueCreated;
 
         /// <summary>
         /// Returns a list of fields to search on based on all distinct fields found in the sub searchers
@@ -91,41 +93,30 @@ namespace Examine.LuceneEngine.Providers
             return new MultiSearchContext(GetLuceneSearcher(), Searchers.Select(s => s.GetSearchContext()).ToArray());
         }
 
-
-        #region IDisposable Members
-
-        private readonly DisposableSearcher _disposer;
-
-        private class DisposableSearcher : DisposableObjectSlim
+        protected virtual void Dispose(bool disposing)
         {
-            private readonly MultiIndexSearcher _searcher;
-
-            public DisposableSearcher(MultiIndexSearcher searcher)
+            if (!disposedValue)
             {
-                _searcher = searcher;
-            }
-
-            /// <summary>
-            /// Handles the disposal of resources. Derived from abstract class <see cref="DisposableObject"/> which handles common required locking logic.
-            /// </summary>
-            
-            protected override void DisposeResources()
-            {
-                foreach (var searcher in _searcher.Searchers)
+                if (disposing)
                 {
-                    searcher.Dispose();
+                    // don't iterate if the lazy value isn't resolved, we don't want to initialize
+                    // now if it's not already done.
+                    if (_searchers.IsValueCreated)
+                    {
+                        foreach (var searcher in Searchers)
+                        {
+                            searcher.Dispose();
+                        }
+                    }
                 }
+                disposedValue = true;
             }
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
         public void Dispose()
         {
-            _disposer.Dispose();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
         }
-
-        #endregion
     }
 }

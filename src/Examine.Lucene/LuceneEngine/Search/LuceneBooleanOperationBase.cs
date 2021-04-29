@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Examine.Search;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Search
 {
-    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation
+    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering
     {
         private readonly LuceneSearchQueryBase _search;
 
@@ -72,5 +73,10 @@ namespace Examine.LuceneEngine.Search
         public abstract ISearchResults Execute(int maxResults = 500);
         public abstract IOrdering OrderBy(params SortableField[] fields);
         public abstract IOrdering OrderByDescending(params SortableField[] fields);
+        public abstract IOrdering SelectFields(params string[] fieldNames);
+        public abstract IOrdering SelectFields(ISet<string> fieldNames);
+        public abstract IOrdering SelectField(string fieldName);
+        public abstract IOrdering SelectFirstFieldOnly();
+        public abstract IOrdering SelectAllFields();
     }
 }

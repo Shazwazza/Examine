@@ -10,8 +10,8 @@ namespace Examine.LuceneEngine.Search
 
         public SearchContext(FieldValueTypeCollection fieldValueTypeCollection, Searcher searcher)
         {
-            _fieldValueTypeCollection = fieldValueTypeCollection;
-            Searcher = searcher;
+            _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new System.ArgumentNullException(nameof(fieldValueTypeCollection));
+            Searcher = searcher ?? throw new System.ArgumentNullException(nameof(searcher));
         }
 
         public Searcher Searcher { get; }

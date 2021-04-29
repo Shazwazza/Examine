@@ -28,5 +28,10 @@ namespace Examine
 		{
 			return Enumerable.Empty<ISearchResult>();
 		}
-	}
+
+        public IEnumerable<ISearchResult> SkipTake(int skip, int? take = null)
+        {
+			return Enumerable.Empty<ISearchResult>();
+		}
+    }
 }

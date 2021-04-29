@@ -1,9 +1,12 @@
-﻿using System;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Examine.LuceneEngine.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Documents;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Search
@@ -15,6 +18,7 @@ namespace Examine.LuceneEngine.Search
     public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
+        private static readonly HashSet<string> EmptyHashSet = new HashSet<string>();
 
         public LuceneSearchQuery(
             ISearchContext searchContext,
@@ -24,14 +28,14 @@ namespace Examine.LuceneEngine.Search
             _searchContext = searchContext;
         }
 
-        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, string[] fields, Analyzer analyzer) 
+        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, string[] fields, Analyzer analyzer)
             => new ExamineMultiFieldQueryParser(searchContext, LuceneVersion, fields, analyzer);
 
-        public IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
+        public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
-        public IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
+        public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
-        public override IBooleanOperation Field<T>(string fieldName, T fieldValue) 
+        public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
 
         public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
@@ -40,7 +44,7 @@ namespace Examine.LuceneEngine.Search
         public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive);
 
-        protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue) 
+        protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
 
         protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
@@ -49,7 +53,7 @@ namespace Examine.LuceneEngine.Search
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive);
 
-        internal LuceneBooleanOperation ManagedQueryInternal(string query, string[] fields = null)
+        internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[] fields = null)
         {
             Query.Add(new LateBoundQuery(() =>
             {
@@ -64,16 +68,16 @@ namespace Examine.LuceneEngine.Search
                 //so it might be the ToString() that is the issue.
                 var outer = new BooleanQuery();
                 var inner = new BooleanQuery();
-                
+
                 foreach (var type in types)
                 {
                     var q = type.GetQuery(query, _searchContext.Searcher);
+
                     if (q != null)
                     {
                         //CriteriaContext.ManagedQueries.Add(new KeyValuePair<IIndexFieldValueType, Query>(type, q));
                         inner.Add(q, Occur.SHOULD);
                     }
-
                 }
 
                 outer.Add(inner, Occur.SHOULD);
@@ -81,16 +85,14 @@ namespace Examine.LuceneEngine.Search
                 return outer;
             }), Occurrence);
 
-
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
 
-        internal LuceneBooleanOperation RangeQueryInternal<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
+        internal LuceneBooleanOperationBase RangeQueryInternal<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             where T : struct
         {
             Query.Add(new LateBoundQuery(() =>
             {
-
                 //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
                 //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
                 //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
@@ -101,9 +103,11 @@ namespace Examine.LuceneEngine.Search
                 foreach (var f in fields)
                 {
                     var valueType = _searchContext.GetFieldValueType(f);
+
                     if (valueType is IIndexRangeValueType<T> type)
                     {
                         var q = type.GetQuery(min, max, minInclusive, maxInclusive);
+
                         if (q != null)
                         {
                             //CriteriaContext.FieldQueries.Add(new KeyValuePair<IIndexFieldValueType, Query>(type, q));
@@ -115,19 +119,17 @@ namespace Examine.LuceneEngine.Search
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
                     }
                 }
+
                 outer.Add(inner, Occur.SHOULD);
 
                 return outer;
             }), Occurrence);
 
-
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
         }
-
 
         /// <inheritdoc />
         public ISearchResults Execute(int maxResults = 500) => Search(maxResults);
-
 
         /// <summary>
         /// Performs a search with a maximum number of results
@@ -135,6 +137,7 @@ namespace Examine.LuceneEngine.Search
         private ISearchResults Search(int maxResults = 500)
         {
             var searcher = _searchContext.Searcher;
+
             if (searcher == null) return EmptySearchResults.Instance;
 
             // capture local
@@ -142,25 +145,26 @@ namespace Examine.LuceneEngine.Search
 
             if (!string.IsNullOrEmpty(Category))
             {
-                // if category is supplied then wrap the query (if there's other queries to wrap!)
-                if (query.Clauses.Count > 0)
+                // rebuild the query
+                var existingClauses = query.Clauses.ToList();
+                query = new BooleanQuery
                 {
-                    query = new BooleanQuery
-                    {
-                        { query, Occur.MUST }
-                    };
+                    // prefix the category field query as a must
+                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false), Occur.MUST }
+                };
+
+                // add the ones that we're already existing
+                foreach (var c in existingClauses)
+                {
+                    query.Add(c);
                 }
 
-                // and then add the category field query as a must
-                var categoryQuery = GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false);
-                query.Add(categoryQuery, Occur.MUST);                
             }
 
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults);
-            return pagesResults;
-        }
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, Selector);
 
-        
+            return pagesResults;
+        }        
 
         /// <summary>
         /// Internal operation for adding the ordered results
@@ -168,7 +172,7 @@ namespace Examine.LuceneEngine.Search
         /// <param name="descending">if set to <c>true</c> [descending].</param>
         /// <param name="fields">The field names.</param>
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
-        private LuceneBooleanOperation OrderByInternal(bool descending, params SortableField[] fields)
+        private LuceneBooleanOperationBase OrderByInternal(bool descending, params SortableField[] fields)
         {
             if (fields == null) throw new ArgumentNullException(nameof(fields));
 
@@ -213,15 +217,59 @@ namespace Examine.LuceneEngine.Search
 
                 //get the sortable field name if this field type has one
                 var valType = _searchContext.GetFieldValueType(fieldName);
+
                 if (valType?.SortableFieldName != null)
                     fieldName = valType.SortableFieldName;
 
                 SortFields.Add(new SortField(fieldName, defaultSort, descending));
             }
 
-            return new LuceneBooleanOperation(this);
+            return CreateOp();
+        }
+
+        internal IBooleanOperation SelectFieldsInternal(ISet<string> loadedFieldNames)
+        {
+            Selector = new SetBasedFieldSelector(loadedFieldNames, EmptyHashSet);
+            return CreateOp();
+        }
+
+        internal IBooleanOperation SelectFieldsInternal(Hashtable loadedFieldNames)
+        {
+            HashSet<string> hs = new HashSet<string>();
+            foreach (string item in loadedFieldNames.Keys)
+            {
+                hs.Add(item);
+            }
+            Selector = new SetBasedFieldSelector(hs, EmptyHashSet);
+            return CreateOp();
+        }
+
+        internal IBooleanOperation SelectFieldsInternal(params string[] loadedFieldNames)
+        {
+            ISet<string> loaded = new HashSet<string>(loadedFieldNames);
+            Selector = new SetBasedFieldSelector(loaded, EmptyHashSet);
+            return CreateOp();
+        }
+
+        internal IBooleanOperation SelectFieldInternal(string fieldName)
+        {
+            ISet<string> loaded = new HashSet<string>(new string[] { fieldName });
+            Selector = new SetBasedFieldSelector(loaded, EmptyHashSet);
+            return CreateOp();
+        }
+
+        public IBooleanOperation SelectFirstFieldOnlyInternal()
+        {
+            Selector = new LoadFirstFieldSelector();
+            return CreateOp();
+        }
+        public IBooleanOperation SelectAllFieldsInternal()
+        {
+            Selector = null;
+            return CreateOp();
         }
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
+
     }
 }

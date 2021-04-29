@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security;
 using System.Threading;
+using Examine.Logging;
 using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 
@@ -20,6 +21,7 @@ namespace Examine.LuceneEngine.Directories
     {
         private SyncDirectory _syncDirectory;
         private readonly string _name;
+        private readonly ILoggingService _loggingService;
 
         private IndexInput _cacheDirIndexInput;
         private readonly Mutex _fileMutex;
@@ -36,15 +38,30 @@ namespace Examine.LuceneEngine.Directories
         /// This will not work for the segments.gen file because it doesn't compare to master and segments.gen is not write-once!
         /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
         /// </remarks>
-        public SyncIndexInput(SyncDirectory directory, string name)
+        public SyncIndexInput(SyncDirectory directory, string name) : this(directory, name, new TraceLoggingService())
         {
+        }
+        /// <summary>
+        /// Constructor to create Lucene IndexInput for reading index files
+        /// </summary>
+        /// <param name="directory"></param>
+        /// <param name="name"></param>
+        /// <param name="loggingService"></param>
+        /// <remarks>
+        /// This will not work for the segments.gen file because it doesn't compare to master and segments.gen is not write-once!
+        /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
+        /// </remarks>
+        public SyncIndexInput(SyncDirectory directory, string name, ILoggingService loggingService)
+        {
+            
             if (directory == null) throw new ArgumentNullException(nameof(directory));
 
             _name = name;
+            _loggingService = loggingService;
             _syncDirectory = directory;
 
 #if FULLDEBUG
-            Trace.WriteLine($"opening {_name} ");
+            loggingService.Log(new LogEntry(LogLevel.Info, null,$"opening {_name} " ));
 #endif
             _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
             _fileMutex.WaitOne();
@@ -84,7 +101,7 @@ namespace Examine.LuceneEngine.Directories
                 else
                 {
 #if FULLDEBUG
-                    Trace.WriteLine($"Using cached file for {_name}");
+                    loggingService.Log(new LogEntry(LogLevel.Info, null,$"Using cached file for {_name}"));
 #endif
 
                     _cacheDirIndexInput = CacheDirectory.OpenInput(fileName);
@@ -95,13 +112,18 @@ namespace Examine.LuceneEngine.Directories
                 _fileMutex.ReleaseMutex();
             }
         }
-        
+
         /// <summary>
         /// Constructor used for cloning
         /// </summary>
         /// <param name="cloneInput"></param>
-        public SyncIndexInput(SyncIndexInput cloneInput)
+        public SyncIndexInput(SyncIndexInput cloneInput) : this(cloneInput, new TraceLoggingService())
         {
+            
+        }
+        public SyncIndexInput(SyncIndexInput cloneInput, ILoggingService loggingService)
+        {
+            _loggingService = loggingService;
             _name = cloneInput._name;
             _syncDirectory = cloneInput._syncDirectory;
 
@@ -114,15 +136,16 @@ namespace Examine.LuceneEngine.Directories
             try
             {
 #if FULLDEBUG
-                Trace.WriteLine($"Creating clone for {cloneInput._name}");
+                loggingService.Log(new LogEntry(LogLevel.Info, null,$"Creating clone for {cloneInput._name}"));
+
 #endif          
                 _cacheDirIndexInput = (IndexInput)cloneInput._cacheDirIndexInput.Clone();
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 // sometimes we get access denied on the 2nd stream...but not always. I haven't tracked it down yet
                 // but this covers our tail until I do
-                Trace.TraceError($"Dagnabbit, falling back to memory clone for {cloneInput._name}");
+                loggingService.Log(new LogEntry(LogLevel.Error, e,$"Dagnabbit, falling back to memory clone for {cloneInput._name}"));
             }
             finally
             {
@@ -145,15 +168,16 @@ namespace Examine.LuceneEngine.Directories
             }
             catch (IOException ex)
             {
-                //this will be a file not found
+                //this will be a file not found (FileNotFoundException)
 
                 //TODO: It has been seen that OpenInput on the master can throw an exception due to a lucene file not found - which is very odd
-                // we need to check if the master is being written frist before the sync dir. And if the file does not exist in the master, 
+                // we need to check if the master is being written first before the sync dir. And if the file does not exist in the master, 
                 // or the sync dir, then something has gone wrong, that shouldn't happen and we'll need to deal with that differently
                 // because the index will be in a state where it's just not readable.
                 //Hrmmm what to do?  There's actually nothing that can be done :/ if we return false here then the instance of this item would be null
                 //which will then cause exceptions further on and take down the app pool anyways. I've looked through the Lucene source and there 
                 //is no safety net to check against this situation, it just happily throws exceptions on a background thread.
+                _loggingService.Log(new LogEntry(LogLevel.Error, ex,$"File not found"));
 
                 throw ex;
             }
@@ -222,7 +246,7 @@ namespace Examine.LuceneEngine.Directories
                     return true;
 
 #if FULLDEBUG
-                Trace.WriteLine("SyncIndexInput file timespan offset: " + timeSpan.TotalSeconds);
+                _loggingService.Log(new LogEntry(LogLevel.Info, null,$"SyncIndexInput file timespan offset: " + timeSpan.TotalSeconds));
 #endif
                 // file not needed
             }
@@ -248,7 +272,7 @@ namespace Examine.LuceneEngine.Directories
             try
             {
 #if FULLDEBUG
-                Trace.WriteLine($"CLOSED READSTREAM local {_name}");
+                _loggingService.Log(new LogEntry(LogLevel.Info, null,$"CLOSED READSTREAM local {_name}"));
 #endif
                 _cacheDirIndexInput.Dispose();
                 _cacheDirIndexInput = null;

@@ -62,7 +62,7 @@ $SolutionInfoPath = Join-Path -Path $SolutionRoot -ChildPath "SolutionInfo.cs"
 $Copyright = "Copyright " + [char]0x00A9 + " Shannon Deminick " + (Get-Date).year
 (gc -Path $SolutionInfoPath) `
 	-replace "(?<=AssemblyCopyright\(`").*(?=`"\))", $Copyright |
-	sc -Path $SolutionInfoPath -Encoding UTF8
+	Set-Content -Path $SolutionInfoPath -Encoding UTF8
 
 $SolutionPath = Join-Path -Path $SolutionRoot -ChildPath "Examine.sln"
 
@@ -87,11 +87,11 @@ foreach($project in $root.ChildNodes) {
 
 		(gc -Path $projectAssemblyInfo) `
 			-replace "(?<=Version\(`")[.\d]*(?=`"\))", "$projectVersion.0" |
-			sc -Path $projectAssemblyInfo -Encoding UTF8
+			Set-Content -Path $projectAssemblyInfo -Encoding UTF8
 
 		(gc -Path $projectAssemblyInfo) `
 			-replace "(?<=AssemblyInformationalVersion\(`")[.\w-]*(?=`"\))", $project.version |
-			sc -Path $projectAssemblyInfo -Encoding UTF8
+			Set-Content -Path $projectAssemblyInfo -Encoding UTF8
 	}
 }
 

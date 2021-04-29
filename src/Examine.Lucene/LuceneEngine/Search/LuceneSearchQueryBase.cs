@@ -1,9 +1,11 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Providers;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
@@ -14,16 +16,20 @@ namespace Examine.LuceneEngine.Search
     public abstract class LuceneSearchQueryBase : IQuery, INestedQuery
     {
         private readonly CustomMultiFieldQueryParser _queryParser;
+        private static readonly KeywordAnalyzer KeywordAnalyzer = new KeywordAnalyzer();
         public QueryParser QueryParser => _queryParser;
 
         internal readonly Stack<BooleanQuery> Queries = new Stack<BooleanQuery>();
         public BooleanQuery Query => Queries.Peek();
-        internal readonly List<SortField> SortFields = new List<SortField>();
+
+        public IList<SortField> SortFields { get; } = new List<SortField>();
 
         protected Occur Occurrence;
         private BooleanOperation _boolOp;
 
         public const Version LuceneVersion = Version.LUCENE_30;
+
+        protected internal FieldSelector Selector = null;
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -84,7 +90,6 @@ namespace Examine.LuceneEngine.Search
         public IBooleanOperation NativeQuery(string query)
         {
             Query.Add(_queryParser.Parse(query), Occurrence);
-
             return CreateOp();
         }
 
@@ -151,15 +156,15 @@ namespace Examine.LuceneEngine.Search
         #region INested
 
         private static readonly string[] EmptyStringArray = new string[0];
-        
+
         protected abstract INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue) where T : struct;
         protected abstract INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null);
         protected abstract INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
-        INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue) 
+        INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
             => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
 
-        INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue) 
+        INestedBooleanOperation INestedQuery.Field(string fieldName, IExamineValue fieldValue)
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
@@ -227,15 +232,30 @@ namespace Examine.LuceneEngine.Search
             if (fields == null) throw new ArgumentNullException(nameof(fields));
             if (fieldVals == null) throw new ArgumentNullException(nameof(fieldVals));
 
+            // if there's only one field and one value then deal with this like a normal And().Not()
+            if (fields.Length == 1 && fieldVals.Length == 1)
+            {
+                FieldInternal(fields[0], fieldVals[0], Occur.MUST_NOT);
+                return CreateOp();
+            }
+
             //if there's only 1 query text we want to build up a string like this:
             //(!field1:query !field2:query !field3:query)
             //but Lucene will bork if you provide an array of length 1 (which is != to the field length)
 
-            Query.Add(GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT, true),
-                //NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work. 
-                // for example, it cannot be:  +(-id:1 -id:2 -id:3)
-                // it just needs to be          (-id:1 -id:2 -id:3)
-                Occur.SHOULD);
+            // NOTE: This is important because we cannot prefix a + to a group of NOT's, that doesn't work. 
+            // for example, it cannot be:  +(-id:1 -id:2 -id:3) 
+            // and it cannot be:            (-id:1 -id:2 -id:3) - this will be an optional list of must not's so really nothing is filtered
+            // It needs to be:              -id:1 -id:2 -id:3
+
+            // So we get all clauses 
+            var subQueries = GetMultiFieldQuery(fields, fieldVals, Occur.MUST_NOT, true);
+
+            // then add each individual one directly to the query
+            foreach (var c in subQueries.Clauses)
+            {
+                Query.Add(c);
+            }
 
             return CreateOp();
         }
@@ -253,7 +273,7 @@ namespace Examine.LuceneEngine.Search
 
             return CreateOp();
         }
-        
+
         protected internal LuceneBooleanOperationBase IdInternal(string id, Occur occurrence)
         {
             if (id == null) throw new ArgumentNullException(nameof(id));
@@ -263,7 +283,7 @@ namespace Examine.LuceneEngine.Search
 
             return CreateOp();
         }
-        
+
         #endregion
 
         /// <summary>
@@ -275,6 +295,10 @@ namespace Examine.LuceneEngine.Search
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         protected virtual Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
+            if (string.IsNullOrEmpty(fieldName)) throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
+            if (fieldValue is null) throw new ArgumentNullException(nameof(fieldValue));
+            if (string.IsNullOrEmpty(fieldValue.Value)) throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
+
             Query queryToAdd;
 
             switch (fieldValue.Examineness)
@@ -386,7 +410,7 @@ namespace Examine.LuceneEngine.Search
         /// <returns></returns>
         private Query ParseRawQuery(string rawQuery)
         {
-            var parser = new QueryParser(LuceneVersion, "", new KeywordAnalyzer());
+            var parser = new QueryParser(LuceneVersion, string.Empty, KeywordAnalyzer);
             return parser.Parse(rawQuery);
         }
 
@@ -500,5 +524,7 @@ namespace Examine.LuceneEngine.Search
         {
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
+
+
     }
 }
