@@ -1,4 +1,5 @@
 ﻿using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 
@@ -22,7 +23,7 @@ namespace Examine.LuceneEngine.Indexing
 
         void AddValue(Document doc, object value);
         
-        Query GetQuery(string query, Searcher searcher);
+        Query GetQuery(string query, IndexSearcher searcher);
 
         //IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader);
 

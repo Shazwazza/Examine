@@ -28,7 +28,7 @@ namespace Examine.LuceneEngine.Indexing
 
             var val = DateToLong(parsedVal);
 
-            doc.Add(new NumericField(FieldName, Store ? Field.Store.YES : Field.Store.NO, true).SetLongValue(val));
+            doc.Add(new Int64Field(FieldName,val, Store ? Field.Store.YES : Field.Store.NO));;
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Examine.LuceneEngine.Indexing
             return DateTools.Round(date, Resolution).Ticks;
         }
 
-        public override Query GetQuery(string query, Searcher searcher)
+        public override Query GetQuery(string query, IndexSearcher searcher)
         {
             if (!TryConvert(query, out DateTime parsedVal))
                 return null;
@@ -51,7 +51,7 @@ namespace Examine.LuceneEngine.Indexing
 
         public override Query GetQuery(DateTime? lower, DateTime? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
-            return NumericRangeQuery.NewLongRange(FieldName,
+            return NumericRangeQuery.NewInt64Range(FieldName,
                 lower != null ? DateToLong(lower.Value) : (long?)null,
                 upper != null ? DateToLong(upper.Value) : (long?)null, lowerInclusive, upperInclusive);
         }

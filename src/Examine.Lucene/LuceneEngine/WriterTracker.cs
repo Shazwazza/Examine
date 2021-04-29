@@ -29,11 +29,11 @@ namespace Examine.LuceneEngine
         public IndexWriter GetWriter(Directory dir, bool throwIfEmpty)
         {
             IndexWriter d = null;
-            if (!_writers.TryGetValue(dir.GetLockId(), out d))
+            if (!_writers.TryGetValue(dir.GetLockID(), out d))
             {
                 if (throwIfEmpty)
                 {
-                    throw new NullReferenceException("No writer was added with directory key " + dir.GetLockId() + ", maybe an indexer hasn't been initialized?");
+                    throw new NullReferenceException("No writer was added with directory key " + dir.GetLockID() + ", maybe an indexer hasn't been initialized?");
                 }
             }
             return d;
@@ -41,7 +41,7 @@ namespace Examine.LuceneEngine
 
         public IndexWriter GetWriter(Directory dir, Func<Directory, IndexWriter> factory)
         {
-            var resolved = _writers.GetOrAdd(dir.GetLockId(), s => factory(dir));
+            var resolved = _writers.GetOrAdd(dir.GetLockID(), s => factory(dir));
             return resolved;
         }
 

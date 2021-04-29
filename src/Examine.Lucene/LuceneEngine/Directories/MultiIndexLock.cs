@@ -1,3 +1,4 @@
+using System;
 using System.Security;
 using Lucene.Net.Store;
 
@@ -11,7 +12,9 @@ namespace Examine.LuceneEngine.Directories
     {
         private readonly Lock _dirMaster;
         private readonly Lock _dirChild;
-        
+        private bool _isDisposed = false;
+
+
         public MultiIndexLock(Lock dirMaster, Lock dirChild)
         {
             _dirMaster = dirMaster;
@@ -34,40 +37,35 @@ namespace Examine.LuceneEngine.Directories
             return child;
         }
 
-        
-        public override bool Obtain(long lockWaitTimeout)
+
+        protected override void Dispose(bool disposing)
         {
-            var master = _dirMaster.Obtain(lockWaitTimeout);
-            if (!master) return false;
-            var child = _dirChild.Obtain(lockWaitTimeout);
-            return child;
-        }
-
-        /// <summary>
-        /// Releases exclusive access. 
-        /// </summary>
-        
-        public override void Release()
-        {
-            var isChild = false;
-            try
+            if (disposing)
             {
-                //try to release master
-                _dirMaster.Release();
+                if (!_isDisposed)
+                {
+                    var isChild = false;
+                    try
+                    {
+                        //try to release master
+                        _dirMaster.Dispose();
 
-                //if that succeeds try to release child
-                isChild = true;
-                _dirChild.Release();
-            }
-            catch (System.Exception ex2)
-            {
-                //if an error occurs above for the master still attempt to release child
-                if (!isChild)
-                    _dirChild.Release();
+                        //if that succeeds try to release child
+                        isChild = true;
+                        _dirChild.Dispose();
+                    }
+                    catch (System.Exception ex2)
+                    {
+                        //if an error occurs above for the master still attempt to release child
+                        if (!isChild)
+                            _dirChild.Dispose();
 
-                throw;
+                        throw;
+                    }
+
+                  //  this.Dispose(true);
+                }
             }
-            
         }
 
         /// <summary>

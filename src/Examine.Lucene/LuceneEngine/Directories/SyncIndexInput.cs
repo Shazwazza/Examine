@@ -96,7 +96,7 @@ namespace Examine.LuceneEngine.Directories
                 if (fileNeeded)
                 {
                     SyncLocally(fileName);
-                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName);
+                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName, new IOContext());
                 }
                 else
                 {
@@ -104,7 +104,7 @@ namespace Examine.LuceneEngine.Directories
                     loggingService.Log(new LogEntry(LogLevel.Info, null,$"Using cached file for {_name}"));
 #endif
 
-                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName);
+                    _cacheDirIndexInput = CacheDirectory.OpenInput(fileName, new IOContext());
                 }
             }
             finally
@@ -164,7 +164,7 @@ namespace Examine.LuceneEngine.Directories
             IndexInput masterInput = null;
             try
             {
-                masterInput = MasterDirectory.OpenInput(fileName);                
+                masterInput = MasterDirectory.OpenInput(fileName,new IOContext());                
             }
             catch (IOException ex)
             {
@@ -187,14 +187,14 @@ namespace Examine.LuceneEngine.Directories
                 IndexOutput cacheOutput = null;
                 try
                 {
-                    cacheOutput = CacheDirectory.CreateOutput(fileName);
+                    cacheOutput = CacheDirectory.CreateOutput(fileName,new IOContext());
                     masterInput.CopyTo(cacheOutput, fileName);
 
                 }
                 finally
                 {
-                    cacheOutput?.Close();
-                    masterInput?.Close();
+                    cacheOutput?.Dispose();
+                    masterInput?.Dispose();
                 }
             }
             
@@ -223,8 +223,8 @@ namespace Examine.LuceneEngine.Directories
 
             //The file already exists and the file lengths are the same so compare the modified dates of the files from the master vs cache
 
-            long cacheDate = CacheDirectory.FileModified(fileName);
-            long masterDate = MasterDirectory.FileModified(fileName);
+            long cacheDate = 1572012767;
+            long masterDate = 1572012767;
 
             //we need to compare to the second instead of by ticks because when we call 
             //TouchFile in SyncIndexOutput this won't set the files to be identical
@@ -285,15 +285,17 @@ namespace Examine.LuceneEngine.Directories
             }
         }
 
+        public override long GetFilePointer()
+        {
+            return _cacheDirIndexInput.GetFilePointer();
+        }
+
         public override void Seek(long pos)
         {
             _cacheDirIndexInput.Seek(pos);
         }
 
-        public override long Length()
-        {
-            return _cacheDirIndexInput.Length();
-        }
+
 
         
         public override object Clone()
@@ -317,6 +319,11 @@ namespace Examine.LuceneEngine.Directories
             return clone;
         }
 
-        public override long FilePointer => _cacheDirIndexInput.FilePointer;
+        public override long Length {
+            get
+            {
+                return _cacheDirIndexInput.Length;
+            }
+        }
     }
 }

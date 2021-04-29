@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectory : Lucene.Net.Store.Directory
     {
+        private readonly DirectoryInfo _cachedindexFolder;
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
         private bool _inSync = false;
@@ -24,7 +26,7 @@ namespace Examine.AzureDirectory
         private readonly string _containerName;
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
-        private readonly LockFactory _lockFactory;
+        private LockFactory _lockFactory;
         private static readonly NoopIndexOutput _noopIndexOutput = new NoopIndexOutput();
 
         /// <summary>
@@ -43,6 +45,7 @@ namespace Examine.AzureDirectory
         public AzureDirectory(
             CloudStorageAccount storageAccount,
             string containerName,
+            DirectoryInfo indexFolder,
             Lucene.Net.Store.Directory cacheDirectory,
             bool compressBlobs = false,
             string rootFolder = null,
@@ -51,6 +54,7 @@ namespace Examine.AzureDirectory
             if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
             if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
             if (string.IsNullOrWhiteSpace(containerName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
+            _cachedindexFolder = indexFolder;
             _isReadOnly = isReadOnly;
 
             CacheDirectory = cacheDirectory;
@@ -72,7 +76,7 @@ namespace Examine.AzureDirectory
             EnsureContainer();
             CompressBlobs = compressBlobs;
         }
-
+        
         public string RootFolder { get; }
         public CloudBlobContainer BlobContainer => _blobContainer;
         public bool CompressBlobs { get; }
@@ -103,6 +107,10 @@ namespace Examine.AzureDirectory
 
         internal string[] GetAllBlobFiles()
         {
+            if (!_blobContainer.Exists())
+            {
+                _blobContainer.Create();
+            }
             var results = from blob in _blobContainer.ListBlobs(RootFolder)
                           select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
             return results.ToArray();
@@ -130,45 +138,9 @@ namespace Examine.AzureDirectory
             return BlobExists(name);
         }
 
-        /// <summary>Returns the time the named file was last modified. </summary>
-        public override long FileModified(string name)
-        {
-            CheckDirty();
+      
 
-            if (_inSync)
-            {
-                return CacheDirectory.FileModified(name);
-            }
 
-            if (TryGetBlobFile(name, out var blob, out var err))
-            {
-                if (blob.Properties.LastModified != null)
-                {
-                    var utcDate = blob.Properties.LastModified.Value.UtcDateTime;
-
-                    //This is the data structure of how the default Lucene FSDirectory returns this value so we want
-                    // to be consistent with how Lucene works
-                    return (long)utcDate.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
-                }
-
-                // TODO: Need to check lucene source, returning this value could be problematic
-                return 0;
-            }
-            else
-            {
-                // Lucene expects this exception to be thrown
-                throw new FileNotFoundException(name, err);
-            }
-        }
-
-        /// <summary>Set the modified time of an existing file to now. </summary>
-        [Obsolete("This is actually never used")]
-        public override void TouchFile(string name)
-        {
-            //just update the cache file - the Lucene source actually never calls this method!
-            CacheDirectory.TouchFile(name);
-            SetDirty();
-        }
 
         /// <summary>Removes an existing file in the directory. </summary>
         public override void DeleteFile(string name)
@@ -212,7 +184,7 @@ namespace Examine.AzureDirectory
             blob.DeleteIfExists();
             SetDirty();
 
-            Trace.WriteLine($"DELETE {_blobContainer.Uri}/{name}");
+            Trace.WriteLine($"DELETE {_blobContainer.Uri}/{RootFolder}/{name}");
         }
 
 
@@ -257,7 +229,7 @@ namespace Examine.AzureDirectory
         /// <summary>Creates a new, empty file in the directory with the given name.
         /// Returns a stream writing this file. 
         /// </summary>
-        public override IndexOutput CreateOutput(string name)
+        public override IndexOutput CreateOutput(string name, IOContext context)
         {
             SetDirty();
 
@@ -267,12 +239,18 @@ namespace Examine.AzureDirectory
                 return _noopIndexOutput;
             }
 
-            var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
-            return new AzureIndexOutput(this, blob, name);
+            CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(RootFolder +name);
+            AzureIndexOutput azureIndexOutput = new AzureIndexOutput(this, blockBlobReference, RootFolder +name);
+            return (IndexOutput) azureIndexOutput;
+        }
+
+        public override void Sync(ICollection<string> names)
+        {
+            this.EnsureOpen();
         }
 
         /// <summary>Returns a stream reading an existing file. </summary>
-        public override IndexInput OpenInput(string name)
+        public override IndexInput OpenInput(string name, IOContext context)
         {
             CheckDirty();
 
@@ -280,7 +258,7 @@ namespace Examine.AzureDirectory
             {
                 try
                 {
-                    return CacheDirectory.OpenInput(name);
+                    return CacheDirectory.OpenInput(name, context);
                 }
                 catch (FileNotFoundException)
                 {
@@ -328,6 +306,11 @@ namespace Examine.AzureDirectory
             _blobClient = null;
         }
 
+        public override void SetLockFactory(LockFactory lockFactory)
+        {
+            _lockFactory = lockFactory;
+        }
+
         /// <summary> Return a string identifier that uniquely differentiates
         /// this Directory instance from other Directory instances.
         /// This ID should be the same if two Directory instances
@@ -335,9 +318,9 @@ namespace Examine.AzureDirectory
         /// are considered "the same index".  This is how locking
         /// "scopes" to the right index.
         /// </summary>
-        public override string GetLockId()
+        public override string GetLockID()
         {
-            return string.Concat(base.GetLockId(), CacheDirectory.GetLockId());
+            return string.Concat(base.GetLockID(), CacheDirectory.GetLockID());
         }
 
         public virtual bool ShouldCompressFile(string path)
@@ -384,8 +367,8 @@ namespace Examine.AzureDirectory
                         //these methods don't throw exceptions, will return -1 if something has gone wrong
                         // in which case we'll consider them not in sync
                         var blobFiles = GetAllBlobFiles();
-                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(blobFiles);
-                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(CacheDirectory);
+                        var masterSeg = SegmentInfos.GetLastCommitGeneration(blobFiles);
+                        var localSeg = SegmentInfos.GetLastCommitGeneration(CacheDirectory);
                         _inSync = masterSeg == localSeg && masterSeg != -1;
                         _dirty = false;
                         return blobFiles;
@@ -434,6 +417,11 @@ namespace Examine.AzureDirectory
                 blob = null;
                 return false;
             }
+        }
+
+        public long CachedFileModified(string name)
+        {
+            return (long) new FileInfo(Path.Combine(_cachedindexFolder.FullName, name)).LastWriteTime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
         }
     }
 

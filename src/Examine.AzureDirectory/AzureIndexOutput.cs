@@ -37,7 +37,7 @@ namespace Examine.AzureDirectory
                 _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
 
                 // create the local cache one we will operate against...
-                _indexOutput = CacheDirectory.CreateOutput(_name);
+                _indexOutput = CacheDirectory.CreateOutput(_name,IOContext.DEFAULT);
             }
             finally
             {
@@ -85,7 +85,7 @@ namespace Examine.AzureDirectory
                     }
                     else
                     {
-                        blobStream = new StreamInput(CacheDirectory.OpenInput(fileName));
+                        blobStream = new StreamInput(CacheDirectory.OpenInput(fileName,IOContext.DEFAULT));
                     }
 
                     try
@@ -95,7 +95,7 @@ namespace Examine.AzureDirectory
 
                         // set the metadata with the original index file properties
                         _blob.Metadata["CachedLength"] = originalLength.ToString();
-                        _blob.Metadata["CachedLastModified"] = CacheDirectory.FileModified(fileName).ToString();
+                       // _blob.Metadata["CachedLastModified"] = CacheDirectory.FileModified(fileName).ToString();
                         _blob.SetMetadata();
 #if FULLDEBUG
                         Trace.WriteLine($"PUT {blobStream.Length} bytes to {_name} in cloud");
@@ -123,6 +123,8 @@ namespace Examine.AzureDirectory
             }
         }
 
+        public override long GetFilePointer()=>_indexOutput.GetFilePointer();
+
         private MemoryStream CompressStream(string fileName, long originalLength)
         {
             // unfortunately, deflate stream doesn't allow seek, and we need a seekable stream
@@ -132,11 +134,11 @@ namespace Examine.AzureDirectory
             IndexInput indexInput = null;
             try
             {
-                indexInput = CacheDirectory.OpenInput(fileName);
+                indexInput = CacheDirectory.OpenInput(fileName,IOContext.DEFAULT);
                 using (var compressor = new DeflateStream(compressedStream, CompressionMode.Compress, true))
                 {
                     // compress to compressedOutputStream
-                    byte[] bytes = new byte[indexInput.Length()];
+                    byte[] bytes = new byte[indexInput.Length];
                     indexInput.ReadBytes(bytes, 0, (int) bytes.Length);
                     compressor.Write(bytes, 0, (int) bytes.Length);
                 }
@@ -155,7 +157,7 @@ namespace Examine.AzureDirectory
             }
             finally
             {
-                indexInput?.Close();
+                indexInput?.Dispose();
             }
             return compressedStream;
         }
@@ -177,11 +179,13 @@ namespace Examine.AzureDirectory
             _indexOutput.WriteBytes(b, offset, length);
         }
 
-        public override long FilePointer => _indexOutput.FilePointer;
+      
 
         public override void Seek(long pos)
         {
             _indexOutput.Seek(pos);
         }
+
+        public override long Checksum { get; }
     }
 }

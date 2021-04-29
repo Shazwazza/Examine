@@ -41,7 +41,7 @@ namespace Examine.LuceneEngine.Directories
 
         public override long Position
         {   
-            get => Output.FilePointer;
+            get => Output.GetFilePointer();
             set => Output.Seek(value);
         }
 
@@ -59,12 +59,12 @@ namespace Examine.LuceneEngine.Directories
                     Output.Seek(offset);
                     break;
                 case SeekOrigin.Current:
-                    Output.Seek(Output.FilePointer + offset);
+                    Output.Seek(Output.GetFilePointer() + offset);
                     break;
                 case SeekOrigin.End:
                     throw new NotImplementedException();
             }
-            return Output.FilePointer;
+            return Output.GetFilePointer();
         }
 
         public override void SetLength(long value)
@@ -82,7 +82,7 @@ namespace Examine.LuceneEngine.Directories
         public override void Close()
         {
             Output.Flush();
-            Output.Close();
+            Output.Dispose();
             base.Close();
         }
     }

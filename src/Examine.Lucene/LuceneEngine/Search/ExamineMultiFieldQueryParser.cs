@@ -12,7 +12,7 @@ namespace Examine.LuceneEngine.Search
     {
         private readonly ISearchContext _searchContext;
 
-        public ExamineMultiFieldQueryParser(ISearchContext searchContext, Version matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
+        public ExamineMultiFieldQueryParser(ISearchContext searchContext, LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
         {
             _searchContext = searchContext ?? throw new System.ArgumentNullException(nameof(searchContext));
         }
@@ -31,16 +31,17 @@ namespace Examine.LuceneEngine.Search
         /// 
         /// In previous releases people were complaining that this wouldn't work and this is why. The answer came from here https://stackoverflow.com/questions/5026185/how-do-i-make-the-queryparser-in-lucene-handle-numeric-ranges
         /// </remarks>
-        protected override Query GetRangeQuery(string field, string part1, string part2, bool inclusive)
+        ///    protected override Query GetRangeQuery(string field, string part1, string part2, bool startInclusive,bool endInclusive)
+        protected override Query GetRangeQuery(string field, string part1, string part2, bool startInclusive,bool endInclusive)
         {
             // if the field is IIndexRangeValueType then return it's query, else return the default
             var fieldType = _searchContext.GetFieldValueType(field);
             if (fieldType != null && fieldType is IIndexRangeValueType rangeType)
             {
-                return rangeType.GetQuery(part1, part2, inclusive, inclusive);
+                return rangeType.GetQuery(part1, part2, startInclusive, endInclusive);
             }
 
-            return base.GetRangeQuery(field, part1, part2, inclusive);
+            return base.GetRangeQuery(field, part1, part2, startInclusive, endInclusive);
         }
     }
 }

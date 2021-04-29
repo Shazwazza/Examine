@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Core;
+using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Analysis.Util;
 using Lucene.Net.Util;
 
 namespace Examine.LuceneEngine
@@ -9,67 +12,77 @@ namespace Examine.LuceneEngine
     /// <summary>
     /// The same as the <see cref="StandardAnalyzer"/> but with an additional <see cref="ASCIIFoldingFilter"/>
     /// </summary>
-    public sealed class CultureInvariantStandardAnalyzer : StandardAnalyzer
+    public sealed class CultureInvariantStandardAnalyzer : Analyzer
     {
-        private readonly Version _matchVersion;
-        private readonly ISet<string> _stopWords;
-        private readonly bool _enableStopPositionIncrements;
+        private readonly LuceneVersion _matchVersion;
+        public readonly CharArraySet STOP_WORDS_SET = StopAnalyzer.ENGLISH_STOP_WORDS_SET;
+        private int maxTokenLength = (int) byte.MaxValue;
 
-        public CultureInvariantStandardAnalyzer() : this(Version.LUCENE_30)
+        public CultureInvariantStandardAnalyzer() : this(Util.Version)
         {
             
         }
 
-        public CultureInvariantStandardAnalyzer(Version matchVersion, ISet<string> stopWords) : base(matchVersion, stopWords)
+        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion,CharArraySet stopWords)
         {
             _matchVersion = matchVersion;
-            _stopWords = stopWords;
-            _enableStopPositionIncrements = StopFilter.GetEnablePositionIncrementsVersionDefault(matchVersion);
+            STOP_WORDS_SET = stopWords;
         }
 
-        public CultureInvariantStandardAnalyzer(Version matchVersion) : this(matchVersion, StandardAnalyzer.STOP_WORDS_SET)
+        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion) : this(matchVersion, StandardAnalyzer.STOP_WORDS_SET)
         {
         }
 
-        public CultureInvariantStandardAnalyzer(Version matchVersion, TextReader stopwords) : base(matchVersion, stopwords)
+        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion, TextReader stopwords) 
         {
         }
 
-        public override TokenStream TokenStream(string fieldName, TextReader reader)
+      
+        
+        protected override TokenStreamComponents CreateComponents(
+            string fieldName,
+            TextReader reader)
         {
-            return new StopFilter(_enableStopPositionIncrements,
-                new ASCIIFoldingFilter(
-                    new LowerCaseFilter(
-                        new StandardFilter(
-                            new StandardTokenizer(_matchVersion, reader)
-                            {
-                                MaxTokenLength = MaxTokenLength
-                            }))), _stopWords);
+            StandardTokenizer src = new StandardTokenizer(Util.Version, reader);
+            src.MaxTokenLength = this.maxTokenLength;
+            TokenStream tok = (TokenStream) new StopFilter(Util.Version,
+                (TokenStream) new LowerCaseFilter(Util.Version, (TokenStream) new StandardFilter(Util.Version, (TokenStream) src)), STOP_WORDS_SET);
+            return (TokenStreamComponents) new CultureInvariantStandardAnalyzer.TokenStreamComponentsAnonymousInnerClassHelper(this, src, tok, reader);
         }
-
-        public override TokenStream ReusableTokenStream(string fieldName, TextReader reader)
+        public int MaxTokenLength
         {
-            var savedStreams = (SavedStreams)PreviousTokenStream;
-            if (savedStreams == null)
+            set
             {
-                savedStreams = new SavedStreams();
-                this.PreviousTokenStream = savedStreams;
-                savedStreams.TokenStream = new StandardTokenizer(_matchVersion, reader);
-                savedStreams.FilteredTokenStream = new StandardFilter(savedStreams.TokenStream);
-                savedStreams.FilteredTokenStream = new LowerCaseFilter(savedStreams.FilteredTokenStream);
-                savedStreams.FilteredTokenStream = new ASCIIFoldingFilter(savedStreams.FilteredTokenStream);
-                savedStreams.FilteredTokenStream = new StopFilter(_enableStopPositionIncrements, savedStreams.FilteredTokenStream, _stopWords);
+                this.maxTokenLength = value;
             }
-            else
-                savedStreams.TokenStream.Reset(reader);
-            savedStreams.TokenStream.MaxTokenLength = MaxTokenLength;
-            return savedStreams.FilteredTokenStream;
+            get
+            {
+                return this.maxTokenLength;
+            }
         }
-
-        private sealed class SavedStreams
+        private class TokenStreamComponentsAnonymousInnerClassHelper : TokenStreamComponents
         {
-            internal StandardTokenizer TokenStream;
-            internal TokenStream FilteredTokenStream;
+            private readonly CultureInvariantStandardAnalyzer outerInstance;
+            private TextReader reader;
+            private readonly StandardTokenizer src;
+
+            public TokenStreamComponentsAnonymousInnerClassHelper(
+                CultureInvariantStandardAnalyzer outerInstance,
+                StandardTokenizer src,
+                TokenStream tok,
+                TextReader reader)
+                : base((Tokenizer) src, tok)
+            {
+                this.outerInstance = outerInstance;
+                this.reader = reader;
+                this.src = src;
+            }
+
+            protected override void SetReader(TextReader reader)
+            {
+                this.src.MaxTokenLength = this.outerInstance.maxTokenLength;
+                base.SetReader(reader);
+            }
         }
     }
 }

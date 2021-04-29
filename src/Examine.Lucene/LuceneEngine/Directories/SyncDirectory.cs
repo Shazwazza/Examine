@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security;
 using Examine.Logging;
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
@@ -117,6 +118,7 @@ namespace Examine.LuceneEngine.Directories
 
         /// <summary>Returns true if a file with the given name exists. </summary>
         
+        [Obsolete("this method will be removed in 5.0 of Lucene")]
         public override bool FileExists(string name)
         {
             CheckDirty();
@@ -142,23 +144,9 @@ namespace Examine.LuceneEngine.Directories
             return _masterDirectory.FileExists(name);
         }
 
-        /// <summary>Returns the time the named file was last modified. </summary>
-        
-        public override long FileModified(string name)
-        {
-            CheckDirty();
 
-            return _inSync ? _cacheDirectory.FileModified(name) : _masterDirectory.FileModified(name);            
-        }
 
-        /// <summary>Set the modified time of an existing file to now. </summary>
-        [Obsolete("This is actually never used")]        
-        public override void TouchFile(string name)
-        {
-            //just update the cache file - the Lucene source actually never calls this method!
-            _cacheDirectory.TouchFile(name);
-            SetDirty();
-        }
+     
 
         /// <summary>Removes an existing file in the directory. </summary>
         
@@ -202,24 +190,26 @@ namespace Examine.LuceneEngine.Directories
             return _inSync ? _cacheDirectory.FileLength(name) : _masterDirectory.FileLength(name);
         }
 
-        /// <summary>Creates a new, empty file in the directory with the given name.
-        /// Returns a stream writing this file. 
-        /// </summary>
-        
-        public override IndexOutput CreateOutput(string name)
+        public override IndexOutput CreateOutput(string name, IOContext context)
         {
             SetDirty();
 
             //This is what enables "Copy on write" semantics
             return new SyncIndexOutput(this, name, _logging);
-
-            //If we returned this instead, this essentially becomes only "Copy on read" and not "Copy on write"
-            //return _masterDirectory.CreateOutput(name);
         }
+
+        public override void Sync(ICollection<string> names)
+        {
+            this.EnsureOpen();
+        }
+
+        
+
+
 
         /// <summary>Returns a stream reading an existing file. </summary>
         
-        public override IndexInput OpenInput(string name)
+        public override IndexInput OpenInput(string name, IOContext context)
         {
             //There's a project called Jackrabbit which performs a copy on read/copy on write semantics as well and it appears
             //that they also experienced the file not found issue. I noticed that their implementation only ever reads the segments.gen
@@ -240,7 +230,7 @@ namespace Examine.LuceneEngine.Directories
 
             if (RemoteOnlyFiles.Contains(name))
             {
-                return _masterDirectory.OpenInput(name);
+                return _masterDirectory.OpenInput(name,context);
             }
 
             try
@@ -270,9 +260,9 @@ namespace Examine.LuceneEngine.Directories
 
         public override LockFactory LockFactory => _lockFactory;
 
-        public override string GetLockId()
+        public override string GetLockID()
         {
-            return string.Concat(_masterDirectory.GetLockId(), _cacheDirectory.GetLockId());
+            return string.Concat(_masterDirectory.GetLockID(), _cacheDirectory.GetLockID());
         }
         
         protected override void Dispose(bool disposing)
@@ -281,16 +271,21 @@ namespace Examine.LuceneEngine.Directories
             _cacheDirectory.Dispose();
         }
 
+        public override void SetLockFactory(LockFactory lockFactory)
+        {
+            _lockFactory = (MultiIndexLockFactory) lockFactory;
+        }
+
         //TODO: This isn't used
         internal StreamInput OpenCachedInputAsStream(string name)
         {
-            return new StreamInput(CacheDirectory.OpenInput(name));
+            return new StreamInput(CacheDirectory.OpenInput(name, new IOContext()));
         }
 
         //TODO: This isn't used
         internal StreamOutput CreateCachedOutputAsStream(string name)
         {
-            return new StreamOutput(CacheDirectory.CreateOutput(name));
+            return new StreamOutput(CacheDirectory.CreateOutput(name,new IOContext()));
         }
         
         private void CheckDirty()
@@ -304,8 +299,8 @@ namespace Examine.LuceneEngine.Directories
                     {
                         //these methods don't throw exceptions, will return -1 if something has gone wrong
                         // in which case we'll consider them not in sync
-                        var masterSeg = SegmentInfos.GetCurrentSegmentGeneration(_masterDirectory);
-                        var localSeg = SegmentInfos.GetCurrentSegmentGeneration(_cacheDirectory);
+                        var masterSeg = SegmentInfos.GetLastCommitGeneration(_masterDirectory);
+                        var localSeg = SegmentInfos.GetLastCommitGeneration(_cacheDirectory);
                         _inSync = masterSeg == localSeg && masterSeg != -1;
                         _dirty = false;
                     }

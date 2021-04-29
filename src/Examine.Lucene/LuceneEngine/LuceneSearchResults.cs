@@ -38,7 +38,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Exposes the internal Lucene searcher
         /// </summary>
-        public Searcher LuceneSearcher { get; }
+        public IndexSearcher LuceneSearcher { get; }
 
         /// <summary>
         /// Exposes the internal lucene query to run the search
@@ -94,9 +94,9 @@ namespace Examine.LuceneEngine
                 }
             }   
 
-            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.MaxDoc) : LuceneSearcher.MaxDoc;
+            maxResults = maxResults >= 1 ? Math.Min(maxResults, LuceneSearcher.IndexReader.MaxDoc>0 ? LuceneSearcher.IndexReader.MaxDoc : maxResults) : LuceneSearcher.IndexReader.MaxDoc>0 ? LuceneSearcher.IndexReader.MaxDoc : 500;
 
-            Collector topDocsCollector;
+            ICollector topDocsCollector;
             var sortFields = sortField as SortField[] ?? sortField.ToArray();
             if (sortFields.Length > 0)
             {
@@ -113,8 +113,8 @@ namespace Examine.LuceneEngine
             if (!skip.HasValue)
             {
                 TopDocs = sortFields.Length > 0
-                    ? ((TopFieldCollector)topDocsCollector).TopDocs()
-                    : ((TopScoreDocCollector)topDocsCollector).TopDocs();
+                ? ((TopFieldCollector)topDocsCollector).GetTopDocs()
+                : ((TopScoreDocCollector)topDocsCollector).GetTopDocs();
             }
             else
             {
@@ -267,7 +267,7 @@ namespace Examine.LuceneEngine
 #pragma warning restore IDE0044 // Add readonly modifier
             private readonly IndexSearcher _searcher;
 
-            public DecrementReaderResult(IEnumerator<ISearchResult> baseEnumerator, Searcher searcher)
+            public DecrementReaderResult(IEnumerator<ISearchResult> baseEnumerator, IndexSearcher searcher)
             {
                 _baseEnumerator = baseEnumerator;
                 _searcher = searcher as IndexSearcher;

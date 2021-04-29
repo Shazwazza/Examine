@@ -1,6 +1,7 @@
 ﻿using System;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
 
 namespace Examine.LuceneEngine.Indexing
@@ -27,7 +28,7 @@ namespace Examine.LuceneEngine.Indexing
         public override void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
         {
             base.SetupAnalyzers(analyzer);
-            analyzer.AddAnalyzer(FieldName, _analyzer);
+         
         }
 
         protected override void AddSingleValue(Document doc, object value)

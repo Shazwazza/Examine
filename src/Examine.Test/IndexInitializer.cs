@@ -53,7 +53,7 @@ namespace Examine.Test
         //    var i = new UmbracoContentIndexer(CreateCriteria(),
         //        luceneDir, //custom lucene directory
         //        new TestDataService(),
-        //        new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
+        //        new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Util.Version),
         //        false);
 
         //    i.IndexingError += IndexingError;
@@ -75,12 +75,12 @@ namespace Examine.Test
 
         //public static UmbracoExamineSearcher GetUmbracoSearcher(Lucene.Net.Store.Directory luceneDir)
         //{
-        //    return new UmbracoExamineSearcher(luceneDir, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30));
+        //    return new UmbracoExamineSearcher(luceneDir, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Util.Version));
         //}
 
         //public static UmbracoExamineSearcher GetUmbracoSearcher(IndexWriter writer)
         //{
-        //    return new UmbracoExamineSearcher(writer, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30));
+        //    return new UmbracoExamineSearcher(writer, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Util.Version));
         //}
 
         //public static ValueSetIndexer GetSimpleIndexer(Lucene.Net.Store.Directory luceneDir)
@@ -107,7 +107,7 @@ namespace Examine.Test
         //                                                 new string[] { },
         //                                                 -1),
         //                                                 luceneDir,
-        //                                                 new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30),
+        //                                                 new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Util.Version),
         //                                                 new TestValueSetDataProvider(),
         //                                                 new[] { "Documents", "Pictures" },
         //                                                 false);
@@ -118,7 +118,7 @@ namespace Examine.Test
 
         //public static MultiIndexSearcher GetMultiSearcher(Lucene.Net.Store.Directory pdfDir, Lucene.Net.Store.Directory simpleDir, Lucene.Net.Store.Directory conventionDir, Lucene.Net.Store.Directory cwsDir)
         //{
-        //    var i = new MultiIndexSearcher(new[] { pdfDir, simpleDir, conventionDir, cwsDir }, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30));
+        //    var i = new MultiIndexSearcher(new[] { pdfDir, simpleDir, conventionDir, cwsDir }, new CultureInvariantStandardAnalyzer(Lucene.Net.Util.Util.Version));
         //    return i;
         //}
 
