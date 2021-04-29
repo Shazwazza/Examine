@@ -7,7 +7,9 @@ using System.Linq;
 using Examine.LuceneEngine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Util;
 
 namespace Examine.LuceneEngine.Providers
 {
@@ -28,7 +30,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexes"></param>
         /// <param name="analyzer"></param>
         public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30))
+            : base(name, analyzer ?? new StandardAnalyzer(Util.Version))
         {
             _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.GetSearcher()));
         }
@@ -40,7 +42,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="searchers"></param>
         /// <param name="analyzer"></param>
         public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, Analyzer analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30))
+            : base(name, analyzer ?? new StandardAnalyzer(Util.Version))
         {
             _searchers = searchers;
         }
@@ -75,17 +77,17 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         /// <returns></returns>
 		
-        public override Searcher GetLuceneSearcher()
+        public override IndexSearcher GetLuceneSearcher()
         {
-	        var searchables = new List<Searchable>();
+	        var searchables = new List<IndexReader>();
 			//NOTE: Do not convert this to Linq as it will fail the Code Analysis because Linq screws with it.
 			foreach(var s in Searchers)
 			{
 			    var searcher = s.GetLuceneSearcher();
                 if (searcher != null)
-                    searchables.Add(searcher);
+                    searchables.Add(searcher.IndexReader);
 			}
-			return new MultiSearcher(searchables.ToArray());
+			return new IndexSearcher(new MultiReader(searchables.ToArray()));
         }
 
         public override ISearchContext GetSearchContext()

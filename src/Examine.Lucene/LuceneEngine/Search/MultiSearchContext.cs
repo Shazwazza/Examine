@@ -9,13 +9,13 @@ namespace Examine.LuceneEngine.Search
     {
         private readonly ISearchContext[] _inner;
         
-        public MultiSearchContext(Searcher searcher, ISearchContext[] inner)
+        public MultiSearchContext(IndexSearcher searcher, ISearchContext[] inner)
         {
             _inner = inner;
             Searcher = searcher;
         }
 
-        public Searcher Searcher { get; }
+        public IndexSearcher Searcher { get; }
 
         public IIndexFieldValueType GetFieldValueType(string fieldName)
         {

@@ -39,7 +39,7 @@ namespace Examine.LuceneEngine.Providers
         ///</summary>
         ///<returns></returns>
 		
-        public abstract Searcher GetLuceneSearcher();
+        public abstract IndexSearcher GetLuceneSearcher();
 
         public abstract ISearchContext GetSearchContext();
 
@@ -96,7 +96,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 try
                 {
-                    mtq.RewriteMethod = ErrorCheckingScoringBooleanQueryRewriteInstance;
+                    mtq.MultiTermRewriteMethod = ErrorCheckingScoringBooleanQueryRewriteInstance;
                 }
                 catch (NotSupportedException)
                 {
@@ -115,9 +115,9 @@ namespace Examine.LuceneEngine.Providers
         }
         
         //do not try to set this here as a readonly field - the stupid medium trust transparency rules will throw up all over the place
-        private static RewriteMethod _errorCheckingScoringBooleanQueryRewriteInstance;
+        private static MultiTermQuery.RewriteMethod  _errorCheckingScoringBooleanQueryRewriteInstance;
 
-        public static RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance => _errorCheckingScoringBooleanQueryRewriteInstance ?? (_errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite());
+        public static MultiTermQuery.RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance => _errorCheckingScoringBooleanQueryRewriteInstance ?? (_errorCheckingScoringBooleanQueryRewriteInstance =new ErrorCheckingScoringBooleanQueryRewrite());
         
     }
 }

@@ -22,7 +22,7 @@ namespace Examine.LuceneEngine.Providers
     /// </remarks>
     
     [Serializable]
-    public class ErrorCheckingScoringBooleanQueryRewrite : RewriteMethod
+    public class ErrorCheckingScoringBooleanQueryRewrite : MultiTermQuery.RewriteMethod
     {
         
         public override Query Rewrite(IndexReader reader, MultiTermQuery query)
@@ -43,7 +43,7 @@ namespace Examine.LuceneEngine.Providers
                 var result = baseClass.Rewrite(reader, query);
                 return result;
             }
-            catch (BooleanQuery.TooManyClauses)
+            catch (BooleanQuery.TooManyClausesException)
             {
                 //TODO: We could try to bubble this up to the consumer somehow? event or otherwise?
                 //TODO: We could add a cache for known terms that will cause this so that we don't spend too much CPU rewriting and recatching the exception each time

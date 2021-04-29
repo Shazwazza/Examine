@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
@@ -75,12 +76,12 @@ namespace Examine.LuceneEngine.Providers
         /// <returns>
         /// Returns null if the underlying index doesn't exist
         /// </returns>
-        public override Searcher GetLuceneSearcher()
+        public override IndexSearcher GetLuceneSearcher()
         {
             if (!ValidateSearcher()) return null;
 
             //ensure scoring is turned on for sorting
-            _searcher.SetDefaultFieldSortScoring(true, true);
+          
             return _searcher;
         }
 
@@ -98,7 +99,8 @@ namespace Examine.LuceneEngine.Providers
             if (!ValidateSearcher()) return new string[] {};
 
             //var reader = _searcherIndexReader;
-            var fields = _reader.GetFieldNames(IndexReader.FieldOption.ALL);
+        //todo: find better way of getting AtomicReaderContext as it will slowdown examine
+            var fields = SlowCompositeReaderWrapper.Wrap(_reader).Fields != null ? SlowCompositeReaderWrapper.Wrap(_reader).Fields.ToList() : new List<string>();
             //exclude the special index fields
             var searchFields = fields
                 .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
@@ -128,13 +130,13 @@ namespace Examine.LuceneEngine.Providers
             // on the associated indexer before this method is called
             if (TryEstablishNrtReader())
             {
-                _nrtWriter.GetReader();
+                _nrtWriter.GetReader(true);
             }
 
             //If we cannot resolve an existing writer, we'll fallback to opening a normal
             // non-nrt reader. When this reader becomes stale, the above will check again 
             // if an NRT reader can be resolved.
-            return IndexReader.Open(GetLuceneDirectory(), true);
+            return IndexReader.Open(GetLuceneDirectory());
         }
 
         /// <summary>
@@ -168,7 +170,7 @@ namespace Examine.LuceneEngine.Providers
             //if it's not been set or it just doesn't exist, re-read the lucene files
             if (!_exists.HasValue || !_exists.Value)
             {
-                _exists = IndexReader.IndexExists(GetLuceneDirectory());
+                _exists = DirectoryReader.IndexExists(GetLuceneDirectory());
             }
 
             return _exists.Value;
@@ -199,12 +201,14 @@ namespace Examine.LuceneEngine.Providers
                             //get a reader - could be NRT or based on directly depending on how this was constructed
                             _reader = _nrtWriter == null
                                 ? OpenNewReader()
-                                : _nrtWriter.GetReader();
-
+                                : _nrtWriter.GetReader(true);
+                            var luceneDirectory = _nrtWriter == null
+                                ? GetLuceneDirectory()
+                                : _nrtWriter.Directory;
                             _searcher = new IndexSearcher(_reader);
 
                             //track it!
-                            OpenReaderTracker.Current.AddOpenReader(_reader);
+                            OpenReaderTracker.Current.AddOpenReader(_reader,luceneDirectory);
                         }
                         catch (IOException ex)
                         {
@@ -422,12 +426,14 @@ namespace Examine.LuceneEngine.Providers
                             //get a reader - could be NRT or based on directly depending on how this was constructed
                             _luceneSearcher._reader = _luceneSearcher._nrtWriter == null
                                 ? _luceneSearcher.OpenNewReader()
-                                : _luceneSearcher._nrtWriter.GetReader();
-
+                                : _luceneSearcher._nrtWriter.GetReader(true);
+                            var luceneDirectory = _luceneSearcher._nrtWriter == null
+                                ? _luceneSearcher.GetLuceneDirectory()
+                                : _luceneSearcher._nrtWriter.Directory;
                             _luceneSearcher._searcher = new IndexSearcher(_luceneSearcher._reader);
 
                             //track it!
-                            OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader);
+                            OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader,luceneDirectory);
                         }
                         break;
                     case ReaderStatus.NotCurrent:
@@ -442,7 +448,7 @@ namespace Examine.LuceneEngine.Providers
                             if (_luceneSearcher._nrtWriter == null && _luceneSearcher.TryEstablishNrtReader())
                             {
                                 //the new reader will now be an NRT reader
-                                newReader = _luceneSearcher._nrtWriter.GetReader();
+                                newReader = _luceneSearcher._nrtWriter.GetReader(true);
                             }
                             else
                             {
@@ -457,7 +463,7 @@ namespace Examine.LuceneEngine.Providers
                                 // since another thread might be using it. I'm 'hoping' that the GC will just take care of the left over reader's that might
                                 // be currently being used in a search, otherwise there's really no way to now when it's safe to close the reader. 
 
-                                newReader = _luceneSearcher._reader.Reopen();
+                                newReader = IndexReader.Open(_luceneSearcher._directory);
                             }
 
                             if (newReader != _luceneSearcher._reader)
@@ -466,9 +472,11 @@ namespace Examine.LuceneEngine.Providers
                                 // but that will cause problems since the old reader might be in use on another thread.
                                 _luceneSearcher._reader = newReader;
                                 _luceneSearcher._searcher = new IndexSearcher(_luceneSearcher._reader);
-
+                                var luceneDirectory = _luceneSearcher._nrtWriter == null
+                                    ? _luceneSearcher.GetLuceneDirectory()
+                                    : _luceneSearcher._nrtWriter.Directory;
                                 //track it!
-                                OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader);
+                                OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader,luceneDirectory);
 
                                 //get rid of old ones (anything a minute or older)
                                 OpenReaderTracker.Current.CloseStaleReaders(_luceneSearcher.GetLuceneDirectory(), TimeSpan.FromMinutes(1));
@@ -496,6 +504,7 @@ namespace Examine.LuceneEngine.Providers
                             _reader.Dispose();
                         }
                         catch (AlreadyClosedException)
+                        catch (ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if the 
                             // DecrementReaderResult never disposed, which occurs if people don't actually iterate the 

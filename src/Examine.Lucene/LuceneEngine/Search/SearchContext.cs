@@ -8,13 +8,13 @@ namespace Examine.LuceneEngine.Search
     {
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
 
-        public SearchContext(FieldValueTypeCollection fieldValueTypeCollection, Searcher searcher)
+        public SearchContext(FieldValueTypeCollection fieldValueTypeCollection, IndexSearcher searcher)
         {
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new System.ArgumentNullException(nameof(fieldValueTypeCollection));
             Searcher = searcher ?? throw new System.ArgumentNullException(nameof(searcher));
         }
 
-        public Searcher Searcher { get; }
+        public IndexSearcher Searcher { get; }
 
         public IIndexFieldValueType GetFieldValueType(string fieldName)
         {

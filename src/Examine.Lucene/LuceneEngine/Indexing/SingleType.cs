@@ -21,17 +21,17 @@ namespace Examine.LuceneEngine.Indexing
             if (!TryConvert(value, out float parsedVal))
                 return;
 
-            doc.Add(new NumericField(FieldName, Store ? Field.Store.YES : Field.Store.NO, true).SetFloatValue(parsedVal));
+            doc.Add(new DoubleField(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));
         }
 
-        public override Query GetQuery(string query, Searcher searcher)
+        public override Query GetQuery(string query, IndexSearcher searcher)
         {
             return !TryConvert(query, out float parsedVal) ? null : GetQuery(parsedVal, parsedVal);
         }
 
         public override Query GetQuery(float? lower, float? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
-            return NumericRangeQuery.NewFloatRange(FieldName,
+            return NumericRangeQuery.NewDoubleRange(FieldName,
                 lower ?? float.MinValue,
                 upper ?? float.MaxValue, lowerInclusive, upperInclusive);
         }

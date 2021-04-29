@@ -22,7 +22,7 @@ namespace Examine.LuceneEngine
             get { return Instance; }
         }
 
-        public void AddOpenReader(IndexReader reader)
+        public void AddOpenReader(IndexReader reader, Directory directory)
         {
             lock (_locker)
             {
@@ -64,6 +64,7 @@ namespace Examine.LuceneEngine
                             oldest.Item1.Dispose();
                         }
                         catch (AlreadyClosedException)
+                        catch (ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if this 
                             //somehow gets called in conjuction with the shutdown code or manually, etc...
@@ -100,7 +101,7 @@ namespace Examine.LuceneEngine
                     {
                         reader.Item1.Dispose();
                     }
-                    catch (AlreadyClosedException)
+                    catch (ObjectDisposedException)
                     {
                         //if this happens, more than one instance has decreased referenced, this could occur if this 
                         //somehow gets called in conjuction with the shutdown code or manually, etc...
@@ -131,6 +132,7 @@ namespace Examine.LuceneEngine
                             reader.Item1.Dispose();
                         }
                         catch (AlreadyClosedException)
+                        catch (ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if this 
                             //somehow gets called in conjuction with the shutdown code or manually, etc...

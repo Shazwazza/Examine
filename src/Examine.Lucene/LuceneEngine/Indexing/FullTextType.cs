@@ -2,7 +2,8 @@
 using System.IO;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Tokenattributes;
+using Lucene.Net.Analysis.Miscellaneous;
+using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -46,7 +47,6 @@ namespace Examine.LuceneEngine.Indexing
         {
             base.SetupAnalyzers(analyzer);
 
-            analyzer.AddAnalyzer(FieldName, _analyzer);
         }
 
         protected override void AddSingleValue(Document doc, object value)
@@ -91,12 +91,12 @@ namespace Examine.LuceneEngine.Indexing
             phraseQuery.Boost = 20;
             resultQuery.Add(phraseQuery, Occur.SHOULD);
 
-            var tokenStream = analyzer.TokenStream("SearchText", new StringReader(query));
-            var termAttribute = tokenStream.AddAttribute<ITermAttribute>();
-
+            var tokenStream = analyzer.GetTokenStream("SearchText", new StringReader(query));
+            var termAttribute = tokenStream.AddAttribute<ICharTermAttribute>();
+            tokenStream.Reset();
             while (tokenStream.IncrementToken())
             {
-                var term = termAttribute.Term;
+                var term = termAttribute.ToString();
 
                 //phraseQueryTerms.Add(new Term(fieldName, term));
                 //phraseQuery.Add(new[] { new Term(fieldName, term) });
@@ -116,7 +116,7 @@ namespace Examine.LuceneEngine.Indexing
                     //add wildcard
                     var pq = new PrefixQuery(new Term(fieldName, term));
                     //needed so that wildcard searches will return a score
-                    pq.RewriteMethod = MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE; //new ErrorCheckingScoringBooleanQueryRewrite();
+                    pq.MultiTermRewriteMethod = MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE; //new ErrorCheckingScoringBooleanQueryRewrite();
                     innerQuery.Add(pq, Occur.SHOULD);
 
                     resultQuery.Add(innerQuery, Occur.MUST);
@@ -127,7 +127,8 @@ namespace Examine.LuceneEngine.Indexing
                 }
             }
 
-            //phraseQuery.Add(phraseQueryTerms.ToArray());
+            tokenStream.End();
+            tokenStream.Dispose();
 
             return resultQuery.Clauses.Count > 0 ? resultQuery : null;
         }
@@ -138,7 +139,7 @@ namespace Examine.LuceneEngine.Indexing
         /// <param name="query"></param>
         /// <param name="searcher"></param>
         /// <returns></returns>
-        public override Query GetQuery(string query, Searcher searcher)
+        public override Query GetQuery(string query, IndexSearcher searcher)
         {
             return GenerateQuery(FieldName, query, _analyzer);
         }

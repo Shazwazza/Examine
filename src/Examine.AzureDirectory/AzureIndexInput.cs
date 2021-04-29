@@ -24,7 +24,7 @@ namespace Examine.AzureDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob)
+        public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob) : base(azuredirectory.RootFolder)
         {
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
             _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
@@ -51,8 +51,10 @@ namespace Examine.AzureDirectory
                     var hasMetadataValue = blob.Metadata.TryGetValue("CachedLength", out var blobLengthMetadata); 
                     var blobLength = blob.Properties.Length;
                     if (hasMetadataValue) long.TryParse(blobLengthMetadata, out blobLength);
+                      var unixDate = azuredirectory.CachedFileModified(fileName);
 
                     var blobLastModifiedUtc = blob.Properties.LastModified.Value.UtcDateTime;
+
                     if (blob.Metadata.TryGetValue("CachedLastModified", out var blobLastModifiedMetadata))
                     {
                         if (long.TryParse(blobLastModifiedMetadata, out var longLastModified))
@@ -65,9 +67,11 @@ namespace Examine.AzureDirectory
                     {
 
                         // cachedLastModifiedUTC was not ouputting with a date (just time) and the time was always off
-                        var unixDate = CacheDirectory.FileModified(fileName);
+                      //  var unixDate = CacheDirectory.FileModified(fileName);
+                      
                         var start = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                         var cachedLastModifiedUtc = start.AddMilliseconds(unixDate).ToUniversalTime();
+
                         
                         if (cachedLastModifiedUtc != blobLastModifiedUtc)
                         {
@@ -95,7 +99,7 @@ namespace Examine.AzureDirectory
                     }
                     else
                     {
-                        using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
+                        using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName,IOContext.DEFAULT)))
                         {
                             // get the blob
                             _blob.DownloadToStream(fileStream);
@@ -108,7 +112,7 @@ namespace Examine.AzureDirectory
                     }
 
                     // and open it as an input 
-                    _indexInput = CacheDirectory.OpenInput(fileName);
+                    _indexInput = CacheDirectory.OpenInput(fileName,IOContext.DEFAULT);
                 }
                 else
                 {
@@ -117,7 +121,7 @@ namespace Examine.AzureDirectory
 #endif
 
                     // open the file in read only mode
-                    _indexInput = CacheDirectory.OpenInput(fileName);
+                    _indexInput = CacheDirectory.OpenInput(fileName,IOContext.READ);
                 }
             }
             finally
@@ -143,7 +147,7 @@ namespace Examine.AzureDirectory
                 deflatedStream.Seek(0, SeekOrigin.Begin);
 
                 // open output file for uncompressed contents
-                using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName)))
+                using (var fileStream = new StreamOutput(CacheDirectory.CreateOutput(fileName, IOContext.DEFAULT)))
                 using (var decompressor = new DeflateStream(deflatedStream, CompressionMode.Decompress))
                 {
                     var bytes = new byte[65535];
@@ -158,7 +162,7 @@ namespace Examine.AzureDirectory
             }
         }
 
-        public AzureIndexInput(AzureIndexInput cloneInput)
+        public AzureIndexInput(AzureIndexInput cloneInput) : base(cloneInput._name)
         {
             _name = cloneInput._name;
             _azureDirectory = cloneInput._azureDirectory;
@@ -202,7 +206,12 @@ namespace Examine.AzureDirectory
             _indexInput.ReadBytes(b, offset, len);
         }
 
-        public override long FilePointer => _indexInput.FilePointer;
+     
+
+        public override long GetFilePointer()
+        {
+        return    _indexInput.GetFilePointer();
+        }
 
         public override void Seek(long pos)
         {
@@ -230,10 +239,7 @@ namespace Examine.AzureDirectory
             }
         }
 
-        public override long Length()
-        {
-            return _indexInput.Length();
-        }
+        public override long Length => _indexInput.Length;
 
         public override object Clone()
         {

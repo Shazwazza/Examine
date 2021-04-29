@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -50,7 +51,7 @@ namespace Examine.LuceneEngine.Indexing
         /// <param name="query"></param>
         /// <param name="searcher"></param>
         /// <returns></returns>
-        public virtual Query GetQuery(string query, Searcher searcher)
+        public virtual Query GetQuery(string query, IndexSearcher searcher)
         {
             return new TermQuery(new Term(FieldName, query));
         }

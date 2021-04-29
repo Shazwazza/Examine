@@ -59,6 +59,7 @@ namespace Examine.AzureDirectory
             return new AzureDirectory(
                 CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),
                 ConfigurationManager.AppSettings[ConfigContainerKey],
+                tempFolder,
                 new SimpleFSDirectory(tempFolder),
                 rootFolder: luceneIndexFolder.Name,
                 isReadOnly: _isReadOnly);

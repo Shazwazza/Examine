@@ -8,9 +8,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Util;
 using Directory = Lucene.Net.Store.Directory;
 
 
@@ -73,7 +75,7 @@ namespace Examine.LuceneEngine.Providers
 
             LuceneIndexFolder = null;
 
-            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Lucene.Net.Util.Version.LUCENE_30);
+            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Util.Version);
 
             _directory = luceneDirectory;
             //initialize the field types
@@ -453,7 +455,7 @@ namespace Examine.LuceneEngine.Providers
                     IndexWriter.Unlock(dir);
                 }
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(dir, FieldAnalyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+                writer = new IndexWriter(dir, new IndexWriterConfig(Util.Version,FieldAnalyzer));
 
                 // clear out current scheduler and set the error logging one
                 writer.MergeScheduler.Dispose();
@@ -543,7 +545,7 @@ namespace Examine.LuceneEngine.Providers
                 var writer = GetIndexWriter();
 
                 //wait for optimization to complete (true)
-                writer.Optimize(true);
+                //writer.Optimize(true); TODO:Figure out if Optimase exist in Lucene.net 4.8
             }
             catch (Exception ex)
             {
@@ -611,7 +613,7 @@ namespace Examine.LuceneEngine.Providers
             {
                 try
                 {
-                    using (_writer.GetReader())
+                    using (_writer.GetReader(true))
                     {
                         ex = null;
                         return true;
@@ -626,7 +628,7 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                using (IndexReader.Open(GetLuceneDirectory(), true))
+                using (IndexReader.Open(GetLuceneDirectory()))
                 {
                 }
                 ex = null;
@@ -656,7 +658,7 @@ namespace Examine.LuceneEngine.Providers
             //if it's not been set or it just doesn't exist, re-read the lucene files
             if (!_exists.HasValue || !_exists.Value)
             {
-                _exists = IndexReader.IndexExists(GetLuceneDirectory());
+                _exists = DirectoryReader.IndexExists(GetLuceneDirectory());
             }
 
             return _exists.Value;
@@ -676,7 +678,7 @@ namespace Examine.LuceneEngine.Providers
             string itemId = null;
             if (indexTerm.Field == "id")
             {
-                itemId = indexTerm.Text;
+                itemId = indexTerm.Text();
             }
 
             try
@@ -1198,8 +1200,8 @@ namespace Examine.LuceneEngine.Providers
                 {
                     System.IO.Directory.CreateDirectory(LuceneIndexFolder.FullName);
                     _logOutput = new FileStream(Path.Combine(LuceneIndexFolder.FullName, DateTime.UtcNow.ToString("yyyy-MM-dd") + ".log"), FileMode.Append);
-                    var w = new StreamWriter(_logOutput);
-                    writer.SetInfoStream(w);
+           
+            
                 }
                 catch (Exception ex)
                 {
@@ -1220,7 +1222,7 @@ namespace Examine.LuceneEngine.Providers
         protected virtual IndexWriter WriterFactory(Directory d)
         {
             if (d == null) throw new ArgumentNullException(nameof(d));
-            var writer = new IndexWriter(d, FieldAnalyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+            var writer = new IndexWriter(d, new IndexWriterConfig(Util.Version,FieldAnalyzer));
 
             // clear out current scheduler and set the error logging one
             writer.MergeScheduler.Dispose();
