@@ -15,7 +15,8 @@ namespace Examine.LuceneEngine.Directories
         private readonly ILoggerFactory _loggerFactory;
         private readonly SyncMutexManager _syncMutexManager;
 
-        public SyncTempEnvDirectoryFactory(ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager)
+        public SyncTempEnvDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager)
+            : base(applicationIdentifier)
         {
             _loggerFactory = loggerFactory;
             _syncMutexManager = syncMutexManager;

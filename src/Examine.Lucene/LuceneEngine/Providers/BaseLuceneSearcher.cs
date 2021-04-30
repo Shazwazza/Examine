@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Examine.LuceneEngine.Search;
@@ -18,27 +18,28 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="analyzer"></param>
         protected BaseLuceneSearcher(string name, Analyzer analyzer)
             : base(name)
-		{
-		    if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
-		    LuceneAnalyzer = analyzer;
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            LuceneAnalyzer = analyzer;
         }
 
-	    /// <summary>
-	    /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
-	    /// </summary>
-	    public Analyzer LuceneAnalyzer { get; }
+        /// <summary>
+        /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
+        /// </summary>
+        public Analyzer LuceneAnalyzer { get; }
 
         /// <summary>
         /// Returns all field names that exist in the index
         /// </summary>
         /// <returns></returns>
         public abstract string[] GetAllIndexedFields();
-        
+
         ///<summary>
         /// returns the underlying Lucene searcher
         ///</summary>
         ///<returns></returns>
-		
+
         public abstract IndexSearcher GetLuceneSearcher();
 
         public abstract ISearchContext GetSearchContext();
@@ -59,7 +60,8 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         public IQuery CreateQuery(string category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
-            if (luceneAnalyzer == null) throw new ArgumentNullException(nameof(luceneAnalyzer));
+            if (luceneAnalyzer == null)
+                throw new ArgumentNullException(nameof(luceneAnalyzer));
 
             return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
         }
@@ -71,53 +73,51 @@ namespace Examine.LuceneEngine.Providers
             return sc.Execute(maxResults);
         }
 
-        /// <summary>
-        /// This is NOT used! however I'm leaving this here as example code
-        /// 
-        /// This is used to recursively set any query type that supports <see cref="MultiTermQuery.RewriteMethod"/> parameters for rewriting
-        /// before the search executes.
-        /// </summary>
-        /// <param name="query"></param>
-        /// <remarks>
-        /// Normally this is taken care of with QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE) however
-        /// that would need to be set eagerly before any query parsing takes place but if we want to do it lazily here's how.
-        /// So we need to manually update any query within the outer boolean query with the correct rewrite method, then the underlying LuceneSearcher will call rewrite
-        /// to update everything.
-        /// 
-        /// see https://github.com/Shazwazza/Examine/pull/89
-        /// see https://lists.gt.net/lucene/java-user/92194
-        /// 
-        /// </remarks>
-        private void SetScoringBooleanQueryRewriteMethod(Query query)
-        {
-            
+        ///// <summary>
+        ///// This is NOT used! however I'm leaving this here as example code
+        ///// 
+        ///// This is used to recursively set any query type that supports <see cref="MultiTermQuery.RewriteMethod"/> parameters for rewriting
+        ///// before the search executes.
+        ///// </summary>
+        ///// <param name="query"></param>
+        ///// <remarks>
+        ///// Normally this is taken care of with QueryParser.SetMultiTermRewriteMethod(MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE) however
+        ///// that would need to be set eagerly before any query parsing takes place but if we want to do it lazily here's how.
+        ///// So we need to manually update any query within the outer boolean query with the correct rewrite method, then the underlying LuceneSearcher will call rewrite
+        ///// to update everything.
+        ///// 
+        ///// see https://github.com/Shazwazza/Examine/pull/89
+        ///// see https://lists.gt.net/lucene/java-user/92194
+        ///// 
+        ///// </remarks>
+        //private void SetScoringBooleanQueryRewriteMethod(Query query)
+        //{
 
-            if (query is MultiTermQuery mtq)
-            {
-                try
-                {
-                    mtq.MultiTermRewriteMethod = ErrorCheckingScoringBooleanQueryRewriteInstance;
-                }
-                catch (NotSupportedException)
-                {
-                    //swallow this, some implementations of MultiTermQuery don't support this like FuzzyQuery
-                }
-            }
-            if (query is BooleanQuery bq)
-            {
-                foreach (BooleanClause clause in bq.Clauses)
-                {
-                    var q = clause.Query;
-                    //recurse
-                    SetScoringBooleanQueryRewriteMethod(q);
-                }
-            }
-        }
-        
-        //do not try to set this here as a readonly field - the stupid medium trust transparency rules will throw up all over the place
-        private static MultiTermQuery.RewriteMethod  _errorCheckingScoringBooleanQueryRewriteInstance;
 
-        public static MultiTermQuery.RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance => _errorCheckingScoringBooleanQueryRewriteInstance ?? (_errorCheckingScoringBooleanQueryRewriteInstance =new ErrorCheckingScoringBooleanQueryRewrite());
-        
+        //    if (query is MultiTermQuery mtq)
+        //    {
+        //        try
+        //        {
+        //            mtq.MultiTermRewriteMethod = ErrorCheckingScoringBooleanQueryRewriteInstance;
+        //        }
+        //        catch (NotSupportedException)
+        //        {
+        //            //swallow this, some implementations of MultiTermQuery don't support this like FuzzyQuery
+        //        }
+        //    }
+        //    if (query is BooleanQuery bq)
+        //    {
+        //        foreach (BooleanClause clause in bq.Clauses)
+        //        {
+        //            var q = clause.Query;
+        //            //recurse
+        //            SetScoringBooleanQueryRewriteMethod(q);
+        //        }
+        //    }
+        //}
+
+        //private static MultiTermQuery.RewriteMethod s_errorCheckingScoringBooleanQueryRewriteInstance;
+        //public static MultiTermQuery.RewriteMethod ErrorCheckingScoringBooleanQueryRewriteInstance => s_errorCheckingScoringBooleanQueryRewriteInstance ?? (s_errorCheckingScoringBooleanQueryRewriteInstance = new ErrorCheckingScoringBooleanQueryRewrite());
+
     }
 }

@@ -1,12 +1,10 @@
 using System;
 using System.IO;
-using System.Security;
-using System.Web;
-using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine.Directories
 {
+
     /// <summary>
     /// A directory factory used to create an instance of FSDirectory that uses the current %temp% environment variable
     /// </summary>
@@ -15,6 +13,12 @@ namespace Examine.LuceneEngine.Directories
     /// </remarks>
     public class TempEnvDirectoryFactory : DirectoryFactory
     {
+        private readonly IApplicationIdentifier _applicationIdentifier;
+
+        public TempEnvDirectoryFactory(IApplicationIdentifier applicationIdentifier)
+        {
+            _applicationIdentifier = applicationIdentifier;
+        }
         
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
@@ -28,8 +32,7 @@ namespace Examine.LuceneEngine.Directories
 
         protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {
-            //Todo: have find replacement for HttpRuntime.AppDomainAppId.GenerateHash()
-            var appDomainHash = "";
+            var appDomainHash = _applicationIdentifier.GetApplicationUniqueIdentifier().GenerateHash();
             var indexPathName = GetIndexPathName(indexPath);
             var cachePath = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "ExamineIndexes",
                 //include the appdomain hash is just a safety check, for example if a website is moved from worker A to worker B and then back

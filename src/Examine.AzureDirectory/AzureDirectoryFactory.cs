@@ -17,8 +17,8 @@ namespace Examine.AzureDirectory
         private readonly SyncMutexManager _syncMutexManager;
         private readonly bool _isReadOnly;
         
-        public AzureDirectoryFactory(ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, bool isReadOnly)
-            : base(loggerFactory, syncMutexManager)
+        public AzureDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, bool isReadOnly)
+            : base(applicationIdentifier, loggerFactory, syncMutexManager)
         {
             _logger = loggerFactory.CreateLogger<AzureDirectoryFactory>();
             _syncMutexManager = syncMutexManager;
