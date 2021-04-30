@@ -5,10 +5,10 @@
 //using System.Linq;
 
 //using Lucene.Net.Search;
-//using Examine.LuceneEngine.Providers;
+//using Examine.Lucene.Providers;
 //using Lucene.Net.Index;
 //using Examine.Test.DataServices;
-//using Examine.LuceneEngine;
+//using Examine.Lucene;
 //using Lucene.Net.Analysis;
 //using Lucene.Net.Analysis.Standard;
 //using Lucene.Net.Store;

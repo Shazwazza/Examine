@@ -1,4 +1,5 @@
-using Examine.LuceneEngine.Providers;
+using Examine.Lucene;
+using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
@@ -152,7 +153,7 @@ namespace Examine.Test.Extensions
             y = lat;
         }
 
-        private void Indexer_DocumentWriting(LuceneEngine.DocumentWritingEventArgs e, SpatialContext ctx, SpatialStrategy strategy)
+        private void Indexer_DocumentWriting(DocumentWritingEventArgs e, SpatialContext ctx, SpatialStrategy strategy)
         {
             double lat = double.Parse(e.ValueSet.Values["lat"].First().ToString());
             double lng = double.Parse(e.ValueSet.Values["lng"].First().ToString());

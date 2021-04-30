@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Examine.LuceneEngine.Directories;
+using Examine.Lucene.Directories;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage;
@@ -16,7 +16,7 @@ namespace Examine.AzureDirectory
     /// <summary>
     /// A Lucene directory used to store master index files in blob storage and sync local files to a %temp% fast drive storage
     /// </summary>
-    public class AzureDirectory : Lucene.Net.Store.Directory
+    public class AzureDirectory : global::Lucene.Net.Store.Directory
     {
         private readonly ILogger<AzureDirectory> _logger;
         private readonly ILogger<AzureIndexInput> _inputLogger;
@@ -50,7 +50,7 @@ namespace Examine.AzureDirectory
             CloudStorageAccount storageAccount,
             string containerName,
             DirectoryInfo indexFolder,
-            Lucene.Net.Store.Directory cacheDirectory,
+            global::Lucene.Net.Store.Directory cacheDirectory,
             SyncMutexManager syncMutexManager,
             bool compressBlobs = false,
             string rootFolder = null,
@@ -96,7 +96,7 @@ namespace Examine.AzureDirectory
         public string RootFolder { get; }
         public CloudBlobContainer BlobContainer { get; private set; }
         public bool CompressBlobs { get; }
-        public Lucene.Net.Store.Directory CacheDirectory { get; }
+        public global::Lucene.Net.Store.Directory CacheDirectory { get; }
 
         public void ClearCache()
         {

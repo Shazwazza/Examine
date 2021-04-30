@@ -1,12 +1,12 @@
 ﻿//using System;
 //using System.Diagnostics;
 //using System.IO;
-//using Examine.LuceneEngine.Providers;
+//using Examine.Lucene.Providers;
 //using Examine.Test.DataServices;
 
 //using Lucene.Net.Analysis.Standard;
 //using System.Threading;
-//using Examine.LuceneEngine;
+//using Examine.Lucene;
 //using Lucene.Net.Store;
 //using NUnit.Framework;
 

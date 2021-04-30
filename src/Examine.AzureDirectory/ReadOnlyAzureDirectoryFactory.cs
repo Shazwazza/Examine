@@ -1,4 +1,4 @@
-using Examine.LuceneEngine.Directories;
+using Examine.Lucene.Directories;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.AzureDirectory

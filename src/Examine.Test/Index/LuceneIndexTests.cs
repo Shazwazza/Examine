@@ -11,10 +11,10 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
 using NUnit.Framework;
 using Lucene.Net.Index;
-using Examine.LuceneEngine;
-using Examine.LuceneEngine.Providers;
+using Examine.Lucene;
+using Examine.Lucene.Providers;
 using System.Threading;
-using Examine.LuceneEngine.Indexing;
+using Examine.Lucene.Indexing;
 using Examine.Search;
 using Examine.Test.DataServices;
 using Examine.Test.UmbracoExamine;
@@ -312,7 +312,7 @@ namespace Examine.Test.Index
             const int ThreadCount = 1000;
 
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
+            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
             using (var customIndexer = GetTestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
@@ -417,7 +417,7 @@ namespace Examine.Test.Index
         public void Index_Ensure_No_Duplicates_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
+            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
             using (var customIndexer = GetTestIndex(writer))
             //using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
@@ -496,7 +496,7 @@ namespace Examine.Test.Index
             // TODO: In the search part, we should be searching in various ways and also with skip
 
             DirectoryInfo temp = null;
-            Lucene.Net.Store.Directory directory;
+            global::Lucene.Net.Store.Directory directory;
             if (inMemory)
             {
                 directory = new RandomIdRAMDirectory();
@@ -526,7 +526,7 @@ namespace Examine.Test.Index
                 using (var d = directory)
                 using (var writer = new IndexWriter(
                     d,
-                    new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
+                    new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
                 using (var customIndexer = GetTestIndex(writer))
                 using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
                 using (customIndexer.ProcessNonAsync())

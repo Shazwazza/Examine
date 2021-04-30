@@ -1,4 +1,4 @@
-using Examine.LuceneEngine.Providers;
+using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using Lucene.Net.Util;

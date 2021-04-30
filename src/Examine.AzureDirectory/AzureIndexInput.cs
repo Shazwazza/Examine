@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
-using Examine.LuceneEngine.Directories;
+using Examine.Lucene.Directories;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
@@ -25,7 +25,7 @@ namespace Examine.AzureDirectory
         private IndexInput _indexInput;
         private readonly Mutex _fileMutex;
 
-        public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
+        public global::Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
         public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob, SyncMutexManager syncMutexManager, ILogger<AzureIndexInput> logger) : base(azuredirectory.RootFolder)
         {

@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Examine.LuceneEngine.Providers;
+using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 using Lucene.Net.Analysis.Util;

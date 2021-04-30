@@ -1,6 +1,6 @@
 using System.Configuration;
 using System.IO;
-using Examine.LuceneEngine.Directories;
+using Examine.Lucene.Directories;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage;
 using Microsoft.Extensions.Logging;
