@@ -3,7 +3,7 @@
 //using System.Linq;
 //using System.Text;
 //using System.Threading.Tasks;
-//using Examine.AzureDirectory;
+//using Examine.Lucene.AzureDirectory;
 //using Lucene.Net.Analysis;
 //using System.Configuration;
 //using Microsoft.Azure.Storage;
@@ -53,7 +53,7 @@
 //            CloudStorageAccount storageAccount = CloudStorageAccount.Parse("UseDevelopmentStorage=true");
 
 //            SimpleFSDirectory cacheDirectory1 = new SimpleFSDirectory(new DirectoryInfo(tempFolder1));
-//            var writeDir = new Examine.AzureDirectory.AzureDirectory(
+//            var writeDir = new Examine.Lucene.AzureDirectory.AzureDirectory(
 //                storageAccount,
 //                ContainerName,
 //                cacheDirectory1,
@@ -61,7 +61,7 @@
 //                isReadOnly: false);
 
 //            SimpleFSDirectory cacheDirectory2 = new SimpleFSDirectory(new DirectoryInfo(tempFolder2));
-//            var readDir = new Examine.AzureDirectory.AzureDirectory(
+//            var readDir = new Examine.Lucene.AzureDirectory.AzureDirectory(
 //                storageAccount,
 //                ContainerName,
 //                cacheDirectory2,
