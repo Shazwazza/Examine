@@ -50,13 +50,13 @@ namespace Examine.LuceneEngine
         /// </summary>
         public TopDocs TopDocs { get; private set; }
 
-        public FieldSelector FieldSelector { get; }
+        public ISet<string> FieldsToLoad { get; }
 
-        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, IndexSearcher searcher, int maxResults, FieldSelector fieldSelector)
+        internal LuceneSearchResults(Query query, IEnumerable<SortField> sortField, IndexSearcher searcher, int maxResults, ISet<string> fieldsToLoad)
         {
             LuceneQuery = query;
 
-            FieldSelector = fieldSelector;
+            FieldsToLoad = fieldsToLoad;
             LuceneSearcher = searcher;
             _maxResults = maxResults;
             _sortField = sortField;
@@ -120,19 +120,19 @@ namespace Examine.LuceneEngine
             {
                 if (sortFields.Length > 0 && take != null && take.Value >= 0)
                 {
-                    TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip.Value, take.Value);
+                    TopDocs = ((TopFieldCollector)topDocsCollector).GetTopDocs(skip.Value, take.Value);
                 }
                 else if (sortFields.Length > 0 && (take == null || take.Value < 0))
                 {
-                    TopDocs = ((TopFieldCollector)topDocsCollector).TopDocs(skip.Value);
+                    TopDocs = ((TopFieldCollector)topDocsCollector).GetTopDocs(skip.Value);
                 }
                 else if (take != null && take.Value >= 0)
                 {
-                    TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip.Value, take.Value);
+                    TopDocs = ((TopScoreDocCollector)topDocsCollector).GetTopDocs(skip.Value, take.Value);
                 }
                 else
                 {
-                    TopDocs = ((TopScoreDocCollector)topDocsCollector).TopDocs(skip.Value);
+                    TopDocs = ((TopScoreDocCollector)topDocsCollector).GetTopDocs(skip.Value);
                 }
             }
 
@@ -153,9 +153,9 @@ namespace Examine.LuceneEngine
 
             var docId = scoreDoc.Doc;
             Document doc;
-            if (FieldSelector != null)
+            if (FieldsToLoad != null)
             {
-                doc = LuceneSearcher.Doc(docId, FieldSelector);
+                doc = LuceneSearcher.Doc(docId, FieldsToLoad);
             }
             else
             {
@@ -240,10 +240,10 @@ namespace Examine.LuceneEngine
 #pragma warning restore IDE0044 // Add readonly modifier
             private readonly IndexSearcher _searcher;
 
-            public SkipEnumerable(IEnumerator<ISearchResult> enumerator, Searcher searcher)
+            public SkipEnumerable(IEnumerator<ISearchResult> enumerator, IndexSearcher searcher)
             {
                 _enumerator = enumerator;
-                _searcher = searcher as IndexSearcher;
+                _searcher = searcher;
             }
 
             public IEnumerator<ISearchResult> GetEnumerator()

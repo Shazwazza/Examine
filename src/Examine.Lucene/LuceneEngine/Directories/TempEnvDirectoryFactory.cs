@@ -28,7 +28,8 @@ namespace Examine.LuceneEngine.Directories
 
         protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {
-            var appDomainHash = HttpRuntime.AppDomainAppId.GenerateHash();
+            //Todo: have find replacement for HttpRuntime.AppDomainAppId.GenerateHash()
+            var appDomainHash = "";
             var indexPathName = GetIndexPathName(indexPath);
             var cachePath = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "ExamineIndexes",
                 //include the appdomain hash is just a safety check, for example if a website is moved from worker A to worker B and then back

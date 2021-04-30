@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Documents;
@@ -25,7 +25,7 @@ namespace Examine.LuceneEngine
             var searchResult = new SearchResult(id, score, () =>
             {
                 //we can use lucene to find out the fields which have been stored for this particular document
-                var fields = doc.GetFields();
+                var fields = doc.Fields;
 
                 var resultVals = new Dictionary<string, List<string>>();
 

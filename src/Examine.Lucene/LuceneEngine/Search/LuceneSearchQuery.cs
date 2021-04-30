@@ -7,6 +7,7 @@ using Examine.LuceneEngine.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine.Search
@@ -18,8 +19,7 @@ namespace Examine.LuceneEngine.Search
     public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
-        private static readonly HashSet<string> EmptyHashSet = new HashSet<string>();
-        private FieldSelector _selector = null;
+        private ISet<string> _fieldsToLoad = null;
 
         public LuceneSearchQuery(
             ISearchContext searchContext,
@@ -162,7 +162,7 @@ namespace Examine.LuceneEngine.Search
 
             }
 
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, _selector);
+            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, _fieldsToLoad);
 
             return pagesResults;
         }        
@@ -230,43 +230,19 @@ namespace Examine.LuceneEngine.Search
 
         internal IBooleanOperation SelectFieldsInternal(ISet<string> loadedFieldNames)
         {
-            _selector = new SetBasedFieldSelector(loadedFieldNames, EmptyHashSet);
-            return CreateOp();
-        }
-
-        internal IBooleanOperation SelectFieldsInternal(Hashtable loadedFieldNames)
-        {
-            HashSet<string> hs = new HashSet<string>();
-            foreach (string item in loadedFieldNames.Keys)
-            {
-                hs.Add(item);
-            }
-            _selector = new SetBasedFieldSelector(hs, EmptyHashSet);
-            return CreateOp();
-        }
-
-        internal IBooleanOperation SelectFieldsInternal(params string[] loadedFieldNames)
-        {
-            ISet<string> loaded = new HashSet<string>(loadedFieldNames);
-            _selector = new SetBasedFieldSelector(loaded, EmptyHashSet);
+            _fieldsToLoad = loadedFieldNames;
             return CreateOp();
         }
 
         internal IBooleanOperation SelectFieldInternal(string fieldName)
         {
-            ISet<string> loaded = new HashSet<string>(new string[] { fieldName });
-            _selector = new SetBasedFieldSelector(loaded, EmptyHashSet);
+            _fieldsToLoad = new HashSet<string>(new string[] { fieldName });
             return CreateOp();
         }
 
-        public IBooleanOperation SelectFirstFieldOnlyInternal()
-        {
-            _selector = new LoadFirstFieldSelector();
-            return CreateOp();
-        }
         public IBooleanOperation SelectAllFieldsInternal()
         {
-            _selector = null;
+            _fieldsToLoad = null;
             return CreateOp();
         }
 

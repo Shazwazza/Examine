@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -157,9 +157,10 @@ namespace Examine.LuceneEngine.Providers
         private int _activeWrites = 0;
         private int _activeAddsOrDeletes = 0;
 
-        public static int DefaultQueueCapacity = 1000; // This is mutable if set before this is constructed
+        // TODO: Need to make this configurable
+        public const int DefaultQueueCapacity = 1000;
 
-        
+
 
         /// <summary>
         /// Used to perform thread locking
@@ -363,7 +364,8 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         public void EnsureIndex(bool forceOverwrite)
         {
-            if (!forceOverwrite && _exists.HasValue && _exists.Value) return;
+            if (!forceOverwrite && _exists.HasValue && _exists.Value)
+                return;
 
             var indexExists = IndexExists();
             if (!indexExists || forceOverwrite)
@@ -405,7 +407,8 @@ namespace Examine.LuceneEngine.Providers
                             _cancellationTokenSource.Cancel();
 
                             // indicates that it was locked, this generally shouldn't happen but we don't want to have unhandled exceptions
-                            if (_writer == null) return;
+                            if (_writer == null)
+                                return;
 
                             try
                             {
@@ -455,12 +458,12 @@ namespace Examine.LuceneEngine.Providers
                     IndexWriter.Unlock(dir);
                 }
                 //create the writer (this will overwrite old index files)
-                writer = new IndexWriter(dir, new IndexWriterConfig(Util.Version,FieldAnalyzer));
-
-                // clear out current scheduler and set the error logging one
-                writer.MergeScheduler.Dispose();
-                writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
-                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
+                var writerConfig = new IndexWriterConfig(Util.Version, FieldAnalyzer)
+                {
+                    MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
+                        (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
+                };
+                writer = new IndexWriter(dir, writerConfig);
 
             }
             catch (Exception ex)
@@ -588,20 +591,14 @@ namespace Examine.LuceneEngine.Providers
         /// Checks if the index is ready to open/write to.
         /// </summary>
         /// <returns></returns>
-        protected bool IndexReady()
-        {
-            return _writer != null || (!IndexWriter.IsLocked(GetLuceneDirectory()));
-        }
+        protected bool IndexReady() => _writer != null || (!IndexWriter.IsLocked(GetLuceneDirectory()));
 
         /// <summary>
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
 
-        public override bool IndexExists()
-        {
-            return _writer != null || IndexExistsImpl();
-        }
+        public override bool IndexExists() => _writer != null || IndexExistsImpl();
 
         /// <summary>
         /// Check if the index is readable/healthy
@@ -628,7 +625,7 @@ namespace Examine.LuceneEngine.Providers
 
             try
             {
-                using (IndexReader.Open(GetLuceneDirectory()))
+                using (DirectoryReader.Open(GetLuceneDirectory()))
                 {
                 }
                 ex = null;
@@ -653,7 +650,8 @@ namespace Examine.LuceneEngine.Providers
         private bool IndexExistsImpl()
         {
             //if it's been set and it's true, return true
-            if (_exists.HasValue && _exists.Value) return true;
+            if (_exists.HasValue && _exists.Value)
+                return true;
 
             //if it's not been set or it just doesn't exist, re-read the lucene files
             if (!_exists.HasValue || !_exists.Value)
@@ -1221,13 +1219,16 @@ namespace Examine.LuceneEngine.Providers
         /// <returns></returns>
         protected virtual IndexWriter WriterFactory(Directory d)
         {
-            if (d == null) throw new ArgumentNullException(nameof(d));
-            var writer = new IndexWriter(d, new IndexWriterConfig(Util.Version,FieldAnalyzer));
+            if (d == null)
+            {
+                throw new ArgumentNullException(nameof(d));
+            }
 
-            // clear out current scheduler and set the error logging one
-            writer.MergeScheduler.Dispose();
-            writer.SetMergeScheduler(new ErrorLoggingConcurrentMergeScheduler(Name,
-                (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e))));
+            var writer = new IndexWriter(d, new IndexWriterConfig(Util.Version, FieldAnalyzer)
+            {
+                MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
+                    (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
+            });
 
             return writer;
         }
@@ -1271,7 +1272,8 @@ namespace Examine.LuceneEngine.Providers
             foreach (var suffix in possibleSuffixes)
             {
                 //trim the "Indexer" / "Index" suffix if it exists
-                if (!name.EndsWith(suffix)) continue;
+                if (!name.EndsWith(suffix))
+                    continue;
                 name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
             }
 
@@ -1310,7 +1312,8 @@ namespace Examine.LuceneEngine.Providers
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.ValueSet);
             OnTransformingIndexValues(indexingNodeDataArgs);
-            if (indexingNodeDataArgs.Cancel) return false;
+            if (indexingNodeDataArgs.Cancel)
+                return false;
 
             var d = new Document();
             AddDocument(d, op.ValueSet, writer);
@@ -1353,13 +1356,17 @@ namespace Examine.LuceneEngine.Providers
         public Task<long> GetDocumentCountAsync()
         {
             var writer = GetIndexWriter();
-            return Task.FromResult((long)writer.NumDocs());
+            return Task.FromResult((long)writer.NumDocs);
         }
 
         public Task<IEnumerable<string>> GetFieldNamesAsync()
         {
             var writer = GetIndexWriter();
-            return Task.FromResult((IEnumerable<string>)writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL));
+            using (var reader = writer.GetReader(false))
+            {
+                IEnumerable<string> fieldInfos = MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name);
+                return Task.FromResult(fieldInfos);
+            }
         }
 
         private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)
@@ -1371,7 +1378,8 @@ namespace Examine.LuceneEngine.Providers
             var stopwatch = Stopwatch.StartNew();
             do
             {
-                if (task()) { return true; }
+                if (task())
+                { return true; }
                 Thread.Sleep((int)pause.TotalMilliseconds);
             }
             while (stopwatch.Elapsed < timeout);
