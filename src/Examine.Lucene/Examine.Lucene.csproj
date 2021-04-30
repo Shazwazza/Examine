@@ -7,20 +7,8 @@
    <None Remove="AspExamineManager.cs.bak" />
  </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="J2N">
-      <Version>1.0.0-beta-0002</Version>
-    </PackageReference>
-    <PackageReference Include="Lucene.Net">
-      <Version>4.8.0-beta00007</Version>
-    </PackageReference>
-    <PackageReference Include="Lucene.Net.Facet">
-      <Version>4.8.0-beta00007</Version>
-    </PackageReference>
     <PackageReference Include="Lucene.Net.QueryParser">
-      <Version>4.8.0-beta00007</Version>
-    </PackageReference>
-    <PackageReference Include="Lucene.Net.Analysis.Common">
-      <Version>4.8.0-beta00007</Version>
+      <Version>4.8.0-beta00014</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory">
       <Version>3.1.0</Version>

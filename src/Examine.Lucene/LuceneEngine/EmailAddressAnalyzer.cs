@@ -23,7 +23,7 @@ namespace Examine.LuceneEngine
         /// <summary>
         /// Used for email addresses
         /// </summary>
-        private class EmailAddressTokenizer : CharTokenizer
+        private sealed class EmailAddressTokenizer : CharTokenizer
         {
             public EmailAddressTokenizer(TextReader tr)
                : base(LuceneInfo.CurrentVersion, tr)

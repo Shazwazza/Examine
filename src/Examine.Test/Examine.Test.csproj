@@ -79,7 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lucene.Net.Spatial">
-      <Version>4.8.0-beta00007</Version>
+      <Version>4.8.0-beta00014</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Azure.Storage.Blob">
       <Version>11.2.2</Version>

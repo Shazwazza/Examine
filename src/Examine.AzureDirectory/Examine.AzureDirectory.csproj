@@ -20,7 +20,7 @@
       <Version>4.8.0-beta00007</Version>
     </PackageReference>
     <PackageReference Include="Lucene.Net.QueryParser">
-      <Version>4.8.0-beta00007</Version>
+      <Version>4.8.0-beta00014</Version>
     </PackageReference>
     <PackageReference Include="Lucene.Net.Store.Azure">
       <Version>4.8.0-beta006-2</Version>

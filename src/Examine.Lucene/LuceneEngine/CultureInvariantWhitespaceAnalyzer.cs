@@ -1,4 +1,5 @@
 using System.IO;
+using J2N;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Miscellaneous;
@@ -55,7 +56,7 @@ namespace Examine.LuceneEngine
             {
             }
 
-            protected override bool IsTokenChar(int c) => Lucene.Net.Support.Character.IsLetter(c) || IsNumber(c);
+            protected override bool IsTokenChar(int c) => Character.IsLetter(c) || IsNumber(c);
 
             private bool IsNumber(int c)
             {
