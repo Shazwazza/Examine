@@ -4,22 +4,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Documents;
 using Lucene.Net.Store;
 using NUnit.Framework;
-using Lucene.Net.Search;
 using Lucene.Net.Index;
-using System.Diagnostics;
 using Examine.LuceneEngine;
 using Examine.LuceneEngine.Providers;
 using System.Threading;
 using Examine.LuceneEngine.Indexing;
-using Examine.LuceneEngine.Search;
 using Examine.Search;
 using Examine.Test.DataServices;
 using Examine.Test.UmbracoExamine;
@@ -31,13 +26,13 @@ namespace Examine.Test.Index
     /// Tests the standard indexing capabilities
     /// </summary>
     [TestFixture]
-    public class LuceneIndexTests
+    public class LuceneIndexTests : ExamineBaseTest
     {
         [Test]
         public void Rebuild_Index()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(d, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(d, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 indexer.CreateIndex();
                 indexer.IndexItems(indexer.AllData());
@@ -53,7 +48,7 @@ namespace Examine.Test.Index
         public void Index_Exists()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 indexer.EnsureIndex(true);
                 Assert.IsTrue(indexer.IndexExists());
@@ -64,7 +59,7 @@ namespace Examine.Test.Index
         public void Can_Add_One_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -85,7 +80,7 @@ namespace Examine.Test.Index
         public void Can_Add_Same_Document_Twice_Without_Duplication()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -109,7 +104,7 @@ namespace Examine.Test.Index
         public void Can_Add_Multiple_Docs()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -133,7 +128,7 @@ namespace Examine.Test.Index
         public void Can_Delete()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -159,7 +154,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -174,7 +169,8 @@ namespace Examine.Test.Index
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
                 {
                     var luceneSearcher = s.GetLuceneSearcher();
-                    var fields = luceneSearcher.Doc(0).Fields.ToArray();;
+                    var fields = luceneSearcher.Doc(0).Fields.ToArray();
+                    ;
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == ExamineFieldNames.ItemTypeFieldName));
@@ -194,7 +190,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Easy_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -217,7 +213,7 @@ namespace Examine.Test.Index
         public void Can_Have_Multiple_Values_In_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -235,7 +231,8 @@ namespace Examine.Test.Index
                 using (var s = (LuceneSearcher)indexer.GetSearcher())
                 {
                     var luceneSearcher = s.GetLuceneSearcher();
-                    var fields = luceneSearcher.Doc(0).Fields.ToArray();;
+                    var fields = luceneSearcher.Doc(0).Fields.ToArray();
+                    ;
                     Assert.AreEqual(2, fields.Count(x => x.Name == "item1"));
                     Assert.AreEqual(3, fields.Count(x => x.Name == "item2"));
 
@@ -253,7 +250,7 @@ namespace Examine.Test.Index
         public void Can_Update_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -279,10 +276,10 @@ namespace Examine.Test.Index
         public void Number_Field()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("item2", "number")),
+            using (var indexer = GetTestIndex(
                 luceneDir,
-                new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                new StandardAnalyzer(LuceneInfo.CurrentVersion),
+                new FieldDefinitionCollection(new FieldDefinition("item2", "number"))))
             {
 
 
@@ -315,8 +312,8 @@ namespace Examine.Test.Index
             const int ThreadCount = 1000;
 
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d,new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
-            using (var customIndexer = new TestIndex(writer))
+            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
+            using (var customIndexer = GetTestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
 
@@ -363,8 +360,8 @@ namespace Examine.Test.Index
                         var indexer = customIndexer;
                         tasks.Add(Task.Factory.StartNew(() =>
                         {
-                        //get next id and put it to the back of the list
-                        int docId = i;
+                            //get next id and put it to the back of the list
+                            int docId = i;
                             var cloned = new XElement(node);
                             Console.WriteLine("Indexing {0}", docId);
                             indexer.IndexItem(cloned.ConvertToValueSet(IndexTypes.Content));
@@ -392,7 +389,7 @@ namespace Examine.Test.Index
                     }
 
                     //reset the async mode and remove event handler
-                    customIndexer.IndexingError += IndexInitializer.IndexingError; 
+                    customIndexer.IndexingError += IndexInitializer.IndexingError;
                 }
 
                 //wait until we are done
@@ -420,8 +417,8 @@ namespace Examine.Test.Index
         public void Index_Ensure_No_Duplicates_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d,new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
-            using (var customIndexer = new TestIndex(writer))
+            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
+            using (var customIndexer = GetTestIndex(writer))
             //using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
 
@@ -530,7 +527,7 @@ namespace Examine.Test.Index
                 using (var writer = new IndexWriter(
                     d,
                     new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
-                using (var customIndexer = new TestIndex(writer))
+                using (var customIndexer = GetTestIndex(writer))
                 using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
                 using (customIndexer.ProcessNonAsync())
                 {
@@ -675,7 +672,7 @@ namespace Examine.Test.Index
                     {
                         temp.Delete(true);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Console.WriteLine("Could not delete temp folder {0}", ex);
                     }

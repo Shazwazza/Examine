@@ -1,10 +1,9 @@
 using System.Configuration;
 using System.IO;
-using Examine.Logging;
 using Examine.LuceneEngine.Directories;
-using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage;
+using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.AzureDirectory
@@ -14,18 +13,13 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
     {
-        private readonly ILoggingService _loggingService;
+        private readonly ILogger<AzureDirectoryFactory> _logger;
         private readonly bool _isReadOnly;
-        public AzureDirectoryFactory() : this(new TraceLoggingService())
+        
+        public AzureDirectoryFactory(ILoggerFactory loggerFactory, bool isReadOnly)
+            : base(loggerFactory)
         {
-        }
-        public AzureDirectoryFactory(ILoggingService loggingService)
-        {
-            _loggingService = loggingService;
-        }
-
-        public AzureDirectoryFactory(bool isReadOnly)
-        {
+            _logger = loggerFactory.CreateLogger<AzureDirectoryFactory>();
             _isReadOnly = isReadOnly;
         }
 
@@ -51,7 +45,7 @@ namespace Examine.AzureDirectory
         /// <returns>
         /// The <see cref="Lucene.Net.Store.Directory"/>.
         /// </returns>
-        public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
+        public override Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
         {
             var indexFolder = luceneIndexFolder;
             var tempFolder = GetLocalStorageDirectory(indexFolder);

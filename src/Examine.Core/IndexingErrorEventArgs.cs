@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,15 +8,15 @@ namespace Examine
     public class IndexingErrorEventArgs : EventArgs
     {
 
-        public IndexingErrorEventArgs(IIndex index, string message, string itemId, Exception innerException)
+        public IndexingErrorEventArgs(IIndex index, string message, string itemId, Exception exception)
         {
             Index = index;
-            this.ItemId = itemId;
-            this.Message = message;
-            this.InnerException = innerException;
+            ItemId = itemId;
+            Message = message;
+            Exception = exception;
         }
 
-        public Exception InnerException { get; }
+        public Exception Exception { get; }
         public string Message { get; }
         public IIndex Index { get; }
         public string ItemId { get; }

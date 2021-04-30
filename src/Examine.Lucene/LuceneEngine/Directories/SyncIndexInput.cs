@@ -1,10 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Security;
 using System.Threading;
-using Examine.Logging;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.LuceneEngine.Directories
@@ -16,12 +15,12 @@ namespace Examine.LuceneEngine.Directories
     /// When a file is requested for reading, we need to ensure that file exists locally in the cache folder if it's not 
     /// already there. This is synced from the main master directory.
     /// </remarks>
-    
+
     internal class SyncIndexInput : IndexInput
     {
         private SyncDirectory _syncDirectory;
         private readonly string _name;
-        private readonly ILoggingService _loggingService;
+        private readonly ILogger<SyncIndexInput> _logger;
 
         private IndexInput _cacheDirIndexInput;
         private readonly Mutex _fileMutex;
@@ -34,32 +33,17 @@ namespace Examine.LuceneEngine.Directories
         /// </summary>
         /// <param name="directory"></param>
         /// <param name="name"></param>
-        /// <remarks>
-        /// This will not work for the segments.gen file because it doesn't compare to master and segments.gen is not write-once!
-        /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
-        /// </remarks>
-        public SyncIndexInput(SyncDirectory directory, string name) : this(directory, name, new TraceLoggingService())
-        {
-        }
-        /// <summary>
-        /// Constructor to create Lucene IndexInput for reading index files
-        /// </summary>
-        /// <param name="directory"></param>
-        /// <param name="name"></param>
         /// <param name="loggingService"></param>
         /// <remarks>
         /// This will not work for the segments.gen file because it doesn't compare to master and segments.gen is not write-once!
         /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
         /// </remarks>
-        public SyncIndexInput(SyncDirectory directory, string name, ILoggingService loggingService)
+        public SyncIndexInput(SyncDirectory directory, string name, ILogger<SyncIndexInput> logger)
             : base(string.Empty) // TODO: Is this right?
         {
-            
-            if (directory == null) throw new ArgumentNullException(nameof(directory));
-
             _name = name;
-            _loggingService = loggingService;
-            _syncDirectory = directory;
+            _logger = logger;
+            _syncDirectory = directory ?? throw new ArgumentNullException(nameof(directory));
 
 #if FULLDEBUG
             loggingService.Log(new LogEntry(LogLevel.Info, null,$"opening {_name} " ));
@@ -67,29 +51,25 @@ namespace Examine.LuceneEngine.Directories
             _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
             _fileMutex.WaitOne();
             try
-            {                
+            {
                 var fileName = _name;
 
                 var fileNeeded = false;
-                bool fileExists;
 
                 //Check the cache folder for the file existing, it doesn't exist then the file is needed
                 if (!CacheDirectory.FileExists(fileName))
                 {
                     fileNeeded = true;
-                    fileExists = false;
                 }
                 else
                 {
-                    //Hrm, if the file already exists I think we're already in trouble but here's some logic to deal with that anyways.
-                    fileExists = true;
 
                     //Normally we'd compare the file attributes to see if we need to override it but Lucene has write-once semantics so
                     //this is unecessary. If the file already exists locally then we will have to assume it is the correct file!
 
                     //fileNeeded = CompareExistingFileAttributes(fileName);
                     fileNeeded = false;
-                    
+
                 }
 
                 // if the file does not exist
@@ -118,19 +98,17 @@ namespace Examine.LuceneEngine.Directories
         /// Constructor used for cloning
         /// </summary>
         /// <param name="cloneInput"></param>
-        public SyncIndexInput(SyncIndexInput cloneInput) : this(cloneInput, new TraceLoggingService())
-        {
-            
-        }
-        public SyncIndexInput(SyncIndexInput cloneInput, ILoggingService loggingService)
+        public SyncIndexInput(SyncIndexInput cloneInput)
             : base(string.Empty) // TODO: Is this right?
         {
-            _loggingService = loggingService;
+            _logger = cloneInput._logger;
             _name = cloneInput._name;
             _syncDirectory = cloneInput._syncDirectory;
 
-            if (string.IsNullOrWhiteSpace(_name)) throw new ArgumentNullException(nameof(cloneInput._name));
-            if (_syncDirectory == null) throw new ArgumentNullException(nameof(cloneInput._syncDirectory));
+            if (string.IsNullOrWhiteSpace(_name))
+                throw new ArgumentNullException(nameof(cloneInput._name));
+            if (_syncDirectory == null)
+                throw new ArgumentNullException(nameof(cloneInput._syncDirectory));
 
             _fileMutex = SyncMutexManager.GrabMutex(cloneInput._syncDirectory, cloneInput._name);
             _fileMutex.WaitOne();
@@ -147,7 +125,7 @@ namespace Examine.LuceneEngine.Directories
             {
                 // sometimes we get access denied on the 2nd stream...but not always. I haven't tracked it down yet
                 // but this covers our tail until I do
-                loggingService.Log(new LogEntry(LogLevel.Error, e,$"Dagnabbit, falling back to memory clone for {cloneInput._name}"));
+                _logger.LogError(e, "Falling back to memory clone for {FileName}", cloneInput._name);
             }
             finally
             {
@@ -166,7 +144,7 @@ namespace Examine.LuceneEngine.Directories
             IndexInput masterInput = null;
             try
             {
-                masterInput = MasterDirectory.OpenInput(fileName,new IOContext());                
+                masterInput = MasterDirectory.OpenInput(fileName, new IOContext());
             }
             catch (IOException ex)
             {
@@ -179,7 +157,7 @@ namespace Examine.LuceneEngine.Directories
                 //Hrmmm what to do?  There's actually nothing that can be done :/ if we return false here then the instance of this item would be null
                 //which will then cause exceptions further on and take down the app pool anyways. I've looked through the Lucene source and there 
                 //is no safety net to check against this situation, it just happily throws exceptions on a background thread.
-                _loggingService.Log(new LogEntry(LogLevel.Error, ex,$"File not found"));
+                _logger.LogError(ex, "File not found");
 
                 throw ex;
             }
@@ -189,7 +167,7 @@ namespace Examine.LuceneEngine.Directories
                 IndexOutput cacheOutput = null;
                 try
                 {
-                    cacheOutput = CacheDirectory.CreateOutput(fileName,new IOContext());
+                    cacheOutput = CacheDirectory.CreateOutput(fileName, new IOContext());
                     masterInput.CopyTo(cacheOutput, fileName);
 
                 }
@@ -199,7 +177,7 @@ namespace Examine.LuceneEngine.Directories
                     masterInput?.Dispose();
                 }
             }
-            
+
         }
 
         /// <summary>
@@ -256,18 +234,18 @@ namespace Examine.LuceneEngine.Directories
             return false;
         }
 
-        
+
         public override byte ReadByte()
         {
             return _cacheDirIndexInput.ReadByte();
         }
 
-        
+
         public override void ReadBytes(byte[] b, int offset, int len)
         {
             _cacheDirIndexInput.ReadBytes(b, offset, len);
         }
-        
+
         protected override void Dispose(bool disposing)
         {
             _fileMutex.WaitOne();
@@ -299,7 +277,7 @@ namespace Examine.LuceneEngine.Directories
 
 
 
-        
+
         public override object Clone()
         {
             IndexInput clone = null;
@@ -321,7 +299,8 @@ namespace Examine.LuceneEngine.Directories
             return clone;
         }
 
-        public override long Length {
+        public override long Length
+        {
             get
             {
                 return _cacheDirIndexInput.Length;

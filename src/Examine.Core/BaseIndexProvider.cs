@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace Examine
 {
@@ -10,15 +11,18 @@ namespace Examine
     /// </summary>
     public abstract class BaseIndexProvider : IIndex
     {
+        private readonly ILogger<BaseIndexProvider> _logger;
+
         /// <summary>
         /// Constructor for creating an indexer at runtime
         /// </summary>
         /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="validator"></param>
-        protected BaseIndexProvider(string name, FieldDefinitionCollection fieldDefinitions, IValueSetValidator validator)
+        protected BaseIndexProvider(ILogger<BaseIndexProvider> logger, string name, FieldDefinitionCollection fieldDefinitions, IValueSetValidator validator)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            _logger = logger;
             Name = name;
             FieldDefinitionCollection = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
             ValueSetValidator = validator;
@@ -37,9 +41,7 @@ namespace Examine
         /// <param name="item"></param>
         /// <returns></returns>
         protected ValueSetValidationResult ValidateItem(ValueSet item)
-        {
-            return ValueSetValidator?.Validate(item) ?? ValueSetValidationResult.Valid;
-        }
+            => ValueSetValidator?.Validate(item) ?? ValueSetValidationResult.Valid;
 
         /// <summary>
         /// Indexes the items in the <see cref="ValueSet"/>
@@ -72,15 +74,11 @@ namespace Examine
         /// </summary>
         /// <param name="values"></param>
         public void IndexItems(IEnumerable<ValueSet> values)
-        {
-            PerformIndexItems(values.Where(x => ValidateItem(x) != ValueSetValidationResult.Failed), OnIndexOperationComplete);
-        }
+            => PerformIndexItems(values.Where(x => ValidateItem(x) != ValueSetValidationResult.Failed), OnIndexOperationComplete);
 
         /// <inheritdoc />
         public void DeleteFromIndex(IEnumerable<string> itemIds)
-        {
-            PerformDeleteFromIndex(itemIds, OnIndexOperationComplete);
-        }
+            => PerformDeleteFromIndex(itemIds, OnIndexOperationComplete);
 
         /// <summary>
         /// Creates a new index, any existing index will be deleted
@@ -108,24 +106,17 @@ namespace Examine
         /// <inheritdoc />
         public event EventHandler<IndexOperationEventArgs> IndexOperationComplete;
 
-        /// <summary>
-        /// Occurs for an Indexing Error
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<IndexingErrorEventArgs> IndexingError;
 
-        /// <summary>
-        /// Raised before the item is indexed allowing developers to customize the data that get's stored in the index
-        /// </summary>
+        /// <inheritdoc />
         public event EventHandler<IndexingItemEventArgs> TransformingIndexValues;
 
         #endregion
 
         #region Protected Event callers
 
-        private void OnIndexOperationComplete(IndexOperationEventArgs e)
-        {
-            IndexOperationComplete?.Invoke(this, e);
-        }
+        private void OnIndexOperationComplete(IndexOperationEventArgs e) => IndexOperationComplete?.Invoke(this, e);
 
         /// <summary>
         /// Raises the <see cref="E:IndexingError"/> event.
@@ -133,6 +124,7 @@ namespace Examine
         /// <param name="e">The <see cref="Examine.IndexingErrorEventArgs"/> instance containing the event data.</param>
         protected virtual void OnIndexingError(IndexingErrorEventArgs e)
         {
+            _logger.LogError(e.Exception, e.Message);
             IndexingError?.Invoke(this, e);
         }
 
@@ -140,10 +132,7 @@ namespace Examine
         /// Raises the <see cref="E:TransformingIndexValues"/> event.
         /// </summary>
         /// <param name="e">The <see cref="IndexingItemEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnTransformingIndexValues(IndexingItemEventArgs e)
-        {
-            TransformingIndexValues?.Invoke(this, e);
-        }
+        protected virtual void OnTransformingIndexValues(IndexingItemEventArgs e) => TransformingIndexValues?.Invoke(this, e);
 
         #endregion
 

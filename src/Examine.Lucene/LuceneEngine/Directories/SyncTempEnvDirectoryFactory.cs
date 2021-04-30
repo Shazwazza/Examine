@@ -1,12 +1,6 @@
-using System;
 using System.IO;
-using System.Security;
-using System.Security.Cryptography;
-using System.Text;
-using System.Web;
-using Examine.Logging;
-using Examine.LuceneEngine.Providers;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Directories
 {
@@ -18,13 +12,11 @@ namespace Examine.LuceneEngine.Directories
     /// </remarks>
     public class SyncTempEnvDirectoryFactory : TempEnvDirectoryFactory
     {
-        private readonly ILoggingService _loggingService;
-        public SyncTempEnvDirectoryFactory() : this(new TraceLoggingService())
+        private readonly ILoggerFactory _loggerFactory;
+        
+        public SyncTempEnvDirectoryFactory(ILoggerFactory loggerFactory)
         {
-        }
-        public SyncTempEnvDirectoryFactory(ILoggingService loggingService)
-        {
-            _loggingService = loggingService;
+            _loggerFactory = loggerFactory;
         }
 
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
@@ -35,7 +27,7 @@ namespace Examine.LuceneEngine.Directories
             var cacheDir = new SimpleFSDirectory(tempFolder);
             masterDir.SetLockFactory(DefaultLockFactory(master));
             cacheDir.SetLockFactory(DefaultLockFactory(tempFolder));
-            return new SyncDirectory(masterDir, cacheDir, _loggingService);
+            return new SyncDirectory(masterDir, cacheDir, _loggerFactory);
         }
         
     }

@@ -17,7 +17,7 @@ using System.Linq;
 namespace Examine.Test.Extensions
 {
     [TestFixture]
-    public class SpatialSearch
+    public class SpatialSearch : ExamineBaseTest
     {
         private const string GeoLocationFieldName = "geoLocation";
         private const int MaxResultDocs = 10;
@@ -72,7 +72,7 @@ namespace Examine.Test.Extensions
                 string id3 = 3.ToString();
                 string id4 = 4.ToString();
 
-                using (var indexer = new TestIndex(luceneDir, analyzer))
+                using (var indexer = GetTestIndex(luceneDir, analyzer))
                 {
                     indexer.DocumentWriting += (sender, args) => Indexer_DocumentWriting(args, ctx, strategy);
 

@@ -1,4 +1,5 @@
 using Examine.LuceneEngine.Directories;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.AzureDirectory
 {
@@ -7,7 +8,8 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory
     {
-        public ReadOnlyAzureDirectoryFactory() : base(isReadOnly:true)
+        public ReadOnlyAzureDirectoryFactory(ILoggerFactory loggerFactory)
+            : base(loggerFactory, isReadOnly: true)
         {   
         }
     }

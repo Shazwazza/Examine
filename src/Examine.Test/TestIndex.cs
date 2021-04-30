@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.LuceneEngine;
@@ -7,25 +7,26 @@ using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.Test
 {
     public class TestIndex : LuceneIndex
     {
-        public TestIndex(FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : base("testIndexer", luceneDirectory, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
+        public TestIndex(ILogger<TestIndex> logger, FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            : base(logger, "testIndexer", luceneDirectory, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
         {
             RunAsync = false;
         }
 
-        public TestIndex(Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
-            : base("testIndexer", luceneDirectory, new FieldDefinitionCollection(), defaultAnalyzer, validator)
+        public TestIndex(ILogger<TestIndex> logger, Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
+            : base(logger, "testIndexer", luceneDirectory, new FieldDefinitionCollection(), defaultAnalyzer, validator)
         {
             RunAsync = false;
         }
 
-        public TestIndex(IndexWriter writer, IValueSetValidator validator = null)
-            : base("testIndexer", new FieldDefinitionCollection(), writer, validator)
+        public TestIndex(ILogger<TestIndex> logger, IndexWriter writer, IValueSetValidator validator = null)
+            : base(logger, "testIndexer", new FieldDefinitionCollection(), writer, validator)
         {
         }
 

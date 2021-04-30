@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Security;
-using Examine.Logging;
-using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Directories
 {
@@ -33,7 +30,9 @@ namespace Examine.LuceneEngine.Directories
 
     public class SyncDirectory : Lucene.Net.Store.Directory
     {
-        private readonly ILoggingService _logging;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<SyncIndexOutput> _outputLogger;
+        private readonly ILogger<SyncIndexInput> _inputLogger;
         private readonly MultiIndexLockFactory _lockFactory;
         private volatile bool _dirty = true;
         private bool _inSync = false;
@@ -41,7 +40,6 @@ namespace Examine.LuceneEngine.Directories
 
         internal static readonly HashSet<string> RemoteOnlyFiles = new HashSet<string> { "segments.gen" };
 
-
         /// <summary>
         /// Create a SyncDirectory
         /// </summary>
@@ -49,27 +47,14 @@ namespace Examine.LuceneEngine.Directories
         /// <param name="cacheDirectory">local Directory object to use for local cache</param>
         public SyncDirectory(
             Lucene.Net.Store.Directory masterDirectory,
-            Lucene.Net.Store.Directory cacheDirectory)
+            Lucene.Net.Store.Directory cacheDirectory,
+            ILoggerFactory loggerFactory)
         {
             MasterDirectory = masterDirectory ?? throw new ArgumentNullException(nameof(masterDirectory));
             CacheDirectory = cacheDirectory ?? throw new ArgumentNullException(nameof(cacheDirectory));
             _lockFactory = new MultiIndexLockFactory(MasterDirectory, CacheDirectory);
-            _logging = new TraceLoggingService();
-        }
-        /// <summary>
-        /// Create a SyncDirectory
-        /// </summary>
-        /// <param name="masterDirectory"></param>
-        /// <param name="cacheDirectory">local Directory object to use for local cache</param>
-        /// <param name="loggingService">logging service use for tracking errors, info and warnings</param>
-        public SyncDirectory(
-            Lucene.Net.Store.Directory masterDirectory,
-            Lucene.Net.Store.Directory cacheDirectory, ILoggingService loggingService)
-        {
-            MasterDirectory = masterDirectory ?? throw new ArgumentNullException(nameof(masterDirectory));
-            CacheDirectory = cacheDirectory ?? throw new ArgumentNullException(nameof(cacheDirectory));
-            _lockFactory = new MultiIndexLockFactory(MasterDirectory, CacheDirectory);
-            _logging = loggingService;
+            _outputLogger = loggerFactory.CreateLogger<SyncIndexOutput>();
+            _inputLogger = loggerFactory.CreateLogger<SyncIndexInput>();
         }
         public void ClearCache()
         {
@@ -190,7 +175,7 @@ namespace Examine.LuceneEngine.Directories
 
             //This is what enables "Copy on write" semantics
             // TODO: Do we need the IOContext?
-            return new SyncIndexOutput(this, name, _logging);
+            return new SyncIndexOutput(this, name, _outputLogger);
         }
 
         public override void Sync(ICollection<string> names)
@@ -226,7 +211,7 @@ namespace Examine.LuceneEngine.Directories
             try
             {
                 // TODO: Do we need the IOContext?
-                return new SyncIndexInput(this, name, _logging);
+                return new SyncIndexInput(this, name, _inputLogger);
             }
             catch (Exception err)
             {

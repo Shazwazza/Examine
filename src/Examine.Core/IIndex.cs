@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Xml.Linq;
 
 namespace Examine
 {
@@ -55,5 +54,9 @@ namespace Examine
         /// </summary>
         event EventHandler<IndexingItemEventArgs> TransformingIndexValues;
 
+        /// <summary>
+        /// Occurs for an Indexing Error
+        /// </summary>
+        event EventHandler<IndexingErrorEventArgs> IndexingError;
     }
 }

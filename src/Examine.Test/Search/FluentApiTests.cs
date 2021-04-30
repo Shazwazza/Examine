@@ -17,16 +17,17 @@ using NUnit.Framework;
 namespace Examine.Test.Search
 {
     [TestFixture]
-    public class FluentApiTests
+    public class FluentApiTests : ExamineBaseTest
     {
         [Test]
         public void NativeQuery_Single_Word()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -54,9 +55,10 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -85,9 +87,10 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("created", "datetime")),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
             {
 
 
@@ -134,7 +137,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = new TestIndex(luceneDir1, analyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
                 indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -171,7 +174,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = new TestIndex(luceneDir1, analyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
                 indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -212,9 +215,10 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
             {
 
 
@@ -259,9 +263,10 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
             {
 
 
@@ -309,7 +314,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[]
                 {
@@ -365,7 +370,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
                 var searcher = indexer.GetSearcher();
@@ -415,7 +420,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
                 var searcher = indexer.GetSearcher();
@@ -470,7 +475,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
                 var searcher = indexer.GetSearcher();
@@ -517,7 +522,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir, analyzer))
             {
 
@@ -543,7 +548,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
                 luceneDir, analyzer))
             {
 
@@ -572,7 +577,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
 
                 //TODO: Making this a number makes the query fail - i wonder how to make it work correctly?
                 // It's because the searching is NOT using a managed search
@@ -605,9 +610,10 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("__Path", "raw")),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"))))
             {
 
 
@@ -664,9 +670,10 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -693,9 +700,10 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -733,9 +741,10 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw")),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"))))
             {
 
 
@@ -782,7 +791,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
 
             {
@@ -818,7 +827,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
 
             {
@@ -865,7 +874,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
 
             {
@@ -896,7 +905,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "media",
@@ -928,10 +937,11 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(                
+                luceneDir,
+                analyzer,
                 //Ensure it's set to a number, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.Integer), new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
+                new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.Integer), new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -967,10 +977,11 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
                 //Ensure it's set to a date, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.DateTime), new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
+                new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.DateTime), new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
             {
 
 
@@ -1011,10 +1022,11 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable)),
-                luceneDir, analyzer))
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable))))
             {
 
                 indexer.IndexItems(new[] {
@@ -1053,7 +1065,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1093,7 +1105,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1124,7 +1136,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1158,7 +1170,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1195,7 +1207,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1238,12 +1250,11 @@ namespace Examine.Test.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.Float)),
-                luceneDir, analyzer))
-
-
+                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.Float))))
             {
 
 
@@ -1287,12 +1298,11 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.Integer)),
-                luceneDir, analyzer))
-
-
+                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.Integer))))
             {
 
 
@@ -1334,12 +1344,11 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.Double)),
-                luceneDir, analyzer))
-
-
+                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.Double))))
             {
 
 
@@ -1381,15 +1390,12 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeLong", "long")),
-                luceneDir, analyzer))
-
-
+                new FieldDefinitionCollection(new FieldDefinition("SomeLong", "long"))))
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", SomeLong = 1L }),
@@ -1432,13 +1438,11 @@ namespace Examine.Test.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(
-
-                new FieldDefinitionCollection(new FieldDefinition("DateCreated", "datetime")),
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("DateCreated", "datetime"))))
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { DateCreated = reIndexDateTime }),
@@ -1475,7 +1479,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new EnglishAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1522,7 +1526,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
 
             {
@@ -1564,7 +1568,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
 
             {
@@ -1604,7 +1608,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
 
             {
@@ -1646,7 +1650,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
 
             {
@@ -1688,7 +1692,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1741,7 +1745,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 var searcher = indexer.GetSearcher();
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
@@ -1761,7 +1765,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1858,7 +1862,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
                 indexer.IndexItems(new[] {
@@ -1897,7 +1901,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
                 indexer.IndexItems(new[] {
@@ -1937,7 +1941,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
                 indexer.IndexItems(new[] {
@@ -1976,7 +1980,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
                 indexer.IndexItems(new[] {
@@ -2016,7 +2020,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",

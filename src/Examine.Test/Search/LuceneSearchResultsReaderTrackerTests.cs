@@ -7,14 +7,14 @@ using NUnit.Framework;
 namespace Examine.Test.Search
 {
     [TestFixture]
-    public class LuceneSearchResultsReaderTrackerTests
+    public class LuceneSearchResultsReaderTrackerTests : ExamineBaseTest
     {
         [Test]
         public void Track_Readers()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",

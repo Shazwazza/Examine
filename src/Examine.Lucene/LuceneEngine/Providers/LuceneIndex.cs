@@ -13,6 +13,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Util;
+using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 
 
@@ -38,13 +39,15 @@ namespace Examine.LuceneEngine.Providers
         ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.GetDefaultValueTypes"/> will be used.
         ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
-        public LuceneIndex(string name,
+        public LuceneIndex(
+            ILogger<LuceneIndex> logger,
+            string name,
             Directory luceneDirectory,
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : this(name, luceneDirectory, DefaultQueueCapacity, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
+            : this(logger, name, luceneDirectory, DefaultQueueCapacity, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
         {
         }
 
@@ -61,14 +64,16 @@ namespace Examine.LuceneEngine.Providers
         ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.GetDefaultValueTypes"/> will be used.
         ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>        
-        public LuceneIndex(string name,
-           Directory luceneDirectory,
-           int queueCapacity,
-           FieldDefinitionCollection fieldDefinitions = null,
-           Analyzer analyzer = null,
-           IValueSetValidator validator = null,
-           IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-           : base(name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
+        public LuceneIndex(
+            ILogger<LuceneIndex> logger,
+            string name,
+            Directory luceneDirectory,
+            int queueCapacity,
+            FieldDefinitionCollection fieldDefinitions = null,
+            Analyzer analyzer = null,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+           : base(logger, name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
         {
             _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _committer = new IndexCommiter(this);
@@ -76,7 +81,7 @@ namespace Examine.LuceneEngine.Providers
             LuceneIndexFolder = null;
 
             DefaultAnalyzer = analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
-
+            _logger = logger;
             _directory = luceneDirectory;
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
@@ -97,12 +102,13 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
         public LuceneIndex(
-                string name,
-                FieldDefinitionCollection fieldDefinitions,
-                IndexWriter writer,
-                IValueSetValidator validator = null,
-                IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-                : this(name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
+            ILogger<LuceneIndex> logger,
+            string name,
+            FieldDefinitionCollection fieldDefinitions,
+            IndexWriter writer,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+                : this(logger, name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
         {
         }
 
@@ -118,13 +124,14 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
         public LuceneIndex(
-               string name,
-               FieldDefinitionCollection fieldDefinitions,
-               IndexWriter writer,
-               int queueCapacity,
-               IValueSetValidator validator = null,
-               IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-               : base(name, fieldDefinitions, validator)
+            ILogger<LuceneIndex> logger,
+            string name,
+            FieldDefinitionCollection fieldDefinitions,
+            IndexWriter writer,
+            int queueCapacity,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+               : base(logger, name, fieldDefinitions, validator)
         {
             _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _committer = new IndexCommiter(this);
@@ -140,6 +147,8 @@ namespace Examine.LuceneEngine.Providers
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
         }
+
+        private readonly ILogger<LuceneIndex> _logger;
 
 
 
@@ -314,9 +323,9 @@ namespace Examine.LuceneEngine.Providers
             if (!RunAsync)
             {
                 var msg = "Indexing Error Occurred: " + e.Message;
-                if (e.InnerException != null)
-                    msg += ". ERROR: " + e.InnerException.Message;
-                throw new Exception(msg, e.InnerException);
+                if (e.Exception != null)
+                    msg += ". ERROR: " + e.Exception.Message;
+                throw new Exception(msg, e.Exception);
             }
 
         }
