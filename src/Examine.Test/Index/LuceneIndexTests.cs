@@ -352,7 +352,7 @@ namespace Examine.Test.Index
                 customIndexer.IndexingError -= IndexInitializer.IndexingError;
 
                 //run in async mode
-                using (customIndexer.ProcessNonAsync())
+                using (customIndexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {
                     //get a node from the data repo
                     var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
@@ -451,7 +451,7 @@ namespace Examine.Test.Index
                 customIndexer.IndexingError -= IndexInitializer.IndexingError;
 
                 //run in async mode
-                using (customIndexer.ProcessNonAsync())
+                using (customIndexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {
                     //get a node from the data repo
                     var idQueue = new ConcurrentQueue<int>(Enumerable.Range(1, 3));
@@ -538,12 +538,11 @@ namespace Examine.Test.Index
             try
             {
                 using (var d = directory)
-                using (var writer = new IndexWriter(
-                    d,
+                using (var writer = new IndexWriter(d,
                     new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
                 using (var customIndexer = GetTestIndex(writer))
                 using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
-                using (customIndexer.ProcessNonAsync())
+                using (customIndexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {
                     var waitHandle = new ManualResetEvent(false);
 

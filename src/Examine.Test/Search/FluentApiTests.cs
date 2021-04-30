@@ -1521,7 +1521,7 @@ namespace Examine.Test.Search
 
 
         [Test]
-        public void Max_Count()
+        public void Execute_With_Take()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
@@ -1544,7 +1544,7 @@ namespace Examine.Test.Search
                 var filter = criteria.Field("Content", "hello");
 
                 //Act
-                var results = filter.Execute(new QueryOptions(3));
+                var results = filter.Execute(QueryOptions.SkipTake(0, 3));
 
                 //Assert
 

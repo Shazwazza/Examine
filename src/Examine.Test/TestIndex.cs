@@ -28,6 +28,7 @@ namespace Examine.Test
         public TestIndex(ILoggerFactory loggerFactory, IndexWriter writer, IValueSetValidator validator = null)
             : base(loggerFactory, "testIndexer", new FieldDefinitionCollection(), writer, validator)
         {
+            RunAsync = false;
         }
 
         public IEnumerable<ValueSet> AllData()

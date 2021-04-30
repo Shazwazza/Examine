@@ -79,6 +79,7 @@ namespace Examine.Lucene.Providers
         {
             _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _committer = new IndexCommiter(this);
+            _logger = loggerFactory.CreateLogger<LuceneIndex>();
 
             LuceneIndexFolder = null;
 
@@ -136,6 +137,7 @@ namespace Examine.Lucene.Providers
         {
             _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _committer = new IndexCommiter(this);
+            _logger = loggerFactory.CreateLogger<LuceneIndex>();
 
             _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
             DefaultAnalyzer = writer.Analyzer;
@@ -149,14 +151,10 @@ namespace Examine.Lucene.Providers
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        private readonly ILogger<LuceneIndex> _logger;
-
-
 
         #endregion
 
-        #region Constants & Fields
-
+        private readonly ILogger<LuceneIndex> _logger;
         private readonly Directory _directory;
         private FileStream _logOutput;
         private bool _disposedValue;
@@ -224,7 +222,6 @@ namespace Examine.Lucene.Providers
         /// </summary>
         private CancellationToken _cancellationToken;
 
-        #endregion
 
         #region Properties
 
@@ -242,6 +239,7 @@ namespace Examine.Lucene.Providers
         /// By default this is true but in some cases a user may wish to disable this since this can block an appdomain from shutting down
         /// within a reasonable time which can cause problems with overlapping appdomains.
         /// </remarks>
+        // TODO: Kill this
         public bool WaitForIndexQueueOnShutdown { get; set; }
 
         /// <summary>
@@ -1328,31 +1326,29 @@ namespace Examine.Lucene.Providers
         #endregion
 
         /// <summary>
-        /// Used to force the index into synchronous index processing
+        /// Used to force the index into asynchronous or synchronous index processing
         /// </summary>
         /// <returns></returns>
-        public IDisposable ProcessNonAsync()
-        {
-            return new SynchronousIndexProcessor(this);
-        }
+        public IDisposable WithThreadingMode(IndexThreadingMode mode) => new ForceThreadingModeIndexProcessor(this, mode);
 
         /// <summary>
         /// Used to force the index into synchronous index processing
         /// </summary>
-        private class SynchronousIndexProcessor : DisposableObjectSlim
+        private class ForceThreadingModeIndexProcessor : DisposableObjectSlim
         {
             private readonly LuceneIndex _index;
+            private readonly IndexThreadingMode _mode;
+            private readonly bool _orig;
 
-            public SynchronousIndexProcessor(LuceneIndex index)
+            public ForceThreadingModeIndexProcessor(LuceneIndex index, IndexThreadingMode mode)
             {
                 _index = index;
-                _index.RunAsync = false;
+                _mode = mode;
+                _orig = _index.RunAsync;
+                _index.RunAsync = _mode == IndexThreadingMode.Asynchronous;
             }
 
-            protected override void DisposeResources()
-            {
-                _index.RunAsync = true;
-            }
+            protected override void DisposeResources() => _index.RunAsync = _orig;
         }
 
         public Task<long> GetDocumentCountAsync()

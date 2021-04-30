@@ -76,9 +76,8 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            // TODO: Test maxResults + skip take
-            var maxResults = _options.Take ?? MaxDoc;
-            maxResults = maxResults >= 1 ? maxResults : 500;
+            var maxResults = Math.Min(_options.Take, MaxDoc);
+            maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
 
             ICollector topDocsCollector;
             var sortFields = _sortField as SortField[] ?? _sortField.ToArray();

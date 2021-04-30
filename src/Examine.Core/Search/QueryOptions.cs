@@ -1,9 +1,13 @@
-﻿using System;
+using System;
 
 namespace Examine.Search
 {
     public class QueryOptions
     {
+        public const int DefaultMaxResults = 500;
+        public static QueryOptions SkipTake(int skip, int? take = null) => new QueryOptions(skip, take ?? DefaultMaxResults);
+        public static QueryOptions Default { get; } = new QueryOptions(0, DefaultMaxResults);
+
         public QueryOptions(int skip, int? take = null)
         {
             if (skip < 0)
@@ -17,12 +21,10 @@ namespace Examine.Search
             }
 
             Skip = skip;
-            Take = take;
+            Take = take ?? DefaultMaxResults;
         }
 
-        public static QueryOptions Default { get; } = new QueryOptions(0, 500);
-
         public int Skip { get; }
-        public int? Take { get; }
+        public int Take { get; }
     }
 }

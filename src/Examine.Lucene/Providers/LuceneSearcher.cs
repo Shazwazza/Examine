@@ -10,9 +10,11 @@ namespace Examine.Lucene.Providers
     ///<summary>
     /// Standard object used to search a Lucene index
     ///</summary>
-    public class LuceneSearcher : BaseLuceneSearcher
+    public class LuceneSearcher : BaseLuceneSearcher, IDisposable
     {
-        #region Constructors
+        private readonly SearcherManager _searcherManager;
+        private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private bool _disposedValue;
 
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
@@ -25,16 +27,30 @@ namespace Examine.Lucene.Providers
             : base(name, analyzer)
         {
             _searcherManager = searcherManager;
-            FieldValueTypeCollection = fieldValueTypeCollection;
+            _fieldValueTypeCollection = fieldValueTypeCollection;
         }
 
-        #endregion      
-
-        private readonly SearcherManager _searcherManager;
-        public FieldValueTypeCollection FieldValueTypeCollection { get; }
-
         public override ISearchContext GetSearchContext()
-            => new SearchContext(_searcherManager, FieldValueTypeCollection);
+            => new SearchContext(_searcherManager, _fieldValueTypeCollection);
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _searcherManager.Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+        }
     }
 
 }
