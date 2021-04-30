@@ -1,6 +1,6 @@
 using Lucene.Net.Store;
 
-namespace Examine.AzureDirectory
+namespace Examine.Lucene.AzureDirectory
 {
     /// <summary>
     /// A lock factory used for readonly instances that do no writing

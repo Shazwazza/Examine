@@ -7,7 +7,7 @@ using Examine.Lucene.Directories;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage.Blob;
 
-namespace Examine.AzureDirectory
+namespace Examine.Lucene.AzureDirectory
 {
 
     /// <summary>

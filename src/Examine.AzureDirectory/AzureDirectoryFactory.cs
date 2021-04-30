@@ -6,7 +6,7 @@ using Microsoft.Azure.Storage;
 using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 
-namespace Examine.AzureDirectory
+namespace Examine.Lucene.AzureDirectory
 {
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for use on the server that can actively write to the index

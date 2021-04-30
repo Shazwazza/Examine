@@ -1,7 +1,7 @@
 using Examine.Lucene.Directories;
 using Microsoft.Extensions.Logging;
 
-namespace Examine.AzureDirectory
+namespace Examine.Lucene.AzureDirectory
 {
     /// <summary>
     /// The <see cref="IDirectoryFactory"/> for storing master index data in Blob storage for user on the server that only reads from the index

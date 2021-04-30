@@ -8,7 +8,7 @@ using Lucene.Net.Store;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 
-namespace Examine.AzureDirectory
+namespace Examine.Lucene.AzureDirectory
 {
     /// <summary>
     /// Implements IndexInput semantics for a read only blob

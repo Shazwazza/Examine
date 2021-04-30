@@ -1,7 +1,7 @@
 //using System.IO;
 //using Lucene.Net.Store;
 
-//namespace Examine.AzureDirectory
+//namespace Examine.Lucene.AzureDirectory
 //{
 //    /// <summary>
 //    /// A lock factory used for azure blob storage using native blob storage leases

@@ -1,6 +1,6 @@
 using Lucene.Net.Store;
 
-namespace Examine.AzureDirectory
+namespace Examine.Lucene.AzureDirectory
 {
     /// <summary>
     /// Custom IndexOutput that does nothing which is used for readonly instances

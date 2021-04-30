@@ -10,7 +10,7 @@ using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 
-namespace Examine.AzureDirectory
+namespace Examine.Lucene.AzureDirectory
 {
 
     /// <summary>

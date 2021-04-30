@@ -6,7 +6,7 @@
 //using Microsoft.WindowsAzure.Storage;
 //using Microsoft.WindowsAzure.Storage.Blob;
 
-//namespace Examine.AzureDirectory
+//namespace Examine.Lucene.AzureDirectory
 //{
 //    /// <summary>
 //    /// Implements lock semantics on AzureDirectory native blog storage lease locks
