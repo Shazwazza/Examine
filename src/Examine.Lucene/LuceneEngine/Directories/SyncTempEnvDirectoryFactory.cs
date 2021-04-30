@@ -13,10 +13,12 @@ namespace Examine.LuceneEngine.Directories
     public class SyncTempEnvDirectoryFactory : TempEnvDirectoryFactory
     {
         private readonly ILoggerFactory _loggerFactory;
-        
-        public SyncTempEnvDirectoryFactory(ILoggerFactory loggerFactory)
+        private readonly SyncMutexManager _syncMutexManager;
+
+        public SyncTempEnvDirectoryFactory(ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager)
         {
             _loggerFactory = loggerFactory;
+            _syncMutexManager = syncMutexManager;
         }
 
         public override Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
@@ -27,7 +29,7 @@ namespace Examine.LuceneEngine.Directories
             var cacheDir = new SimpleFSDirectory(tempFolder);
             masterDir.SetLockFactory(DefaultLockFactory(master));
             cacheDir.SetLockFactory(DefaultLockFactory(tempFolder));
-            return new SyncDirectory(masterDir, cacheDir, _loggerFactory);
+            return new SyncDirectory(masterDir, cacheDir, _loggerFactory, _syncMutexManager);
         }
         
     }

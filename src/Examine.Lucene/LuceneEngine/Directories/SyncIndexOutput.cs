@@ -23,7 +23,7 @@ namespace Examine.LuceneEngine.Directories
 
         public Directory MasterDirectory => _syncDirectory.MasterDirectory;
 
-        public SyncIndexOutput(SyncDirectory syncDirectory, string name, ILogger<SyncIndexOutput> logger)
+        public SyncIndexOutput(SyncDirectory syncDirectory, string name, ILogger<SyncIndexOutput> logger, SyncMutexManager syncMutexManager)
         {
             if (syncDirectory == null) throw new ArgumentNullException(nameof(syncDirectory));
 
@@ -32,7 +32,7 @@ namespace Examine.LuceneEngine.Directories
             _name = name;
             _logger = logger;
             _syncDirectory = syncDirectory;
-            _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
+            _fileMutex = syncMutexManager.GrabMutex(_syncDirectory);
             _fileMutex.WaitOne();
             try
             {

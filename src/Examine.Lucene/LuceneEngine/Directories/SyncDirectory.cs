@@ -39,6 +39,7 @@ namespace Examine.LuceneEngine.Directories
         private readonly object _locker = new object();
 
         internal static readonly HashSet<string> RemoteOnlyFiles = new HashSet<string> { "segments.gen" };
+        private readonly SyncMutexManager _syncMutexManager;
 
         /// <summary>
         /// Create a SyncDirectory
@@ -48,10 +49,12 @@ namespace Examine.LuceneEngine.Directories
         public SyncDirectory(
             Lucene.Net.Store.Directory masterDirectory,
             Lucene.Net.Store.Directory cacheDirectory,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            SyncMutexManager syncMutexManager)
         {
             MasterDirectory = masterDirectory ?? throw new ArgumentNullException(nameof(masterDirectory));
             CacheDirectory = cacheDirectory ?? throw new ArgumentNullException(nameof(cacheDirectory));
+            _syncMutexManager = syncMutexManager;
             _lockFactory = new MultiIndexLockFactory(MasterDirectory, CacheDirectory);
             _outputLogger = loggerFactory.CreateLogger<SyncIndexOutput>();
             _inputLogger = loggerFactory.CreateLogger<SyncIndexInput>();
@@ -175,7 +178,7 @@ namespace Examine.LuceneEngine.Directories
 
             //This is what enables "Copy on write" semantics
             // TODO: Do we need the IOContext?
-            return new SyncIndexOutput(this, name, _outputLogger);
+            return new SyncIndexOutput(this, name, _outputLogger, _syncMutexManager);
         }
 
         public override void Sync(ICollection<string> names)
@@ -211,7 +214,7 @@ namespace Examine.LuceneEngine.Directories
             try
             {
                 // TODO: Do we need the IOContext?
-                return new SyncIndexInput(this, name, _inputLogger);
+                return new SyncIndexInput(this, name, _inputLogger, _syncMutexManager);
             }
             catch (Exception err)
             {

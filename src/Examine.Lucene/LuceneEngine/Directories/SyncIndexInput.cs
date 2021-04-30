@@ -21,7 +21,7 @@ namespace Examine.LuceneEngine.Directories
         private SyncDirectory _syncDirectory;
         private readonly string _name;
         private readonly ILogger<SyncIndexInput> _logger;
-
+        private readonly SyncMutexManager _syncMutexManager;
         private IndexInput _cacheDirIndexInput;
         private readonly Mutex _fileMutex;
 
@@ -38,17 +38,18 @@ namespace Examine.LuceneEngine.Directories
         /// This will not work for the segments.gen file because it doesn't compare to master and segments.gen is not write-once!
         /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
         /// </remarks>
-        public SyncIndexInput(SyncDirectory directory, string name, ILogger<SyncIndexInput> logger)
+        public SyncIndexInput(SyncDirectory directory, string name, ILogger<SyncIndexInput> logger, SyncMutexManager syncMutexManager)
             : base(string.Empty) // TODO: Is this right?
         {
             _name = name;
             _logger = logger;
+            _syncMutexManager = syncMutexManager;
             _syncDirectory = directory ?? throw new ArgumentNullException(nameof(directory));
 
 #if FULLDEBUG
             loggingService.Log(new LogEntry(LogLevel.Info, null,$"opening {_name} " ));
 #endif
-            _fileMutex = SyncMutexManager.GrabMutex(_syncDirectory, _name);
+            _fileMutex = _syncMutexManager.GrabMutex(_syncDirectory);
             _fileMutex.WaitOne();
             try
             {
@@ -110,7 +111,7 @@ namespace Examine.LuceneEngine.Directories
             if (_syncDirectory == null)
                 throw new ArgumentNullException(nameof(cloneInput._syncDirectory));
 
-            _fileMutex = SyncMutexManager.GrabMutex(cloneInput._syncDirectory, cloneInput._name);
+            _fileMutex = _syncMutexManager.GrabMutex(cloneInput._syncDirectory);
             _fileMutex.WaitOne();
 
             try

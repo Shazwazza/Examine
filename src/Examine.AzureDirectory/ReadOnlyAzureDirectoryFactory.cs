@@ -8,8 +8,8 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory
     {
-        public ReadOnlyAzureDirectoryFactory(ILoggerFactory loggerFactory)
-            : base(loggerFactory, isReadOnly: true)
+        public ReadOnlyAzureDirectoryFactory(ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager)
+            : base(loggerFactory, syncMutexManager, isReadOnly: true)
         {   
         }
     }

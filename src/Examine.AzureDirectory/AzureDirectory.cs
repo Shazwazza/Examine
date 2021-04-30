@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +18,7 @@ namespace Examine.AzureDirectory
     public class AzureDirectory : Lucene.Net.Store.Directory
     {
         private readonly DirectoryInfo _cachedindexFolder;
+        private readonly SyncMutexManager _syncMutexManager;
         private readonly bool _isReadOnly;
         private volatile bool _dirty = true;
         private bool _inSync = false;
@@ -25,9 +26,8 @@ namespace Examine.AzureDirectory
 
         private readonly string _containerName;
         private CloudBlobClient _blobClient;
-        private CloudBlobContainer _blobContainer;
         private LockFactory _lockFactory;
-        private static readonly NoopIndexOutput _noopIndexOutput = new NoopIndexOutput();
+        private static readonly NoopIndexOutput s_noopIndexOutput = new NoopIndexOutput();
 
         /// <summary>
         /// Create an AzureDirectory
@@ -47,17 +47,26 @@ namespace Examine.AzureDirectory
             string containerName,
             DirectoryInfo indexFolder,
             Lucene.Net.Store.Directory cacheDirectory,
+            SyncMutexManager syncMutexManager,
             bool compressBlobs = false,
             string rootFolder = null,
             bool isReadOnly = false)
         {
-            if (storageAccount == null) throw new ArgumentNullException(nameof(storageAccount));
-            if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
-            if (string.IsNullOrWhiteSpace(containerName)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
+            if (storageAccount == null)
+            {
+                throw new ArgumentNullException(nameof(storageAccount));
+            }
+
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
+            }
+
             _cachedindexFolder = indexFolder;
             _isReadOnly = isReadOnly;
 
-            CacheDirectory = cacheDirectory;
+            CacheDirectory = cacheDirectory ?? throw new ArgumentNullException(nameof(cacheDirectory));
+            _syncMutexManager = syncMutexManager;
             _containerName = containerName.ToLower();
 
             _lockFactory = isReadOnly
@@ -65,7 +74,9 @@ namespace Examine.AzureDirectory
                 : new MultiIndexLockFactory(new AzureDirectorySimpleLockFactory(this), CacheDirectory.LockFactory);
 
             if (string.IsNullOrEmpty(rootFolder))
+            {
                 RootFolder = string.Empty;
+            }
             else
             {
                 rootFolder = rootFolder.Trim('/');
@@ -76,9 +87,9 @@ namespace Examine.AzureDirectory
             EnsureContainer();
             CompressBlobs = compressBlobs;
         }
-        
+
         public string RootFolder { get; }
-        public CloudBlobContainer BlobContainer => _blobContainer;
+        public CloudBlobContainer BlobContainer { get; private set; }
         public bool CompressBlobs { get; }
         public Lucene.Net.Store.Directory CacheDirectory { get; }
 
@@ -92,10 +103,10 @@ namespace Examine.AzureDirectory
 
         public void EnsureContainer()
         {
-            _blobContainer = _blobClient.GetContainerReference(_containerName);
-            _blobContainer.CreateIfNotExists();
+            BlobContainer = _blobClient.GetContainerReference(_containerName);
+            BlobContainer.CreateIfNotExists();
         }
-        
+
         public override string[] ListAll()
         {
             var blobFiles = CheckDirty();
@@ -107,11 +118,11 @@ namespace Examine.AzureDirectory
 
         internal string[] GetAllBlobFiles()
         {
-            if (!_blobContainer.Exists())
+            if (!BlobContainer.Exists())
             {
-                _blobContainer.Create();
+                BlobContainer.Create();
             }
-            var results = from blob in _blobContainer.ListBlobs(RootFolder)
+            var results = from blob in BlobContainer.ListBlobs(RootFolder)
                           select blob.Uri.AbsolutePath.Substring(blob.Uri.AbsolutePath.LastIndexOf('/') + 1);
             return results.ToArray();
         }
@@ -130,15 +141,15 @@ namespace Examine.AzureDirectory
                 catch (Exception)
                 {
                     // something isn't quite right, need to re-sync
-                    SetDirty();                    
-                    return BlobExists(name);                    
+                    SetDirty();
+                    return BlobExists(name);
                 }
             }
 
             return BlobExists(name);
         }
 
-      
+
 
 
 
@@ -176,15 +187,16 @@ namespace Examine.AzureDirectory
             }
 
             //if we are readonly, then we are only modifying local storage
-            if (_isReadOnly) return;
+            if (_isReadOnly)
+                return;
 
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
 
-            var blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
+            var blob = BlobContainer.GetBlockBlobReference(RootFolder + name);
             blob.DeleteIfExists();
             SetDirty();
 
-            Trace.WriteLine($"DELETE {_blobContainer.Uri}/{RootFolder}/{name}");
+            Trace.WriteLine($"DELETE {BlobContainer.Uri}/{RootFolder}/{name}");
         }
 
 
@@ -236,12 +248,12 @@ namespace Examine.AzureDirectory
             //if we are readonly, then we don't modify anything
             if (_isReadOnly)
             {
-                return _noopIndexOutput;
+                return s_noopIndexOutput;
             }
 
-            CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(RootFolder +name);
-            AzureIndexOutput azureIndexOutput = new AzureIndexOutput(this, blockBlobReference, RootFolder +name);
-            return (IndexOutput) azureIndexOutput;
+            CloudBlockBlob blockBlobReference = this.BlobContainer.GetBlockBlobReference(RootFolder + name);
+            AzureIndexOutput azureIndexOutput = new AzureIndexOutput(this, blockBlobReference, _syncMutexManager, RootFolder + name);
+            return (IndexOutput)azureIndexOutput;
         }
 
         public override void Sync(ICollection<string> names)
@@ -273,7 +285,7 @@ namespace Examine.AzureDirectory
 
             if (TryGetBlobFile(name, out var blob, out var err))
             {
-                return new AzureIndexInput(this, blob);
+                return new AzureIndexInput(this, blob, _syncMutexManager);
             }
             else
             {
@@ -302,7 +314,7 @@ namespace Examine.AzureDirectory
 
         protected override void Dispose(bool disposing)
         {
-            _blobContainer = null;
+            BlobContainer = null;
             _blobClient = null;
         }
 
@@ -394,7 +406,7 @@ namespace Examine.AzureDirectory
         {
             try
             {
-                return _blobContainer.GetBlockBlobReference(RootFolder + name).Exists();
+                return BlobContainer.GetBlockBlobReference(RootFolder + name).Exists();
             }
             catch (Exception)
             {
@@ -406,7 +418,7 @@ namespace Examine.AzureDirectory
         {
             try
             {
-                blob = _blobContainer.GetBlockBlobReference(RootFolder + name);
+                blob = BlobContainer.GetBlockBlobReference(RootFolder + name);
                 blob.FetchAttributes();
                 err = null;
                 return true;
@@ -421,7 +433,7 @@ namespace Examine.AzureDirectory
 
         public long CachedFileModified(string name)
         {
-            return (long) new FileInfo(Path.Combine(_cachedindexFolder.FullName, name)).LastWriteTime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
+            return (long)new FileInfo(Path.Combine(_cachedindexFolder.FullName, name)).LastWriteTime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalMilliseconds;
         }
     }
 

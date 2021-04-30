@@ -14,12 +14,14 @@ namespace Examine.AzureDirectory
     public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
     {
         private readonly ILogger<AzureDirectoryFactory> _logger;
+        private readonly SyncMutexManager _syncMutexManager;
         private readonly bool _isReadOnly;
         
-        public AzureDirectoryFactory(ILoggerFactory loggerFactory, bool isReadOnly)
-            : base(loggerFactory)
+        public AzureDirectoryFactory(ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, bool isReadOnly)
+            : base(loggerFactory, syncMutexManager)
         {
             _logger = loggerFactory.CreateLogger<AzureDirectoryFactory>();
+            _syncMutexManager = syncMutexManager;
             _isReadOnly = isReadOnly;
         }
 
@@ -55,6 +57,7 @@ namespace Examine.AzureDirectory
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 tempFolder,
                 new SimpleFSDirectory(tempFolder),
+                _syncMutexManager,
                 rootFolder: luceneIndexFolder.Name,
                 isReadOnly: _isReadOnly);
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -16,6 +16,8 @@ namespace Examine.AzureDirectory
     public class AzureIndexOutput : IndexOutput
     {
         private readonly AzureDirectory _azureDirectory;
+        private readonly SyncMutexManager _syncMutexManager;
+
         //private CloudBlobContainer _blobContainer;
         private readonly string _name;
         private IndexOutput _indexOutput;
@@ -23,12 +25,13 @@ namespace Examine.AzureDirectory
         private ICloudBlob _blob;
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexOutput(AzureDirectory azureDirectory, ICloudBlob blob, string name)
+        public AzureIndexOutput(AzureDirectory azureDirectory, ICloudBlob blob, SyncMutexManager syncMutexManager, string name)
         {
             //NOTE: _name was null here, is this intended? https://github.com/azure-contrib/AzureDirectory/issues/19 I have changed this to be correct now
             _name = name;
             _azureDirectory = azureDirectory ?? throw new ArgumentNullException(nameof(azureDirectory));
-            _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name); 
+            _syncMutexManager = syncMutexManager;
+            _fileMutex = _syncMutexManager.GrabMutex(_azureDirectory); 
             _fileMutex.WaitOne();
             try
             {                

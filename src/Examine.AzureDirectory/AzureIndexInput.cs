@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -15,6 +15,7 @@ namespace Examine.AzureDirectory
     public class AzureIndexInput : IndexInput
     {
         private AzureDirectory _azureDirectory;
+        private readonly SyncMutexManager _syncMutexManager;
         private CloudBlobContainer _blobContainer;
         private ICloudBlob _blob;
         private readonly string _name;
@@ -24,14 +25,15 @@ namespace Examine.AzureDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob) : base(azuredirectory.RootFolder)
+        public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob, SyncMutexManager syncMutexManager) : base(azuredirectory.RootFolder)
         {
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
             _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
+            _syncMutexManager = syncMutexManager;
 #if FULLDEBUG
             Trace.WriteLine($"opening {_name} ");
 #endif
-            _fileMutex = SyncMutexManager.GrabMutex(_azureDirectory, _name);
+            _fileMutex = _syncMutexManager.GrabMutex(_azureDirectory);
             _fileMutex.WaitOne();
             try
             {                
@@ -174,7 +176,7 @@ namespace Examine.AzureDirectory
             if (_blobContainer == null) throw new ArgumentNullException(nameof(cloneInput._blobContainer));
             if (_blob == null) throw new ArgumentNullException(nameof(cloneInput._blob));
 
-            _fileMutex = SyncMutexManager.GrabMutex(cloneInput._azureDirectory, cloneInput._name);
+            _fileMutex = _syncMutexManager.GrabMutex(cloneInput._azureDirectory);
             _fileMutex.WaitOne();
 
             try
