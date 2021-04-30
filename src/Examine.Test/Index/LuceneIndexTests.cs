@@ -24,7 +24,6 @@ using Examine.Search;
 using Examine.Test.DataServices;
 using Examine.Test.UmbracoExamine;
 
-
 namespace Examine.Test.Index
 {
 

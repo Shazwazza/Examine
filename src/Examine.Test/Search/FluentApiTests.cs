@@ -7,6 +7,7 @@ using Examine.LuceneEngine.Search;
 using Examine.Search;
 using Examine.Test.UmbracoExamine;
 using Lucene.Net.Analysis.Core;
+using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using NUnit.Framework;
@@ -306,12 +307,10 @@ namespace Examine.Test.Search
         [Test]
         public void Grouped_Or_Examiness()
         {
-            var analyzer = new SimpleAnalyzer(LuceneInfo.CurrentVersion);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
             {
-
-
                 indexer.IndexItems(new[]
                 {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -345,12 +344,19 @@ namespace Examine.Test.Search
                 //get all node type aliases starting with CWS_Home OR and all nodees starting with "About"
                 var filter = criteria.GroupedOr(
                     new[] { "nodeTypeAlias", "nodeName" },
-                    new[] { "CWS\\_Home".Boost(10), "About".MultipleCharacterWildcard() });
+                    new[] { "CWS_Home".Boost(10), "About".MultipleCharacterWildcard() });
 
                 Console.WriteLine(filter);
 
                 var results = filter.Execute();
+
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Id = {r.Id}");
+                }
+
                 Assert.AreEqual(2, results.TotalItemCount);
+
             }
         }
 
@@ -891,11 +897,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "media",
                         new { nodeName = "my name 1", bodyText = "lorem ipsum", nodeTypeAlias = "image" }),
@@ -930,11 +932,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a number, otherwise it's not sortable
                 new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.Integer), new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),
                 luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", sortOrder = "3", parentID = "1143" }),
@@ -1017,11 +1015,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable)),
                 luceneDir, analyzer))
-
-
             {
-
-
 
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1060,12 +1054,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-
-
             {
-
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "umbraco", headerText = "world", bodyText = "blah" }),
@@ -1136,12 +1125,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-
-
             {
-
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "codegarden09", headerText = "world", writerName = "administrator" }),
@@ -1175,11 +1159,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", nodeTypeAlias = "CWS_Hello" }),
@@ -1216,16 +1196,12 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "Aloha", metaKeywords = "Warren is likely to be creative" }),
                     ValueSet.FromObject(2.ToString(), "content",
-                        new { nodeName = "Helo", metaKeywords = "Creative is Warren's middle name" }),
+                        new { nodeName = "Helo", metaKeywords = "Creative is Warren middle name" }),
                     ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "Another node", metaKeywords = "If Warren were creative... well, he actually is" }),
                     ValueSet.FromObject(4.ToString(), "content",
@@ -1243,11 +1219,14 @@ namespace Examine.Test.Search
                 //Act
                 var results = filter.Execute();
 
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Id = {r.Id}");
+                }
+
                 //Assert
                 Assert.AreEqual(3, results.TotalItemCount);
             }
-
-
         }
 
         /// <summary>
@@ -1494,14 +1473,10 @@ namespace Examine.Test.Search
         [Test]
         public void Fuzzy_Search()
         {
-            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            var analyzer = new EnglishAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "I'm thinking here" }),
@@ -1525,13 +1500,20 @@ namespace Examine.Test.Search
                 var results = filter.Execute();
                 var results2 = filter2.Execute();
 
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Result Id: {r.Id}");
+                }
+
+                foreach (var r in results2)
+                {
+                    Console.WriteLine($"Result2 Id: {r.Id}");
+                }
+
                 ////Assert
                 Assert.AreEqual(2, results.TotalItemCount);
                 Assert.AreEqual(2, results2.TotalItemCount);
-
             }
-
-
         }
 
 

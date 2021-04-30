@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Core;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
@@ -14,16 +15,20 @@ namespace Examine.LuceneEngine.Search
     public class CustomMultiFieldQueryParser : MultiFieldQueryParser
     {
 
-        public CustomMultiFieldQueryParser(Lucene.Net.Util.LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
+        public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
         {
         }
+
+        internal static QueryParser KeywordAnalyzerQueryParser { get; } = new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer());
 
         public virtual Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
         {
-            if (string.IsNullOrWhiteSpace(termStr)) throw new System.ArgumentException($"'{nameof(termStr)}' cannot be null or whitespace", nameof(termStr));
+            if (string.IsNullOrWhiteSpace(termStr))
+                throw new System.ArgumentException($"'{nameof(termStr)}' cannot be null or whitespace", nameof(termStr));
 
             return GetFuzzyQuery(field, termStr, minSimilarity);
         }
+
         /// <summary>
         /// Override to provide support for numerical range query parsing
         /// </summary>
@@ -40,31 +45,41 @@ namespace Examine.LuceneEngine.Search
         /// 
         /// TODO: We could go further and override the field query and check if it is a numeric field, if so then we can automatically generate a numeric range query for the single digit too.
         /// </remarks>
-        protected override Query GetRangeQuery(string field, string part1, string part2, bool startInclusive,bool endInclusive)
+        protected override Query GetRangeQuery(string field, string part1, string part2, bool startInclusive, bool endInclusive)
         {
-            return base.GetRangeQuery(field, part1, part2, startInclusive,endInclusive);
+            return base.GetRangeQuery(field, part1, part2, startInclusive, endInclusive);
         }
 
         public virtual Query GetWildcardQueryInternal(string field, string termStr)
         {
-            if (string.IsNullOrWhiteSpace(termStr)) throw new System.ArgumentException($"'{nameof(termStr)}' cannot be null or whitespace", nameof(termStr));
-            
+            if (string.IsNullOrWhiteSpace(termStr))
+                throw new ArgumentException($"'{nameof(termStr)}' cannot be null or whitespace", nameof(termStr));
+
             return GetWildcardQuery(field, termStr);
         }
-     
-        public virtual Query GetFieldQueryInternal(string field, string queryText, int slop)
-        {
-            if (string.IsNullOrWhiteSpace(queryText)) throw new System.ArgumentException($"'{nameof(queryText)}' cannot be null or whitespace", nameof(queryText));
 
-            return GetFieldQuery(field, queryText,slop);
-        }
-        
-        public Query GetFieldQueryInternal(string field, string queryText,
-            bool quoted)
+        /// <summary>
+        /// Gets a proximity query
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="queryText"></param>
+        /// <param name="slop"></param>
+        /// <returns></returns>
+        public virtual Query GetProximityQueryInternal(string field, string queryText, int slop)
         {
-            if (string.IsNullOrWhiteSpace(queryText)) throw new System.ArgumentException($"'{nameof(queryText)}' cannot be null or whitespace", nameof(queryText));
+            if (string.IsNullOrWhiteSpace(queryText))
+                throw new ArgumentException($"'{nameof(queryText)}' cannot be null or whitespace", nameof(queryText));
 
-            return GetFieldQuery(field, queryText,true);
+            return GetFieldQuery(field, queryText, slop);
         }
+
+        public Query GetFieldQueryInternal(string field, string queryText)
+        {
+            if (string.IsNullOrWhiteSpace(queryText))
+                throw new ArgumentException($"'{nameof(queryText)}' cannot be null or whitespace", nameof(queryText));
+
+            return GetFieldQuery(field, queryText, false);
+        }
+
     }
 }
