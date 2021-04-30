@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Linq;
 using Examine.LuceneEngine.Indexing;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine
 {
@@ -60,34 +61,30 @@ namespace Examine.LuceneEngine
         /// Returns the default index value types that is used in normal construction of an indexer
         /// </summary>
         /// <returns></returns>
-        public static IReadOnlyDictionary<string, IFieldValueTypeFactory> GetDefaultValueTypes(Analyzer defaultAnalyzer)
-            => GetDefaults(defaultAnalyzer).ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
+        public static IReadOnlyDictionary<string, IFieldValueTypeFactory> GetDefaultValueTypes(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer)
+            => GetDefaults(loggerFactory, defaultAnalyzer).ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
 
-        [Obsolete("This is no longer used and will be removed in future versions. Use the GetDefaultValueTypes instead.")]
-        public static IReadOnlyDictionary<string, IFieldValueTypeFactory> DefaultValueTypes
-            => GetDefaults().ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
-
-        private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(Analyzer defaultAnalyzer = null) =>
+        private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer = null) =>
             new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
-                {"number", name => new Int32Type(name)},
-                {FieldDefinitionTypes.Integer, name => new Int32Type(name)},
-                {FieldDefinitionTypes.Float, name => new SingleType(name)},
-                {FieldDefinitionTypes.Double, name => new DoubleType(name)},
-                {FieldDefinitionTypes.Long, name => new Int64Type(name)},
-                {"date", name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, DateTools.Resolution.YEAR)},
-                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, DateTools.Resolution.MONTH)},
-                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, DateTools.Resolution.DAY)},
-                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, DateTools.Resolution.HOUR)},
-                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, DateTools.Resolution.MINUTE)},
-                {FieldDefinitionTypes.Raw, name => new RawStringType(name)},
+                {"number", name => new Int32Type(name, loggerFactory.CreateLogger<Int32Type>())},
+                {FieldDefinitionTypes.Integer, name => new Int32Type(name, loggerFactory.CreateLogger<Int32Type>())},
+                {FieldDefinitionTypes.Float, name => new SingleType(name, loggerFactory.CreateLogger<SingleType>())},
+                {FieldDefinitionTypes.Double, name => new DoubleType(name, loggerFactory.CreateLogger<DoubleType>())},
+                {FieldDefinitionTypes.Long, name => new Int64Type(name, loggerFactory.CreateLogger<Int64Type>())},
+                {"date", name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.YEAR)},
+                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MONTH)},
+                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.DAY)},
+                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.HOUR)},
+                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MINUTE)},
+                {FieldDefinitionTypes.Raw, name => new RawStringType(name, loggerFactory.CreateLogger<RawStringType>())},
                 // TODO: This is the default and it doesn't use the default analyzer
-                {FieldDefinitionTypes.FullText, name => new FullTextType(name, defaultAnalyzer)},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, defaultAnalyzer, true)},
-                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, new CultureInvariantWhitespaceAnalyzer())},
-                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, new EmailAddressAnalyzer())}
+                {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory.CreateLogger<FullTextType>(), defaultAnalyzer)},
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory.CreateLogger<FullTextType>(), defaultAnalyzer, true)},
+                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory.CreateLogger<GenericAnalyzerFieldValueType>(), new CultureInvariantWhitespaceAnalyzer())},
+                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory.CreateLogger<GenericAnalyzerFieldValueType>(), new EmailAddressAnalyzer())}
             };
 
 

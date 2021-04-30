@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
@@ -7,6 +7,7 @@ using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Indexing
 {
@@ -31,8 +32,8 @@ namespace Examine.LuceneEngine.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, Analyzer analyzer = null, bool sortable = false)
-            : base(fieldName, true)
+        public FullTextType(string fieldName, ILogger<FullTextType> logger, Analyzer analyzer = null, bool sortable = false)
+            : base(fieldName, logger, true)
         {
             _sortable = sortable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();

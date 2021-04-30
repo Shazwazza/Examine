@@ -8,6 +8,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.AzureDirectory
 {
@@ -17,6 +18,8 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectory : Lucene.Net.Store.Directory
     {
+        private readonly ILogger<AzureDirectory> _logger;
+        private readonly ILogger<AzureIndexInput> _inputLogger;
         private readonly DirectoryInfo _cachedindexFolder;
         private readonly SyncMutexManager _syncMutexManager;
         private readonly bool _isReadOnly;
@@ -43,6 +46,7 @@ namespace Examine.AzureDirectory
         /// If this is set to true, the lock factory will be the default LockFactory configured for the cache directorty.
         /// </param>
         public AzureDirectory(
+            ILoggerFactory loggerFactory,
             CloudStorageAccount storageAccount,
             string containerName,
             DirectoryInfo indexFolder,
@@ -61,7 +65,8 @@ namespace Examine.AzureDirectory
             {
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(containerName));
             }
-
+            _logger = loggerFactory.CreateLogger<AzureDirectory>();
+            _inputLogger = loggerFactory.CreateLogger<AzureIndexInput>();
             _cachedindexFolder = indexFolder;
             _isReadOnly = isReadOnly;
 
@@ -196,7 +201,7 @@ namespace Examine.AzureDirectory
             blob.DeleteIfExists();
             SetDirty();
 
-            Trace.WriteLine($"DELETE {BlobContainer.Uri}/{RootFolder}/{name}");
+            _logger.LogDebug($"DELETE {BlobContainer.Uri}/{RootFolder}/{name}");
         }
 
 
@@ -279,13 +284,13 @@ namespace Examine.AzureDirectory
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceError("Could not get local file though we are marked as inSync, reverting to try blob storage; " + ex);
+                    _logger.LogError(ex, "Could not get local file though we are marked as inSync, reverting to try blob storage");
                 }
             }
 
             if (TryGetBlobFile(name, out var blob, out var err))
             {
-                return new AzureIndexInput(this, blob, _syncMutexManager);
+                return new AzureIndexInput(this, blob, _syncMutexManager, _inputLogger);
             }
             else
             {

@@ -13,20 +13,20 @@ namespace Examine.Test
 {
     public class TestIndex : LuceneIndex
     {
-        public TestIndex(ILogger<TestIndex> logger, FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : base(logger, "testIndexer", luceneDirectory, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
+        public TestIndex(ILoggerFactory loggerFactory, FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            : base(loggerFactory, "testIndexer", luceneDirectory, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
         {
             RunAsync = false;
         }
 
-        public TestIndex(ILogger<TestIndex> logger, Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
-            : base(logger, "testIndexer", luceneDirectory, new FieldDefinitionCollection(), defaultAnalyzer, validator)
+        public TestIndex(ILoggerFactory loggerFactory, Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
+            : base(loggerFactory, "testIndexer", luceneDirectory, new FieldDefinitionCollection(), defaultAnalyzer, validator)
         {
             RunAsync = false;
         }
 
-        public TestIndex(ILogger<TestIndex> logger, IndexWriter writer, IValueSetValidator validator = null)
-            : base(logger, "testIndexer", new FieldDefinitionCollection(), writer, validator)
+        public TestIndex(ILoggerFactory loggerFactory, IndexWriter writer, IValueSetValidator validator = null)
+            : base(loggerFactory, "testIndexer", new FieldDefinitionCollection(), writer, validator)
         {
         }
 

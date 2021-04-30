@@ -1,7 +1,8 @@
-﻿using Lucene.Net.Analysis;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Flexible.Core.Nodes;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Indexing
 {
@@ -16,8 +17,8 @@ namespace Examine.LuceneEngine.Indexing
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="store"></param>
-        public RawStringType(string fieldName, bool store = true)
-            : base(fieldName, store)
+        public RawStringType(string fieldName, ILogger<RawStringType> logger, bool store = true)
+            : base(fieldName, logger, store)
         {
         }
 

@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Indexing
 {
@@ -14,7 +15,8 @@ namespace Examine.LuceneEngine.Indexing
         private readonly Analyzer _analyzer;
         private readonly bool _sortable;
 
-        public GenericAnalyzerFieldValueType(string fieldName, Analyzer analyzer, bool sortable = false) : base(fieldName, true)
+        public GenericAnalyzerFieldValueType(string fieldName, ILogger<GenericAnalyzerFieldValueType> logger, Analyzer analyzer, bool sortable = false)
+            : base(fieldName, logger, true)
         {
             _analyzer = analyzer ?? throw new ArgumentNullException(nameof(analyzer));
             _sortable = sortable;

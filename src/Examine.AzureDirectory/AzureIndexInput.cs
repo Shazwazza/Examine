@@ -6,6 +6,7 @@ using System.Threading;
 using Examine.LuceneEngine.Directories;
 using Lucene.Net.Store;
 using Microsoft.Azure.Storage.Blob;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.AzureDirectory
 {
@@ -16,6 +17,7 @@ namespace Examine.AzureDirectory
     {
         private AzureDirectory _azureDirectory;
         private readonly SyncMutexManager _syncMutexManager;
+        private readonly ILogger<AzureIndexInput> _logger;
         private CloudBlobContainer _blobContainer;
         private ICloudBlob _blob;
         private readonly string _name;
@@ -25,11 +27,12 @@ namespace Examine.AzureDirectory
 
         public Lucene.Net.Store.Directory CacheDirectory => _azureDirectory.CacheDirectory;
 
-        public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob, SyncMutexManager syncMutexManager) : base(azuredirectory.RootFolder)
+        public AzureIndexInput(AzureDirectory azuredirectory, ICloudBlob blob, SyncMutexManager syncMutexManager, ILogger<AzureIndexInput> logger) : base(azuredirectory.RootFolder)
         {
             _name = blob.Uri.Segments[blob.Uri.Segments.Length - 1];
             _azureDirectory = azuredirectory ?? throw new ArgumentNullException(nameof(azuredirectory));
             _syncMutexManager = syncMutexManager;
+            _logger = logger;
 #if FULLDEBUG
             Trace.WriteLine($"opening {_name} ");
 #endif
@@ -186,11 +189,11 @@ namespace Examine.AzureDirectory
 #endif                
                 _indexInput = cloneInput._indexInput.Clone() as IndexInput;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // sometimes we get access denied on the 2nd stream...but not always. I haven't tracked it down yet
                 // but this covers our tail until I do
-                Trace.TraceError($"Dagnabbit, falling back to memory clone for {cloneInput._name}");
+                _logger.LogError(ex, $"Falling back to memory clone for {cloneInput._name}");
             }
             finally
             {
@@ -254,7 +257,7 @@ namespace Examine.AzureDirectory
             }
             catch (Exception err)
             {
-                Trace.TraceError(err.ToString());
+                _logger.LogError(err, err.Message);
             }
             finally
             {

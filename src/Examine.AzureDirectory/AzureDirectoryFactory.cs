@@ -13,14 +13,16 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class AzureDirectoryFactory : SyncTempEnvDirectoryFactory, IDirectoryFactory
     {
-        private readonly ILogger<AzureDirectoryFactory> _logger;
+        private readonly ILogger<AzureDirectory> _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly SyncMutexManager _syncMutexManager;
         private readonly bool _isReadOnly;
         
         public AzureDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, bool isReadOnly)
             : base(applicationIdentifier, loggerFactory, syncMutexManager)
         {
-            _logger = loggerFactory.CreateLogger<AzureDirectoryFactory>();
+            _logger = loggerFactory.CreateLogger<AzureDirectory>();
+            _loggerFactory = loggerFactory;
             _syncMutexManager = syncMutexManager;
             _isReadOnly = isReadOnly;
         }
@@ -53,6 +55,7 @@ namespace Examine.AzureDirectory
             var tempFolder = GetLocalStorageDirectory(indexFolder);
 
             return new AzureDirectory(
+                _loggerFactory,
                 CloudStorageAccount.Parse(ConfigurationManager.AppSettings[ConfigStorageKey]),
                 ConfigurationManager.AppSettings[ConfigContainerKey],
                 tempFolder,
@@ -62,6 +65,6 @@ namespace Examine.AzureDirectory
                 isReadOnly: _isReadOnly);
         }
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
-        Lucene.Net.Store.Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
+        Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
     }
 }

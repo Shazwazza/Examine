@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Indexing
 {
@@ -15,8 +16,8 @@ namespace Examine.LuceneEngine.Indexing
         /// </summary>
         public override string SortableFieldName => FieldName;
 
-        public DateTimeType(string fieldName, DateTools.Resolution resolution, bool store = true)
-            : base(fieldName, store)
+        public DateTimeType(string fieldName, ILogger<DateTimeType> logger, DateTools.Resolution resolution, bool store = true)
+            : base(fieldName, logger, store)
         {
             Resolution = resolution;
         }

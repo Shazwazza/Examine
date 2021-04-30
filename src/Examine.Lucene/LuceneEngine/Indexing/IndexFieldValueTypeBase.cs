@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -7,11 +7,14 @@ using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Indexing
 {
     public abstract class IndexFieldValueTypeBase : IIndexFieldValueType
     {
+        private readonly ILogger<IndexFieldValueTypeBase> _logger;
+
         public string FieldName { get; }
 
         //by default it will not be sortable
@@ -19,9 +22,10 @@ namespace Examine.LuceneEngine.Indexing
 
         public bool Store { get; }
         
-        protected IndexFieldValueTypeBase(string fieldName, bool store = true)
+        protected IndexFieldValueTypeBase(string fieldName, ILogger<IndexFieldValueTypeBase> logger, bool store = true)
         {
             FieldName = fieldName;
+            _logger = logger;
             Store = store;            
         }
 
@@ -66,7 +70,7 @@ namespace Examine.LuceneEngine.Indexing
         /// <param name="val"></param>
         /// <param name="parsedVal"></param>
         /// <returns></returns>        
-        protected static bool TryConvert<T>(object val, out T parsedVal)
+        protected bool TryConvert<T>(object val, out T parsedVal)
         {
             // TODO: This throws all the time and then logs! 
 
@@ -99,7 +103,7 @@ namespace Examine.LuceneEngine.Indexing
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceError("An error occurred in {0}.{1} inputConverter.ConvertTo(val, typeof(T)) : {2}", nameof(IndexFieldValueTypeBase), nameof(TryConvert), ex);
+                    _logger.LogDebug(ex, "An conversion error occurred with from inputConverter.ConvertTo {FromValue} to {ToValueType}", val, typeof(T));
 
                     parsedVal = default(T);
                     return false;
@@ -117,7 +121,7 @@ namespace Examine.LuceneEngine.Indexing
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceError("An error occurred in {0}.{1} outputConverter.ConvertFrom(val) : {2}", nameof(IndexFieldValueTypeBase), nameof(TryConvert), ex);
+                    _logger.LogDebug(ex, "An conversion error occurred with outputConverter.ConvertFrom from {FromValue} to {ToValueType}", val, typeof(T));
 
                     parsedVal = default(T);
                     return false;
@@ -132,7 +136,7 @@ namespace Examine.LuceneEngine.Indexing
             }
             catch (Exception ex)
             {
-                Trace.TraceError("An error occurred in {0}.{1} Convert.ChangeType(val, typeof(T)) : {2}", nameof(IndexFieldValueTypeBase), nameof(TryConvert), ex);
+                _logger.LogDebug(ex, "An conversion error occurred with Convert.ChangeType from {FromValue} to {ToValueType}", val, typeof(T));
 
                 parsedVal = default(T);
                 return false;

@@ -19,15 +19,18 @@ namespace Examine
         /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="validator"></param>
-        protected BaseIndexProvider(ILogger<BaseIndexProvider> logger, string name, FieldDefinitionCollection fieldDefinitions, IValueSetValidator validator)
+        protected BaseIndexProvider(ILoggerFactory loggerFactory, string name, FieldDefinitionCollection fieldDefinitions, IValueSetValidator validator)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
-            _logger = logger;
+
+            LoggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<BaseIndexProvider>();
             Name = name;
             FieldDefinitionCollection = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
             ValueSetValidator = validator;
         }
 
+        protected ILoggerFactory LoggerFactory { get; }
         public virtual string Name { get; }
 
         /// <summary>

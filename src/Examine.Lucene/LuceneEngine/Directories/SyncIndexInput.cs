@@ -290,7 +290,7 @@ namespace Examine.LuceneEngine.Directories
             }
             catch (Exception err)
             {
-                Trace.TraceError(err.ToString());
+                _logger.LogError(err, err.Message);
             }
             finally
             {

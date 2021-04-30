@@ -1,13 +1,14 @@
-﻿using Examine.LuceneEngine.Providers;
+using Examine.LuceneEngine.Providers;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Indexing
 {
     public class DoubleType : IndexFieldRangeValueType<double>
     {
-        public DoubleType(string fieldName, bool store= true)
-            : base(fieldName, store)
+        public DoubleType(string fieldName, ILogger<DoubleType> logger, bool store= true)
+            : base(fieldName, logger, store)
         {
         }
 

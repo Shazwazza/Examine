@@ -1,13 +1,14 @@
-﻿using Examine.LuceneEngine.Providers;
+using Examine.LuceneEngine.Providers;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Indexing
 {
     public class Int64Type : IndexFieldRangeValueType<long>
     {
-        public Int64Type(string fieldName, bool store = true)
-            : base(fieldName, store)
+        public Int64Type(string fieldName, ILogger<Int64Type> logger, bool store = true)
+            : base(fieldName, logger, store)
         {
         }
 

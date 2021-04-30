@@ -40,14 +40,14 @@ namespace Examine.LuceneEngine.Providers
         ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>
         public LuceneIndex(
-            ILogger<LuceneIndex> logger,
+            ILoggerFactory loggerFactory,
             string name,
             Directory luceneDirectory,
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : this(logger, name, luceneDirectory, DefaultQueueCapacity, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
+            : this(loggerFactory, name, luceneDirectory, DefaultQueueCapacity, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
         {
         }
 
@@ -65,7 +65,7 @@ namespace Examine.LuceneEngine.Providers
         ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </param>        
         public LuceneIndex(
-            ILogger<LuceneIndex> logger,
+            ILoggerFactory loggerFactory,
             string name,
             Directory luceneDirectory,
             int queueCapacity,
@@ -73,7 +73,7 @@ namespace Examine.LuceneEngine.Providers
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-           : base(logger, name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
+           : base(loggerFactory, name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
         {
             _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _committer = new IndexCommiter(this);
@@ -81,7 +81,6 @@ namespace Examine.LuceneEngine.Providers
             LuceneIndexFolder = null;
 
             DefaultAnalyzer = analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
-            _logger = logger;
             _directory = luceneDirectory;
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
@@ -102,13 +101,13 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
         public LuceneIndex(
-            ILogger<LuceneIndex> logger,
+            ILoggerFactory loggerFactory,
             string name,
             FieldDefinitionCollection fieldDefinitions,
             IndexWriter writer,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-                : this(logger, name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
+                : this(loggerFactory, name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
         {
         }
 
@@ -124,14 +123,14 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
         public LuceneIndex(
-            ILogger<LuceneIndex> logger,
+            ILoggerFactory loggerFactory,
             string name,
             FieldDefinitionCollection fieldDefinitions,
             IndexWriter writer,
             int queueCapacity,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-               : base(logger, name, fieldDefinitions, validator)
+               : base(loggerFactory, name, fieldDefinitions, validator)
         {
             _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _committer = new IndexCommiter(this);
@@ -316,24 +315,21 @@ namespace Examine.LuceneEngine.Providers
         {
             base.OnIndexingError(e);
 
-#if FULLDEBUG
-            Trace.TraceError("Indexing Error Occurred: " + (e.InnerException == null ? e.Message : e.Message + " -- " + e.InnerException));
-#endif
-
             if (!RunAsync)
             {
                 var msg = "Indexing Error Occurred: " + e.Message;
                 if (e.Exception != null)
+                {
                     msg += ". ERROR: " + e.Exception.Message;
+                }
+
                 throw new Exception(msg, e.Exception);
             }
 
         }
 
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
-        {
-            DocumentWriting?.Invoke(this, docArgs);
-        }
+            => DocumentWriting?.Invoke(this, docArgs);
 
         #endregion
 
@@ -396,7 +392,7 @@ namespace Examine.LuceneEngine.Providers
                         {
                             //it does exists so we'll need to clear it out
 
-                            Trace.WriteLine("Initializing new index");
+                            _logger.LogDebug("Initializing new index");
 
                             if (_writer == null)
                             {
@@ -579,7 +575,7 @@ namespace Examine.LuceneEngine.Providers
         {
             //copy to writable dictionary
             var defaults = new Dictionary<string, IFieldValueTypeFactory>();
-            foreach (var defaultIndexValueType in ValueTypeFactoryCollection.GetDefaultValueTypes(DefaultAnalyzer))
+            foreach (var defaultIndexValueType in ValueTypeFactoryCollection.GetDefaultValueTypes(LoggerFactory, DefaultAnalyzer))
             {
                 defaults[defaultIndexValueType.Key] = defaultIndexValueType.Value;
             }

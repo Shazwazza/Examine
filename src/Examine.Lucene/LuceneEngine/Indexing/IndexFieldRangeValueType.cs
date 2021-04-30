@@ -1,11 +1,12 @@
-﻿using Lucene.Net.Search;
+using Lucene.Net.Search;
+using Microsoft.Extensions.Logging;
 
 namespace Examine.LuceneEngine.Indexing
 {
     public abstract class IndexFieldRangeValueType<T> : IndexFieldValueTypeBase, IIndexRangeValueType<T>, IIndexRangeValueType
          where T : struct
     {
-        protected IndexFieldRangeValueType(string fieldName, bool store = true) : base(fieldName, store)
+        protected IndexFieldRangeValueType(string fieldName, ILogger<IndexFieldRangeValueType<T>> logger, bool store = true) : base(fieldName, logger, store)
         {
         }
 

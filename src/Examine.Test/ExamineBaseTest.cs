@@ -16,12 +16,10 @@ namespace Examine.Test
         [TearDown]
         public void TearDown() => _loggerFactory.Dispose();
 
-        private ILogger<TestIndex> GetLogger() => _loggerFactory.CreateLogger<TestIndex>();
-
         public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null)
-            => new TestIndex(GetLogger(), fieldDefinitions, d, analyzer);
+            => new TestIndex(_loggerFactory, fieldDefinitions, d, analyzer);
 
         public TestIndex GetTestIndex(IndexWriter writer)
-            => new TestIndex(GetLogger(), writer);
+            => new TestIndex(_loggerFactory, writer);
     }
 }
