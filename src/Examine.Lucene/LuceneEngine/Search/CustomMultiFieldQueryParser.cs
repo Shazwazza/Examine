@@ -14,7 +14,7 @@ namespace Examine.LuceneEngine.Search
     public class CustomMultiFieldQueryParser : MultiFieldQueryParser
     {
 
-        public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
+        public CustomMultiFieldQueryParser(Lucene.Net.Util.LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
         {
         }
 

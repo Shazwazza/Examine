@@ -15,7 +15,7 @@ namespace Examine.LuceneEngine
             Tokenizer tokenizer = new EmailAddressTokenizer(reader);
 
             //case insensitive
-            TokenStream result = new LowerCaseFilter(Util.Version, tokenizer);
+            TokenStream result = new LowerCaseFilter(LuceneInfo.CurrentVersion, tokenizer);
 
             return new TokenStreamComponents(tokenizer, result);
         }
@@ -26,7 +26,7 @@ namespace Examine.LuceneEngine
         private class EmailAddressTokenizer : CharTokenizer
         {
             public EmailAddressTokenizer(TextReader tr)
-               : base(Util.Version, tr)
+               : base(LuceneInfo.CurrentVersion, tr)
             {
             }
 

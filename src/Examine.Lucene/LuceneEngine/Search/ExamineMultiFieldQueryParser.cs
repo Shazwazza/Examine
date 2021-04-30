@@ -12,7 +12,7 @@ namespace Examine.LuceneEngine.Search
     {
         private readonly ISearchContext _searchContext;
 
-        public ExamineMultiFieldQueryParser(ISearchContext searchContext, LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
+        public ExamineMultiFieldQueryParser(ISearchContext searchContext, Lucene.Net.Util.LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
         {
             _searchContext = searchContext ?? throw new System.ArgumentNullException(nameof(searchContext));
         }

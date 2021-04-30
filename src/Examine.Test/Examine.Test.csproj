@@ -138,8 +138,11 @@
     <Analyzer Include="..\packages\Lucene.Net.4.8.0-beta00008\analyzers\dotnet\cs\Lucene.Net.CodeAnalysis.dll" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lucene.Net.Contrib.Spatial">
-      <Version>3.0.3</Version>
+    <PackageReference Include="Lucene.Net">
+      <Version>4.8.0-beta00007</Version>
+    </PackageReference>
+    <PackageReference Include="Lucene.Net.Spatial">
+      <Version>4.8.0-beta00007</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Azure.Storage.Blob">
       <Version>11.2.2</Version>

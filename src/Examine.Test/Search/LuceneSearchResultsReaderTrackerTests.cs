@@ -1,4 +1,4 @@
-﻿using Examine.LuceneEngine.Providers;
+using Examine.LuceneEngine.Providers;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
@@ -12,7 +12,7 @@ namespace Examine.Test.Search
         [Test]
         public void Track_Readers()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(luceneDir, analyzer))
             {
@@ -27,8 +27,8 @@ namespace Examine.Test.Search
                         new { nodeName = "hello", headerText = "world", writerName = "blah" })
                     });
 
-                LuceneSearcher searcher = (LuceneSearcher)indexer.GetSearcher();
-                IndexSearcher luceneSearcher = (IndexSearcher)searcher.GetLuceneSearcher();
+                var searcher = (LuceneSearcher)indexer.GetSearcher();
+                IndexSearcher luceneSearcher = searcher.GetLuceneSearcher();
 
                 //Arrange
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");

@@ -28,9 +28,6 @@ namespace Examine.LuceneEngine.Search
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
-        public LuceneVersion LuceneVersion = Util.Version;
-    
-
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
@@ -51,8 +48,10 @@ namespace Examine.LuceneEngine.Search
             SearchOptions = searchOptions;
             Queries.Push(new BooleanQuery());
             BooleanOperation = occurance;
-            _queryParser = new CustomMultiFieldQueryParser(Util.Version, fields, analyzer);
-            _queryParser.AllowLeadingWildcard = searchOptions.AllowLeadingWildcard;
+            _queryParser = new CustomMultiFieldQueryParser(LuceneInfo.CurrentVersion, fields, analyzer)
+            {
+                AllowLeadingWildcard = searchOptions.AllowLeadingWildcard
+            };
         }
 
         protected abstract LuceneBooleanOperationBase CreateOp();
@@ -410,7 +409,7 @@ namespace Examine.LuceneEngine.Search
         /// <returns></returns>
         private Query ParseRawQuery(string rawQuery)
         {
-            var parser = new QueryParser(Util.Version, string.Empty, KeywordAnalyzer);
+            var parser = new QueryParser(LuceneInfo.CurrentVersion, string.Empty, KeywordAnalyzer);
             return parser.Parse(rawQuery);
         }
 

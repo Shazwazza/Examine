@@ -1,4 +1,4 @@
-﻿using Lucene.Net.Store;
+using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
 {
@@ -15,9 +15,9 @@ namespace Examine.AzureDirectory
         {
         }
 
-        public override long FilePointer => 0;
-
         public override long Length => 0;
+
+        public override long Checksum => 0;
 
         public override void Seek(long pos)
         {
@@ -30,5 +30,7 @@ namespace Examine.AzureDirectory
         public override void WriteBytes(byte[] b, int offset, int length)
         {
         }
+
+        public override long GetFilePointer() => throw new System.NotImplementedException();
     }
 }

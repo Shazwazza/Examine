@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +8,10 @@ using Examine.LuceneEngine;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Store;
 using NUnit.Framework;
-using Version = Lucene.Net.Util.Version;
 using Lucene.Net.Analysis;
 using Examine.Search;
 using Examine.LuceneEngine.Search;
+using Lucene.Net.Analysis.Util;
 
 namespace Examine.Test.Search
 {
@@ -19,25 +19,18 @@ namespace Examine.Test.Search
     [TestFixture]
     public class MultiIndexSearchTests
     {
-        public class CustomAnalyzer : StandardAnalyzer
-        {
-            public static List<string> StopWords = new List<string>()
+        public static CharArraySet StopWords { get; } = new CharArraySet(LuceneInfo.CurrentVersion, new[]
             {
                 "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "if", "in", "into",
                 "is", "it", "no", "not", "of", "on", "or", "such", "that", "their", "then",
                 "there", "these", "they", "this", "to", "was", "with"
-            };
-
-            public CustomAnalyzer()
-                : base(Version.LUCENE_30, new HashSet<string>(StopWords))
-            { }
-        }
+            }, true);
 
         [Test]
         public void GivenCustomStopWords_WhenUsedOnlyForSearchingAndNotIndexing_TheDefaultWordsWillBeStrippedDuringIndexing()
         {
-            var customAnalyzer = new CustomAnalyzer();
-            var standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var customAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion, StopWords);
+            var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
@@ -64,8 +57,8 @@ namespace Examine.Test.Search
         [Test]
         public void GivenCustomStopWords_WhenUsedOnlyForIndexingAndNotForSearching_TheDefaultWordsWillNotBeStrippedDuringSearchingWithManagedQueries()
         {
-            var customAnalyzer = new CustomAnalyzer();
-            var standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var customAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion, StopWords);
+            var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
@@ -96,8 +89,8 @@ namespace Examine.Test.Search
         [Test]
         public void GivenCustomStopWords_WhenUsedOnlyForIndexingAndNotForSearching_TheDefaultWordsWillBeStrippedDuringSearchingWithNonManagedQueries()
         {
-            var customAnalyzer = new CustomAnalyzer();
-            var standardAnalyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var customAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion, StopWords);
+            var standardAnalyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
@@ -130,7 +123,7 @@ namespace Examine.Test.Search
         [Test]
         public void Dont_Initialize_Searchers_On_Dispose_If_Not_Already_Initialized()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
@@ -156,7 +149,7 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Simple_Search()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
@@ -193,16 +186,20 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Field_Count()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = new TestIndex(luceneDir1, analyzer) { RunAsync = false })
-            using (var indexer2 = new TestIndex(luceneDir2, analyzer) { RunAsync = false })
-            using (var indexer3 = new TestIndex(luceneDir3, analyzer) { RunAsync = false })
-            using (var indexer4 = new TestIndex(luceneDir4, analyzer) { RunAsync = false })
+            using (var indexer1 = new TestIndex(luceneDir1, analyzer))            
+            using (var indexer2 = new TestIndex(luceneDir2, analyzer))
+            using (var indexer3 = new TestIndex(luceneDir3, analyzer))
+            using (var indexer4 = new TestIndex(luceneDir4, analyzer))
+            using (indexer1.ProcessNonAsync())
+            using (indexer2.ProcessNonAsync())
+            using (indexer3.ProcessNonAsync())
+            using (indexer4.ProcessNonAsync())
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "hello", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "world", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));

@@ -1,4 +1,4 @@
-﻿using Lucene.Net.Store;
+using Lucene.Net.Store;
 
 namespace Examine.AzureDirectory
 {
@@ -7,13 +7,13 @@ namespace Examine.AzureDirectory
     /// </summary>
     public class NoopLockFactory : LockFactory
     {
-        private static readonly NoopLock _noopLock = new NoopLock();
+        private static readonly NoopLock s_noopLock = new NoopLock();
 
         public override void ClearLock(string lockName)
         {
         }
 
-        public override Lock MakeLock(string lockName) => _noopLock;
+        public override Lock MakeLock(string lockName) => s_noopLock;
 
         public class NoopLock : Lock
         {
@@ -21,9 +21,7 @@ namespace Examine.AzureDirectory
 
             public override bool Obtain() => true;
 
-            public override void Release()
-            {
-            }
+            protected override void Dispose(bool disposing) { }
         }
     }
 

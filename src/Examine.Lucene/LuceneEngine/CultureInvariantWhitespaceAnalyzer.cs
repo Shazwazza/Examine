@@ -33,7 +33,7 @@ namespace Examine.LuceneEngine
             Tokenizer tokenizer = new LetterOrDigitTokenizer(reader);
             
             //case insensitive
-            TokenStream result = new LowerCaseFilter(Util.Version, tokenizer);
+            TokenStream result = new LowerCaseFilter(LuceneInfo.CurrentVersion, tokenizer);
 
             if (_ignoreLanguageAccents)
             {
@@ -42,7 +42,7 @@ namespace Examine.LuceneEngine
 
             if (_caseInsensitive)
             {
-                result = new LowerCaseFilter(Util.Version, result);
+                result = new LowerCaseFilter(LuceneInfo.CurrentVersion, result);
             }
 
             return new TokenStreamComponents(tokenizer, result);
@@ -51,7 +51,7 @@ namespace Examine.LuceneEngine
         private sealed class LetterOrDigitTokenizer : CharTokenizer
         {
             public LetterOrDigitTokenizer(TextReader tr)
-                : base(Util.Version, tr)
+                : base(LuceneInfo.CurrentVersion, tr)
             {
             }
 

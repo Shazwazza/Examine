@@ -18,7 +18,8 @@ namespace Examine.LuceneEngine
         private ResultType? _searchResultType;
 
         // used for testing
-        internal int ExecutionCount { get; private set; }
+        // TODO: Hopefully we can remove the need for this with https://github.com/Shazwazza/Examine/issues/222
+        public int ExecutionCount { get; private set; }
 
         private enum ResultType
         {

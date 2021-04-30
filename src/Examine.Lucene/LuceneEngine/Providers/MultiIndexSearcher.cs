@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -30,7 +30,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="indexes"></param>
         /// <param name="analyzer"></param>
         public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(Util.Version))
+            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
         {
             _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.GetSearcher()));
         }
@@ -42,7 +42,7 @@ namespace Examine.LuceneEngine.Providers
         /// <param name="searchers"></param>
         /// <param name="analyzer"></param>
         public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, Analyzer analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(Util.Version))
+            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
         {
             _searchers = searchers;
         }
@@ -56,7 +56,7 @@ namespace Examine.LuceneEngine.Providers
         public IEnumerable<LuceneSearcher> Searchers => _searchers.Value.OfType<LuceneSearcher>();
 
         // for tests
-        internal bool SearchersInitialized => _searchers.IsValueCreated;
+        public bool SearchersInitialized => _searchers.IsValueCreated;
 
         /// <summary>
         /// Returns a list of fields to search on based on all distinct fields found in the sub searchers

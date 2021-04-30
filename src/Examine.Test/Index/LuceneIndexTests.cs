@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -38,7 +38,7 @@ namespace Examine.Test.Index
         public void Rebuild_Index()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(d, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(d, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 indexer.CreateIndex();
                 indexer.IndexItems(indexer.AllData());
@@ -54,7 +54,7 @@ namespace Examine.Test.Index
         public void Index_Exists()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 indexer.EnsureIndex(true);
                 Assert.IsTrue(indexer.IndexExists());
@@ -65,7 +65,7 @@ namespace Examine.Test.Index
         public void Can_Add_One_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -86,7 +86,7 @@ namespace Examine.Test.Index
         public void Can_Add_Same_Document_Twice_Without_Duplication()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -110,7 +110,7 @@ namespace Examine.Test.Index
         public void Can_Add_Multiple_Docs()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -134,7 +134,7 @@ namespace Examine.Test.Index
         public void Can_Delete()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -160,7 +160,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -195,7 +195,7 @@ namespace Examine.Test.Index
         public void Can_Add_Doc_With_Easy_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -218,7 +218,7 @@ namespace Examine.Test.Index
         public void Can_Have_Multiple_Values_In_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -254,7 +254,7 @@ namespace Examine.Test.Index
         public void Can_Update_Document()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(Util.Version)))
+            using (var indexer = new TestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -283,7 +283,7 @@ namespace Examine.Test.Index
             using (var indexer = new TestIndex(
                 new FieldDefinitionCollection(new FieldDefinition("item2", "number")),
                 luceneDir,
-                new StandardAnalyzer(Util.Version)))
+                new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
 
 
@@ -316,7 +316,7 @@ namespace Examine.Test.Index
             const int ThreadCount = 1000;
 
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d,new IndexWriterConfig(Util.Version, new CultureInvariantStandardAnalyzer(Util.Version))))
+            using (var writer = new IndexWriter(d,new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
             using (var customIndexer = new TestIndex(writer))
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
@@ -344,57 +344,57 @@ namespace Examine.Test.Index
                 customIndexer.IndexingError -= IndexInitializer.IndexingError;
 
                 //run in async mode
-                customIndexer.RunAsync = true;
-
-                //get a node from the data repo
-                var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
-                    .Root
-                    .Elements()
-                    .First();
-
-                //get the id for th node we're re-indexing.
-                var id = (int)node.Attribute("id");
-
-                //spawn a bunch of threads to perform some reading
-                var tasks = new List<Task>();
-
-                //reindex the same node a bunch of times - then while this is running we'll overwrite below
-                for (var i = 0; i < ThreadCount; i++)
+                using (customIndexer.ProcessNonAsync())
                 {
-                    var indexer = customIndexer;
-                    tasks.Add(Task.Factory.StartNew(() =>
+                    //get a node from the data repo
+                    var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+                        .Root
+                        .Elements()
+                        .First();
+
+                    //get the id for th node we're re-indexing.
+                    var id = (int)node.Attribute("id");
+
+                    //spawn a bunch of threads to perform some reading
+                    var tasks = new List<Task>();
+
+                    //reindex the same node a bunch of times - then while this is running we'll overwrite below
+                    for (var i = 0; i < ThreadCount; i++)
                     {
+                        var indexer = customIndexer;
+                        tasks.Add(Task.Factory.StartNew(() =>
+                        {
                         //get next id and put it to the back of the list
                         int docId = i;
-                        var cloned = new XElement(node);
-                        Console.WriteLine("Indexing {0}", docId);
-                        indexer.IndexItem(cloned.ConvertToValueSet(IndexTypes.Content));
-                    }, TaskCreationOptions.LongRunning));
-                }
-
-                Thread.Sleep(100);
-
-                //overwrite!
-                customIndexer.EnsureIndex(true);
-
-                try
-                {
-                    Task.WaitAll(tasks.ToArray());
-                }
-                catch (AggregateException e)
-                {
-                    var sb = new StringBuilder();
-                    sb.Append(e.Message + ": ");
-                    foreach (var v in e.InnerExceptions)
-                    {
-                        sb.Append(v.Message + "; ");
+                            var cloned = new XElement(node);
+                            Console.WriteLine("Indexing {0}", docId);
+                            indexer.IndexItem(cloned.ConvertToValueSet(IndexTypes.Content));
+                        }, TaskCreationOptions.LongRunning));
                     }
-                    Assert.Fail(sb.ToString());
-                }
 
-                //reset the async mode and remove event handler
-                customIndexer.IndexingError += IndexInitializer.IndexingError;
-                customIndexer.RunAsync = false;
+                    Thread.Sleep(100);
+
+                    //overwrite!
+                    customIndexer.EnsureIndex(true);
+
+                    try
+                    {
+                        Task.WaitAll(tasks.ToArray());
+                    }
+                    catch (AggregateException e)
+                    {
+                        var sb = new StringBuilder();
+                        sb.Append(e.Message + ": ");
+                        foreach (var v in e.InnerExceptions)
+                        {
+                            sb.Append(v.Message + "; ");
+                        }
+                        Assert.Fail(sb.ToString());
+                    }
+
+                    //reset the async mode and remove event handler
+                    customIndexer.IndexingError += IndexInitializer.IndexingError; 
+                }
 
                 //wait until we are done
                 waitHandle.WaitOne(TimeSpan.FromMinutes(2));
@@ -421,7 +421,7 @@ namespace Examine.Test.Index
         public void Index_Ensure_No_Duplicates_In_Async()
         {
             using (var d = new RandomIdRAMDirectory())
-            using (var writer = new IndexWriter(d,new IndexWriterConfig(Util.Version, new CultureInvariantStandardAnalyzer(Util.Version))))
+            using (var writer = new IndexWriter(d,new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
             using (var customIndexer = new TestIndex(writer))
             //using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
@@ -441,35 +441,35 @@ namespace Examine.Test.Index
                 customIndexer.IndexingError -= IndexInitializer.IndexingError;
 
                 //run in async mode
-                customIndexer.RunAsync = true;
-
-                //get a node from the data repo
-                var idQueue = new ConcurrentQueue<int>(Enumerable.Range(1, 3));
-                var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
-                    .Root
-                    .Elements()
-                    .First();
-
-                //reindex the same nodes a bunch of times
-                for (var i = 0; i < idQueue.Count * 20; i++)
+                using (customIndexer.ProcessNonAsync())
                 {
-                    //get next id and put it to the back of the list
-                    int docId;
-                    if (idQueue.TryDequeue(out docId))
+                    //get a node from the data repo
+                    var idQueue = new ConcurrentQueue<int>(Enumerable.Range(1, 3));
+                    var node = _contentService.GetPublishedContentByXPath("//*[string-length(@id)>0 and number(@id)>0]")
+                        .Root
+                        .Elements()
+                        .First();
+
+                    //reindex the same nodes a bunch of times
+                    for (var i = 0; i < idQueue.Count * 20; i++)
                     {
-                        idQueue.Enqueue(docId);
+                        //get next id and put it to the back of the list
+                        int docId;
+                        if (idQueue.TryDequeue(out docId))
+                        {
+                            idQueue.Enqueue(docId);
 
-                        var cloned = new XElement(node);
-                        cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
-                        Console.WriteLine("Indexing {0}", docId);
-                        customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
-                        Thread.Sleep(100);
+                            var cloned = new XElement(node);
+                            cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
+                            Console.WriteLine("Indexing {0}", docId);
+                            customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
+                            Thread.Sleep(100);
+                        }
                     }
-                }
 
-                //reset the async mode and remove event handler
-                customIndexer.IndexingError += IndexInitializer.IndexingError;
-                customIndexer.RunAsync = false;
+                    //reset the async mode and remove event handler
+                    customIndexer.IndexingError += IndexInitializer.IndexingError;
+                }
 
                 //wait until we are done
                 waitHandle.WaitOne();
@@ -525,15 +525,16 @@ namespace Examine.Test.Index
                 temp = new DirectoryInfo(tempPath);
                 directory = new SimpleFSDirectory(temp);
             }
-
             try
             {
                 using (var d = directory)
-                using (var writer = new IndexWriter(d, new CultureInvariantStandardAnalyzer(Version.LUCENE_30), IndexWriter.MaxFieldLength.LIMITED))
+                using (var writer = new IndexWriter(
+                    d,
+                    new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer(LuceneInfo.CurrentVersion))))
                 using (var customIndexer = new TestIndex(writer))
                 using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
+                using (customIndexer.ProcessNonAsync())
                 {
-
                     var waitHandle = new ManualResetEvent(false);
 
                     void OperationComplete(object sender, IndexOperationEventArgs e)
@@ -547,9 +548,6 @@ namespace Examine.Test.Index
 
                     //remove the normal indexing error handler
                     //customIndexer.IndexingError -= IndexInitializer.IndexingError;
-
-                    //run in async mode
-                    customIndexer.RunAsync = true;
 
                     //get all nodes
                     var nodes = _contentService.GetPublishedContentByXPath("//*[@isDoc]")

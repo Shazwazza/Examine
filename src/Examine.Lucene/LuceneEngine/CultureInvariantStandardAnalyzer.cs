@@ -14,26 +14,26 @@ namespace Examine.LuceneEngine
     /// </summary>
     public sealed class CultureInvariantStandardAnalyzer : Analyzer
     {
-        private readonly LuceneVersion _matchVersion;
+        private readonly Lucene.Net.Util.LuceneVersion _matchVersion;
         public readonly CharArraySet STOP_WORDS_SET = StopAnalyzer.ENGLISH_STOP_WORDS_SET;
         private int maxTokenLength = (int) byte.MaxValue;
 
-        public CultureInvariantStandardAnalyzer() : this(Util.Version)
+        public CultureInvariantStandardAnalyzer() : this(LuceneInfo.CurrentVersion)
         {
             
         }
 
-        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion,CharArraySet stopWords)
+        public CultureInvariantStandardAnalyzer(Lucene.Net.Util.LuceneVersion matchVersion,CharArraySet stopWords)
         {
             _matchVersion = matchVersion;
             STOP_WORDS_SET = stopWords;
         }
 
-        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion) : this(matchVersion, StandardAnalyzer.STOP_WORDS_SET)
+        public CultureInvariantStandardAnalyzer(Lucene.Net.Util.LuceneVersion matchVersion) : this(matchVersion, StandardAnalyzer.STOP_WORDS_SET)
         {
         }
 
-        public CultureInvariantStandardAnalyzer(LuceneVersion matchVersion, TextReader stopwords) 
+        public CultureInvariantStandardAnalyzer(Lucene.Net.Util.LuceneVersion matchVersion, TextReader stopwords) 
         {
         }
 
@@ -43,10 +43,10 @@ namespace Examine.LuceneEngine
             string fieldName,
             TextReader reader)
         {
-            StandardTokenizer src = new StandardTokenizer(Util.Version, reader);
+            StandardTokenizer src = new StandardTokenizer(LuceneInfo.CurrentVersion, reader);
             src.MaxTokenLength = this.maxTokenLength;
-            TokenStream tok = (TokenStream) new StopFilter(Util.Version,
-                (TokenStream) new LowerCaseFilter(Util.Version, (TokenStream) new StandardFilter(Util.Version, (TokenStream) src)), STOP_WORDS_SET);
+            TokenStream tok = (TokenStream) new StopFilter(LuceneInfo.CurrentVersion,
+                (TokenStream) new LowerCaseFilter(LuceneInfo.CurrentVersion, (TokenStream) new StandardFilter(LuceneInfo.CurrentVersion, (TokenStream) src)), STOP_WORDS_SET);
             return (TokenStreamComponents) new CultureInvariantStandardAnalyzer.TokenStreamComponentsAnonymousInnerClassHelper(this, src, tok, reader);
         }
         public int MaxTokenLength

@@ -75,7 +75,7 @@ namespace Examine.LuceneEngine.Providers
 
             LuceneIndexFolder = null;
 
-            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(Util.Version);
+            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             _directory = luceneDirectory;
             //initialize the field types
@@ -458,7 +458,7 @@ namespace Examine.LuceneEngine.Providers
                     IndexWriter.Unlock(dir);
                 }
                 //create the writer (this will overwrite old index files)
-                var writerConfig = new IndexWriterConfig(Util.Version, FieldAnalyzer)
+                var writerConfig = new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
                 {
                     MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
                         (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
@@ -1224,7 +1224,7 @@ namespace Examine.LuceneEngine.Providers
                 throw new ArgumentNullException(nameof(d));
             }
 
-            var writer = new IndexWriter(d, new IndexWriterConfig(Util.Version, FieldAnalyzer)
+            var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
             {
                 MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
                     (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))
