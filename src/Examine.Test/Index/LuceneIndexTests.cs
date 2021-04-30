@@ -18,6 +18,7 @@ using Examine.Lucene.Indexing;
 using Examine.Search;
 using Examine.Test.DataServices;
 using Examine.Test.UmbracoExamine;
+using Examine.Lucene.Analyzers;
 
 namespace Examine.Test.Index
 {

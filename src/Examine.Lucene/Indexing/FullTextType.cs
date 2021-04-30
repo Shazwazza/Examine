@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-using Examine.Lucene;
+using Examine.Lucene.Analyzers;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;

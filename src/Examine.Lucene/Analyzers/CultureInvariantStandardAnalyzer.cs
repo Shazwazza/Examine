@@ -7,7 +7,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Analysis.Util;
 using Lucene.Net.Util;
 
-namespace Examine.Lucene
+namespace Examine.Lucene.Analyzers
 {
     /// <summary>
     /// The same as the <see cref="StandardAnalyzer"/> but with an additional <see cref="ASCIIFoldingFilter"/>
@@ -45,6 +45,6 @@ namespace Examine.Lucene
         }
 
         public int MaxTokenLength { set; get; } = byte.MaxValue;
-       
+
     }
 }

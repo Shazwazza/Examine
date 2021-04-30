@@ -5,7 +5,7 @@ using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.Util;
 
-namespace Examine.Lucene
+namespace Examine.Lucene.Analyzers
 {
     /// <summary>
     /// A whitespace analyzer that can be configured to be culture invariant
