@@ -59,14 +59,14 @@ namespace Examine.LuceneEngine.Providers
         /// Used as a singleton instance
         /// </summary>
         private IndexSearcher _searcher;
-        private volatile IndexReader _reader;
+        private volatile DirectoryReader _reader;
         private readonly object _locker = new object();
         private readonly Directory _directory;
         private IndexWriter _nrtWriter;
         private bool? _exists;
         private bool _disposed = false;
         private readonly ReaderReopener _reopener;
-        
+
 
         public FieldValueTypeCollection FieldValueTypeCollection { get; }
 
@@ -78,10 +78,11 @@ namespace Examine.LuceneEngine.Providers
         /// </returns>
         public override IndexSearcher GetLuceneSearcher()
         {
-            if (!ValidateSearcher()) return null;
+            if (!ValidateSearcher())
+                return null;
 
             //ensure scoring is turned on for sorting
-          
+
             return _searcher;
         }
 
@@ -96,10 +97,11 @@ namespace Examine.LuceneEngine.Providers
         /// <inheritdoc />
         public override string[] GetAllIndexedFields()
         {
-            if (!ValidateSearcher()) return new string[] {};
+            if (!ValidateSearcher())
+                return new string[] { };
 
             //var reader = _searcherIndexReader;
-        //todo: find better way of getting AtomicReaderContext as it will slowdown examine
+            //todo: find better way of getting AtomicReaderContext as it will slowdown examine
             var fields = SlowCompositeReaderWrapper.Wrap(_reader).Fields != null ? SlowCompositeReaderWrapper.Wrap(_reader).Fields.ToList() : new List<string>();
             //exclude the special index fields
             var searchFields = fields
@@ -108,14 +110,14 @@ namespace Examine.LuceneEngine.Providers
             return searchFields;
         }
 
-        
+
         protected virtual Directory GetLuceneDirectory()
         {
             if (_nrtWriter != null)
             {
                 return _nrtWriter.Directory;
             }
-            
+
             return _directory;
         }
 
@@ -123,7 +125,7 @@ namespace Examine.LuceneEngine.Providers
         /// Used to open a new reader when first initializing, when forcing a re-open or when the reader becomes stale (new data is in the index)
         /// </summary>
         /// <returns></returns>
-        protected virtual IndexReader OpenNewReader()
+        protected virtual DirectoryReader OpenNewReader()
         {
             //If a writer was resolved, we can now operate in NRT mode
             // this will be successful only if the index writer has been initialized
@@ -136,7 +138,7 @@ namespace Examine.LuceneEngine.Providers
             //If we cannot resolve an existing writer, we'll fallback to opening a normal
             // non-nrt reader. When this reader becomes stale, the above will check again 
             // if an NRT reader can be resolved.
-            return IndexReader.Open(GetLuceneDirectory());
+            return DirectoryReader.Open(GetLuceneDirectory());
         }
 
         /// <summary>
@@ -165,7 +167,8 @@ namespace Examine.LuceneEngine.Providers
         private bool IndexExistsImpl()
         {
             //if it's been set and it's true, return true
-            if (_exists.HasValue && _exists.Value) return true;
+            if (_exists.HasValue && _exists.Value)
+                return true;
 
             //if it's not been set or it just doesn't exist, re-read the lucene files
             if (!_exists.HasValue || !_exists.Value)
@@ -181,10 +184,12 @@ namespace Examine.LuceneEngine.Providers
         /// </summary>
         private bool ValidateSearcher()
         {
-            if (_disposed) return false;
+            if (_disposed)
+                return false;
 
             //can't proceed if there's no index
-            if (!IndexExistsImpl()) return false;            
+            if (!IndexExistsImpl())
+                return false;
 
             //TODO: Would be nicer if this used LazyInitializer instead of double check locking
 
@@ -208,7 +213,7 @@ namespace Examine.LuceneEngine.Providers
                             _searcher = new IndexSearcher(_reader);
 
                             //track it!
-                            OpenReaderTracker.Current.AddOpenReader(_reader,luceneDirectory);
+                            OpenReaderTracker.Current.AddOpenReader(_reader, luceneDirectory);
                         }
                         catch (IOException ex)
                         {
@@ -285,7 +290,7 @@ namespace Examine.LuceneEngine.Providers
                         //if we've been disposed
                         if (_luceneSearcher._disposed)
                         {
-                            
+
                         }
                         else
                         {
@@ -314,7 +319,7 @@ namespace Examine.LuceneEngine.Providers
 
                         }
                         else if (wasLongPoll)
-                        {                          
+                        {
                             //if we are currently in long polling mode and we've been requested to check, then 
                             //lets see how long we've waited for and if it's overdue then we'll perform the check
                             if (DateTime.Now - _timestamp > TimeSpan.FromMilliseconds(WaitMilliseconds))
@@ -410,7 +415,7 @@ namespace Examine.LuceneEngine.Providers
                     _isLongPoll = true;
                 }
             }
-            
+
             private void MaybeReopen()
             {
                 switch (_luceneSearcher._reader.GetReaderStatus())
@@ -427,20 +432,28 @@ namespace Examine.LuceneEngine.Providers
                             _luceneSearcher._reader = _luceneSearcher._nrtWriter == null
                                 ? _luceneSearcher.OpenNewReader()
                                 : _luceneSearcher._nrtWriter.GetReader(true);
-                            var luceneDirectory = _luceneSearcher._nrtWriter == null
+
+                            Directory luceneDirectory = _luceneSearcher._nrtWriter == null
                                 ? _luceneSearcher.GetLuceneDirectory()
                                 : _luceneSearcher._nrtWriter.Directory;
+
                             _luceneSearcher._searcher = new IndexSearcher(_luceneSearcher._reader);
 
                             //track it!
-                            OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader,luceneDirectory);
+                            OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader, luceneDirectory);
                         }
                         break;
                     case ReaderStatus.NotCurrent:
 
                         lock (_reopenerLocker)
                         {
-                            IndexReader newReader;
+                            DirectoryReader newReader;
+
+                            // TODO: Use this API for re-opening
+                            // DirectoryReader.OpenIfChanged();
+                            // https://lucenenet.apache.org/docs/4.8.0-beta00014/api/core/Lucene.Net.Index.DirectoryReader.html#Lucene_Net_Index_DirectoryReader_OpenIfChanged_Lucene_Net_Index_DirectoryReader_
+                            // TODO: Better yet, use this API for managing the whole thing:
+                            // https://lucenenet.apache.org/docs/4.8.0-beta00014/api/core/Lucene.Net.Search.SearcherManager.html
 
                             //Here we'll check if we are not running in NRT mode, this will be the case
                             // if the indexer hasn't created a writer. But if it has, we want to become NRT so 
@@ -463,7 +476,7 @@ namespace Examine.LuceneEngine.Providers
                                 // since another thread might be using it. I'm 'hoping' that the GC will just take care of the left over reader's that might
                                 // be currently being used in a search, otherwise there's really no way to now when it's safe to close the reader. 
 
-                                newReader = IndexReader.Open(_luceneSearcher._directory);
+                                newReader = DirectoryReader.Open(_luceneSearcher._directory);
                             }
 
                             if (newReader != _luceneSearcher._reader)
@@ -472,11 +485,13 @@ namespace Examine.LuceneEngine.Providers
                                 // but that will cause problems since the old reader might be in use on another thread.
                                 _luceneSearcher._reader = newReader;
                                 _luceneSearcher._searcher = new IndexSearcher(_luceneSearcher._reader);
-                                var luceneDirectory = _luceneSearcher._nrtWriter == null
+
+                                Directory luceneDirectory = _luceneSearcher._nrtWriter == null
                                     ? _luceneSearcher.GetLuceneDirectory()
                                     : _luceneSearcher._nrtWriter.Directory;
+
                                 //track it!
-                                OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader,luceneDirectory);
+                                OpenReaderTracker.Current.AddOpenReader(_luceneSearcher._reader, luceneDirectory);
 
                                 //get rid of old ones (anything a minute or older)
                                 OpenReaderTracker.Current.CloseStaleReaders(_luceneSearcher.GetLuceneDirectory(), TimeSpan.FromMinutes(1));
@@ -503,7 +518,7 @@ namespace Examine.LuceneEngine.Providers
                             // that would still have it in use (i.e. this actually just called DecRef underneath)
                             _reader.Dispose();
                         }
-                        catch (Exception e) when (e is AlreadyClosedException || e is ObjectDisposedException)
+                        catch (ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if the 
                             // DecrementReaderResult never disposed, which occurs if people don't actually iterate the 

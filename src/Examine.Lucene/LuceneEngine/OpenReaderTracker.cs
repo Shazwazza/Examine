@@ -1,36 +1,30 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Security;
 using Lucene.Net.Index;
 using Lucene.Net.Store;
 
 namespace Examine.LuceneEngine
 {
-    
+
     internal class OpenReaderTracker
     {
+        // TODO: Get rid of these singletons, perhaps SearchManager can resolve all of this
         private static readonly OpenReaderTracker Instance = new OpenReaderTracker();
 
         private readonly Dictionary<Directory, Queue<Tuple<IndexReader, DateTime>>> _oldReaders = new Dictionary<Directory, Queue<Tuple<IndexReader, DateTime>>>();
 
         private readonly object _locker = new object();
 
-        public static OpenReaderTracker Current
-        {
-            get { return Instance; }
-        }
+        public static OpenReaderTracker Current => Instance;
 
         public void AddOpenReader(IndexReader reader, Directory directory)
         {
             lock (_locker)
             {
-                var dir = reader.Directory();
-                if (!_oldReaders.TryGetValue(dir, out var readers))
+                if (!_oldReaders.TryGetValue(directory, out var readers))
                 {
                     readers = new Queue<Tuple<IndexReader, DateTime>>();
-                    _oldReaders.Add(dir, readers);
+                    _oldReaders.Add(directory, readers);
                 }
 
                 readers.Enqueue(new Tuple<IndexReader, DateTime>(reader, DateTime.Now));
@@ -63,7 +57,7 @@ namespace Examine.LuceneEngine
                         {
                             oldest.Item1.Dispose();
                         }
-                        catch (Exception e) when (e is AlreadyClosedException || e is ObjectDisposedException)
+                        catch (ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if this 
                             //somehow gets called in conjuction with the shutdown code or manually, etc...
@@ -130,7 +124,7 @@ namespace Examine.LuceneEngine
                         {
                             reader.Item1.Dispose();
                         }
-                        catch (Exception e) when (e is AlreadyClosedException || e is ObjectDisposedException)
+                        catch (ObjectDisposedException)
                         {
                             //if this happens, more than one instance has decreased referenced, this could occur if this 
                             //somehow gets called in conjuction with the shutdown code or manually, etc...

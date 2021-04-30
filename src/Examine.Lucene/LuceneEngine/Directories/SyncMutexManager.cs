@@ -31,31 +31,36 @@ namespace Examine.LuceneEngine.Directories
 
             Mutex mutex;
             var notExisting = false;
-
-            if (Mutex.TryOpenExisting(mutexName, MutexRights.Synchronize | MutexRights.Modify, out mutex))
+            //todo: find how to use MutexRights.ReadPermissions | MutexRights.ChangePermissions
+            if (Mutex.TryOpenExisting(mutexName , out mutex))
             {
                 return mutex;
             }
 
             // Here we know the mutex either doesn't exist or we don't have the necessary permissions.
 
-            if (!Mutex.TryOpenExisting(mutexName, MutexRights.ReadPermissions | MutexRights.ChangePermissions, out mutex))
+            if (!Mutex.TryOpenExisting(mutexName, out mutex))
             {
                 notExisting = true;
             }
 
+         
             if (notExisting)
             {
                 var worldSid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
                 var security = new MutexSecurity();
                 var rule = new MutexAccessRule(worldSid, MutexRights.FullControl, AccessControlType.Allow);
+         
+
                 security.AddAccessRule(rule);
                 var mutexIsNew = false;
-                return new Mutex(false, mutexName, out mutexIsNew, security);
+                //todo: find how to use security
+                return new Mutex(false, mutexName, out mutexIsNew);
             }
             else
             {
-                var m = Mutex.OpenExisting(mutexName, MutexRights.ReadPermissions | MutexRights.ChangePermissions);
+                //todo: find how to use MutexRights.ReadPermissions | MutexRights.ChangePermissions
+                var m = Mutex.OpenExisting(mutexName);
                 var security = m.GetAccessControl();
                 var user = Environment.UserDomainName + "\\" + Environment.UserName;
                 var rule = new MutexAccessRule(user, MutexRights.Synchronize | MutexRights.Modify, AccessControlType.Allow);

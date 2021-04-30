@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Examine.LuceneEngine.Providers;
 using Examine.Search;
@@ -56,13 +56,9 @@ namespace Examine.LuceneEngine.Search
 
         #region Select Fields
 
-        public override IOrdering SelectFields(params string[] fieldNames) => _search.SelectFieldsInternal(fieldNames);
-
         public override IOrdering SelectFields(ISet<string> fieldNames) => _search.SelectFieldsInternal(fieldNames);
 
         public override IOrdering SelectField(string fieldName) => _search.SelectFieldInternal(fieldName);
-
-        public override IOrdering SelectFirstFieldOnly() => _search.SelectFirstFieldOnlyInternal();
 
         public override IOrdering SelectAllFields() => _search.SelectAllFieldsInternal();
 

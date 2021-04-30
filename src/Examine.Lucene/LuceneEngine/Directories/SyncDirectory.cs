@@ -30,18 +30,16 @@ namespace Examine.LuceneEngine.Directories
     /// there would be less IO especially for things like ListAll, FileExists
     /// 
     /// </remarks>
-    
+
     public class SyncDirectory : Lucene.Net.Store.Directory
     {
-        private readonly Lucene.Net.Store.Directory _masterDirectory;
-        private readonly Lucene.Net.Store.Directory _cacheDirectory;
         private readonly ILoggingService _logging;
         private readonly MultiIndexLockFactory _lockFactory;
         private volatile bool _dirty = true;
         private bool _inSync = false;
         private readonly object _locker = new object();
 
-        internal static readonly HashSet<string> RemoteOnlyFiles = new HashSet<string> {"segments.gen"};
+        internal static readonly HashSet<string> RemoteOnlyFiles = new HashSet<string> { "segments.gen" };
 
 
         /// <summary>
@@ -53,11 +51,9 @@ namespace Examine.LuceneEngine.Directories
             Lucene.Net.Store.Directory masterDirectory,
             Lucene.Net.Store.Directory cacheDirectory)
         {
-            if (masterDirectory == null) throw new ArgumentNullException(nameof(masterDirectory));
-            if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
-            _masterDirectory = masterDirectory;
-            _cacheDirectory = cacheDirectory;
-            _lockFactory = new MultiIndexLockFactory(_masterDirectory, _cacheDirectory);
+            MasterDirectory = masterDirectory ?? throw new ArgumentNullException(nameof(masterDirectory));
+            CacheDirectory = cacheDirectory ?? throw new ArgumentNullException(nameof(cacheDirectory));
+            _lockFactory = new MultiIndexLockFactory(MasterDirectory, CacheDirectory);
             _logging = new TraceLoggingService();
         }
         /// <summary>
@@ -70,25 +66,23 @@ namespace Examine.LuceneEngine.Directories
             Lucene.Net.Store.Directory masterDirectory,
             Lucene.Net.Store.Directory cacheDirectory, ILoggingService loggingService)
         {
-            if (masterDirectory == null) throw new ArgumentNullException(nameof(masterDirectory));
-            if (cacheDirectory == null) throw new ArgumentNullException(nameof(cacheDirectory));
-            _masterDirectory = masterDirectory;
-            _cacheDirectory = cacheDirectory;
-            _lockFactory = new MultiIndexLockFactory(_masterDirectory, _cacheDirectory);
+            MasterDirectory = masterDirectory ?? throw new ArgumentNullException(nameof(masterDirectory));
+            CacheDirectory = cacheDirectory ?? throw new ArgumentNullException(nameof(cacheDirectory));
+            _lockFactory = new MultiIndexLockFactory(MasterDirectory, CacheDirectory);
             _logging = loggingService;
         }
         public void ClearCache()
         {
-            foreach (string file in _cacheDirectory.ListAll())
+            foreach (string file in CacheDirectory.ListAll())
             {
-                _cacheDirectory.DeleteFile(file);
+                CacheDirectory.DeleteFile(file);
             }
         }
-        
-        public Lucene.Net.Store.Directory CacheDirectory => _cacheDirectory;
 
-        public Lucene.Net.Store.Directory MasterDirectory => _masterDirectory;
-        
+        public Lucene.Net.Store.Directory CacheDirectory { get; }
+
+        public Lucene.Net.Store.Directory MasterDirectory { get; }
+
         /// <summary>Returns an array of strings, one for each file in the
         /// directory.  Unlike <see cref="M:Lucene.Net.Store.Directory.List" /> this method does no
         /// filtering of the contents in a directory, and it will
@@ -108,16 +102,16 @@ namespace Examine.LuceneEngine.Directories
         /// * when this flag is set and one of these methods is called, we need to re-calculate the hash (or whatever) of if these dirs are in sync
         /// * when the hash matches and the dirty flag is null, for these methods we'll use the local disk
         /// </remarks>
-        
+
         public override string[] ListAll()
         {
             CheckDirty();
 
-            return _inSync ? _cacheDirectory.ListAll() : _masterDirectory.ListAll();
+            return _inSync ? CacheDirectory.ListAll() : MasterDirectory.ListAll();
         }
 
         /// <summary>Returns true if a file with the given name exists. </summary>
-        
+
         [Obsolete("this method will be removed in 5.0 of Lucene")]
         public override bool FileExists(string name)
         {
@@ -131,25 +125,25 @@ namespace Examine.LuceneEngine.Directories
                 //we used to catch this but it seems counter intuitive since the normal FSDirectory already catches and it seems that
                 //if we catch and return null we're covering up an underlying issue.
 
-                var cacheExists = _cacheDirectory.FileExists(name);
+                var cacheExists = CacheDirectory.FileExists(name);
 
                 //revert to checking the master - what implications would this have?
 
                 //TODO: If the master does in fact have the file, we should sync it to the cache dir
 
-                return cacheExists || _masterDirectory.FileExists(name);
+                return cacheExists || MasterDirectory.FileExists(name);
             }
 
             //not in sync so return from the master
-            return _masterDirectory.FileExists(name);
+            return MasterDirectory.FileExists(name);
         }
 
 
 
-     
+
 
         /// <summary>Removes an existing file in the directory. </summary>
-        
+
         public override void DeleteFile(string name)
         {
             //We're going to try to remove this from the cache directory first,
@@ -162,9 +156,9 @@ namespace Examine.LuceneEngine.Directories
             // local storage because the FileExist method will always return false.
             try
             {
-                if (_cacheDirectory.FileExists(name))
+                if (CacheDirectory.FileExists(name))
                 {
-                    _cacheDirectory.DeleteFile(name);
+                    CacheDirectory.DeleteFile(name);
                     SetDirty();
                 }
             }
@@ -178,16 +172,16 @@ namespace Examine.LuceneEngine.Directories
             }
 
             //if we've made it this far then the cache directly file has been successfully removed so now we'll do the master
-            _masterDirectory.DeleteFile(name);
+            MasterDirectory.DeleteFile(name);
             SetDirty();
         }
-        
+
         /// <summary>Returns the length of a file in the directory. </summary>
         public override long FileLength(string name)
         {
             CheckDirty();
 
-            return _inSync ? _cacheDirectory.FileLength(name) : _masterDirectory.FileLength(name);
+            return _inSync ? CacheDirectory.FileLength(name) : MasterDirectory.FileLength(name);
         }
 
         public override IndexOutput CreateOutput(string name, IOContext context)
@@ -195,20 +189,16 @@ namespace Examine.LuceneEngine.Directories
             SetDirty();
 
             //This is what enables "Copy on write" semantics
+            // TODO: Do we need the IOContext?
             return new SyncIndexOutput(this, name, _logging);
         }
 
         public override void Sync(ICollection<string> names)
         {
-            this.EnsureOpen();
+            EnsureOpen();
         }
 
-        
-
-
-
         /// <summary>Returns a stream reading an existing file. </summary>
-        
         public override IndexInput OpenInput(string name, IOContext context)
         {
             //There's a project called Jackrabbit which performs a copy on read/copy on write semantics as well and it appears
@@ -230,11 +220,12 @@ namespace Examine.LuceneEngine.Directories
 
             if (RemoteOnlyFiles.Contains(name))
             {
-                return _masterDirectory.OpenInput(name,context);
+                return MasterDirectory.OpenInput(name, context);
             }
 
             try
             {
+                // TODO: Do we need the IOContext?
                 return new SyncIndexInput(this, name, _logging);
             }
             catch (Exception err)
@@ -246,48 +237,22 @@ namespace Examine.LuceneEngine.Directories
         /// <summary>Construct a {@link Lock}.</summary>
         /// <param name="name">the name of the lock file
         /// </param>
-        
-        public override Lock MakeLock(string name)
-        {
-            return _lockFactory.MakeLock(name);
-        }
+        public override Lock MakeLock(string name) => _lockFactory.MakeLock(name);
 
-        
-        public override void ClearLock(string name)
-        {
-            _lockFactory.ClearLock(name);
-        }
+        public override void ClearLock(string name) => _lockFactory.ClearLock(name);
 
         public override LockFactory LockFactory => _lockFactory;
 
-        public override string GetLockID()
-        {
-            return string.Concat(_masterDirectory.GetLockID(), _cacheDirectory.GetLockID());
-        }
-        
+        public override string GetLockID() => string.Concat(MasterDirectory.GetLockID(), CacheDirectory.GetLockID());
+
         protected override void Dispose(bool disposing)
         {
-            _masterDirectory.Dispose();
-            _cacheDirectory.Dispose();
+            MasterDirectory.Dispose();
+            CacheDirectory.Dispose();
         }
 
-        public override void SetLockFactory(LockFactory lockFactory)
-        {
-            _lockFactory = (MultiIndexLockFactory) lockFactory;
-        }
+        public override void SetLockFactory(LockFactory lockFactory) => throw new NotSupportedException($"Cannot set the lock factory on {nameof(SyncDirectory)}");
 
-        //TODO: This isn't used
-        internal StreamInput OpenCachedInputAsStream(string name)
-        {
-            return new StreamInput(CacheDirectory.OpenInput(name, new IOContext()));
-        }
-
-        //TODO: This isn't used
-        internal StreamOutput CreateCachedOutputAsStream(string name)
-        {
-            return new StreamOutput(CacheDirectory.CreateOutput(name,new IOContext()));
-        }
-        
         private void CheckDirty()
         {
             if (_dirty)
@@ -299,8 +264,8 @@ namespace Examine.LuceneEngine.Directories
                     {
                         //these methods don't throw exceptions, will return -1 if something has gone wrong
                         // in which case we'll consider them not in sync
-                        var masterSeg = SegmentInfos.GetLastCommitGeneration(_masterDirectory);
-                        var localSeg = SegmentInfos.GetLastCommitGeneration(_cacheDirectory);
+                        var masterSeg = SegmentInfos.GetLastCommitGeneration(MasterDirectory);
+                        var localSeg = SegmentInfos.GetLastCommitGeneration(CacheDirectory);
                         _inSync = masterSeg == localSeg && masterSeg != -1;
                         _dirty = false;
                     }

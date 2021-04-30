@@ -52,6 +52,7 @@ namespace Examine.LuceneEngine.Directories
         /// Therefore do not use this class from a Directory instance for that file, see SyncDirectory.OpenInput
         /// </remarks>
         public SyncIndexInput(SyncDirectory directory, string name, ILoggingService loggingService)
+            : base(string.Empty) // TODO: Is this right?
         {
             
             if (directory == null) throw new ArgumentNullException(nameof(directory));
@@ -122,6 +123,7 @@ namespace Examine.LuceneEngine.Directories
             
         }
         public SyncIndexInput(SyncIndexInput cloneInput, ILoggingService loggingService)
+            : base(string.Empty) // TODO: Is this right?
         {
             _loggingService = loggingService;
             _name = cloneInput._name;
