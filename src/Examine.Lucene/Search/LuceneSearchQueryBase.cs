@@ -1,16 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.Lucene.Providers;
 using Examine.Search;
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Core;
 using Lucene.Net.Index;
-using Lucene.Net.QueryParsers;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
-using Lucene.Net.Util;
 
 namespace Examine.Lucene.Search
 {
@@ -28,29 +22,13 @@ namespace Examine.Lucene.Search
         private BooleanOperation _boolOp;
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
-            string category, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
+            string category, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
             Category = category;
-            AllFields = fields ?? throw new ArgumentNullException(nameof(fields));
             SearchOptions = searchOptions;
             Queries.Push(new BooleanQuery());
             BooleanOperation = occurance;
             _queryParser = queryParser;
-        }
-
-        [Obsolete("Use the ctor specifying a query parser instead")]
-        protected LuceneSearchQueryBase(
-            string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
-        {
-            Category = category;
-            AllFields = fields ?? throw new ArgumentNullException(nameof(fields));
-            SearchOptions = searchOptions;
-            Queries.Push(new BooleanQuery());
-            BooleanOperation = occurance;
-            _queryParser = new CustomMultiFieldQueryParser(LuceneInfo.CurrentVersion, fields, analyzer)
-            {
-                AllowLeadingWildcard = searchOptions.AllowLeadingWildcard
-            };
         }
 
         protected abstract LuceneBooleanOperationBase CreateOp();
@@ -67,7 +45,8 @@ namespace Examine.Lucene.Search
 
         public string Category { get; }
 
-        public string[] AllFields { get; }
+        public string[] AllFields => _queryParser.SearchableFields;
+
         public LuceneSearchOptions SearchOptions { get; }
 
         /// <inheritdoc />

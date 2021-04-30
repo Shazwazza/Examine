@@ -44,7 +44,7 @@ namespace Examine.Lucene.Search
 
         #endregion
 
-        public override ISearchResults Execute(int maxResults = 500) => _search.Execute(maxResults);
+        public override ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
 
         #region IOrdering
 

@@ -15,11 +15,13 @@ namespace Examine.Lucene.Search
     public class CustomMultiFieldQueryParser : MultiFieldQueryParser
     {
 
-        public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer) : base(matchVersion, fields, analyzer)
-        {
-        }
+        public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer)
+            : base(matchVersion, fields, analyzer)
+            => SearchableFields = fields;
 
         internal static QueryParser KeywordAnalyzerQueryParser { get; } = new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer());
+
+        public string[] SearchableFields { get; }
 
         public virtual Query GetFuzzyQueryInternal(string field, string termStr, float minSimilarity)
         {

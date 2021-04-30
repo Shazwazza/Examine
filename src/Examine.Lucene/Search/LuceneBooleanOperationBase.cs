@@ -70,7 +70,7 @@ namespace Examine.Lucene.Search
             return _search.LuceneQuery(_search.Queries.Pop(), outerOp);
         }
 
-        public abstract ISearchResults Execute(int maxResults = 500);
+        public abstract ISearchResults Execute(QueryOptions options = null);
         public abstract IOrdering OrderBy(params SortableField[] fields);
         public abstract IOrdering OrderByDescending(params SortableField[] fields);
 

@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Examine.Lucene.Indexing;
-using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
     public interface ISearchContext
     {
-        IndexSearcher Searcher { get; }
+        ISearcherReference GetSearcher();
+
+        string[] SearchableFields { get; }
         IIndexFieldValueType GetFieldValueType(string fieldName);
     }
 }

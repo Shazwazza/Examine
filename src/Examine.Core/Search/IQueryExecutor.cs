@@ -1,5 +1,6 @@
-﻿namespace Examine.Search
+namespace Examine.Search
 {
+
     /// <summary>
     /// Executes a query
     /// </summary>
@@ -8,8 +9,6 @@
         /// <summary>
         /// Executes the query
         /// </summary>
-        /// <param name="maxResults"></param>
-        /// <returns></returns>
-        ISearchResults Execute(int maxResults = 500);
+        ISearchResults Execute(QueryOptions options = null);
     }
 }

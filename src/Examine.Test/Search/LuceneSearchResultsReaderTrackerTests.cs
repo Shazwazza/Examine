@@ -1,5 +1,7 @@
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
 using NUnit.Framework;
@@ -28,24 +30,35 @@ namespace Examine.Test.Search
                     });
 
                 var searcher = (LuceneSearcher)indexer.GetSearcher();
-                IndexSearcher luceneSearcher = searcher.GetLuceneSearcher();
+                IndexReader reader;
 
-                //Arrange
-                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
-
-                //Act
-                var results = sc.Execute();
-
-                using (var e1 = results.GetEnumerator())
+                ISearchContext searchContext = searcher.GetSearchContext();
+                using (ISearcherReference searchRef = searchContext.GetSearcher())
                 {
-                    Assert.AreEqual(2, luceneSearcher.IndexReader.RefCount);
-                    using (var e2 = results.Skip(2).GetEnumerator())
-                    {
-                        Assert.AreEqual(3, luceneSearcher.IndexReader.RefCount);
-                    }
-                    Assert.AreEqual(2, luceneSearcher.IndexReader.RefCount);
+                    IndexSearcher luceneSearcher = searchRef.IndexSearcher;
+
+                    reader = luceneSearcher.IndexReader;
+
+                    // incremented with call to SearcherManager.Acquire when we get the IndexSearcher from ISearcherReference above
+                    // The value starts at 1 when the reader is created.
+                    Assert.AreEqual(2, reader.RefCount);
+
+                    //Arrange
+                    var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+
+                    // ensure we are still at 2, the above will have acquired a searcher to read the fields to create the query parser
+                    // but will have acquired and released.
+                    Assert.AreEqual(2, reader.RefCount);
+
+                    //Act
+                    var results = sc.Execute();
+
+                    // we're still at 2, the search has executed and incremented/decremented the counts internally
+                    Assert.AreEqual(2, reader.RefCount); 
                 }
-                Assert.AreEqual(1, luceneSearcher.IndexReader.RefCount);
+
+                // back to one, searcher reference is disposed, the SearcherManager has released it.
+                Assert.AreEqual(1, reader.RefCount);
             }
         }
     }

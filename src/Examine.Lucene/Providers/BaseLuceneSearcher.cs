@@ -25,30 +25,15 @@ namespace Examine.Lucene.Providers
         }
 
         /// <summary>
-        /// The analyzer to use when searching content, by default, this is set to StandardAnalyzer
+        /// The analyzer to use for query parsing, by default, this is set to StandardAnalyzer
         /// </summary>
         public Analyzer LuceneAnalyzer { get; }
-
-        /// <summary>
-        /// Returns all field names that exist in the index
-        /// </summary>
-        /// <returns></returns>
-        public abstract string[] GetAllIndexedFields();
-
-        ///<summary>
-        /// returns the underlying Lucene searcher
-        ///</summary>
-        ///<returns></returns>
-
-        public abstract IndexSearcher GetLuceneSearcher();
 
         public abstract ISearchContext GetSearchContext();
 
         /// <inheritdoc />
 		public override IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And)
-        {
-            return CreateQuery(category, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
-        }
+            => CreateQuery(category, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
 
         /// <summary>
         /// Creates an instance of SearchCriteria for the provider
@@ -63,14 +48,14 @@ namespace Examine.Lucene.Providers
             if (luceneAnalyzer == null)
                 throw new ArgumentNullException(nameof(luceneAnalyzer));
 
-            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, GetAllIndexedFields(), searchOptions, defaultOperation);
+            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation);
         }
 
         /// <inheritdoc />
-        public override ISearchResults Search(string searchText, int maxResults = 500)
+        public override ISearchResults Search(string searchText, QueryOptions options = null)
         {
             var sc = CreateQuery().ManagedQuery(searchText);
-            return sc.Execute(maxResults);
+            return sc.Execute(options);
         }
 
         ///// <summary>

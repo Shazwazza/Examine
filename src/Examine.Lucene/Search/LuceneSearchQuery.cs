@@ -1,13 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
-using Lucene.Net.Documents;
-using Lucene.Net.Index;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -23,14 +20,14 @@ namespace Examine.Lucene.Search
 
         public LuceneSearchQuery(
             ISearchContext searchContext,
-            string category, Analyzer analyzer, string[] fields, LuceneSearchOptions searchOptions, BooleanOperation occurance)
-            : base(CreateQueryParser(searchContext, fields, analyzer), category, fields, searchOptions, occurance)
+            string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
+            : base(CreateQueryParser(searchContext, analyzer), category, searchOptions, occurance)
         {   
             _searchContext = searchContext;
         }
 
-        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, string[] fields, Analyzer analyzer)
-            => new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, fields, analyzer);
+        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer)
+            => new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, analyzer);
 
         public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
@@ -72,7 +69,7 @@ namespace Examine.Lucene.Search
 
                 foreach (var type in types)
                 {
-                    var q = type.GetQuery(query, _searchContext.Searcher);
+                    var q = type.GetQuery(query);
 
                     if (q != null)
                     {
@@ -130,17 +127,13 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc />
-        public ISearchResults Execute(int maxResults = 500) => Search(maxResults);
+        public ISearchResults Execute(QueryOptions options = null) => Search(options);
 
         /// <summary>
         /// Performs a search with a maximum number of results
         /// </summary>
-        private ISearchResults Search(int maxResults = 500)
+        private ISearchResults Search(QueryOptions options)
         {
-            var searcher = _searchContext.Searcher;
-
-            if (searcher == null) return EmptySearchResults.Instance;
-
             // capture local
             var query = Query;
 
@@ -159,10 +152,11 @@ namespace Examine.Lucene.Search
                 {
                     query.Add(c);
                 }
-
             }
 
-            var pagesResults = new LuceneSearchResults(query, SortFields, searcher, maxResults, _fieldsToLoad);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad);
+
+            var pagesResults = executor.Execute();
 
             return pagesResults;
         }        

@@ -200,11 +200,14 @@ namespace Examine.Test.Search
                 indexer3.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item3 = "some", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
 
-                using (var searcher = new MultiIndexSearcher("testSearcher",
+                using (var searcher = new MultiIndexSearcher(
+                    "testSearcher",
                     new[] { indexer1, indexer2, indexer3, indexer4 },
                     analyzer))
                 {
-                    var result = searcher.GetAllIndexedFields();
+                    var searchContext = searcher.GetSearchContext();
+                    var result = searchContext.SearchableFields;
+
                     //will be item1 , item2, item3, and item4
                     Assert.AreEqual(4, result.Count());
                     foreach (var s in new[] { "item1", "item2", "item3", "item4" })

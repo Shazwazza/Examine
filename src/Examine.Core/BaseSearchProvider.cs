@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Examine.Search;
 
 namespace Examine
@@ -22,7 +22,7 @@ namespace Examine
         /// <param name="searchText"></param>
         /// <param name="maxResults"></param>
         /// <returns></returns>
-        public abstract ISearchResults Search(string searchText, int maxResults = 500);
+        public abstract ISearchResults Search(string searchText, QueryOptions options = null);
 
         /// <inheritdoc />
 		public abstract IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And);

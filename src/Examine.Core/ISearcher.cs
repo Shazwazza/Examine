@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Examine.Search;
 
 namespace Examine
@@ -19,7 +15,7 @@ namespace Examine
         /// <param name="searchText">The search text or a native query</param>
         /// <param name="maxResults"></param>
         /// <returns>Search Results</returns>
-        ISearchResults Search(string searchText, int maxResults = 500);
+        ISearchResults Search(string searchText, QueryOptions options = null);
 
         /// <summary>
         /// Creates a search criteria instance as required by the implementation

@@ -53,9 +53,9 @@ namespace Examine.Lucene.Indexing
         /// By default returns a <see cref="TermQuery"/>
         /// </summary>
         /// <param name="query"></param>
-        /// <param name="searcher"></param>
+        /// 
         /// <returns></returns>
-        public virtual Query GetQuery(string query, IndexSearcher searcher)
+        public virtual Query GetQuery(string query)
         {
             return new TermQuery(new Term(FieldName, query));
         }

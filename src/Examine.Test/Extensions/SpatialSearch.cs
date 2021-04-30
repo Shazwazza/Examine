@@ -103,34 +103,37 @@ namespace Examine.Test.Extensions
             int lng)
         {
             var searcher = (LuceneSearcher)indexer.GetSearcher();
-            var luceneSearcher = searcher.GetLuceneSearcher();
+            var searchContext = searcher.GetSearchContext();
 
-            GetXYFromCoords(lat, lng, out var x, out var y);
+            using (var searchRef = searchContext.GetSearcher())
+            {
+                GetXYFromCoords(lat, lng, out var x, out var y);
 
-            // Make a circle around the search point
-            var args = new SpatialArgs(
-                SpatialOperation.Intersects,
-                ctx.MakeCircle(x, y, DistanceUtils.Dist2Degrees(searchRadius, DistanceUtils.EARTH_MEAN_RADIUS_KM)));
+                // Make a circle around the search point
+                var args = new SpatialArgs(
+                    SpatialOperation.Intersects,
+                    ctx.MakeCircle(x, y, DistanceUtils.Dist2Degrees(searchRadius, DistanceUtils.EARTH_MEAN_RADIUS_KM)));
 
-            var filter = strategy.MakeFilter(args);
+                var filter = strategy.MakeFilter(args);
 
-            var query = createQuery(args);
+                var query = createQuery(args);
 
-            // TODO: It doesn't make a whole lot of sense to sort by score when searching on only geo-coords, 
-            // typically you would sort by closest distance
-            // Which can be done, see https://github.com/apache/lucene-solr/blob/branch_4x/lucene/spatial/src/test/org/apache/lucene/spatial/SpatialExample.java#L169
-            TopDocs docs = luceneSearcher.Search(query, filter, MaxResultDocs, new Sort(new SortField(null, SortFieldType.SCORE)));
+                // TODO: It doesn't make a whole lot of sense to sort by score when searching on only geo-coords, 
+                // typically you would sort by closest distance
+                // Which can be done, see https://github.com/apache/lucene-solr/blob/branch_4x/lucene/spatial/src/test/org/apache/lucene/spatial/SpatialExample.java#L169
+                TopDocs docs = searchRef.IndexSearcher.Search(query, filter, MaxResultDocs, new Sort(new SortField(null, SortFieldType.SCORE)));
 
-            AssertDocMatchedIds(luceneSearcher, docs, idToMatch);
+                AssertDocMatchedIds(searchRef.IndexSearcher, docs, idToMatch);
 
 
-            // TODO: We should make this possible and allow passing in a Lucene Filter
-            // to the LuceneSearchQuery along with the Lucene Query, then we
-            // don't need to manually perform the Lucene Search
+                // TODO: We should make this possible and allow passing in a Lucene Filter
+                // to the LuceneSearchQuery along with the Lucene Query, then we
+                // don't need to manually perform the Lucene Search
 
-            //var criteria = (LuceneSearchQuery)searcher.CreateQuery();
-            //criteria.LuceneQuery(q);
-            //var results = criteria.Execute();
+                //var criteria = (LuceneSearchQuery)searcher.CreateQuery();
+                //criteria.LuceneQuery(q);
+                //var results = criteria.Execute(); 
+            }
         }
 
         private void AssertDocMatchedIds(IndexSearcher indexSearcher, TopDocs docs, string idToMatch)

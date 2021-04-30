@@ -38,8 +38,8 @@ namespace Examine.Test.Index
                 indexer.CreateIndex();
                 indexer.IndexItems(indexer.AllData());
 
-                var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader(true);
+                var indexWriter = indexer.IndexWriter;
+                var reader = indexWriter.IndexWriter.GetReader(true);
                 Assert.AreEqual(100, reader.NumDocs);
             }
         }
@@ -71,8 +71,8 @@ namespace Examine.Test.Index
                         {"item2", new List<object>(new[] {"value2"})}
                     }));
 
-                var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader(true);
+                var indexWriter = indexer.IndexWriter;
+                var reader = indexWriter.IndexWriter.GetReader(true);
                 Assert.AreEqual(1, reader.NumDocs);
             }
         }
@@ -95,8 +95,8 @@ namespace Examine.Test.Index
                 indexer.IndexItem(value);
                 indexer.IndexItem(value);
 
-                var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader(true);
+                var indexWriter = indexer.IndexWriter;
+                var reader = indexWriter.IndexWriter.GetReader(true);
                 Assert.AreEqual(1, reader.NumDocs);
             }
         }
@@ -119,8 +119,8 @@ namespace Examine.Test.Index
                         }));
                 }
 
-                var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader(true);
+                var indexWriter = indexer.IndexWriter;
+                var reader = indexWriter.IndexWriter.GetReader(true);
                 Assert.AreEqual(10, reader.NumDocs);
             }
         }
@@ -144,8 +144,8 @@ namespace Examine.Test.Index
                 }
                 indexer.DeleteFromIndex("9");
 
-                var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader(true);
+                var indexWriter = indexer.IndexWriter;
+                var reader = indexWriter.IndexWriter.GetReader(true);
                 Assert.AreEqual(9, reader.NumDocs);
             }
         }
@@ -166,12 +166,14 @@ namespace Examine.Test.Index
                         {"item2", new List<object>(new[] {"value2"})}
                     }));
 
-
-                using (var s = (LuceneSearcher)indexer.GetSearcher())
+                var s = (LuceneSearcher)indexer.GetSearcher();
+                var searchContext = s.GetSearchContext();
+                using (var searchRef = searchContext.GetSearcher())
                 {
-                    var luceneSearcher = s.GetLuceneSearcher();
+                    var luceneSearcher = searchRef.IndexSearcher;
+
                     var fields = luceneSearcher.Doc(0).Fields.ToArray();
-                    ;
+                    
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == ExamineFieldNames.ItemTypeFieldName));
@@ -198,9 +200,11 @@ namespace Examine.Test.Index
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1", item2 = "value2" }));
 
-                using (var s = (LuceneSearcher)indexer.GetSearcher())
+                var s = (LuceneSearcher)indexer.GetSearcher();
+                var searchContext = s.GetSearchContext();
+                using (var searchRef = searchContext.GetSearcher())
                 {
-                    var luceneSearcher = s.GetLuceneSearcher();
+                    var luceneSearcher = searchRef.IndexSearcher;
                     var fields = luceneSearcher.Doc(0).Fields.ToArray();
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
@@ -229,9 +233,11 @@ namespace Examine.Test.Index
                         }
                     }));
 
-                using (var s = (LuceneSearcher)indexer.GetSearcher())
+                var s = (LuceneSearcher)indexer.GetSearcher();
+                var searchContext = s.GetSearchContext();
+                using (var searchRef = searchContext.GetSearcher())
                 {
-                    var luceneSearcher = s.GetLuceneSearcher();
+                    var luceneSearcher = searchRef.IndexSearcher;
                     var fields = luceneSearcher.Doc(0).Fields.ToArray();
                     ;
                     Assert.AreEqual(2, fields.Count(x => x.Name == "item1"));
@@ -261,9 +267,11 @@ namespace Examine.Test.Index
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value3", item2 = "value4" }));
 
-                using (var s = (LuceneSearcher)indexer.GetSearcher())
+                var s = (LuceneSearcher)indexer.GetSearcher();
+                var searchContext = s.GetSearchContext();
+                using (var searchRef = searchContext.GetSearcher())
                 {
-                    var luceneSearcher = s.GetLuceneSearcher();
+                    var luceneSearcher = searchRef.IndexSearcher;
                     var fields = luceneSearcher.Doc(luceneSearcher.IndexReader.MaxDoc - 1).Fields.ToArray();
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
@@ -291,9 +299,12 @@ namespace Examine.Test.Index
                         {"item2", new List<object>(new object[] {123456})}
                     }));
 
-                using (var s = (LuceneSearcher)indexer.GetSearcher())
+                var s = (LuceneSearcher)indexer.GetSearcher();
+                var searchContext = s.GetSearchContext();
+                using (var searchRef = searchContext.GetSearcher())
                 {
-                    var luceneSearcher = s.GetLuceneSearcher();
+                    var luceneSearcher = searchRef.IndexSearcher;
+
                     var fields = luceneSearcher.Doc(luceneSearcher.IndexReader.MaxDoc - 1).Fields.ToArray();
 
                     var valType = indexer.FieldValueTypeCollection.GetValueType("item2");
@@ -399,7 +410,9 @@ namespace Examine.Test.Index
                 writer.WaitForMerges();
 
                 //ensure no data since it's a new index
-                var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Execute();
+                var results = customSearcher.CreateQuery()
+                    .Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home"))
+                    .Execute();
 
                 //the total times that OperationComplete event should be fired is 1000
                 Assert.AreEqual(1000, opCompleteCount);

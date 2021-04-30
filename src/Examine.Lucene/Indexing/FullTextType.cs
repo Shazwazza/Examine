@@ -139,9 +139,9 @@ namespace Examine.Lucene.Indexing
         /// Builds a full text search query
         /// </summary>
         /// <param name="query"></param>
-        /// <param name="searcher"></param>
+        /// 
         /// <returns></returns>
-        public override Query GetQuery(string query, IndexSearcher searcher)
+        public override Query GetQuery(string query)
         {
             return GenerateQuery(FieldName, query, _analyzer);
         }

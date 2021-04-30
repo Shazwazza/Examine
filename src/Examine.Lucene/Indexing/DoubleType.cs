@@ -25,7 +25,7 @@ namespace Examine.Lucene.Indexing
             doc.Add(new DoubleField(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));
         }
 
-        public override Query GetQuery(string query, IndexSearcher searcher)
+        public override Query GetQuery(string query)
         {
             return !TryConvert(query, out double parsedVal) ? null : GetQuery(parsedVal, parsedVal);
         }

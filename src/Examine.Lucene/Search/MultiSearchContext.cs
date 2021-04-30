@@ -1,25 +1,25 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Examine.Lucene.Indexing;
-using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
+
     public class MultiSearchContext : ISearchContext
     {
         private readonly ISearchContext[] _inner;
         
-        public MultiSearchContext(IndexSearcher searcher, ISearchContext[] inner)
-        {
-            _inner = inner;
-            Searcher = searcher;
-        }
+        private string[] _fields;
+        
+        public MultiSearchContext(ISearchContext[] inner) => _inner = inner;
 
-        public IndexSearcher Searcher { get; }
+        public ISearcherReference GetSearcher()
+            => new MultiSearchSearcherReference(_inner.Select(x => x.GetSearcher()).ToArray());
+
+        public string[] SearchableFields => _fields ?? (_fields = _inner.SelectMany(x => x.SearchableFields).Distinct().ToArray());
 
         public IIndexFieldValueType GetFieldValueType(string fieldName)
-        {
-            return _inner.Select(cc => cc.GetFieldValueType(fieldName)).FirstOrDefault(type => type != null);
-        }
+            => _inner.Select(cc => cc.GetFieldValueType(fieldName)).FirstOrDefault(type => type != null);
+
     }
 }

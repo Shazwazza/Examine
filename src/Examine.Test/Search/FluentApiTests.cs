@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
@@ -74,7 +73,7 @@ namespace Examine.Test.Search
                 var query = searcher.CreateQuery("content").NativeQuery("\"town called\"");
 
                 Console.WriteLine(query);
-                Assert.AreEqual("{ Category: content, LuceneQuery: +(bodyText:\"town called\" nodeName:\"town called\") }", query.ToString());
+                Assert.AreEqual("{ Category: content, LuceneQuery: +(nodeName:\"town called\" bodyText:\"town called\") }", query.ToString());
 
                 var results = query.Execute();
 
@@ -1527,11 +1526,7 @@ namespace Examine.Test.Search
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, analyzer))
-
-
             {
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { Content = "hello world" }),
@@ -1549,7 +1544,7 @@ namespace Examine.Test.Search
                 var filter = criteria.Field("Content", "hello");
 
                 //Act
-                var results = filter.Execute(3);
+                var results = filter.Execute(new QueryOptions(3));
 
                 //Assert
 
@@ -2012,61 +2007,6 @@ namespace Examine.Test.Search
                 Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
                 Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
             }
-
-        }
-
-        [Test]
-        public void Lucene_Document_Skip_Results_Returns_Different_Results()
-        {
-            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-            using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
-            {
-                indexer.IndexItems(new[] {
-                    ValueSet.FromObject(1.ToString(), "content",
-                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
-                    ValueSet.FromObject(2.ToString(), "content",
-                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-                    ValueSet.FromObject(3.ToString(), "content",
-                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-                    ValueSet.FromObject(4.ToString(), "content",
-                        new { nodeName = "hello", headerText = "world", writerName = "blah" })
-                    });
-
-                var searcher = indexer.GetSearcher();
-
-                //Arrange
-
-                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
-
-                //Act
-
-                var results = (LuceneSearchResults)sc.Execute();
-                // this will execute the default search (non skip take)
-                var first = results.First();
-                // Skip here doesn't re-execute the search since we've already done the default search,
-                // it just skips past the lucene documents that we don't want returned as to not allocate
-                // more ISearchResult than necessary
-                var third = results.Skip(2).First();
-
-                //Assert
-
-                // this will not re-execute since the total item count has already been resolved
-                Assert.AreEqual(3, results.TotalItemCount);
-                Assert.AreNotEqual(first, third, "Third result should be different");
-
-                // This will re-execute the search as a skiptake search, the previous TopDocs will be replaced.
-                // Only the required lucene docs are returned, no need to skip over them, they are not allocated
-                // and neither are unnecessary ISearchResult instances.
-                var resultsLuceneSkip = results.SkipTake(2);
-                Assert.AreEqual(1, resultsLuceneSkip.Count(), "More results fetched than expected");
-                // this will not re-execute since the total item count has already been resolved
-                Assert.AreEqual(3, results.TotalItemCount);
-
-                // The search will have executed twice. It will re-execute anytime the search changes from a Default to SkipTake search
-                Assert.AreEqual(2, results.ExecutionCount);
-            }
-
 
         }
     }
