@@ -9,30 +9,12 @@
     </SccAuxPath>
     <SccProvider>
     </SccProvider>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <CodeAnalysisRuleSet>SecurityRules.ruleset</CodeAnalysisRuleSet>
-    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Update="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
-      <Visible>False</Visible>
-    </CodeAnalysisDependentAssemblyPaths>
-  </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\StringTheory.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -68,9 +50,6 @@
     <Content Include="App_Data\media.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Analyzer Include="..\packages\Lucene.Net.4.8.0-beta00008\analyzers\dotnet\cs\Lucene.Net.CodeAnalysis.dll" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lucene.Net.Spatial">
