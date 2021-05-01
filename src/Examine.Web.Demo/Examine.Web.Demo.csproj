@@ -23,17 +23,6 @@
     <None Remove="Examine\**" />
   </ItemGroup>
   <ItemGroup>
-    <Content Update="Web.config">
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Update="Web.Debug.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </Content>
-    <Content Update="Web.Release.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Examine.Core\Examine.Core.csproj" />
     <ProjectReference Include="..\Examine.Host\Examine.csproj" />
     <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj" />

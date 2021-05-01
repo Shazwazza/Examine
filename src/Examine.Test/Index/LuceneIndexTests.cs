@@ -19,6 +19,7 @@ using Examine.Search;
 using Examine.Test.DataServices;
 using Examine.Test.UmbracoExamine;
 using Examine.Lucene.Analyzers;
+using System.Diagnostics;
 
 namespace Examine.Test.Index
 {
@@ -403,6 +404,13 @@ namespace Examine.Test.Index
         [Test]
         public void Can_Overwrite_Index_During_Indexing_Operation()
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
+
+            void WriteLog(string msg)
+            {
+                Trace.WriteLine(msg);
+            }
+
             const int ThreadCount = 1000;
 
             using (var d = new RandomIdRAMDirectory())
@@ -425,7 +433,8 @@ namespace Examine.Test.Index
                 {
                     Interlocked.Increment(ref opCompleteCount);
 
-                    Console.WriteLine($"OperationComplete: {opCompleteCount}");
+                    // TODO: This does not log! wtf!
+                    WriteLog("OperationComplete: " + opCompleteCount);
 
                     if (opCompleteCount == ThreadCount / 2)
                     {
@@ -464,7 +473,7 @@ namespace Examine.Test.Index
                             //get next id and put it to the back of the list
                             int docId = i;
                             var cloned = new XElement(node);
-                            Console.WriteLine("Indexing {0}", docId);
+                            WriteLog("Indexing " + docId);
                             indexer.IndexItem(cloned.ConvertToValueSet(IndexTypes.Content));
                         }, TaskCreationOptions.LongRunning));
                     }
@@ -473,15 +482,15 @@ namespace Examine.Test.Index
                     middleCompletedWaitHandle.WaitOne();
 
                     // and then overwrite!
-                    Console.WriteLine("Overwriting....");
+                    WriteLog("Overwriting....");
                     customIndexer.EnsureIndex(true);
-                    Console.WriteLine("Done!");
+                    WriteLog("Done!");
 
                     try
                     {
-                        Console.WriteLine("Waiting on tasks...");
+                        WriteLog("Waiting on tasks...");
                         Task.WaitAll(tasks.ToArray());
-                        Console.WriteLine("Done!");
+                        WriteLog("Done!");
                     }
                     catch (AggregateException e)
                     {
@@ -505,10 +514,12 @@ namespace Examine.Test.Index
 
                 // the total times that OperationComplete event should be fired approx half of the thread count
                 // since we cancel halfway
+                // should be zero because all indexing operations will be canceled when it's rebuilt
+                WriteLog("TOTAL Threads completed: " + opCompleteCount);
                 Assert.Less(opCompleteCount, ThreadCount);
 
                 // should be zero because all indexing operations will be canceled when it's rebuilt
-                Console.WriteLine("TOTAL RESULTS: " + results.TotalItemCount);
+                WriteLog("TOTAL RESULTS: " + results.TotalItemCount);
                 Assert.AreEqual(0, results.Count());
             }
         }
