@@ -1,17 +1,12 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlServerCe;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Http.Results;
 using System.Web.Mvc;
-using Examine;
-using Examine.LuceneEngine;
-using Examine.LuceneEngine.Providers;
 using Examine.Web.Demo.Models;
-using Lucene.Net.Index;
 
 namespace Examine.Web.Demo.Controllers
 {
