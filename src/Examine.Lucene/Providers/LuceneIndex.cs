@@ -154,6 +154,8 @@ namespace Examine.Lucene.Providers
 
         #endregion
 
+        private PerFieldAnalyzerWrapper _fieldAnalyzer;
+        private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
         private readonly Directory _directory;
         private FileStream _logOutput;
@@ -247,7 +249,6 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer DefaultAnalyzer { get; }
 
-        private PerFieldAnalyzerWrapper _fieldAnalyzer;
         public PerFieldAnalyzerWrapper FieldAnalyzer => _fieldAnalyzer
             ?? (_fieldAnalyzer =
                 (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
@@ -1279,6 +1280,14 @@ namespace Examine.Lucene.Providers
 
             TrackingIndexWriter writer = IndexWriter;
             var searcherManager = new SearcherManager(writer.IndexWriter, false, null);
+
+            _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 1.0, 0.1)
+            {
+                Name = "NRT Reopen Thread"                
+            };
+
+            _nrtReopenThread.Start();
+
             return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection);
         }
 
@@ -1390,6 +1399,12 @@ namespace Examine.Lucene.Providers
             {
                 if (disposing)
                 {
+                    if (_nrtReopenThread != null)
+                    {
+                        _nrtReopenThread.Interrupt();
+                        _nrtReopenThread.Dispose();
+                    } 
+
                     if (_searcher.IsValueCreated)
                     {
                         _searcher.Value.Dispose();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Security;
 using Lucene.Net.Index;
@@ -6,7 +6,9 @@ using Lucene.Net.Store;
 
 namespace Examine.Lucene
 {
-    
+
+    // TODO: Kill this, we don't need it.
+
     public sealed class WriterTracker
     {
         /// <summary>

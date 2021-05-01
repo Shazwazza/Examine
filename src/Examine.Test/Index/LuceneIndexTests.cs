@@ -30,6 +30,88 @@ namespace Examine.Test.Index
     public class LuceneIndexTests : ExamineBaseTest
     {
         [Test]
+        public void Operation_Complete_Executes_For_Single_Item()
+        {
+            using (var d = new RandomIdRAMDirectory())
+            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
+            using (var indexer = GetTestIndex(writer))            
+            {
+                var callCount = 0;
+                var waitHandle = new ManualResetEvent(false);
+
+                void OperationComplete(object sender, IndexOperationEventArgs e)
+                {
+                    callCount++;
+                    //signal that we are done
+                    waitHandle.Set();
+                }
+
+                //add the handler for optimized since we know it will be optimized last based on the commit count
+                indexer.IndexOperationComplete += OperationComplete;
+
+                using (indexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
+                {
+                    var task = Task.Run(() => indexer.IndexItem(new ValueSet(1.ToString(), "content",
+                            new Dictionary<string, IEnumerable<object>>
+                            {
+                                {"item1", new List<object>(new[] {"value1"})},
+                                {"item2", new List<object>(new[] {"value2"})}
+                            })));
+
+                    // Verify that a single operation calls
+                    Task.WaitAll(task);
+                    waitHandle.WaitOne(TimeSpan.FromSeconds(30));
+                    Assert.AreEqual(1, callCount);
+                }
+            }
+        }
+
+        [Test]
+        public void Operation_Complete_Executes_For_Multiple_Items()
+        {
+            using (var d = new RandomIdRAMDirectory())
+            using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
+            using (var indexer = GetTestIndex(writer))
+            {
+                var callCount = 0;
+                var waitHandle = new ManualResetEvent(false);
+
+                void OperationComplete(object sender, IndexOperationEventArgs e)
+                {
+                    callCount++;
+
+                    if (callCount == 10)
+                    {
+                        //signal that we are done
+                        waitHandle.Set();
+                    }
+                }
+
+                //add the handler for optimized since we know it will be optimized last based on the commit count
+                indexer.IndexOperationComplete += OperationComplete;
+
+                using (indexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
+                {
+                    var tasks = new List<Task>();
+                    for (int i = 0; i < 10; i++)
+                    {
+                        tasks.Add(Task.Run(() => indexer.IndexItem(new ValueSet(i.ToString(), "content",
+                            new Dictionary<string, IEnumerable<object>>
+                            {
+                                {"item1", new List<object>(new[] {"value1"})},
+                                {"item2", new List<object>(new[] {"value2"})}
+                            }))));
+                    }
+
+                    // Verify that multiple concurrent operations all call
+                    Task.WaitAll(tasks.ToArray());
+                    waitHandle.WaitOne(TimeSpan.FromSeconds(30));
+                    Assert.AreEqual(10, callCount);
+                }
+            }
+        }
+
+        [Test]
         public void Rebuild_Index()
         {
             using (var d = new RandomIdRAMDirectory())
@@ -173,7 +255,7 @@ namespace Examine.Test.Index
                     var luceneSearcher = searchRef.IndexSearcher;
 
                     var fields = luceneSearcher.Doc(0).Fields.ToArray();
-                    
+
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item1"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == "item2"));
                     Assert.IsNotNull(fields.SingleOrDefault(x => x.Name == ExamineFieldNames.ItemTypeFieldName));
@@ -345,7 +427,7 @@ namespace Examine.Test.Index
                     }
                 }
 
-                //add the handler for optimized since we know it will be optimized last based on the commit count
+                //add the handler for completed ops
                 customIndexer.IndexOperationComplete += OperationComplete;
 
                 //remove the normal indexing error handler
@@ -382,12 +464,18 @@ namespace Examine.Test.Index
 
                     Thread.Sleep(100);
 
+                    Console.WriteLine("Overwriting....");
+
                     //overwrite!
                     customIndexer.EnsureIndex(true);
 
+                    Console.WriteLine("Done!");
+
                     try
                     {
+                        Console.WriteLine("Waiting on tasks...");
                         Task.WaitAll(tasks.ToArray());
+                        Console.WriteLine("Done!");
                     }
                     catch (AggregateException e)
                     {
@@ -405,7 +493,9 @@ namespace Examine.Test.Index
                 }
 
                 //wait until we are done
+                Console.WriteLine("Waiting on operation complete...");
                 waitHandle.WaitOne(TimeSpan.FromMinutes(2));
+                Console.WriteLine("Done!");
 
                 writer.WaitForMerges();
 
