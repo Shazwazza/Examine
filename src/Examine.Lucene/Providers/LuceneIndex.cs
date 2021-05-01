@@ -353,7 +353,7 @@ namespace Examine.Lucene.Providers
                                 //In this case we need to initialize a writer and continue as normal.
                                 //Since we are already inside the writer lock and it is null, we are allowed to 
                                 // make this call with out using GetIndexWriter() to do the initialization.
-                                _writer = CreateIndexWriter();
+                                _writer = CreateIndexWriterInternal();
                             }
 
                             //We're forcing an overwrite, 
@@ -905,7 +905,7 @@ namespace Examine.Lucene.Providers
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
         /// <returns></returns>
-        private TrackingIndexWriter CreateIndexWriter()
+        private TrackingIndexWriter CreateIndexWriterInternal()
         {
             Directory dir = GetLuceneDirectory();
 
@@ -925,9 +925,7 @@ namespace Examine.Lucene.Providers
                 return null;
             }
 
-            var writer = WriterTracker.Current.GetWriter(
-                dir,
-                WriterFactory);
+            IndexWriter writer = CreateIndexWriter(dir);
 
             var trackingIndexWriter = new TrackingIndexWriter(writer);
 
@@ -935,11 +933,11 @@ namespace Examine.Lucene.Providers
         }
 
         /// <summary>
-        /// Method that creates the tracked IndexWriter
+        /// Method that creates the IndexWriter
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        protected virtual IndexWriter WriterFactory(Directory d)
+        protected virtual IndexWriter CreateIndexWriter(Directory d)
         {
             if (d == null)
             {
@@ -1007,7 +1005,7 @@ namespace Examine.Lucene.Providers
                     {
                         if (_writer == null)
                         {
-                            _writer = CreateIndexWriter();
+                            _writer = CreateIndexWriterInternal();
                         }
                     }
                     finally
