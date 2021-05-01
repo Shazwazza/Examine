@@ -47,10 +47,10 @@ jobs:
       uses: gittools/actions/gitversion/execute@v0.9.9
     
     - name: Install dependencies
-      run: dotnet restore $env:Solution_File
+      run: dotnet restore ${{ env.Solution_File }}
     
     - name: Build
-      run: dotnet build $env:Solution_File --configuration $env:Configuration --no-restore
+      run: dotnet build ${{ env.Solution_File }} --configuration ${{ env.Configuration }} --no-restore
     
     - name: Test
       run: dotnet test "${{ env.Test_Folder }}/bin/${{ env.Configuration }}/Examine.Test.dll" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx"
