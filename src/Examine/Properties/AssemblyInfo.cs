@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Security;
@@ -24,7 +24,3 @@ using System.Security;
 [assembly: InternalsVisibleTo("Examine.AzureDirectory")]
 [assembly: InternalsVisibleTo("Examine.Web.Demo")]
 [assembly: InternalsVisibleTo("Examine.Test")]
-
-[assembly: AssemblyVersion("1.1.1.0")]
-[assembly: AssemblyFileVersion("1.1.1.0")]
-[assembly: AssemblyInformationalVersion("1.1.1-novicellbeta.3")]

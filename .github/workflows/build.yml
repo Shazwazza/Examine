@@ -1,0 +1,58 @@
+name: Examine Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    env:
+      Solution_File: src\Examine.sln
+      Test_Folder: src\Examine.Test
+      Configuration: Release
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Create copyright value
+      run: |
+        $Copyright = "Copyright " + [char]0x00A9 + " Shannon Deminick " + (Get-Date).year
+        echo ("Copyright=" + $Copyright) >> $Env:GITHUB_ENV
+      shell: pwsh
+      
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    
+    - uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: 'latest'
+    
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.7
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      uses: gittools/actions/gitversion/execute@v0.9.7
+    
+    - name: Nuget Restore
+      run: nuget restore $env:Solution_File
+    
+    - name: MSBuild Clean
+      run: msbuild $env:Solution_File /p:Configuration=Release /t:Clean
+    
+    - name: MSBuild Build
+      run: msbuild $env:Solution_File /p:Configuration=$env:Configuration
+      
+    - name: Test
+      run: dotnet test "${{ env.Test_Folder }}\bin\${{ env.Configuration }}\Examine.Test.dll" --no-build --verbosity normal --results-directory ${{ github.workspace }}\_TestResults  --logger "trx;logfilename=tests.trx"
+    
+    - uses: actions/upload-artifact@v2  # upload test results
+      if: success() || failure()        # run this step even if previous step failed
+      with:
+        name: test-results
+        path:  ${{ github.workspace }}\_TestResults\tests.trx
