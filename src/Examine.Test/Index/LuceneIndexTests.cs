@@ -411,7 +411,14 @@ namespace Examine.Test.Index
             using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
 
-                var waitHandle = new ManualResetEvent(false);
+                // NOTE: We use this to wait until we're halfway done, and then
+                // we will overwrite the index. When we overwrite, the cancelation tokens
+                // are canceled which means that any task continuations will also be canceled
+                // therefore once the overwrite happens, any current indexing operations will
+                // try to continue but none of their continuations will which means the oncomplete
+                // callbacks will not execute.
+
+                var middleCompletedWaitHandle = new ManualResetEvent(false);
 
                 var opCompleteCount = 0;
                 void OperationComplete(object sender, IndexOperationEventArgs e)
@@ -420,10 +427,10 @@ namespace Examine.Test.Index
 
                     Console.WriteLine($"OperationComplete: {opCompleteCount}");
 
-                    if (opCompleteCount == ThreadCount)
+                    if (opCompleteCount == ThreadCount / 2)
                     {
-                        //signal that we are done
-                        waitHandle.Set();
+                        // signal that we are halfway done
+                        middleCompletedWaitHandle.Set();
                     }
                 }
 
@@ -462,13 +469,12 @@ namespace Examine.Test.Index
                         }, TaskCreationOptions.LongRunning));
                     }
 
-                    Thread.Sleep(100);
+                    // wait till we're halfway done 
+                    middleCompletedWaitHandle.WaitOne();
 
+                    // and then overwrite!
                     Console.WriteLine("Overwriting....");
-
-                    //overwrite!
                     customIndexer.EnsureIndex(true);
-
                     Console.WriteLine("Done!");
 
                     try
@@ -492,11 +498,6 @@ namespace Examine.Test.Index
                     customIndexer.IndexingError += IndexInitializer.IndexingError;
                 }
 
-                //wait until we are done
-                Console.WriteLine("Waiting on operation complete...");
-                waitHandle.WaitOne(TimeSpan.FromMinutes(2));
-                Console.WriteLine("Done!");
-
                 writer.WaitForMerges();
 
                 //ensure no data since it's a new index
@@ -504,12 +505,13 @@ namespace Examine.Test.Index
                     .Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home"))
                     .Execute();
 
-                //the total times that OperationComplete event should be fired is 1000
-                Assert.AreEqual(1000, opCompleteCount);
+                // the total times that OperationComplete event should be fired approx half of the thread count
+                // since we cancel halfway
+                Assert.Less(opCompleteCount, ThreadCount);
 
-                //should be less than the total inserted because we overwrote it in the middle of processing
+                // should be zero because all indexing operations will be canceled when it's rebuilt
                 Console.WriteLine("TOTAL RESULTS: " + results.TotalItemCount);
-                Assert.Less(results.Count(), 1000);
+                Assert.AreEqual(0, results.Count());
             }
         }
 

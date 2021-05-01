@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,7 +12,6 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
-using Lucene.Net.Util;
 using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 using static Lucene.Net.Index.IndexWriter;
@@ -34,30 +32,6 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="luceneDirectory"></param>
-        /// <param name="fieldDefinitions"></param>
-        /// <param name="analyzer">Specifies the default analyzer to use per field</param>
-        /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
-        /// <param name="indexValueTypesFactory">
-        ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.GetDefaultValueTypes"/> will be used.
-        ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
-        /// </param>
-        public LuceneIndex(
-            ILoggerFactory loggerFactory,
-            string name,
-            Directory luceneDirectory,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : this(loggerFactory, name, luceneDirectory, DefaultQueueCapacity, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
-        {
-        }
-
-        /// <summary>
-        /// Constructor to create an indexer
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="luceneDirectory"></param>
         /// <param name="queueCapacity">The capacity of the blocking collection, by default is <see cref="DefaultQueueCapacity"/></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="analyzer">Specifies the default analyzer to use per field</param>
@@ -70,14 +44,12 @@ namespace Examine.Lucene.Providers
             ILoggerFactory loggerFactory,
             string name,
             Directory luceneDirectory,
-            int queueCapacity,
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
            : base(loggerFactory, name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
         {
-            _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _committer = new IndexCommiter(this);
             _logger = loggerFactory.CreateLogger<LuceneIndex>();
 
@@ -89,29 +61,8 @@ namespace Examine.Lucene.Providers
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
 
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
-            WaitForIndexQueueOnShutdown = true;
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
-        }
-
-
-        /// <summary>
-        /// Constructor to allow for creating an indexer at runtime - using NRT
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="fieldDefinitions"></param>
-        /// <param name="writer"></param>
-        /// <param name="validator"></param>
-        /// <param name="indexValueTypesFactory"></param>
-        public LuceneIndex(
-            ILoggerFactory loggerFactory,
-            string name,
-            FieldDefinitionCollection fieldDefinitions,
-            IndexWriter writer,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-                : this(loggerFactory, name, fieldDefinitions, writer, DefaultQueueCapacity, validator, indexValueTypesFactory)
-        {
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -130,12 +81,10 @@ namespace Examine.Lucene.Providers
             string name,
             FieldDefinitionCollection fieldDefinitions,
             IndexWriter writer,
-            int queueCapacity,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
                : base(loggerFactory, name, fieldDefinitions, validator)
         {
-            _indexQueue = new BlockingCollection<IEnumerable<IndexOperation>>(queueCapacity);
             _committer = new IndexCommiter(this);
             _logger = loggerFactory.CreateLogger<LuceneIndex>();
 
@@ -146,7 +95,6 @@ namespace Examine.Lucene.Providers
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
             LuceneIndexFolder = null;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
-            WaitForIndexQueueOnShutdown = true;
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
         }
@@ -164,8 +112,9 @@ namespace Examine.Lucene.Providers
 
         private volatile TrackingIndexWriter _writer;
 
+        // TODO: Kill this? do we need it?
         private int _activeWrites = 0;
-        private int _activeAddsOrDeletes = 0;
+        //private int _activeAddsOrDeletes = 0;
 
         // TODO: Need to make this configurable
         public const int DefaultQueueCapacity = 1000;
@@ -173,24 +122,14 @@ namespace Examine.Lucene.Providers
 
 
         /// <summary>
-        /// Used to perform thread locking
+        /// Used for creating the background tasks
         /// </summary>
-        private readonly object _indexingLocker = new object();
+        private readonly object _taskLocker = new object();
 
         /// <summary>
         /// Used to aquire the index writer
         /// </summary>
         private readonly object _writerLocker = new object();
-
-        /// <summary>
-        /// used to thread lock calls for creating and verifying folders
-        /// </summary>
-        private readonly object _folderLocker = new object();
-
-        /// <summary>
-        /// Used for double check locking during an index operation
-        /// </summary>
-        private volatile bool _isIndexing = false;
 
         private readonly Lazy<LuceneSearcher> _searcher;
 
@@ -202,17 +141,9 @@ namespace Examine.Lucene.Providers
         public override ISearcher GetSearcher() => _searcher.Value;
 
         /// <summary>
-        /// This is our threadsafe queue of items which can be read by our background worker to process the queue
-        /// </summary>
-        /// <remarks>
-        /// Each item in the collection is a collection itself, this allows us to have lazy access to a collection as part of the queue if added in bulk
-        /// </remarks>
-        private readonly BlockingCollection<IEnumerable<IndexOperation>> _indexQueue;
-
-        /// <summary>
         /// The async task that runs during an async indexing operation
         /// </summary>
-        private Task<int> _asyncTask;
+        private Task _asyncTask = Task.CompletedTask;
 
         /// <summary>
         /// Used to cancel the async operation
@@ -233,16 +164,6 @@ namespace Examine.Lucene.Providers
         /// Returns the <see cref="FieldValueTypeCollection"/> configured for this index
         /// </summary>
         public FieldValueTypeCollection FieldValueTypeCollection => _fieldValueTypeCollection.Value;
-
-        /// <summary>
-        /// this flag indicates if Examine should wait for the current index queue to be fully processed during appdomain shutdown
-        /// </summary>
-        /// <remarks>
-        /// By default this is true but in some cases a user may wish to disable this since this can block an appdomain from shutting down
-        /// within a reasonable time which can cause problems with overlapping appdomains.
-        /// </remarks>
-        // TODO: Kill this
-        public bool WaitForIndexQueueOnShutdown { get; set; }
 
         /// <summary>
         /// The default analyzer to use when indexing content, by default, this is set to StandardAnalyzer
@@ -272,8 +193,9 @@ namespace Examine.Lucene.Providers
         public DirectoryInfo LuceneIndexFolder { get; protected set; }
 
         /// <summary>
-        /// returns true if the indexer has been canceled (app is shutting down)
+        /// This should ONLY be used internally by the scheduled committer we should refactor this out in the future
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
 
         #endregion
@@ -293,34 +215,13 @@ namespace Examine.Lucene.Providers
         /// Called when an indexing error occurs
         /// </summary>
         /// <param name="e"></param>
-        /// <param name="resetIndexingFlag">set to true if the IsIndexing flag should be reset (set to false) so future indexing operations can occur</param>
-        protected void OnIndexingError(IndexingErrorEventArgs e, bool resetIndexingFlag)
-        {
-            if (resetIndexingFlag)
-            {
-                //reset our volatile flag... something else funny is going on but we don't want this to prevent ALL future operations
-                _isIndexing = false;
-            }
-
-            OnIndexingError(e);
-        }
-
-        /// <summary>
-        /// Called when an indexing error occurs
-        /// </summary>
-        /// <param name="e"></param>
         protected override void OnIndexingError(IndexingErrorEventArgs e)
         {
             base.OnIndexingError(e);
 
             if (!RunAsync)
             {
-                var msg = "Indexing Error Occurred: " + e.Message;
-                if (e.Exception != null)
-                {
-                    msg += ". ERROR: " + e.Exception.Message;
-                }
-
+                var msg = "Indexing Error Occurred: " + e.Message;                
                 throw new Exception(msg, e.Exception);
             }
 
@@ -335,31 +236,80 @@ namespace Examine.Lucene.Providers
 
         protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
         {
-            //need to lock, we don't want to issue any node writing if there's an index rebuild occuring
-            Monitor.Enter(_writerLocker);
+            // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
+            lock (_writerLocker)
+            {
+                var currentToken = _cancellationToken;
+
+                if (RunAsync)
+                {
+                    QueueTask(() => PerformIndexItemsInternal(values, currentToken), onComplete, currentToken);
+                }
+                else
+                {
+                    var count = 0;
+                    try
+                    {
+                        count = PerformIndexItemsInternal(values, currentToken);
+                    }
+                    finally
+                    {
+                        onComplete(new IndexOperationEventArgs(this, count));
+                    }
+                }
+            }
+        }
+
+        private int PerformIndexItemsInternal(IEnumerable<ValueSet> valueSets, CancellationToken cancellationToken)
+        {
+            //check if the index is ready to be written to.
+            if (!IndexReady())
+            {
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot index queue items, the index is currently locked", null, null));
+                return 0;
+            }
+
+            //track all of the nodes indexed
+            var indexedNodes = 0;
+
+            Interlocked.Increment(ref _activeWrites);
+
             try
             {
-                Interlocked.Increment(ref _activeAddsOrDeletes);
+                var writer = IndexWriter;
 
-                try
+                foreach (var valueSet in valueSets)
                 {
-                    //enqueue the batch, this allows lazy enumeration of the items
-                    // when the indexes starts to process
-                    QueueIndexOperation(
-                        values.Select(value => new IndexOperation(value, IndexOperationType.Add)));
+                    if (cancellationToken.IsCancellationRequested) break;
 
-                    //run the indexer on all queued files
-                    SafelyProcessQueueItems(onComplete);
+                    var op = new IndexOperation(valueSet, IndexOperationType.Add);
+                    if (ProcessQueueItem(op, writer))
+                    {
+                        indexedNodes++;
+                    }
                 }
-                finally
+
+                //this is required to ensure the index is written to during the same thread execution
+                if (!RunAsync)
                 {
-                    Interlocked.Decrement(ref _activeAddsOrDeletes);
+                    //commit the changes (this will process the deletes too)
+                    writer.IndexWriter.Commit();
                 }
+                else
+                {
+                    _committer.ScheduleCommit();
+                }
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs(this, "Error indexing queue items", null, ex));
             }
             finally
             {
-                Monitor.Exit(_writerLocker);
+                Interlocked.Decrement(ref _activeWrites);
             }
+
+            return indexedNodes;
         }
 
         /// <summary>
@@ -368,7 +318,9 @@ namespace Examine.Lucene.Providers
         public void EnsureIndex(bool forceOverwrite)
         {
             if (!forceOverwrite && _exists.HasValue && _exists.Value)
+            {
                 return;
+            }
 
             var indexExists = IndexExists();
             if (!indexExists || forceOverwrite)
@@ -417,15 +369,9 @@ namespace Examine.Lucene.Providers
 
                             try
                             {
-
-                                //clear the queue
-                                while (_indexQueue.TryTake(out _))
-                                {
-                                }
-
+                            
                                 //remove all of the index data
                                 _writer.DeleteAll();
-
 
                                 _writer.IndexWriter.Commit();
 
@@ -437,8 +383,13 @@ namespace Examine.Lucene.Providers
                             }
                             finally
                             {
+                                _cancellationTokenSource.Dispose();
                                 _cancellationTokenSource = new CancellationTokenSource();
                                 _cancellationToken = _cancellationTokenSource.Token;
+
+                                // we need to reset this task because if any faults occur when rebuilding
+                                // the task will remain in a canceled state and nothing will ever run again.
+                                _asyncTask = Task.CompletedTask;
                             }
                         }
                     }
@@ -496,7 +447,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public override void CreateIndex()
         {
-            if (IsCancellationRequested)
+            if (_cancellationToken.IsCancellationRequested)
             {
                 OnIndexingError(new IndexingErrorEventArgs(this, "Cannot create a new index, indexing cancellation has been requested", null, null));
                 return;
@@ -515,17 +466,80 @@ namespace Examine.Lucene.Providers
         /// <param name="onComplete"></param>
         protected override void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs> onComplete)
         {
-            Interlocked.Increment(ref _activeAddsOrDeletes);
+            // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
+            lock (_writerLocker)
+            {
+                var currentToken = _cancellationToken;
+
+                if (RunAsync)
+                {
+                    QueueTask(() => PerformDeleteFromIndexInternal(itemIds, currentToken), onComplete, currentToken);
+                }
+                else
+                {
+                    var count = 0;
+                    try
+                    {
+                        count = PerformDeleteFromIndexInternal(itemIds, currentToken);
+                    }
+                    finally
+                    {
+                        onComplete(new IndexOperationEventArgs(this, count));
+                    }
+                }
+            }
+        }
+
+        private int PerformDeleteFromIndexInternal(IEnumerable<string> itemIds, CancellationToken cancellationToken)
+        {
+            //check if the index is ready to be written to.
+            if (!IndexReady())
+            {
+                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot index queue items, the index is currently locked", null, null));
+                return 0;
+            }
+
+            //track all of the nodes indexed
+            var indexedNodes = 0;
+
+            Interlocked.Increment(ref _activeWrites);
 
             try
             {
-                QueueIndexOperation(itemIds.Select(x => new IndexOperation(new ValueSet(x), IndexOperationType.Delete)));
-                SafelyProcessQueueItems(onComplete);
+                var writer = IndexWriter;
+
+                foreach (var id in itemIds)
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
+
+                    var op = new IndexOperation(new ValueSet(id), IndexOperationType.Delete);
+                    if (ProcessQueueItem(op, writer))
+                    {
+                        indexedNodes++;
+                    }
+                }
+
+                //this is required to ensure the index is written to during the same thread execution
+                if (!RunAsync)
+                {
+                    //commit the changes (this will process the deletes too)
+                    writer.IndexWriter.Commit();
+                }
+                else
+                {
+                    _committer.ScheduleCommit();
+                }
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs(this, "Error indexing queue items", null, ex));
             }
             finally
             {
-                Interlocked.Decrement(ref _activeAddsOrDeletes);
+                Interlocked.Decrement(ref _activeWrites);
             }
+
+            return indexedNodes;
         }
 
         #endregion
@@ -656,7 +670,9 @@ namespace Examine.Lucene.Providers
             {
                 //if the index doesn't exist, then no don't attempt to open it.
                 if (!IndexExists())
+                {
                     return true;
+                }
 
                 iw.DeleteDocuments(indexTerm);
 
@@ -749,226 +765,6 @@ namespace Examine.Lucene.Providers
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
             writer.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
-        }
-
-        /// <summary>
-        /// Process all of the queue items
-        /// </summary>
-        /// <param name="onComplete"></param>
-        private void SafelyProcessQueueItems(Action<IndexOperationEventArgs> onComplete)
-        {
-            if (!RunAsync)
-            {
-                var result = ProcessQueueItemsLocked();
-                onComplete?.Invoke(new IndexOperationEventArgs(this, result));
-            }
-            else
-            {
-                var isNewTask = false;
-                if (!_isIndexing)
-                {
-                    // NOTE: If the cancellation token is canceled it just means the tasks will not run. Previously we were passing
-                    // in the cancelation token via the source like _cancellationTokenSource.Token which will throw an exception if
-                    // it's disposed and that was incorrect. Now we just pass in the token, an exception will not occur and the task
-                    // will respect the token.
-
-                    //don't run the worker if it's currently running since it will just pick up the rest of the queue during its normal operation                    
-                    lock (_indexingLocker)
-                    {
-                        if (!_isIndexing && (_asyncTask == null || _asyncTask.IsCompleted))
-                        {
-                            isNewTask = true;
-
-                            using (ExecutionContext.SuppressFlow())
-                            {
-                                _asyncTask = Task.Run(
-                                    () =>
-                                    {
-                                        //Ensure the indexing processes is using an invariant culture
-                                        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-                                        return ProcessQueueItemsLocked();
-                                    },
-                                    _cancellationToken);
-                            }
-
-                            // when the task is done call the complete callback
-                            // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
-                            // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
-                            if (onComplete != null)
-                            {
-                                using (ExecutionContext.SuppressFlow())
-                                {
-                                    _asyncTask.ContinueWith(
-                                        task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
-                                        _cancellationToken,
-                                        TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
-                                        TaskScheduler.Default);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (!isNewTask)
-                {
-                    // This executes when calls to SafelyProcessQueueItems are made and the queue is already being consumed (i.e. no worker thread is spawned).                    
-                    // This adds the callback to the queue since this method can be called multiple times with different callbacks
-                    // but there is only one queue processing all requests. 
-                    // This ensures that all callbacks passed are executed, not just the first.
-                    // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
-                    // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
-                    if (onComplete != null)
-                    {
-                        _asyncTask?.ContinueWith(
-                                task => onComplete?.Invoke(new IndexOperationEventArgs(this, task.Result)),
-                                _cancellationToken,
-                                TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
-                                TaskScheduler.Default);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Processes the queue
-        /// </summary>
-        ///// <param name="onComplete"></param>
-        private int ProcessQueueItemsLocked()
-        {
-            if (!_isIndexing)
-            {
-                lock (_indexingLocker)
-                {
-                    if (!_isIndexing && !IsCancellationRequested)
-                    {
-
-                        _isIndexing = true;
-
-                        var totalProcessed = 0;
-
-                        //keep processing until it is complete
-                        var numProcessedItems = 0;
-                        do
-                        {
-                            numProcessedItems = ForceProcessQueueItems();
-                            totalProcessed += numProcessedItems;
-                        } while (numProcessedItems > 0);
-
-                        //reset the flag
-                        _isIndexing = false;
-
-                        return totalProcessed;
-                    }
-                }
-            }
-
-            return 0;
-
-        }
-
-        /// <summary>
-        /// Loop through all files in the queue item folder and index them.
-        /// Regardless of weather this machine is the executive indexer or not or is in a load balanced environment
-        /// or not, this WILL attempt to process the queue items into the index.
-        /// </summary>
-        /// <returns>
-        /// The number of queue items processed
-        /// </returns>
-        /// <remarks>
-        /// Inheritors should be very carefully using this method, SafelyProcessQueueItems will ensure
-        /// that the correct machine processes the items into the index. SafelyQueueItems calls this method
-        /// if it confirms that this machine is the one to process the queue.
-        /// </remarks>
-        private int ForceProcessQueueItems()
-        {
-            return ForceProcessQueueItems(false);
-        }
-
-        /// <summary>
-        /// Loop through all files in the queue item folder and index them.
-        /// Regardless of weather this machine is the executive indexer or not or is in a load balanced environment
-        /// or not, this WILL attempt to process the queue items into the index.
-        /// </summary>
-        /// <returns>
-        /// The number of queue items processed
-        /// </returns>
-        /// <remarks>
-        /// The 'block' parameter is very important, normally this will not block since we're running on a background thread anyways, however
-        /// during app shutdown we want to process the remaining queue and block.
-        /// </remarks>
-        private int ForceProcessQueueItems(bool block)
-        {
-            //check if the index is ready to be written to.
-            if (!IndexReady())
-            {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot index queue items, the index is currently locked", null, null));
-                return 0;
-            }
-
-            //track all of the nodes indexed
-            var indexedNodes = 0;
-
-            Interlocked.Increment(ref _activeWrites);
-
-            try
-            {
-                TrackingIndexWriter writer = IndexWriter;
-
-                if (block)
-                {
-                    if (!_indexQueue.IsAddingCompleted)
-                    {
-                        throw new InvalidOperationException("Cannot block unless the queue is finalized");
-                    }
-
-                    foreach (IEnumerable<IndexOperation> batch in _indexQueue.GetConsumingEnumerable())
-                    {
-                        foreach (IndexOperation item in batch)
-                        {
-                            if (ProcessQueueItem(item, writer))
-                            {
-                                indexedNodes++;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    //index while we're not cancelled and while there's items in there
-                    while (!IsCancellationRequested && _indexQueue.TryTake(out var batch))
-                    {
-                        foreach (IndexOperation item in batch)
-                        {
-                            if (ProcessQueueItem(item, writer))
-                            {
-                                indexedNodes++;
-                            }
-                        }
-                    }
-                }
-
-                //this is required to ensure the index is written to during the same thread execution
-                // if we are in blocking mode, the do the wait
-                if (!RunAsync || block)
-                {
-                    //commit the changes (this will process the deletes too)
-                    writer.IndexWriter.Commit();
-                }
-                else
-                {
-                    _committer.ScheduleCommit();
-                }
-            }
-            catch (Exception ex)
-            {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Error indexing queue items", null, ex));
-            }
-            finally
-            {
-                Interlocked.Decrement(ref _activeWrites);
-            }
-
-            return indexedNodes;
         }
 
         /// <summary>
@@ -1075,10 +871,7 @@ namespace Examine.Lucene.Providers
                 }
             }
 
-            protected override void DisposeResources()
-            {
-                TimerRelease();
-            }
+            protected override void DisposeResources() => TimerRelease();
         }
 
 
@@ -1095,44 +888,6 @@ namespace Examine.Lucene.Providers
                     return true;
                 default:
                     throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        /// <summary>
-        /// Queues an indexing operation
-        /// </summary>
-        /// <param name="op"></param>
-        protected void QueueIndexOperation(IndexOperation op)
-        {
-            //don't queue if there's been a cancellation requested
-            if (!IsCancellationRequested && !_indexQueue.IsAddingCompleted)
-            {
-                _indexQueue.Add(new[] { op });
-            }
-            else
-            {
-                OnIndexingError(
-                    new IndexingErrorEventArgs(this,
-                        "App is shutting down so index operation is ignored: " + op.ValueSet.Id, null, null));
-            }
-        }
-
-        /// <summary>
-        /// Queues an indexing operation batch
-        /// </summary>
-        /// <param name="ops"></param>
-        protected void QueueIndexOperation(IEnumerable<IndexOperation> ops)
-        {
-            //don't queue if there's been a cancellation requested
-            if (!IsCancellationRequested && !_indexQueue.IsAddingCompleted)
-            {
-                _indexQueue.Add(ops);
-            }
-            else
-            {
-                OnIndexingError(
-                    new IndexingErrorEventArgs(this,
-                        "App is shutting down so index batch operation is ignored", null, null));
             }
         }
 
@@ -1332,6 +1087,70 @@ namespace Examine.Lucene.Providers
             return true;
         }
 
+        private void QueueTask(Func<int> op, Action<IndexOperationEventArgs> onComplete, CancellationToken currentToken)
+        {
+            using (ExecutionContext.SuppressFlow())
+            {
+                // This can be called by many threads and we want to keep a linear
+                // chain of continuations so we lock.
+                lock (_taskLocker)
+                {
+                    if (_asyncTask.IsCanceled)
+                    {
+                        _logger.LogDebug("Indexing cancellation requested, cannot proceed");
+                        onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
+                    }
+                    else if (_asyncTask.IsFaulted)
+                    {
+                        _logger.LogDebug($"Previous task was faulted with exception {_asyncTask.Exception.ToString() ?? "NULL"}");
+                        onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Queuing a new background thread");
+
+                        // The task is initialized to completed so just continue with
+                        // and return the new task so that any new appended tasks are the current
+                        Task t = _asyncTask.ContinueWith(
+                            x =>
+                            {
+                                var indexedCount = 0;
+                                try
+                                {
+                                    // execute the callback
+                                    indexedCount = op();
+                                }
+                                finally
+                                {
+                                    // when the task is done call the complete callback
+                                    onComplete?.Invoke(new IndexOperationEventArgs(this, indexedCount));
+                                }
+                            },
+                            currentToken,
+                            // This ensures that all callbacks passed are executed, not just the first.
+                            // See https://blog.stephencleary.com/2015/01/a-tour-of-task-part-7-continuations.html
+                            // - need to explicitly define TaskContinuationOptions.DenyChildAttach + TaskScheduler.Default
+                            TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.DenyChildAttach,
+                            TaskScheduler.Default);
+
+                        if (t.IsCanceled)
+                        {
+                            _logger.LogDebug("Task was cancelled before it began");
+                            onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
+                        }
+                        else if (t.IsFaulted)
+                        {
+                            _logger.LogDebug(_asyncTask.Exception, $"Task was cancelled before it began");
+                            onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
+                        }
+
+                        // make this task the current one
+                        _asyncTask = t;
+                    }
+                }
+            }
+        }
+
         #endregion
 
         /// <summary>
@@ -1410,32 +1229,10 @@ namespace Examine.Lucene.Providers
                         _searcher.Value.Dispose();
                     }
 
-                    if (WaitForIndexQueueOnShutdown)
-                    {
-                        //if there are active adds, lets way/retry (5 seconds)
-                        RetryUntilSuccessOrTimeout(() => _activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(1));
-                    }
-
                     //cancel any operation currently in place
                     _cancellationTokenSource.Cancel();
 
-                    //ensure nothing more can be added
-                    _indexQueue.CompleteAdding();
-
-                    if (_writer != null)
-                    {
-                        if (WaitForIndexQueueOnShutdown)
-                        {
-                            // process remaining items and block until complete
-                            // NOTE: Even though the cancelation token is canceled, the 'true' value to block
-                            // will not check the cancelation token
-                            ForceProcessQueueItems(true);
-                        }
-                    }
-
-                    //dispose it now
-                    _indexQueue.Dispose();
-
+                    // TODO: I think we can kill this based on the SearcherManager?
                     //Don't close the writer until there are definitely no more writes
                     //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
                     //we are not terminating Lucene while it is actively writing to the index.
