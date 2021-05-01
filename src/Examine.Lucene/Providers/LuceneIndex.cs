@@ -119,8 +119,6 @@ namespace Examine.Lucene.Providers
         // TODO: Need to make this configurable
         public const int DefaultQueueCapacity = 1000;
 
-
-
         /// <summary>
         /// Used for creating the background tasks
         /// </summary>
@@ -155,10 +153,12 @@ namespace Examine.Lucene.Providers
         /// </summary>
         private CancellationToken _cancellationToken;
 
+        private readonly Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
+
+        // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
+        private long? _latestGen;
 
         #region Properties
-
-        private readonly Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
 
         /// <summary>
         /// Returns the <see cref="FieldValueTypeCollection"/> configured for this index
@@ -371,7 +371,7 @@ namespace Examine.Lucene.Providers
                             {
                             
                                 //remove all of the index data
-                                _writer.DeleteAll();
+                                _latestGen = _writer.DeleteAll();
 
                                 _writer.IndexWriter.Commit();
 
@@ -764,7 +764,7 @@ namespace Examine.Lucene.Providers
                 return;
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
-            writer.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
+            _latestGen = writer.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
         }
 
         /// <summary>
@@ -1034,7 +1034,7 @@ namespace Examine.Lucene.Providers
             }
 
             TrackingIndexWriter writer = IndexWriter;
-            var searcherManager = new SearcherManager(writer.IndexWriter, false, null);
+            var searcherManager = new SearcherManager(writer.IndexWriter, true, null);
 
             _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 1.0, 0.1)
             {
@@ -1154,6 +1154,21 @@ namespace Examine.Lucene.Providers
         #endregion
 
         /// <summary>
+        /// Blocks the calling thread until the internal searcher can see latest documents
+        /// </summary>
+        /// <remarks>
+        /// Useful if you want a searcher to see the very latest changes. Typically this is not used and the searchers
+        /// refresh on a near real time schedule.
+        /// </remarks>
+        public void WaitForChanges()
+        {
+            if (_latestGen.HasValue)
+            {
+                _nrtReopenThread.WaitForGeneration(_latestGen.Value);
+            }
+        }
+
+        /// <summary>
         /// Used to force the index into asynchronous or synchronous index processing
         /// </summary>
         /// <returns></returns>
@@ -1241,22 +1256,31 @@ namespace Examine.Lucene.Providers
                     //close the committer, this will ensure a final commit is made if one has been queued
                     _committer.Dispose();
 
-                    try
+                    if (_writer != null && !_writer.IndexWriter.IsClosed)
                     {
-                        _writer?.IndexWriter?.Analyzer.Dispose();
-                    }
-                    catch (Exception e)
-                    {
-                        OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index analyzer", "-1", e));
-                    }
+                        try
+                        {
+                            _writer?.IndexWriter?.Dispose(true);
+                        }
+                        catch (Exception e)
+                        {
+                            OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
+                        }
 
-                    try
-                    {
-                        _writer?.IndexWriter?.Dispose(true);
-                    }
-                    catch (Exception e)
-                    {
-                        OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
+                        try
+                        {
+                            _writer?.IndexWriter?.Analyzer.Dispose();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // Swallow. If the LuceneIndex was created with a writer and it externally has already been
+                            // disposed, this will throw since any accesss to properties on the writer will throw.
+                            // This should not happen with the check for IsClosed though.
+                        }
+                        catch (Exception e)
+                        {
+                            OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index analyzer", "-1", e));
+                        }
                     }
 
                     _cancellationTokenSource.Dispose();

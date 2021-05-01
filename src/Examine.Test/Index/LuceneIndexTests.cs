@@ -493,12 +493,10 @@ namespace Examine.Test.Index
                         }
                         Assert.Fail(sb.ToString());
                     }
-
-                    //reset the async mode and remove event handler
-                    customIndexer.IndexingError += IndexInitializer.IndexingError;
                 }
 
-                writer.WaitForMerges();
+                //reset the async mode and remove event handler
+                customIndexer.IndexingError += IndexInitializer.IndexingError;
 
                 //ensure no data since it's a new index
                 var results = customSearcher.CreateQuery()
@@ -525,9 +523,7 @@ namespace Examine.Test.Index
             using (var d = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
             using (var customIndexer = GetTestIndex(writer))
-            //using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
             {
-
                 var waitHandle = new ManualResetEvent(false);
 
                 void OperationComplete(object sender, IndexOperationEventArgs e)
@@ -556,8 +552,7 @@ namespace Examine.Test.Index
                     for (var i = 0; i < idQueue.Count * 20; i++)
                     {
                         //get next id and put it to the back of the list
-                        int docId;
-                        if (idQueue.TryDequeue(out docId))
+                        if (idQueue.TryDequeue(out int docId))
                         {
                             idQueue.Enqueue(docId);
 
@@ -568,20 +563,24 @@ namespace Examine.Test.Index
                             Thread.Sleep(100);
                         }
                     }
-
-                    //reset the async mode and remove event handler
-                    customIndexer.IndexingError += IndexInitializer.IndexingError;
                 }
+
+                //reset the async mode and remove event handler
+                customIndexer.IndexingError += IndexInitializer.IndexingError;
 
                 //wait until we are done
                 waitHandle.WaitOne();
-
-                writer.WaitForMerges();
 
                 //ensure no duplicates
 
                 var customSearcher = (LuceneSearcher)customIndexer.GetSearcher();
                 var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Execute();
+
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Result Id: {r.Id}");
+                }
+
                 Assert.AreEqual(3, results.Count());
             }
         }
@@ -671,15 +670,14 @@ namespace Examine.Test.Index
                     //spawn a bunch of threads to perform some reading                              
                     var tasks = new List<Task>();
 
-                    Action<ISearcher> doSearch = (s) =>
+                    void doSearch(ISearcher s)
                     {
                         try
                         {
                             for (var counter = 0; counter < searchCountPerThread; counter++)
                             {
                                 //get next id and put it to the back of the list
-                                int docId;
-                                if (idQueue.TryDequeue(out docId))
+                                if (idQueue.TryDequeue(out int docId))
                                 {
                                     idQueue.Enqueue(docId);
                                     var r = s.CreateQuery().Id(docId.ToString()).Execute();
@@ -693,9 +691,9 @@ namespace Examine.Test.Index
                             Console.WriteLine("Search ERROR!! {0}", ex);
                             throw;
                         }
-                    };
+                    }
 
-                    Action<IIndex> doIndex = (ind) =>
+                    void doIndex(IIndex ind)
                     {
                         try
                         {
@@ -703,8 +701,7 @@ namespace Examine.Test.Index
                             for (var i = 0; i < indexCountPerThread; i++)
                             {
                                 //get next id and put it to the back of the list
-                                int docId;
-                                if (idQueue.TryDequeue(out docId))
+                                if (idQueue.TryDequeue(out int docId))
                                 {
                                     idQueue.Enqueue(docId);
 
@@ -721,7 +718,7 @@ namespace Examine.Test.Index
                             Console.WriteLine("Index ERROR!! {0}", ex);
                             throw;
                         }
-                    };
+                    }
 
                     //indexing threads
                     for (var i = 0; i < indexThreadCount; i++)
@@ -752,18 +749,16 @@ namespace Examine.Test.Index
                         Assert.Fail(sb.ToString());
                     }
 
+                    // At this point we want to guarantee our search will be
+                    // for the latest generation. It is possible to do this since
+                    // we are using all of the correct NRT implementations.
+                    customIndexer.WaitForChanges();
+
                     var results = customSearcher.CreateQuery().All().Execute();
                     Assert.AreEqual(20, results.Count());
 
-                    //reset the async mode and remove event handler
-                    //customIndexer.IndexingError += IndexInitializer.IndexingError;
-                    //customIndexer.RunAsync = false;
-
                     //wait until we are done
                     waitHandle.WaitOne();
-
-                    writer.WaitForMerges();
-                    writer.Dispose(true);
 
                     results = customSearcher.CreateQuery().All().Execute();
                     Assert.AreEqual(20, results.Count());

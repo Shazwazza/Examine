@@ -21,13 +21,13 @@ namespace Examine.Lucene.Search
         private readonly ISet<string> _fieldsToLoad;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searcher, ISet<string> fieldsToLoad)
+        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
             _fieldsToLoad = fieldsToLoad;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
-            _searchContext = searcher ?? throw new ArgumentNullException(nameof(searcher));
+            _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
         }
 
         private int MaxDoc
