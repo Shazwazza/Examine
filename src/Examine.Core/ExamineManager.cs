@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,14 +58,8 @@ namespace Examine
         /// <summary>
         /// Call this in Application_End.
         /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
+        public void Dispose() => Dispose(true);
 
-            // Use SupressFinalize in case a subclass 
-            // of this type implements a finalizer.
-            GC.SuppressFinalize(this);
-        }
         private bool _disposed = false;
         protected virtual void Dispose(bool disposing)
         {

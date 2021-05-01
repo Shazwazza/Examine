@@ -8,8 +8,8 @@ namespace Examine.Lucene.AzureDirectory
     /// </summary>
     public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory
     {
-        public ReadOnlyAzureDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager)
-            : base(applicationIdentifier, loggerFactory, syncMutexManager, isReadOnly: true)
+        public ReadOnlyAzureDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, ILockFactory lockFactory)
+            : base(applicationIdentifier, loggerFactory, syncMutexManager, lockFactory, isReadOnly: true)
         {   
         }
     }

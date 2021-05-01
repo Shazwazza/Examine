@@ -11,9 +11,9 @@ namespace Examine.Search
 
         public ExamineValue(Examineness vagueness, string value, float level)
         {
-            this.Examineness = vagueness;
-            this.Value = value;
-            this.Level = level;
+            Examineness = vagueness;
+            Value = value;
+            Level = level;
         }
 
         public Examineness Examineness { get; }

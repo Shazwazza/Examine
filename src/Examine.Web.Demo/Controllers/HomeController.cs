@@ -1,18 +1,23 @@
 using System;
 using System.Data;
-using System.Data.SqlServerCe;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Mvc;
+using Examine.Lucene.Providers;
 using Examine.Web.Demo.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Examine.Web.Demo.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IExamineManager _examineManager;
 
+        public HomeController(IExamineManager examineManager)
+        {
+            _examineManager = examineManager;
+        }
 
         [HttpGet]
         public ActionResult Index()
@@ -22,12 +27,11 @@ namespace Examine.Web.Demo.Controllers
             return View();
         }
 
-        [ValidateInput(false)]
         [HttpGet]
         public ActionResult MultiSearch(string id)
         {
-            if (!AspExamineManager.Instance.TryGetSearcher("MultiIndexSearcher", out var multi))
-                return HttpNotFound();
+            if (!_examineManager.TryGetSearcher("MultiIndexSearcher", out var multi))
+                return NotFound();
 
             var criteria = multi.CreateQuery();
             var result = criteria.NativeQuery(id).Execute();
@@ -41,12 +45,11 @@ namespace Examine.Web.Demo.Controllers
             return Content(sb.ToString());
         }
 
-        [ValidateInput(false)]
         [HttpGet]
         public ActionResult Search(string id, string indexName = null)
         {
-            if (!AspExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
-                return HttpNotFound();
+            if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+                return NotFound();
 
             var searcher = index.GetSearcher();
             var criteria = searcher.CreateQuery();
@@ -74,25 +77,28 @@ namespace Examine.Web.Demo.Controllers
                         using (db.Database.Connection)
                         {
                             db.Database.Connection.Open();
-                            using (var cmd = (SqlCeCommand)db.Database.Connection.CreateCommand())
-                            {
-                                cmd.CommandText = "TestModels";
-                                cmd.CommandType = CommandType.TableDirect;
 
-                                var rs = cmd.ExecuteResultSet(ResultSetOptions.Updatable);
-                                var rec = rs.CreateRecord();
+                            // TODO: Change this to compatible EF
 
-                                for (var i = 0; i < 27000; i++)
-                                {
-                                    rec.SetString(1, "a" + i);
-                                    rec.SetString(2, "b" + i);
-                                    rec.SetString(3, "c" + i);
-                                    rec.SetString(4, "d" + i);
-                                    rec.SetString(5, "e" + i);
-                                    rec.SetString(6, "f" + i);
-                                    rs.Insert(rec);
-                                }
-                            }
+                            //using (var cmd = (SqlCeCommand)db.Database.Connection.CreateCommand())
+                            //{
+                            //    cmd.CommandText = "TestModels";
+                            //    cmd.CommandType = CommandType.TableDirect;
+
+                            //    var rs = cmd.ExecuteResultSet(ResultSetOptions.Updatable);
+                            //    var rec = rs.CreateRecord();
+
+                            //    for (var i = 0; i < 27000; i++)
+                            //    {
+                            //        rec.SetString(1, "a" + i);
+                            //        rec.SetString(2, "b" + i);
+                            //        rec.SetString(3, "c" + i);
+                            //        rec.SetString(4, "d" + i);
+                            //        rec.SetString(5, "e" + i);
+                            //        rec.SetString(6, "f" + i);
+                            //        rs.Insert(rec);
+                            //    }
+                            //}
                         }
                         return View(true);
                     }
@@ -114,8 +120,8 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult RebuildIndex(string indexName = null)
         {
-            if (!AspExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
-                return HttpNotFound();
+            if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+                return NotFound();
 
             var elapsed = Execute(index, i =>
             {
@@ -144,8 +150,8 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult ReIndexItems(string indexName = null)
         {
-            if (!AspExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
-                return HttpNotFound();
+            if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+                return NotFound();
 
             var items = Execute(index, i =>
             {
@@ -161,8 +167,8 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public async Task<ActionResult> TestIndex(string indexName = null)
         {
-            if (!AspExamineManager.Instance.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
-                return HttpNotFound();
+            if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+                return NotFound();
 
             if (index is IIndexStats stats)
             {
@@ -186,8 +192,12 @@ namespace Examine.Web.Demo.Controllers
         private T Execute<T>(IIndex index, Func<IIndex, T> action)
         {
             if (index is LuceneIndex luceneIndex)
-                using (luceneIndex.ProcessNonAsync())
+            {
+                using (luceneIndex.WithThreadingMode(IndexThreadingMode.Synchronous))
+                {
                     return action(index);
+                }
+            }
 
             return action(index);
         }

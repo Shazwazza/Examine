@@ -18,8 +18,8 @@ namespace Examine.Lucene.AzureDirectory
         private readonly SyncMutexManager _syncMutexManager;
         private readonly bool _isReadOnly;
         
-        public AzureDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, bool isReadOnly)
-            : base(applicationIdentifier, loggerFactory, syncMutexManager)
+        public AzureDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, ILockFactory lockFactory, bool isReadOnly)
+            : base(applicationIdentifier, loggerFactory, syncMutexManager, lockFactory)
         {
             _logger = loggerFactory.CreateLogger<AzureDirectory>();
             _loggerFactory = loggerFactory;

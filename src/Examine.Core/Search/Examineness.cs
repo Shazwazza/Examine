@@ -10,32 +10,32 @@ namespace Examine.Search
         /// <summary>
         /// Matches terms using 'fuzzy' logic
         /// </summary>
-        Fuzzy, 
+        Fuzzy,
 
         /// <summary>
         /// Wildcard matching a single character
         /// </summary>
-        SimpleWildcard, 
+        SimpleWildcard,
 
         /// <summary>
         /// Wildcard matching multiple characters
         /// </summary>
-        ComplexWildcard, 
-        
+        ComplexWildcard,
+
         /// <summary>
         /// A normal phrase query
         /// </summary>
-        Explicit, 
-        
+        Explicit,
+
         /// <summary>
         /// Becomes exact match
         /// </summary>
-        Escaped, 
+        Escaped,
 
         /// <summary>
         /// Makes the term rank differently than normal
         /// </summary>
-        Boosted, 
+        Boosted,
 
         /// <summary>
         /// Searches for terms within a proximity of each other

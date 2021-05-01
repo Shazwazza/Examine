@@ -14,10 +14,12 @@ namespace Examine.Lucene.Directories
     public class TempEnvDirectoryFactory : DirectoryFactory
     {
         private readonly IApplicationIdentifier _applicationIdentifier;
+        private readonly ILockFactory _lockFactory;
 
-        public TempEnvDirectoryFactory(IApplicationIdentifier applicationIdentifier)
+        public TempEnvDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILockFactory lockFactory)
         {
             _applicationIdentifier = applicationIdentifier;
+            _lockFactory = lockFactory;
         }
         
         public override global::Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
@@ -26,7 +28,7 @@ namespace Examine.Lucene.Directories
             var tempFolder = GetLocalStorageDirectory(indexFolder);
 
             var simpleFsDirectory = new SimpleFSDirectory(tempFolder);
-            simpleFsDirectory.SetLockFactory(DefaultLockFactory(tempFolder));
+            simpleFsDirectory.SetLockFactory(_lockFactory.GetLockFactory(tempFolder));
             return simpleFsDirectory;
         }
 

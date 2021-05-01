@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Examine.Search
@@ -59,7 +59,7 @@ namespace Examine.Search
         /// <param name="fieldValue">The field value.</param>
         /// <returns></returns>
         IBooleanOperation Field(string fieldName, IExamineValue fieldValue);
-        
+
         /// <summary>
         /// Queries multiple fields with each being an And boolean operation
         /// </summary>
@@ -107,7 +107,7 @@ namespace Examine.Search
         /// <param name="query">The query.</param>
         /// <returns></returns>
         IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query);
-        
+
         /// <summary>
         /// Matches all items
         /// </summary>
@@ -133,6 +133,6 @@ namespace Examine.Search
         /// <param name="minInclusive"></param>
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
-        IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;        
+        IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
     }
 }

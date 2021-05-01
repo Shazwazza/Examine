@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Lucene.AzureDirecto
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Core", "Examine.Core\Examine.Core.csproj", "{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine.Host\Examine.csproj", "{6988B93D-8FA9-4F4F-AC66-E748777FA226}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6988B93D-8FA9-4F4F-AC66-E748777FA226}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6988B93D-8FA9-4F4F-AC66-E748777FA226}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6988B93D-8FA9-4F4F-AC66-E748777FA226}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6988B93D-8FA9-4F4F-AC66-E748777FA226}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
