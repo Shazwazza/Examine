@@ -404,11 +404,16 @@ namespace Examine.Test.Index
         [Test]
         public void Can_Overwrite_Index_During_Indexing_Operation()
         {
-            Trace.Listeners.Add(new ConsoleTraceListener());
+            // capture the original console out
+            var consoleOut = TestContext.Out;
 
             void WriteLog(string msg)
             {
-                Trace.WriteLine(msg);
+                // reset console out to the orig, this is required because we suppress
+                // ExecutionContext which is how this is flowed in Nunit so needed when logging
+                // in OperationComplete
+                Console.SetOut(consoleOut);
+                Console.WriteLine(msg);
             }
 
             const int ThreadCount = 1000;

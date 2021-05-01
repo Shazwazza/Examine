@@ -11,10 +11,10 @@ namespace Examine.Test
         private ILoggerFactory _loggerFactory;
 
         [SetUp]
-        public void Setup() => _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        public virtual void Setup() => _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 
         [TearDown]
-        public void TearDown() => _loggerFactory.Dispose();
+        public virtual void TearDown() => _loggerFactory.Dispose();
 
         public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null)
             => new TestIndex(_loggerFactory, fieldDefinitions, d, analyzer);
