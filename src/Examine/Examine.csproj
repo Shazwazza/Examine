@@ -115,7 +115,9 @@
     <Compile Include="Logging\LogLevel.cs" />
     <Compile Include="Logging\TraceLoggingService.cs" />
     <Compile Include="LuceneEngine\DelegateFieldValueTypeFactory.cs" />
+    <Compile Include="LuceneEngine\DeletePolicies\NoDeletionPolicy.cs" />
     <Compile Include="LuceneEngine\Directories\DirectoryFactory.cs" />
+    <Compile Include="LuceneEngine\Directories\ExamineDirectory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncAspNetCodeGenDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\SyncTempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\Directories\MultiIndexLock.cs" />
@@ -133,6 +135,7 @@
     <Compile Include="LuceneEngine\Directories\TempEnvDirectoryFactory.cs" />
     <Compile Include="LuceneEngine\CultureInvariantStandardAnalyzer.cs" />
     <Compile Include="LuceneEngine\EmailAddressAnalyzer.cs" />
+    <Compile Include="LuceneEngine\ExamineIndexWriter.cs" />
     <Compile Include="LuceneEngine\IFieldValueTypeFactory.cs" />
     <Compile Include="LuceneEngine\Indexing\GenericAnalyzerFieldValueType.cs" />
     <Compile Include="LuceneEngine\Indexing\IIndexRangeValueType.cs" />
@@ -151,6 +154,8 @@
     <Compile Include="ExamineExtensions.cs" />
     <Compile Include="LuceneEngine\LuceneExtensions.cs" />
     <Compile Include="LuceneEngine\LuceneSearchResultsBase.cs" />
+    <Compile Include="LuceneEngine\MergePolicies\NoMergePolicy.cs" />
+    <Compile Include="LuceneEngine\MergePolicies\NoMergeSheduler.cs" />
     <Compile Include="LuceneEngine\OpenReaderTracker.cs" />
     <Compile Include="LuceneEngine\Providers\BaseLuceneSearcher.cs" />
     <Compile Include="IndexOperation.cs" />

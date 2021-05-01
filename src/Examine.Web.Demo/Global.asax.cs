@@ -9,7 +9,7 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Examine.AzureDirectory;
+using Examine.LuceneEngine.Directories;
 using Examine.LuceneEngine.Providers;
 using Lucene.Net.Index;
 
@@ -24,7 +24,7 @@ namespace Examine.Web.Demo
         /// <param name="examineManager"></param>
         public void CreateIndexes(IExamineManager examineManager)
         {
-            var adFactory = new AzureDirectoryFactory();
+            var adFactory = new SyncTempEnvDirectoryFactory();
 
             var simple2Indexer = examineManager.AddIndex(
                 new LuceneIndex(
