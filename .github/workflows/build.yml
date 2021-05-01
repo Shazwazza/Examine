@@ -53,7 +53,7 @@ jobs:
       run: dotnet build ${{ env.Solution_File }} --configuration ${{ env.Configuration }} --no-restore
     
     - name: Test
-      run: dotnet test "${{ env.Test_Folder }}/bin/${{ env.Configuration }}/Examine.Test.dll" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx"
+      run: dotnet test "${{ env.Test_Folder }}/**/Examine.Test.dll" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx"
     
 
     - uses: actions/upload-artifact@v2  # upload test results
