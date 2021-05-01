@@ -11,7 +11,11 @@ namespace Examine.Test
         private ILoggerFactory _loggerFactory;
 
         [SetUp]
-        public virtual void Setup() => _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        public virtual void Setup()
+        {
+            _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            _loggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
+        }
 
         [TearDown]
         public virtual void TearDown() => _loggerFactory.Dispose();

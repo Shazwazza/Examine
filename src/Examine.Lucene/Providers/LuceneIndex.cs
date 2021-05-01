@@ -335,6 +335,8 @@ namespace Examine.Lucene.Providers
 
                         if (!indexExists)
                         {
+                            _logger.LogDebug("Initializing new index");
+
                             //if there's no index, we need to create one
                             CreateNewIndex(dir);
                         }
@@ -342,7 +344,7 @@ namespace Examine.Lucene.Providers
                         {
                             //it does exists so we'll need to clear it out
 
-                            _logger.LogDebug("Initializing new index");
+                            _logger.LogDebug("Clearing existing index");
 
                             if (_writer == null)
                             {
@@ -364,6 +366,7 @@ namespace Examine.Lucene.Providers
                             // indicates that it was locked, this generally shouldn't happen but we don't want to have unhandled exceptions
                             if (_writer == null)
                             {
+                                _logger.LogWarning("writer was null, exiting");
                                 return;
                             }
 
@@ -376,7 +379,8 @@ namespace Examine.Lucene.Providers
                                 _writer.IndexWriter.Commit();
 
                                 // TODO: We need to deal with this scenario, add tests for it but we will need to
-                                // clear/cleanup SearcherManager resources, etc... 
+                                // clear/cleanup SearcherManager resources, etc...
+                                // do we? We are just clearning the index, not re-creating readers or anything.
 
                                 ////we're rebuilding so all old readers referencing this dir should be closed
                                 //OpenReaderTracker.Current.CloseStaleReaders(dir, TimeSpan.FromMinutes(1));

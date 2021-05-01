@@ -438,12 +438,12 @@ namespace Examine.Test.Index
                 {
                     Interlocked.Increment(ref opCompleteCount);
 
-                    // TODO: This does not log! wtf!
                     WriteLog("OperationComplete: " + opCompleteCount);
 
                     if (opCompleteCount == ThreadCount / 2)
                     {
                         // signal that we are halfway done
+                        WriteLog("HALFWAY!");
                         middleCompletedWaitHandle.Set();
                     }
                 }
@@ -469,18 +469,23 @@ namespace Examine.Test.Index
                     //spawn a bunch of threads to perform some reading
                     var tasks = new List<Task>();
 
-                    //reindex the same node a bunch of times - then while this is running we'll overwrite below
+                    var rand = new Random(DateTime.Now.Second);
+
+                    //index a node a bunch of times - then while this is running we'll overwrite below
                     for (var i = 0; i < ThreadCount; i++)
                     {
                         var indexer = customIndexer;
-                        tasks.Add(Task.Factory.StartNew(() =>
+                        int docId = i + 1;
+                        tasks.Add(Task.Run(() =>
                         {
-                            //get next id and put it to the back of the list
-                            int docId = i;
+                            // mimic a slower machine
+                            Thread.Sleep(rand.Next(0, 20));
+                            //get next id and put it to the back of the list                            
                             var cloned = new XElement(node);
+                            cloned.SetAttributeValue("id", docId);
                             WriteLog("Indexing " + docId);
                             indexer.IndexItem(cloned.ConvertToValueSet(IndexTypes.Content));
-                        }, TaskCreationOptions.LongRunning));
+                        }));
                     }
 
                     // wait till we're halfway done 
@@ -512,20 +517,16 @@ namespace Examine.Test.Index
                 //reset the async mode and remove event handler
                 customIndexer.IndexingError += IndexInitializer.IndexingError;
 
+                customIndexer.WaitForChanges();
+
                 //ensure no data since it's a new index
                 var results = customSearcher.CreateQuery()
                     .Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home"))
                     .Execute();
 
-                // the total times that OperationComplete event should be fired approx half of the thread count
-                // since we cancel halfway
-                // should be zero because all indexing operations will be canceled when it's rebuilt
-                WriteLog("TOTAL Threads completed: " + opCompleteCount);
-                Assert.Less(opCompleteCount, ThreadCount);
-
-                // should be zero because all indexing operations will be canceled when it's rebuilt
+                // there will be less than the thread count because we overwrote it midway through
                 WriteLog("TOTAL RESULTS: " + results.TotalItemCount);
-                Assert.AreEqual(0, results.Count());
+                Assert.Less(results.Count(), ThreadCount);
             }
         }
 
@@ -536,6 +537,8 @@ namespace Examine.Test.Index
         [Test]
         public void Index_Ensure_No_Duplicates_In_Async()
         {
+            var rand = new Random(DateTime.Now.Second);
+
             using (var d = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
             using (var customIndexer = GetTestIndex(writer))
@@ -572,11 +575,12 @@ namespace Examine.Test.Index
                         {
                             idQueue.Enqueue(docId);
 
+                            Thread.Sleep(rand.Next(0, 100));
+
                             var cloned = new XElement(node);
                             cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
                             Console.WriteLine("Indexing {0}", docId);
-                            customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
-                            Thread.Sleep(100);
+                            customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });                            
                         }
                     }
                 }
