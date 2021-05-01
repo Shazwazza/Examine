@@ -1,0 +1,17 @@
+<Project>
+
+  <PropertyGroup>
+
+    <PackageProjectUrl>https://github.com/Shazwazza/Examine</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Shazwazza/Examine</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>$copyright$</Copyright>
+    <Company>Shannon Deminick</Company>
+    <Authors>shandem</Authors>
+
+    <PackageIcon>logo-round.png</PackageIcon>
+    <PackageIconUrl />
+
+  </PropertyGroup>
+
+</Project>

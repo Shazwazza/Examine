@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
- <PropertyGroup>
+  <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Description>A Lucene.Net search and indexing implementation for Examine</Description>
+    <PackageTags>examine lucene lucene.net lucenenet search index</PackageTags>
   </PropertyGroup>
- <ItemGroup>
-   <None Remove="AspExamineManager.cs.bak" />
- </ItemGroup>
+  <ItemGroup>
+    <None Remove="AspExamineManager.cs.bak" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lucene.Net.QueryParser">
       <Version>4.8.0-beta00014</Version>
@@ -20,5 +23,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Examine.Core\Examine.Core.csproj" />
   </ItemGroup>
-  
+
 </Project>
