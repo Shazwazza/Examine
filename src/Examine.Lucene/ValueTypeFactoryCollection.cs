@@ -81,7 +81,6 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.HOUR)},
                 {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MINUTE)},
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name, loggerFactory.CreateLogger<RawStringType>())},
-                // TODO: This is the default and it doesn't use the default analyzer
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory.CreateLogger<FullTextType>(), defaultAnalyzer)},
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory.CreateLogger<FullTextType>(), defaultAnalyzer, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory.CreateLogger<GenericAnalyzerFieldValueType>(), new CultureInvariantWhitespaceAnalyzer())},

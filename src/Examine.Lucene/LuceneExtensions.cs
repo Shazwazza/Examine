@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
@@ -50,28 +50,6 @@ namespace Examine.Lucene
                         "Non-zero remainder length after copying [" + remainder
                                 + "] (id [" + name + "] length [" + length
                                 + "] buffer size [" + chunk + "])");
-        }
-
-
-        
-        public static ReaderStatus GetReaderStatus(this IndexSearcher searcher)
-        {
-            return searcher.IndexReader.GetReaderStatus();
-        }        
-
-		
-        public static ReaderStatus GetReaderStatus(this IndexReader reader)
-        {
-            ReaderStatus status = ReaderStatus.NotCurrent;
-            try
-            {
-                status =  ReaderStatus.Current;//todo: fix checking of status
-            }
-            catch (ObjectDisposedException)
-            {
-                status = ReaderStatus.Closed;
-            }
-            return status;
         }
 
     }

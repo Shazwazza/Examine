@@ -32,7 +32,6 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="luceneDirectory"></param>
-        /// <param name="queueCapacity">The capacity of the blocking collection, by default is <see cref="DefaultQueueCapacity"/></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="analyzer">Specifies the default analyzer to use per field</param>
         /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
@@ -73,7 +72,6 @@ namespace Examine.Lucene.Providers
         /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="writer"></param>
-        /// <param name="queueCapacity">The capacity of the blocking collection, by default is <see cref="DefaultQueueCapacity"/></param>
         /// <param name="validator"></param>
         /// <param name="indexValueTypesFactory"></param>
         public LuceneIndex(
@@ -112,12 +110,7 @@ namespace Examine.Lucene.Providers
 
         private volatile TrackingIndexWriter _writer;
 
-        // TODO: Kill this? do we need it?
         private int _activeWrites = 0;
-        //private int _activeAddsOrDeletes = 0;
-
-        // TODO: Need to make this configurable
-        public const int DefaultQueueCapacity = 1000;
 
         /// <summary>
         /// Used for creating the background tasks
@@ -221,7 +214,7 @@ namespace Examine.Lucene.Providers
 
             if (!RunAsync)
             {
-                var msg = "Indexing Error Occurred: " + e.Message;                
+                var msg = "Indexing Error Occurred: " + e.Message;
                 throw new Exception(msg, e.Exception);
             }
 
@@ -280,7 +273,8 @@ namespace Examine.Lucene.Providers
 
                 foreach (var valueSet in valueSets)
                 {
-                    if (cancellationToken.IsCancellationRequested) break;
+                    if (cancellationToken.IsCancellationRequested)
+                        break;
 
                     var op = new IndexOperation(valueSet, IndexOperationType.Add);
                     if (ProcessQueueItem(op, writer))
@@ -372,18 +366,9 @@ namespace Examine.Lucene.Providers
 
                             try
                             {
-                            
                                 //remove all of the index data
                                 _latestGen = _writer.DeleteAll();
-
                                 _writer.IndexWriter.Commit();
-
-                                // TODO: We need to deal with this scenario, add tests for it but we will need to
-                                // clear/cleanup SearcherManager resources, etc...
-                                // do we? We are just clearning the index, not re-creating readers or anything.
-
-                                ////we're rebuilding so all old readers referencing this dir should be closed
-                                //OpenReaderTracker.Current.CloseStaleReaders(dir, TimeSpan.FromMinutes(1));
                             }
                             finally
                             {
@@ -514,7 +499,8 @@ namespace Examine.Lucene.Providers
 
                 foreach (var id in itemIds)
                 {
-                    if (cancellationToken.IsCancellationRequested) break;
+                    if (cancellationToken.IsCancellationRequested)
+                        break;
 
                     var op = new IndexOperation(new ValueSet(id), IndexOperationType.Delete);
                     if (ProcessQueueItem(op, writer))
@@ -1040,7 +1026,7 @@ namespace Examine.Lucene.Providers
 
             _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 1.0, 0.1)
             {
-                Name = "NRT Reopen Thread"                
+                Name = "NRT Reopen Thread"
             };
 
             _nrtReopenThread.Start();
@@ -1212,7 +1198,7 @@ namespace Examine.Lucene.Providers
             }
         }
 
-        private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)
+        private bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause, string timeoutMsg)
         {
             if (pause.TotalMilliseconds < 0)
             {
@@ -1222,10 +1208,15 @@ namespace Examine.Lucene.Providers
             do
             {
                 if (task())
-                { return true; }
+                {
+                    return true;
+                }
+
                 Thread.Sleep((int)pause.TotalMilliseconds);
             }
             while (stopwatch.Elapsed < timeout);
+
+            _logger.LogInformation(timeoutMsg);
             return false;
         }
 
@@ -1239,7 +1230,7 @@ namespace Examine.Lucene.Providers
                     {
                         _nrtReopenThread.Interrupt();
                         _nrtReopenThread.Dispose();
-                    } 
+                    }
 
                     if (_searcher.IsValueCreated)
                     {
@@ -1249,11 +1240,10 @@ namespace Examine.Lucene.Providers
                     //cancel any operation currently in place
                     _cancellationTokenSource.Cancel();
 
-                    // TODO: I think we can kill this based on the SearcherManager?
                     //Don't close the writer until there are definitely no more writes
                     //NOTE: we are not taking into acccount the WaitForIndexQueueOnShutdown property here because we really want to make sure
                     //we are not terminating Lucene while it is actively writing to the index.
-                    RetryUntilSuccessOrTimeout(() => _activeWrites == 0, TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
+                    RetryUntilSuccessOrTimeout(() => _activeWrites == 0, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(1), "Timeout elapsed waiting on final writes during shutdown.");
 
                     //close the committer, this will ensure a final commit is made if one has been queued
                     _committer.Dispose();
