@@ -1,6 +1,14 @@
 name: Examine Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:    
+      - '**'
+      - '!releases/2.0.0'
+  pull_request:
+    branches:
+      - '**'
+      - '!releases/2.0.0'
 
 jobs:
   build:
