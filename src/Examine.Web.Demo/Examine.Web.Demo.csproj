@@ -17,6 +17,12 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Examine\**" />
+    <Content Remove="Examine\**" />
+    <EmbeddedResource Remove="Examine\**" />
+    <None Remove="Examine\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Update="Web.config">
       <SubType>Designer</SubType>
     </Content>

@@ -1,34 +1,31 @@
-// This Startup file is based on ASP.NET Core new project templates and is included
-// as a starting point for DI registration and HTTP request processing pipeline configuration.
-// This file will need updated according to the specific scenario of the application being upgraded.
-// For more information on ASP.NET Core startup files, see https://docs.microsoft.com/aspnet/core/fundamentals/startup
-
-using System.IO;
-using Examine.Lucene.Directories;
-using Examine.Lucene.Providers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Examine.Web.Demo
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IWebHostEnvironment webHostEnvironment, IConfiguration configuration)
         {
+            WebHostEnvironment = webHostEnvironment;
             Configuration = configuration;
         }
 
+        public IWebHostEnvironment WebHostEnvironment { get; }
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Adds Examine Core services
             services.AddExamine();
+
+            // A custom extension method to create custom indexes
+            services.CreateIndexes(WebHostEnvironment);
 
             services.AddControllersWithViews(ConfigureMvcOptions)
                 // Newtonsoft.Json is added for compatibility reasons
@@ -50,8 +47,6 @@ namespace Examine.Web.Demo
                 app.UseDeveloperExceptionPage();
             }
 
-            CreateIndexes(app, env);
-
             app.UseStaticFiles();
             app.UseRouting();
             app.UseAuthorization();
@@ -65,39 +60,6 @@ namespace Examine.Web.Demo
 
         private void ConfigureMvcOptions(MvcOptions mvcOptions)
         {
-        }
-
-        /// <summary>
-        /// Creates the application indexes
-        /// </summary>
-        /// <param name="examineManager"></param>
-        private void CreateIndexes(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            // TODO: Make this into a builder and must be done in configure services not after!
-
-            var services = app.ApplicationServices;
-            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-            var examineManager = services.GetRequiredService<IExamineManager>();
-            var dirFactory = services.GetRequiredService<FileSystemDirectoryFactory>();
-            
-            var simple2Indexer = examineManager.AddIndex(
-                new LuceneIndex(
-                    loggerFactory,
-                    "Simple2Indexer",
-                    dirFactory.CreateDirectory(
-                        new DirectoryInfo(Path.Combine(env.ContentRootPath, "Examine", "Simple2IndexSet")))));
-
-            var secondIndexer = examineManager.AddIndex(
-                new LuceneIndex(
-                    loggerFactory,
-                    "SecondIndexer",
-                    dirFactory.CreateDirectory(
-                        new DirectoryInfo(Path.Combine(env.ContentRootPath, "Examine", "SecondIndexSet")))));
-
-            var multiSearcher = examineManager.AddSearcher(
-                new MultiIndexSearcher(
-                    "MultiIndexSearcher",
-                    new[] { simple2Indexer, secondIndexer }));
         }
     }
 }

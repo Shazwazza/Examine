@@ -10,8 +10,17 @@ namespace Examine
     ///</summary>
     public class ExamineManager : IDisposable, IExamineManager
     {
-        public ExamineManager()
-        {            
+        public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers)
+        {
+            foreach(IIndex i in indexes)
+            {
+                AddIndex(i);
+            }
+
+            foreach(ISearcher s in searchers)
+            {
+                AddSearcher(s);
+            }
         }
 
         private readonly ConcurrentDictionary<string, IIndex> _indexers = new ConcurrentDictionary<string, IIndex>(StringComparer.InvariantCultureIgnoreCase);
@@ -31,8 +40,7 @@ namespace Examine
         /// <inheritdoc />
         public IEnumerable<IIndex> Indexes => _indexers.Values;
        
-        /// <inheritdoc />
-        public IIndex AddIndex(IIndex index)
+        private IIndex AddIndex(IIndex index)
         {
             //make sure this name doesn't exist in
             if (!_indexers.TryAdd(index.Name, index))
@@ -43,8 +51,7 @@ namespace Examine
             return index;
         }
 
-        /// <inheritdoc />
-        public ISearcher AddSearcher(ISearcher searcher)
+        private ISearcher AddSearcher(ISearcher searcher)
         {
             //make sure this name doesn't exist in
             if (!_searchers.TryAdd(searcher.Name, searcher))

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Examine
@@ -20,18 +20,6 @@ namespace Examine
         /// This returns only those searchers explicitly registered with <see cref="AddSearcher"/> or config based searchers
         /// </remarks>
         IEnumerable<ISearcher> RegisteredSearchers { get; }
-
-        /// <summary>
-        /// Adds an indexer to the manager
-        /// </summary>
-        /// <param name="index"></param>
-        IIndex AddIndex(IIndex index);
-
-        /// <summary>
-        /// Adds an index searcher to the manager - generally this would be a multi index searcher since most searchers are created from an existing index
-        /// </summary>
-        /// <param name="searcher"></param>
-        ISearcher AddSearcher(ISearcher searcher);
 
         void Dispose();
 
