@@ -30,6 +30,7 @@ namespace Examine.LuceneEngine
         public override TokenStream TokenStream(string fieldName, TextReader reader)
         {
             TokenStream result = new LetterOrDigitTokenizer(reader);
+            // TODO: This is a bit broken, if both _ignoreLanguageAccents and _caseInsensitve are true it's not working
             if (_ignoreLanguageAccents)
                 result = new ASCIIFoldingFilter(result);
             if (_caseInsensitive)

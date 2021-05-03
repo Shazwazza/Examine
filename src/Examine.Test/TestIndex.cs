@@ -27,6 +27,7 @@ namespace Examine.Test
         public TestIndex(IndexWriter writer, IValueSetValidator validator = null)
             : base("testIndexer", new FieldDefinitionCollection(), writer, validator)
         {
+            RunAsync = false;
         }
 
         public IEnumerable<ValueSet> AllData()
