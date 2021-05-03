@@ -50,7 +50,9 @@ namespace Examine.LuceneEngine
                 return resolved;
             }
         }
-
+        ///<summary>
+        /// That code is tagging writer as not in use anymore, so we can safely dispose them when they are not in use anymore.
+        ///</summary>
         public void MapAsOld(Directory dir)
         {
             lock (_locker)

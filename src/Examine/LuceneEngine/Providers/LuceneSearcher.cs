@@ -113,9 +113,11 @@ namespace Examine.LuceneEngine.Providers
             
             if (_nrtWriter != null)
             {
+                //there is situation which can happen when Examine Index change location, as Remote directory actually using swapping directories, without that lucene will continue look into old directory even if that changed
+                //So far it happens to me only few times but that is happening
                 if (_directory != null && _nrtWriter.Directory != _directory)
                 {
-                    _nrtWriter.Dispose();
+                    WriterTracker.Current.MapAsOld(_nrtWriter.Directory);
                     _nrtWriter = null;
                     //TryEstablishNrtReader();
                     return _directory;
