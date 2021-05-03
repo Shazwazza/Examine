@@ -1601,7 +1601,10 @@ namespace Examine.LuceneEngine.Providers
                         RetryUntilSuccessOrTimeout(() => _activeAddsOrDeletes == 0, TimeSpan.FromSeconds(5),
                             TimeSpan.FromSeconds(1));
                     }
-
+                    if (_directory is ExamineDirectory dir)
+                    {
+                        dir.HandleOutOfSyncEvent -= DirOnHandleOutOfSyncEvent;
+                    }
                     //cancel any operation currently in place
                     _cancellationTokenSource.Cancel();
 
