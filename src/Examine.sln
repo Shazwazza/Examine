@@ -15,19 +15,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{EE632768
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\build.yml = ..\.github\workflows\build.yml
 		..\GitVersion.yml = ..\GitVersion.yml
+		..\.github\workflows\test-report.yml = ..\.github\workflows\test-report.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Lucene", "Examine.Lucene\Examine.Lucene.csproj", "{DA5E35C3-89BA-4A2E-A559-32CF7B23CBFF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Web.Demo", "Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Web.Demo", "Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Lucene.AzureDirectory", "Examine.AzureDirectory\Examine.Lucene.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Core", "Examine.Core\Examine.Core.csproj", "{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine", "Examine.Host\Examine.csproj", "{6988B93D-8FA9-4F4F-AC66-E748777FA226}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine", "Examine.Host\Examine.csproj", "{6988B93D-8FA9-4F4F-AC66-E748777FA226}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
