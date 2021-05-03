@@ -1,17 +1,24 @@
 <Project>
 
   <PropertyGroup>
-
+    <!-- These are Source link props -->    
+    <PublishRepositoryUrl>https://github.com/Shazwazza/Examine</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+  </ItemGroup>
+  <PropertyGroup>
     <PackageProjectUrl>https://github.com/Shazwazza/Examine</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Shazwazza/Examine</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Copyright>$copyright$</Copyright>
+    <Copyright>$(Copyright)</Copyright>
     <Company>Shannon Deminick</Company>
     <Authors>shandem</Authors>
-
     <PackageIcon>logo-round.png</PackageIcon>
-    <PackageIconUrl />
-
+    <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
   </PropertyGroup>
 
 </Project>

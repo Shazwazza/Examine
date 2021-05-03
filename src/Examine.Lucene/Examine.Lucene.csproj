@@ -10,6 +10,9 @@
     <None Remove="AspExamineManager.cs.bak" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\..\assets\logo-round.png" Link="logo-round.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Lucene.Net.QueryParser">
       <Version>4.8.0-beta00014</Version>
     </PackageReference>
