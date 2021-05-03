@@ -8,12 +8,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Lucene.Net.Search;
 
 namespace Examine.LuceneEngine
 {
     public class ExamineIndexWriter : IndexWriter
     {
         private ExamineDirectory _examineDirectory;
+
         public ExamineIndexWriter(Directory d, Analyzer a, MaxFieldLength mfl) : base(d, a, mfl)
         {
             _examineDirectory = d as ExamineDirectory;
@@ -24,17 +26,20 @@ namespace Examine.LuceneEngine
             _examineDirectory = d as ExamineDirectory;
         }
 
-        public ExamineIndexWriter(Directory d, Analyzer a, IndexDeletionPolicy deletionPolicy, MaxFieldLength mfl) : base(d, a, deletionPolicy, mfl)
+        public ExamineIndexWriter(Directory d, Analyzer a, IndexDeletionPolicy deletionPolicy, MaxFieldLength mfl) :
+            base(d, a, deletionPolicy, mfl)
         {
             _examineDirectory = d as ExamineDirectory;
         }
 
-        public ExamineIndexWriter(Directory d, Analyzer a, bool create, IndexDeletionPolicy deletionPolicy, MaxFieldLength mfl) : base(d, a, create, deletionPolicy, mfl)
+        public ExamineIndexWriter(Directory d, Analyzer a, bool create, IndexDeletionPolicy deletionPolicy,
+            MaxFieldLength mfl) : base(d, a, create, deletionPolicy, mfl)
         {
             _examineDirectory = d as ExamineDirectory;
         }
 
-        public ExamineIndexWriter(Directory d, Analyzer a, IndexDeletionPolicy deletionPolicy, MaxFieldLength mfl, IndexCommit commit) : base(d, a, deletionPolicy, mfl, commit)
+        public ExamineIndexWriter(Directory d, Analyzer a, IndexDeletionPolicy deletionPolicy, MaxFieldLength mfl,
+            IndexCommit commit) : base(d, a, deletionPolicy, mfl, commit)
         {
             _examineDirectory = d as ExamineDirectory;
         }
@@ -45,7 +50,7 @@ namespace Examine.LuceneEngine
         public void ExamineCommit()
         {
             base.Commit();
-            if(_examineDirectory != null)
+            if (_examineDirectory != null)
             {
                 _examineDirectory.InvokeOnCommit(this);
             }
@@ -53,11 +58,12 @@ namespace Examine.LuceneEngine
 
         public override void UpdateDocument(Term term, Document doc)
         {
-            if(_examineDirectory != null && _examineDirectory.IsReadOnly)
+            if (_examineDirectory != null && _examineDirectory.IsReadOnly)
             {
                 //Cancel as directory is read only
                 return;
             }
+
             base.UpdateDocument(term, doc);
         }
 
@@ -68,6 +74,7 @@ namespace Examine.LuceneEngine
                 //Cancel as directory is read only
                 return;
             }
+
             base.AddDocument(doc);
         }
 
@@ -78,7 +85,63 @@ namespace Examine.LuceneEngine
                 //Cancel as directory is read only
                 return;
             }
+
             base.AddDocument(doc, analyzer);
         }
-    }
+
+        public override void DeleteDocuments(Term term)
+        {
+            if (_examineDirectory != null && _examineDirectory.IsReadOnly)
+            {
+                //Cancel as directory is read only
+                return;
+            }
+
+            base.DeleteDocuments(term);
+        }
+
+        public override void DeleteDocuments(params Term[] terms)
+        {
+            if (_examineDirectory != null && _examineDirectory.IsReadOnly)
+            {
+                //Cancel as directory is read only
+                return;
+            }
+
+            base.DeleteDocuments(terms);
+        }
+
+        public override void DeleteDocuments(Query query)
+        {
+            if (_examineDirectory != null && _examineDirectory.IsReadOnly)
+            {
+                //Cancel as directory is read only
+                return;
+            }
+
+            base.DeleteDocuments(query);
+        }
+
+        public override void DeleteDocuments(params Query[] queries)
+        {
+            if (_examineDirectory != null && _examineDirectory.IsReadOnly)
+            {
+                //Cancel as directory is read only
+                return;
+            }
+
+            base.DeleteDocuments(queries);
+        }
+
+        public override void UpdateDocument(Term term, Document doc, Analyzer analyzer)
+        {
+            if (_examineDirectory != null && _examineDirectory.IsReadOnly)
+            {
+                //Cancel as directory is read only
+                return;
+            }
+
+            base.UpdateDocument(term, doc, analyzer);   
+        }
+}
 }

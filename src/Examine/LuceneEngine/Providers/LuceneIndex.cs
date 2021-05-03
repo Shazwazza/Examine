@@ -84,12 +84,9 @@ namespace Examine.LuceneEngine.Providers
                     }
                   
                 }
-               
+                //if syncronisation is happening we need be sure the global writer is not track anymore as more, so we move that reader to stale
+                //but there will be still threads using that Writer, but we need open new one to start using new directory
                 _writer = null;
-              //  GetIndexWriter(true);
-
-               
-
                 
             }
         }
@@ -506,7 +503,7 @@ namespace Examine.LuceneEngine.Providers
                                 }
                                 else
                                 {
-                                    _writer.Commit();
+                                _writer.Commit();
                                 }
 
                                 //we're rebuilding so all old readers referencing this dir should be closed
@@ -792,9 +789,9 @@ namespace Examine.LuceneEngine.Providers
                         examineIndexWriter.ExamineCommit();
                     }
                     else
-                    {
-                        iw.Commit();
-                    }
+                {
+                    iw.Commit();
+                }
                 }
 
                 return true;
@@ -1095,8 +1092,8 @@ namespace Examine.LuceneEngine.Providers
                     }
                     else
                     {
-                        writer.Commit();
-                    }
+                    writer.Commit();
+                }
                 }
                 else
                 {
@@ -1153,8 +1150,8 @@ namespace Examine.LuceneEngine.Providers
                             }
                             else
                             {
-                                _index._writer?.Commit();
-                            }
+                            _index._writer?.Commit();
+                        }
                         }
                         else
                         {
@@ -1181,7 +1178,7 @@ namespace Examine.LuceneEngine.Providers
                             }
                             else
                             {
-                                _index._writer?.Commit();
+                            _index._writer?.Commit();
                             }
                         }
                         else if (
@@ -1223,7 +1220,7 @@ namespace Examine.LuceneEngine.Providers
                             }
                             else
                             {
-                                _index._writer?.Commit();
+                            _index._writer?.Commit();
                             }
                         }
                         catch (Exception e)
