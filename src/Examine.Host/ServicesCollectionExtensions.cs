@@ -21,11 +21,37 @@ namespace Examine
         /// <param name="name"></param>
         /// <param name="directory"></param>
         /// <returns></returns>
+        public static IServiceCollection AddExamineLuceneIndex(
+            this IServiceCollection serviceCollection,
+            string name,
+            DirectoryInfo directory)
+            => serviceCollection.AddTransient<IIndex>(services =>
+            {
+                IDirectoryFactory dirFactory = services.GetRequiredService<FileSystemDirectoryFactory>();
+                global::Lucene.Net.Store.Directory dir = dirFactory.CreateDirectory(directory);
+
+                LuceneIndex index = ActivatorUtilities.CreateInstance<LuceneIndex>(
+                    services,
+                    name,
+                    dir);
+
+                return index;
+            });
+
+        /// <summary>
+        /// Registers a file system based Lucene Examine index
+        /// </summary>
+        /// <typeparam name="TIndex"></typeparam>
+        /// <typeparam name="TDirectoryFactory"></typeparam>
+        /// <param name="serviceCollection"></param>
+        /// <param name="name"></param>
+        /// <param name="directory"></param>
+        /// <returns></returns>
         public static IServiceCollection AddExamineLuceneIndex<TIndex>(
             this IServiceCollection serviceCollection,
             string name,
             DirectoryInfo directory)
-            where TIndex : IIndex
+            where TIndex : LuceneIndex
             => serviceCollection.AddTransient<IIndex>(services =>
             {
                 IDirectoryFactory dirFactory = services.GetRequiredService<FileSystemDirectoryFactory>();
