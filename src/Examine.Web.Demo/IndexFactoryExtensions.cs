@@ -15,13 +15,13 @@ namespace Examine.Web.Demo
             this IServiceCollection services,
             IWebHostEnvironment env)
         {
-            services.AddExamineLuceneIndex<LuceneIndex>(
+            services.AddExamineLuceneIndex(
                 "Simple2Indexer",
                 new DirectoryInfo(
                     Path.Combine(
                     env.ContentRootPath, "Examine", "Simple2Indexer")));
 
-            services.AddExamineLuceneIndex<LuceneIndex>(
+            services.AddExamineLuceneIndex(
                 "SecondIndexer",
                 new DirectoryInfo(
                     Path.Combine(
