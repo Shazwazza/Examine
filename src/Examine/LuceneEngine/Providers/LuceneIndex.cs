@@ -391,11 +391,7 @@ namespace Examine.LuceneEngine.Providers
                 var msg = "Indexing Error Occurred: " + e.Message;
                 if (e.InnerException != null)
                     msg += ". ERROR: " + e.InnerException.Message;
-                //if(this._directory is ExamineDirectory examineDirectory && examineDirectory.IsReadOnly)
-                //{
-                //    //Readonly index shouldn't be indexing anyway.
-                //    return;
-                //}
+
                 throw new Exception(msg, e.InnerException);
             }
         }
