@@ -58,7 +58,7 @@ jobs:
     - uses: actions/upload-artifact@v2  # upload test results
       if: success() || failure()        # run this step even if previous step failed
       with:
-        name: test-results
+        name: examine-test-results
         path:  ${{ github.workspace }}/_TestResults/tests.trx
 
     - name: Pack
@@ -79,5 +79,5 @@ jobs:
     - uses: actions/upload-artifact@v2  # upload nuget
       if: success()
       with:
-        name: nuget
+        name: examine-nuget
         path:  ${{ github.workspace }}/_NugetOutput/*.*
