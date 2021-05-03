@@ -67,12 +67,12 @@ jobs:
         dotnet pack ${{ env.Solution_File }} \
           --configuration ${{ env.Configuration }} \
           --no-restore \
-          -p:PackageVersion=${{ env.SemVer }} \
-          -p:AssemblyVersion=${{ env.AssemblySemVer }} \
-          -p:FileVersion=${{ env.AssemblySemFileVer }} \
-          -p:InformationalVersion=${{ env.InformationalVersion }} \
+          -p:PackageVersion=${{ env.GitVersion_SemVer }} \
+          -p:AssemblyVersion=${{ env.GitVersion_AssemblySemVer }} \
+          -p:FileVersion=${{ env.GitVersion_AssemblySemFileVer }} \
+          -p:InformationalVersion=${{ env.GitVersion_InformationalVersion }} \
           -p:ContinuousIntegrationBuild=true \
-          -p:Copyright=${{ env.Copyright }} \
+          -p:Copyright="${{ env.Copyright }}" \
           --output=${{ github.workspace }}/_NugetOutput
 
     - uses: actions/upload-artifact@v2  # upload nuget
