@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Examine.Lucene.Indexing;
-using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 
 namespace Examine.Lucene
@@ -26,7 +25,7 @@ namespace Examine.Lucene
         public FieldValueTypeCollection(
             PerFieldAnalyzerWrapper analyzer, 
             IReadOnlyDictionary<string, IFieldValueTypeFactory> valueTypeFactories, 
-            FieldDefinitionCollection fieldDefinitionCollection)
+            ReadOnlyFieldDefinitionCollection fieldDefinitionCollection)
         {
             Analyzer = analyzer;
             ValueTypeFactories = new ValueTypeFactoryCollection();

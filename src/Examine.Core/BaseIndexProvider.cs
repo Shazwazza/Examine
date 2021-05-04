@@ -90,12 +90,9 @@ namespace Examine
         public abstract void CreateIndex();
 
         /// <summary>
-        /// Defines the mappings for field types to index field types
+        /// Returns the mappings for field types to index field types
         /// </summary>
-        /// <remarks>
-        /// This is mutable but changes will only work prior to accessing the resolved value types
-        /// </remarks>
-        public FieldDefinitionCollection FieldDefinitionCollection => _indexOptions.Value.FieldDefinitions ?? new FieldDefinitionCollection();
+        public ReadOnlyFieldDefinitionCollection FieldDefinitions => _indexOptions.Value.FieldDefinitions ?? new FieldDefinitionCollection();
 
         /// <summary>
         /// Check if the index exists

@@ -94,10 +94,10 @@ namespace Examine.Test.Examine.Core.Options
                     var ramDir = luceneIndex.GetLuceneDirectory() as RandomIdRAMDirectory;
                     Assert.IsNotNull(ramDir);
 
-                    luceneIndex.FieldDefinitionCollection.TryGetValue("lat", out FieldDefinition def1);
+                    luceneIndex.FieldDefinitions.TryGetValue("lat", out FieldDefinition def1);
                     Assert.AreEqual(FieldDefinitionTypes.Double, def1.Type);
 
-                    luceneIndex.FieldDefinitionCollection.TryGetValue("lng", out FieldDefinition def2);
+                    luceneIndex.FieldDefinitions.TryGetValue("lng", out FieldDefinition def2);
                     Assert.AreEqual(FieldDefinitionTypes.Double, def2.Type);
 
                     return Task.CompletedTask;

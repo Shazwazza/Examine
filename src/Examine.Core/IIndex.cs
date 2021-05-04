@@ -37,7 +37,7 @@ namespace Examine
         /// <summary>
         /// Returns the field definitions for the index
         /// </summary>
-        FieldDefinitionCollection FieldDefinitionCollection { get; }
+        ReadOnlyFieldDefinitionCollection FieldDefinitions { get; }
 
         /// <summary>
         /// determines whether the index exsists or not

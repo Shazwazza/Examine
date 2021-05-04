@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Examine
 {
@@ -7,9 +7,6 @@ namespace Examine
     /// </summary>
     public struct FieldDefinition : IEquatable<FieldDefinition>
     {
-
-
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -33,10 +30,7 @@ namespace Examine
         /// </summary>
         public string Type { get; }
 
-        public bool Equals(FieldDefinition other)
-        {
-            return string.Equals(Name, other.Name) && string.Equals(Type, other.Type);
-        }
+        public bool Equals(FieldDefinition other) => string.Equals(Name, other.Name) && string.Equals(Type, other.Type);
 
         public override bool Equals(object obj)
         {
@@ -52,14 +46,8 @@ namespace Examine
             }
         }
 
-        public static bool operator ==(FieldDefinition left, FieldDefinition right)
-        {
-            return left.Equals(right);
-        }
+        public static bool operator ==(FieldDefinition left, FieldDefinition right) => left.Equals(right);
 
-        public static bool operator !=(FieldDefinition left, FieldDefinition right)
-        {
-            return !left.Equals(right);
-        }
+        public static bool operator !=(FieldDefinition left, FieldDefinition right) => !left.Equals(right);
     }
 }

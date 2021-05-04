@@ -16,6 +16,7 @@ using Directory = Lucene.Net.Store.Directory;
 using static Lucene.Net.Index.IndexWriter;
 using Microsoft.Extensions.Options;
 using Lucene.Net.Analysis.Standard;
+using Examine.Lucene.Indexing;
 
 namespace Examine.Lucene.Providers
 {
@@ -549,7 +550,7 @@ namespace Examine.Lucene.Providers
                 }
             }
 
-            var result = new FieldValueTypeCollection(FieldAnalyzer, defaults, FieldDefinitionCollection);
+            var result = new FieldValueTypeCollection(FieldAnalyzer, defaults, FieldDefinitions);
             return result;
         }
 
@@ -685,25 +686,27 @@ namespace Examine.Lucene.Providers
         protected virtual void AddDocument(Document doc, ValueSet valueSet, TrackingIndexWriter writer)
         {
             //add node id
-            var nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
+            IIndexFieldValueType nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
             nodeIdValueType.AddValue(doc, valueSet.Id);
+
             //add the category
-            var categoryValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+            IIndexFieldValueType categoryValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.CategoryFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             categoryValueType.AddValue(doc, valueSet.Category);
+
             //add the item type
-            var indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+            IIndexFieldValueType indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
             //copy to a new dictionary, there has been cases of an exception "Collection was modified; enumeration operation may not execute."
             // TODO: This is because ValueSet can be shared between indexes (same value set passed to each)
             // we should remove this since this will cause mem overheads and it's not actually going to fix the problem since it's only copying
             // this dictionary but not the entire value set
-            foreach (var field in CopyDictionary(valueSet.Values))
+            foreach (KeyValuePair<string, List<object>> field in CopyDictionary(valueSet.Values))
             {
                 //check if we have a defined one
-                if (FieldDefinitionCollection.TryGetValue(field.Key, out var definedFieldDefinition))
+                if (FieldDefinitions.TryGetValue(field.Key, out FieldDefinition definedFieldDefinition))
                 {
-                    var valueType = FieldValueTypeCollection.GetValueType(
+                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(
                         definedFieldDefinition.Name,
                         FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type, out var valTypeFactory)
                             ? valTypeFactory
@@ -718,7 +721,7 @@ namespace Examine.Lucene.Providers
                 {
                     //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
 
-                    var valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -726,10 +729,12 @@ namespace Examine.Lucene.Providers
                 }
                 else
                 {
-                    //try to find the field definition for this field, if nothing is found use the default
-                    var def = FieldDefinitionCollection.GetOrAdd(field.Key, s => new FieldDefinition(s, FieldDefinitionTypes.FullText));
+                    // wasn't specifically defined, use FullText as the default
 
-                    var valueType = FieldValueTypeCollection.GetValueType(def.Name, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(
+                        field.Key,
+                        FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+
                     foreach (var o in field.Value)
                     {
                         valueType.AddValue(doc, o);
@@ -740,7 +745,9 @@ namespace Examine.Lucene.Providers
             var docArgs = new DocumentWritingEventArgs(valueSet, doc);
             OnDocumentWriting(docArgs);
             if (docArgs.Cancel)
+            {
                 return;
+            }
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
             _latestGen = writer.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
