@@ -28,4 +28,5 @@ branches:
     source-branches:
     - main
   release:
+    mode: ContinuousDeployment
     source-branches: ['develop']
