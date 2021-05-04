@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 
 namespace Examine.Lucene
 {

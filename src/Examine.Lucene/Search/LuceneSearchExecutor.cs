@@ -200,11 +200,6 @@ namespace Examine.Lucene.Search
 
         private bool CheckQueryForExtractTerms(Query query)
         {
-            if (query is TermRangeQuery || query is WildcardQuery || query is FuzzyQuery)
-            {
-                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
-            }
-
             if (query is BooleanQuery bq)
             {
                 foreach (BooleanClause clause in bq.Clauses)
@@ -216,6 +211,21 @@ namespace Examine.Lucene.Search
                         return false;
                     }
                 }
+            }
+
+            if (query is LateBoundQuery lbq)
+            {
+                return CheckQueryForExtractTerms(lbq.Wrapped);
+            }
+
+            Type queryType = query.GetType();
+
+            if (typeof(TermRangeQuery).IsAssignableFrom(queryType)
+                || typeof(WildcardQuery).IsAssignableFrom(queryType)
+                || typeof(FuzzyQuery).IsAssignableFrom(queryType)
+                || (queryType.IsGenericType && queryType.GetGenericTypeDefinition().IsAssignableFrom(typeof(NumericRangeQuery<>))))
+            {
+                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
             }
 
             return true;

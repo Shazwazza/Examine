@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 using static Lucene.Net.Index.IndexWriter;
 using Microsoft.Extensions.Options;
+using Lucene.Net.Analysis.Standard;
 
 namespace Examine.Lucene.Providers
 {
@@ -45,9 +46,9 @@ namespace Examine.Lucene.Providers
             if (namedOptions == null)
             {
                 throw new InvalidOperationException($"No named {typeof(LuceneDirectoryIndexOptions)} options with name {name}");
-            } 
+            }
 
-            DefaultAnalyzer = namedOptions.Analyzer;
+            DefaultAnalyzer = namedOptions.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
             _directory = namedOptions.IndexDirectory;
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(namedOptions.IndexValueTypesFactory));
@@ -1012,12 +1013,15 @@ namespace Examine.Lucene.Providers
             TrackingIndexWriter writer = IndexWriter;
             var searcherManager = new SearcherManager(writer.IndexWriter, true, null);
 
-            _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 1.0, 0.1)
+            _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 5.0, 0.1)
             {
                 Name = "NRT Reopen Thread"
             };
 
             _nrtReopenThread.Start();
+
+            // wait for most recent changes when first creating the searcher
+            WaitForChanges();
 
             return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection);
         }
@@ -1140,7 +1144,7 @@ namespace Examine.Lucene.Providers
         {
             if (_latestGen.HasValue)
             {
-                _nrtReopenThread.WaitForGeneration(_latestGen.Value);
+                _nrtReopenThread?.WaitForGeneration(_latestGen.Value);
             }
         }
 

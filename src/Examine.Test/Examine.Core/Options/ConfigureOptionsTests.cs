@@ -71,26 +71,37 @@ namespace Examine.Test.Examine.Core.Options
             public Task StartAsync(CancellationToken cancellationToken)
             {
                 IIndex index = _examineManager.GetIndex("TestIndex");
-                index.CreateIndex();
-                index.IndexItem(
-                    ValueSet.FromObject(
-                        Guid.NewGuid().ToString(),
-                        "content",
-                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa", lat = 6.1357, lng = 39.3621 }));
 
                 var luceneIndex = index as LuceneIndex;
                 Assert.IsNotNull(luceneIndex);
 
-                var ramDir = luceneIndex.GetLuceneDirectory() as RandomIdRAMDirectory;
-                Assert.IsNotNull(ramDir);
+                using (luceneIndex.WithThreadingMode(IndexThreadingMode.Synchronous))
+                {
+                    luceneIndex.CreateIndex();
+                    luceneIndex.IndexItem(
+                        ValueSet.FromObject(
+                            Guid.NewGuid().ToString(),
+                            "locations",
+                            new { nodeName = "Zanzibar", bodyText = "Zanzibar is in Africa", lat = 6.1357, lng = 39.3621 }));
 
-                luceneIndex.FieldDefinitionCollection.TryGetValue("lat", out FieldDefinition def1);
-                Assert.AreEqual(FieldDefinitionTypes.Double, def1.Type);
+                    var results = luceneIndex.Searcher
+                        .CreateQuery("locations")
+                        .RangeQuery<double>(new[] { "lat" }, 6.00, null)
+                        .Execute();
 
-                luceneIndex.FieldDefinitionCollection.TryGetValue("lng", out FieldDefinition def2);
-                Assert.AreEqual(FieldDefinitionTypes.Double, def2.Type);
+                    Assert.AreEqual(1, results.TotalItemCount);
 
-                return Task.CompletedTask;
+                    var ramDir = luceneIndex.GetLuceneDirectory() as RandomIdRAMDirectory;
+                    Assert.IsNotNull(ramDir);
+
+                    luceneIndex.FieldDefinitionCollection.TryGetValue("lat", out FieldDefinition def1);
+                    Assert.AreEqual(FieldDefinitionTypes.Double, def1.Type);
+
+                    luceneIndex.FieldDefinitionCollection.TryGetValue("lng", out FieldDefinition def2);
+                    Assert.AreEqual(FieldDefinitionTypes.Double, def2.Type);
+
+                    return Task.CompletedTask;
+                }  
             }
 
             public Task StopAsync(CancellationToken cancellationToken)

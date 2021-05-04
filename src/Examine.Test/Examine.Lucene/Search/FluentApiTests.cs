@@ -1365,7 +1365,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria1 = searcher.CreateQuery();
                 var filter1 = criteria1.RangeQuery<double>(new[] { "SomeDouble" }, 0d, 100d, true, true);
 
-                var criteria2 = searcher.CreateQuery();
+                var criteria2 = searcher.CreateQuery("content");
                 var filter2 = criteria2.RangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true);
 
                 //Act
