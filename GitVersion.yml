@@ -28,4 +28,5 @@ branches:
     source-branches:
     - main
   release:
-    source-branches: ['develop']
+    source-branches:
+    - develop
