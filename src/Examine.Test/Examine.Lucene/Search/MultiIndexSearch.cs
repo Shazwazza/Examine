@@ -1,34 +1,28 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using Examine.LuceneEngine.Providers;
-using System.IO;
-using Examine.LuceneEngine;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Store;
 using NUnit.Framework;
+using Examine.Lucene.Providers;
 
-
-namespace Examine.Test.Search
+namespace Examine.Test.Examine.Lucene.Search
 {
 
     [TestFixture]
-    public class MultiIndexSearch
+    public class MultiIndexSearch : ExamineBaseTest
     {
         [Test]
         public void MultiIndex_Simple_Search()
         {
-            var analyzer = new StandardAnalyzer(Util.Version);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = new TestIndex(luceneDir1, analyzer))
-            using (var indexer2 = new TestIndex(luceneDir2, analyzer))
-            using (var indexer3 = new TestIndex(luceneDir3, analyzer))
-            using (var indexer4 = new TestIndex(luceneDir4, analyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, analyzer))
+            using (var indexer3 = GetTestIndex(luceneDir3, analyzer))
+            using (var indexer4 = GetTestIndex(luceneDir4, analyzer))
 
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
@@ -39,7 +33,7 @@ namespace Examine.Test.Search
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
                 var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] {indexer1, indexer2, indexer3, indexer4},
+                    new[] { indexer1, indexer2, indexer3, indexer4 },
                     analyzer);
 
                 var result = searcher.Search("darkness");
@@ -55,16 +49,16 @@ namespace Examine.Test.Search
         [Test]
         public void MultiIndex_Field_Count()
         {
-            var analyzer = new StandardAnalyzer(Util.Version);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
             using (var luceneDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = new TestIndex(luceneDir1, analyzer) { RunAsync = false })
-            using (var indexer2 = new TestIndex(luceneDir2, analyzer) { RunAsync = false })
-            using (var indexer3 = new TestIndex(luceneDir3, analyzer) { RunAsync = false })
-            using (var indexer4 = new TestIndex(luceneDir4, analyzer) { RunAsync = false })
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
+            using (var indexer2 = GetTestIndex(luceneDir2, analyzer))
+            using (var indexer3 = GetTestIndex(luceneDir3, analyzer))
+            using (var indexer4 = GetTestIndex(luceneDir4, analyzer))
             {
                 indexer1.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "hello", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the absolute darkness." }));
                 indexer2.IndexItem(ValueSet.FromObject(1.ToString(), "content", new { item1 = "world", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -74,10 +68,10 @@ namespace Examine.Test.Search
                 indexer4.IndexItem(ValueSet.FromObject(2.ToString(), "content", new { item4 = "values", item2 = "60% of the time, it works everytime" }));
 
                 var searcher = new MultiIndexSearcher("testSearcher",
-                    new[] {indexer1, indexer2, indexer3, indexer4},
+                    new[] { indexer1, indexer2, indexer3, indexer4 },
                     analyzer);
 
-                var result = searcher.GetAllIndexedFields();
+                var result = searcher.GetSearchContext().SearchableFields;
                 //will be item1 , item2, item3, and item4
                 Assert.AreEqual(4, result.Count());
                 foreach (var s in new[] { "item1", "item2", "item3", "item4" })

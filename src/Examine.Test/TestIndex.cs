@@ -1,32 +1,24 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Examine.Lucene;
-using Examine.Lucene.Indexing;
 using Examine.Lucene.Providers;
-using Lucene.Net.Analysis;
 using Lucene.Net.Index;
-using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Examine.Test
 {
     public class TestIndex : LuceneIndex
     {
-        public TestIndex(ILoggerFactory loggerFactory, FieldDefinitionCollection fieldDefinitions, Directory luceneDirectory, Analyzer analyzer, IValueSetValidator validator = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            : base(loggerFactory, "testIndexer", luceneDirectory, fieldDefinitions, analyzer, validator, indexValueTypesFactory)
+        public const string TestIndexName = "testIndexer";
+
+        public TestIndex(ILoggerFactory loggerFactory, IOptionsSnapshot<LuceneDirectoryIndexOptions> options)
+            : base(loggerFactory, TestIndexName, options)
         {
             RunAsync = false;
         }
 
-        public TestIndex(ILoggerFactory loggerFactory, Directory luceneDirectory, Analyzer defaultAnalyzer, IValueSetValidator validator = null)
-            : base(loggerFactory, "testIndexer", luceneDirectory, new FieldDefinitionCollection(), defaultAnalyzer, validator)
-        {
-            RunAsync = false;
-        }
-
-        public TestIndex(ILoggerFactory loggerFactory, IndexWriter writer, IValueSetValidator validator = null)
-            : base(loggerFactory, "testIndexer", new FieldDefinitionCollection(), writer, validator)
+        public TestIndex(ILoggerFactory loggerFactory, IOptionsSnapshot<LuceneIndexOptions> options, IndexWriter writer)
+            : base(loggerFactory, TestIndexName, options, writer)
         {
             RunAsync = false;
         }

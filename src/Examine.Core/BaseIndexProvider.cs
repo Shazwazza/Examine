@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Examine
 {
@@ -12,6 +13,7 @@ namespace Examine
     public abstract class BaseIndexProvider : IIndex
     {
         private readonly ILogger<BaseIndexProvider> _logger;
+        private readonly Lazy<IndexOptions> _indexOptions;
 
         /// <summary>
         /// Constructor for creating an indexer at runtime
@@ -19,15 +21,14 @@ namespace Examine
         /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="validator"></param>
-        protected BaseIndexProvider(ILoggerFactory loggerFactory, string name, FieldDefinitionCollection fieldDefinitions, IValueSetValidator validator)
+        protected BaseIndexProvider(ILoggerFactory loggerFactory, string name, IOptionsSnapshot<IndexOptions> indexOptions)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
 
             LoggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BaseIndexProvider>();
             Name = name;
-            FieldDefinitionCollection = fieldDefinitions ?? throw new ArgumentNullException(nameof(fieldDefinitions));
-            ValueSetValidator = validator;
+            _indexOptions = new Lazy<IndexOptions>(() => indexOptions.GetNamedOptions(name));
         }
 
         protected ILoggerFactory LoggerFactory { get; }
@@ -36,7 +37,7 @@ namespace Examine
         /// <summary>
         /// A validator to validate a value set before it's indexed
         /// </summary>
-        public IValueSetValidator ValueSetValidator { get; protected set; }
+        public IValueSetValidator ValueSetValidator => _indexOptions.Value.Validator;
 
         /// <summary>
         /// Ensures that the node being indexed is of a correct type 
@@ -87,14 +88,14 @@ namespace Examine
         /// Creates a new index, any existing index will be deleted
         /// </summary>
         public abstract void CreateIndex();
-        
+
         /// <summary>
         /// Defines the mappings for field types to index field types
         /// </summary>
         /// <remarks>
         /// This is mutable but changes will only work prior to accessing the resolved value types
         /// </remarks>
-        public FieldDefinitionCollection FieldDefinitionCollection { get; }
+        public FieldDefinitionCollection FieldDefinitionCollection => _indexOptions.Value.FieldDefinitions ?? new FieldDefinitionCollection();
 
         /// <summary>
         /// Check if the index exists

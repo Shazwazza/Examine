@@ -2,123 +2,86 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Examine.Lucene;
 using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
+using Lucene.Net.Analysis;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Examine
 {
-
     public static class ServicesCollectionExtensions
     {
-
         /// <summary>
         /// Registers a file system based Lucene Examine index
         /// </summary>
-        /// <typeparam name="TIndex"></typeparam>
-        /// <typeparam name="TDirectoryFactory"></typeparam>
-        /// <param name="serviceCollection"></param>
-        /// <param name="name"></param>
-        /// <param name="directory"></param>
-        /// <returns></returns>
         public static IServiceCollection AddExamineLuceneIndex(
             this IServiceCollection serviceCollection,
             string name,
-            DirectoryInfo directory)
-            => serviceCollection.AddTransient<IIndex>(services =>
-            {
-                IDirectoryFactory dirFactory = services.GetRequiredService<FileSystemDirectoryFactory>();
-                global::Lucene.Net.Store.Directory dir = dirFactory.CreateDirectory(directory);
-
-                LuceneIndex index = ActivatorUtilities.CreateInstance<LuceneIndex>(
-                    services,
-                    name,
-                    dir);
-
-                return index;
-            });
+            DirectoryInfo directory,
+            FieldDefinitionCollection fieldDefinitions = null,
+            Analyzer analyzer = null,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, directory, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
         /// </summary>
-        /// <typeparam name="TIndex"></typeparam>
-        /// <typeparam name="TDirectoryFactory"></typeparam>
-        /// <param name="serviceCollection"></param>
-        /// <param name="name"></param>
-        /// <param name="directory"></param>
-        /// <returns></returns>
         public static IServiceCollection AddExamineLuceneIndex<TIndex>(
             this IServiceCollection serviceCollection,
             string name,
-            DirectoryInfo directory)
+            DirectoryInfo directory,
+            FieldDefinitionCollection fieldDefinitions = null,
+            Analyzer analyzer = null,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             where TIndex : LuceneIndex
-            => serviceCollection.AddTransient<IIndex>(services =>
-            {
-                IDirectoryFactory dirFactory = services.GetRequiredService<FileSystemDirectoryFactory>();
-                global::Lucene.Net.Store.Directory dir = dirFactory.CreateDirectory(directory);
-
-                TIndex index = ActivatorUtilities.CreateInstance<TIndex>(
-                    services,
-                    name,
-                    dir);
-
-                return index;
-            });
+            => serviceCollection.AddExamineLuceneIndex<IIndex, FileSystemDirectoryFactory>(name, directory, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
 
         /// <summary>
         /// Registers an Examine index
         /// </summary>
-        /// <typeparam name="TIndex"></typeparam>
-        /// <typeparam name="TDirectoryFactory"></typeparam>
-        /// <param name="serviceCollection"></param>
-        /// <param name="name"></param>
-        /// <param name="directory"></param>
-        /// <returns></returns>
         public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
             this IServiceCollection serviceCollection,
             string name,
-            DirectoryInfo directory)
+            DirectoryInfo directory,
+            FieldDefinitionCollection fieldDefinitions = null,
+            Analyzer analyzer = null,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             where TIndex : IIndex
-            where TDirectoryFactory : IDirectoryFactory
-            => serviceCollection.AddTransient<IIndex>(services =>
-                {
-                    TDirectoryFactory dirFactory = services.GetRequiredService<TDirectoryFactory>();
-                    global::Lucene.Net.Store.Directory dir = dirFactory.CreateDirectory(directory);
+            where TDirectoryFactory : class, IDirectoryFactory
+        {
+            serviceCollection.AddTransient<TDirectoryFactory>();
 
-                    TIndex index = ActivatorUtilities.CreateInstance<TIndex>(
-                        services,
-                        name,
-                        dir);
+            // This is the long way to add IOptions but gives us access to the
+            // services collection which we need to get the dir factory
+            serviceCollection.AddSingleton<IConfigureOptions<LuceneDirectoryIndexOptions>>(
+                services => new ConfigureNamedOptions<LuceneDirectoryIndexOptions>(
+                    name,
+                    (options) =>
+                    {
+                        options.Analyzer = analyzer;
+                        options.Validator = validator;
+                        options.IndexValueTypesFactory = indexValueTypesFactory;
+                        options.FieldDefinitions = fieldDefinitions;
 
-                    return index;
-                });
+                        var dirFactory = services.GetRequiredService<TDirectoryFactory>();
+                        options.IndexDirectory = dirFactory.CreateDirectory(directory);
+                    }));
 
-        /// <summary>
-        /// Registers an Examine index
-        /// </summary>
-        /// <typeparam name="TIndex"></typeparam>
-        /// <param name="serviceCollection"></param>
-        /// <param name="name"></param>
-        /// <param name="parameterFactory">
-        /// A factory to fullfill the custom index construction parameters excluding the name that are not already registerd in DI.
-        /// </param>
-        /// <returns></returns>
-        public static IServiceCollection AddExamineIndex<TIndex>(
-            this IServiceCollection serviceCollection,
-            string name,
-            Func<IServiceProvider, IList<object>> parameterFactory)
-            where TIndex : IIndex
-            => serviceCollection.AddTransient<IIndex>(services =>
+            return serviceCollection.AddTransient<IIndex>(services =>
             {
-                IList<object> parameters = parameterFactory(services);
-                parameters.Insert(0, name);
-
-                TIndex index = ActivatorUtilities.CreateInstance<TIndex>(
+                LuceneIndex index = ActivatorUtilities.CreateInstance<LuceneIndex>(
                     services,
-                    parameters.ToArray());
+                    new object[] { name });
 
                 return index;
+
             });
+        }
 
         /// <summary>
         /// Registers a standalone Examine searcher
@@ -150,31 +113,22 @@ namespace Examine
         /// <summary>
         /// Registers a lucene multi index searcher
         /// </summary>
-        /// <param name="serviceCollection"></param>
-        /// <param name="name"></param>
-        /// <param name="indexNames"></param>        
-        /// <returns></returns>
         public static IServiceCollection AddExamineLuceneMultiSearcher(
             this IServiceCollection serviceCollection,
             string name,
-            string[] indexNames)
-           => serviceCollection.AddTransient<ISearcher>(services =>
-           {
-               IEnumerable<IIndex> matchedIndexes = services.GetServices<IIndex>()
-                    .Where(x => indexNames.Contains(x.Name));
+            string[] indexNames,
+            Analyzer analyzer = null)
+            => serviceCollection.AddExamineSearcher<MultiIndexSearcher>(name, s =>
+            {
+                IEnumerable<IIndex> matchedIndexes = s.GetServices<IIndex>()
+                     .Where(x => indexNames.Contains(x.Name));
 
-               var parameters = new List<object>
-               {
-                   name,
-                   matchedIndexes
-               };
-
-               var searcher = ActivatorUtilities.CreateInstance<MultiIndexSearcher>(
-                   services,
-                   parameters.ToArray());
-
-               return searcher;
-           });
+                return new List<object>
+                    {
+                        matchedIndexes,
+                        analyzer
+                    };
+            });
 
         /// <summary>
         /// Adds the Examine core services

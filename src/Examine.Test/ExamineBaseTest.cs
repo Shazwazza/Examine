@@ -3,6 +3,9 @@ using Lucene.Net.Index;
 using Microsoft.Extensions.Logging;
 using Lucene.Net.Analysis;
 using Directory = Lucene.Net.Store.Directory;
+using Microsoft.Extensions.Options;
+using Examine.Lucene;
+using Moq;
 
 namespace Examine.Test
 {
@@ -21,9 +24,19 @@ namespace Examine.Test
         public virtual void TearDown() => _loggerFactory.Dispose();
 
         public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null)
-            => new TestIndex(_loggerFactory, fieldDefinitions, d, analyzer);
+            => new TestIndex(
+                _loggerFactory,
+                Mock.Of<IOptionsSnapshot<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                {
+                    FieldDefinitions = fieldDefinitions,
+                    IndexDirectory = d,
+                    Analyzer = analyzer
+                }));
 
         public TestIndex GetTestIndex(IndexWriter writer)
-            => new TestIndex(_loggerFactory, writer);
+            => new TestIndex(
+                _loggerFactory,
+                Mock.Of<IOptionsSnapshot<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions()),
+                writer);
     }
 }

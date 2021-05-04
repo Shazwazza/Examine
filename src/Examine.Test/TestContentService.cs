@@ -4,13 +4,13 @@ using System.IO;
 using System.Xml.XPath;
 using NUnit.Framework;
 
-namespace Examine.Test.DataServices
+namespace Examine.Test
 {
 
     /// <summary>
     /// A mock data service used to return content from the XML data file created with CWS
     /// </summary>
-    public class TestContentService 
+    public class TestContentService
     {
         private XDocument _xDoc;
 
@@ -29,7 +29,7 @@ namespace Examine.Test.DataServices
                     .Single();
 
                 _xDoc = XDocument.Load(xmlFile.FullName);
-            } 
+            }
 
             var xdoc = XDocument.Parse("<content></content>");
             xdoc.Root.Add(_xDoc.XPathSelectElements(xpath));

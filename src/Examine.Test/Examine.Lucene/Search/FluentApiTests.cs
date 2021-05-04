@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
-using Examine.Test.UmbracoExamine;
-using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
@@ -13,7 +10,7 @@ using NUnit.Framework;
 
 
 
-namespace Examine.Test.Search
+namespace Examine.Test.Examine.Lucene.Search
 {
     [TestFixture]
     public class FluentApiTests : ExamineBaseTest
@@ -936,7 +933,7 @@ namespace Examine.Test.Search
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(                
+            using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
                 //Ensure it's set to a number, otherwise it's not sortable

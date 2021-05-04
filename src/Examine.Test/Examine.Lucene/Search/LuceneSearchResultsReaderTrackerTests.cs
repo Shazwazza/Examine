@@ -6,7 +6,7 @@ using Lucene.Net.Search;
 using Lucene.Net.Util;
 using NUnit.Framework;
 
-namespace Examine.Test.Search
+namespace Examine.Test.Examine.Lucene.Search
 {
     [TestFixture]
     public class LuceneSearchResultsReaderTrackerTests : ExamineBaseTest
@@ -54,7 +54,7 @@ namespace Examine.Test.Search
                     var results = sc.Execute();
 
                     // we're still at 2, the search has executed and incremented/decremented the counts internally
-                    Assert.AreEqual(2, reader.RefCount); 
+                    Assert.AreEqual(2, reader.RefCount);
                 }
 
                 // back to one, searcher reference is disposed, the SearcherManager has released it.

@@ -15,7 +15,7 @@ using Spatial4n.Core.Shapes;
 using System;
 using System.Linq;
 
-namespace Examine.Test.Extensions
+namespace Examine.Test.Examine.Lucene.Extensions
 {
     [TestFixture]
     public class SpatialSearch : ExamineBaseTest
@@ -35,7 +35,7 @@ namespace Examine.Test.Extensions
             SpatialContext ctx = SpatialContext.GEO;
             int maxLevels = 11; //results in sub-meter precision for geohash
             SpatialPrefixTree grid = new GeohashPrefixTree(ctx, maxLevels);
-            RecursivePrefixTreeStrategy strategy = new RecursivePrefixTreeStrategy(grid, GeoLocationFieldName);
+            var strategy = new RecursivePrefixTreeStrategy(grid, GeoLocationFieldName);
 
             // NOTE: The SpatialExample uses MatchAllDocsQuery however the strategy can create a query too, the source is here:
             // https://github.com/apache/lucenenet/blob/master/src/Lucene.Net.Spatial/SpatialStrategy.cs#L124
@@ -48,7 +48,7 @@ namespace Examine.Test.Extensions
         public void Document_Writing_To_Index_Spatial_Data_And_Search_On_100km_Radius_GetPointVectorStrategy()
         {
             SpatialContext ctx = SpatialContext.GEO;
-            PointVectorStrategy strategy = new PointVectorStrategy(ctx, GeoLocationFieldName);
+            var strategy = new PointVectorStrategy(ctx, GeoLocationFieldName);
 
             // NOTE: This works without this custom query and only using the filter too
             // there's also almost zero documentation (even in java) on what MakeQueryDistanceScore actually does, 
@@ -94,7 +94,7 @@ namespace Examine.Test.Extensions
                     DoSpatialSearch(ctx, strategy, indexer, SearchRadius, id4, createQuery, lat: 50, lng: 50);
                 }
             }
-            
+
         }
 
         private void DoSpatialSearch(
@@ -137,7 +137,7 @@ namespace Examine.Test.Extensions
         }
 
         private void AssertDocMatchedIds(IndexSearcher indexSearcher, TopDocs docs, string idToMatch)
-        {            
+        {
             string[] gotIds = new string[docs.TotalHits];
             for (int i = 0; i < gotIds.Length; i++)
             {

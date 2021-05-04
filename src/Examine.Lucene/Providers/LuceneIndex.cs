@@ -8,14 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
-using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 using static Lucene.Net.Index.IndexWriter;
-
+using Microsoft.Extensions.Options;
 
 namespace Examine.Lucene.Providers
 {
@@ -30,34 +29,28 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor to create an indexer
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="luceneDirectory"></param>
-        /// <param name="fieldDefinitions"></param>
-        /// <param name="analyzer">Specifies the default analyzer to use per field</param>
-        /// <param name="validator">A custom validator used to validate a value set before it can be indexed</param>
-        /// <param name="indexValueTypesFactory">
-        ///     Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.GetDefaultValueTypes"/> will be used.
-        ///     This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
-        /// </param>        
         public LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
-            Directory luceneDirectory,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-           : base(loggerFactory, name, fieldDefinitions ?? new FieldDefinitionCollection(), validator)
+            IOptionsSnapshot<LuceneDirectoryIndexOptions> indexOptions)
+           : base(loggerFactory, name, indexOptions)
         {
             _committer = new IndexCommiter(this);
             _logger = loggerFactory.CreateLogger<LuceneIndex>();
 
             LuceneIndexFolder = null;
 
-            DefaultAnalyzer = analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
-            _directory = luceneDirectory;
+            LuceneDirectoryIndexOptions namedOptions = indexOptions.Get(name);
+
+            if (namedOptions == null)
+            {
+                throw new InvalidOperationException($"No named {typeof(LuceneDirectoryIndexOptions)} options with name {name}");
+            } 
+
+            DefaultAnalyzer = namedOptions.Analyzer;
+            _directory = namedOptions.IndexDirectory;
             //initialize the field types
-            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(namedOptions.IndexValueTypesFactory));
 
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
@@ -69,19 +62,12 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime - using NRT
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="fieldDefinitions"></param>
-        /// <param name="writer"></param>
-        /// <param name="validator"></param>
-        /// <param name="indexValueTypesFactory"></param>
-        public LuceneIndex(
+        internal LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
-            FieldDefinitionCollection fieldDefinitions,
-            IndexWriter writer,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-               : base(loggerFactory, name, fieldDefinitions, validator)
+            IOptionsSnapshot<LuceneIndexOptions> indexOptions,
+            IndexWriter writer)
+               : base(loggerFactory, name, indexOptions)
         {
             _committer = new IndexCommiter(this);
             _logger = loggerFactory.CreateLogger<LuceneIndex>();
@@ -90,7 +76,9 @@ namespace Examine.Lucene.Providers
             DefaultAnalyzer = writer.Analyzer;
 
             //initialize the field types
-            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(indexValueTypesFactory));
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(
+                () => CreateFieldValueTypes(indexOptions.GetNamedOptions(name).IndexValueTypesFactory));
+
             LuceneIndexFolder = null;
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();

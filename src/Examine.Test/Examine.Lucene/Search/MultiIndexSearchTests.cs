@@ -5,7 +5,7 @@ using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 using Lucene.Net.Analysis.Util;
 
-namespace Examine.Test.Search
+namespace Examine.Test.Examine.Lucene.Search
 {
 
     [TestFixture]
@@ -154,7 +154,7 @@ namespace Examine.Test.Search
             using (var luceneDir2 = new RandomIdRAMDirectory())
             using (var luceneDir3 = new RandomIdRAMDirectory())
             using (var luceneDir4 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))            
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
             using (var indexer2 = GetTestIndex(luceneDir2, analyzer))
             using (var indexer3 = GetTestIndex(luceneDir3, analyzer))
             using (var indexer4 = GetTestIndex(luceneDir4, analyzer))

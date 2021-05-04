@@ -16,12 +16,10 @@ using Examine.Lucene.Providers;
 using System.Threading;
 using Examine.Lucene.Indexing;
 using Examine.Search;
-using Examine.Test.DataServices;
-using Examine.Test.UmbracoExamine;
 using Examine.Lucene.Analyzers;
 using System.Diagnostics;
 
-namespace Examine.Test.Index
+namespace Examine.Test.Examine.Lucene.Index
 {
 
     /// <summary>
@@ -35,7 +33,7 @@ namespace Examine.Test.Index
         {
             using (var d = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
-            using (var indexer = GetTestIndex(writer))            
+            using (var indexer = GetTestIndex(writer))
             {
                 var callCount = 0;
                 var waitHandle = new ManualResetEvent(false);
@@ -580,7 +578,7 @@ namespace Examine.Test.Index
                             var cloned = new XElement(node);
                             cloned.Attribute("id").Value = docId.ToString(CultureInfo.InvariantCulture);
                             Console.WriteLine("Indexing {0}", docId);
-                            customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });                            
+                            customIndexer.IndexItems(new[] { cloned.ConvertToValueSet(IndexTypes.Content) });
                         }
                     }
                 }

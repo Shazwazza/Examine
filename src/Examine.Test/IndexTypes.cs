@@ -1,4 +1,4 @@
-﻿namespace Examine.Test.UmbracoExamine
+namespace Examine.Test
 {
     /// <summary>
     /// The index types stored in the Lucene Index

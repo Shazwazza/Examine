@@ -3,7 +3,7 @@ using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 using Lucene.Net.Analysis.TokenAttributes;
 
-namespace Examine.Test.Index
+namespace Examine.Test.Examine.Lucene.Index
 {
     [TestFixture]
     [Ignore("This is just here to confirm that Standard Analyzer no longer strips apostrophe's")]
