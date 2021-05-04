@@ -1,6 +1,7 @@
 name: Examine Build
 
 on:
+  workflow_dispatch:
   push:
     branches:    
       - 'release/2.0.0'
