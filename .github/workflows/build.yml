@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:    
-      - 'release/2.0.0'
+      - 'release/2.0'
   pull_request:
     branches:
-      - 'release/2.0.0'
+      - 'release/2.0'
 
 jobs:
   build:
