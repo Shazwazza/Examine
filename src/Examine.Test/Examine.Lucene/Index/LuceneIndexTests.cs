@@ -247,7 +247,7 @@ namespace Examine.Test.Examine.Lucene.Index
                         {"item2", new List<object>(new[] {"value2"})}
                     }));
 
-                var s = (LuceneSearcher)indexer.GetSearcher();
+                var s = (LuceneSearcher)indexer.Searcher;
                 var searchContext = s.GetSearchContext();
                 using (var searchRef = searchContext.GetSearcher())
                 {
@@ -281,7 +281,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1", item2 = "value2" }));
 
-                var s = (LuceneSearcher)indexer.GetSearcher();
+                var s = (LuceneSearcher)indexer.Searcher;
                 var searchContext = s.GetSearchContext();
                 using (var searchRef = searchContext.GetSearcher())
                 {
@@ -314,7 +314,7 @@ namespace Examine.Test.Examine.Lucene.Index
                         }
                     }));
 
-                var s = (LuceneSearcher)indexer.GetSearcher();
+                var s = (LuceneSearcher)indexer.Searcher;
                 var searchContext = s.GetSearchContext();
                 using (var searchRef = searchContext.GetSearcher())
                 {
@@ -348,7 +348,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value3", item2 = "value4" }));
 
-                var s = (LuceneSearcher)indexer.GetSearcher();
+                var s = (LuceneSearcher)indexer.Searcher;
                 var searchContext = s.GetSearchContext();
                 using (var searchRef = searchContext.GetSearcher())
                 {
@@ -380,7 +380,7 @@ namespace Examine.Test.Examine.Lucene.Index
                         {"item2", new List<object>(new object[] {123456})}
                     }));
 
-                var s = (LuceneSearcher)indexer.GetSearcher();
+                var s = (LuceneSearcher)indexer.Searcher;
                 var searchContext = s.GetSearchContext();
                 using (var searchRef = searchContext.GetSearcher())
                 {
@@ -419,7 +419,7 @@ namespace Examine.Test.Examine.Lucene.Index
             using (var d = new RandomIdRAMDirectory())
             using (var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
             using (var customIndexer = GetTestIndex(writer))
-            using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
+            using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
             {
 
                 // NOTE: We use this to wait until we're halfway done, and then
@@ -591,7 +591,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                 //ensure no duplicates
 
-                var customSearcher = (LuceneSearcher)customIndexer.GetSearcher();
+                var customSearcher = (LuceneSearcher)customIndexer.Searcher;
                 var results = customSearcher.CreateQuery().Field("nodeName", (IExamineValue)new ExamineValue(Examineness.Explicit, "Home")).Execute();
 
                 foreach (var r in results)
@@ -650,7 +650,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 using (var writer = new IndexWriter(d,
                     new IndexWriterConfig(LuceneInfo.CurrentVersion, new CultureInvariantStandardAnalyzer())))
                 using (var customIndexer = GetTestIndex(writer))
-                using (var customSearcher = (LuceneSearcher)customIndexer.GetSearcher())
+                using (var customSearcher = (LuceneSearcher)customIndexer.Searcher)
                 using (customIndexer.WithThreadingMode(IndexThreadingMode.Asynchronous))
                 {
                     var waitHandle = new ManualResetEvent(false);

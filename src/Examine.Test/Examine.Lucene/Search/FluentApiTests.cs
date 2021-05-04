@@ -34,7 +34,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = searcher.CreateQuery("content").NativeQuery("sydney");
 
@@ -65,7 +65,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "location 3", bodyText = "In Australia there is a town called Bateau Bay in NSW"})
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = searcher.CreateQuery("content").NativeQuery("\"town called\"");
 
@@ -116,7 +116,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 });
 
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01, 02), new DateTime(2000, 01, 05), maxInclusive: false);
@@ -143,7 +143,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer1.IndexItem(ValueSet.FromObject("6", "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
                 indexer1.IndexItem(ValueSet.FromObject("7", "content", new { SomeField = "value5", AnotherField = "another value" }));
 
-                var searcher = indexer1.GetSearcher();
+                var searcher = indexer1.Searcher;
 
                 var result = searcher.Search("darkness");
 
@@ -179,7 +179,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 indexer1.IndexItem(ValueSet.FromObject("5", "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
                 indexer1.IndexItem(ValueSet.FromObject("6", "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
 
-                var searcher = indexer1.GetSearcher();
+                var searcher = indexer1.Searcher;
 
                 var qry = searcher.CreateQuery().ManagedQuery("darkness").And().Field("item1", "value1");
                 Console.WriteLine(qry);
@@ -243,7 +243,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         })
                 });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<int>(new[] { "parentID" }, 122, 124);
@@ -291,7 +291,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         })
                 });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var numberSortedCriteria = searcher.CreateQuery()
                     .Field("parentID", 123)
@@ -337,7 +337,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         })
                 });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateQuery("content");
@@ -369,7 +369,7 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
@@ -419,7 +419,7 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
                 //new LuceneSearcher("testSearcher", luceneDir, analyzer);
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
@@ -474,7 +474,7 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var indexer = GetTestIndex(luceneDir, analyzer))
 
             {
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
@@ -529,7 +529,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 2", bodyText = "lorem ficus", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = (LuceneSearchQuery)searcher.CreateQuery("content");
                 query.GroupedNot(new[] { "umbracoNaviHide" }, 1.ToString());
@@ -559,7 +559,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 4", bodyText = "lorem ficus", show = "0", umbracoNaviHide = "1" })
                 });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = searcher.CreateQuery("content").GroupedNot(new[] { "umbracoNaviHide", "show" }, 1.ToString());
                 Console.WriteLine(query);
@@ -590,7 +590,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateQuery("content");
@@ -632,7 +632,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
 
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateQuery("content");
@@ -680,7 +680,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("parentID", 1139);
@@ -710,7 +710,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", parentID = "1139" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery("content");
 
@@ -770,7 +770,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
 
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Escape());
@@ -800,7 +800,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 3", bodyText = "Slowly carrying the full cups into the living room, she handed one to Alex." })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery();
 
@@ -853,7 +853,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery("content");
 
@@ -885,7 +885,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 3", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery("media");
                 var filter = criteria.Field("nodeTypeAlias", "image");
@@ -914,7 +914,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 4", bodyText = "lorem ipsum", nodeTypeAlias = "file" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery(defaultOperation: BooleanOperation.Or);
                 var filter = criteria
@@ -950,7 +950,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 4", bodyText = "lorem ipsum", parentID = "2222" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("sortOrder", SortType.Int));
@@ -994,7 +994,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 4", updateDate = now, parentID = "2222" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var sc = searcher.CreateQuery("content");
                 //note: dates internally are stored as Long, see DateTimeType
@@ -1037,7 +1037,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     });
 
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("writerName", "administrator")
@@ -1074,7 +1074,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "hello", headerText = "world", bodyText = "blah" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var sc = searcher.CreateQuery("content", BooleanOperation.Or);
                 var sc1 = sc.Field("nodeName", "umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco");
@@ -1114,7 +1114,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "hello", headerText = "world", writerName = "blah" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //Arrange
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
@@ -1145,7 +1145,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "codegarden 090", headerText = "world", writerName = "blah" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //Arrange
                 var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Escape());
@@ -1179,7 +1179,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "Always consider this", nodeTypeAlias = "CWS_World" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //Arrange
                 var criteria = searcher.CreateQuery("content");
@@ -1216,7 +1216,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "Always consider this", metaKeywords = "Warren is a very talented individual and quite creative" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //Arrange
                 var criteria = searcher.CreateQuery("content");
@@ -1265,7 +1265,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "Always consider this", SomeFloat = 25 })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateQuery();
@@ -1313,7 +1313,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "Always consider this", SomeNumber = 25 })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateQuery();
@@ -1359,7 +1359,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "Always consider this", SomeDouble = 25d })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateQuery();
@@ -1403,7 +1403,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "Always consider this", SomeLong = 25L })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 //all numbers should be between 0 and 100 based on the data source
                 var criteria1 = searcher.CreateQuery();
@@ -1450,7 +1450,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { DateCreated = reIndexDateTime })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery();
                 var filter = criteria.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime, DateTime.Now, true, true);
@@ -1488,7 +1488,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { Content = "I thought you were cool" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery();
                 var filter = criteria.Field("Content", "think".Fuzzy(0.1F));
@@ -1535,7 +1535,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { Content = "hi there, hello world" })
                 });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery();
                 var filter = criteria.Field("Content", "hello");
@@ -1577,7 +1577,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery();
 
@@ -1619,7 +1619,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery();
 
@@ -1661,7 +1661,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery();
 
@@ -1699,7 +1699,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery(defaultOperation: BooleanOperation.Or);
 
@@ -1739,7 +1739,7 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
 
                 //combine a custom lucene query with raw lucene query
@@ -1772,7 +1772,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { Content = "hi there, hello world", Type = "type2" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = searcher.CreateQuery("content").ManagedQuery("hello");
                 Console.WriteLine(query);
@@ -1876,7 +1876,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectField("__Path");
 
@@ -1915,7 +1915,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectFields(new HashSet<string>(new[] { "nodeName", "bodyText", "id", "__NodeId" }));
 
@@ -1955,7 +1955,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectFields(new HashSet<string>(new string[] { "nodeName", "bodyText" }));
 
@@ -1994,7 +1994,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
                 var sc = searcher.CreateQuery().NativeQuery("nodeName:'my name 1'");
                 var sc1 = sc.SelectFields(new HashSet<string>(new[] { "bodyText", "id", "__NodeId" }));
 

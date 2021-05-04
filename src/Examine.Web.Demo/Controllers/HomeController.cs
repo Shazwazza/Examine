@@ -51,7 +51,7 @@ namespace Examine.Web.Demo.Controllers
             if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return NotFound();
 
-            var searcher = index.GetSearcher();
+            var searcher = index.Searcher;
             var criteria = searcher.CreateQuery();
             var result = criteria.NativeQuery(id).Execute();
             var sb = new StringBuilder();

@@ -29,7 +29,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "hello", headerText = "world", writerName = "blah" })
                     });
 
-                var searcher = (LuceneSearcher)indexer.GetSearcher();
+                var searcher = (LuceneSearcher)indexer.Searcher;
                 IndexReader reader;
 
                 ISearchContext searchContext = searcher.GetSearchContext();

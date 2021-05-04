@@ -15,7 +15,7 @@ namespace Examine
         /// Returns a searcher for the index
         /// </summary>
         /// <returns></returns>
-        ISearcher GetSearcher();
+        ISearcher Searcher { get; }
 
         /// <summary>
         /// Method to index data

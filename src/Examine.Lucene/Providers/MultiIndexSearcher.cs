@@ -24,7 +24,7 @@ namespace Examine.Lucene.Providers
         public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
             : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
         {
-            _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.GetSearcher()));
+            _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.Searcher));
         }
 
         /// <summary>

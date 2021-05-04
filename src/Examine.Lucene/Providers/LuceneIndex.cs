@@ -117,7 +117,7 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Gets a searcher for the index
         /// </summary>
-        public override ISearcher GetSearcher() => _searcher.Value;
+        public override ISearcher Searcher => _searcher.Value;
 
         /// <summary>
         /// The async task that runs during an async indexing operation

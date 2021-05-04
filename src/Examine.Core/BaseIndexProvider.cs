@@ -70,7 +70,7 @@ namespace Examine
 
         #region IIndex members
 
-        public abstract ISearcher GetSearcher();
+        public abstract ISearcher Searcher { get; }
 
         /// <inheritdoc />
         /// <summary>
