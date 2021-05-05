@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search

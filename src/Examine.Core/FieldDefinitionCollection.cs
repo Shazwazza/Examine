@@ -2,7 +2,7 @@ using System;
 
 namespace Examine
 {
-    public sealed class FieldDefinitionCollection : ReadOnlyFieldDefinitionCollection
+    public class FieldDefinitionCollection : ReadOnlyFieldDefinitionCollection
     {
         public FieldDefinitionCollection(params FieldDefinition[] definitions) : base(definitions)
         {
