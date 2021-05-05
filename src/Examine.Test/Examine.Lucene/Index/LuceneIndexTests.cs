@@ -212,8 +212,6 @@ namespace Examine.Test.Examine.Lucene.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
-
-
                 for (var i = 0; i < 10; i++)
                 {
                     indexer.IndexItem(new ValueSet(i.ToString(), "content",
@@ -223,11 +221,20 @@ namespace Examine.Test.Examine.Lucene.Index
                             {"item2", new List<object>(new[] {"value2"})}
                         }));
                 }
+
+                var found = indexer.Searcher.CreateQuery().Id("9").Execute();
+                Assert.AreEqual(1, found.TotalItemCount);
+
                 indexer.DeleteFromIndex("9");
 
+                found = indexer.Searcher.CreateQuery().Id("9").Execute();
+                Assert.AreEqual(0, found.TotalItemCount);
+
                 var indexWriter = indexer.IndexWriter;
-                var reader = indexWriter.IndexWriter.GetReader(true);
-                Assert.AreEqual(9, reader.NumDocs);
+                using (var reader = indexWriter.IndexWriter.GetReader(true))
+                {
+                    Assert.AreEqual(9, reader.NumDocs);
+                }   
             }
         }
 

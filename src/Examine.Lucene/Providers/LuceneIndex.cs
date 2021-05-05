@@ -265,15 +265,13 @@ namespace Examine.Lucene.Providers
 
             try
             {
-                var writer = IndexWriter;
-
                 foreach (var valueSet in valueSets)
                 {
                     if (cancellationToken.IsCancellationRequested)
                         break;
 
                     var op = new IndexOperation(valueSet, IndexOperationType.Add);
-                    if (ProcessQueueItem(op, writer))
+                    if (ProcessQueueItem(op))
                     {
                         indexedNodes++;
                     }
@@ -283,7 +281,7 @@ namespace Examine.Lucene.Providers
                 if (!RunAsync)
                 {
                     //commit the changes (this will process the deletes too)
-                    writer.IndexWriter.Commit();
+                    IndexWriter.IndexWriter.Commit();
                 }
                 else
                 {
@@ -491,15 +489,13 @@ namespace Examine.Lucene.Providers
 
             try
             {
-                var writer = IndexWriter;
-
                 foreach (var id in itemIds)
                 {
                     if (cancellationToken.IsCancellationRequested)
                         break;
 
                     var op = new IndexOperation(new ValueSet(id), IndexOperationType.Delete);
-                    if (ProcessQueueItem(op, writer))
+                    if (ProcessQueueItem(op))
                     {
                         indexedNodes++;
                     }
@@ -509,7 +505,13 @@ namespace Examine.Lucene.Providers
                 if (!RunAsync)
                 {
                     //commit the changes (this will process the deletes too)
-                    writer.IndexWriter.Commit();
+                    IndexWriter.IndexWriter.Commit();
+
+                    // now force any searcher to be updated.
+                    // NOTE: This only seems to be necessary for deletes, the NRT
+                    // searcher seems updates instantly for additions/updates without
+                    // explicitly calling this.
+                    WaitForChanges();
                 }
                 else
                 {
@@ -644,7 +646,7 @@ namespace Examine.Lucene.Providers
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
-        private bool DeleteFromIndex(Term indexTerm, TrackingIndexWriter iw, bool performCommit = true)
+        private bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
         {
             string itemId = null;
             if (indexTerm.Field == "id")
@@ -660,11 +662,11 @@ namespace Examine.Lucene.Providers
                     return true;
                 }
 
-                iw.DeleteDocuments(indexTerm);
+                _latestGen = IndexWriter.DeleteDocuments(indexTerm);
 
                 if (performCommit)
                 {
-                    iw.IndexWriter.Commit();
+                    IndexWriter.IndexWriter.Commit();
                 }
 
                 return true;
@@ -689,7 +691,7 @@ namespace Examine.Lucene.Providers
         /// <param name="doc"></param>
         /// <param name="valueSet">The data to index.</param>
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
-        protected virtual void AddDocument(Document doc, ValueSet valueSet, TrackingIndexWriter writer)
+        protected virtual void AddDocument(Document doc, ValueSet valueSet)
         {
             _logger.LogDebug("Write lucene doc id:{DocumentId}, category:{DocumentCategory}, type:{DocumentItemType}",
                 valueSet.Id,
@@ -761,7 +763,7 @@ namespace Examine.Lucene.Providers
             }
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
-            _latestGen = writer.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
+            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
         }
 
         /// <summary>
@@ -872,16 +874,16 @@ namespace Examine.Lucene.Providers
         }
 
 
-        private bool ProcessQueueItem(IndexOperation item, TrackingIndexWriter writer)
+        private bool ProcessQueueItem(IndexOperation item)
         {
             switch (item.Operation)
             {
                 case IndexOperationType.Add:
 
-                    var added = ProcessIndexQueueItem(item, writer);
+                    var added = ProcessIndexQueueItem(item);
                     return added;
                 case IndexOperationType.Delete:
-                    ProcessDeleteQueueItem(item, writer, false);
+                    ProcessDeleteQueueItem(item, false);
                     return true;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -1051,34 +1053,36 @@ namespace Examine.Lucene.Providers
         /// <param name="op"></param>
         /// <param name="iw"></param>
         /// <param name="performCommit"></param>
-        private void ProcessDeleteQueueItem(IndexOperation op, TrackingIndexWriter iw, bool performCommit = true)
+        private void ProcessDeleteQueueItem(IndexOperation op, bool performCommit = true)
         {
 
             //if the id is empty then remove the whole type
             if (!string.IsNullOrEmpty(op.ValueSet.Id))
             {
-                DeleteFromIndex(new Term(ExamineFieldNames.ItemIdFieldName, op.ValueSet.Id), iw, performCommit);
+                DeleteFromIndex(new Term(ExamineFieldNames.ItemIdFieldName, op.ValueSet.Id), performCommit);
             }
             else if (!string.IsNullOrEmpty(op.ValueSet.Category))
             {
-                DeleteFromIndex(new Term(ExamineFieldNames.CategoryFieldName, op.ValueSet.Category), iw, performCommit);
+                DeleteFromIndex(new Term(ExamineFieldNames.CategoryFieldName, op.ValueSet.Category), performCommit);
             }
 
             CommitCount++;
         }
 
 
-        private bool ProcessIndexQueueItem(IndexOperation op, TrackingIndexWriter writer)
+        private bool ProcessIndexQueueItem(IndexOperation op)
         {
 
             //raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.ValueSet);
             OnTransformingIndexValues(indexingNodeDataArgs);
             if (indexingNodeDataArgs.Cancel)
+            {
                 return false;
+            }
 
             var d = new Document();
-            AddDocument(d, op.ValueSet, writer);
+            AddDocument(d, op.ValueSet);
 
             CommitCount++;
 
