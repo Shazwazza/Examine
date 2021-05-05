@@ -4,9 +4,12 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
-
-    public abstract class DirectoryFactory : IDirectoryFactory
+    public class GenericDirectoryFactory : IDirectoryFactory
     {
-        public abstract Directory CreateDirectory(DirectoryInfo luceneIndexFolder);
+        private readonly Func<string, Directory> _factory;
+
+        public GenericDirectoryFactory(Func<string, Directory> factory) => _factory = factory;
+
+        public Directory CreateDirectory(string indexName) => _factory(indexName);
     }
 }

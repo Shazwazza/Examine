@@ -16,17 +16,22 @@ namespace Examine.Lucene.Directories
         private readonly SyncMutexManager _syncMutexManager;
         private readonly ILockFactory _lockFactory;
 
-        public SyncTempEnvDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, ILockFactory lockFactory)
-            : base(applicationIdentifier, lockFactory)
+        public SyncTempEnvDirectoryFactory(
+            IApplicationIdentifier applicationIdentifier,
+            ILoggerFactory loggerFactory,
+            SyncMutexManager syncMutexManager,
+            ILockFactory lockFactory,
+            DirectoryInfo baseDir)
+            : base(applicationIdentifier, lockFactory, baseDir)
         {
             _loggerFactory = loggerFactory;
             _syncMutexManager = syncMutexManager;
             _lockFactory = lockFactory;
         }
 
-        public override global::Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
+        public override global::Lucene.Net.Store.Directory CreateDirectory(string indexName)
         {
-            var master = luceneIndexFolder;
+            var master = new DirectoryInfo(Path.Combine(BaseDir.FullName, indexName));
             var tempFolder = GetLocalStorageDirectory(master);
             var masterDir = new SimpleFSDirectory(master);
             var cacheDir = new SimpleFSDirectory(tempFolder);

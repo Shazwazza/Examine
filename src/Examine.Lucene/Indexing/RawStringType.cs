@@ -1,7 +1,6 @@
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.QueryParsers.Flexible.Core.Nodes;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
@@ -30,15 +29,15 @@ namespace Examine.Lucene.Indexing
                     doc.Add(f);
                     break;
                 case TokenStream ts:
-                    doc.Add(new Field(FieldName, ts));
+                    doc.Add(new TextField(FieldName, ts));
                     break;
                 default:
                     if (TryConvert<string>(value, out var str))
                     {
-                        doc.Add(new Field(FieldName, str,
-                            Store ? Field.Store.YES : Field.Store.NO,
-                            Field.Index.NOT_ANALYZED,
-                            Field.TermVector.NO));
+                        doc.Add(new StringField(
+                            FieldName,
+                            str,
+                            Store ? Field.Store.YES : Field.Store.NO));
                     }   
                     break;
             }

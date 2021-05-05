@@ -55,15 +55,15 @@ namespace Examine.Lucene.Indexing
         {
             if (TryConvert<string>(value, out var str))
             {
-                doc.Add(new Field(FieldName, str, Field.Store.YES, Field.Index.ANALYZED,
-                Field.TermVector.WITH_POSITIONS_OFFSETS /* This is required for the fast vector highligher but will double the field size */ ));
+                doc.Add(new TextField(FieldName, str, Field.Store.YES));
 
                 if (_sortable)
                 {
                     //to be sortable it cannot be analyzed so we have to make a different field
-                    doc.Add(new Field(ExamineFieldNames.SortedFieldNamePrefix + FieldName, str,
-                        Field.Store.YES,
-                        Field.Index.NOT_ANALYZED, Field.TermVector.NO));
+                    doc.Add(new StringField(
+                        ExamineFieldNames.SortedFieldNamePrefix + FieldName,
+                        str,
+                        Field.Store.YES));
                 }
             }
         }

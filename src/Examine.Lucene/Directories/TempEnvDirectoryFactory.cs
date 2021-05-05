@@ -11,20 +11,27 @@ namespace Examine.Lucene.Directories
     /// <remarks>
     /// This works well for Azure Web Apps directory sync
     /// </remarks>
-    public class TempEnvDirectoryFactory : DirectoryFactory
+    public class TempEnvDirectoryFactory : IDirectoryFactory
     {
         private readonly IApplicationIdentifier _applicationIdentifier;
         private readonly ILockFactory _lockFactory;
 
-        public TempEnvDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILockFactory lockFactory)
+        public DirectoryInfo BaseDir { get; }
+
+        public TempEnvDirectoryFactory(
+            IApplicationIdentifier applicationIdentifier,
+            ILockFactory lockFactory,
+            DirectoryInfo baseDir)
         {
             _applicationIdentifier = applicationIdentifier;
             _lockFactory = lockFactory;
+            BaseDir = baseDir;
         }
         
-        public override global::Lucene.Net.Store.Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
+        public virtual global::Lucene.Net.Store.Directory CreateDirectory(string indexName)
         {
-            var indexFolder = luceneIndexFolder;
+            var indexFolder = new DirectoryInfo(Path.Combine(BaseDir.FullName, indexName));
+
             var tempFolder = GetLocalStorageDirectory(indexFolder);
 
             var simpleFsDirectory = new SimpleFSDirectory(tempFolder);
@@ -54,10 +61,7 @@ namespace Examine.Lucene.Directories
         /// <returns>
         /// A hash value of the original path
         /// </returns>
-        private static string GetIndexPathName(DirectoryInfo indexPath)
-        {
-            return indexPath.FullName.GenerateHash();
-        }
+        private static string GetIndexPathName(DirectoryInfo indexPath) => indexPath.FullName.GenerateHash();
 
     }
 }

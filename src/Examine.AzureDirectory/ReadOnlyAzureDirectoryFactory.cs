@@ -1,3 +1,4 @@
+using System.IO;
 using Examine.Lucene.Directories;
 using Microsoft.Extensions.Logging;
 
@@ -8,8 +9,13 @@ namespace Examine.Lucene.AzureDirectory
     /// </summary>
     public class ReadOnlyAzureDirectoryFactory : AzureDirectoryFactory
     {
-        public ReadOnlyAzureDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, ILockFactory lockFactory)
-            : base(applicationIdentifier, loggerFactory, syncMutexManager, lockFactory, isReadOnly: true)
+        public ReadOnlyAzureDirectoryFactory(
+            IApplicationIdentifier applicationIdentifier,
+            ILoggerFactory loggerFactory,
+            SyncMutexManager syncMutexManager,
+            ILockFactory lockFactory,
+            DirectoryInfo baseDir)
+            : base(applicationIdentifier, loggerFactory, syncMutexManager, lockFactory, isReadOnly: true, baseDir)
         {   
         }
     }

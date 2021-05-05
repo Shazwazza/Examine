@@ -11,21 +11,11 @@ namespace Examine.Web.Demo
     /// </summary>
     public static class IndexFactoryExtensions
     {
-        public static IServiceCollection CreateIndexes(
-            this IServiceCollection services,
-            IWebHostEnvironment env)
+        public static IServiceCollection CreateIndexes(this IServiceCollection services)
         {
-            services.AddExamineLuceneIndex(
-                "Simple2Indexer",
-                new DirectoryInfo(
-                    Path.Combine(
-                    env.ContentRootPath, "Examine", "Simple2Indexer")));
+            services.AddExamineLuceneIndex("Simple2Indexer");
 
-            services.AddExamineLuceneIndex(
-                "SecondIndexer",
-                new DirectoryInfo(
-                    Path.Combine(
-                    env.ContentRootPath, "Examine", "SecondIndexer")));
+            services.AddExamineLuceneIndex("SecondIndexer");
 
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",

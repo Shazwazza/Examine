@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Examine.Lucene;
+using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,13 +22,8 @@ namespace Examine.Test.Examine.Core.Options
                 .ConfigureServices((hostContext, services) =>
                     services
                         .AddHostedService<TestService>()
-                        .AddExamine()
-                        .AddExamineLuceneIndex(
-                            "TestIndex",
-                            new DirectoryInfo(
-                                Path.Combine(
-                                    hostContext.HostingEnvironment.ContentRootPath,
-                                    "Examine")))
+                        .AddExamine(new DirectoryInfo(TestContext.CurrentContext.WorkDirectory))
+                        .AddExamineLuceneIndex("TestIndex")
                         .ConfigureOptions<MyIndexOptions>())                
                 .Build();
 
@@ -45,7 +41,7 @@ namespace Examine.Test.Examine.Core.Options
                 }
 
                 // replace with ram dir
-                options.IndexDirectory = new RandomIdRAMDirectory();
+                options.DirectoryFactory = new GenericDirectoryFactory(_ => new RandomIdRAMDirectory());
 
                 // customize some fields
                 if (options.FieldDefinitions == null)

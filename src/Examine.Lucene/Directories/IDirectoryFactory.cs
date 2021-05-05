@@ -1,6 +1,3 @@
-using System.IO;
-using System.Security;
-using Examine.Lucene.Providers;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
@@ -10,6 +7,6 @@ namespace Examine.Lucene.Directories
     /// </summary>
     public interface IDirectoryFactory
     {   
-        Directory CreateDirectory(DirectoryInfo luceneIndexFolder);
+        Directory CreateDirectory(string indexName);
     }
 }

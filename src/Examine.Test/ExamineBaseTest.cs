@@ -6,6 +6,7 @@ using Directory = Lucene.Net.Store.Directory;
 using Microsoft.Extensions.Options;
 using Examine.Lucene;
 using Moq;
+using Examine.Lucene.Directories;
 
 namespace Examine.Test
 {
@@ -29,7 +30,7 @@ namespace Examine.Test
                 Mock.Of<IOptionsSnapshot<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
-                    IndexDirectory = d,
+                    DirectoryFactory = new GenericDirectoryFactory(_ => d),
                     Analyzer = analyzer
                 }));
 

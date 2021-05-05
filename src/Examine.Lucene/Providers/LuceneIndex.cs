@@ -17,6 +17,7 @@ using static Lucene.Net.Index.IndexWriter;
 using Microsoft.Extensions.Options;
 using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
+using Examine.Lucene.Directories;
 
 namespace Examine.Lucene.Providers
 {
@@ -50,7 +51,12 @@ namespace Examine.Lucene.Providers
             }
 
             DefaultAnalyzer = namedOptions.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
-            _directory = namedOptions.IndexDirectory;
+            if (namedOptions.DirectoryFactory == null)
+            {
+                throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
+            }
+            _directory = namedOptions.DirectoryFactory.CreateDirectory(name);
+
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(namedOptions.IndexValueTypesFactory));
 
@@ -237,7 +243,7 @@ namespace Examine.Lucene.Providers
                     }
                     finally
                     {
-                        onComplete(new IndexOperationEventArgs(this, count));
+                        onComplete?.Invoke(new IndexOperationEventArgs(this, count));
                     }
                 }
             }
@@ -463,7 +469,7 @@ namespace Examine.Lucene.Providers
                     }
                     finally
                     {
-                        onComplete(new IndexOperationEventArgs(this, count));
+                        onComplete?.Invoke(new IndexOperationEventArgs(this, count));
                     }
                 }
             }
@@ -685,6 +691,11 @@ namespace Examine.Lucene.Providers
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
         protected virtual void AddDocument(Document doc, ValueSet valueSet, TrackingIndexWriter writer)
         {
+            _logger.LogDebug("Write lucene doc id:{DocumentId}, category:{DocumentCategory}, type:{DocumentItemType}",
+                valueSet.Id,
+                valueSet.Category,
+                valueSet.ItemType);
+
             //add node id
             IIndexFieldValueType nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
             nodeIdValueType.AddValue(doc, valueSet.Id);

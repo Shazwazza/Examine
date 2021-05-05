@@ -18,8 +18,14 @@ namespace Examine.Lucene.AzureDirectory
         private readonly SyncMutexManager _syncMutexManager;
         private readonly bool _isReadOnly;
         
-        public AzureDirectoryFactory(IApplicationIdentifier applicationIdentifier, ILoggerFactory loggerFactory, SyncMutexManager syncMutexManager, ILockFactory lockFactory, bool isReadOnly)
-            : base(applicationIdentifier, loggerFactory, syncMutexManager, lockFactory)
+        public AzureDirectoryFactory(
+            IApplicationIdentifier applicationIdentifier,
+            ILoggerFactory loggerFactory,
+            SyncMutexManager syncMutexManager,
+            ILockFactory lockFactory,
+            bool isReadOnly,
+            DirectoryInfo baseDir)
+            : base(applicationIdentifier, loggerFactory, syncMutexManager, lockFactory, baseDir)
         {
             _logger = loggerFactory.CreateLogger<AzureDirectory>();
             _loggerFactory = loggerFactory;
@@ -43,16 +49,10 @@ namespace Examine.Lucene.AzureDirectory
         /// Only a master server can write to it.
         /// For each slave server, the blob storage index files are synced to the local machine.
         /// </summary>
-        /// <param name="luceneIndexFolder">
-        /// The lucene index folder.
-        /// </param>
-        /// <returns>
-        /// The <see cref="Lucene.Net.Store.Directory"/>.
-        /// </returns>
-        public override Directory CreateDirectory(DirectoryInfo luceneIndexFolder)
+        public override Directory CreateDirectory(string indexName)
         {
-            var indexFolder = luceneIndexFolder;
-            var tempFolder = GetLocalStorageDirectory(indexFolder);
+            var luceneIndexFolder = new DirectoryInfo(Path.Combine(BaseDir.FullName, indexName));
+            var tempFolder = GetLocalStorageDirectory(luceneIndexFolder);
 
             return new AzureDirectory(
                 _loggerFactory,
@@ -65,6 +65,6 @@ namespace Examine.Lucene.AzureDirectory
                 isReadOnly: _isReadOnly);
         }
         // Explicit implementation, see https://github.com/Shazwazza/Examine/pull/153
-        Directory IDirectoryFactory.CreateDirectory(DirectoryInfo luceneIndexFolder) => CreateDirectory(luceneIndexFolder);
+        Directory IDirectoryFactory.CreateDirectory(string indexName) => CreateDirectory(indexName);
     }
 }

@@ -25,7 +25,7 @@ namespace Examine.Web.Demo
             services.AddExamine();
 
             // A custom extension method to create custom indexes
-            services.CreateIndexes(WebHostEnvironment);
+            services.CreateIndexes();
 
             services.AddControllersWithViews(ConfigureMvcOptions)
                 // Newtonsoft.Json is added for compatibility reasons

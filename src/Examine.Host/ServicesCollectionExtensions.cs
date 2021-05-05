@@ -7,6 +7,7 @@ using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Examine
@@ -19,12 +20,11 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex(
             this IServiceCollection serviceCollection,
             string name,
-            DirectoryInfo directory,
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, directory, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
+            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
@@ -32,13 +32,12 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex>(
             this IServiceCollection serviceCollection,
             string name,
-            DirectoryInfo directory,
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             where TIndex : LuceneIndex
-            => serviceCollection.AddExamineLuceneIndex<IIndex, FileSystemDirectoryFactory>(name, directory, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
+            => serviceCollection.AddExamineLuceneIndex<IIndex, FileSystemDirectoryFactory>(name, null, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
 
         /// <summary>
         /// Registers an Examine index
@@ -46,7 +45,7 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
             this IServiceCollection serviceCollection,
             string name,
-            DirectoryInfo directory,
+            Func<IServiceProvider, TDirectoryFactory> directoryFactory,
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
@@ -54,7 +53,10 @@ namespace Examine
             where TIndex : IIndex
             where TDirectoryFactory : class, IDirectoryFactory
         {
-            serviceCollection.AddTransient<TDirectoryFactory>();
+            if (directoryFactory != null)
+            {
+                serviceCollection.TryAddTransient<TDirectoryFactory>(directoryFactory);
+            }
 
             // This is the long way to add IOptions but gives us access to the
             // services collection which we need to get the dir factory
@@ -67,9 +69,7 @@ namespace Examine
                         options.Validator = validator;
                         options.IndexValueTypesFactory = indexValueTypesFactory;
                         options.FieldDefinitions = fieldDefinitions;
-
-                        var dirFactory = services.GetRequiredService<TDirectoryFactory>();
-                        options.IndexDirectory = dirFactory.CreateDirectory(directory);
+                        options.DirectoryFactory= services.GetRequiredService<TDirectoryFactory>();
                     }));
 
             return serviceCollection.AddTransient<IIndex>(services =>
@@ -135,15 +135,29 @@ namespace Examine
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public static IServiceCollection AddExamine(this IServiceCollection services)
+        public static IServiceCollection AddExamine(this IServiceCollection services, DirectoryInfo appRootDirectory = null)
         {
+            services.AddSingleton<IApplicationRoot, CurrentEnvironmentApplicationRoot>();
             services.AddSingleton<IExamineManager, ExamineManager>();
             services.AddSingleton<IApplicationIdentifier, AspNetCoreApplicationIdentifier>();
             services.AddSingleton<ILockFactory, DefaultLockFactory>();
             services.AddSingleton<SyncMutexManager>();
-            services.AddSingleton<SyncTempEnvDirectoryFactory>();
-            services.AddSingleton<TempEnvDirectoryFactory>();
-            services.AddSingleton<FileSystemDirectoryFactory>();
+
+            // each one needs to be ctor'd with a root dir, we'll allow passing that in or use the result of IApplicationRoot
+            services.AddSingleton<SyncTempEnvDirectoryFactory>(
+                s => ActivatorUtilities.CreateInstance<SyncTempEnvDirectoryFactory>(
+                    s,
+                    new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
+
+            services.AddSingleton<TempEnvDirectoryFactory>(
+                s => ActivatorUtilities.CreateInstance<TempEnvDirectoryFactory>(
+                    s,
+                    new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
+
+            services.AddSingleton<FileSystemDirectoryFactory>(
+                s => ActivatorUtilities.CreateInstance<FileSystemDirectoryFactory>(
+                    s,
+                    new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
 
             return services;
         }

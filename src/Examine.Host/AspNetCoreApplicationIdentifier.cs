@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.DataProtection;
 
 namespace Examine
 {
+
     public class AspNetCoreApplicationIdentifier : IApplicationIdentifier
     {
         private readonly IServiceProvider _services;
