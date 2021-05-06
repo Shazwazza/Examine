@@ -82,3 +82,6 @@ jobs:
       with:
         name: examine-nuget
         path:  ${{ github.workspace }}/_NugetOutput/*.*
+
+    - name: Publish to GitHub Packages
+      run: dotnet nuget push "${{ github.workspace }}/_NugetOutput/*.nupkg"  --source "github"
