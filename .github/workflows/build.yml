@@ -84,4 +84,4 @@ jobs:
         path:  ${{ github.workspace }}/_NugetOutput/*.*
 
     - name: Publish to GitHub Packages
-      run: dotnet nuget push "${{ github.workspace }}/_NugetOutput/*.nupkg"  --source "github"
+      run: dotnet nuget push "${{ github.workspace }}/_NugetOutput/*.nupkg"  --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
