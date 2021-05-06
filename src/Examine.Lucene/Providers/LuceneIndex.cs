@@ -280,8 +280,11 @@ namespace Examine.Lucene.Providers
                 //this is required to ensure the index is written to during the same thread execution
                 if (!RunAsync)
                 {
-                    //commit the changes (this will process the deletes too)
+                    //commit the changes
                     IndexWriter.IndexWriter.Commit();
+
+                    // now force any searcher to be updated.
+                    WaitForChanges();
                 }
                 else
                 {
@@ -508,9 +511,6 @@ namespace Examine.Lucene.Providers
                     IndexWriter.IndexWriter.Commit();
 
                     // now force any searcher to be updated.
-                    // NOTE: This only seems to be necessary for deletes, the NRT
-                    // searcher seems updates instantly for additions/updates without
-                    // explicitly calling this.
                     WaitForChanges();
                 }
                 else
