@@ -13,9 +13,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: [ '5.0.x' ]
 
     env:
       Solution_File: src/Examine.sln
@@ -34,10 +31,10 @@ jobs:
         echo ("Copyright=" + $Copyright) >> $Env:GITHUB_ENV
       shell: pwsh
       
-    - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+    - name: Setup .NET Core SDK 5.0.x
       uses: actions/setup-dotnet@v1.7.2
       with:
-        dotnet-version: ${{ matrix.dotnet-version }}
+        dotnet-version: 5.0.x
     
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.9
@@ -80,7 +77,7 @@ jobs:
     - uses: actions/upload-artifact@v2  # upload nuget
       if: success()
       with:
-        name: examine-nuget
+        name: examine-nuget-${{ env.SemVer }}
         path:  ${{ github.workspace }}/_NugetOutput/*.*
 
     - name: Publish to GitHub Packages

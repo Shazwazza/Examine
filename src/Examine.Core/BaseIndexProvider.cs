@@ -117,7 +117,7 @@ namespace Examine
 
         #region Protected Event callers
 
-        private void OnIndexOperationComplete(IndexOperationEventArgs e) => IndexOperationComplete?.Invoke(this, e);
+        protected void OnIndexOperationComplete(IndexOperationEventArgs e) => IndexOperationComplete?.Invoke(this, e);
 
         /// <summary>
         /// Raises the <see cref="E:IndexingError"/> event.
