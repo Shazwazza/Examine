@@ -15,7 +15,7 @@ namespace Examine.Lucene.Directories
             _lockFactory = lockFactory;
         }
 
-        public Directory CreateDirectory(string indexName)
+        public virtual Directory CreateDirectory(string indexName)
         {
             var path = Path.Combine(_baseDir.FullName, indexName);
             var luceneIndexFolder = new DirectoryInfo(path);
