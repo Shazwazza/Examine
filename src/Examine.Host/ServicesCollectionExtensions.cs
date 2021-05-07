@@ -69,17 +69,22 @@ namespace Examine
                         options.Validator = validator;
                         options.IndexValueTypesFactory = indexValueTypesFactory;
                         options.FieldDefinitions = fieldDefinitions;
-                        options.DirectoryFactory= services.GetRequiredService<TDirectoryFactory>();
+                        options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
                     }));
 
-            return serviceCollection.AddTransient<IIndex>(services =>
+            return serviceCollection.AddSingleton<IIndex>(services =>
             {
-                LuceneIndex index = ActivatorUtilities.CreateInstance<LuceneIndex>(
-                    services,
-                    new object[] { name });
+                using (var scope = services.CreateScope())
+                {
+                    IOptionsSnapshot<LuceneDirectoryIndexOptions> options
+                        = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<LuceneDirectoryIndexOptions>>();
 
-                return index;
+                    LuceneIndex index = ActivatorUtilities.CreateInstance<LuceneIndex>(
+                        services,
+                        new object[] { name, options });
 
+                    return index;
+                }
             });
         }
 
@@ -123,11 +128,17 @@ namespace Examine
                 IEnumerable<IIndex> matchedIndexes = s.GetServices<IIndex>()
                      .Where(x => indexNames.Contains(x.Name));
 
-                return new List<object>
-                    {
-                        matchedIndexes,
-                        analyzer
-                    };
+                var parameters = new List<object>
+                {
+                    matchedIndexes
+                };
+
+                if (analyzer != null)
+                {
+                    parameters.Add(analyzer);
+                }
+
+                return parameters;
             });
 
         /// <summary>

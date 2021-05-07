@@ -910,6 +910,8 @@ namespace Examine.Lucene.Providers
             {
                 if (IsLocked(dir))
                 {
+                    _logger.LogDebug("Forcing index {IndexerName} to be unlocked since it was left in a locked state", Name);
+
                     //unlock it!
                     Unlock(dir);
                 }
