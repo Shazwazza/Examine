@@ -148,24 +148,24 @@ namespace Examine
         /// <returns></returns>
         public static IServiceCollection AddExamine(this IServiceCollection services, DirectoryInfo appRootDirectory = null)
         {
-            services.AddSingleton<IApplicationRoot, CurrentEnvironmentApplicationRoot>();
-            services.AddSingleton<IExamineManager, ExamineManager>();
-            services.AddSingleton<IApplicationIdentifier, AspNetCoreApplicationIdentifier>();
-            services.AddSingleton<ILockFactory, DefaultLockFactory>();
-            services.AddSingleton<SyncMutexManager>();
+            services.TryAddSingleton<IApplicationRoot, CurrentEnvironmentApplicationRoot>();
+            services.TryAddSingleton<IExamineManager, ExamineManager>();
+            services.TryAddSingleton<IApplicationIdentifier, AspNetCoreApplicationIdentifier>();
+            services.TryAddSingleton<ILockFactory, DefaultLockFactory>();
+            services.TryAddSingleton<SyncMutexManager>();
 
             // each one needs to be ctor'd with a root dir, we'll allow passing that in or use the result of IApplicationRoot
-            services.AddSingleton<SyncTempEnvDirectoryFactory>(
+            services.TryAddSingleton<SyncTempEnvDirectoryFactory>(
                 s => ActivatorUtilities.CreateInstance<SyncTempEnvDirectoryFactory>(
                     s,
                     new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
 
-            services.AddSingleton<TempEnvDirectoryFactory>(
+            services.TryAddSingleton<TempEnvDirectoryFactory>(
                 s => ActivatorUtilities.CreateInstance<TempEnvDirectoryFactory>(
                     s,
                     new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
 
-            services.AddSingleton<FileSystemDirectoryFactory>(
+            services.TryAddSingleton<FileSystemDirectoryFactory>(
                 s => ActivatorUtilities.CreateInstance<FileSystemDirectoryFactory>(
                     s,
                     new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));

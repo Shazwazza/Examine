@@ -22,13 +22,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lucene.Net.Facet">
-      <Version>4.8.0-beta00007</Version>
-    </PackageReference>
-    <PackageReference Include="Lucene.Net.QueryParser">
       <Version>4.8.0-beta00014</Version>
     </PackageReference>
+    <PackageReference Include="Lucene.Net.QueryParser">
+      <Version>4.8.0-beta00014*</Version>
+    </PackageReference>
     <PackageReference Include="Lucene.Net.Store.Azure">
-      <Version>4.8.0-beta006-2</Version>
+      <Version>4.8.0-beta00014</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Data.Services.Client">
       <Version>5.8.4</Version>
