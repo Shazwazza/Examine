@@ -37,7 +37,7 @@ namespace Examine
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             where TIndex : LuceneIndex
-            => serviceCollection.AddExamineLuceneIndex<IIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
+            => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
 
         /// <summary>
         /// Registers an Examine index
@@ -49,7 +49,7 @@ namespace Examine
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            where TIndex : IIndex
+            where TIndex : LuceneIndex
             where TDirectoryFactory : class, IDirectoryFactory
         {
             // This is the long way to add IOptions but gives us access to the
@@ -68,12 +68,13 @@ namespace Examine
 
             return serviceCollection.AddSingleton<IIndex>(services =>
             {
+                // need to create a scope to resolve IOptionsSnapshot since they are scoped services.
                 using (var scope = services.CreateScope())
                 {
                     IOptionsSnapshot<LuceneDirectoryIndexOptions> options
                         = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<LuceneDirectoryIndexOptions>>();
 
-                    LuceneIndex index = ActivatorUtilities.CreateInstance<LuceneIndex>(
+                    TIndex index = ActivatorUtilities.CreateInstance<TIndex>(
                         services,
                         new object[] { name, options });
 
