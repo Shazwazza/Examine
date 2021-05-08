@@ -37,7 +37,7 @@ namespace Examine
             IValueSetValidator validator = null,
             IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             where TIndex : LuceneIndex
-            => serviceCollection.AddExamineLuceneIndex<IIndex, FileSystemDirectoryFactory>(name, null, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
+            => serviceCollection.AddExamineLuceneIndex<IIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
 
         /// <summary>
         /// Registers an Examine index
@@ -45,7 +45,6 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
             this IServiceCollection serviceCollection,
             string name,
-            Func<IServiceProvider, TDirectoryFactory> directoryFactory,
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
@@ -53,11 +52,6 @@ namespace Examine
             where TIndex : IIndex
             where TDirectoryFactory : class, IDirectoryFactory
         {
-            if (directoryFactory != null)
-            {
-                serviceCollection.TryAddTransient<TDirectoryFactory>(directoryFactory);
-            }
-
             // This is the long way to add IOptions but gives us access to the
             // services collection which we need to get the dir factory
             serviceCollection.AddSingleton<IConfigureOptions<LuceneDirectoryIndexOptions>>(
