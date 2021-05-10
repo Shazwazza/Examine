@@ -1198,19 +1198,15 @@ namespace Examine.Lucene.Providers
             protected override void DisposeResources() => _index.RunAsync = _orig;
         }
 
-        public Task<long> GetDocumentCountAsync()
-        {
-            var writer = IndexWriter;
-            return Task.FromResult((long)writer.IndexWriter.NumDocs);
-        }
+        public long GetDocumentCount() => IndexWriter.IndexWriter.NumDocs;
 
-        public Task<IEnumerable<string>> GetFieldNamesAsync()
+        public IEnumerable<string> GetFieldNames()
         {
             var writer = IndexWriter;
-            using (var reader = writer.IndexWriter.GetReader(false))
+            using (DirectoryReader reader = writer.IndexWriter.GetReader(false))
             {
                 IEnumerable<string> fieldInfos = MultiFields.GetMergedFieldInfos(reader).Select(x => x.Name);
-                return Task.FromResult(fieldInfos);
+                return fieldInfos;
             }
         }
 

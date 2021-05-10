@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Examine
 {
     public interface IIndexStats
     {
-        Task<long> GetDocumentCountAsync();
-        Task<IEnumerable<string>> GetFieldNamesAsync();
+        long GetDocumentCount();
+        IEnumerable<string> GetFieldNames();
     }
 }

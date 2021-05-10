@@ -165,7 +165,7 @@ namespace Examine.Web.Demo.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> TestIndex(string indexName = null)
+        public ActionResult TestIndex(string indexName = null)
         {
             if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
                 return NotFound();
@@ -174,8 +174,8 @@ namespace Examine.Web.Demo.Controllers
             {
                 var model = new IndexInfo
                 {
-                    Docs = await stats.GetDocumentCountAsync(),
-                    Fields = (await stats.GetFieldNamesAsync()).Count()
+                    Docs = stats.GetDocumentCount(),
+                    Fields = stats.GetFieldNames().Count()
                 };
                 return View(model);
             }
