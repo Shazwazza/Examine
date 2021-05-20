@@ -59,13 +59,15 @@ var myIndex = examineManager.AddIndex(
             new FieldDefinition("Price", FieldDefinitionTypes.Double))));
 ```
 
-### At runtime
+### After construction
 
-You can modify the field definitions for an index at runtime by using any of the following methods:
+You can modify the field definitions for an index after it is constructed by using any of the following methods:
 
 * `myIndex.FieldDefinitionCollection.TryAdd`
 * `myIndex.FieldDefinitionCollection.AddOrUpdate`
 * `myIndex.FieldDefinitionCollection.GetOrAdd`
+
+These modifications __must__ be done before any indexing or searching is executed.
 
 ## Custom field value types
 
