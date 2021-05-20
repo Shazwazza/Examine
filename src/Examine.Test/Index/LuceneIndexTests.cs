@@ -44,8 +44,10 @@ namespace Examine.Test.Index
                 indexer.IndexItems(indexer.AllData());
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(100, reader.NumDocs());
+                using (var reader = indexWriter.GetReader())
+                {
+                    Assert.AreEqual(100, reader.NumDocs());
+                }   
             }
         }
 
@@ -77,8 +79,10 @@ namespace Examine.Test.Index
                     }));
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(1, reader.NumDocs());
+                using (var reader = indexWriter.GetReader())
+                {
+                    Assert.AreEqual(1, reader.NumDocs());
+                }   
             }
         }
 
@@ -101,8 +105,10 @@ namespace Examine.Test.Index
                 indexer.IndexItem(value);
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(1, reader.NumDocs());
+                using (var reader = indexWriter.GetReader())
+                {
+                    Assert.AreEqual(1, reader.NumDocs());
+                }   
             }
         }
 
@@ -125,8 +131,10 @@ namespace Examine.Test.Index
                 }
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(10, reader.NumDocs());
+                using (var reader = indexWriter.GetReader())
+                {
+                    Assert.AreEqual(10, reader.NumDocs());
+                }   
             }
         }
 
@@ -150,8 +158,10 @@ namespace Examine.Test.Index
                 indexer.DeleteFromIndex("9");
 
                 var indexWriter = indexer.GetIndexWriter();
-                var reader = indexWriter.GetReader();
-                Assert.AreEqual(9, reader.NumDocs());
+                using (var reader = indexWriter.GetReader())
+                {
+                    Assert.AreEqual(9, reader.NumDocs());
+                }   
             }
         }
 

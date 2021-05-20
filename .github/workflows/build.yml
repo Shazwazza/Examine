@@ -1,6 +1,14 @@
 name: Examine Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:    
+      - '**'
+      - '!releases/2.0.0'
+  pull_request:
+    branches:
+      - '**'
+      - '!releases/2.0.0'
 
 jobs:
   build:
@@ -54,5 +62,5 @@ jobs:
     - uses: actions/upload-artifact@v2  # upload test results
       if: success() || failure()        # run this step even if previous step failed
       with:
-        name: test-results
+        name: examine-test-results
         path:  ${{ github.workspace }}\_TestResults\tests.trx

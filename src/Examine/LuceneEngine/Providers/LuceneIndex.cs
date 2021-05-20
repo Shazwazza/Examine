@@ -1378,7 +1378,10 @@ namespace Examine.LuceneEngine.Providers
         public Task<IEnumerable<string>> GetFieldNamesAsync()
         {
             var writer = GetIndexWriter();
-            return Task.FromResult((IEnumerable<string>)writer.GetReader().GetFieldNames(IndexReader.FieldOption.ALL));
+            using (var reader = writer.GetReader())
+            {
+                return Task.FromResult((IEnumerable<string>)reader.GetFieldNames(IndexReader.FieldOption.ALL));
+            }
         }
 
         private static bool RetryUntilSuccessOrTimeout(Func<bool> task, TimeSpan timeout, TimeSpan pause)

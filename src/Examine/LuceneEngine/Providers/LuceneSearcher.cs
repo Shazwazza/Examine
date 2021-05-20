@@ -87,9 +87,13 @@ namespace Examine.LuceneEngine.Providers
         public override ISearchContext GetSearchContext()
         {
             var searcher = GetLuceneSearcher();
+            
             if (searcher == null)
+            {
                 throw new InvalidOperationException($"Cannot create a {typeof(ISearchContext)}, the {Name} index either doesn't exist or the {typeof(LuceneSearcher)} has been disposed");
-            return new SearchContext(FieldValueTypeCollection, GetLuceneSearcher());
+            }
+
+            return new SearchContext(FieldValueTypeCollection, searcher);
         }
 
         /// <inheritdoc />
