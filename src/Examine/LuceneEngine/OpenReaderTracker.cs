@@ -51,7 +51,7 @@ namespace Examine.LuceneEngine
                 var hasStale = true;
                 var staleCount = 0;
 
-                while (hasStale)
+                while (hasStale && readersForDir.Count > 0)
                 {
                     var oldest = readersForDir.Peek();
                     hasStale = now - oldest.Item2 >= ts;
