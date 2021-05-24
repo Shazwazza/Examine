@@ -27,4 +27,6 @@ branches:
     regex: ^dev(elop)?(ment)?(\-0\.x)?$
     source-branches:
     - main
-    
+  release:
+    mode: ContinuousDeployment
+    source-branches: ['develop']
