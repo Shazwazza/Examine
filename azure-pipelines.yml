@@ -33,7 +33,8 @@ steps:
 - task: gitversion/execute@0
   displayName: Determine Version
   inputs:
-    useConfigFile: true
+    additionalArguments: '/showConfig'
+    # useConfigFile: true
 
 # This sets the nuget version to the release tag version if one is found
 - task: PowerShell@2
