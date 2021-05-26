@@ -21,6 +21,10 @@ variables:
 
 steps:
 
+- checkout: self
+  clean: true
+  fetchDepth: 0  
+
 # This sets the nuget version to the release tag version if one is found
 - task: PowerShell@2
   condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/v')
@@ -43,6 +47,9 @@ steps:
       Write-Host "##vso[task.setvariable variable=copyright]$copyright"
 
 - task: NuGetToolInstaller@1
+  displayName: 'Update NuGet'
+  inputs:
+    checkLatest: true
 
 - task: NuGetCommand@2
   inputs:
