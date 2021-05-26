@@ -8,7 +8,7 @@ trigger:
     include:
     - refs/heads/master
     - refs/heads/dev
-    - refs/tags/release-v*
+    - refs/tags/v*
 
 pool:
   vmImage: 'windows-latest'
@@ -23,14 +23,14 @@ steps:
 
 # This sets the nuget version to the release tag version if one is found
 - task: PowerShell@2
-  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/release-v')
+  condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/v')
   inputs:
     targetType: 'inline'
     script: |
       Write-Verbose "Setting the release version to the tag name..." -Verbose
       $tag = $Env:BUILD_SOURCEBRANCH
       Write-Verbose "The git branch is $tag" -Verbose
-      $version = $tag.Substring($tag.IndexOf("release-v") + "release-v".Length)
+      $version = $tag.Substring($tag.IndexOf("v") + "v".Length)
       Write-Verbose "The tag version is $version" -Verbose
       Write-Host "##vso[task.setvariable variable=nugetVersion]$version"
 
