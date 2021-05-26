@@ -49,6 +49,7 @@ steps:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    msbuildArgs: '/p:ContinuousIntegrationBuild=true'
 
 - task: VSTest@2
   inputs:
@@ -61,7 +62,7 @@ steps:
     packagesToPack: '**/*.nuspec'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'nugetVersion'
-    buildProperties: 'copyright=$(copyright)'
+    buildProperties: 'copyright=$(copyright)'     
 
 - task: PublishPipelineArtifact@1
   inputs:
