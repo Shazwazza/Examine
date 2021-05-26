@@ -17,7 +17,7 @@ commit-message-incrementing: Enabled
 commit-date-format: 'yyyy-MM-dd'
 ignore:
   sha: []
-  commits-before: 2021-03-21T00:00:00
+  commits-before: 2020-12-21T00:00:00
 merge-message-formats: {}
 branches:
   main:
