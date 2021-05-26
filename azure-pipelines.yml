@@ -21,8 +21,8 @@ steps:
 - task: PowerShell@2
   condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/release-v')
   inputs:
-  targetType: 'inline'
-  script: |
+    targetType: 'inline'
+    script: |
       Write-Verbose "Setting the release version to the tag name..." -Verbose
       $tag = $Env:BUILD_SOURCEBRANCH
       Write-Verbose "The git branch is $tag" -Verbose
