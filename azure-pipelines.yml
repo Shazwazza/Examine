@@ -3,8 +3,12 @@
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
-# trigger:
-# - master
+trigger:
+  branches:
+    include:
+    - master
+    - dev
+    - releases/*
 
 pool:
   vmImage: 'windows-latest'
@@ -13,9 +17,20 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  nugetVersion: 1.2.0-alpha.$(Build.BuildNumber)
 
 steps:
+
+- checkout: self
+  clean: true
+  fetchDepth: 0  
+
+- task: gitversion/setup@0
+  displayName: Install GitVersion
+  inputs:
+    versionSpec: '5.x'
+
+- task: gitversion/execute@0
+  displayName: Determine Version
 
 # This sets the copyright variable
 - task: PowerShell@2
@@ -26,6 +41,9 @@ steps:
       Write-Host "##vso[task.setvariable variable=copyright]$copyright"
 
 - task: NuGetToolInstaller@1
+  displayName: 'Update NuGet'
+  inputs:
+    checkLatest: true
 
 - task: NuGetCommand@2
   inputs:
@@ -36,6 +54,7 @@ steps:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    msbuildArgs: '/p:ContinuousIntegrationBuild=true'
 
 - task: VSTest@2
   inputs:
@@ -47,8 +66,8 @@ steps:
     command: 'pack'
     packagesToPack: '**/*.nuspec'
     versioningScheme: 'byEnvVar'
-    versionEnvVar: 'nugetVersion'
-    buildProperties: 'copyright=$(copyright)'
+    versionEnvVar: 'GitVersion.SemVer'
+    buildProperties: 'copyright=$(copyright)'     
 
 - task: PublishPipelineArtifact@1
   inputs:
