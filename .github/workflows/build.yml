@@ -59,6 +59,8 @@ jobs:
     - name: Test
       run: dotnet test "${{ env.Test_Folder }}\bin\${{ env.Configuration }}\Examine.Test.dll" --no-build --verbosity normal --results-directory ${{ github.workspace }}\_TestResults  --logger "trx;logfilename=tests.trx"
     
+# TODO: Update the script to build the nuget packages (for now we use dev-ops)
+
     - uses: actions/upload-artifact@v2  # upload test results
       if: success() || failure()        # run this step even if previous step failed
       with:
