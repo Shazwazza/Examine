@@ -5,7 +5,7 @@ assembly-informational-format: '{InformationalVersion}'
 mode: ContinuousDelivery
 increment: Inherit
 continuous-delivery-fallback-tag: ci
-tag-prefix: '[vV]'
+tag-prefix: '[vV]|release-[vV]'
 major-version-bump-message: '\+semver:\s?(breaking|major)'
 minor-version-bump-message: '\+semver:\s?(feature|minor)'
 patch-version-bump-message: '\+semver:\s?(fix|patch)'
