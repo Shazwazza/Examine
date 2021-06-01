@@ -43,22 +43,22 @@ namespace Examine.Lucene.Providers
 
             LuceneIndexFolder = null;
 
-            LuceneDirectoryIndexOptions namedOptions = indexOptions.Get(name);
+            _options = indexOptions.Get(name);
 
-            if (namedOptions == null)
+            if (_options == null)
             {
                 throw new InvalidOperationException($"No named {typeof(LuceneDirectoryIndexOptions)} options with name {name}");
             }
 
-            DefaultAnalyzer = namedOptions.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
-            if (namedOptions.DirectoryFactory == null)
+            DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            if (_options.DirectoryFactory == null)
             {
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
-            _directory = namedOptions.DirectoryFactory.CreateDirectory(name);
+            _directory = _options.DirectoryFactory.CreateDirectory(name);
 
             //initialize the field types
-            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(namedOptions.IndexValueTypesFactory));
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
 
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
@@ -96,6 +96,7 @@ namespace Examine.Lucene.Providers
 
         #endregion
 
+        private readonly LuceneDirectoryIndexOptions _options;
         private PerFieldAnalyzerWrapper _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
@@ -943,7 +944,7 @@ namespace Examine.Lucene.Providers
 
             var writer = new IndexWriter(d, new IndexWriterConfig(LuceneInfo.CurrentVersion, FieldAnalyzer)
             {
-
+                IndexDeletionPolicy = _options.IndexDeletionPolicy ?? new KeepOnlyLastCommitDeletionPolicy(),
 #if FULLDEBUG
 
             //If we want to enable logging of lucene output....
@@ -966,7 +967,7 @@ namespace Examine.Lucene.Providers
                 }
             }
 
-#endif          
+#endif
 
                 MergeScheduler = new ErrorLoggingConcurrentMergeScheduler(Name,
                     (s, e) => OnIndexingError(new IndexingErrorEventArgs(this, s, "-1", e)))

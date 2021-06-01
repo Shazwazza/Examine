@@ -24,14 +24,15 @@ namespace Examine.Test
         [TearDown]
         public virtual void TearDown() => _loggerFactory.Dispose();
 
-        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null)
+        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null)
             => new TestIndex(
                 _loggerFactory,
                 Mock.Of<IOptionsSnapshot<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
                     DirectoryFactory = new GenericDirectoryFactory(_ => d),
-                    Analyzer = analyzer
+                    Analyzer = analyzer,
+                    IndexDeletionPolicy = indexDeletionPolicy
                 }));
 
         public TestIndex GetTestIndex(IndexWriter writer)

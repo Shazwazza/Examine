@@ -147,14 +147,7 @@ namespace Examine
             services.TryAddSingleton<IExamineManager, ExamineManager>();
             services.TryAddSingleton<IApplicationIdentifier, AspNetCoreApplicationIdentifier>();
             services.TryAddSingleton<ILockFactory, DefaultLockFactory>();
-            services.TryAddSingleton<SyncMutexManager>();
-
-            // each one needs to be ctor'd with a root dir, we'll allow passing that in or use the result of IApplicationRoot
-            services.TryAddSingleton<SyncTempEnvDirectoryFactory>(
-                s => ActivatorUtilities.CreateInstance<SyncTempEnvDirectoryFactory>(
-                    s,
-                    new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
-
+            
             services.TryAddSingleton<TempEnvDirectoryFactory>(
                 s => ActivatorUtilities.CreateInstance<TempEnvDirectoryFactory>(
                     s,

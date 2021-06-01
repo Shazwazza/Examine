@@ -25,11 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Test", "Examine.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Web.Demo", "Examine.Web.Demo\Examine.Web.Demo.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Lucene.AzureDirectory", "Examine.AzureDirectory\Examine.Lucene.AzureDirectory.csproj", "{C3880B59-8B08-4990-B3FA-0A8DB9476319}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Core", "Examine.Core\Examine.Core.csproj", "{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine", "Examine.Host\Examine.csproj", "{6988B93D-8FA9-4F4F-AC66-E748777FA226}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examine.Lucene.Sync", "Examine.Lucene.Sync\Examine.Lucene.Sync.csproj", "{8000ABAB-F65E-4A6E-9750-160494D12360}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,10 +49,6 @@ Global
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C3880B59-8B08-4990-B3FA-0A8DB9476319}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -61,6 +57,10 @@ Global
 		{6988B93D-8FA9-4F4F-AC66-E748777FA226}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6988B93D-8FA9-4F4F-AC66-E748777FA226}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6988B93D-8FA9-4F4F-AC66-E748777FA226}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8000ABAB-F65E-4A6E-9750-160494D12360}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8000ABAB-F65E-4A6E-9750-160494D12360}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8000ABAB-F65E-4A6E-9750-160494D12360}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8000ABAB-F65E-4A6E-9750-160494D12360}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
