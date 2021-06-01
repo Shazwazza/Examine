@@ -1,13 +1,11 @@
 using System;
 using System.IO;
 using Examine.Lucene.Providers;
-using J2N.Collections.Generic;
 using Lucene.Net.Index;
 using Lucene.Net.Replicator;
-using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 
-namespace Examine.Lucene.Sync
+namespace Examine.Lucene
 {
     /// <summary>
     /// Used to replicate an index to a destination directory
@@ -60,7 +58,7 @@ namespace Examine.Lucene.Sync
 
         public void StartIndexReplicationOnSchedule(int milliseconds)
         {
-            lock(_locker)
+            lock (_locker)
             {
                 if (_started)
                 {
@@ -80,7 +78,7 @@ namespace Examine.Lucene.Sync
                 // the change monitor will be stopped when this is disposed.
                 _localReplicationClient.StartUpdateThread(milliseconds, null);
             }
-            
+
         }
 
         /// <summary>

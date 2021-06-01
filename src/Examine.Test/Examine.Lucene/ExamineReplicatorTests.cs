@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
-using Examine.Lucene.Sync;
+using Examine.Lucene;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 using NUnit.Framework;
@@ -8,7 +9,7 @@ using NUnit.Framework;
 namespace Examine.Test.Examine.Lucene.Sync
 {
     [TestFixture]
-    public class SyncLocalTests : ExamineBaseTest
+    public class ExamineReplicatorTests : ExamineBaseTest
     {
         [Test]
         public void GivenAMainIndex_WhenReplicatedLocally_TheLocalIndexIsPopulated()
@@ -45,7 +46,33 @@ namespace Examine.Test.Examine.Lucene.Sync
             }
         }
 
-        // TODO: Cannot sync to locked/open index
+        [Test]
+        public void GivenAnOpenedWriter_WhenReplicationAttempted_ThenAnExceptionIsThrown()
+        {
+            var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+            var indexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
+
+            using (var mainDir = new RandomIdRAMDirectory())
+            using (var localDir = new RandomIdRAMDirectory())
+            using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+            using (var replicator = new ExamineReplicator(mainIndex, localDir, tempStorage))
+            using (TestIndex localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            {
+                mainIndex.CreateIndex();
+
+                // this will open the writer
+                localIndex.IndexItem(new ValueSet(9999.ToString(), "content",
+                            new Dictionary<string, IEnumerable<object>>
+                            {
+                                {"item1", new List<object>(new[] {"value1"})},
+                                {"item2", new List<object>(new[] {"value2"})}
+                            }));
+
+                mainIndex.IndexItems(mainIndex.AllData());
+
+                Assert.Throws<InvalidOperationException>(() => replicator.ReplicateIndex());
+            }
+        }
 
         [Test]
         public void GivenASyncedLocalIndex_WhenTriggered_ThenSyncedBackToMainIndex()

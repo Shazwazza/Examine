@@ -21,6 +21,7 @@
     <PackageReference Include="Lucene.Net.QueryParser">
       <Version>4.8.0-beta00014</Version>
     </PackageReference>
+    <PackageReference Include="Lucene.Net.Replicator" Version="4.8.0-beta00014" />
     <PackageReference Include="System.Threading">
       <Version>4.3.0</Version>
     </PackageReference>
