@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using Examine.Lucene.Providers;
+using J2N.Collections.Generic;
 using Lucene.Net.Index;
 using Lucene.Net.Replicator;
 using Lucene.Net.Store;
@@ -17,16 +19,18 @@ namespace Examine.Lucene.Sync
     {
         private bool _disposedValue;
         private readonly IReplicator _replicator;
-        private readonly IndexWriter _indexWriter;
+        private readonly LuceneIndex _sourceIndex;
         private readonly Directory _destinationDirectory;
         private readonly ReplicationClient _localReplicationClient;
+        private readonly object _locker = new object();
+        private bool _started = false;
 
         public ExamineReplicator(
-            IndexWriter indexWriter,
+            LuceneIndex sourceIndex,
             Directory destinationDirectory,
             DirectoryInfo tempStorage)
         {
-            _indexWriter = indexWriter;
+            _sourceIndex = sourceIndex;
             _destinationDirectory = destinationDirectory;
             _replicator = new LocalReplicator();
 
@@ -49,9 +53,45 @@ namespace Examine.Lucene.Sync
                 throw new InvalidOperationException("The destination directory is locked");
             }
 
-            var rev = new IndexRevision(_indexWriter);
+            var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
             _replicator.Publish(rev);
             _localReplicationClient.UpdateNow();
+        }
+
+        public void StartIndexReplicationOnSchedule(int milliseconds)
+        {
+            lock(_locker)
+            {
+                if (_started)
+                {
+                    return;
+                }
+
+                _started = true;
+
+                if (IndexWriter.IsLocked(_destinationDirectory))
+                {
+                    throw new InvalidOperationException("The destination directory is locked");
+                }
+
+                _sourceIndex.IndexOperationComplete += Index_IndexOperationComplete;
+
+                // this will update the destination every second if there are changes.
+                // the change monitor will be stopped when this is disposed.
+                _localReplicationClient.StartUpdateThread(milliseconds, null);
+            }
+            
+        }
+
+        /// <summary>
+        /// Whenever an index operation is complete, publish the new revision to be synced.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Index_IndexOperationComplete(object sender, IndexOperationEventArgs e)
+        {
+            var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+            _replicator.Publish(rev);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -60,6 +100,7 @@ namespace Examine.Lucene.Sync
             {
                 if (disposing)
                 {
+                    _sourceIndex.IndexOperationComplete -= Index_IndexOperationComplete;
                     _localReplicationClient.Dispose();
                 }
 

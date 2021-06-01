@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Examine.Lucene.Sync;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
@@ -18,10 +19,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
             using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-            using (var replicator = new ExamineReplicator(
-                mainIndex.IndexWriter.IndexWriter,
-                localDir,
-                tempStorage))
+            using (var replicator = new ExamineReplicator(mainIndex, localDir, tempStorage))
             {
                 mainIndex.CreateIndex();
 
@@ -47,6 +45,8 @@ namespace Examine.Test.Examine.Lucene.Sync
             }
         }
 
+        // TODO: Cannot sync to locked/open index
+
         [Test]
         public void GivenASyncedLocalIndex_WhenTriggered_ThenSyncedBackToMainIndex()
         {
@@ -57,10 +57,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var localDir = new RandomIdRAMDirectory())
             {
                 using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-                using (var replicator = new ExamineReplicator(
-                    mainIndex.IndexWriter.IndexWriter,
-                    localDir,
-                    tempStorage))
+                using (var replicator = new ExamineReplicator(mainIndex, localDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
                     mainIndex.IndexItems(mainIndex.AllData());
@@ -76,12 +73,9 @@ namespace Examine.Test.Examine.Lucene.Sync
                                 {"item2", new List<object>(new[] {"value2"})}
                             }));
 
-                    using (var replicator = new ExamineReplicator(
-                        localIndex.IndexWriter.IndexWriter,
-                        mainDir,
-                        tempStorage))
+                    using (var replicator = new ExamineReplicator(localIndex, mainDir, tempStorage))
                     {
-                        // replicate back to main
+                        // replicate back to main, main index must be closed
                         replicator.ReplicateIndex();
                     }
 
@@ -89,6 +83,59 @@ namespace Examine.Test.Examine.Lucene.Sync
                     {
                         DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                         Assert.AreEqual(101, mainReader.NumDocs);
+                    }
+                }
+            }
+
+        }
+
+        [Test]
+        public void GivenASyncedLocalIndex_ThenSyncedBackToMainIndexOnSchedule()
+        {
+            var tempStorage = new System.IO.DirectoryInfo(TestContext.CurrentContext.WorkDirectory);
+            var indexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
+
+            using (var mainDir = new RandomIdRAMDirectory())
+            using (var localDir = new RandomIdRAMDirectory())
+            {
+                using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (var replicator = new ExamineReplicator(mainIndex, localDir, tempStorage))
+                {
+                    mainIndex.CreateIndex();
+                    mainIndex.IndexItems(mainIndex.AllData());
+                    replicator.ReplicateIndex();
+                }
+
+                using (TestIndex localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                {
+                    using (var replicator = new ExamineReplicator(
+                        localIndex,
+                        mainDir,
+                        tempStorage))
+                    {
+                        // replicate back to main on schedule
+                        replicator.StartIndexReplicationOnSchedule(1000);
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            localIndex.IndexItem(new ValueSet(("testing" + i).ToString(), "content",
+                            new Dictionary<string, IEnumerable<object>>
+                            {
+                                {"item1", new List<object>(new[] {"value1"})},
+                                {"item2", new List<object>(new[] {"value2"})}
+                            }));
+
+                            Thread.Sleep(500);
+                        }
+
+                        // should be plenty to resync everything
+                        Thread.Sleep(2000);
+                    }
+
+                    using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                    {
+                        DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
+                        Assert.AreEqual(110, mainReader.NumDocs);
                     }
                 }
             }
