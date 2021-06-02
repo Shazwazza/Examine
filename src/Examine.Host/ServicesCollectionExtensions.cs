@@ -8,6 +8,7 @@ using Examine.Lucene.Providers;
 using Lucene.Net.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Examine
@@ -147,14 +148,7 @@ namespace Examine
             services.TryAddSingleton<IExamineManager, ExamineManager>();
             services.TryAddSingleton<IApplicationIdentifier, AspNetCoreApplicationIdentifier>();
             services.TryAddSingleton<ILockFactory, DefaultLockFactory>();
-            services.TryAddSingleton<SyncMutexManager>();
-
-            // each one needs to be ctor'd with a root dir, we'll allow passing that in or use the result of IApplicationRoot
-            services.TryAddSingleton<SyncTempEnvDirectoryFactory>(
-                s => ActivatorUtilities.CreateInstance<SyncTempEnvDirectoryFactory>(
-                    s,
-                    new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
-
+            
             services.TryAddSingleton<TempEnvDirectoryFactory>(
                 s => ActivatorUtilities.CreateInstance<TempEnvDirectoryFactory>(
                     s,
@@ -164,6 +158,23 @@ namespace Examine
                 s => ActivatorUtilities.CreateInstance<FileSystemDirectoryFactory>(
                     s,
                     new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
+
+            services.TryAddSingleton<SyncFileSystemDirectoryFactory>(
+                s =>
+                {
+                    var baseDir = appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot;
+
+                    var tempDir = TempEnvDirectoryFactory.GetTempPath(
+                        s.GetRequiredService<IApplicationIdentifier>());
+
+                    return ActivatorUtilities.CreateInstance<SyncFileSystemDirectoryFactory>(
+                        s,
+                        new object[]
+                        {
+                            new DirectoryInfo(tempDir),
+                            appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot
+                        });
+                });
 
             return services;
         }

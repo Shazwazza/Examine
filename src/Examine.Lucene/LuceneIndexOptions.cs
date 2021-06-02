@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Text;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 
 namespace Examine.Lucene
 {
 
     public class LuceneIndexOptions : IndexOptions
     {
+
+        public IndexDeletionPolicy IndexDeletionPolicy { get; set; }
+
         public Analyzer Analyzer { get; set; }
 
         /// <summary>
