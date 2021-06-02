@@ -56,7 +56,7 @@ namespace Examine.Lucene.Providers
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
 
-            _directory = new Lazy<Directory>(() => _options.DirectoryFactory.CreateDirectory(this));
+            _directory = new Lazy<Directory>(() => _options.DirectoryFactory.CreateDirectory(this, _options.UnlockIndex));
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using Examine.Lucene.Providers;
+using Lucene.Net.Index;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
@@ -14,8 +15,16 @@ namespace Examine.Lucene.Directories
 
         public GenericDirectoryFactory(Func<string, Directory> factory) => _factory = factory;
 
-        public Directory CreateDirectory(LuceneIndex index)
-            => LazyInitializer.EnsureInitialized(ref _directory, () => _factory(index.Name));
+        public Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
+            => LazyInitializer.EnsureInitialized(ref _directory, () =>
+            {
+                Directory dir = _factory(index.Name);
+                if (forceUnlock)
+                {
+                    IndexWriter.Unlock(dir);
+                }
+                return dir;
+            });
 
         protected virtual void Dispose(bool disposing)
         {

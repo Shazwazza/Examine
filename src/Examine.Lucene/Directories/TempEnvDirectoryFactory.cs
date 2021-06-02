@@ -48,7 +48,7 @@ namespace Examine.Lucene.Directories
             return cachePath;
         }
 
-        public virtual Directory CreateDirectory(LuceneIndex index)
+        public virtual Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
             => LazyInitializer.EnsureInitialized(ref _directory,
                 () =>
                 {
@@ -56,8 +56,10 @@ namespace Examine.Lucene.Directories
 
                     DirectoryInfo tempFolder = GetLocalStorageDirectory(indexFolder);
 
-                    var simpleFsDirectory = new SimpleFSDirectory(tempFolder);
-                    simpleFsDirectory.SetLockFactory(_lockFactory.GetLockFactory(tempFolder));
+                    var simpleFsDirectory = new SimpleFSDirectory(
+                        tempFolder,
+                        _lockFactory.GetLockFactory(tempFolder));
+
                     return simpleFsDirectory;
                 });
 

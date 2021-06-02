@@ -1,6 +1,7 @@
 using System.IO;
 using System.Threading;
 using Examine.Lucene.Providers;
+using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Directory = Lucene.Net.Store.Directory;
 
@@ -21,13 +22,18 @@ namespace Examine.Lucene.Directories
 
         public ILockFactory LockFactory { get; }
 
-        public virtual Directory CreateDirectory(LuceneIndex index)
+        public virtual Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
             => LazyInitializer.EnsureInitialized(ref _directory, () =>
             {
                 var path = Path.Combine(_baseDir.FullName, index.Name);
                 var luceneIndexFolder = new DirectoryInfo(path);
 
-                return new SimpleFSDirectory(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));
+                var dir = new SimpleFSDirectory(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));
+                if (forceUnlock)
+                {
+                    IndexWriter.Unlock(dir);
+                }
+                return dir;
             });
 
         protected virtual void Dispose(bool disposing)

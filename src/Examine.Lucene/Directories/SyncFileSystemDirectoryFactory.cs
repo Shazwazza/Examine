@@ -30,20 +30,25 @@ namespace Examine.Lucene.Directories
             _loggerFactory = loggerFactory;
         }
 
-        public override Directory CreateDirectory(LuceneIndex luceneIndex)
+        public override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
             => LazyInitializer.EnsureInitialized(ref _directory,
                 () =>
                 {
                     var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
                     var localLuceneIndexFolder = new DirectoryInfo(path);
 
-                    Directory mainDir = base.CreateDirectory(luceneIndex);
+                    Directory mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
 
                     // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
                     var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
 
                     if (DirectoryReader.IndexExists(mainDir))
                     {
+                        if (IndexWriter.IsLocked(mainDir))
+                        {
+                            throw new InvalidOperationException("Cannot initialize index, the main index location is currently locked.");
+                        }
+
                         // when the lucene directory is going to be created, we'll sync from main storage to local
                         // storage before any index/writer is opened.
                         using (var tempMainIndexWriter = new IndexWriter(
@@ -52,6 +57,7 @@ namespace Examine.Lucene.Directories
                                 LuceneInfo.CurrentVersion,
                                 new StandardAnalyzer(LuceneInfo.CurrentVersion))
                             {
+                                OpenMode = OpenMode.APPEND,
                                 IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
                             }))
                         using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
@@ -65,7 +71,14 @@ namespace Examine.Lucene.Directories
 
                     // now create the replicator that will copy from local to main on schedule
                     _replicator = new ExamineReplicator(luceneIndex, mainDir, tempDir);
-                    var localLuceneDir = new WrappedSimpleFSDirectory(_replicator, localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder));
+                    var localLuceneDir = new SimpleFSDirectory(
+                        localLuceneIndexFolder,
+                        LockFactory.GetLockFactory(localLuceneIndexFolder));
+
+                    if (forceUnlock)
+                    {
+                        IndexWriter.Unlock(localLuceneDir);
+                    } 
 
                     // Start replicating back to main
                     _replicator.StartIndexReplicationOnSchedule(1000);
@@ -90,23 +103,5 @@ namespace Examine.Lucene.Directories
             public LuceneDirectoryIndexOptions Get(string name) => Value;
         }
 
-        // used so that we can dispose the replicator when the directory is disposed
-        private class WrappedSimpleFSDirectory : SimpleFSDirectory
-        {
-            private readonly ExamineReplicator _replicator;
-
-            public WrappedSimpleFSDirectory(ExamineReplicator replicator, DirectoryInfo path, LockFactory lockFactory)
-                : base(path, lockFactory) => _replicator = replicator;
-
-            protected override void Dispose(bool disposing)
-            {
-                base.Dispose(disposing);
-
-                if (disposing)
-                {
-                    _replicator.Dispose();
-                }
-            }
-        }
     }
 }

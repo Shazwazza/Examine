@@ -11,7 +11,17 @@ namespace Examine.Lucene.Directories
     /// The directory created must only be created ONCE and disposed when the factory is disposed.
     /// </remarks>
     public interface IDirectoryFactory : IDisposable
-    {   
-        Directory CreateDirectory(LuceneIndex luceneIndex);
+    {
+        /// <summary>
+        /// Creates the directory instance
+        /// </summary>
+        /// <param name="luceneIndex"></param>
+        /// <param name="forceUnlock">If true, will force unlock the directory when created</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Any subsequent calls will return the same directory instance
+        /// </remarks>
+        Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
+
     }
 }
