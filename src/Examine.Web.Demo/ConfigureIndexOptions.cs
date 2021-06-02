@@ -20,6 +20,9 @@ namespace Examine.Web.Demo
 
         public void Configure(string name, LuceneDirectoryIndexOptions options)
         {
+
+            options.UnlockIndex = true;
+
             switch (name)
             {
                 case "SyncedIndex":

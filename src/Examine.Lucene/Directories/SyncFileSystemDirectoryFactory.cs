@@ -44,11 +44,6 @@ namespace Examine.Lucene.Directories
 
                     if (DirectoryReader.IndexExists(mainDir))
                     {
-                        if (IndexWriter.IsLocked(mainDir))
-                        {
-                            throw new InvalidOperationException("Cannot initialize index, the main index location is currently locked.");
-                        }
-
                         // when the lucene directory is going to be created, we'll sync from main storage to local
                         // storage before any index/writer is opened.
                         using (var tempMainIndexWriter = new IndexWriter(
@@ -64,6 +59,11 @@ namespace Examine.Lucene.Directories
                         using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
                         using (var replicator = new ExamineReplicator(tempMainIndex, tempLocalDirectory, tempDir))
                         {
+                            if (forceUnlock)
+                            {
+                                IndexWriter.Unlock(tempLocalDirectory);
+                            }
+
                             // replicate locally.
                             replicator.ReplicateIndex();
                         }
