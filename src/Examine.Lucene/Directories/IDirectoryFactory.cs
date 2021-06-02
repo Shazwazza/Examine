@@ -8,7 +8,7 @@ namespace Examine.Lucene.Directories
     /// Creates a Lucene <see cref="Lucene.Net.Store.Directory"/> for an index
     /// </summary>
     /// <remarks>
-    /// The directory created must only be created ONCE and disposed when the factory is disposed.
+    /// The directory created must only be created ONCE per index and disposed when the factory is disposed.
     /// </remarks>
     public interface IDirectoryFactory : IDisposable
     {
@@ -19,7 +19,7 @@ namespace Examine.Lucene.Directories
         /// <param name="forceUnlock">If true, will force unlock the directory when created</param>
         /// <returns></returns>
         /// <remarks>
-        /// Any subsequent calls will return the same directory instance
+        /// Any subsequent calls for the same index will return the same directory instance
         /// </remarks>
         Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 

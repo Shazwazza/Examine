@@ -14,12 +14,10 @@ namespace Examine.Lucene.Directories
     /// <remarks>
     /// This works well for Azure Web Apps directory sync
     /// </remarks>
-    public class TempEnvDirectoryFactory : IDirectoryFactory
+    public class TempEnvDirectoryFactory : DirectoryFactoryBase
     {
         private readonly IApplicationIdentifier _applicationIdentifier;
         private readonly ILockFactory _lockFactory;
-        private bool _disposedValue;
-        private Directory _directory;
 
         public DirectoryInfo BaseDir { get; }
 
@@ -48,20 +46,18 @@ namespace Examine.Lucene.Directories
             return cachePath;
         }
 
-        public virtual Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
-            => LazyInitializer.EnsureInitialized(ref _directory,
-                () =>
-                {
-                    var indexFolder = new DirectoryInfo(Path.Combine(BaseDir.FullName, index.Name));
+        protected override Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
+        {
+            var indexFolder = new DirectoryInfo(Path.Combine(BaseDir.FullName, index.Name));
 
-                    DirectoryInfo tempFolder = GetLocalStorageDirectory(indexFolder);
+            DirectoryInfo tempFolder = GetLocalStorageDirectory(indexFolder);
 
-                    var simpleFsDirectory = new SimpleFSDirectory(
-                        tempFolder,
-                        _lockFactory.GetLockFactory(tempFolder));
+            var simpleFsDirectory = new SimpleFSDirectory(
+                tempFolder,
+                _lockFactory.GetLockFactory(tempFolder));
 
-                    return simpleFsDirectory;
-                });
+            return simpleFsDirectory;
+        }
 
         protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
         {
@@ -85,23 +81,5 @@ namespace Examine.Lucene.Directories
         /// A hash value of the original path
         /// </returns>
         private static string GetIndexPathName(DirectoryInfo indexPath) => indexPath.FullName.GenerateHash();
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                }
-
-                _disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-        }
     }
 }

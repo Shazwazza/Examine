@@ -1,48 +1,24 @@
 using System;
-using System.IO;
-using System.Threading;
 using Examine.Lucene.Providers;
 using Lucene.Net.Index;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
-    public class GenericDirectoryFactory : IDirectoryFactory
+    public class GenericDirectoryFactory : DirectoryFactoryBase
     {
         private readonly Func<string, Directory> _factory;
-        private bool _disposedValue;
-        private Directory _directory;
 
         public GenericDirectoryFactory(Func<string, Directory> factory) => _factory = factory;
 
-        public Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
-            => LazyInitializer.EnsureInitialized(ref _directory, () =>
-            {
-                Directory dir = _factory(index.Name);
-                if (forceUnlock)
-                {
-                    IndexWriter.Unlock(dir);
-                }
-                return dir;
-            });
-
-        protected virtual void Dispose(bool disposing)
+        protected override Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
         {
-            if (!_disposedValue)
+            Directory dir = _factory(index.Name);
+            if (forceUnlock)
             {
-                if (disposing)
-                {
-                    _directory?.Dispose();
-                }
-
-                _disposedValue = true;
+                IndexWriter.Unlock(dir);
             }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
+            return dir;
         }
     }
 }

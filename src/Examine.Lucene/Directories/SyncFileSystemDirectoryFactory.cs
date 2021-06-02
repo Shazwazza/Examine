@@ -17,7 +17,6 @@ namespace Examine.Lucene.Directories
         private readonly DirectoryInfo _localDir;
         private readonly ILoggerFactory _loggerFactory;
         private ExamineReplicator _replicator;
-        private Directory _directory;
 
         public SyncFileSystemDirectoryFactory(
             DirectoryInfo localDir,
@@ -30,61 +29,59 @@ namespace Examine.Lucene.Directories
             _loggerFactory = loggerFactory;
         }
 
-        public override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
-            => LazyInitializer.EnsureInitialized(ref _directory,
-                () =>
-                {
-                    var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
-                    var localLuceneIndexFolder = new DirectoryInfo(path);
+        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        {
+            var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
+            var localLuceneIndexFolder = new DirectoryInfo(path);
 
-                    Directory mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
+            Directory mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
 
-                    // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
-                    var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
+            // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
+            var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
 
-                    if (DirectoryReader.IndexExists(mainDir))
+            if (DirectoryReader.IndexExists(mainDir))
+            {
+                // when the lucene directory is going to be created, we'll sync from main storage to local
+                // storage before any index/writer is opened.
+                using (var tempMainIndexWriter = new IndexWriter(
+                    mainDir,
+                    new IndexWriterConfig(
+                        LuceneInfo.CurrentVersion,
+                        new StandardAnalyzer(LuceneInfo.CurrentVersion))
                     {
-                        // when the lucene directory is going to be created, we'll sync from main storage to local
-                        // storage before any index/writer is opened.
-                        using (var tempMainIndexWriter = new IndexWriter(
-                            mainDir,
-                            new IndexWriterConfig(
-                                LuceneInfo.CurrentVersion,
-                                new StandardAnalyzer(LuceneInfo.CurrentVersion))
-                            {
-                                OpenMode = OpenMode.APPEND,
-                                IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
-                            }))
-                        using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
-                        using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
-                        using (var replicator = new ExamineReplicator(tempMainIndex, tempLocalDirectory, tempDir))
-                        {
-                            if (forceUnlock)
-                            {
-                                IndexWriter.Unlock(tempLocalDirectory);
-                            }
-
-                            // replicate locally.
-                            replicator.ReplicateIndex();
-                        }
-                    }
-
-                    // now create the replicator that will copy from local to main on schedule
-                    _replicator = new ExamineReplicator(luceneIndex, mainDir, tempDir);
-                    var localLuceneDir = new SimpleFSDirectory(
-                        localLuceneIndexFolder,
-                        LockFactory.GetLockFactory(localLuceneIndexFolder));
-
+                        OpenMode = OpenMode.APPEND,
+                        IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
+                    }))
+                using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
+                using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
+                using (var replicator = new ExamineReplicator(tempMainIndex, tempLocalDirectory, tempDir))
+                {
                     if (forceUnlock)
                     {
-                        IndexWriter.Unlock(localLuceneDir);
-                    } 
+                        IndexWriter.Unlock(tempLocalDirectory);
+                    }
 
-                    // Start replicating back to main
-                    _replicator.StartIndexReplicationOnSchedule(1000);
+                    // replicate locally.
+                    replicator.ReplicateIndex();
+                }
+            }
 
-                    return localLuceneDir;
-                });
+            // now create the replicator that will copy from local to main on schedule
+            _replicator = new ExamineReplicator(luceneIndex, mainDir, tempDir);
+            var localLuceneDir = new SimpleFSDirectory(
+                localLuceneIndexFolder,
+                LockFactory.GetLockFactory(localLuceneIndexFolder));
+
+            if (forceUnlock)
+            {
+                IndexWriter.Unlock(localLuceneDir);
+            }
+
+            // Start replicating back to main
+            _replicator.StartIndexReplicationOnSchedule(1000);
+
+            return localLuceneDir;
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -92,7 +89,6 @@ namespace Examine.Lucene.Directories
             if (disposing)
             {
                 _replicator?.Dispose();
-                _directory?.Dispose();
             }
         }
 
