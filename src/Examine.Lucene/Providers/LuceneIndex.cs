@@ -55,7 +55,8 @@ namespace Examine.Lucene.Providers
             {
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
-            _directory = _options.DirectoryFactory.CreateDirectory(name);
+
+            _directory = new Lazy<Directory>(() => _options.DirectoryFactory.CreateDirectory(this));
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
@@ -100,7 +101,8 @@ namespace Examine.Lucene.Providers
         private PerFieldAnalyzerWrapper _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
-        private readonly Directory _directory;
+        private readonly IDirectoryFactory _directoryFactory;
+        private readonly Lazy<Directory> _directory;
         private FileStream _logOutput;
         private bool _disposedValue;
         private readonly IndexCommiter _committer;
@@ -895,7 +897,7 @@ namespace Examine.Lucene.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-        public Directory GetLuceneDirectory() => _writer != null ? _writer.IndexWriter.Directory : _directory;
+        public Directory GetLuceneDirectory() => _writer != null ? _writer.IndexWriter.Directory : _directory.Value;
 
         /// <summary>
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
@@ -1265,15 +1267,6 @@ namespace Examine.Lucene.Providers
                     {
                         try
                         {
-                            _writer?.IndexWriter?.Dispose(true);
-                        }
-                        catch (Exception e)
-                        {
-                            OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
-                        }
-
-                        try
-                        {
                             _writer?.IndexWriter?.Analyzer.Dispose();
                         }
                         catch (ObjectDisposedException)
@@ -1286,6 +1279,17 @@ namespace Examine.Lucene.Providers
                         {
                             OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index analyzer", "-1", e));
                         }
+
+                        try
+                        {
+                            _writer?.IndexWriter?.Dispose(true);
+                        }
+                        catch (Exception e)
+                        {
+                            OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
+                        }
+
+                        
                     }
 
                     _cancellationTokenSource.Dispose();

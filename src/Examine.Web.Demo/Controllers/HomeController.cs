@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Examine.Web.Demo.Controllers
 {
+
     public class HomeController : Controller
     {
         private readonly IExamineManager _examineManager;
@@ -48,7 +49,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpGet]
         public ActionResult Search(string id, string indexName = null)
         {
-            if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+            if (!_examineManager.TryGetIndex(indexName ?? "MyIndex", out var index))
                 return NotFound();
 
             var searcher = index.Searcher;
@@ -64,63 +65,9 @@ namespace Examine.Web.Demo.Controllers
         }
 
         [HttpPost]
-        public ActionResult Populate()
-        {
-            try
-            {
-                using (var db = new MyDbContext())
-                {
-                    //check if we have data
-                    if (!db.TestModels.Any())
-                    {
-                        //using TableDirect is BY FAR one of the fastest ways to bulk insert data in SqlCe... 
-                        using (db.Database.Connection)
-                        {
-                            db.Database.Connection.Open();
-
-                            // TODO: Change this to compatible EF
-
-                            //using (var cmd = (SqlCeCommand)db.Database.Connection.CreateCommand())
-                            //{
-                            //    cmd.CommandText = "TestModels";
-                            //    cmd.CommandType = CommandType.TableDirect;
-
-                            //    var rs = cmd.ExecuteResultSet(ResultSetOptions.Updatable);
-                            //    var rec = rs.CreateRecord();
-
-                            //    for (var i = 0; i < 27000; i++)
-                            //    {
-                            //        rec.SetString(1, "a" + i);
-                            //        rec.SetString(2, "b" + i);
-                            //        rec.SetString(3, "c" + i);
-                            //        rec.SetString(4, "d" + i);
-                            //        rec.SetString(5, "e" + i);
-                            //        rec.SetString(6, "f" + i);
-                            //        rs.Insert(rec);
-                            //    }
-                            //}
-                        }
-                        return View(true);
-                    }
-                    else
-                    {
-                        this.ModelState.AddModelError("DataError", "The database has already been populated with data");
-                        return View(false);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                this.ModelState.AddModelError("DataError", ex.Message);
-                return View(false);
-            }
-            
-        }
-
-        [HttpPost]
         public ActionResult RebuildIndex(string indexName = null)
         {
-            if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+            if (!_examineManager.TryGetIndex(indexName ?? "MyIndex", out var index))
                 return NotFound();
 
             var elapsed = Execute(index, i =>
@@ -130,9 +77,9 @@ namespace Examine.Web.Demo.Controllers
                     var timer = new Stopwatch();
                     timer.Start();
                     index.CreateIndex();
-                    var dataService = new TableDirectReaderDataService();
-                    //NOTE: Max 10k for now since that is the azure search limit for testing.
-                    index.IndexItems(dataService.GetAllData().Take(10000));
+                    var dataService = new BogusDataService();
+                    
+                    index.IndexItems(dataService.GetAllData());
                     timer.Stop();
 
                     return timer.Elapsed.TotalSeconds;
@@ -150,12 +97,12 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult ReIndexItems(string indexName = null)
         {
-            if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+            if (!_examineManager.TryGetIndex(indexName ?? "MyIndex", out var index))
                 return NotFound();
 
             var items = Execute(index, i =>
             {
-                var dataService = new TableDirectReaderDataService();
+                var dataService = new BogusDataService();
                 var randomItems = dataService.GetRandomItems(10).ToArray();
                 index.IndexItems(randomItems);
                 return randomItems.Length;
@@ -167,7 +114,7 @@ namespace Examine.Web.Demo.Controllers
         [HttpPost]
         public ActionResult TestIndex(string indexName = null)
         {
-            if (!_examineManager.TryGetIndex(indexName ?? "Simple2Indexer", out var index))
+            if (!_examineManager.TryGetIndex(indexName ?? "MyIndex", out var index))
                 return NotFound();
 
             if (index is IIndexStats stats)

@@ -1,30 +1,25 @@
-﻿@{
+@using Examine
+@inject IExamineManager ExamineManager
+
+
+@{
     ViewBag.Title = "Home Page";
 }
 <h2>@ViewBag.Message</h2>
 <p>
-    To learn more about ASP.NET MVC visit <a href="http://asp.net/mvc" title="ASP.NET MVC Website">
-        http://asp.net/mvc
-    </a>.
+    TODO: Add some info here about Examine.<br/>
+    TODO: Update this ugly template.
 </p>
-@using (Html.BeginForm("Populate", "Home"))
-{
-    <p>
-        Click to populate db with 27000 rows
-        <br />
-        <button id="populate" name="populate">
-            Populate
-        </button>
-    </p>
-}
 @using (Html.BeginForm("RebuildIndex", "Home"))
 {
     <p>
         Click to rebuild the index with 27000 rows into Examine
         <br />
         <select name="indexName">
-            <option value="Simple2Indexer">Simple2Indexer</option>
-            <option value="AzureIndex">AzureIndex</option>
+            @foreach(var index in ExamineManager.Indexes)
+            {
+                <option value="@index.Name">@index.Name</option>    
+            }
         </select>
         <button type="submit">Index Data</button>
     </p>
@@ -36,8 +31,10 @@
         Click to check what is in the index
         <br />
         <select name="indexName">
-            <option value="Simple2Indexer">Simple2Indexer</option>
-            <option value="AzureIndex">AzureIndex</option>
+            @foreach(var index in ExamineManager.Indexes)
+            {
+                <option value="@index.Name">@index.Name</option>    
+            }
         </select>
         <button id="index" name="index">
             Test index
@@ -51,8 +48,10 @@
         Click to re-index a few items
         <br />
         <select name="indexName">
-            <option value="Simple2Indexer">Simple2Indexer</option>
-            <option value="AzureIndex">AzureIndex</option>
+            @foreach(var index in ExamineManager.Indexes)
+            {
+                <option value="@index.Name">@index.Name</option>    
+            }
         </select>
         <button id="index" name="index">
             Re-index items
@@ -66,8 +65,10 @@
         Click to search
         <br />
         <select name="indexName">
-            <option value="Simple2Indexer">Simple2Indexer</option>
-            <option value="AzureIndex">AzureIndex</option>
+            @foreach(var index in ExamineManager.Indexes)
+            {
+                <option value="@index.Name">@index.Name</option>    
+            }
         </select>
         <input type="text" name="id" placeholder="Search..." />
         <button type="submit">Search</button>

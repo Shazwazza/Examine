@@ -1,6 +1,9 @@
 using System;
 using System.IO;
+using System.Threading;
+using Examine.Lucene.Providers;
 using Lucene.Net.Store;
+using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
@@ -15,6 +18,8 @@ namespace Examine.Lucene.Directories
     {
         private readonly IApplicationIdentifier _applicationIdentifier;
         private readonly ILockFactory _lockFactory;
+        private bool _disposedValue;
+        private Directory _directory;
 
         public DirectoryInfo BaseDir { get; }
 
@@ -27,31 +32,47 @@ namespace Examine.Lucene.Directories
             _lockFactory = lockFactory;
             BaseDir = baseDir;
         }
-        
-        public virtual global::Lucene.Net.Store.Directory CreateDirectory(string indexName)
+
+        public static string GetTempPath(IApplicationIdentifier applicationIdentifier)
         {
-            var indexFolder = new DirectoryInfo(Path.Combine(BaseDir.FullName, indexName));
-
-            var tempFolder = GetLocalStorageDirectory(indexFolder);
-
-            var simpleFsDirectory = new SimpleFSDirectory(tempFolder);
-            simpleFsDirectory.SetLockFactory(_lockFactory.GetLockFactory(tempFolder));
-            return simpleFsDirectory;
-        }
-
-        protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
-        {
-            var appDomainHash = _applicationIdentifier.GetApplicationUniqueIdentifier().GenerateHash();
-            var indexPathName = GetIndexPathName(indexPath);
-            var cachePath = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "ExamineIndexes",
+            var appDomainHash = applicationIdentifier.GetApplicationUniqueIdentifier().GenerateHash();
+            
+            var cachePath = Path.Combine(
+                Environment.ExpandEnvironmentVariables("%temp%"),
+                "ExamineIndexes",
                 //include the appdomain hash is just a safety check, for example if a website is moved from worker A to worker B and then back
                 // to worker A again, in theory the %temp%  folder should already be empty but we really want to make sure that its not
                 // utilizing an old index
-                appDomainHash, indexPathName);
-            var azureDir = new DirectoryInfo(cachePath);
-            if (azureDir.Exists == false)
-                azureDir.Create();
-            return azureDir;
+                appDomainHash);
+
+            return cachePath;
+        }
+
+        public virtual Directory CreateDirectory(LuceneIndex index)
+            => LazyInitializer.EnsureInitialized(ref _directory,
+                () =>
+                {
+                    var indexFolder = new DirectoryInfo(Path.Combine(BaseDir.FullName, index.Name));
+
+                    DirectoryInfo tempFolder = GetLocalStorageDirectory(indexFolder);
+
+                    var simpleFsDirectory = new SimpleFSDirectory(tempFolder);
+                    simpleFsDirectory.SetLockFactory(_lockFactory.GetLockFactory(tempFolder));
+                    return simpleFsDirectory;
+                });
+
+        protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
+        {
+            var indexPathName = GetIndexPathName(indexPath);
+            var tempPath = GetTempPath(_applicationIdentifier);
+            var tempDir = new DirectoryInfo(Path.Combine(tempPath, indexPathName));
+
+            if (tempDir.Exists == false)
+            {
+                tempDir.Create();
+            }
+
+            return tempDir;
         }
 
         /// <summary>
@@ -63,5 +84,22 @@ namespace Examine.Lucene.Directories
         /// </returns>
         private static string GetIndexPathName(DirectoryInfo indexPath) => indexPath.FullName.GenerateHash();
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+        }
     }
 }

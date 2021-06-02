@@ -29,14 +29,11 @@
     <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Bogus" Version="33.0.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
-    <PackageReference Include="EntityFramework" Version="6.4.4" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.5" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EFCodeFirst" Version="1.1" />
     <PackageReference Include="Modernizr" Version="1.7" />
   </ItemGroup>
 </Project>

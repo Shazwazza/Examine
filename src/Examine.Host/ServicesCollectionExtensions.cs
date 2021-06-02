@@ -8,6 +8,7 @@ using Examine.Lucene.Providers;
 using Lucene.Net.Analysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Examine
@@ -157,6 +158,23 @@ namespace Examine
                 s => ActivatorUtilities.CreateInstance<FileSystemDirectoryFactory>(
                     s,
                     new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
+
+            services.TryAddSingleton<SyncFileSystemDirectoryFactory>(
+                s =>
+                {
+                    var baseDir = appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot;
+
+                    var tempDir = TempEnvDirectoryFactory.GetTempPath(
+                        s.GetRequiredService<IApplicationIdentifier>());
+
+                    return ActivatorUtilities.CreateInstance<SyncFileSystemDirectoryFactory>(
+                        s,
+                        new object[]
+                        {
+                            new DirectoryInfo(tempDir),
+                            appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot
+                        });
+                });
 
             return services;
         }

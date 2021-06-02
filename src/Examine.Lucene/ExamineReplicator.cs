@@ -51,7 +51,17 @@ namespace Examine.Lucene
                 throw new InvalidOperationException("The destination directory is locked");
             }
 
-            var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+            IndexRevision rev;
+            try
+            {
+                rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);                
+            }
+            catch (InvalidOperationException)
+            {
+                // will occur if there is nothing to sync
+                return;
+            }
+
             _replicator.Publish(rev);
             _localReplicationClient.UpdateNow();
         }
