@@ -98,8 +98,11 @@ namespace Examine.Lucene
         /// <param name="e"></param>
         private void Index_IndexOperationComplete(object sender, IndexOperationEventArgs e)
         {
-            var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
-            _replicator.Publish(rev);
+            if (e.ItemsIndexed > 0)
+            {
+                var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+                _replicator.Publish(rev);
+            }
         }
 
         protected virtual void Dispose(bool disposing)

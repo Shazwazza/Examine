@@ -111,6 +111,26 @@ namespace Examine.Test.Examine.Lucene.Index
         }
 
         [Test]
+        public void Index_Unlocks_When_Disposed()
+        {
+            using (var luceneDir = new RandomIdRAMDirectory())
+            {
+                Assert.IsFalse(IndexWriter.IsLocked(luceneDir));
+
+                using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                {
+                    indexer.CreateIndex();
+                    indexer.IndexItems(indexer.AllData());
+
+                    Assert.IsTrue(IndexWriter.IsLocked(luceneDir));
+                }
+
+                Assert.IsFalse(IndexWriter.IsLocked(luceneDir));
+            }
+            
+        }
+
+        [Test]
         public void Rebuild_Index()
         {
             using (var d = new RandomIdRAMDirectory())

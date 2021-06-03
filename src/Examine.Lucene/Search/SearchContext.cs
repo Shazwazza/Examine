@@ -16,7 +16,7 @@ namespace Examine.Lucene.Search
 
         public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
         {
-            _searcherManager = searcherManager;
+            _searcherManager = searcherManager;            
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
         }
 

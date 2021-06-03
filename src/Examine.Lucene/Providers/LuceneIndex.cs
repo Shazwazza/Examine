@@ -18,14 +18,15 @@ using Microsoft.Extensions.Options;
 using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
+using Lucene.Net.Store;
+using J2N;
 
 namespace Examine.Lucene.Providers
 {
-
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
-    public class LuceneIndex : BaseIndexProvider, IDisposable, IIndexStats
+    public class LuceneIndex : BaseIndexProvider, IDisposable, IIndexStats, ReferenceManager.IRefreshListener
     {
         #region Constructors
 
@@ -64,6 +65,7 @@ namespace Examine.Lucene.Providers
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
+            _loggerFactory = loggerFactory;
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -92,6 +94,7 @@ namespace Examine.Lucene.Providers
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
+            _loggerFactory = loggerFactory;
         }
 
 
@@ -101,7 +104,6 @@ namespace Examine.Lucene.Providers
         private PerFieldAnalyzerWrapper _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
-        private readonly IDirectoryFactory _directoryFactory;
         private readonly Lazy<Directory> _directory;
         private FileStream _logOutput;
         private bool _disposedValue;
@@ -146,6 +148,7 @@ namespace Examine.Lucene.Providers
         private CancellationToken _cancellationToken;
 
         private readonly Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
+        private readonly ILoggerFactory _loggerFactory;
 
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
@@ -271,7 +274,9 @@ namespace Examine.Lucene.Providers
                 foreach (var valueSet in valueSets)
                 {
                     if (cancellationToken.IsCancellationRequested)
+                    {
                         break;
+                    }
 
                     var op = new IndexOperation(valueSet, IndexOperationType.Add);
                     if (ProcessQueueItem(op))
@@ -280,18 +285,21 @@ namespace Examine.Lucene.Providers
                     }
                 }
 
-                //this is required to ensure the index is written to during the same thread execution
-                if (!RunAsync)
+                if (indexedNodes > 0)
                 {
-                    //commit the changes
-                    IndexWriter.IndexWriter.Commit();
+                    //this is required to ensure the index is written to during the same thread execution
+                    if (!RunAsync)
+                    {
+                        //commit the changes
+                        IndexWriter.IndexWriter.Commit();
 
-                    // now force any searcher to be updated.
-                    WaitForChanges();
-                }
-                else
-                {
-                    _committer.ScheduleCommit();
+                        // now force any searcher to be updated.
+                        WaitForChanges();
+                    }
+                    else
+                    {
+                        _committer.ScheduleCommit();
+                    }
                 }
             }
             catch (Exception ex)
@@ -329,7 +337,7 @@ namespace Examine.Lucene.Providers
 
                         if (!indexExists)
                         {
-                            _logger.LogDebug("Initializing new index");
+                            _logger.LogDebug("Initializing new index {IndexName}", Name);
 
                             //if there's no index, we need to create one
                             CreateNewIndex(dir);
@@ -338,7 +346,7 @@ namespace Examine.Lucene.Providers
                         {
                             //it does exists so we'll need to clear it out
 
-                            _logger.LogDebug("Clearing existing index");
+                            _logger.LogDebug("Clearing existing index {IndexName}", Name);
 
                             if (_writer == null)
                             {
@@ -360,7 +368,7 @@ namespace Examine.Lucene.Providers
                             // indicates that it was locked, this generally shouldn't happen but we don't want to have unhandled exceptions
                             if (_writer == null)
                             {
-                                _logger.LogWarning("writer was null, exiting");
+                                _logger.LogWarning("{IndexName} writer was null, exiting", Name);
                                 return;
                             }
 
@@ -696,7 +704,8 @@ namespace Examine.Lucene.Providers
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
         protected virtual void AddDocument(Document doc, ValueSet valueSet)
         {
-            _logger.LogDebug("Write lucene doc id:{DocumentId}, category:{DocumentCategory}, type:{DocumentItemType}",
+            _logger.LogDebug("{IndexName} Write lucene doc id:{DocumentId}, category:{DocumentCategory}, type:{DocumentItemType}",
+                Name,
                 valueSet.Id,
                 valueSet.Category,
                 valueSet.ItemType);
@@ -790,7 +799,6 @@ namespace Examine.Lucene.Providers
                 _index = index;
             }
 
-
             public void ScheduleCommit()
             {
                 lock (_locker)
@@ -800,8 +808,8 @@ namespace Examine.Lucene.Providers
                         //if we've been cancelled then be sure to commit now
                         if (_index.IsCancellationRequested)
                         {
-                            //perform the commit
-                            _index._writer?.IndexWriter?.Commit();
+                            // perform the commit
+                            _index._writer?.IndexWriter?.Commit();                            
                         }
                         else
                         {
@@ -858,6 +866,9 @@ namespace Examine.Lucene.Providers
                         {
                             //perform the commit
                             _index._writer?.IndexWriter?.Commit();
+
+                            // after the commit, refresh the searcher
+                            _index.WaitForChanges();
                         }
                         catch (Exception e)
                         {
@@ -913,7 +924,7 @@ namespace Examine.Lucene.Providers
             {
                 if (IsLocked(dir))
                 {
-                    _logger.LogDebug("Forcing index {IndexerName} to be unlocked since it was left in a locked state", Name);
+                    _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
 
                     //unlock it!
                     Unlock(dir);
@@ -1036,11 +1047,13 @@ namespace Examine.Lucene.Providers
             }
 
             TrackingIndexWriter writer = IndexWriter;
-            var searcherManager = new SearcherManager(writer.IndexWriter, true, null);
+            var searcherManager = new SearcherManager(writer.IndexWriter, true, new SearcherFactory());
+            searcherManager.AddListener(this);
 
-            _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 5.0, 0.1)
+            _nrtReopenThread = new ControlledRealTimeReopenThread<IndexSearcher>(writer, searcherManager, 5.0, 1.0)
             {
-                Name = "NRT Reopen Thread"
+                Name = $"{Name} NRT Reopen Thread",
+                IsBackground = true
             };
 
             _nrtReopenThread.Start();
@@ -1050,7 +1063,6 @@ namespace Examine.Lucene.Providers
 
             return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection);
         }
-
 
         /// <summary>
         /// Deletes the item from the index either by id or by category
@@ -1104,17 +1116,17 @@ namespace Examine.Lucene.Providers
                 {
                     if (_asyncTask.IsCanceled)
                     {
-                        _logger.LogDebug("Indexing cancellation requested, cannot proceed");
+                        _logger.LogDebug("{IndexName} Indexing cancellation requested, cannot proceed", Name);
                         onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                     }
                     else if (_asyncTask.IsFaulted)
                     {
-                        _logger.LogDebug($"Previous task was faulted with exception {_asyncTask.Exception.ToString() ?? "NULL"}");
+                        _logger.LogDebug(_asyncTask.Exception, "{IndexName} Previous task was faulted with exception", Name);
                         onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                     }
                     else
                     {
-                        _logger.LogDebug("Queuing a new background thread");
+                        _logger.LogDebug("{IndexName} Queuing a new background thread", Name);
 
                         // The task is initialized to completed so just continue with
                         // and return the new task so that any new appended tasks are the current
@@ -1142,12 +1154,12 @@ namespace Examine.Lucene.Providers
 
                         if (t.IsCanceled)
                         {
-                            _logger.LogDebug("Task was cancelled before it began");
+                            _logger.LogDebug("{IndexName} Task was cancelled before it began", Name);
                             onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                         }
                         else if (t.IsFaulted)
                         {
-                            _logger.LogDebug(_asyncTask.Exception, $"Task was cancelled before it began");
+                            _logger.LogDebug(_asyncTask.Exception, "{IndexName} Task was cancelled before it began", Name);
                             onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                         }
 
@@ -1171,7 +1183,8 @@ namespace Examine.Lucene.Providers
         {
             if (_latestGen.HasValue)
             {
-                _nrtReopenThread?.WaitForGeneration(_latestGen.Value);
+                var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
+                _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
             }
         }
 
@@ -1289,7 +1302,7 @@ namespace Examine.Lucene.Providers
                             OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the index", "-1", e));
                         }
 
-                        
+
                     }
 
                     _cancellationTokenSource.Dispose();
@@ -1301,6 +1314,11 @@ namespace Examine.Lucene.Providers
         }
 
         public void Dispose() => Dispose(disposing: true);
+
+        void ReferenceManager.IRefreshListener.BeforeRefresh() { }
+
+        void ReferenceManager.IRefreshListener.AfterRefresh(bool didRefresh)
+            => _logger.LogDebug("{IndexName} searcher refreshed? {DidRefresh}", Name, didRefresh);
     }
 
 

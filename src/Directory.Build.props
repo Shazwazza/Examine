@@ -19,6 +19,7 @@
     <Authors>shandem</Authors>
     <PackageIcon>logo-round.png</PackageIcon>
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
+    <VersionPrefix>2.0.0</VersionPrefix>
   </PropertyGroup>
 
 </Project>
