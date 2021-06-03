@@ -1181,7 +1181,7 @@ namespace Examine.Lucene.Providers
         /// </remarks>
         public void WaitForChanges()
         {
-            if (_latestGen.HasValue)
+            if (_latestGen.HasValue && !_disposedValue && !_cancellationToken.IsCancellationRequested)
             {
                 var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
                 _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
