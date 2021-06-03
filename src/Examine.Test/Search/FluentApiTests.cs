@@ -2069,6 +2069,43 @@ namespace Examine.Test.Search
         }
 
         [Test]
+        public void Can_Skip()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                //Arrange
+
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+
+                //Act
+
+                var results = sc.Execute().ToList();
+                Assert.AreEqual(3, results.Count);
+
+                results = sc.Execute().Skip(1).ToList();
+                Assert.AreEqual(2, results.Count);
+
+                results = sc.Execute().Skip(2).ToList();
+                Assert.AreEqual(1, results.Count);
+            }
+        }
+
+        [Test]
         public void Lucene_Document_Skip_Results_Returns_Different_Results()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
