@@ -4,6 +4,7 @@ using System.Threading;
 using Examine.Lucene;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 namespace Examine.Test.Examine.Lucene.Sync
@@ -11,6 +12,9 @@ namespace Examine.Test.Examine.Lucene.Sync
     [TestFixture]
     public class ExamineReplicatorTests : ExamineBaseTest
     {
+        private ILoggerFactory GetLoggerFactory()
+            => LoggerFactory.Create(x => x.AddConsole().SetMinimumLevel(LogLevel.Debug));
+
         [Test]
         public void GivenAMainIndex_WhenReplicatedLocally_TheLocalIndexIsPopulated()
         {
@@ -20,7 +24,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
             using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-            using (var replicator = new ExamineReplicator(mainIndex, localDir, tempStorage))
+            using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
             {
                 mainIndex.CreateIndex();
 
@@ -55,7 +59,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
             using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-            using (var replicator = new ExamineReplicator(mainIndex, localDir, tempStorage))
+            using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
             using (TestIndex localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 mainIndex.CreateIndex();
@@ -84,7 +88,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var localDir = new RandomIdRAMDirectory())
             {
                 using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-                using (var replicator = new ExamineReplicator(mainIndex, localDir, tempStorage))
+                using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
                     mainIndex.IndexItems(mainIndex.AllData());
@@ -100,7 +104,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                                 {"item2", new List<object>(new[] {"value2"})}
                             }));
 
-                    using (var replicator = new ExamineReplicator(localIndex, mainDir, tempStorage))
+                    using (var replicator = new ExamineReplicator(GetLoggerFactory(), localIndex, mainDir, tempStorage))
                     {
                         // replicate back to main, main index must be closed
                         replicator.ReplicateIndex();
@@ -126,7 +130,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var localDir = new RandomIdRAMDirectory())
             {
                 using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
-                using (var replicator = new ExamineReplicator(mainIndex, localDir, tempStorage))
+                using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
                     mainIndex.IndexItems(mainIndex.AllData());
@@ -136,6 +140,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                 using (TestIndex localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 {
                     using (var replicator = new ExamineReplicator(
+                        GetLoggerFactory(),
                         localIndex,
                         mainDir,
                         tempStorage))

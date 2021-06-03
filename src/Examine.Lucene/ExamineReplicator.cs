@@ -3,6 +3,8 @@ using System.IO;
 using Examine.Lucene.Providers;
 using Lucene.Net.Index;
 using Lucene.Net.Replicator;
+using Lucene.Net.Store;
+using Microsoft.Extensions.Logging;
 using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene
@@ -22,8 +24,10 @@ namespace Examine.Lucene
         private readonly ReplicationClient _localReplicationClient;
         private readonly object _locker = new object();
         private bool _started = false;
+        private readonly ILogger<ExamineReplicator> _logger;
 
         public ExamineReplicator(
+            ILoggerFactory loggerFactory,
             LuceneIndex sourceIndex,
             Directory destinationDirectory,
             DirectoryInfo tempStorage)
@@ -31,13 +35,30 @@ namespace Examine.Lucene
             _sourceIndex = sourceIndex;
             _destinationDirectory = destinationDirectory;
             _replicator = new LocalReplicator();
+            _logger = loggerFactory.CreateLogger<ExamineReplicator>();
 
-            _localReplicationClient = new ReplicationClient(
+            _localReplicationClient = new LoggingReplicationClient(
+                loggerFactory.CreateLogger<LoggingReplicationClient>(),
                 _replicator,
                 new IndexReplicationHandler(
-                    destinationDirectory,
-                    // Can be used to notifiy when replication is done (i.e. to open the index)
-                    () => true /*on update?*/),
+                    destinationDirectory,                    
+                    () =>
+                    {
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                        {
+                            var sourceDir = sourceIndex.GetLuceneDirectory() as FSDirectory;
+                            var destDir = destinationDirectory as FSDirectory;
+
+                            // Callback, can be used to notifiy when replication is done (i.e. to open the index)
+                            _logger.LogDebug(
+                                "{IndexName} replication complete from {SourceDirectory} to {DestinationDirectory}",
+                                sourceIndex.Name,
+                                sourceDir?.Directory.ToString() ?? "InMemory",
+                                destDir?.Directory.ToString() ?? "InMemory");
+                        }
+                        // Doesn't matter what is returned, Lucene.Net doesn't use this value
+                        return true;
+                    }),
                 new PerSessionDirectoryFactory(tempStorage.FullName));
         }
 
@@ -82,27 +103,26 @@ namespace Examine.Lucene
                     throw new InvalidOperationException("The destination directory is locked");
                 }
 
-                _sourceIndex.IndexOperationComplete += Index_IndexOperationComplete;
+                _sourceIndex.IndexCommitted += SourceIndex_IndexCommitted;
 
                 // this will update the destination every second if there are changes.
                 // the change monitor will be stopped when this is disposed.
-                _localReplicationClient.StartUpdateThread(milliseconds, null);
+                _localReplicationClient.StartUpdateThread(milliseconds, $"IndexRep{_sourceIndex.Name}");
             }
 
         }
 
         /// <summary>
-        /// Whenever an index operation is complete, publish the new revision to be synced.
+        /// Whenever the index is committed, publish the new revision to be synced.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Index_IndexOperationComplete(object sender, IndexOperationEventArgs e)
+        private void SourceIndex_IndexCommitted(object sender, EventArgs e)
         {
-            if (e.ItemsIndexed > 0)
-            {
-                var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
-                _replicator.Publish(rev);
-            }
+            var index = (LuceneIndex)sender;
+            _logger.LogDebug("{IndexName} committed", index.Name);
+            var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
+            _replicator.Publish(rev);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -111,7 +131,7 @@ namespace Examine.Lucene
             {
                 if (disposing)
                 {
-                    _sourceIndex.IndexOperationComplete -= Index_IndexOperationComplete;
+                    _sourceIndex.IndexCommitted -= SourceIndex_IndexCommitted;
                     _localReplicationClient.Dispose();
                 }
 

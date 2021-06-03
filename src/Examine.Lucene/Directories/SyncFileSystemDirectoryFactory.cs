@@ -54,7 +54,7 @@ namespace Examine.Lucene.Directories
                     }))
                 using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
                 using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
-                using (var replicator = new ExamineReplicator(tempMainIndex, tempLocalDirectory, tempDir))
+                using (var replicator = new ExamineReplicator(_loggerFactory, tempMainIndex, tempLocalDirectory, tempDir))
                 {
                     if (forceUnlock)
                     {
@@ -67,7 +67,7 @@ namespace Examine.Lucene.Directories
             }
 
             // now create the replicator that will copy from local to main on schedule
-            _replicator = new ExamineReplicator(luceneIndex, mainDir, tempDir);
+            _replicator = new ExamineReplicator(_loggerFactory, luceneIndex, mainDir, tempDir);
             var localLuceneDir = new SimpleFSDirectory(
                 localLuceneIndexFolder,
                 LockFactory.GetLockFactory(localLuceneIndexFolder));

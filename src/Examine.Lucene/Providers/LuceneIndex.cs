@@ -23,6 +23,9 @@ using J2N;
 
 namespace Examine.Lucene.Providers
 {
+    // TODO: I think we should borrow the IBackgroundTaskQueue from Umbraco and use that to do all background
+    // task processing? seems it would be a lot simpler? Then can be replaced with aspnetcore implementation
+
     ///<summary>
     /// Abstract object containing all of the logic used to use Lucene as an indexer
     ///</summary>
@@ -202,6 +205,8 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
 
+        public event EventHandler IndexCommitted;
+
         #endregion
 
         #region Event handlers
@@ -291,7 +296,7 @@ namespace Examine.Lucene.Providers
                     if (!RunAsync)
                     {
                         //commit the changes
-                        IndexWriter.IndexWriter.Commit();
+                        _committer.CommitNow();
 
                         // now force any searcher to be updated.
                         WaitForChanges();
@@ -376,7 +381,7 @@ namespace Examine.Lucene.Providers
                             {
                                 //remove all of the index data
                                 _latestGen = _writer.DeleteAll();
-                                _writer.IndexWriter.Commit();
+                                _committer.CommitNow();
                             }
                             finally
                             {
@@ -519,7 +524,7 @@ namespace Examine.Lucene.Providers
                 if (!RunAsync)
                 {
                     //commit the changes (this will process the deletes too)
-                    IndexWriter.IndexWriter.Commit();
+                    _committer.CommitNow();
 
                     // now force any searcher to be updated.
                     WaitForChanges();
@@ -677,7 +682,7 @@ namespace Examine.Lucene.Providers
 
                 if (performCommit)
                 {
-                    IndexWriter.IndexWriter.Commit();
+                    _committer.CommitNow();
                 }
 
                 return true;
@@ -799,6 +804,12 @@ namespace Examine.Lucene.Providers
                 _index = index;
             }
 
+            public void CommitNow()
+            {
+                _index._writer?.IndexWriter?.Commit();
+                _index.IndexCommitted?.Invoke(_index, EventArgs.Empty);
+            }
+
             public void ScheduleCommit()
             {
                 lock (_locker)
@@ -809,7 +820,7 @@ namespace Examine.Lucene.Providers
                         if (_index.IsCancellationRequested)
                         {
                             // perform the commit
-                            _index._writer?.IndexWriter?.Commit();                            
+                            CommitNow();
                         }
                         else
                         {
@@ -830,7 +841,7 @@ namespace Examine.Lucene.Providers
                             _timer = null;
 
                             //perform the commit
-                            _index._writer?.IndexWriter?.Commit();
+                            CommitNow();
                         }
                         else if (
                             // must be less than the max
@@ -865,7 +876,7 @@ namespace Examine.Lucene.Providers
                         try
                         {
                             //perform the commit
-                            _index._writer?.IndexWriter?.Commit();
+                            CommitNow();
 
                             // after the commit, refresh the searcher
                             _index.WaitForChanges();
