@@ -2106,6 +2106,130 @@ namespace Examine.Test.Search
         }
 
         [Test]
+        public void Paging_With_Max_Results()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" }),
+                    ValueSet.FromObject(5.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(6.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                //Arrange
+
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+                int pageIndex = 0;
+                int pageSize = 2;
+
+                //Act
+
+                var results = sc
+                    .Execute(maxResults: pageSize * (pageIndex + 1))
+                    .Skip(pageIndex * pageSize).ToList();
+                Assert.AreEqual(2, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute(maxResults: pageSize * (pageIndex + 1))
+                    .Skip(pageIndex * pageSize).ToList();
+                Assert.AreEqual(2, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute(maxResults: pageSize * (pageIndex + 1))
+                    .Skip(pageIndex * pageSize).ToList();
+                Assert.AreEqual(1, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute(maxResults: pageSize * (pageIndex + 1))
+                    .Skip(pageIndex * pageSize).ToList();
+                Assert.AreEqual(0, results.Count);
+            }
+        }
+
+        [Test]
+        public void Paging_With_Skip_Take()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" }),
+                    ValueSet.FromObject(5.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(6.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                //Arrange
+
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+                int pageIndex = 0;
+                int pageSize = 2;
+
+                //Act
+
+                var results = sc
+                    .Execute()
+                    .SkipTake(pageIndex * pageSize, pageSize)
+                    .ToList();
+                Assert.AreEqual(2, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute()
+                    .SkipTake(pageIndex * pageSize, pageSize)
+                    .ToList();
+                Assert.AreEqual(2, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute()
+                    .SkipTake(pageIndex * pageSize, pageSize)
+                    .ToList();
+                Assert.AreEqual(1, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute()
+                    .SkipTake(pageIndex * pageSize, pageSize)
+                    .ToList();
+                Assert.AreEqual(0, results.Count);
+            }
+        }
+
+        [Test]
         public void Lucene_Document_Skip_Results_Returns_Different_Results()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
