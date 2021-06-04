@@ -1,9 +1,5 @@
 using System;
 using System.IO;
-using System.Threading;
-using Examine.Lucene.Providers;
-using Lucene.Net.Store;
-using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
@@ -14,21 +10,14 @@ namespace Examine.Lucene.Directories
     /// <remarks>
     /// This works well for Azure Web Apps directory sync
     /// </remarks>
-    public class TempEnvDirectoryFactory : DirectoryFactoryBase
+    public class TempEnvFileSystemDirectoryFactory : FileSystemDirectoryFactory
     {
-        private readonly IApplicationIdentifier _applicationIdentifier;
-        private readonly ILockFactory _lockFactory;
-
-        public DirectoryInfo BaseDir { get; }
-
-        public TempEnvDirectoryFactory(
+        public TempEnvFileSystemDirectoryFactory(
             IApplicationIdentifier applicationIdentifier,
             ILockFactory lockFactory,
             DirectoryInfo baseDir)
+            : base(GetLocalStorageDirectory(baseDir, applicationIdentifier), lockFactory)
         {
-            _applicationIdentifier = applicationIdentifier;
-            _lockFactory = lockFactory;
-            BaseDir = baseDir;
         }
 
         public static string GetTempPath(IApplicationIdentifier applicationIdentifier)
@@ -46,23 +35,10 @@ namespace Examine.Lucene.Directories
             return cachePath;
         }
 
-        protected override Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
-        {
-            var indexFolder = new DirectoryInfo(Path.Combine(BaseDir.FullName, index.Name));
-
-            DirectoryInfo tempFolder = GetLocalStorageDirectory(indexFolder);
-
-            var simpleFsDirectory = new SimpleFSDirectory(
-                tempFolder,
-                _lockFactory.GetLockFactory(tempFolder));
-
-            return simpleFsDirectory;
-        }
-
-        protected DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath)
+        private static DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath, IApplicationIdentifier applicationIdentifier)
         {
             var indexPathName = GetIndexPathName(indexPath);
-            var tempPath = GetTempPath(_applicationIdentifier);
+            var tempPath = GetTempPath(applicationIdentifier);
             var tempDir = new DirectoryInfo(Path.Combine(tempPath, indexPathName));
 
             if (tempDir.Exists == false)

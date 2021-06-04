@@ -11,9 +11,9 @@ namespace Examine.Web.Demo
     /// </summary>
     public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirectoryIndexOptions>
     {
-        private readonly SyncFileSystemDirectoryFactory _syncFileSystemDirectoryFactory;
+        private readonly SyncedFileSystemDirectoryFactory _syncFileSystemDirectoryFactory;
 
-        public ConfigureIndexOptions(SyncFileSystemDirectoryFactory syncFileSystemDirectoryFactory)
+        public ConfigureIndexOptions(SyncedFileSystemDirectoryFactory syncFileSystemDirectoryFactory)
         {
             _syncFileSystemDirectoryFactory = syncFileSystemDirectoryFactory;
         }

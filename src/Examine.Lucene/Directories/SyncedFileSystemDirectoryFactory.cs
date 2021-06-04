@@ -12,13 +12,21 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
-    public class SyncFileSystemDirectoryFactory : FileSystemDirectoryFactory
+    /// <summary>
+    /// A directory factory that replicates the index from main storage on initialization to another
+    /// directory, then creates a lucene Directory based on that replicated index. A replication thread
+    /// is spawned to then replicate the local index back to the main storage location.
+    /// </summary>
+    /// <remarks>
+    /// By default, Examine configures the local directory to be the %temp% folder.
+    /// </remarks>
+    public class SyncedFileSystemDirectoryFactory : FileSystemDirectoryFactory
     {
         private readonly DirectoryInfo _localDir;
         private readonly ILoggerFactory _loggerFactory;
         private ExamineReplicator _replicator;
 
-        public SyncFileSystemDirectoryFactory(
+        public SyncedFileSystemDirectoryFactory(
             DirectoryInfo localDir,
             DirectoryInfo mainDir,
             ILockFactory lockFactory,

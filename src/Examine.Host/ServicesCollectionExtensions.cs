@@ -149,8 +149,8 @@ namespace Examine
             services.TryAddSingleton<IApplicationIdentifier, AspNetCoreApplicationIdentifier>();
             services.TryAddSingleton<ILockFactory, DefaultLockFactory>();
             
-            services.TryAddSingleton<TempEnvDirectoryFactory>(
-                s => ActivatorUtilities.CreateInstance<TempEnvDirectoryFactory>(
+            services.TryAddSingleton<TempEnvFileSystemDirectoryFactory>(
+                s => ActivatorUtilities.CreateInstance<TempEnvFileSystemDirectoryFactory>(
                     s,
                     new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
 
@@ -159,15 +159,15 @@ namespace Examine
                     s,
                     new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
 
-            services.TryAddSingleton<SyncFileSystemDirectoryFactory>(
+            services.TryAddSingleton<SyncedFileSystemDirectoryFactory>(
                 s =>
                 {
                     var baseDir = appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot;
 
-                    var tempDir = TempEnvDirectoryFactory.GetTempPath(
+                    var tempDir = TempEnvFileSystemDirectoryFactory.GetTempPath(
                         s.GetRequiredService<IApplicationIdentifier>());
 
-                    return ActivatorUtilities.CreateInstance<SyncFileSystemDirectoryFactory>(
+                    return ActivatorUtilities.CreateInstance<SyncedFileSystemDirectoryFactory>(
                         s,
                         new object[]
                         {
