@@ -14,9 +14,8 @@ namespace Examine.Lucene.Directories
     {
         public TempEnvFileSystemDirectoryFactory(
             IApplicationIdentifier applicationIdentifier,
-            ILockFactory lockFactory,
-            DirectoryInfo baseDir)
-            : base(GetLocalStorageDirectory(baseDir, applicationIdentifier), lockFactory)
+            ILockFactory lockFactory)
+            : base(new DirectoryInfo(GetTempPath(applicationIdentifier)), lockFactory)
         {
         }
 
@@ -34,28 +33,5 @@ namespace Examine.Lucene.Directories
 
             return cachePath;
         }
-
-        private static DirectoryInfo GetLocalStorageDirectory(DirectoryInfo indexPath, IApplicationIdentifier applicationIdentifier)
-        {
-            var indexPathName = GetIndexPathName(indexPath);
-            var tempPath = GetTempPath(applicationIdentifier);
-            var tempDir = new DirectoryInfo(Path.Combine(tempPath, indexPathName));
-
-            if (tempDir.Exists == false)
-            {
-                tempDir.Create();
-            }
-
-            return tempDir;
-        }
-
-        /// <summary>
-        /// Return a sub folder name to store under the temp folder
-        /// </summary>
-        /// <param name="indexPath"></param>
-        /// <returns>
-        /// A hash value of the original path
-        /// </returns>
-        private static string GetIndexPathName(DirectoryInfo indexPath) => indexPath.FullName.GenerateHash();
     }
 }

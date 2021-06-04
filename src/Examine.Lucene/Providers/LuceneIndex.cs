@@ -588,7 +588,6 @@ namespace Examine.Lucene.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-
         public override bool IndexExists() => _writer != null || IndexExistsImpl();
 
         /// <summary>
