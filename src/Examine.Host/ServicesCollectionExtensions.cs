@@ -148,11 +148,8 @@ namespace Examine
             services.TryAddSingleton<IExamineManager, ExamineManager>();
             services.TryAddSingleton<IApplicationIdentifier, AspNetCoreApplicationIdentifier>();
             services.TryAddSingleton<ILockFactory, DefaultLockFactory>();
-            
-            services.TryAddSingleton<TempEnvFileSystemDirectoryFactory>(
-                s => ActivatorUtilities.CreateInstance<TempEnvFileSystemDirectoryFactory>(
-                    s,
-                    new[] { appRootDirectory ?? s.GetRequiredService<IApplicationRoot>().ApplicationRoot }));
+
+            services.TryAddSingleton<TempEnvFileSystemDirectoryFactory>();
 
             services.TryAddSingleton<FileSystemDirectoryFactory>(
                 s => ActivatorUtilities.CreateInstance<FileSystemDirectoryFactory>(
