@@ -76,11 +76,11 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var maxResults = Math.Min(_options.Take, MaxDoc);
+            var maxResults = Math.Min(_options.Skip * _options.Take, MaxDoc);
             maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
 
             ICollector topDocsCollector;
-            var sortFields = _sortField as SortField[] ?? _sortField.ToArray();
+            SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
             if (sortFields.Length > 0)
             {
                 topDocsCollector = TopFieldCollector.Create(
@@ -95,17 +95,14 @@ namespace Examine.Lucene.Search
             {
                 searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
 
-                var skip = _options.Skip;
-                var take = maxResults;
-
                 TopDocs topDocs;
                 if (sortFields.Length > 0)
                 {
-                    topDocs = ((TopFieldCollector)topDocsCollector).GetTopDocs(skip, take);
+                    topDocs = ((TopFieldCollector)topDocsCollector).GetTopDocs(_options.Skip, _options.Take);
                 }
                 else
                 {
-                    topDocs = ((TopScoreDocCollector)topDocsCollector).GetTopDocs(skip, take);
+                    topDocs = ((TopScoreDocCollector)topDocsCollector).GetTopDocs(_options.Skip, _options.Take);
                 }
 
                 var totalItemCount = topDocs.TotalHits;
