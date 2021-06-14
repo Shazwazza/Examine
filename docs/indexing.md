@@ -9,6 +9,8 @@ order: 0
 Indexing
 ===
 
+_**Tip**: There are many examples of indexing in the [`LuceneIndexTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Index/LuceneIndexTests.cs) to use as examples/reference._
+
 Examine will index any data you give it within a `ValueSet`. You can index one or multiple items at once and there's a few different ways to do that. Each field in a `ValueSet` can also contain one or more values. 
 
 A `ValueSet` is fairly simple, it is really just:
@@ -131,4 +133,20 @@ using (myIndex.ProcessNonAsync())
 
 ## Events
 
-_TODO: Fill this in..._
+### IIndex.IndexOperationComplete
+
+This event is part of the base interface `IIndex` so it is available to use on any implementation of an Examine index. This can be useful to know when an indexing operation is completed.
+
+### LuceneIndex.DocumentWriting
+
+If using Examine with the default Lucene implementation then the `IIndex` implementation will be `LuceneIndex`. This event provides access to the Lucene `Document` object before it gets added to the Lucene Index. 
+
+You can use this event to entirely customize how the data is stored in the Lucene index, including adding custom boosting profiles, changing the `Document`'s field values or types, etc...
+
+### BaseIndexProvider.TransformingIndexValues
+
+Most Examine index implementations will inherit from `BaseIndexProvider`. This event allows for customizing the `ValueSet` before it is passed to the indexer to be indexed. You can use this event to add additional field values or modify existing field values.
+
+### BaseIndexProvider.IndexingError
+
+Most Examine index implementations will inherit from `BaseIndexProvider`. This event can be used for reacting to when an error occurs during index. For example, you could add an event handler for this event to facilitate error logging.

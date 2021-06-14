@@ -2006,5 +2006,100 @@ namespace Examine.Test.Examine.Lucene.Search
             }
 
         }
+        public void Can_Skip()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+
+                //Act
+
+                var results = sc.Execute().ToList();
+                Assert.AreEqual(3, results.Count);
+
+                results = sc.Execute().Skip(1).ToList();
+                Assert.AreEqual(2, results.Count);
+
+                results = sc.Execute().Skip(2).ToList();
+                Assert.AreEqual(1, results.Count);
+            }
+        }
+
+        [Test]
+        public void Paging_With_Skip_Take()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" }),
+                    ValueSet.FromObject(5.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(6.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+                int pageIndex = 0;
+                int pageSize = 2;
+
+                //Act
+
+                var results = sc
+                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                    .ToList();                    
+                Assert.AreEqual(2, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                    .ToList();
+                Assert.AreEqual(2, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                    .ToList();
+                Assert.AreEqual(1, results.Count);
+
+                pageIndex++;
+
+                results = sc
+                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                    .ToList();
+                Assert.AreEqual(0, results.Count);
+            }
+        }
     }
 }

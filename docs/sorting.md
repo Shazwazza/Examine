@@ -17,7 +17,32 @@ By default search results are ordered by Score descending so there's nothing spe
 
 ## Custom sorting
 
-_TODO: Fill this in..._
+Any field that is a [numerical or date based](https://shazwazza.github.io/Examine/configuration.html#default-value-types) is automatically sortable. To make text based fields sortable you need to explicitly opt-in for that behavior. By default all fields are [`FieldDefinitionTypes.FullText`](https://shazwazza.github.io/Examine/configuration.html#default-value-types) which are not sortable. To make a text field sortable it needs to be [`FieldDefinitionTypes.FullTextSortable`](https://shazwazza.github.io/Examine/configuration.html#default-value-types).
+
+_You cannot sort on multiple fields. If that is a requirement, then you need to create a separate field to store the combined data from those fields in a sortable format._
+
+Sorting is done by either the `OrderBy` or `OrderByDescending` methods using a `SortableField` and a `SortType`. The `SortType` should typically match the field definition type (i.e. Int, Long, Double, etc...) 
+
+* For `FieldDefinitionTypes.FullTextSortable` use `SortType.String`
+* For `FieldDefinitionTypes.DateTime` use `SortType.Long`. 
+
+Example:
+
+```cs
+ var searcher = indexer.GetSearcher();
+
+ var orderedResults = searcher
+   .CreateQuery("content")
+   .Field("writerName", "administrator")
+   .OrderBy(new SortableField("name", SortType.String))
+   .Execute();
+   
+var orderedDescendingResults = searcher
+   .CreateQuery("content")
+   .Field("writerName", "administrator")
+   .OrderByDescending(new SortableField("name", SortType.String))
+   .Execute();
+```
 
 ## Limiting results
 

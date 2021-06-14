@@ -327,7 +327,10 @@ namespace Examine.Lucene.Search
                     if (useQueryParser)
                     {
                         queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
-                        queryToAdd.Boost = fieldValue.Level;
+                        if (queryToAdd != null)
+                        { 
+                            queryToAdd.Boost = fieldValue.Level;
+                        }
                     }
                     else
                     {
