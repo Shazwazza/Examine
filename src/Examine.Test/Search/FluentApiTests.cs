@@ -593,6 +593,120 @@ namespace Examine.Test.Search
         }
 
         [Test]
+        public void And_Grouped_Not()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ficus", headerText = "header 1", umbracoNaviHide = "1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content")
+                    .Field("nodeName", "name")
+                    .And().GroupedOr(new[] { "bodyText" }, new[] { "ficus", "ipsum" })
+                    .And().GroupedNot(new[] { "umbracoNaviHide" }, new[] { 1.ToString() });
+                
+                Console.WriteLine(query);
+                var results = query.Execute();
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void And_Not_Single_Field()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ficus", headerText = "header 1", umbracoNaviHide = "1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content")
+                    .Field("nodeName", "name")
+                    .And().GroupedOr(new[] { "bodyText" }, new[] { "ficus", "ipsum" })
+                    .Not().Field("umbracoNaviHide", 1.ToString());
+
+                Console.WriteLine(query);
+                var results = query.Execute();
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void AndNot_Nested()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ficus", headerText = "header 1", umbracoNaviHide = "1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content")
+                    .Field("nodeName", "name")
+                    .And().GroupedOr(new[] { "bodyText" }, new[] { "ficus", "ipsum" })
+                    .AndNot(x => x.Field("umbracoNaviHide", 1.ToString()));
+
+                // TODO: This results in { Category: content, LuceneQuery: +nodeName:name +(bodyText:ficus bodyText:ipsum) -(+umbracoNaviHide:1) }
+                // Which I don't think is right with the -(+ syntax but it still seems to work.
+
+                Console.WriteLine(query);
+                var results = query.Execute();
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void And_Not_Added_Later()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ficus", headerText = "header 1", umbracoNaviHide = "1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content")
+                    .Field("nodeName", "name");
+
+                query = query
+                    .And().GroupedNot(new[] { "umbracoNaviHide" }, new[] { 1.ToString(), 2.ToString() });
+
+                // Results in { Category: content, LuceneQuery: +nodeName:name -umbracoNaviHide:1 -umbracoNaviHide:2 }
+
+                Console.WriteLine(query);
+                var results = query.Execute();
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+
+        [Test]
         public void Match_By_Path()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
