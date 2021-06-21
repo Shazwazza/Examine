@@ -603,9 +603,9 @@ namespace Examine.Test.Examine.Lucene.Search
         [Test]
         public void And_Grouped_Not()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -614,13 +614,13 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = searcher.CreateQuery("content")
                     .Field("nodeName", "name")
                     .And().GroupedOr(new[] { "bodyText" }, new[] { "ficus", "ipsum" })
                     .And().GroupedNot(new[] { "umbracoNaviHide" }, new[] { 1.ToString() });
-                
+
                 Console.WriteLine(query);
                 var results = query.Execute();
                 Assert.AreEqual(1, results.TotalItemCount);
@@ -630,9 +630,9 @@ namespace Examine.Test.Examine.Lucene.Search
         [Test]
         public void And_Not_Single_Field()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -641,7 +641,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = searcher.CreateQuery("content")
                     .Field("nodeName", "name")
@@ -657,9 +657,9 @@ namespace Examine.Test.Examine.Lucene.Search
         [Test]
         public void AndNot_Nested()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -668,7 +668,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = searcher.CreateQuery("content")
                     .Field("nodeName", "name")
@@ -687,9 +687,9 @@ namespace Examine.Test.Examine.Lucene.Search
         [Test]
         public void And_Not_Added_Later()
         {
-            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = new TestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -698,7 +698,7 @@ namespace Examine.Test.Examine.Lucene.Search
                         new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
                     });
 
-                var searcher = indexer.GetSearcher();
+                var searcher = indexer.Searcher;
 
                 var query = searcher.CreateQuery("content")
                     .Field("nodeName", "name");
