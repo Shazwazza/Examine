@@ -172,7 +172,7 @@ namespace Examine.Lucene.Providers
             ?? (_fieldAnalyzer =
                 (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
                     ? pfa
-                    : new PerFieldAnalyzerWrapper(DefaultAnalyzer));
+                    : _fieldValueTypeCollection.Value.Analyzer);
 
         /// <summary>
         /// Used to keep track of how many index commits have been performed.
@@ -574,7 +574,7 @@ namespace Examine.Lucene.Providers
                 }
             }
 
-            var result = new FieldValueTypeCollection(FieldAnalyzer, defaults, FieldDefinitions);
+            var result = new FieldValueTypeCollection(DefaultAnalyzer, defaults, FieldDefinitions);
             return result;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Examine.Lucene.Search;
 using Examine.Search;
+using J2N;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;

@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -21,23 +18,17 @@ namespace Examine.Lucene.Indexing
         public virtual string SortableFieldName => null;
 
         public bool Store { get; }
-        
+
         protected IndexFieldValueTypeBase(string fieldName, ILogger<IndexFieldValueTypeBase> logger, bool store = true)
         {
             FieldName = fieldName;
             _logger = logger;
-            Store = store;            
+            Store = store;
         }
 
-        public virtual void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
-        {
-            
-        }
+        public virtual Analyzer Analyzer => null;
 
-        public virtual void AddValue(Document doc, object value)
-        {
-            AddSingleValueInternal(doc, value);
-        }
+        public virtual void AddValue(Document doc, object value) => AddSingleValueInternal(doc, value);
 
         private void AddSingleValueInternal(Document doc, object value)
         {
@@ -47,20 +38,17 @@ namespace Examine.Lucene.Indexing
             }
         }
 
-        protected abstract void AddSingleValue(Document doc, object value);        
-        
+        protected abstract void AddSingleValue(Document doc, object value);
+
         /// <summary>
         /// By default returns a <see cref="TermQuery"/>
         /// </summary>
         /// <param name="query"></param>
         /// 
         /// <returns></returns>
-        public virtual Query GetQuery(string query)
-        {
-            return new TermQuery(new Term(FieldName, query));
-        }
+        public virtual Query GetQuery(string query) => new TermQuery(new Term(FieldName, query));
 
-        
+
         //TODO: We shoud convert this to the TryConvertTo in the umb codebase!
 
         /// <summary>

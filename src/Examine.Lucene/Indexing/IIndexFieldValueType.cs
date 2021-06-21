@@ -19,7 +19,10 @@ namespace Examine.Lucene.Indexing
 
         bool Store { get; }
 
-        void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer);
+        /// <summary>
+        /// Returns the analyzer for this field type, or null to use the default
+        /// </summary>
+        Analyzer Analyzer { get; }
 
         void AddValue(Document doc, object value);
         

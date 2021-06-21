@@ -45,11 +45,7 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
 
-        public override void SetupAnalyzers(PerFieldAnalyzerWrapper analyzer)
-        {
-            base.SetupAnalyzers(analyzer);
-
-        }
+        public override Analyzer Analyzer => _analyzer;
 
         protected override void AddSingleValue(Document doc, object value)
         {
