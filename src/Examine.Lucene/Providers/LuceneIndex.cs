@@ -18,8 +18,6 @@ using Microsoft.Extensions.Options;
 using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
-using Lucene.Net.Store;
-using J2N;
 
 namespace Examine.Lucene.Providers
 {
@@ -68,7 +66,6 @@ namespace Examine.Lucene.Providers
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
-            _loggerFactory = loggerFactory;
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -97,7 +94,6 @@ namespace Examine.Lucene.Providers
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
-            _loggerFactory = loggerFactory;
         }
 
 
@@ -151,7 +147,6 @@ namespace Examine.Lucene.Providers
         private CancellationToken _cancellationToken;
 
         private readonly Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
-        private readonly ILoggerFactory _loggerFactory;
 
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;

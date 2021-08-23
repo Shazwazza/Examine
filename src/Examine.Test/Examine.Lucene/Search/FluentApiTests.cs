@@ -208,6 +208,41 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
+        public void Not_Managed_Full_Text()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+
+            using (var luceneDir1 = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
+            {
+                indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute chaos." }));
+                indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value1", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
+                indexer1.IndexItem(ValueSet.FromObject("3", "content", new { item1 = "value3", item2 = "They are expected to confront the darkness and show evidence that they have done so in their papers" }));
+                indexer1.IndexItem(ValueSet.FromObject("4", "content", new { item1 = "value4", item2 = "Scientists believe the lake could be home to cold-loving microbial life adapted to living in total darkness." }));
+                indexer1.IndexItem(ValueSet.FromObject("5", "content", new { item1 = "value3", item2 = "Scotch scotch scotch, i love scotch" }));
+                indexer1.IndexItem(ValueSet.FromObject("6", "content", new { item1 = "value4", item2 = "60% of the time, it works everytime" }));
+
+                var searcher = indexer1.Searcher;
+
+                var qry = searcher.CreateQuery()                    
+                    .Field("item1", "value1")
+                    .Not().ManagedQuery("darkness");
+
+                Console.WriteLine(qry);
+                var result = qry.Execute();
+
+                Assert.AreEqual(1, result.TotalItemCount);
+                Assert.AreEqual("1", result.ElementAt(0).Id);
+
+                Console.WriteLine("Search 1:");
+                foreach (var r in result)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                }
+            }
+        }
+
+        [Test]
         public void Managed_Range_Int()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
@@ -602,7 +637,7 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
-        public void And_Grouped_Not()
+        public void And_Grouped_Not_Single_Value()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
@@ -621,6 +656,33 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Field("nodeName", "name")
                     .And().GroupedOr(new[] { "bodyText" }, new[] { "ficus", "ipsum" })
                     .And().GroupedNot(new[] { "umbracoNaviHide" }, new[] { 1.ToString() });
+
+                Console.WriteLine(query);
+                var results = query.Execute();
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void And_Grouped_Not_Multi_Value()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ficus", headerText = "header 1", umbracoNaviHide = "1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", umbracoNaviHide = "0" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery("content")
+                    .Field("nodeName", "name")
+                    .And().GroupedOr(new[] { "bodyText" }, new[] { "ficus", "ipsum" })
+                    .And().GroupedNot(new[] { "umbracoNaviHide" }, new[] { 1.ToString(), 2.ToString() });
 
                 Console.WriteLine(query);
                 var results = query.Execute();
@@ -712,6 +774,33 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(query);
                 var results = query.Execute();
                 Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Not_Range()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.Integer))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "my name 1", bodyText = "lorem ficus", headerText = "header 1", start = 100 }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "my name 2", bodyText = "lorem ipsum", headerText = "header 2", start = 200 })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery("content")
+                    .Field("nodeName", "name")
+                    .Not().Field("start", 200);
+
+                Console.WriteLine(query);
+                var results = query.Execute();
+                Assert.AreEqual(1, results.TotalItemCount);
+                Assert.AreEqual(results.First().Id, 1.ToString());
             }
         }
 

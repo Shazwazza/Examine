@@ -34,24 +34,24 @@ namespace Examine.Lucene.Search
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
-            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
+            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
         public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
-            => ManagedQueryInternal(query, fields);
+            => ManagedQueryInternal(query, fields, Occurrence);
 
         public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
-            => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive);
+            => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
         protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
-            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
+            => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
         protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
-            => ManagedQueryInternal(query, fields);
+            => ManagedQueryInternal(query, fields, Occurrence);
 
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
-            => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive);
+            => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
-        internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[] fields = null)
+        internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[] fields, Occur occurance)
         {
             Query.Add(new LateBoundQuery(() =>
             {
@@ -81,12 +81,12 @@ namespace Examine.Lucene.Search
                 outer.Add(inner, Occur.SHOULD);
 
                 return outer;
-            }), Occurrence);
+            }), occurance);
 
             return CreateOp();
         }
 
-        internal LuceneBooleanOperationBase RangeQueryInternal<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
+        internal LuceneBooleanOperationBase RangeQueryInternal<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive, Occur occurance)
             where T : struct
         {
             Query.Add(new LateBoundQuery(() =>
@@ -121,7 +121,7 @@ namespace Examine.Lucene.Search
                 outer.Add(inner, Occur.SHOULD);
 
                 return outer;
-            }), Occurrence);
+            }), occurance);
 
             return CreateOp();
         }
