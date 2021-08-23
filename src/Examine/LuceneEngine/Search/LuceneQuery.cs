@@ -53,10 +53,11 @@ namespace Examine.LuceneEngine.Search
 
         public IOrdering All() => _search.All();
 
-        public IBooleanOperation ManagedQuery(string query, string[] fields = null) => _search.ManagedQuery(query, fields);
+        public IBooleanOperation ManagedQuery(string query, string[] fields = null) 
+            => _search.ManagedQueryInternal(query, fields, _occurrence);
 
         public IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct
-            => _search.RangeQuery(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive);
+            => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
 
         public string Category => _search.Category;
 
@@ -73,7 +74,7 @@ namespace Examine.LuceneEngine.Search
         public IBooleanOperation Id(string id) => _search.IdInternal(id, _occurrence);
 
         INestedBooleanOperation INestedQuery.Field<T>(string fieldName, T fieldValue)
-            => _search.RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue);
+            => _search.RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, _occurrence);
 
         INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
             => _search.FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), _occurrence);
@@ -99,10 +100,11 @@ namespace Examine.LuceneEngine.Search
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
             => _search.GroupedNotInternal(fields.ToArray(), query);
 
-        INestedBooleanOperation INestedQuery.ManagedQuery(string query, string[] fields) => _search.ManagedQueryInternal(query, fields);
+        INestedBooleanOperation INestedQuery.ManagedQuery(string query, string[] fields) 
+            => _search.ManagedQueryInternal(query, fields, _occurrence);
 
         INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
-            => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive);
+            => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
 
     }
 }
