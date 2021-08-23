@@ -9,6 +9,9 @@ trigger:
     - master
     - dev
     - release/*
+  tags:
+    include:
+    - v*
 
 pool:
   vmImage: 'windows-latest'
