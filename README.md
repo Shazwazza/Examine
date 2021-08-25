@@ -18,39 +18,39 @@ _via Nuget_
 
 ## Quick start
 
-_**Tip**: `IExamineManager` is the gateway to working with examine. It can be resolved via a singleton: `ExamineManager.Instance`._
+_**Tip**: `IExamineManager` is the gateway to working with examine. It's a singleton service that is registered in DI._
 
-1. Create an index
+1. Configure Services and create an index
 
     ```cs
-    public void CreateIndexes(IExamineManager examineManager)
-    {
-        //Create and add a new index to the manager
-        var myIndex = examineManager.AddIndex(
-            new LuceneIndex(            // Create a Lucene based index
-                "MyIndex",              // Named MyIndex
-                new SimpleFSDirectory(  // In a location of your choice
-                    new DirectoryInfo("C:\\TestIndexes"))));
-    }
+
+    // Adds Examine Core services
+    services.AddExamine();
+
+    // Create a Lucene based index
+    services.AddExamineLuceneIndex("MyIndex");
     ```
 1. Populate the index
 
     ```cs
-    // Add a "ValueSet" (document) to the index 
-    // which can contain any data you want.
-    myIndex.IndexItem(new ValueSet(
-        Guid.NewGuid().ToString(),  //Give the doc an ID of your choice
-        "MyCategory",               //Each doc has a "Category"
-        new Dictionary<string, object>()
-        {
-            {"Name", "Frank" },
-            {"Address", "Beverly Hills, 90210" }
-        }));
+    if (examineManager.TryGetIndex("MyIndex", out var myIndex))
+    {
+        // Add a "ValueSet" (document) to the index 
+        // which can contain any data you want.
+        myIndex.IndexItem(new ValueSet(
+            Guid.NewGuid().ToString(),  //Give the doc an ID of your choice
+            "MyCategory",               //Each doc has a "Category"
+            new Dictionary<string, object>()
+            {
+                {"Name", "Frank" },
+                {"Address", "Beverly Hills, 90210" }
+            }));
+    }
     ```
 1. Search the index
 
     ```cs
-    var searcher = myIndex.GetSearcher(); // Get a searcher
+    var searcher = myIndex.Searcher; // Get a searcher
     var results = searcher.CreateQuery()  // Create a query
         .Field("Address", "Hills")        // Look for any "Hills" addresses
         .Execute();                       // Execute the search
@@ -71,7 +71,7 @@ _**Tip**: There are many unit tests in the source code that can be used as Examp
 
 ## Copyright & Licence
 
-&copy; 2019 by Shannon Deminick
+&copy; 2021 by Shannon Deminick
 
 This is free software and is licensed under the [Microsoft Public License (Ms-PL)](http://opensource.org/licenses/MS-PL)
 
