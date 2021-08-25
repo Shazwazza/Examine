@@ -11,13 +11,13 @@ namespace Examine.Test
     {
         public const string TestIndexName = "testIndexer";
 
-        public TestIndex(ILoggerFactory loggerFactory, IOptionsSnapshot<LuceneDirectoryIndexOptions> options)
+        public TestIndex(ILoggerFactory loggerFactory, IOptionsMonitor<LuceneDirectoryIndexOptions> options)
             : base(loggerFactory, TestIndexName, options)
         {
             RunAsync = false;
         }
 
-        public TestIndex(ILoggerFactory loggerFactory, IOptionsSnapshot<LuceneIndexOptions> options, IndexWriter writer)
+        public TestIndex(ILoggerFactory loggerFactory, IOptionsMonitor<LuceneIndexOptions> options, IndexWriter writer)
             : base(loggerFactory, TestIndexName, options, writer)
         {
             RunAsync = false;

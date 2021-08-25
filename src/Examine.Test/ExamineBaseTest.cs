@@ -27,7 +27,7 @@ namespace Examine.Test
         public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null)
             => new TestIndex(
                 _loggerFactory,
-                Mock.Of<IOptionsSnapshot<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
                 {
                     FieldDefinitions = fieldDefinitions,
                     DirectoryFactory = new GenericDirectoryFactory(_ => d),
@@ -38,7 +38,7 @@ namespace Examine.Test
         public TestIndex GetTestIndex(IndexWriter writer)
             => new TestIndex(
                 _loggerFactory,
-                Mock.Of<IOptionsSnapshot<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions()),
+                Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions()),
                 writer);
     }
 }

@@ -21,7 +21,7 @@ namespace Examine
         /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="validator"></param>
-        protected BaseIndexProvider(ILoggerFactory loggerFactory, string name, IOptionsSnapshot<IndexOptions> indexOptions)
+        protected BaseIndexProvider(ILoggerFactory loggerFactory, string name, IOptionsMonitor<IndexOptions> indexOptions)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
 

@@ -100,11 +100,12 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        private class TempOptions : IOptionsSnapshot<LuceneDirectoryIndexOptions>
+        private class TempOptions : IOptionsMonitor<LuceneDirectoryIndexOptions>
         {
-            public LuceneDirectoryIndexOptions Value => new LuceneDirectoryIndexOptions();
+            public LuceneDirectoryIndexOptions CurrentValue => new LuceneDirectoryIndexOptions();
+            public LuceneDirectoryIndexOptions Get(string name) => CurrentValue;
 
-            public LuceneDirectoryIndexOptions Get(string name) => Value;
+            public IDisposable OnChange(Action<LuceneDirectoryIndexOptions, string> listener) => throw new NotImplementedException();
         }
 
     }

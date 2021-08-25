@@ -8,10 +8,10 @@ namespace Examine
     /// </summary>
     public static class ExamineExtensions
     {
-        public static T GetNamedOptions<T>(this IOptionsSnapshot<T> optionsSnapshot, string name)
+        public static T GetNamedOptions<T>(this IOptionsMonitor<T> optionsMonitor, string name)
             where T : class
         {
-            T options = optionsSnapshot.Get(name);
+            T options = optionsMonitor.Get(name);
 
             if (options == null)
             {

@@ -37,7 +37,7 @@ namespace Examine.Lucene.Providers
         public LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
-            IOptionsSnapshot<LuceneDirectoryIndexOptions> indexOptions)
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
            : base(loggerFactory, name, indexOptions)
         {
             _committer = new IndexCommiter(this);
@@ -76,7 +76,7 @@ namespace Examine.Lucene.Providers
         internal LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
-            IOptionsSnapshot<LuceneIndexOptions> indexOptions,
+            IOptionsMonitor<LuceneIndexOptions> indexOptions,
             IndexWriter writer)
                : base(loggerFactory, name, indexOptions)
         {

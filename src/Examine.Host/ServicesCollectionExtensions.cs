@@ -69,18 +69,14 @@ namespace Examine
 
             return serviceCollection.AddSingleton<IIndex>(services =>
             {
-                // need to create a scope to resolve IOptionsSnapshot since they are scoped services.
-                using (var scope = services.CreateScope())
-                {
-                    IOptionsSnapshot<LuceneDirectoryIndexOptions> options
-                        = scope.ServiceProvider.GetRequiredService<IOptionsSnapshot<LuceneDirectoryIndexOptions>>();
+                IOptionsMonitor<LuceneDirectoryIndexOptions> options
+                        = services.GetRequiredService<IOptionsMonitor<LuceneDirectoryIndexOptions>>();
 
-                    TIndex index = ActivatorUtilities.CreateInstance<TIndex>(
-                        services,
-                        new object[] { name, options });
+                TIndex index = ActivatorUtilities.CreateInstance<TIndex>(
+                    services,
+                    new object[] { name, options });
 
-                    return index;
-                }
+                return index;
             });
         }
 
