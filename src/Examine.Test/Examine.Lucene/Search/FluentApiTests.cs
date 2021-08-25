@@ -1753,9 +1753,35 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 //NOTE: These are the total matched! The actual results are limited
                 Assert.AreEqual(4, results.TotalItemCount);
-
             }
+        }
 
+        [Test]
+        public void Execute_With_Take_Max_Results()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                for (int i = 0; i < 1000; i++)
+                {
+                    indexer.IndexItems(new[] {ValueSet.FromObject(i.ToString(), "content", new { Content = "hello world" })});
+                }
+
+                indexer.IndexItems(new[] { ValueSet.FromObject(2000.ToString(), "content", new { Content = "donotfind" }) });
+
+                var searcher = indexer.Searcher;
+
+                var criteria = searcher.CreateQuery();
+                var filter = criteria.Field("Content", "hello");
+
+                //Act
+                var results = filter.Execute(QueryOptions.SkipTake(0, int.MaxValue));
+
+                //Assert
+
+                Assert.AreEqual(1000, results.Count());
+            }
         }
 
 

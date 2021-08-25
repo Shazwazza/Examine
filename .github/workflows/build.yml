@@ -55,7 +55,8 @@ jobs:
     
 # TODO: Update the script to build the nuget packages (for now we use dev-ops)
 
-    - uses: actions/upload-artifact@v2  # upload test results
+    - name: Upload test results
+      uses: actions/upload-artifact@v2  # upload test results
       if: success() || failure()        # run this step even if previous step failed
       with:
         name: examine-test-results
@@ -76,7 +77,8 @@ jobs:
           -p:Copyright="${{ env.Copyright }}" \
           --output=${{ github.workspace }}/_NugetOutput
 
-    - uses: actions/upload-artifact@v2  # upload nuget
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2  # upload nuget
       if: success()
       with:
         name: examine-nuget-${{ env.GitVersion_SemVer }}
