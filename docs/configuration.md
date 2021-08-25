@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Configuration
-permalink: /configuration.html
+permalink: /configuration
 ref: configuration
 order: 1
 ---

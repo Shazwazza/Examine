@@ -1,19 +1,32 @@
 ---
 layout: page
 title: Searching
-permalink: /searching.html
+permalink: /searching
 ref: searching
 order: 2
 ---
-
 Searching
 ===
 
 _**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/master/src/Examine.Test/Search/FluentApiTests.cs) to use as examples/reference._
 
-## Managed queries
+## All fields (managed queries)
 
-_TODO: Fill this in..._
+The simplest way of querying with examine is with the `Search` method:
+
+```cs
+var results = searcher.Search("hello world");
+```
+
+The above is just shorthand for doing this:
+
+```cs
+var query = CreateQuery().ManagedQuery("hello world");
+var results = sc.Execute(options);
+```
+
+A Managed query is a search operation that delegates to the underlying field types to determine how the field should
+be searched. In most cases the field value type will be 'Full Text', others may be numeric fields, etc... So the query is built up based on the data passed in and what each field type is capable of searching.
 
 ## Per field
 
@@ -39,9 +52,12 @@ var filter1 = criteria1.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, true,
 ```csharp
 var searcher = indexer.GetSearcher();
 
-
 var numberSortedCriteria = searcher.CreateQuery()
-    .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01,      02), new DateTime(2000, 01, 05), maxInclusive: false);
+  .RangeQuery<DateTime>(
+      new[] { "created" }, 
+      new DateTime(2000, 01, 02), 
+      new DateTime(2000, 01, 05), 
+      maxInclusive: false);
 ```
 
 ## Booleans, Groups & Sub Groups
