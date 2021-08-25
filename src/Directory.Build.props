@@ -17,7 +17,7 @@
     <Copyright>$(Copyright)</Copyright>
     <Company>Shannon Deminick</Company>
     <Authors>shandem</Authors>
-    <PackageIcon>logo-round.png</PackageIcon>
+    <PackageIcon>logo-round-small.png</PackageIcon>
     <PackageLicenseExpression>MS-PL</PackageLicenseExpression>
     <VersionPrefix>2.0.0</VersionPrefix>
   </PropertyGroup>

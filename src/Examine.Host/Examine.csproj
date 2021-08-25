@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\..\assets\logo-round.png" Link="logo-round.png" Pack="true" PackagePath="" />
+    <Content Include="..\..\assets\logo-round-small.png" Link="logo-round-small.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
