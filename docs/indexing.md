@@ -1,14 +1,13 @@
 ---
 layout: page
 title: Indexing
-permalink: /indexing.html
+permalink: /indexing
 ref: indexing
 order: 0
 ---
 
 Indexing
 ===
-
 _**Tip**: There are many examples of indexing in the [`LuceneIndexTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Index/LuceneIndexTests.cs) to use as examples/reference._
 
 Examine will index any data you give it within a `ValueSet`. You can index one or multiple items at once and there's a few different ways to do that. Each field in a `ValueSet` can also contain one or more values. 
@@ -133,15 +132,40 @@ using (myIndex.ProcessNonAsync())
 
 ## Events
 
+<!-- Tabs -->
+<div class="container">
+  <input type="radio" id="tab-link-20" name="docwriting" checked />
+  <label for="tab-link-20">V2</label>
+  <input type="radio" id="tab-link-21" name="docwriting" />
+  <label for="tab-link-21">V1</label>
+  <!-- Tab content -->
+  <div class="tab-content">
+<section class="tab-panel" id="tab-20" markdown="block">
+
 ### IIndex.IndexOperationComplete
 
 This event is part of the base interface `IIndex` so it is available to use on any implementation of an Examine index. This can be useful to know when an indexing operation is completed.
+
+### IIndex.TransformingIndexValues
+
+This event allows for customizing the `ValueSet` before it is passed to the indexer to be indexed. You can use this event to add additional field values or modify existing field values.
+
+### IIndex.IndexingError
+
+This event can be used for reacting to when an error occurs during index. For example, you could add an event handler for this event to facilitate error logging.
 
 ### LuceneIndex.DocumentWriting
 
 If using Examine with the default Lucene implementation then the `IIndex` implementation will be `LuceneIndex`. This event provides access to the Lucene `Document` object before it gets added to the Lucene Index. 
 
 You can use this event to entirely customize how the data is stored in the Lucene index, including adding custom boosting profiles, changing the `Document`'s field values or types, etc...
+
+</section>
+<section class="tab-panel" id="tab-21" markdown="block">
+
+### IIndex.IndexOperationComplete
+
+This event is part of the base interface `IIndex` so it is available to use on any implementation of an Examine index. This can be useful to know when an indexing operation is completed.
 
 ### BaseIndexProvider.TransformingIndexValues
 
@@ -150,3 +174,13 @@ Most Examine index implementations will inherit from `BaseIndexProvider`. This e
 ### BaseIndexProvider.IndexingError
 
 Most Examine index implementations will inherit from `BaseIndexProvider`. This event can be used for reacting to when an error occurs during index. For example, you could add an event handler for this event to facilitate error logging.
+
+### LuceneIndex.DocumentWriting
+
+If using Examine with the default Lucene implementation then the `IIndex` implementation will be `LuceneIndex`. This event provides access to the Lucene `Document` object before it gets added to the Lucene Index. 
+
+You can use this event to entirely customize how the data is stored in the Lucene index, including adding custom boosting profiles, changing the `Document`'s field values or types, etc...
+
+</section>
+  </div>
+</div>

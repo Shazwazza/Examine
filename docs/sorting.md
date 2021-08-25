@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Sorting
-permalink: /sorting.html
+permalink: /sorting
 ref: sorting
 order: 3
 ---
