@@ -130,6 +130,14 @@ using (myIndex.ProcessNonAsync())
 }
 ```
 
+## Deleting index data
+
+Data is easily deleted from the index by the unique identifier you provided in your `ValueSet` by using the `DeleteFromIndex` method. For example:
+
+```cs
+ indexer.DeleteFromIndex("SKU987");
+```
+
 ## Events
 
 <!-- Tabs -->
