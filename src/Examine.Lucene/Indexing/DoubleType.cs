@@ -7,7 +7,7 @@ namespace Examine.Lucene.Indexing
 {
     public class DoubleType : IndexFieldRangeValueType<double>
     {
-        public DoubleType(string fieldName, ILogger<DoubleType> logger, bool store= true)
+        public DoubleType(string fieldName, ILoggerFactory logger, bool store= true)
             : base(fieldName, logger, store)
         {
         }

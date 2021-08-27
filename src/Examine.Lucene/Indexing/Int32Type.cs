@@ -7,7 +7,7 @@ namespace Examine.Lucene.Indexing
 {
     public class Int32Type : IndexFieldRangeValueType<int>
     {
-        public Int32Type(string fieldName, ILogger<Int32Type> logger, bool store = true)
+        public Int32Type(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
         {
         }

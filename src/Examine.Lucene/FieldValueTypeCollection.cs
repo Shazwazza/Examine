@@ -12,10 +12,7 @@ namespace Examine.Lucene
     /// </summary>
     public class FieldValueTypeCollection
     {
-        /// <summary>
-        /// Returns the PerFieldAnalyzerWrapper
-        /// </summary>
-        public PerFieldAnalyzerWrapper Analyzer { get; }
+        private readonly Lazy<ConcurrentDictionary<string, IIndexFieldValueType>> _resolvedValueTypes;
 
         /// <summary>
         /// Create a <see cref="FieldValueTypeCollection"/>
@@ -28,12 +25,7 @@ namespace Examine.Lucene
             IReadOnlyDictionary<string, IFieldValueTypeFactory> valueTypeFactories,
             ReadOnlyFieldDefinitionCollection fieldDefinitionCollection)
         {
-            ValueTypeFactories = new ValueTypeFactoryCollection();
-
-            foreach (KeyValuePair<string, IFieldValueTypeFactory> type in valueTypeFactories)
-            {
-                ValueTypeFactories.TryAdd(type.Key, type.Value);
-            }
+            ValueTypeFactories = new ValueTypeFactoryCollection(valueTypeFactories);
 
             var fieldAnalyzers = new Dictionary<string, Analyzer>();
 
@@ -70,6 +62,16 @@ namespace Examine.Lucene
         }
 
         /// <summary>
+        /// Returns the PerFieldAnalyzerWrapper
+        /// </summary>
+        public PerFieldAnalyzerWrapper Analyzer { get; }
+
+        /// <summary>
+        /// Defines the field types such as number, fulltext, etc...
+        /// </summary>        
+        public ValueTypeFactoryCollection ValueTypeFactories { get; }
+
+        /// <summary>
         /// Returns the <see cref="IIndexFieldValueType"/> for the field name specified
         /// </summary>
         /// <param name="fieldName"></param>
@@ -101,19 +103,7 @@ namespace Examine.Lucene
             }
 
             return valueType;
-        }
-
-
-        /// <summary>
-        /// Defines the field types such as number, fulltext, etc...
-        /// </summary>
-        /// <remarks>
-        /// This collection is mutable but must be changed before the EnsureIndex method is fired (i.e. on startup)
-        /// </remarks>
-        public ValueTypeFactoryCollection ValueTypeFactories { get; }
-
-        private readonly Lazy<ConcurrentDictionary<string, IIndexFieldValueType>> _resolvedValueTypes;
-        private readonly Analyzer _defaultAnalyzer;
+        } 
 
         /// <summary>
         /// Returns the resolved collection of <see cref="IIndexFieldValueType"/> for this index

@@ -3,7 +3,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Core;
 using Lucene.Net.Analysis.Util;
 
-namespace Examine.Lucene
+namespace Examine.Lucene.Analyzers
 {
     /// <summary>
     /// Used for email addresses

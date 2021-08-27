@@ -7,7 +7,7 @@ namespace Examine.Lucene.Indexing
 {
     public class SingleType : IndexFieldRangeValueType<float>
     {
-        public SingleType(string fieldName, ILogger<SingleType> logger, bool store = true)
+        public SingleType(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
         {
         }

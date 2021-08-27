@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Examine.Lucene;
 using Moq;
 using Examine.Lucene.Directories;
+using System.Collections.Generic;
 
 namespace Examine.Test
 {
@@ -24,7 +25,7 @@ namespace Examine.Test
         [TearDown]
         public virtual void TearDown() => _loggerFactory.Dispose();
 
-        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null)
+        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
             => new TestIndex(
                 _loggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
@@ -32,7 +33,8 @@ namespace Examine.Test
                     FieldDefinitions = fieldDefinitions,
                     DirectoryFactory = new GenericDirectoryFactory(_ => d),
                     Analyzer = analyzer,
-                    IndexDeletionPolicy = indexDeletionPolicy
+                    IndexDeletionPolicy = indexDeletionPolicy,
+                    IndexValueTypesFactory = indexValueTypesFactory
                 }));
 
         public TestIndex GetTestIndex(IndexWriter writer)

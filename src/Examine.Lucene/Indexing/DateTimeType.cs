@@ -16,7 +16,7 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         public override string SortableFieldName => FieldName;
 
-        public DateTimeType(string fieldName, ILogger<DateTimeType> logger, DateTools.Resolution resolution, bool store = true)
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateTools.Resolution resolution, bool store = true)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;

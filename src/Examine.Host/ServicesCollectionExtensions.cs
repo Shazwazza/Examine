@@ -63,7 +63,7 @@ namespace Examine
                         options.Analyzer = analyzer;
                         options.Validator = validator;
                         options.IndexValueTypesFactory = indexValueTypesFactory;
-                        options.FieldDefinitions = fieldDefinitions;
+                        options.FieldDefinitions = fieldDefinitions ?? options.FieldDefinitions;
                         options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
                     }));
 

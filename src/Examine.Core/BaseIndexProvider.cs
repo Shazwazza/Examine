@@ -13,7 +13,7 @@ namespace Examine
     public abstract class BaseIndexProvider : IIndex
     {
         private readonly ILogger<BaseIndexProvider> _logger;
-        private readonly Lazy<IndexOptions> _indexOptions;
+        private readonly IndexOptions _indexOptions;
 
         /// <summary>
         /// Constructor for creating an indexer at runtime
@@ -28,7 +28,7 @@ namespace Examine
             LoggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BaseIndexProvider>();
             Name = name;
-            _indexOptions = new Lazy<IndexOptions>(() => indexOptions.GetNamedOptions(name));
+            _indexOptions = indexOptions.GetNamedOptions(name);
         }
 
         protected ILoggerFactory LoggerFactory { get; }
@@ -37,7 +37,7 @@ namespace Examine
         /// <summary>
         /// A validator to validate a value set before it's indexed
         /// </summary>
-        public IValueSetValidator ValueSetValidator => _indexOptions.Value.Validator;
+        public IValueSetValidator ValueSetValidator => _indexOptions.Validator;
 
         /// <summary>
         /// Ensures that the node being indexed is of a correct type 
@@ -92,7 +92,7 @@ namespace Examine
         /// <summary>
         /// Returns the mappings for field types to index field types
         /// </summary>
-        public ReadOnlyFieldDefinitionCollection FieldDefinitions => _indexOptions.Value.FieldDefinitions ?? new FieldDefinitionCollection();
+        public ReadOnlyFieldDefinitionCollection FieldDefinitions => _indexOptions.FieldDefinitions ?? new FieldDefinitionCollection();
 
         /// <summary>
         /// Check if the index exists

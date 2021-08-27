@@ -6,7 +6,7 @@ namespace Examine.Lucene.Indexing
     public abstract class IndexFieldRangeValueType<T> : IndexFieldValueTypeBase, IIndexRangeValueType<T>, IIndexRangeValueType
          where T : struct
     {
-        protected IndexFieldRangeValueType(string fieldName, ILogger<IndexFieldRangeValueType<T>> logger, bool store = true) : base(fieldName, logger, store)
+        protected IndexFieldRangeValueType(string fieldName, ILoggerFactory logger, bool store = true) : base(fieldName, logger, store)
         {
         }
 

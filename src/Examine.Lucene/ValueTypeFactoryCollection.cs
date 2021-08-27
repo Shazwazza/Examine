@@ -16,30 +16,19 @@ namespace Examine.Lucene
     /// </summary>
     public class ValueTypeFactoryCollection : IEnumerable<KeyValuePair<string, IFieldValueTypeFactory>>
     {
-        public bool TryGetFactory(string valueTypeName, out IFieldValueTypeFactory fieldValueTypeFactory)
-        {
-            return _valueTypeFactories.TryGetValue(valueTypeName, out fieldValueTypeFactory);
-        }
-
-        public bool TryAdd(string valueTypeName, IFieldValueTypeFactory fieldValueTypeFactory)
-        {
-            return _valueTypeFactories.TryAdd(valueTypeName, fieldValueTypeFactory);
-        }
-
-        public bool TryAdd(string valueTypeName, Func<string, IIndexFieldValueType> fieldValueTypeFactory)
-        {
-            return _valueTypeFactories.TryAdd(valueTypeName, new DelegateFieldValueTypeFactory(fieldValueTypeFactory));
-        }
+        private readonly ConcurrentDictionary<string, IFieldValueTypeFactory> _valueTypeFactories;
 
         /// <summary>
-        /// Replace any value type factory with the specified one, if one doesn't exist then it is added
+        /// Constructor
         /// </summary>
-        /// <param name="valueTypeName"></param>
-        /// <param name="fieldValueTypeFactory"></param>
-        public void AddOrUpdate(string valueTypeName, IFieldValueTypeFactory fieldValueTypeFactory)
-        {
-            _valueTypeFactories.AddOrUpdate(valueTypeName, fieldValueTypeFactory, (s, factory) => fieldValueTypeFactory);
-        }
+        /// <param name="valueTypeFactories"></param>
+        public ValueTypeFactoryCollection(IReadOnlyDictionary<string, IFieldValueTypeFactory> valueTypeFactories)
+            => _valueTypeFactories = new ConcurrentDictionary<string, IFieldValueTypeFactory>(
+                valueTypeFactories,
+                StringComparer.InvariantCultureIgnoreCase);
+
+        public bool TryGetFactory(string valueTypeName, out IFieldValueTypeFactory fieldValueTypeFactory)
+            => _valueTypeFactories.TryGetValue(valueTypeName, out fieldValueTypeFactory);
 
         /// <summary>
         /// Returns the <see cref="IFieldValueTypeFactory"/> by name, if it's not found an exception is thrown
@@ -54,9 +43,7 @@ namespace Examine.Lucene
             return fieldValueTypeFactory;
         }
 
-        public int Count => _valueTypeFactories.Count;
-
-        private readonly ConcurrentDictionary<string, IFieldValueTypeFactory> _valueTypeFactories = new ConcurrentDictionary<string, IFieldValueTypeFactory>(StringComparer.InvariantCultureIgnoreCase);
+        public int Count => _valueTypeFactories.Count;        
 
         /// <summary>
         /// Returns the default index value types that is used in normal construction of an indexer
@@ -68,34 +55,30 @@ namespace Examine.Lucene
         private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer = null) =>
             new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
-                {"number", name => new Int32Type(name, loggerFactory.CreateLogger<Int32Type>())},
-                {FieldDefinitionTypes.Integer, name => new Int32Type(name, loggerFactory.CreateLogger<Int32Type>())},
-                {FieldDefinitionTypes.Float, name => new SingleType(name, loggerFactory.CreateLogger<SingleType>())},
-                {FieldDefinitionTypes.Double, name => new DoubleType(name, loggerFactory.CreateLogger<DoubleType>())},
-                {FieldDefinitionTypes.Long, name => new Int64Type(name, loggerFactory.CreateLogger<Int64Type>())},
-                {"date", name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.YEAR)},
-                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MONTH)},
-                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.DAY)},
-                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.HOUR)},
-                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, loggerFactory.CreateLogger<DateTimeType>(), DateTools.Resolution.MINUTE)},
-                {FieldDefinitionTypes.Raw, name => new RawStringType(name, loggerFactory.CreateLogger<RawStringType>())},
-                {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory.CreateLogger<FullTextType>(), defaultAnalyzer)},
-                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory.CreateLogger<FullTextType>(), defaultAnalyzer, true)},
-                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory.CreateLogger<GenericAnalyzerFieldValueType>(), new CultureInvariantWhitespaceAnalyzer())},
-                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory.CreateLogger<GenericAnalyzerFieldValueType>(), new EmailAddressAnalyzer())}
+                {"number", name => new Int32Type(name, loggerFactory)},
+                {FieldDefinitionTypes.Integer, name => new Int32Type(name, loggerFactory)},
+                {FieldDefinitionTypes.Float, name => new SingleType(name, loggerFactory)},
+                {FieldDefinitionTypes.Double, name => new DoubleType(name, loggerFactory)},
+                {FieldDefinitionTypes.Long, name => new Int64Type(name, loggerFactory)},
+                {"date", name => new DateTimeType(name, loggerFactory, DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.YEAR)},
+                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.MONTH)},
+                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.DAY)},
+                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.HOUR)},
+                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.MINUTE)},
+                {FieldDefinitionTypes.Raw, name => new RawStringType(name, loggerFactory)},
+                {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory, defaultAnalyzer)},
+                {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
+                {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
+                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())}
             };
 
 
         public IEnumerator<KeyValuePair<string, IFieldValueTypeFactory>> GetEnumerator()
-        {
-            return _valueTypeFactories.GetEnumerator();
-        }
+            => _valueTypeFactories.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+            => GetEnumerator();
     }
 }

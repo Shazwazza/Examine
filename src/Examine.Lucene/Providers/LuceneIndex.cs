@@ -31,34 +31,15 @@ namespace Examine.Lucene.Providers
     {
         #region Constructors
 
-        /// <summary>
-        /// Constructor to create an indexer
-        /// </summary>
-        public LuceneIndex(
+        private LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
-            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
-           : base(loggerFactory, name, indexOptions)
+            IOptionsMonitor<LuceneIndexOptions> indexOptions)
+            : base(loggerFactory, name, indexOptions)
         {
+            _options = indexOptions.GetNamedOptions(name);
             _committer = new IndexCommiter(this);
             _logger = loggerFactory.CreateLogger<LuceneIndex>();
-
-            LuceneIndexFolder = null;
-
-            _options = indexOptions.Get(name);
-
-            if (_options == null)
-            {
-                throw new InvalidOperationException($"No named {typeof(LuceneDirectoryIndexOptions)} options with name {name}");
-            }
-
-            DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
-            if (_options.DirectoryFactory == null)
-            {
-                throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
-            }
-
-            _directory = new Lazy<Directory>(() => _options.DirectoryFactory.CreateDirectory(this, _options.UnlockIndex));
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
@@ -66,6 +47,27 @@ namespace Examine.Lucene.Providers
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
+
+            DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+        }
+
+        /// <summary>
+        /// Constructor to create an indexer
+        /// </summary>
+        public LuceneIndex(
+            ILoggerFactory loggerFactory,
+            string name,
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
+           : this(loggerFactory, name, (IOptionsMonitor<LuceneIndexOptions>)indexOptions)
+        {
+            LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
+            
+            if (directoryOptions.DirectoryFactory == null)
+            {
+                throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
+            }
+
+            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));            
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -78,28 +80,15 @@ namespace Examine.Lucene.Providers
             string name,
             IOptionsMonitor<LuceneIndexOptions> indexOptions,
             IndexWriter writer)
-               : base(loggerFactory, name, indexOptions)
+               : this(loggerFactory, name, indexOptions)
         {
-            _committer = new IndexCommiter(this);
-            _logger = loggerFactory.CreateLogger<LuceneIndex>();
-
             _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
             DefaultAnalyzer = writer.Analyzer;
-
-            //initialize the field types
-            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(
-                () => CreateFieldValueTypes(indexOptions.GetNamedOptions(name).IndexValueTypesFactory));
-
-            LuceneIndexFolder = null;
-            _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
-            _cancellationTokenSource = new CancellationTokenSource();
-            _cancellationToken = _cancellationTokenSource.Token;
         }
-
 
         #endregion
 
-        private readonly LuceneDirectoryIndexOptions _options;
+        private readonly LuceneIndexOptions _options;
         private PerFieldAnalyzerWrapper _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
@@ -179,11 +168,6 @@ namespace Examine.Lucene.Providers
         /// Indicates whether or this system will process the queue items asynchonously - used for testing
         /// </summary>
         public bool RunAsync { get; protected internal set; } = true;
-
-        /// <summary>
-        /// The folder that stores the Lucene Index files
-        /// </summary>
-        public DirectoryInfo LuceneIndexFolder { get; protected set; }
 
         /// <summary>
         /// This should ONLY be used internally by the scheduled committer we should refactor this out in the future

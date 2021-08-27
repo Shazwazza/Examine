@@ -15,7 +15,7 @@ namespace Examine.Lucene.Indexing
         private readonly Analyzer _analyzer;
         private readonly bool _sortable;
 
-        public GenericAnalyzerFieldValueType(string fieldName, ILogger<GenericAnalyzerFieldValueType> logger, Analyzer analyzer, bool sortable = false)
+        public GenericAnalyzerFieldValueType(string fieldName, ILoggerFactory logger, Analyzer analyzer, bool sortable = false)
             : base(fieldName, logger, true)
         {
             _analyzer = analyzer ?? throw new ArgumentNullException(nameof(analyzer));

@@ -140,7 +140,15 @@ namespace Examine.Lucene.Search
             if (!string.IsNullOrEmpty(Category))
             {
                 // rebuild the query
-                var existingClauses = query.Clauses.ToList();
+                IList<BooleanClause> existingClauses = query.Clauses;
+
+                if (existingClauses.Count == 0)
+                {
+                    // Nothing to search. This can occur in cases where an analyzer for a field doesn't return
+                    // anything since it strips all values.
+                    return EmptySearchResults.Instance;
+                }
+
                 query = new BooleanQuery
                 {
                     // prefix the category field query as a must

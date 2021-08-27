@@ -10,8 +10,6 @@ namespace Examine.Lucene.Indexing
 {
     public abstract class IndexFieldValueTypeBase : IIndexFieldValueType
     {
-        private readonly ILogger<IndexFieldValueTypeBase> _logger;
-
         public string FieldName { get; }
 
         //by default it will not be sortable
@@ -19,14 +17,16 @@ namespace Examine.Lucene.Indexing
 
         public bool Store { get; }
 
-        protected IndexFieldValueTypeBase(string fieldName, ILogger<IndexFieldValueTypeBase> logger, bool store = true)
+        protected IndexFieldValueTypeBase(string fieldName, ILoggerFactory loggerFactory, bool store = true)
         {
             FieldName = fieldName;
-            _logger = logger;
+            Logger = loggerFactory.CreateLogger(GetType());
             Store = store;
         }
 
         public virtual Analyzer Analyzer => null;
+
+        public ILogger Logger { get; }
 
         public virtual void AddValue(Document doc, object value) => AddSingleValueInternal(doc, value);
 
@@ -91,7 +91,7 @@ namespace Examine.Lucene.Indexing
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "An conversion error occurred with from inputConverter.ConvertTo {FromValue} to {ToValueType}", val, typeof(T));
+                    Logger.LogDebug(ex, "An conversion error occurred with from inputConverter.ConvertTo {FromValue} to {ToValueType}", val, typeof(T));
 
                     parsedVal = default(T);
                     return false;
@@ -109,7 +109,7 @@ namespace Examine.Lucene.Indexing
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "An conversion error occurred with outputConverter.ConvertFrom from {FromValue} to {ToValueType}", val, typeof(T));
+                    Logger.LogDebug(ex, "An conversion error occurred with outputConverter.ConvertFrom from {FromValue} to {ToValueType}", val, typeof(T));
 
                     parsedVal = default(T);
                     return false;
@@ -124,7 +124,7 @@ namespace Examine.Lucene.Indexing
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "An conversion error occurred with Convert.ChangeType from {FromValue} to {ToValueType}", val, typeof(T));
+                Logger.LogDebug(ex, "An conversion error occurred with Convert.ChangeType from {FromValue} to {ToValueType}", val, typeof(T));
 
                 parsedVal = default(T);
                 return false;

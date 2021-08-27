@@ -16,7 +16,7 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         /// <param name="fieldName"></param>
         /// <param name="store"></param>
-        public RawStringType(string fieldName, ILogger<RawStringType> logger, bool store = true)
+        public RawStringType(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
         {
         }

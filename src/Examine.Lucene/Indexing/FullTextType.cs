@@ -33,7 +33,7 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILogger<FullTextType> logger, Analyzer analyzer = null, bool sortable = false)
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;

@@ -80,7 +80,9 @@ namespace Examine.Lucene.Search
             if (string.IsNullOrWhiteSpace(queryText))
                 throw new ArgumentException($"'{nameof(queryText)}' cannot be null or whitespace", nameof(queryText));
 
-            return GetFieldQuery(field, queryText, false);
+            var query = GetFieldQuery(field, queryText, false);
+
+            return query;
         }
 
     }
