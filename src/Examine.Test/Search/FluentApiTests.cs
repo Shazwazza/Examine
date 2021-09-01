@@ -1303,6 +1303,45 @@ namespace Examine.Test.Search
         }
 
         [Test]
+        public void Sort_Result_By_Multiple_Fields()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(
+                    new FieldDefinition("field1", FieldDefinitionTypes.Double),
+                    new FieldDefinition("field2", FieldDefinitionTypes.Integer)),
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(1.ToString(), "content", new { field1 = 5.0, field2 = 2 }),
+                    ValueSet.FromObject(2.ToString(), "content", new { field1 = 4.9, field2 = 2 }),
+                    ValueSet.FromObject(3.ToString(), "content", new { field1 = 4.5, field2 = 2 }),
+                    ValueSet.FromObject(4.ToString(), "content", new { field1 = 3.9, field2 = 1 }),
+                    ValueSet.FromObject(5.ToString(), "content", new { field1 = 3.8, field2 = 1 }),
+                    ValueSet.FromObject(6.ToString(), "content", new { field1 = 2.6, field2 = 1 }),
+                });
+
+                var searcher = indexer.GetSearcher();
+
+                var sc = searcher.CreateQuery("content");
+                var sc1 = sc.All()
+                    .OrderByDescending(new SortableField("field2", SortType.Int))
+                    .OrderBy(new SortableField("field1", SortType.Double));
+
+                var results1 = sc1.Execute().ToList();
+
+                Assert.AreEqual("3", results1[0].Id);
+                Assert.AreEqual("2", results1[1].Id);
+                Assert.AreEqual("1", results1[2].Id);
+                Assert.AreEqual("6", results1[3].Id);
+                Assert.AreEqual("5", results1[4].Id);
+                Assert.AreEqual("4", results1[5].Id);
+            }
+        }
+
+        [Test]
         public void Standard_Results_Sorted_By_Score()
         {
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
