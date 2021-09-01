@@ -222,7 +222,7 @@ namespace Examine.Test.Search
 
                 var searcher = indexer1.GetSearcher();
 
-                var qry = searcher.CreateQuery()                    
+                var qry = searcher.CreateQuery()
                     .Field("item1", "value1")
                     .Not().ManagedQuery("darkness");
 
@@ -647,7 +647,7 @@ namespace Examine.Test.Search
                     .Field("nodeName", "name")
                     .And().GroupedOr(new[] { "bodyText" }, new[] { "ficus", "ipsum" })
                     .And().GroupedNot(new[] { "umbracoNaviHide" }, new[] { 1.ToString() });
-                
+
                 Console.WriteLine(query);
                 var results = query.Execute();
                 Assert.AreEqual(1, results.TotalItemCount);
@@ -1221,12 +1221,7 @@ namespace Examine.Test.Search
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable)),
                 luceneDir, analyzer))
-
-
             {
-
-
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", writerName = "administrator", parentID = "1143" }),
@@ -1237,7 +1232,6 @@ namespace Examine.Test.Search
                     ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
                     });
-
 
                 var searcher = indexer.GetSearcher();
 
@@ -1256,6 +1250,56 @@ namespace Examine.Test.Search
             }
 
 
+        }
+
+        [Test]
+        public void Sort_Result_By_Double_Fields()
+        {
+            var analyzer = new StandardAnalyzer(Version.LUCENE_30);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(
+                new FieldDefinitionCollection(
+                    new FieldDefinition("field1", FieldDefinitionTypes.Double)),
+                luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(1.ToString(), "content", new { field1 = 5.0 }),
+                    ValueSet.FromObject(2.ToString(), "content", new { field1 = 4.9 }),
+                    ValueSet.FromObject(3.ToString(), "content", new { field1 = 4.5 }),
+                    ValueSet.FromObject(4.ToString(), "content", new { field1 = 3.9 }),
+                    ValueSet.FromObject(5.ToString(), "content", new { field1 = 3.8 }),
+                    ValueSet.FromObject(6.ToString(), "content", new { field1 = 2.6 }),
+                });
+
+                var searcher = indexer.GetSearcher();
+
+                var sc = searcher.CreateQuery("content");
+                var sc1 = sc.All()
+                    .OrderBy(new SortableField("field1", SortType.Double));
+
+                sc = searcher.CreateQuery("content");
+                var sc2 = sc.All()
+                    .OrderByDescending(new SortableField("field1", SortType.Double));
+
+                var results1 = sc1.Execute().ToList();
+                var results2 = sc2.Execute().ToList();
+
+                Assert.AreEqual(2.6, double.Parse(results1[0].Values["field1"]));
+                Assert.AreEqual(3.8, double.Parse(results1[1].Values["field1"]));
+                Assert.AreEqual(3.9, double.Parse(results1[2].Values["field1"]));
+                Assert.AreEqual(4.5, double.Parse(results1[3].Values["field1"]));
+                Assert.AreEqual(4.9, double.Parse(results1[4].Values["field1"]));
+                Assert.AreEqual(5.0, double.Parse(results1[5].Values["field1"]));
+
+
+                Assert.AreEqual(2.6, double.Parse(results2[5].Values["field1"]));
+                Assert.AreEqual(3.8, double.Parse(results2[4].Values["field1"]));
+                Assert.AreEqual(3.9, double.Parse(results2[3].Values["field1"]));
+                Assert.AreEqual(4.5, double.Parse(results2[2].Values["field1"]));
+                Assert.AreEqual(4.9, double.Parse(results2[1].Values["field1"]));
+                Assert.AreEqual(5.0, double.Parse(results2[0].Values["field1"]));
+            }
         }
 
         [Test]
@@ -2455,7 +2499,7 @@ namespace Examine.Test.Search
                 var searcher = indexer.GetSearcher();
 
                 //Arrange
-                
+
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
 
                 //Act
@@ -2477,7 +2521,7 @@ namespace Examine.Test.Search
                 // This will re-execute the search as a skiptake search, the previous TopDocs will be replaced.
                 // Only the required lucene docs are returned, no need to skip over them, they are not allocated
                 // and neither are unnecessary ISearchResult instances.
-                var resultsLuceneSkip = results.SkipTake(2); 
+                var resultsLuceneSkip = results.SkipTake(2);
                 Assert.AreEqual(1, resultsLuceneSkip.Count(), "More results fetched than expected");
                 // this will not re-execute since the total item count has already been resolved
                 Assert.AreEqual(3, results.TotalItemCount);
