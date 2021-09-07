@@ -1252,14 +1252,21 @@ namespace Examine.Test.Search
 
         }
 
-        [Test]
-        public void Sort_Result_By_Double_Fields()
+        [TestCase(FieldDefinitionTypes.Double, SortType.Double)]
+        [TestCase(FieldDefinitionTypes.Double, SortType.String)]
+        [TestCase(FieldDefinitionTypes.FullText, SortType.Double)]
+        [TestCase(FieldDefinitionTypes.FullText, SortType.String)]
+        [TestCase(FieldDefinitionTypes.FullTextSortable, SortType.Double)]
+        [TestCase(FieldDefinitionTypes.FullTextSortable, SortType.String)]
+        public void Sort_Result_By_Double_Fields(string fieldType, SortType sortType)
         {
+            // See: https://github.com/Shazwazza/Examine/issues/242
+
             var analyzer = new StandardAnalyzer(Version.LUCENE_30);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = new TestIndex(
                 new FieldDefinitionCollection(
-                    new FieldDefinition("field1", FieldDefinitionTypes.Double)),
+                    new FieldDefinition("field1", fieldType)),
                 luceneDir, analyzer))
             {
                 indexer.IndexItems(new[]
@@ -1276,11 +1283,11 @@ namespace Examine.Test.Search
 
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.All()
-                    .OrderBy(new SortableField("field1", SortType.Double));
+                    .OrderBy(new SortableField("field1", sortType));
 
                 sc = searcher.CreateQuery("content");
                 var sc2 = sc.All()
-                    .OrderByDescending(new SortableField("field1", SortType.Double));
+                    .OrderByDescending(new SortableField("field1", sortType));
 
                 var results1 = sc1.Execute().ToList();
                 var results2 = sc2.Execute().ToList();
