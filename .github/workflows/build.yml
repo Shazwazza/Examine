@@ -3,11 +3,13 @@ name: Examine Build
 on:
   workflow_dispatch:
   push:
-    branches:    
+    branches:
       - '*'
   pull_request:
     branches:
       - '*'
+  tags: 
+    - 'v*'
 
 jobs:
   build:
