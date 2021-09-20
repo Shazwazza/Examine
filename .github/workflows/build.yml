@@ -4,12 +4,14 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - '*'
+      - 'master'
+      - 'dev'
+      - 'release/*'
+    tags: 
+      - 'v*'
   pull_request:
     branches:
-      - '*'
-  tags: 
-    - 'v*'
+      - '*'  
 
 jobs:
   build:
