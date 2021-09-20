@@ -224,7 +224,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = indexer1.Searcher;
 
-                var qry = searcher.CreateQuery()                    
+                var qry = searcher.CreateQuery()
                     .Field("item1", "value1")
                     .Not().ManagedQuery("darkness");
 
@@ -1228,7 +1228,6 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable))))
             {
-
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
                         new { nodeName = "my name 1", writerName = "administrator", parentID = "1143" }),
@@ -1239,7 +1238,6 @@ namespace Examine.Test.Examine.Lucene.Search
                     ValueSet.FromObject(4.ToString(), "content",
                         new { nodeName = "my name 4", writerName = "writer", parentID = "2222" })
                     });
-
 
                 var searcher = indexer.Searcher;
 
@@ -1258,6 +1256,104 @@ namespace Examine.Test.Examine.Lucene.Search
             }
 
 
+        }
+
+        [TestCase(FieldDefinitionTypes.Double, SortType.Double)]
+        //[TestCase(FieldDefinitionTypes.Double, SortType.String)] // This differs from Lucene 3.x, if string is specified it will still sort like as string
+        [TestCase(FieldDefinitionTypes.FullText, SortType.Double)]
+        [TestCase(FieldDefinitionTypes.FullText, SortType.String)]
+        [TestCase(FieldDefinitionTypes.FullTextSortable, SortType.Double)]
+        [TestCase(FieldDefinitionTypes.FullTextSortable, SortType.String)]
+        public void Sort_Result_By_Double_Fields(string fieldType, SortType sortType)
+        {
+            // See: https://github.com/Shazwazza/Examine/issues/242
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(
+                    new FieldDefinition("field1", fieldType))))
+            {
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(1.ToString(), "content", new { field1 = 5.0 }),
+                    ValueSet.FromObject(2.ToString(), "content", new { field1 = 4.9 }),
+                    ValueSet.FromObject(3.ToString(), "content", new { field1 = 4.5 }),
+                    ValueSet.FromObject(4.ToString(), "content", new { field1 = 3.9 }),
+                    ValueSet.FromObject(5.ToString(), "content", new { field1 = 3.8 }),
+                    ValueSet.FromObject(6.ToString(), "content", new { field1 = 2.6 }),
+                });
+
+                var searcher = indexer.Searcher;
+
+                var sc = searcher.CreateQuery("content");
+                var sc1 = sc.All()
+                    .OrderBy(new SortableField("field1", sortType));
+
+                sc = searcher.CreateQuery("content");
+                var sc2 = sc.All()
+                    .OrderByDescending(new SortableField("field1", sortType));
+
+                var results1 = sc1.Execute().ToList();
+                var results2 = sc2.Execute().ToList();
+
+                Assert.AreEqual(2.6, double.Parse(results1[0].Values["field1"]));
+                Assert.AreEqual(3.8, double.Parse(results1[1].Values["field1"]));
+                Assert.AreEqual(3.9, double.Parse(results1[2].Values["field1"]));
+                Assert.AreEqual(4.5, double.Parse(results1[3].Values["field1"]));
+                Assert.AreEqual(4.9, double.Parse(results1[4].Values["field1"]));
+                Assert.AreEqual(5.0, double.Parse(results1[5].Values["field1"]));
+
+
+                Assert.AreEqual(2.6, double.Parse(results2[5].Values["field1"]));
+                Assert.AreEqual(3.8, double.Parse(results2[4].Values["field1"]));
+                Assert.AreEqual(3.9, double.Parse(results2[3].Values["field1"]));
+                Assert.AreEqual(4.5, double.Parse(results2[2].Values["field1"]));
+                Assert.AreEqual(4.9, double.Parse(results2[1].Values["field1"]));
+                Assert.AreEqual(5.0, double.Parse(results2[0].Values["field1"]));
+            }
+        }
+
+        [Test]
+        public void Sort_Result_By_Multiple_Fields()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(
+                    new FieldDefinition("field1", FieldDefinitionTypes.Double),
+                    new FieldDefinition("field2", FieldDefinitionTypes.Integer))))
+            {
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(1.ToString(), "content", new { field1 = 5.0, field2 = 2 }),
+                    ValueSet.FromObject(2.ToString(), "content", new { field1 = 4.9, field2 = 2 }),
+                    ValueSet.FromObject(3.ToString(), "content", new { field1 = 4.5, field2 = 2 }),
+                    ValueSet.FromObject(4.ToString(), "content", new { field1 = 3.9, field2 = 1 }),
+                    ValueSet.FromObject(5.ToString(), "content", new { field1 = 3.8, field2 = 1 }),
+                    ValueSet.FromObject(6.ToString(), "content", new { field1 = 2.6, field2 = 1 }),
+                });
+
+                var searcher = indexer.Searcher;
+
+                var sc = searcher.CreateQuery("content");
+                var sc1 = sc.All()
+                    .OrderByDescending(new SortableField("field2", SortType.Int))
+                    .OrderBy(new SortableField("field1", SortType.Double));
+
+                var results1 = sc1.Execute().ToList();
+
+                Assert.AreEqual("3", results1[0].Id);
+                Assert.AreEqual("2", results1[1].Id);
+                Assert.AreEqual("1", results1[2].Id);
+                Assert.AreEqual("6", results1[3].Id);
+                Assert.AreEqual("5", results1[4].Id);
+                Assert.AreEqual("4", results1[5].Id);
+            }
         }
 
         [Test]

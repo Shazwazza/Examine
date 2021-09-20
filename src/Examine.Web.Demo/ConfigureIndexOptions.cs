@@ -12,42 +12,36 @@ using Microsoft.Extensions.Options;
 namespace Examine.Web.Demo
 {
     /// <summary>
-    /// Configures the index options to construct the Examine indexes
+    /// Configure Examine indexes using .NET IOptions
     /// </summary>
     public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirectoryIndexOptions>
     {
-        private readonly SyncedFileSystemDirectoryFactory _syncFileSystemDirectoryFactory;
         private readonly ILoggerFactory _loggerFactory;
 
-        public ConfigureIndexOptions(
-            SyncedFileSystemDirectoryFactory syncFileSystemDirectoryFactory,
-            ILoggerFactory loggerFactory)
-        {
-            _syncFileSystemDirectoryFactory = syncFileSystemDirectoryFactory;
-            _loggerFactory = loggerFactory;
-        }
+        public ConfigureIndexOptions(ILoggerFactory loggerFactory)
+            => _loggerFactory = loggerFactory;
 
         public void Configure(string name, LuceneDirectoryIndexOptions options)
         {
-
-            options.UnlockIndex = true;
-
             switch (name)
             {
-                case "SyncedIndex":
-                    // to sync an index the deletion policy must be SnapshotDeletionPolicy
-                    options.IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy());
-                    options.DirectoryFactory = _syncFileSystemDirectoryFactory;
-                    break;
                 case "MyIndex":
+                    // Create a dictionary for custom value types.
+                    // They keys are the value type names.
                     options.IndexValueTypesFactory = new Dictionary<string, IFieldValueTypeFactory>
                     {
+                        // Create a phone number value type using the GenericAnalyzerFieldValueType
+                        // to pass in a custom analyzer. As an example, it could use Examine's
+                        // PatternAnalyzer to pass in a phone number pattern to match.
                         ["phone"] = new DelegateFieldValueTypeFactory(name =>
                                         new GenericAnalyzerFieldValueType(
                                             name,
                                             _loggerFactory,
                                             new PatternAnalyzer(@"\d{3}\s\d{3}\s\d{4}", 0)))
                     };
+
+                    // Add the field definition for a field called "phone" which maps
+                    // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
                     break;
             }
@@ -57,5 +51,5 @@ namespace Examine.Web.Demo
             => throw new NotImplementedException("This is never called and is just part of the interface");
     }
 
-    
+
 }
