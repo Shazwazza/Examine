@@ -49,8 +49,11 @@
   }
   
   .tab-content section.tab-panel {
-    padding:0;
-    padding-top: 30px;
+    padding:30px;
+    
+    border-right: 1px $grey-color solid;
+    border-bottom: 1px $grey-color solid;
+    border-left: 1px $grey-color solid;
   }
 
   .container section.tab-panel {

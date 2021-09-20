@@ -27,6 +27,8 @@ url: "https://shazwazza.github.io" # the base hostname & protocol for your site,
 twitter_username: shazwazza
 github_username:  shazwazza
 
+image: https://github.com/Shazwazza/Examine/raw/master/assets/twitter-card.png?raw=true
+
 twitter:
   username: shazwazza
 
