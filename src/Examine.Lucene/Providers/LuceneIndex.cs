@@ -1108,14 +1108,12 @@ namespace Examine.Lucene.Providers
                         _logger.LogDebug("{IndexName} Indexing cancellation requested, cannot proceed", Name);
                         onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                     }
-                    else if (_asyncTask.IsFaulted)
-                    {
-                        _logger.LogDebug(_asyncTask.Exception, "{IndexName} Previous task was faulted with exception", Name);
-                        onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
-                    }
                     else
                     {
-                        _logger.LogDebug("{IndexName} Queuing a new background thread", Name);
+                        if (_asyncTask.IsCompleted)
+                        {
+                            _logger.LogDebug("{IndexName} Queuing a new background thread", Name);
+                        }
 
                         // The task is initialized to completed so just continue with
                         // and return the new task so that any new appended tasks are the current
@@ -1127,6 +1125,10 @@ namespace Examine.Lucene.Providers
                                 {
                                     // execute the callback
                                     indexedCount = op();
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, "An error occurred processing the index batch.");
                                 }
                                 finally
                                 {
