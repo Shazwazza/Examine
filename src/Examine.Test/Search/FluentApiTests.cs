@@ -9,6 +9,8 @@ using Examine.Test.UmbracoExamine;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search;
 using NUnit.Framework;
+using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Snowball;
 
 using Version = Lucene.Net.Util.Version;
 
@@ -2487,6 +2489,41 @@ namespace Examine.Test.Search
             }
 
 
+        }
+
+        [Test]
+        public void Snowball_Analyser_Returns_Correct_Results()
+        {
+            var analyzer = new SnowballAnalyzer(Lucene.Net.Util.Version.LUCENE_30, "English", StopAnalyzer.ENGLISH_STOP_WORDS_SET);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = new TestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "my name 1", bodyText = "I dont wear a hat", headerText = "header 1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "my name 2", bodyText = "I like hats", headerText = "header 2" })
+                    });
+
+                var searcher = indexer.GetSearcher();
+
+                var query = searcher.CreateQuery("content")
+                    .Field("bodyText", "hats");
+
+                Console.WriteLine(query);
+                var results = query.Execute();
+
+                Console.WriteLine("Snowball search results:");
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}, BodyText = { r.Values["bodyText"]}");
+                }
+
+                //There should be 2 results returned if stemming is working correctly for hat and hats
+                Assert.AreEqual(2, results.TotalItemCount);
+
+
+            }
         }
     }
 }
