@@ -2427,5 +2427,45 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(0, results.Count);
             }
         }
+
+        [TestCase(0, 1, 1)]
+        [TestCase(0, 2, 2)]
+        [TestCase(0, 3, 3)]
+        [TestCase(0, 4, 4)]
+        [TestCase(0, 5, 5)]
+        [TestCase(0, 100, 5)]
+        [TestCase(1, 1, 1)]
+        [TestCase(1, 2, 2)]
+        [TestCase(1, 3, 3)]
+        [TestCase(1, 4, 4)]
+        [TestCase(1, 5, 4)]
+        [TestCase(2, 2, 2)]
+        [TestCase(2, 5, 3)]
+        public void Given_SkipTake_Returns_ExpectedTotals(int skip, int take, int expectedResults)
+        {
+            const int indexSize = 5;
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                var items = Enumerable.Range(0, indexSize).Select(x => ValueSet.FromObject(x.ToString(), "content",
+                    new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }));
+
+                indexer.IndexItems(items);
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+
+                //Act
+
+                var results = sc.Execute(QueryOptions.SkipTake(skip, take));
+
+                Assert.AreEqual(indexSize, results.TotalItemCount);
+                Assert.AreEqual(expectedResults, results.Count());
+            }
+        }
     }
 }
