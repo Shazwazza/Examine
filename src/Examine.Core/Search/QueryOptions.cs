@@ -22,11 +22,12 @@ namespace Examine.Search
 
             Skip = skip;
             Take = take ?? DefaultMaxResults;
+            TimeLimit = timeLimit;
         }
 
         public int Skip { get; }
         public int Take { get; }
 
-        public TimeSpan? TimeLimit { get; set; }
+        public TimeSpan? TimeLimit { get; }
     }
 }
