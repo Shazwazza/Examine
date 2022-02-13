@@ -1451,9 +1451,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
 
                 //Act
-                var results = sc.Execute(new QueryOptions(0) {
-                    TimeLimit = TimeSpan.FromMilliseconds(100)
-                });
+                var results = sc.Execute(new QueryOptions(0, 5, TimeSpan.FromMilliseconds(100)));
 
                 //Assert
                 Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
