@@ -1428,6 +1428,40 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
+        public void TimeLimit_Applies()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
+
+                //Act
+                var results = sc.Execute(new QueryOptions(0) {
+                    TimeLimit = TimeSpan.FromMilliseconds(100)
+                });
+
+                //Assert
+                Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
+            }
+        }
+
+
+        [Test]
         public void Escaping_Includes_All_Words()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);

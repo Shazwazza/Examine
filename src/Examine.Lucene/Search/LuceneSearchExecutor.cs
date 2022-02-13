@@ -82,6 +82,7 @@ namespace Examine.Lucene.Search
 
             ICollector topDocsCollector;
             SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
+            TimeLimitingCollector timeLimitingCollector = null;
             if (sortFields.Length > 0)
             {
                 topDocsCollector = TopFieldCollector.Create(
@@ -93,12 +94,12 @@ namespace Examine.Lucene.Search
             }
             if(_options.TimeLimit != null)
             {
-                topDocsCollector = new TimeLimitingCollector(topDocsCollector, Counter.NewCounter(), _options.TimeLimit.Value.Ticks);
+                timeLimitingCollector = new TimeLimitingCollector(topDocsCollector, Counter.NewCounter(), _options.TimeLimit.Value.Ticks);
             }
-
+            var executionCollector = timeLimitingCollector ?? topDocsCollector;
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
-                searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
+                searcher.IndexSearcher.Search(_luceneQuery, executionCollector);
 
                 TopDocs topDocs;
                 if (sortFields.Length > 0)
