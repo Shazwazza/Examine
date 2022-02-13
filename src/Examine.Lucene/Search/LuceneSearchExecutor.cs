@@ -5,6 +5,7 @@ using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Util;
 
 namespace Examine.Lucene.Search
 {
@@ -89,6 +90,10 @@ namespace Examine.Lucene.Search
             else
             {
                 topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
+            }
+            if(_options.TimeLimit != null)
+            {
+                topDocsCollector = new TimeLimitingCollector(topDocsCollector, Counter.NewCounter(), _options.TimeLimit.Value.Ticks);
             }
 
             using (ISearcherReference searcher = _searchContext.GetSearcher())
