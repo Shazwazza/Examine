@@ -32,7 +32,7 @@
     <PackageReference Include="Bogus" Version="33.0.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.5" />
-    <PackageReference Include="Lucene.Net.Analysis.Common" Version="4.8.0-beta00014" />
+    <PackageReference Include="Lucene.Net.Analysis.Common" Version="4.8.0-beta00016" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Modernizr" Version="1.7" />

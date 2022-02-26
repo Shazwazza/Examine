@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
@@ -9,11 +11,9 @@ using Lucene.Net.Spatial.Prefix.Tree;
 using Lucene.Net.Spatial.Queries;
 using Lucene.Net.Spatial.Vector;
 using NUnit.Framework;
-using Spatial4n.Core.Context;
-using Spatial4n.Core.Distance;
-using Spatial4n.Core.Shapes;
-using System;
-using System.Linq;
+using Spatial4n.Context;
+using Spatial4n.Distance;
+using Spatial4n.Shapes;
 
 namespace Examine.Test.Examine.Lucene.Extensions
 {
@@ -27,9 +27,9 @@ namespace Examine.Test.Examine.Lucene.Extensions
         [Test]
         public void Document_Writing_To_Index_Spatial_Data_And_Search_On_100km_Radius_RecursivePrefixTreeStrategy()
         {
-            // NOTE: It is advised to use RecursivePrefixTreeStrategy, see: 
+            // NOTE: It is advised to use RecursivePrefixTreeStrategy, see:
             // https://stackoverflow.com/a/13631289/694494
-            // Here's the Java sample code 
+            // Here's the Java sample code
             // https://github.com/apache/lucene-solr/blob/branch_4x/lucene/spatial/src/test/org/apache/lucene/spatial/SpatialExample.java
 
             SpatialContext ctx = SpatialContext.GEO;
@@ -51,14 +51,14 @@ namespace Examine.Test.Examine.Lucene.Extensions
             var strategy = new PointVectorStrategy(ctx, GeoLocationFieldName);
 
             // NOTE: This works without this custom query and only using the filter too
-            // there's also almost zero documentation (even in java) on what MakeQueryDistanceScore actually does, 
+            // there's also almost zero documentation (even in java) on what MakeQueryDistanceScore actually does,
             // the source is here https://lucenenet.apache.org/docs/3.0.3/d0/d37/_point_vector_strategy_8cs_source.html#l00133
             // And as it's noted it shouldn't be used: "this is basically old code that hasn't been verified well and should probably be removed"
             // It's also good to note that PointVectorStrategy is 'obsolete' as it exists now under the Legacy namespace in Java Lucene
 
             // NOTE: The SpatialExample uses MatchAllDocsQuery however the strategy can create a query too, the source is here:
             // https://lucenenet.apache.org/docs/3.0.3/d0/d37/_point_vector_strategy_8cs_source.html#l00104
-            // which looks like it verifies that the search is using an Intersects/Within query and then creates a 
+            // which looks like it verifies that the search is using an Intersects/Within query and then creates a
             // ConstantScoreQuery - which probably makes sense because a 'Score' for a geo coord doesn't make a lot of sense.
             RunTest(ctx, strategy, a => strategy.MakeQuery(a));
         }
@@ -112,13 +112,13 @@ namespace Examine.Test.Examine.Lucene.Extensions
                 // Make a circle around the search point
                 var args = new SpatialArgs(
                     SpatialOperation.Intersects,
-                    ctx.MakeCircle(x, y, DistanceUtils.Dist2Degrees(searchRadius, DistanceUtils.EARTH_MEAN_RADIUS_KM)));
+                    ctx.MakeCircle(x, y, DistanceUtils.Dist2Degrees(searchRadius, DistanceUtils.EARTH_MEAN_RADIUS_KM)) );
 
                 var filter = strategy.MakeFilter(args);
 
                 var query = createQuery(args);
 
-                // TODO: It doesn't make a whole lot of sense to sort by score when searching on only geo-coords, 
+                // TODO: It doesn't make a whole lot of sense to sort by score when searching on only geo-coords,
                 // typically you would sort by closest distance
                 // Which can be done, see https://github.com/apache/lucene-solr/blob/branch_4x/lucene/spatial/src/test/org/apache/lucene/spatial/SpatialExample.java#L169
                 TopDocs docs = searchRef.IndexSearcher.Search(query, filter, MaxResultDocs, new Sort(new SortField(null, SortFieldType.SCORE)));
@@ -132,7 +132,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
 
                 //var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 //criteria.LuceneQuery(q);
-                //var results = criteria.Execute(); 
+                //var results = criteria.Execute();
             }
         }
 
@@ -164,7 +164,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
             GetXYFromCoords(lat, lng, out var x, out var y);
             IPoint geoPoint = ctx.MakePoint(x, y);
 
-            foreach (Field field in strategy.CreateIndexableFields(geoPoint))
+            foreach (Field field in strategy.CreateIndexableFields(geoPoint  as IShape))
             {
                 e.Document.Add(field);
             }
