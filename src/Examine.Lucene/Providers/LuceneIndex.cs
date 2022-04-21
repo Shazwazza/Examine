@@ -644,7 +644,7 @@ namespace Examine.Lucene.Providers
             string itemId = null;
             if (indexTerm.Field == "id")
             {
-                itemId = indexTerm.Text();
+                itemId = indexTerm.Text;
             }
 
             try

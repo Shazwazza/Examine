@@ -75,6 +75,6 @@ namespace Examine.Lucene.Search
         // Summary:
         //     Sets the default Lucene.Net.Documents.DateTools.Resolution used for certain field
         //     when no Lucene.Net.Documents.DateTools.Resolution is defined for this field.
-        public DateTools.Resolution? DateResolution { get; set; }
+        public DateResolution? DateResolution { get; set; }
     }
 }

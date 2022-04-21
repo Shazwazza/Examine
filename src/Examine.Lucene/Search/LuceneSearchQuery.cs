@@ -248,20 +248,14 @@ namespace Examine.Lucene.Search
                         defaultSort = SortFieldType.INT32;
                         break;
                     case SortType.Float:
-                        defaultSort = SortFieldType.DOUBLE;
+                        defaultSort = SortFieldType.SINGLE;
                         break;
                     case SortType.Long:
                         defaultSort = SortFieldType.INT64;
                         break;
                     case SortType.Double:
                         defaultSort = SortFieldType.DOUBLE;
-                        break;
-                    case SortType.Short:
-                        defaultSort = SortFieldType.INT16;
-                        break;
-                    case SortType.Byte:
-                        defaultSort = SortFieldType.BYTE;
-                        break;
+                        break;                   
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

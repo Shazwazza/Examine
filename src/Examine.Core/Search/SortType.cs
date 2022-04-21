@@ -1,4 +1,4 @@
-﻿namespace Examine.Search
+namespace Examine.Search
 {
     /// <summary>
     /// Used during a sort operation to specify how the field should be sorted
@@ -46,18 +46,6 @@
         ///             lower values are at the front.
         /// 
         /// </summary>
-        Double,
-        /// <summary>
-        /// Sort using term values as encoded Shorts.  Sort values are Short and
-        ///             lower values are at the front.
-        /// 
-        /// </summary>
-        Short,
-        /// <summary>
-        /// Sort using term values as encoded Bytes.  Sort values are Byte and
-        ///             lower values are at the front.
-        /// 
-        /// </summary>
-        Byte
+        Double
     }
 }
