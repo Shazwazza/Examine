@@ -41,7 +41,7 @@ namespace Examine.Lucene
                 loggerFactory.CreateLogger<LoggingReplicationClient>(),
                 _replicator,
                 new IndexReplicationHandler(
-                    destinationDirectory,                    
+                    destinationDirectory,
                     () =>
                     {
                         if (_logger.IsEnabled(LogLevel.Debug))
@@ -56,8 +56,7 @@ namespace Examine.Lucene
                                 sourceDir?.Directory.ToString() ?? "InMemory",
                                 destDir?.Directory.ToString() ?? "InMemory");
                         }
-                        // Doesn't matter what is returned, Lucene.Net doesn't use this value
-                        return true;
+                  
                     }),
                 new PerSessionDirectoryFactory(tempStorage.FullName));
         }
@@ -75,7 +74,7 @@ namespace Examine.Lucene
             IndexRevision rev;
             try
             {
-                rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);                
+                rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
             }
             catch (InvalidOperationException)
             {

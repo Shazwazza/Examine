@@ -43,7 +43,7 @@ namespace Examine.Lucene
             return fieldValueTypeFactory;
         }
 
-        public int Count => _valueTypeFactories.Count;        
+        public int Count => _valueTypeFactories.Count;
 
         /// <summary>
         /// Returns the default index value types that is used in normal construction of an indexer
@@ -60,13 +60,13 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.Float, name => new SingleType(name, loggerFactory)},
                 {FieldDefinitionTypes.Double, name => new DoubleType(name, loggerFactory)},
                 {FieldDefinitionTypes.Long, name => new Int64Type(name, loggerFactory)},
-                {"date", name => new DateTimeType(name, loggerFactory, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.MILLISECOND)},
-                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.YEAR)},
-                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.MONTH)},
-                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.DAY)},
-                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.HOUR)},
-                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, loggerFactory, DateTools.Resolution.MINUTE)},
+                {"date", name => new DateTimeType(name, loggerFactory, DateResolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateTime, name => new DateTimeType(name, loggerFactory, DateResolution.MILLISECOND)},
+                {FieldDefinitionTypes.DateYear, name => new DateTimeType(name, loggerFactory, DateResolution.YEAR)},
+                {FieldDefinitionTypes.DateMonth, name => new DateTimeType(name, loggerFactory, DateResolution.MONTH)},
+                {FieldDefinitionTypes.DateDay, name => new DateTimeType(name, loggerFactory, DateResolution.DAY)},
+                {FieldDefinitionTypes.DateHour, name => new DateTimeType(name, loggerFactory, DateResolution.HOUR)},
+                {FieldDefinitionTypes.DateMinute, name => new DateTimeType(name, loggerFactory, DateResolution.MINUTE)},
                 {FieldDefinitionTypes.Raw, name => new RawStringType(name, loggerFactory)},
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory, defaultAnalyzer)},
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
