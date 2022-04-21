@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
 using J2N;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using NUnit.Framework;
 
@@ -16,6 +18,49 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class FluentApiTests : ExamineBaseTest
     {
+        [Test]
+        public void Allow_Leading_Wildcards()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
+                    });
+
+                var searcher = (BaseLuceneSearcher)indexer.Searcher;
+
+                var query1 = searcher.CreateQuery(
+                    "content",
+                    BooleanOperation.And,
+                    searcher.LuceneAnalyzer,
+                    new LuceneSearchOptions
+                    {
+                        AllowLeadingWildcard = true
+                    }).NativeQuery("*dney");
+
+                Assert.Throws<ParseException>(() =>
+                    searcher.CreateQuery(
+                        "content",
+                        BooleanOperation.And,
+                        searcher.LuceneAnalyzer,
+                        new LuceneSearchOptions
+                        {
+                            AllowLeadingWildcard = false
+                        }).NativeQuery("*dney"));
+
+                var results1 = query1.Execute();
+                               
+                Assert.AreEqual(2, results1.TotalItemCount);               
+            }
+        }
+
         [Test]
         public void NativeQuery_Single_Word()
         {
