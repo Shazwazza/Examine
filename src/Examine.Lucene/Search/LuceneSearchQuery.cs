@@ -21,13 +21,61 @@ namespace Examine.Lucene.Search
         public LuceneSearchQuery(
             ISearchContext searchContext,
             string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
-            : base(CreateQueryParser(searchContext, analyzer), category, searchOptions, occurance)
+            : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
         {   
             _searchContext = searchContext;
         }
 
-        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer)
-            => new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, analyzer);
+        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer, LuceneSearchOptions searchOptions)
+        {
+            var parser = new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, analyzer);
+
+            if (searchOptions != null)
+            {
+                if (searchOptions.LowercaseExpandedTerms.HasValue)
+                {
+                    parser.LowercaseExpandedTerms = searchOptions.LowercaseExpandedTerms.Value;
+                }
+                if (searchOptions.AllowLeadingWildcard.HasValue)
+                {
+                    parser.AllowLeadingWildcard = searchOptions.AllowLeadingWildcard.Value;
+                }
+                if (searchOptions.EnablePositionIncrements.HasValue)
+                {
+                    parser.EnablePositionIncrements = searchOptions.EnablePositionIncrements.Value;
+                }
+                if (searchOptions.MultiTermRewriteMethod != null)
+                {
+                    parser.MultiTermRewriteMethod = searchOptions.MultiTermRewriteMethod;
+                }
+                if (searchOptions.FuzzyPrefixLength.HasValue)
+                {
+                    parser.FuzzyPrefixLength = searchOptions.FuzzyPrefixLength.Value;
+                }
+                if (searchOptions.Locale != null)
+                {
+                    parser.Locale = searchOptions.Locale;
+                }
+                if (searchOptions.TimeZone != null)
+                {
+                    parser.TimeZone = searchOptions.TimeZone;
+                }
+                if (searchOptions.PhraseSlop.HasValue)
+                {
+                    parser.PhraseSlop = searchOptions.PhraseSlop.Value;
+                }
+                if (searchOptions.FuzzyMinSim.HasValue)
+                {
+                    parser.FuzzyMinSim = searchOptions.FuzzyMinSim.Value;
+                }
+                if (searchOptions.DateResolution.HasValue)
+                {
+                    parser.SetDateResolution(searchOptions.DateResolution.Value);
+                }
+            }
+
+            return parser;
+        }
 
         public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
