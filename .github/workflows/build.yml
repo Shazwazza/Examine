@@ -3,11 +3,15 @@ name: Examine Build
 on:
   workflow_dispatch:
   push:
-    branches:    
-      - 'release/2.0'
+    branches:
+      - 'master'
+      - 'dev'
+      - 'release/*'
+    tags: 
+      - 'v*'
   pull_request:
     branches:
-      - 'release/2.0'
+      - '*'  
 
 jobs:
   build:
@@ -52,8 +56,6 @@ jobs:
     
     - name: Test
       run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx"
-    
-# TODO: Update the script to build the nuget packages (for now we use dev-ops)
 
     - name: Upload test results
       uses: actions/upload-artifact@v2  # upload test results
