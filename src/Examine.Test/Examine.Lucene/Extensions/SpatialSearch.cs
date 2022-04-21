@@ -1,5 +1,6 @@
 using Examine.Lucene;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
@@ -105,7 +106,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
             var searcher = (LuceneSearcher)indexer.Searcher;
             var searchContext = searcher.GetSearchContext();
 
-            using (var searchRef = searchContext.GetSearcher())
+            using (ISearcherReference searchRef = searchContext.GetSearcher())
             {
                 GetXYFromCoords(lat, lng, out var x, out var y);
 

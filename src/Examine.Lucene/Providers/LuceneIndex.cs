@@ -158,10 +158,9 @@ namespace Examine.Lucene.Providers
                     ? pfa
                     : _fieldValueTypeCollection.Value.Analyzer);
 
-        /// <summary>
-        /// Used to keep track of how many index commits have been performed.
-        /// This is used to determine when index optimization needs to occur.
-        /// </summary>
+
+        [Obsolete("Not used, will be removed in future versions")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public int CommitCount { get; protected internal set; }
 
         /// <summary>
@@ -1071,8 +1070,6 @@ namespace Examine.Lucene.Providers
             {
                 DeleteFromIndex(new Term(ExamineFieldNames.CategoryFieldName, op.ValueSet.Category), performCommit);
             }
-
-            CommitCount++;
         }
 
 
@@ -1089,8 +1086,6 @@ namespace Examine.Lucene.Providers
 
             var d = new Document();
             AddDocument(d, op.ValueSet);
-
-            CommitCount++;
 
             return true;
         }

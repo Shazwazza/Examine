@@ -1450,6 +1450,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Arrange
                 var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Escape());
 
+                Console.WriteLine(sc.ToString());
+
                 //Act
                 var results = sc.Execute();
 
@@ -1795,6 +1797,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.Field("Content", "thought".Fuzzy());
+
+                Console.WriteLine(filter);
+                Console.WriteLine(filter2);
 
                 ////Act
                 var results = filter.Execute();
