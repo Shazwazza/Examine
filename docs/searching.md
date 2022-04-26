@@ -8,7 +8,7 @@ order: 2
 Searching
 ===
 
-_**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/master/src/Examine.Test/Search/FluentApiTests.cs) to use as examples/reference._
+_**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Examine.Lucene/Search/FluentApiTests.cs) to use as examples/reference._
 
 ## All fields (managed queries)
 
