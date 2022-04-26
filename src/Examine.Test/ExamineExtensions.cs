@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -87,14 +87,18 @@ namespace Examine
         public static ValueSet ConvertToValueSet(this XElement xml, string indexCategory)
         {
             if (!xml.IsExamineElement())
+            {
                 throw new InvalidOperationException("Not a supported Examine XML structure");
-            var allVals = xml.SelectExamineAllValues();
+            }
+
             var id = (string)xml.Attribute("id");
             //we will use this as the item type, but we also need to add this as the 'nodeTypeAlias' as part of the properties
             //since this is what Umbraco expects
             var nodeTypeAlias = xml.ExamineNodeTypeAlias();
+            Dictionary<string, object> allVals = xml.SelectExamineAllValues();
+            allVals["nodeTypeAlias"] = nodeTypeAlias;
+
             var set = new ValueSet(id, indexCategory, nodeTypeAlias, allVals);
-            set.Set("nodeTypeAlias", nodeTypeAlias);
             return set;
         }
 

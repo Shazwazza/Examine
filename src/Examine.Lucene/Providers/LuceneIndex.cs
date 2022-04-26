@@ -670,14 +670,7 @@ namespace Examine.Lucene.Providers
                 return false;
             }
         }
-
-        private static IEnumerable<KeyValuePair<string, List<object>>> CopyDictionary(IDictionary<string, List<object>> d)
-        {
-            var result = new KeyValuePair<string, List<object>>[d.Count];
-            d.CopyTo(result, 0);
-            return result;
-        }
-
+        
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
@@ -704,11 +697,7 @@ namespace Examine.Lucene.Providers
             IIndexFieldValueType indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            //copy to a new dictionary, there has been cases of an exception "Collection was modified; enumeration operation may not execute."
-            // TODO: This is because ValueSet can be shared between indexes (same value set passed to each)
-            // we should remove this since this will cause mem overheads and it's not actually going to fix the problem since it's only copying
-            // this dictionary but not the entire value set
-            foreach (KeyValuePair<string, List<object>> field in CopyDictionary(valueSet.Values))
+            foreach (KeyValuePair<string, IReadOnlyList<object>> field in valueSet.Values)
             {
                 //check if we have a defined one
                 if (FieldDefinitions.TryGetValue(field.Key, out FieldDefinition definedFieldDefinition))

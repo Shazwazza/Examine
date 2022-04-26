@@ -45,7 +45,7 @@ namespace Examine
         /// <param name="item"></param>
         /// <returns></returns>
         protected ValueSetValidationResult ValidateItem(ValueSet item)
-            => ValueSetValidator?.Validate(item) ?? ValueSetValidationResult.Valid;
+            => ValueSetValidator?.Validate(item) ?? new ValueSetValidationResult(ValueSetValidationStatus.Valid, item);
 
         /// <summary>
         /// Indexes the items in the <see cref="ValueSet"/>
@@ -78,7 +78,7 @@ namespace Examine
         /// </summary>
         /// <param name="values"></param>
         public void IndexItems(IEnumerable<ValueSet> values)
-            => PerformIndexItems(values.Where(x => ValidateItem(x) != ValueSetValidationResult.Failed), OnIndexOperationComplete);
+            => PerformIndexItems(values.Where(x => ValidateItem(x).Status != ValueSetValidationStatus.Failed), OnIndexOperationComplete);
 
         /// <inheritdoc />
         public void DeleteFromIndex(IEnumerable<string> itemIds)
