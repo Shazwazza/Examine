@@ -1074,7 +1074,7 @@ namespace Examine.Lucene.Providers
             }
 
             var d = new Document();
-            AddDocument(d, op.ValueSet);
+            AddDocument(d, indexingNodeDataArgs.ValueSet);
 
             return true;
         }
