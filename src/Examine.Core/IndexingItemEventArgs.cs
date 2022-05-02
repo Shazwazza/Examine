@@ -1,24 +1,22 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Examine
 {
     public class IndexingItemEventArgs : CancelEventArgs
     {
-        private ValueSet _valueSet;
-
         public IIndex Index { get; }
 
-        public ValueSet ValueSet
-        {
-            get => _valueSet;
-            set => _valueSet = value ?? throw new ArgumentNullException("value");
-        }
+        public ValueSet ValueSet { get; private set; }
 
         public IndexingItemEventArgs(IIndex index, ValueSet valueSet)
         {
             Index = index;
             ValueSet = valueSet;
         }
+
+        public void SetValues(IDictionary<string, IEnumerable<object>> values)
+            => ValueSet = new ValueSet(ValueSet.Id, ValueSet.Category, ValueSet.ItemType, values);
     }
 }

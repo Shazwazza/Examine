@@ -331,7 +331,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                 updatedValues[key] = new List<object>() { value };
 
-                e.ValueSet = new ValueSet(e.ValueSet.Id, e.ValueSet.Category, e.ValueSet.ItemType, updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
+                e.SetValues(updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
             }
 
             void RemoveData(object sender, IndexingItemEventArgs e, string key)
@@ -340,7 +340,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                 updatedValues.Remove(key);
 
-                e.ValueSet = new ValueSet(e.ValueSet.Id, e.ValueSet.Category, e.ValueSet.ItemType, updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
+                e.SetValues(updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
             }
 
             using (var luceneDir = new RandomIdRAMDirectory())
