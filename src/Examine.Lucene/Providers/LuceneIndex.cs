@@ -261,7 +261,8 @@ namespace Examine.Lucene.Providers
                         break;
                     }
 
-                    var op = new IndexOperation(valueSet, IndexOperationType.Add);
+                    // Create a copy of the value set, so we don't transform and iterate the original instance
+                    var op = new IndexOperation(new ValueSet(valueSet), IndexOperationType.Add);
                     if (ProcessQueueItem(op))
                     {
                         indexedNodes++;
@@ -1062,7 +1063,6 @@ namespace Examine.Lucene.Providers
 
         private bool ProcessIndexQueueItem(IndexOperation op)
         {
-            // Raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.ValueSet);
             OnTransformingIndexValues(indexingNodeDataArgs);
             if (indexingNodeDataArgs.Cancel)
@@ -1071,8 +1071,7 @@ namespace Examine.Lucene.Providers
             }
 
             var document = new Document();
-            var valueSet = new ValueSet(op.ValueSet, indexingNodeDataArgs.TransformedValues);
-            AddDocument(document, valueSet);
+            AddDocument(document, op.ValueSet);
 
             return true;
         }

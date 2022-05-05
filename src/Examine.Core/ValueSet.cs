@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -32,7 +33,7 @@ namespace Examine
         /// <summary>
         /// The values to be indexed.
         /// </summary>
-        public IReadOnlyDictionary<string, IReadOnlyList<object>> Values { get; }
+        public IDictionary<string, IList<object>> Values { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValueSet"/> class.
@@ -91,9 +92,8 @@ namespace Examine
         /// Initializes a new instance of the <see cref="ValueSet" /> class.
         /// </summary>
         /// <param name="valueSet">The value set.</param>
-        /// <param name="values">The values to be indexed.</param>
-        public ValueSet(ValueSet valueSet, IDictionary<string, IList<object>> values)
-            : this(valueSet.Id, valueSet.Category, valueSet.ItemType, Yield(values))
+        public ValueSet(ValueSet valueSet)
+            : this(valueSet.Id, valueSet.Category, valueSet.ItemType, Yield(valueSet.Values))
         { }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Examine
             Id = id;
             Category = category;
             ItemType = itemType;
-            Values = AsReadOnly(values);
+            Values = values.ToDictionary<KeyValuePair<string, IEnumerable<object>>, string, IList<object>>(x => x.Key, x => x.Value.ToList());
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Examine
         /// The values for the specified key.
         /// </returns>
         public IEnumerable<object> GetValues(string key)
-            => !Values.TryGetValue(key, out IReadOnlyList<object> values) ? Enumerable.Empty<object>() : values;
+            => !Values.TryGetValue(key, out IList<object> values) ? Enumerable.Empty<object>() : values;
 
         /// <summary>
         /// Gets the first value for the key.
@@ -132,7 +132,7 @@ namespace Examine
         /// The first value for the specified key.
         /// </returns>
         public object GetValue(string key)
-            => !Values.TryGetValue(key, out IReadOnlyList<object> values) || values.Count == 0 ? null : values[0];
+            => !Values.TryGetValue(key, out IList<object> values) || values.Count == 0 ? null : values[0];
 
         /// <summary>
         /// Creates a new <see cref="ValueSet" /> from the specified values.
@@ -202,8 +202,5 @@ namespace Examine
                 yield return new KeyValuePair<string, IEnumerable<object>>(value.Key, value.Value);
             }
         }
-
-        private static IReadOnlyDictionary<string, IReadOnlyList<object>> AsReadOnly(IEnumerable<KeyValuePair<string, IEnumerable<object>>> values)
-            => values.ToDictionary<KeyValuePair<string, IEnumerable<object>>, string, IReadOnlyList<object>>(x => x.Key, x => x.Value.ToList().AsReadOnly());
     }
 }
