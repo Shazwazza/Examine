@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -115,14 +114,47 @@ namespace Examine
         }
 
         /// <summary>
-        /// Gets the values for the key.
+        /// Adds the value.
         /// </summary>
         /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
         /// <returns>
-        /// The values for the specified key.
+        /// The number of values stored for the specified key.
         /// </returns>
-        public IEnumerable<object> GetValues(string key)
-            => !Values.TryGetValue(key, out IList<object> values) ? Enumerable.Empty<object>() : values;
+        public int AddValue(string key, object value)
+        {
+            if (!Values.TryGetValue(key, out IList<object> values))
+            {
+                Values.Add(key, values = new List<object>());
+            }
+
+            values.Add(value);
+
+            return values.Count;
+        }
+
+        /// <summary>
+        /// Adds the values.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>
+        /// The number of values stored for the specified key.
+        /// </returns>
+        public int AddValues(string key, IEnumerable<object> values)
+        {
+            if (!Values.TryGetValue(key, out IList<object> currentValues))
+            {
+                Values.Add(key, currentValues = new List<object>());
+            }
+
+            foreach (var value in values)
+            {
+                currentValues.Add(value);
+            }
+
+            return currentValues.Count;
+        }
 
         /// <summary>
         /// Gets the first value for the key.
@@ -133,6 +165,78 @@ namespace Examine
         /// </returns>
         public object GetValue(string key)
             => !Values.TryGetValue(key, out IList<object> values) || values.Count == 0 ? null : values[0];
+
+        /// <summary>
+        /// Gets the values for the key.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>
+        /// The values for the specified key.
+        /// </returns>
+        public IEnumerable<object> GetValues(string key)
+            => !Values.TryGetValue(key, out IList<object> values) ? Enumerable.Empty<object>() : values;
+
+        /// <summary>
+        /// Sets the value for the key.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        public void SetValue(string key, object value)
+            => Values[key] = new List<object>
+            {
+                value
+            };
+
+        /// <summary>
+        /// Sets the values for the key.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="values">The values.</param>
+        public void SetValues(string key, IEnumerable<object> values)
+            => Values[key] = new List<object>(values);
+
+        /// <summary>
+        /// Adds the value if the key doesn't exist.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        ///   <c>true</c> if the value was added; otherwise, <c>false</c>.
+        /// </returns>
+        public bool TryAddValue(string key, object value)
+        {
+            if (Values.ContainsKey(key))
+            {
+                return false;
+            }
+
+            Values.Add(key, new List<object>
+            {
+                value
+            });
+
+            return true;
+        }
+
+        /// <summary>
+        /// Adds the values if the key doesn't exist.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <param name="values">The values.</param>
+        /// <returns>
+        ///   <c>true</c> if the values were added; otherwise, <c>false</c>.
+        /// </returns>
+        public bool TryAddValues(string key, IEnumerable<object> values)
+        {
+            if (Values.ContainsKey(key))
+            {
+                return false;
+            }
+
+            Values.Add(key, new List<object>(values));
+
+            return true;
+        }
 
         /// <summary>
         /// Creates a new <see cref="ValueSet" /> from the specified values.
