@@ -33,23 +33,5 @@ namespace Examine
             ValueSet = valueSet;
             TransformedValues = valueSet.Values.ToDictionary<KeyValuePair<string, IReadOnlyList<object>>, string, IList<object>>(x => x.Key, x => x.Value.ToList());
         }
-
-        /// <summary>
-        /// Sets the values.
-        /// </summary>
-        /// <param name="values">The values.</param>
-        [Obsolete("Set the values on the TransformedValues property instead to prevent unnecessary allocations.")]
-        public void SetValues(IDictionary<string, IEnumerable<object>> values)
-        {
-            TransformedValues.Clear();
-
-            if (values != null)
-            {
-                foreach (KeyValuePair<string, IEnumerable<object>> value in values)
-                {
-                    TransformedValues.Add(value.Key, value.Value.ToList());
-                }
-            }
-        }
     }
 }
