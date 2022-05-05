@@ -1049,8 +1049,7 @@ namespace Examine.Lucene.Providers
         /// <param name="performCommit"></param>
         private void ProcessDeleteQueueItem(IndexOperation op, bool performCommit = true)
         {
-
-            //if the id is empty then remove the whole type
+            // If the id is empty, then remove the whole type
             if (!string.IsNullOrEmpty(op.ValueSet.Id))
             {
                 DeleteFromIndex(new Term(ExamineFieldNames.ItemIdFieldName, op.ValueSet.Id), performCommit);
@@ -1061,11 +1060,9 @@ namespace Examine.Lucene.Providers
             }
         }
 
-
         private bool ProcessIndexQueueItem(IndexOperation op)
         {
-
-            //raise the event and assign the value to the returned data from the event
+            // Raise the event and assign the value to the returned data from the event
             var indexingNodeDataArgs = new IndexingItemEventArgs(this, op.ValueSet);
             OnTransformingIndexValues(indexingNodeDataArgs);
             if (indexingNodeDataArgs.Cancel)
@@ -1073,8 +1070,9 @@ namespace Examine.Lucene.Providers
                 return false;
             }
 
-            var d = new Document();
-            AddDocument(d, indexingNodeDataArgs.ValueSet);
+            var document = new Document();
+            var valueSet = new ValueSet(op.ValueSet, indexingNodeDataArgs.TransformedValues);
+            AddDocument(document, valueSet);
 
             return true;
         }
