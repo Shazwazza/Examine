@@ -91,8 +91,10 @@ namespace Examine.Lucene.Indexing
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogDebug(ex, "An conversion error occurred with from inputConverter.ConvertTo {FromValue} to {ToValueType}", val, typeof(T));
-
+                    if (Logger.IsEnabled(LogLevel.Debug))
+                    {
+                        Logger.LogDebug(ex, "An conversion error occurred with from inputConverter.ConvertTo {FromValue} to {ToValueType}", val, typeof(T));
+                    }
                     parsedVal = default(T);
                     return false;
                 }
@@ -109,8 +111,10 @@ namespace Examine.Lucene.Indexing
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogDebug(ex, "An conversion error occurred with outputConverter.ConvertFrom from {FromValue} to {ToValueType}", val, typeof(T));
-
+                    if (Logger.IsEnabled(LogLevel.Debug))
+                    {
+                        Logger.LogDebug(ex, "An conversion error occurred with outputConverter.ConvertFrom from {FromValue} to {ToValueType}", val, typeof(T));
+                    }
                     parsedVal = default(T);
                     return false;
                 }
@@ -124,8 +128,10 @@ namespace Examine.Lucene.Indexing
             }
             catch (Exception ex)
             {
-                Logger.LogDebug(ex, "An conversion error occurred with Convert.ChangeType from {FromValue} to {ToValueType}", val, typeof(T));
-
+                if (Logger.IsEnabled(LogLevel.Debug))
+                {
+                    Logger.LogDebug(ex, "An conversion error occurred with Convert.ChangeType from {FromValue} to {ToValueType}", val, typeof(T));
+                }
                 parsedVal = default(T);
                 return false;
             }
