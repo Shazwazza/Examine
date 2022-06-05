@@ -265,8 +265,6 @@ namespace Examine.Test.Examine.Lucene.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
-
-
                 indexer.IndexItem(new ValueSet(1.ToString(), "content", "test",
                     new Dictionary<string, IEnumerable<object>>
                     {
@@ -303,8 +301,6 @@ namespace Examine.Test.Examine.Lucene.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
-
-
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1", item2 = "value2" }));
 
@@ -325,30 +321,11 @@ namespace Examine.Test.Examine.Lucene.Index
         [Test]
         public void Can_Manipulate_ValueSet_In_TransformingIndexValues_Event()
         {
-            void AddData(object sender, IndexingItemEventArgs e, string key, string value)
-            {
-                var updatedValues = e.ValueSet.Values.ToDictionary(x => x.Key, x => x.Value.ToList());
-
-                updatedValues[key] = new List<object>() { value };
-
-                e.SetValues(updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
-            }
-
-            void RemoveData(object sender, IndexingItemEventArgs e, string key)
-            {
-                var updatedValues = e.ValueSet.Values.ToDictionary(x => x.Key, x => x.Value.ToList());
-
-                updatedValues.Remove(key);
-
-                e.SetValues(updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
-            }
-
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
-
-                indexer.TransformingIndexValues += (sender, e) => AddData(sender, e, "newItem1", "value1");
-                indexer.TransformingIndexValues += (sender, e) => RemoveData(sender, e, "item1");
+                indexer.TransformingIndexValues += (sender, e) => e.ValueSet.SetValue("newItem1", "value1");
+                indexer.TransformingIndexValues += (sender, e) => e.ValueSet.RemoveValues("item1");
 
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1" }));
@@ -365,17 +342,12 @@ namespace Examine.Test.Examine.Lucene.Index
             }
         }
 
-
-
-
         [Test]
         public void Can_Have_Multiple_Values_In_Fields()
         {
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
-
-
                 indexer.IndexItem(new ValueSet(1.ToString(), "content",
                     new Dictionary<string, IEnumerable<object>>
                     {
@@ -413,8 +385,6 @@ namespace Examine.Test.Examine.Lucene.Index
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
-
-
                 indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
                     new { item1 = "value1", item2 = "value2" }));
 
@@ -444,8 +414,6 @@ namespace Examine.Test.Examine.Lucene.Index
                 new StandardAnalyzer(LuceneInfo.CurrentVersion),
                 new FieldDefinitionCollection(new FieldDefinition("item2", "number"))))
             {
-
-
                 indexer.IndexItem(new ValueSet(1.ToString(), "content",
                     new Dictionary<string, IEnumerable<object>>
                     {

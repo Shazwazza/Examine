@@ -239,6 +239,16 @@ namespace Examine
         }
 
         /// <summary>
+        /// Removes the values for the key.
+        /// </summary>
+        /// <param name="key">The key.</param>
+        /// <returns>
+        ///   <c>true</c> if the values were removed; otherwise, <c>false</c>.
+        /// </returns>
+        public bool RemoveValues(string key)
+            => Values.Remove(key);
+
+        /// <summary>
         /// Creates a new <see cref="ValueSet" /> from the specified values.
         /// </summary>
         /// <param name="id">The identifier of the item to be indexed.</param>

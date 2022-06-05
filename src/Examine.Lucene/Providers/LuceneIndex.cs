@@ -698,7 +698,7 @@ namespace Examine.Lucene.Providers
             IIndexFieldValueType indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            foreach (KeyValuePair<string, IReadOnlyList<object>> field in valueSet.Values)
+            foreach (KeyValuePair<string, IList<object>> field in valueSet.Values)
             {
                 //check if we have a defined one
                 if (FieldDefinitions.TryGetValue(field.Key, out FieldDefinition definedFieldDefinition))
