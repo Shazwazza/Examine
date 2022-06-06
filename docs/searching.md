@@ -33,8 +33,8 @@ be searched. In most cases the field value type will be 'Full Text', others may 
 ```csharp
 _var searcher = myIndex.GetSearcher(); // Get a searcher
  var results = searcher.CreateQuery() // Create a query
- .Field("Address", "Hills") // Look for any "Hills" addresses
- .Execute(); // Execute the search
+  .Field("Address", "Hills") // Look for any "Hills" addresses
+  .Execute(); // Execute the search
 ```
 
 ## Range queries
@@ -69,22 +69,25 @@ _TODO: Fill this in..._
 ### Native Query
 
 ```csharp
-var searcher = indexer.GetSearcher();  
-var criteria = (LuceneSearchQuery)searcher.CreateQuery();  
-//combine a custom lucene query with raw lucene query  
-var op = criteria.NativeQuery("hello:world").And();
+var searcher = indexer.GetSearcher();
+
+var results = searcher.CreateQuery().NativeQuery("hello:world").Execute();
 ```
 
 ### Combine a custom lucene query with raw lucene query
 
 ```csharp
-var criteria = (LuceneSearchQuery)searcher.CreateQuery();
+var searcher = indexer.GetSearcher();
+var query = (LuceneSearchQuery)searcher.CreateQuery();
 
-//combine a custom lucene query with raw lucene query
-
+// first create the Native Query and suffix with an And() call.
 var op = criteria.NativeQuery("hello:world").And();                                
 
-criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
+// use the original LuceneSearchQuery instance to append
+// the next query value.
+query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true));
+
+var results = query.Execute();
 ```
 
 ## Boosting, Proximity, Fuzzy & Escape
@@ -132,4 +135,24 @@ var exactcriteria = searcher.CreateQuery("content");
 var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
 
 var results2 = exactfilter.Execute();
+```
+
+### Lucene Searches
+
+Sometimes you need access to the underlying Lucene.NET APIs to perform a manual Lucene search.
+
+```csharp
+var searcher = (LuceneSearcher)indexer.Searcher;
+var searchContext = searcher.GetSearchContext();
+
+using (ISearcherReference searchRef = searchContext.GetSearcher())
+{
+  // Access the instance of the underlying Lucene
+  // IndexSearcher instance.
+  var indexSearcher = searchRef.IndexSearcher;
+
+  // You can then call indexSearcher.Search(...)
+  // which is a Lucene API, customize the parameters
+  // accordingly and handle the Lucene response.
+}
 ```
