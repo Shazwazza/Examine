@@ -1,4 +1,5 @@
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Core;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,8 @@ namespace Examine.Lucene.Indexing
     /// </summary>
     public class RawStringType : IndexFieldValueTypeBase
     {
+        private readonly Analyzer _analyzer;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -18,8 +21,9 @@ namespace Examine.Lucene.Indexing
         /// <param name="store"></param>
         public RawStringType(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
-        {
-        }
+            => _analyzer = new KeywordAnalyzer();
+
+        public override Analyzer Analyzer => _analyzer;
 
         protected override void AddSingleValue(Document doc, object value)
         {

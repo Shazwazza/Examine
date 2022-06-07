@@ -887,13 +887,20 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("__Path", "-1,123,456,789");
                 var results1 = filter.Execute();
-                Assert.AreEqual(0, results1.TotalItemCount);
+                Assert.AreEqual(1, results1.TotalItemCount);
 
                 //now escape it
                 var exactcriteria = searcher.CreateQuery("content");
                 var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
                 var results2 = exactfilter.Execute();
                 Assert.AreEqual(1, results2.TotalItemCount);
+
+                //now try with native
+                var nativeCriteria = searcher.CreateQuery();
+                var nativeFilter = nativeCriteria.NativeQuery("__Path:\\-1,123,456,789");
+                Console.WriteLine(nativeFilter);
+                var results5 = nativeFilter.Execute();
+                Assert.AreEqual(1, results5.TotalItemCount);
 
                 //now try wildcards
                 var wildcardcriteria = searcher.CreateQuery("content");
