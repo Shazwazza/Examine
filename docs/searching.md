@@ -141,6 +141,8 @@ var results2 = exactfilter.Execute();
 
 Sometimes you need access to the underlying Lucene.NET APIs to perform a manual Lucene search.
 
+An example of Spatial Search with the Lucene APIs is in the [Examine source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Examine.Lucene/Extensions/SpatialSearch.cs).
+
 ```csharp
 var searcher = (LuceneSearcher)indexer.Searcher;
 var searchContext = searcher.GetSearchContext();
