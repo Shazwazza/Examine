@@ -21,9 +21,11 @@ namespace Examine
         /// <param name="name"></param>
         /// <param name="fieldDefinitions"></param>
         /// <param name="validator"></param>
-        protected BaseIndexProvider(ILoggerFactory loggerFactory, string name, IOptionsMonitor<IndexOptions> indexOptions)
+        protected BaseIndexProvider(ILoggerFactory loggerFactory, string name,
+            IOptionsMonitor<IndexOptions> indexOptions)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
 
             LoggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BaseIndexProvider>();
@@ -40,7 +42,7 @@ namespace Examine
         public IValueSetValidator ValueSetValidator => _indexOptions.Validator;
 
         /// <summary>
-        /// Ensures that the node being indexed is of a correct type 
+        /// Ensures that the node being indexed is of a correct type
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
@@ -66,7 +68,8 @@ namespace Examine
         /// <param name="onComplete">
         /// Called by the implementor once the items have been indexed
         /// </param>
-        protected abstract void PerformDeleteFromIndex(IEnumerable<string> itemIds, Action<IndexOperationEventArgs> onComplete);
+        protected abstract void PerformDeleteFromIndex(IEnumerable<string> itemIds,
+            Action<IndexOperationEventArgs> onComplete);
 
         #region IIndex members
 
@@ -78,7 +81,11 @@ namespace Examine
         /// </summary>
         /// <param name="values"></param>
         public void IndexItems(IEnumerable<ValueSet> values)
-            => PerformIndexItems(values.Where(x => ValidateItem(x).Status != ValueSetValidationStatus.Failed), OnIndexOperationComplete);
+            => PerformIndexItems(
+                values
+                    .Select(ValidateItem)
+                    .Where(x => x.Status != ValueSetValidationStatus.Failed)
+                    .Select(x => x.ValueSet), OnIndexOperationComplete);
 
         /// <inheritdoc />
         public void DeleteFromIndex(IEnumerable<string> itemIds)
@@ -92,7 +99,8 @@ namespace Examine
         /// <summary>
         /// Returns the mappings for field types to index field types
         /// </summary>
-        public ReadOnlyFieldDefinitionCollection FieldDefinitions => _indexOptions.FieldDefinitions ?? new FieldDefinitionCollection();
+        public ReadOnlyFieldDefinitionCollection FieldDefinitions =>
+            _indexOptions.FieldDefinitions ?? new FieldDefinitionCollection();
 
         /// <summary>
         /// Check if the index exists
@@ -133,11 +141,9 @@ namespace Examine
         /// Raises the <see cref="E:TransformingIndexValues"/> event.
         /// </summary>
         /// <param name="e">The <see cref="IndexingItemEventArgs"/> instance containing the event data.</param>
-        protected virtual void OnTransformingIndexValues(IndexingItemEventArgs e) => TransformingIndexValues?.Invoke(this, e);
+        protected virtual void OnTransformingIndexValues(IndexingItemEventArgs e) =>
+            TransformingIndexValues?.Invoke(this, e);
 
         #endregion
-
-
-
     }
 }
