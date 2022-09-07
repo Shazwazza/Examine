@@ -31,8 +31,8 @@ be searched. In most cases the field value type will be 'Full Text', others may 
 ## Per field
 
 ```csharp
-_var searcher = myIndex.GetSearcher(); // Get a searcher
- var results = searcher.CreateQuery() // Create a query
+var searcher = myIndex.GetSearcher(); // Get a searcher
+var results = searcher.CreateQuery() // Create a query
  .Field("Address", "Hills") // Look for any "Hills" addresses
  .Execute(); // Execute the search
 ```
@@ -105,11 +105,9 @@ var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Boost(20));
 ```csharp
 var searcher = indexer.GetSearcher();
 
-
 //Arrange
 
 var criteria = searcher.CreateQuery("content");
-
 
 //get all nodes that contain the words warren and creative within 5 words of each other
 var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5));

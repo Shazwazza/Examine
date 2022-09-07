@@ -320,7 +320,10 @@ namespace Examine.Lucene.Providers
 
                         if (!indexExists)
                         {
-                            _logger.LogDebug("Initializing new index {IndexName}", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("Initializing new index {IndexName}", Name);
+                            }
 
                             //if there's no index, we need to create one
                             CreateNewIndex(dir);
@@ -328,8 +331,10 @@ namespace Examine.Lucene.Providers
                         else
                         {
                             //it does exists so we'll need to clear it out
-
-                            _logger.LogDebug("Clearing existing index {IndexName}", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("Clearing existing index {IndexName}", Name);
+                            }
 
                             if (_writer == null)
                             {
@@ -679,11 +684,14 @@ namespace Examine.Lucene.Providers
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
         protected virtual void AddDocument(Document doc, ValueSet valueSet)
         {
-            _logger.LogDebug("{IndexName} Write lucene doc id:{DocumentId}, category:{DocumentCategory}, type:{DocumentItemType}",
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("{IndexName} Write lucene doc id:{DocumentId}, category:{DocumentCategory}, type:{DocumentItemType}",
                 Name,
                 valueSet.Id,
                 valueSet.Category,
                 valueSet.ItemType);
+            }
 
             //add node id
             IIndexFieldValueType nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
@@ -901,8 +909,10 @@ namespace Examine.Lucene.Providers
             {
                 if (IsLocked(dir))
                 {
-                    _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
-
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
+                    }
                     //unlock it!
                     Unlock(dir);
                 }
@@ -1089,14 +1099,20 @@ namespace Examine.Lucene.Providers
                 {
                     if (_asyncTask.IsCanceled)
                     {
-                        _logger.LogDebug("{IndexName} Indexing cancellation requested, cannot proceed", Name);
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                        {
+                            _logger.LogDebug("{IndexName} Indexing cancellation requested, cannot proceed", Name);
+                        }
                         onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                     }
                     else
                     {
                         if (_asyncTask.IsCompleted)
                         {
-                            _logger.LogDebug("{IndexName} Queuing a new background thread", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("{IndexName} Queuing a new background thread", Name);
+                            }
                         }
 
                         // The task is initialized to completed so just continue with
@@ -1129,12 +1145,18 @@ namespace Examine.Lucene.Providers
 
                         if (t.IsCanceled)
                         {
-                            _logger.LogDebug("{IndexName} Task was cancelled before it began", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("{IndexName} Task was cancelled before it began", Name);
+                            }
                             onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                         }
                         else if (t.IsFaulted)
                         {
-                            _logger.LogDebug(_asyncTask.Exception, "{IndexName} Task was cancelled before it began", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug(_asyncTask.Exception, "{IndexName} Task was cancelled before it began", Name);
+                            }
                             onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                         }
 
@@ -1159,7 +1181,10 @@ namespace Examine.Lucene.Providers
             if (_latestGen.HasValue && !_disposedValue && !_cancellationToken.IsCancellationRequested)
             {
                 var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
-                _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
+                }
             }
         }
 
@@ -1293,7 +1318,12 @@ namespace Examine.Lucene.Providers
         void ReferenceManager.IRefreshListener.BeforeRefresh() { }
 
         void ReferenceManager.IRefreshListener.AfterRefresh(bool didRefresh)
-            => _logger.LogDebug("{IndexName} searcher refreshed? {DidRefresh}", Name, didRefresh);
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("{IndexName} searcher refreshed? {DidRefresh}", Name, didRefresh);
+            }
+        }
     }
 
 
