@@ -11,6 +11,11 @@ namespace Examine.Lucene
 
         public override bool IsEnabled(string component) => Logger.IsEnabled(LogLevel.Debug);
         public override void Message(string component, string message)
-            => Logger.LogDebug("{Component} - {Message}", component, message);
+        {
+            if (Logger.IsEnabled(LogLevel.Debug))
+            {
+                Logger.LogDebug("{Component} - {Message}", component, message);
+            }
+        }
     }
 }
