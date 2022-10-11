@@ -16,19 +16,22 @@ namespace Examine.Test.Examine.Core.Options
     public class ConfigureOptionsTests
     {
         [Test]
-        public async Task Can_Configure_Named_Options()
+        public void Can_Configure_Named_Options()
         {
-            IHost host = Host.CreateDefaultBuilder()
-                .ConfigureServices((hostContext, services) =>
-                    services
-                        .AddHostedService<TestService>()
-                        .AddExamine(new DirectoryInfo(TestContext.CurrentContext.WorkDirectory))
-                        .AddExamineLuceneIndex("TestIndex")
-                        .ConfigureOptions<MyIndexOptions>())                
-                .Build();
+            Assert.DoesNotThrowAsync(async () =>
+            {
+                IHost host = Host.CreateDefaultBuilder()
+                    .ConfigureServices((hostContext, services) =>
+                        services
+                            .AddHostedService<TestService>()
+                            .AddExamine(new DirectoryInfo(TestContext.CurrentContext.WorkDirectory))
+                            .AddExamineLuceneIndex("TestIndex")
+                            .ConfigureOptions<MyIndexOptions>())
+                    .Build();
 
-            await host.StartAsync();
-            await host.StopAsync();
+                await host.StartAsync();
+                await host.StopAsync();
+            });
         }
 
         private class MyIndexOptions : IConfigureNamedOptions<LuceneDirectoryIndexOptions>
