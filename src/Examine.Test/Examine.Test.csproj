@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <SccProjectName>
@@ -53,11 +53,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.1" />
     <PackageReference Include="Lucene.Net.Spatial">
       <Version>4.8.0-beta00016</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Azure.Storage.Blob">
-      <Version>11.2.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
