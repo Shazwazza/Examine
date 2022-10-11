@@ -1,5 +1,4 @@
 using System;
-using Examine.Lucene.Providers;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
@@ -9,14 +8,14 @@ namespace Examine.Lucene.Indexing
 
     public class DateTimeType : IndexFieldRangeValueType<DateTime>
     {
-        public DateTools.Resolution Resolution { get; }
+        public DateResolution Resolution { get; }
 
         /// <summary>
         /// Can be sorted by the normal field name
         /// </summary>
         public override string SortableFieldName => FieldName;
 
-        public DateTimeType(string fieldName, ILoggerFactory logger, DateTools.Resolution resolution, bool store = true)
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;
@@ -29,7 +28,7 @@ namespace Examine.Lucene.Indexing
 
             var val = DateToLong(parsedVal);
 
-            doc.Add(new Int64Field(FieldName,val, Store ? Field.Store.YES : Field.Store.NO));;
+            doc.Add(new Int64Field(FieldName, val, Store ? Field.Store.YES : Field.Store.NO));
         }
 
         /// <summary>

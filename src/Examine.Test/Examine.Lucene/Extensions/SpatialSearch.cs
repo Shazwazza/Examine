@@ -10,9 +10,9 @@ using Lucene.Net.Spatial.Prefix.Tree;
 using Lucene.Net.Spatial.Queries;
 using Lucene.Net.Spatial.Vector;
 using NUnit.Framework;
-using Spatial4n.Core.Context;
-using Spatial4n.Core.Distance;
-using Spatial4n.Core.Shapes;
+using Spatial4n.Context;
+using Spatial4n.Distance;
+using Spatial4n.Shapes;
 using System;
 using System.Linq;
 
@@ -33,7 +33,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
             // Here's the Java sample code 
             // https://github.com/apache/lucene-solr/blob/branch_4x/lucene/spatial/src/test/org/apache/lucene/spatial/SpatialExample.java
 
-            SpatialContext ctx = SpatialContext.GEO;
+            SpatialContext ctx = SpatialContext.Geo;
             int maxLevels = 11; //results in sub-meter precision for geohash
             SpatialPrefixTree grid = new GeohashPrefixTree(ctx, maxLevels);
             var strategy = new RecursivePrefixTreeStrategy(grid, GeoLocationFieldName);
@@ -48,7 +48,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
         [Test]
         public void Document_Writing_To_Index_Spatial_Data_And_Search_On_100km_Radius_GetPointVectorStrategy()
         {
-            SpatialContext ctx = SpatialContext.GEO;
+            SpatialContext ctx = SpatialContext.Geo;
             var strategy = new PointVectorStrategy(ctx, GeoLocationFieldName);
 
             // NOTE: This works without this custom query and only using the filter too
@@ -113,7 +113,7 @@ namespace Examine.Test.Examine.Lucene.Extensions
                 // Make a circle around the search point
                 var args = new SpatialArgs(
                     SpatialOperation.Intersects,
-                    ctx.MakeCircle(x, y, DistanceUtils.Dist2Degrees(searchRadius, DistanceUtils.EARTH_MEAN_RADIUS_KM)));
+                    ctx.MakeCircle(x, y, DistanceUtils.Dist2Degrees(searchRadius, DistanceUtils.EarthMeanRadiusKilometers)));
 
                 var filter = strategy.MakeFilter(args);
 

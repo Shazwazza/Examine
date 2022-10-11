@@ -59,8 +59,6 @@ namespace Examine.Lucene
                                     destDir?.Directory.ToString() ?? "InMemory");
                             }
                         }
-                        // Doesn't matter what is returned, Lucene.Net doesn't use this value
-                        return true;
                     }),
                 new PerSessionDirectoryFactory(tempStorage.FullName));
         }
