@@ -74,7 +74,4 @@
     <Compile Remove="DataServices\TestLogService.cs" />
     <Compile Remove="Search\MultiIndexSearch.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-  </ItemGroup>
 </Project>
