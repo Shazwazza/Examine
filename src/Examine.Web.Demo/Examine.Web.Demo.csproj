@@ -13,7 +13,7 @@
     <OutputPath>bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -29,12 +29,12 @@
     <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="33.0.2" />
+    <PackageReference Include="Bogus" Version="34.0.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.9" />
     <PackageReference Include="Lucene.Net.Analysis.Common" Version="4.8.0-beta00016" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Modernizr" Version="1.7" />
+    <PackageReference Include="Modernizr" Version="2.8.3" />
   </ItemGroup>
 </Project>
