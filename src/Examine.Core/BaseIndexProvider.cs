@@ -52,14 +52,14 @@ namespace Examine
         /// <summary>
         /// Indexes the items in the <see cref="ValueSet"/>
         /// </summary>
-        /// <param name="op"></param>
+        /// <param name="values"></param>
         /// <param name="onComplete">
         /// Called by the implementor once the items have been indexed
         /// </param>
         /// <remarks>
         /// Items will have been validated at this stage
         /// </remarks>
-        protected abstract void PerformIndexItems(IEnumerable<ValueSet> op, Action<IndexOperationEventArgs> onComplete);
+        protected abstract void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete);
 
         /// <summary>
         /// Deletes an index item by id
