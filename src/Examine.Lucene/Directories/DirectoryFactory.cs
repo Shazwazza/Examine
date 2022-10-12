@@ -11,9 +11,9 @@ namespace Examine.Lucene.Directories
 
         public GenericDirectoryFactory(Func<string, Directory> factory) => _factory = factory;
 
-        protected override Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
+        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
-            Directory dir = _factory(index.Name);
+            Directory dir = _factory(luceneIndex.Name);
             if (forceUnlock)
             {
                 IndexWriter.Unlock(dir);
