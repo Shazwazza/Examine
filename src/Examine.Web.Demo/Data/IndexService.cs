@@ -68,6 +68,18 @@ namespace Examine.Web.Demo.Data
             return criteria.NativeQuery(query).Execute();
         }
 
+        public ISearchResults SearchNativeQueryAcrossIndexes(string query)
+        {
+            if (!_examineManager.TryGetSearcher("MultiIndexSearcher", out var multiIndexSearcher))
+            {
+                throw new InvalidOperationException("Failed to get MultiIndexSearcher");
+            }
+
+            var searcher = multiIndexSearcher;
+            var criteria = searcher.CreateQuery();
+            return criteria.NativeQuery(query).Execute();
+        }
+
         public ISearchResults GetAllIndexedItems(string indexName, int skip, int take)
         {
             var index = GetIndex(indexName);

@@ -5,6 +5,9 @@ using Examine.Web.Demo.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Add services for Blazor
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
