@@ -28,3 +28,4 @@ src/packages/*
 /src/Examine.Web.Demo/App_Data/*
 .idea/
 /src/Examine.Web.Demo/Examine/*
+/src/Examine.Web.Demo.Old/Examine/*
