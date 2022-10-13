@@ -23,8 +23,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Lucene", "Examine.L
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Test", "Examine.Test\Examine.Test.csproj", "{558ADE63-EAE0-4ABA-B236-D7707F25B676}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Web.Demo.Old", "Examine.Web.Demo.Old\Examine.Web.Demo.Old.csproj", "{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine.Core", "Examine.Core\Examine.Core.csproj", "{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examine", "Examine.Host\Examine.csproj", "{6988B93D-8FA9-4F4F-AC66-E748777FA226}"
@@ -45,10 +43,6 @@ Global
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{558ADE63-EAE0-4ABA-B236-D7707F25B676}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CEB0F488-AA78-4ADE-B0B1-E52CF2743B10}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA2A20CE-1A61-4185-8B49-BD50993ACFDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
