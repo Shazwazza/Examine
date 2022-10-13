@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Examine.Search;
 
 namespace Examine
@@ -50,7 +50,7 @@ namespace Examine
         /// Configures the string for fuzzy matching in Lucene using the supplied fuzziness level
         /// </summary>
         /// <param name="s">The string to configure fuzzy matching on.</param>
-        /// <param name="fuzzieness">The fuzzieness level.</param>
+        /// <param name="fuzzieness">The fuzzieness level. A value between 0 and 2</param>
         /// <returns>
         /// An IExamineValue for the required operation
         /// </returns>
