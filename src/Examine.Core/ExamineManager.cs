@@ -8,7 +8,7 @@ namespace Examine
     ///<summary>
     /// Exposes searchers and indexers
     ///</summary>
-    public class ExamineManager : IExamineManager
+    public class ExamineManager : IDisposable, IExamineManager
     {
         public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers)
         {

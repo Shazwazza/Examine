@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Examine
 {
-    public interface IExamineManager : IDisposable
+    public interface IExamineManager
     {
         /// <summary>
         /// Gets a list of all index providers
@@ -21,6 +20,8 @@ namespace Examine
         /// This returns only those searchers explicitly registered with <see cref="AddSearcher"/> or config based searchers
         /// </remarks>
         IEnumerable<ISearcher> RegisteredSearchers { get; }
+
+        void Dispose();
 
         /// <summary>
         /// Returns an indexer by name
