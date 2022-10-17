@@ -44,30 +44,24 @@ When searching on fields like in the example above you might want to search on m
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
-  // Look for any addresses that has "Hills" and "Rockyroad" and "Hollywood"
+  // Look for any addresses that has "Hills" or "Rockyroad" or "Hollywood"
  .Field("Address", "Hills Rockyroad Hollywood")
  .Execute();
 ```
 
-This means that the `Address` in this example has to match all the values set in the statement but it **doesn't** have to match the values in the same order as specified above. This is because Examine will create a Lucene query like this one where every word is matched separately: `Address:hills Address:rockyroad Address:hollywood`. Therefore this query will match addresses like:
-
-`Hills Rockyroad hollywood`
-
-`Rockyroad Hills hollywood`
-
-`hollywood Hills Rockyroad`
+This means that the `Address` in this example has to match any the values set in the statement. This is because Examine will create a Lucene query like this one where every word is matched separately: `Address:hills Address:rockyroad Address:hollywood`.
 
 Instead, if you want to search for entries with the values above in that exact order you specified you will need to use the `.Escape()` method. See under [Escape](#escape).
 
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
-  // Look for any addresses that has "Hills" and "Rockyroad" and "Hollywood"
+  // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
  .Field("Address", "Hills Rockyroad Hollywood".Escape())
  .Execute();
 ```
 
-This creates a query like this instead: `Address:"Hills Rockyroad Hollywood"`. This means that you're now searching for the exact phrase instead of entries where all values appear.
+This creates a query like this instead: `Address:"Hills Rockyroad Hollywood"`. This means that you're now searching for the exact phrase instead of entries where terms appear.
 
 ## Range queries
 
