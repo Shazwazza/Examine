@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <SccProjectName>
@@ -11,7 +11,7 @@
     </SccProvider>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net5.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
