@@ -49,7 +49,15 @@ var results = searcher.CreateQuery()
  .Execute();
 ```
 
-This means that the `Address` in this example has to match any the values set in the statement. This is because Examine will create a Lucene query like this one where every word is matched separately: `Address:hills Address:rockyroad Address:hollywood`.
+The way that terms are split depends on the Analyzer being used. The StandardAnalyzer is the default. An example of how Analyzers work are:
+
+- StandardAnalyzer - will split a string based on whitespace and 'stop words' (i.e. common words that are not normally searched on like "and")
+- WhitespaceAnalyzer - will split a string based only on whitespace
+- KeywordAnalyzer - will not split a string and will treat the single string as one term - this means that searching will be done on an exact match
+
+There are many [Analyzers](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/core/Lucene.Net.Analysis.html) and you can even create your own. See more about analyzers in [configuration](./configuration.md#example---phone-number).
+
+Looking at this example when using the default StandardAnalyser the code above means that the `Address` in this example has to match any the values set in the statement. This is because Examine will create a Lucene query like this one where every word is matched separately: `Address:hills Address:rockyroad Address:hollywood`.
 
 Instead, if you want to search for entries with the values above in that exact order you specified you will need to use the `.Escape()` method. See under [Escape](#escape).
 
