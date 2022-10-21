@@ -1,36 +1,44 @@
-// This application entry point is based on ASP.NET Core new project templates and is included
-// as a starting point for app host configuration.
-// This file may need updated according to the specific scenario of the application being upgraded.
-// For more information on ASP.NET Core hosting, see https://docs.microsoft.com/aspnet/core/fundamentals/host/web-host
+using Examine.Web.Demo;
+using Examine;
+using Examine.Web.Demo.Controllers;
+using Examine.Web.Demo.Data;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+var builder = WebApplication.CreateBuilder(args);
 
-namespace Examine.Web.Demo
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
+// Add services for Blazor
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
+
+// Adds Examine Core services
+builder.Services.AddExamine();
+
+// A custom extension method to create custom indexes
+builder.Services.CreateIndexes();
+
+// Custom services for the demo
+builder.Services.AddTransient<BogusDataService>();
+builder.Services.AddTransient<IndexService>();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-            .ConfigureLogging(logging =>
-            {
-                logging.ClearProviders();
-                logging.AddConsole();
-            })
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            });
-    }
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
+
+app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.MapBlazorHub();
+app.MapFallbackToPage("/_Host");
+
+app.Run();
