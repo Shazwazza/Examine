@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Examine</RootNamespace>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>Examine is an abstraction for indexing and search operations with implementations such as Lucene.Net</Description>
