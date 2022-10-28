@@ -200,7 +200,7 @@ namespace Examine.Lucene.Search
                 query = new BooleanQuery
                 {
                     // prefix the category field query as a must
-                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false), Occur.MUST }
+                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), true), Occur.MUST }
                 };
 
                 // add the ones that we're already existing

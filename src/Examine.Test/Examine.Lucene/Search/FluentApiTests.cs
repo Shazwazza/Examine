@@ -93,6 +93,37 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
+        public void Uppercase_Category()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "cOntent",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "cOntent",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "cOntent",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery("cOntent").All();
+
+                Console.WriteLine(query);
+
+                var results = query.Execute();
+
+                Assert.AreEqual(3, results.TotalItemCount);
+            }
+        }
+
+        [Test]
         public void NativeQuery_Phrase()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
