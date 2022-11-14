@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
+using Lucene.Net.Facet.Range;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -106,5 +107,19 @@ namespace Examine.Lucene.Search
         INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
 
+        public IFacetQueryField Facet(string field)
+            => _search.FacetInternal(field);
+
+        public IFacetQueryField Facet(string field, string value)
+            => _search.FacetInternal(field, value);
+
+        public IFacetQueryField Facet(string field, string[] values)
+            => _search.FacetInternal(field, values);
+
+        public IFacetRangeQueryField Facet(string field, DoubleRange[] doubleRanges)
+            => _search.FacetInternal(field, doubleRanges);
+
+        public IFacetRangeQueryField Facet(string field, Int64Range[] longRanges)
+            => _search.FacetInternal(field, longRanges);
     }
 }

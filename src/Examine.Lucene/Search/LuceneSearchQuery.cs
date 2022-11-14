@@ -5,6 +5,7 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Facet.Range;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -17,6 +18,7 @@ namespace Examine.Lucene.Search
     {
         private readonly ISearchContext _searchContext;
         private ISet<string> _fieldsToLoad = null;
+        private IList<IFacetField> _facetFields = new List<IFacetField>();
 
         public LuceneSearchQuery(
             ISearchContext searchContext,
@@ -292,5 +294,48 @@ namespace Examine.Lucene.Search
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
+        public override IFacetQueryField Facet(string field) => FacetInternal(field);
+
+        public override IFacetQueryField Facet(string field, string value) => FacetInternal(field, value);
+
+        public override IFacetQueryField Facet(string field, string[] values) => FacetInternal(field, values);
+
+        public override IFacetRangeQueryField Facet(string field, DoubleRange[] doubleRanges) => FacetInternal(field, doubleRanges);
+
+        public override IFacetRangeQueryField Facet(string field, Int64Range[] longRanges) => FacetInternal(field, longRanges);
+
+        internal IFacetQueryField FacetInternal(string field)
+            => FacetInternal(field, Array.Empty<string>());
+
+        internal IFacetQueryField FacetInternal(string field, string value)
+            => FacetInternal(field, new[] { value });
+
+        internal IFacetQueryField FacetInternal(string field, string[] values)
+        {
+            var facet = new FacetFullTextField(field, values);
+
+            _facetFields.Add(facet);
+
+            return new FacetQueryField(this, facet);
+        }
+
+
+        internal IFacetRangeQueryField FacetInternal(string field, DoubleRange[] doubleRanges)
+        {
+            var facet = new FacetDoubleField(field, doubleRanges);
+
+            _facetFields.Add(facet);
+
+            return new FacetRangeQueryField<FacetDoubleField>(this, facet);
+        }
+
+        internal IFacetRangeQueryField FacetInternal(string field, Int64Range[] longRanges)
+        {
+            var facet = new FacetLongField(field, longRanges);
+
+            _facetFields.Add(facet);
+
+            return new FacetRangeQueryField<FacetLongField>(this, facet);
+        }
     }
 }

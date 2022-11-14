@@ -71,7 +71,19 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory, defaultAnalyzer)},
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
-                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())}
+                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
+                {FieldDefinitionTypes.FacetInteger, name => new FacetInt32Type(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetFloat, name => new FacetSingleType(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetDouble, name => new FacetDoubleType(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetLong, name => new FacetInt64Type(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetDateTime, name => new FacetDateTimeType(name, loggerFactory, DateResolution.MILLISECOND)},
+                {FieldDefinitionTypes.FacetDateYear, name => new FacetDateTimeType(name, loggerFactory, DateResolution.YEAR)},
+                {FieldDefinitionTypes.FacetDateMonth, name => new FacetDateTimeType(name, loggerFactory, DateResolution.MONTH)},
+                {FieldDefinitionTypes.FacetDateDay, name => new FacetDateTimeType(name, loggerFactory, DateResolution.DAY)},
+                {FieldDefinitionTypes.FacetDateHour, name => new FacetDateTimeType(name, loggerFactory, DateResolution.HOUR)},
+                {FieldDefinitionTypes.FacetDateMinute, name => new FacetDateTimeType(name, loggerFactory, DateResolution.MINUTE)},
+                {FieldDefinitionTypes.FacetFullText, name => new FacetFullTextType(name, loggerFactory, defaultAnalyzer)},
+                {FieldDefinitionTypes.FacetFullTextSortable, name => new FacetFullTextType(name, loggerFactory, defaultAnalyzer, true)},
             };
 
 

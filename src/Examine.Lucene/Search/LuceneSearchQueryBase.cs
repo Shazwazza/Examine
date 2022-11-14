@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
+using Lucene.Net.Facet.Range;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
@@ -505,6 +506,14 @@ namespace Examine.Lucene.Search
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
 
+        public abstract IFacetQueryField Facet(string field);
 
+        public abstract IFacetQueryField Facet(string field, string value);
+
+        public abstract IFacetQueryField Facet(string field, string[] values);
+
+        public abstract IFacetRangeQueryField Facet(string field, DoubleRange[] doubleRanges);
+
+        public abstract IFacetRangeQueryField Facet(string field, Int64Range[] longRanges);
     }
 }
