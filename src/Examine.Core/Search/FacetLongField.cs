@@ -8,13 +8,12 @@ namespace Examine.Search
 
         public Int64Range[] LongRanges { get; }
 
-        public string FacetField { get; set; }
+        public string FacetField { get; set; } = "$facets";
 
-        public FacetLongField(string field, Int64Range[] longRanges, string facetField = "$facets")
+        public FacetLongField(string field, Int64Range[] longRanges)
         {
             Field = field;
             LongRanges = longRanges;
-            FacetField = facetField;
         }
     }
 }

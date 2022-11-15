@@ -6,16 +6,9 @@ namespace Examine.Lucene.Search
 {
     public class LuceneSearchResults : ISearchResults, IFacetResults
     {
-        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0);
+        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>());
 
         private readonly IReadOnlyCollection<ISearchResult> _results;
-
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount)
-        {
-            _results = results;
-            TotalItemCount = totalItemCount;
-            Facets = new Dictionary<string, IFacetResult>();
-        }
 
         public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IDictionary<string, IFacetResult> facets)
         {

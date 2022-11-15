@@ -512,8 +512,8 @@ namespace Examine.Lucene.Search
 
         public abstract IFacetQueryField Facet(string field, string[] values);
 
-        public abstract IFacetRangeQueryField Facet(string field, DoubleRange[] doubleRanges);
+        public abstract IFacetDoubleRangeQueryField Facet(string field, DoubleRange[] doubleRanges);
 
-        public abstract IFacetRangeQueryField Facet(string field, Int64Range[] longRanges);
+        public abstract IFacetLongRangeQueryField Facet(string field, Int64Range[] longRanges);
     }
 }

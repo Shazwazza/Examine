@@ -162,11 +162,11 @@ namespace Examine.Search
         /// <summary>
         /// Add a range facet to the current query
         /// </summary>
-        IFacetRangeQueryField Facet(string field, DoubleRange[] doubleRanges);
+        IFacetDoubleRangeQueryField Facet(string field, DoubleRange[] doubleRanges);
 
         /// <summary>
         /// Add a range facet to the current query
         /// </summary>
-        IFacetRangeQueryField Facet(string field, Int64Range[] longRanges);
+        IFacetLongRangeQueryField Facet(string field, Int64Range[] longRanges);
     }
 }

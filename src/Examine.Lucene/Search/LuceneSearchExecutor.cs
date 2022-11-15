@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.Range;
+using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Index;
+using Lucene.Net.Queries.Function.ValueSources;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -19,15 +23,17 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
+        private readonly IList<IFacetField> _facetFields;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad)
+        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IList<IFacetField> facetFields)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
             _fieldsToLoad = fieldsToLoad;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
+            _facetFields = facetFields;
         }
 
         private int MaxDoc
@@ -93,7 +99,17 @@ namespace Examine.Lucene.Search
 
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
-                searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
+                FacetsCollector facetsCollector;
+                if(_facetFields.Count > 0)
+                {
+                    facetsCollector = new FacetsCollector();
+                    searcher.IndexSearcher.Search(_luceneQuery, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                }
+                else
+                {
+                    facetsCollector = null;
+                    searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
+                }
 
                 TopDocs topDocs;
                 if (sortFields.Length > 0)
@@ -114,7 +130,80 @@ namespace Examine.Lucene.Search
                     results.Add(result);
                 }
 
-                return new LuceneSearchResults(results, totalItemCount);
+                var facets = ExtractFacets(facetsCollector, searcher);
+
+                return new LuceneSearchResults(results, totalItemCount, facets);
+            }
+        }
+
+        private IDictionary<string, IFacetResult> ExtractFacets(FacetsCollector facetsCollector, ISearcherReference searcher)
+        {
+            var facets = new Dictionary<string, IFacetResult>();
+            if (facetsCollector == null || _facetFields.Count == 0)
+            {
+                return facets;
+            }
+
+            var facetFields = _facetFields.OrderBy(field => field.FacetField);
+
+            SortedSetDocValuesReaderState sortedSetReaderState = null;
+
+            foreach(var field in facetFields)
+            {
+                if (field is FacetFullTextField facetFullTextField)
+                {
+                    ExtractFullTextFacets(facetsCollector, searcher, facets, sortedSetReaderState, field, facetFullTextField);
+                }
+                else if (field is FacetLongField facetLongField)
+                {
+                    var longFacetCounts = new Int64RangeFacetCounts(facetLongField.Field, facetsCollector, facetLongField.LongRanges);
+
+                    var longFacets = longFacetCounts.GetTopChildren(0, facetLongField.Field);
+                    facets.Add(facetLongField.Field, new Examine.Search.FacetResult(longFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value))));
+                }
+                else if (field is FacetDoubleField facetDoubleField)
+                {
+                    DoubleRangeFacetCounts doubleFacetCounts;
+                    if (facetDoubleField.IsFloat)
+                    {
+                        doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, new SingleFieldSource(facetDoubleField.Field), facetsCollector, facetDoubleField.DoubleRanges);
+                    }
+                    else
+                    {
+                        doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, facetsCollector, facetDoubleField.DoubleRanges);
+                    }
+
+                    var doubleFacets = doubleFacetCounts.GetTopChildren(0, facetDoubleField.Field);
+                    facets.Add(facetDoubleField.Field, new Examine.Search.FacetResult(doubleFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value))));
+                }
+            }
+
+            return facets;
+        }
+
+        private static void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field, FacetFullTextField facetFullTextField)
+        {
+            if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
+            {
+                sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
+            }
+
+            var sortedFacetsCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
+
+            if (facetFullTextField.Values != null && facetFullTextField.Values.Length > 0)
+            {
+                var facetValues = new List<FacetValue>();
+                foreach (var label in facetFullTextField.Values)
+                {
+                    var value = sortedFacetsCounts.GetSpecificValue(facetFullTextField.Field, label);
+                    facetValues.Add(new FacetValue(label, value));
+                }
+                facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(facetValues.OrderBy(value => value.Value).Take(facetFullTextField.MaxCount)));
+            }
+            else
+            {
+                var sortedFacets = sortedFacetsCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
+                facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value))));
             }
         }
 

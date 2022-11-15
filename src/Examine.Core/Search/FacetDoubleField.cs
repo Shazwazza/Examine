@@ -12,13 +12,14 @@ namespace Examine.Search
 
         public string Field { get; }
 
-        public string FacetField { get; set; }
+        public string FacetField { get; set; } = "$facets";
 
-        public FacetDoubleField(string field, DoubleRange[] doubleRanges, string facetField = "$facets")
+        public bool IsFloat { get; set; }
+
+        public FacetDoubleField(string field, DoubleRange[] doubleRanges)
         {
             Field = field;
             DoubleRanges = doubleRanges;
-            FacetField = facetField;
         }
     }
 }

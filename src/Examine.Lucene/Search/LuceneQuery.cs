@@ -116,10 +116,10 @@ namespace Examine.Lucene.Search
         public IFacetQueryField Facet(string field, string[] values)
             => _search.FacetInternal(field, values);
 
-        public IFacetRangeQueryField Facet(string field, DoubleRange[] doubleRanges)
+        public IFacetDoubleRangeQueryField Facet(string field, DoubleRange[] doubleRanges)
             => _search.FacetInternal(field, doubleRanges);
 
-        public IFacetRangeQueryField Facet(string field, Int64Range[] longRanges)
+        public IFacetLongRangeQueryField Facet(string field, Int64Range[] longRanges)
             => _search.FacetInternal(field, longRanges);
     }
 }
