@@ -1,4 +1,5 @@
 using Lucene.Net.Documents;
+using Lucene.Net.Facet.SortedSet;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
@@ -16,6 +17,7 @@ namespace Examine.Lucene.Indexing
             if (!TryConvert(value, out float parsedVal))
                 return;
 
+            doc.Add(new SortedSetDocValuesFacetField(FieldName, parsedVal.ToString()));
             doc.Add(new SingleDocValuesField(FieldName, parsedVal));
         }
     }

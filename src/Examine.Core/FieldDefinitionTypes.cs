@@ -44,61 +44,61 @@ namespace Examine
         /// <summary>
         /// Facetable version of <see cref="Integer"/>
         /// </summary>
-        public const string FacetInteger = "int";
+        public const string FacetInteger = "facetint";
 
         /// <summary>
         /// Facetable version of <see cref="Float"/>
         /// </summary>
-        public const string FacetFloat = "float";
+        public const string FacetFloat = "facetfloat";
 
         /// <summary>
         /// Facetable version of <see cref="Double"/>
         /// </summary>
-        public const string FacetDouble = "double";
+        public const string FacetDouble = "facetdouble";
 
         /// <summary>
         /// Facetable version of <see cref="Long"/>
         /// </summary>
-        public const string FacetLong = "long";
+        public const string FacetLong = "facetlong";
 
         /// <summary>
         /// Facetable version of <see cref="DateTime"/>
         /// </summary>
-        public const string FacetDateTime = "datetime";
+        public const string FacetDateTime = "facetdatetime";
 
         /// <summary>
         /// Facetable version of <see cref="DateYear"/>
         /// </summary>
-        public const string FacetDateYear = "date.year";
+        public const string FacetDateYear = "facetdate.year";
 
         /// <summary>
         /// Facetable version of <see cref="DateMonth"/>
         /// </summary>
-        public const string FacetDateMonth = "date.month";
+        public const string FacetDateMonth = "facetdate.month";
 
         /// <summary>
         /// Facetable version of <see cref="DateDay"/>
         /// </summary>
-        public const string FacetDateDay = "date.day";
+        public const string FacetDateDay = "facetdate.day";
 
         /// <summary>
         /// Facetable version of <see cref="DateHour"/>
         /// </summary>
-        public const string FacetDateHour = "date.hour";
+        public const string FacetDateHour = "facetdate.hour";
 
         /// <summary>
         /// Facetable version of <see cref="DateMinute"/>
         /// </summary>
-        public const string FacetDateMinute = "date.minute";
+        public const string FacetDateMinute = "facetdate.minute";
 
         /// <summary>
         /// Facetable version of <see cref="FullText"/>
         /// </summary>
-        public const string FacetFullText = "fulltext";
+        public const string FacetFullText = "facetfulltext";
 
         /// <summary>
         /// Facetable version of <see cref="FullTextSortable"/>
         /// </summary>
-        public const string FacetFullTextSortable = "fulltextsortable";
+        public const string FacetFullTextSortable = "facetfulltextsortable";
     }
 }

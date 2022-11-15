@@ -1,5 +1,6 @@
 using System;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet.SortedSet;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
@@ -19,6 +20,7 @@ namespace Examine.Lucene.Indexing
 
             var val = DateToLong(parsedVal);
 
+            doc.Add(new SortedSetDocValuesFacetField(FieldName, val.ToString()));
             doc.Add(new NumericDocValuesField(FieldName, val));
         }
     }

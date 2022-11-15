@@ -10,7 +10,7 @@ namespace Examine.Search
 
         public string FacetField { get; set; }
 
-        public FacetFullTextField(string field, string[] values, int maxCount = 10, string facetField = "$facets")
+        public FacetFullTextField(string field, string[] values, int maxCount = 10, string facetField = ExamineFieldNames.DefaultFacetsName)
         {
             Field = field;
             Values = values;

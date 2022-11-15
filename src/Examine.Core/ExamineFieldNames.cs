@@ -1,4 +1,4 @@
-﻿namespace Examine
+namespace Examine
 {
     public static class ExamineFieldNames
     {
@@ -23,6 +23,11 @@
         public const string ItemIdFieldName = "__NodeId";
 
         public const string ItemTypeFieldName = "__NodeTypeAlias";
+
+        /// <summary>
+        /// The default field name for storing facet information
+        /// </summary>
+        public const string DefaultFacetsName = "$facets";
     }
 
     
