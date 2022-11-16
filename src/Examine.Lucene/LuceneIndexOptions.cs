@@ -23,7 +23,7 @@ namespace Examine.Lucene
         /// the setters in this class to change these settings for
         /// each dim.
         /// </summary>
-        public FacetsConfig FacetConfig { get; set; } = new FacetsConfig();
+        public FacetsConfig FacetsConfig { get; set; } = new FacetsConfig();
 
         /// <summary>
         /// Specifies the index value types to use for this indexer, if this is not specified then the result of <see cref="ValueTypeFactoryCollection.GetDefaultValueTypes"/> will be used.

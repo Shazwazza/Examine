@@ -754,7 +754,7 @@ namespace Examine.Lucene.Providers
             }
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
-            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetConfig.Build(doc));
+            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetsConfig.Build(doc));
         }
 
         /// <summary>
