@@ -5,6 +5,7 @@ using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
+using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet.Range;
 using Lucene.Net.QueryParsers.Classic;
@@ -1713,577 +1714,600 @@ namespace Examine.Test.Examine.Lucene.Search
 
         }
 
-        //[Test]
-        //public void Skip_Results_Returns_Different_Results()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-        //    {
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { nodeName = "hello", headerText = "world", writerName = "blah" })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        //Arrange
-        //        var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
-
-        //        //Act
-        //        var results = sc.Execute();
-
-        //        //Assert
-        //        Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
-        //    }
-        //}
-
-        //[Test]
-        //public void Escaping_Includes_All_Words()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-        //    {
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { nodeName = "codegarden09", headerText = "world", writerName = "administrator" }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { nodeName = "codegarden 09", headerText = "umbraco", writerName = "administrator" }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { nodeName = "codegarden  09", headerText = "umbraco", writerName = "administrator" }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { nodeName = "codegarden 090", headerText = "world", writerName = "blah" })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        //Arrange
-        //        var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Escape());
-
-        //        Console.WriteLine(sc.ToString());
-
-        //        //Act
-        //        var results = sc.Execute();
-
-        //        //Assert
-        //        //NOTE: The result is 2 because the double space is removed with the analyzer
-        //        Assert.AreEqual(2, results.TotalItemCount);
-        //    }
-
-
-        //}
-
-        //[Test]
-        //public void Grouped_And_Examiness()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-        //    {
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { nodeName = "Aloha", nodeTypeAlias = "CWS_Hello" }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { nodeName = "Helo", nodeTypeAlias = "CWS_World" }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { nodeName = "Another node", nodeTypeAlias = "SomethingElse" }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { nodeName = "Always consider this", nodeTypeAlias = "CWS_World" })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        //Arrange
-        //        var criteria = searcher.CreateQuery("content");
-
-        //        //get all node type aliases starting with CWS and all nodees starting with "A"
-        //        var filter = criteria.GroupedAnd(
-        //            new[] { "nodeTypeAlias", "nodeName" },
-        //            new[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() });
-
-
-        //        //Act
-        //        var results = filter.Execute();
-
-        //        //Assert
-        //        Assert.AreEqual(2, results.TotalItemCount);
-        //    }
-        //}
-
-        //[Test]
-        //public void Examiness_Proximity()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-        //    {
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { nodeName = "Aloha", metaKeywords = "Warren is likely to be creative" }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { nodeName = "Helo", metaKeywords = "Creative is Warren middle name" }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { nodeName = "Another node", metaKeywords = "If Warren were creative... well, he actually is" }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { nodeName = "Always consider this", metaKeywords = "Warren is a very talented individual and quite creative" })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        //Arrange
-        //        var criteria = searcher.CreateQuery("content");
-
-        //        //get all nodes that contain the words warren and creative within 5 words of each other
-        //        var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5));
-
-        //        //Act
-        //        var results = filter.Execute();
-
-        //        foreach (var r in results)
-        //        {
-        //            Console.WriteLine($"Id = {r.Id}");
-        //        }
-
-        //        //Assert
-        //        Assert.AreEqual(3, results.TotalItemCount);
-        //    }
-        //}
-
-        ///// <summary>
-        ///// test range query with a Float structure
-        ///// </summary>
-        //[Test]
-        //public void Float_Range_SimpleIndexSet()
-        //{
-
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(
-        //        luceneDir,
-        //        analyzer,
-        //        //Ensure it's set to a float
-        //        new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.Float))))
-        //    {
-
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { nodeName = "Aloha", SomeFloat = 1 }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { nodeName = "Helo", SomeFloat = 123 }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { nodeName = "Another node", SomeFloat = 12 }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { nodeName = "Always consider this", SomeFloat = 25 })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        //all numbers should be between 0 and 100 based on the data source
-        //        var criteria1 = searcher.CreateQuery();
-        //        var filter1 = criteria1.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, true, true);
-
-        //        var criteria2 = searcher.CreateQuery();
-        //        var filter2 = criteria2.RangeQuery<float>(new[] { "SomeFloat" }, 101f, 200f, true, true);
-
-        //        //Act
-        //        var results1 = filter1.Execute();
-        //        var results2 = filter2.Execute();
-
-        //        //Assert
-        //        Assert.AreEqual(3, results1.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-
-
-        //}
-
-        ///// <summary>
-        ///// test range query with a Number structure
-        ///// </summary>
-        //[Test]
-        //public void Number_Range_SimpleIndexSet()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(
-        //        luceneDir,
-        //        analyzer,
-        //        //Ensure it's set to a float
-        //        new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.Integer))))
-        //    {
-
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { nodeName = "Aloha", SomeNumber = 1 }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { nodeName = "Helo", SomeNumber = 123 }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { nodeName = "Another node", SomeNumber = 12 }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { nodeName = "Always consider this", SomeNumber = 25 })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        //all numbers should be between 0 and 100 based on the data source
-        //        var criteria1 = searcher.CreateQuery();
-        //        var filter1 = criteria1.RangeQuery<int>(new[] { "SomeNumber" }, 0, 100, true, true);
-
-        //        var criteria2 = searcher.CreateQuery();
-        //        var filter2 = criteria2.RangeQuery<int>(new[] { "SomeNumber" }, 101, 200, true, true);
-
-        //        //Act
-        //        var results1 = filter1.Execute();
-        //        var results2 = filter2.Execute();
-
-        //        //Assert
-        //        Assert.AreEqual(3, results1.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-        //}
-
-        ///// <summary>
-        ///// test range query with a Number structure
-        ///// </summary>
-        //[Test]
-        //public void Double_Range_SimpleIndexSet()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(
-        //        luceneDir,
-        //        analyzer,
-        //        //Ensure it's set to a float
-        //        new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.Double))))
-        //    {
-
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { nodeName = "Aloha", SomeDouble = 1d }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { nodeName = "Helo", SomeDouble = 123d }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { nodeName = "Another node", SomeDouble = 12d }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { nodeName = "Always consider this", SomeDouble = 25d })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        //all numbers should be between 0 and 100 based on the data source
-        //        var criteria1 = searcher.CreateQuery();
-        //        var filter1 = criteria1.RangeQuery<double>(new[] { "SomeDouble" }, 0d, 100d, true, true);
-
-        //        var criteria2 = searcher.CreateQuery("content");
-        //        var filter2 = criteria2.RangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true);
-
-        //        //Act
-        //        var results1 = filter1.Execute();
-        //        var results2 = filter2.Execute();
-
-        //        //Assert
-        //        Assert.AreEqual(3, results1.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-        //}
-
-        ///// <summary>
-        ///// test range query with a Double structure
-        ///// </summary>
-        //[Test]
-        //public void Long_Range_SimpleIndexSet()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(
-        //        luceneDir,
-        //        analyzer,
-        //        //Ensure it's set to a float
-        //        new FieldDefinitionCollection(new FieldDefinition("SomeLong", "long"))))
-        //    {
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { nodeName = "Aloha", SomeLong = 1L }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { nodeName = "Helo", SomeLong = 123L }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { nodeName = "Another node", SomeLong = 12L }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { nodeName = "Always consider this", SomeLong = 25L })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        //all numbers should be between 0 and 100 based on the data source
-        //        var criteria1 = searcher.CreateQuery();
-        //        var filter1 = criteria1.RangeQuery<long>(new[] { "SomeLong" }, 0L, 100L, true, true);
-
-        //        var criteria2 = searcher.CreateQuery();
-        //        var filter2 = criteria2.RangeQuery<long>(new[] { "SomeLong" }, 101L, 200L, true, true);
-
-        //        //Act
-        //        var results1 = filter1.Execute();
-        //        var results2 = filter2.Execute();
-
-        //        //Assert
-        //        Assert.AreEqual(3, results1.TotalItemCount);
-        //        Assert.AreEqual(1, results2.TotalItemCount);
-        //    }
-        //}
-
-
-
-        ///// <summary>
-        ///// Test range query with a DateTime structure
-        ///// </summary>
-        //[Test]
-        //public void Date_Range_SimpleIndexSet()
-        //{
-        //    var reIndexDateTime = DateTime.Now;
-
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(
-        //        luceneDir,
-        //        analyzer,
-        //        new FieldDefinitionCollection(new FieldDefinition("DateCreated", "datetime"))))
-        //    {
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { DateCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { DateCreated = reIndexDateTime }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { DateCreated = reIndexDateTime.AddMonths(-10) }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { DateCreated = reIndexDateTime })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        var criteria = searcher.CreateQuery();
-        //        var filter = criteria.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime, DateTime.Now, true, true);
-
-        //        var criteria2 = searcher.CreateQuery();
-        //        var filter2 = criteria2.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true);
-
-        //        ////Act
-        //        var results = filter.Execute();
-        //        var results2 = filter2.Execute();
-
-        //        ////Assert
-        //        Assert.IsTrue(results.TotalItemCount > 0);
-        //        Assert.IsTrue(results2.TotalItemCount == 0);
-        //    }
-
-
-        //}
-
-        //[Test]
-        //public void Fuzzy_Search()
-        //{
-        //    var analyzer = new EnglishAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-        //    {
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { Content = "I'm thinking here" }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { Content = "I'm a thinker" }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { Content = "I am pretty thoughtful" }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { Content = "I thought you were cool" })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        var criteria = searcher.CreateQuery();
-        //        var filter = criteria.Field("Content", "think".Fuzzy(0.1F));
-
-        //        var criteria2 = searcher.CreateQuery();
-        //        var filter2 = criteria2.Field("Content", "thought".Fuzzy());
-
-        //        Console.WriteLine(filter);
-        //        Console.WriteLine(filter2);
-
-        //        ////Act
-        //        var results = filter.Execute();
-        //        var results2 = filter2.Execute();
-
-        //        foreach (var r in results)
-        //        {
-        //            Console.WriteLine($"Result Id: {r.Id}");
-        //        }
-
-        //        foreach (var r in results2)
-        //        {
-        //            Console.WriteLine($"Result2 Id: {r.Id}");
-        //        }
-
-        //        ////Assert
-        //        Assert.AreEqual(2, results.TotalItemCount);
-        //        Assert.AreEqual(2, results2.TotalItemCount);
-        //    }
-        //}
-
-
-        //[Test]
-        //public void Execute_With_Take()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-        //    {
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { Content = "hello world" }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { Content = "hello worlds" }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { Content = "hello you cruel world" }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { Content = "hi there, hello world" })
-        //        });
-
-        //        var searcher = indexer.Searcher;
-
-        //        var criteria = searcher.CreateQuery();
-        //        var filter = criteria.Field("Content", "hello");
-
-        //        //Act
-        //        var results = filter.Execute(QueryOptions.SkipTake(0, 3));
-
-        //        //Assert
-
-        //        Assert.AreEqual(3, results.Count());
-
-        //        //NOTE: These are the total matched! The actual results are limited
-        //        Assert.AreEqual(4, results.TotalItemCount);
-        //    }
-        //}
-
-        //[Test]
-        //public void Execute_With_Take_Max_Results()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-        //    {
-        //        for (int i = 0; i < 1000; i++)
-        //        {
-        //            indexer.IndexItems(new[] {ValueSet.FromObject(i.ToString(), "content", new { Content = "hello world" })});
-        //        }
-
-        //        indexer.IndexItems(new[] { ValueSet.FromObject(2000.ToString(), "content", new { Content = "donotfind" }) });
-
-        //        var searcher = indexer.Searcher;
-
-        //        var criteria = searcher.CreateQuery();
-        //        var filter = criteria.Field("Content", "hello");
-
-        //        //Act
-        //        var results = filter.Execute(QueryOptions.SkipTake(0, int.MaxValue));
-
-        //        //Assert
-
-        //        Assert.AreEqual(1000, results.Count());
-        //    }
-        //}
-
-
-        //[Test]
-        //public void Inner_Or_Query()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-
-
-        //    {
-
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { Content = "hello world", Type = "type1" }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { Content = "hello something or other", Type = "type1" }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { Content = "hello you cruel world", Type = "type2" }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { Content = "hi there, hello world", Type = "type2" })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        var criteria = searcher.CreateQuery();
-
-        //        //Query = 
-        //        //  +Type:type1 +(Content:world Content:something)
-
-        //        var filter = criteria.Field("Type", "type1")
-        //            .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or);
-
-        //        //Act
-        //        var results = filter.Execute();
-
-        //        //Assert
-        //        Assert.AreEqual(2, results.TotalItemCount);
-        //    }
-        //}
-
-        //[Test]
-        //public void Inner_And_Query()
-        //{
-        //    var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-        //    using (var luceneDir = new RandomIdRAMDirectory())
-        //    using (var indexer = GetTestIndex(luceneDir, analyzer))
-
-
-        //    {
-
-
-        //        indexer.IndexItems(new[] {
-        //            ValueSet.FromObject(1.ToString(), "content",
-        //                new { Content = "hello world", Type = "type1" }),
-        //            ValueSet.FromObject(2.ToString(), "content",
-        //                new { Content = "hello something or other", Type = "type1" }),
-        //            ValueSet.FromObject(3.ToString(), "content",
-        //                new { Content = "hello something or world", Type = "type1" }),
-        //            ValueSet.FromObject(4.ToString(), "content",
-        //                new { Content = "hello you cruel world", Type = "type2" }),
-        //            ValueSet.FromObject(5.ToString(), "content",
-        //                new { Content = "hi there, hello world", Type = "type2" })
-        //            });
-
-        //        var searcher = indexer.Searcher;
-
-        //        var criteria = searcher.CreateQuery();
-
-        //        //Query = 
-        //        //  +Type:type1 +(+Content:world +Content:hello)
-
-        //        var filter = criteria.Field("Type", "type1")
-        //            .And(query => query.Field("Content", "world").And().Field("Content", "hello"));
-
-        //        //Act
-        //        var results = filter.Execute();
-
-        //        //Assert
-        //        Assert.AreEqual(2, results.TotalItemCount);
-        //    }
-        //}
+        [Test]
+        public void Skip_Results_Returns_Different_Results_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator").And().Facet("nodeName");
+
+                //Act
+                var results = sc.Execute();
+
+                var facetResults = results.GetFacet("nodeName");
+
+                //Assert
+                Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
+                Assert.AreEqual(1, facetResults.Count());
+            }
+        }
+
+        [Test]
+        public void Escaping_Includes_All_Words_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "codegarden09", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "codegarden 09", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "codegarden  09", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "codegarden 090", headerText = "world", writerName = "blah" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+                var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Escape()).And().Facet("nodeName");
+
+                Console.WriteLine(sc.ToString());
+
+                //Act
+                var results = sc.Execute();
+
+                var facetResults = results.GetFacet("nodeName");
+
+                //Assert
+                //NOTE: The result is 2 because the double space is removed with the analyzer
+                Assert.AreEqual(2, results.TotalItemCount);
+                Assert.AreEqual(2, facetResults.Count());
+            }
+
+
+        }
+
+        [Test]
+        public void Grouped_And_Examiness_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "Aloha", nodeTypeAlias = "CWS_Hello" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "Helo", nodeTypeAlias = "CWS_World" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "Another node", nodeTypeAlias = "SomethingElse" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "Always consider this", nodeTypeAlias = "CWS_World" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+                var criteria = searcher.CreateQuery("content").Facet("nodeName").And();
+
+                //get all node type aliases starting with CWS and all nodees starting with "A"
+                var filter = criteria.GroupedAnd(
+                    new[] { "nodeTypeAlias", "nodeName" },
+                    new[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() });
+
+
+                //Act
+                var results = filter.Execute();
+
+                var facetResults = results.GetFacet("nodeName");
+
+                //Assert
+                Assert.AreEqual(2, results.TotalItemCount);
+                Assert.AreEqual(2, facetResults.Count());
+            }
+        }
+
+        [Test]
+        public void Examiness_Proximity_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "Aloha", metaKeywords = "Warren is likely to be creative" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "Helo", metaKeywords = "Creative is Warren middle name" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "Another node", metaKeywords = "If Warren were creative... well, he actually is" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "Always consider this", metaKeywords = "Warren is a very talented individual and quite creative" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+                var criteria = searcher.CreateQuery("content").Facet("nodeName").And();
+
+                //get all nodes that contain the words warren and creative within 5 words of each other
+                var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5));
+
+                //Act
+                var results = filter.Execute();
+
+                var facetResults = results.GetFacet("nodeName");
+
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Id = {r.Id}");
+                }
+
+                //Assert
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(3, facetResults.Count());
+            }
+        }
+
+        /// <summary>
+        /// test range query with a Float structure
+        /// </summary>
+        [Test]
+        public void Float_Range_SimpleIndexSet()
+        {
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                //Ensure it's set to a float
+                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.FacetFloat))))
+            {
+
+
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "Aloha", SomeFloat = 1 }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "Helo", SomeFloat = 123 }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "Another node", SomeFloat = 12 }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "Always consider this", SomeFloat = 25 })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //all numbers should be between 0 and 100 based on the data source
+                var criteria1 = searcher.CreateQuery().Facet("SomeFloat", new DoubleRange[]
+                {
+                    new DoubleRange("1", 0, true, 12, true),
+                    new DoubleRange("2", 13, true, 250, true)
+                }).IsFloat(true).And();
+                var filter1 = criteria1.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, true, true);
+
+                var criteria2 = searcher.CreateQuery().Facet("SomeFloat", new DoubleRange[]
+                {
+                    new DoubleRange("1", 0, true, 12, true),
+                    new DoubleRange("2", 13, true, 250, true)
+                }).IsFloat(true).And();
+                var filter2 = criteria2.RangeQuery<float>(new[] { "SomeFloat" }, 101f, 200f, true, true);
+
+                //Act
+                var results1 = filter1.Execute();
+                var results2 = filter2.Execute();
+
+                var facetResults1 = results1.GetFacet("SomeFloat");
+                var facetResults2 = results2.GetFacet("SomeFloat");
+
+                //Assert
+                Assert.AreEqual(3, results1.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+                Assert.AreEqual(2, facetResults1.Facet("1").Value);
+                Assert.AreEqual(1, facetResults1.Facet("2").Value);
+                Assert.AreEqual(0, facetResults2.Facet("1").Value);
+                Assert.AreEqual(1, facetResults2.Facet("2").Value);
+            }
+
+
+        }
+
+        /// <summary>
+        /// test range query with a Number structure
+        /// </summary>
+        [Test]
+        public void Number_Range_SimpleIndexSet_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                //Ensure it's set to a float
+                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.FacetInteger))))
+            {
+
+
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "Aloha", SomeNumber = 1 }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "Helo", SomeNumber = 123 }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "Another node", SomeNumber = 12 }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "Always consider this", SomeNumber = 25 })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //all numbers should be between 0 and 100 based on the data source
+                var criteria1 = searcher.CreateQuery().Facet("SomeNumber").MaxCount(1).And();
+                var filter1 = criteria1.RangeQuery<int>(new[] { "SomeNumber" }, 0, 100, true, true);
+
+                var criteria2 = searcher.CreateQuery().Facet("SomeNumber").MaxCount(1).And();
+                var filter2 = criteria2.RangeQuery<int>(new[] { "SomeNumber" }, 101, 200, true, true);
+
+                //Act
+                var results1 = filter1.Execute();
+                var results2 = filter2.Execute();
+
+                var facetResults1 = results1.GetFacet("SomeNumber");
+                var facetResults2 = results2.GetFacet("SomeNumber");
+
+                //Assert
+                Assert.AreEqual(3, results1.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+                Assert.AreEqual(1, facetResults1.Count());
+                Assert.AreEqual(1, facetResults2.Count());
+            }
+        }
+
+        /// <summary>
+        /// test range query with a Number structure
+        /// </summary>
+        [Test]
+        public void Double_Range_SimpleIndexSet_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                //Ensure it's set to a float
+                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.FacetDouble))))
+            {
+
+
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "Aloha", SomeDouble = 1d }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "Helo", SomeDouble = 123d }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "Another node", SomeDouble = 12d }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "Always consider this", SomeDouble = 25d })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //all numbers should be between 0 and 100 based on the data source
+                var criteria1 = searcher.CreateQuery().Facet("SomeDouble", new DoubleRange[]
+                {
+                    new DoubleRange("1", 0, true, 100, true),
+                    new DoubleRange("2", 101, true, 200, true)
+                }).And();
+                var filter1 = criteria1.RangeQuery<double>(new[] { "SomeDouble" }, 0d, 100d, true, true);
+
+                var criteria2 = searcher.CreateQuery("content").Facet("SomeDouble", new DoubleRange[]
+                {
+                    new DoubleRange("1", 0, true, 100, true),
+                    new DoubleRange("2", 101, true, 200, true)
+                }).And();
+                var filter2 = criteria2.RangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true);
+
+                //Act
+                var results1 = filter1.Execute();
+                var results2 = filter2.Execute();
+
+                var facetResults1 = results1.GetFacet("SomeDouble");
+                var facetResults2 = results2.GetFacet("SomeDouble");
+
+                //Assert
+                Assert.AreEqual(3, results1.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+                Assert.AreEqual(3, facetResults1.Facet("1").Value);
+                Assert.AreEqual(0, facetResults1.Facet("2").Value);
+                Assert.AreEqual(0, facetResults2.Facet("1").Value);
+                Assert.AreEqual(1, facetResults2.Facet("2").Value);
+            }
+        }
+
+        /// <summary>
+        /// test range query with a Double structure
+        /// </summary>
+        [Test]
+        public void Long_Range_SimpleIndexSet_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                //Ensure it's set to a float
+                new FieldDefinitionCollection(new FieldDefinition("SomeLong", FieldDefinitionTypes.FacetLong))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "Aloha", SomeLong = 1L }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "Helo", SomeLong = 123L }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "Another node", SomeLong = 12L }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "Always consider this", SomeLong = 25L })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //all numbers should be between 0 and 100 based on the data source
+                var criteria1 = searcher.CreateQuery().Facet("SomeLong", new Int64Range[]
+                {
+                    new Int64Range("1", 0L, true, 100L, true),
+                    new Int64Range("2", 101L, true, 200L, true)
+                }).And();
+                var filter1 = criteria1.RangeQuery<long>(new[] { "SomeLong" }, 0L, 100L, true, true);
+
+                var criteria2 = searcher.CreateQuery().Facet("SomeLong", new Int64Range[]
+                {
+                    new Int64Range("1", 0L, true, 100L, true),
+                    new Int64Range("2", 101L, true, 200L, true)
+                }).And();
+                var filter2 = criteria2.RangeQuery<long>(new[] { "SomeLong" }, 101L, 200L, true, true);
+
+                //Act
+                var results1 = filter1.Execute();
+                var results2 = filter2.Execute();
+
+                var facetResults1 = results1.GetFacet("SomeLong");
+                var facetResults2 = results2.GetFacet("SomeLong");
+
+                //Assert
+                Assert.AreEqual(3, results1.TotalItemCount);
+                Assert.AreEqual(1, results2.TotalItemCount);
+                Assert.AreEqual(3, facetResults1.Facet("1").Value);
+                Assert.AreEqual(0, facetResults1.Facet("2").Value);
+                Assert.AreEqual(0, facetResults2.Facet("1").Value);
+                Assert.AreEqual(1, facetResults2.Facet("2").Value);
+            }
+        }
+
+
+
+        /// <summary>
+        /// Test range query with a DateTime structure
+        /// </summary>
+        [Test]
+        public void Date_Range_SimpleIndexSet_Facet()
+        {
+            var reIndexDateTime = DateTime.Now;
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("DateCreated", FieldDefinitionTypes.FacetDateTime))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { DateCreated = reIndexDateTime }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { DateCreated = reIndexDateTime }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { DateCreated = reIndexDateTime.AddMonths(-10) }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { DateCreated = reIndexDateTime })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var criteria = searcher.CreateQuery().Facet("DateCreated", new Int64Range[]
+                {
+                    new Int64Range("1", reIndexDateTime.AddYears(-1).Ticks, true, reIndexDateTime.Ticks, true),
+                    new Int64Range("2", reIndexDateTime.AddMinutes(1).Ticks, true, reIndexDateTime.AddDays(1).Ticks, true)
+                }).And();
+                var filter = criteria.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime, DateTime.Now, true, true);
+
+                var criteria2 = searcher.CreateQuery().Facet("DateCreated", new Int64Range[]
+                {
+                    new Int64Range("1", reIndexDateTime.AddYears(-1).Ticks, true, reIndexDateTime.Ticks, true),
+                    new Int64Range("2", reIndexDateTime.AddMinutes(1).Ticks, true, reIndexDateTime.AddDays(1).Ticks, true)
+                }).And();
+                var filter2 = criteria2.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true);
+
+                ////Act
+                var results = filter.Execute();
+                var results2 = filter2.Execute();
+
+                var facetResults1 = results.GetFacet("DateCreated");
+                var facetResults2 = results2.GetFacet("DateCreated");
+
+                ////Assert
+                Assert.IsTrue(results.TotalItemCount > 0);
+                Assert.IsTrue(results2.TotalItemCount == 0);
+                Assert.AreEqual(3, facetResults1.Facet("1").Value);
+                Assert.AreEqual(0, facetResults1.Facet("2").Value);
+                Assert.AreEqual(0, facetResults2.Facet("1").Value);
+                Assert.AreEqual(0, facetResults2.Facet("2").Value);
+            }
+
+
+        }
+
+        [Test]
+        public void Fuzzy_Search_Facet()
+        {
+            var analyzer = new EnglishAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("Content", FieldDefinitionTypes.FacetFullText))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "I'm thinking here" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "I'm a thinker" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "I am pretty thoughtful" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { Content = "I thought you were cool" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var criteria = searcher.CreateQuery().Facet("Content").And();
+                var filter = criteria.Field("Content", "think".Fuzzy(0.1F));
+
+                var criteria2 = searcher.CreateQuery().Facet("Content").And();
+                var filter2 = criteria2.Field("Content", "thought".Fuzzy());
+
+                Console.WriteLine(filter);
+                Console.WriteLine(filter2);
+
+                ////Act
+                var results = filter.Execute();
+                var results2 = filter2.Execute();
+
+                var facetResults1 = results.GetFacet("Content");
+                var facetResults2 = results2.GetFacet("Content");
+
+                foreach (var r in results)
+                {
+                    Console.WriteLine($"Result Id: {r.Id}");
+                }
+
+                foreach (var r in results2)
+                {
+                    Console.WriteLine($"Result2 Id: {r.Id}");
+                }
+
+                ////Assert
+                Assert.AreEqual(2, results.TotalItemCount);
+                Assert.AreEqual(2, results2.TotalItemCount);
+                Assert.AreEqual(2, facetResults1.Count());
+                Assert.AreEqual(2, facetResults2.Count());
+            }
+        }
+
+        [Test]
+        public void Inner_Or_Query_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))))
+
+
+            {
+
+
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { Content = "hi there, hello world", Type = "type2" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var criteria = searcher.CreateQuery().Facet("Type").And();
+
+                //Query = 
+                //  +Type:type1 +(Content:world Content:something)
+
+                var filter = criteria.Field("Type", "type1")
+                    .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or);
+
+                //Act
+                var results = filter.Execute();
+
+                var facetResults = results.GetFacet("Type");
+
+                //Assert
+                Assert.AreEqual(2, results.TotalItemCount);
+                Assert.AreEqual(1, facetResults.Count());
+            }
+        }
+
+        [Test]
+        public void Inner_And_Query_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))))
+
+
+            {
+
+
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "hello something or world", Type = "type1" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { Content = "hello you cruel world", Type = "type2" }),
+                    ValueSet.FromObject(5.ToString(), "content",
+                        new { Content = "hi there, hello world", Type = "type2" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var criteria = searcher.CreateQuery().Facet("Type").And();
+
+                //Query = 
+                //  +Type:type1 +(+Content:world +Content:hello)
+
+                var filter = criteria.Field("Type", "type1")
+                    .And(query => query.Field("Content", "world").And().Field("Content", "hello"));
+
+                //Act
+                var results = filter.Execute();
+
+                var facetResults = results.GetFacet("Type");
+
+                //Assert
+                Assert.AreEqual(2, results.TotalItemCount);
+                Assert.AreEqual(1, facetResults.Count());
+            }
+        }
 
         [Test]
         public void Inner_Not_Query_Facet()
