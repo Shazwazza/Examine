@@ -1,16 +1,21 @@
-﻿using Lucene.Net.Index;
+using Lucene.Net.Index;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Represents a multi search searcher reference
+    /// </summary>
     public class MultiSearchSearcherReference : ISearcherReference
     {
+        /// <inheritdoc/>
         public MultiSearchSearcherReference(ISearcherReference[] inner) => _inner = inner;
 
         private bool _disposedValue;
         private IndexSearcher _searcher;
         private readonly ISearcherReference[] _inner;
 
+        /// <inheritdoc/>
         public IndexSearcher IndexSearcher
         {
             get
@@ -29,6 +34,7 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -45,6 +51,7 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

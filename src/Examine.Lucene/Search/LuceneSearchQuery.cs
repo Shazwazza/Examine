@@ -21,6 +21,7 @@ namespace Examine.Lucene.Search
         private ISet<string> _fieldsToLoad = null;
         private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
 
+        /// <inheritdoc/>
         public LuceneSearchQuery(
             ISearchContext searchContext,
             string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance, FacetsConfig facetsConfig)
@@ -81,25 +82,41 @@ namespace Examine.Lucene.Search
             return parser;
         }
 
+        /// <summary>
+        /// Sets the order by of the query
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
         public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
+        /// <summary>
+        /// Sets the order by of the query in a descending manner
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
+        /// <inheritdoc/>
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
+        /// <inheritdoc/>
         public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
             => ManagedQueryInternal(query, fields, Occurrence);
 
+        /// <inheritdoc/>
         public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
+        /// <inheritdoc/>
         protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
+        /// <inheritdoc/>
         protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
             => ManagedQueryInternal(query, fields, Occurrence);
 
+        /// <inheritdoc/>
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
@@ -305,12 +322,20 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <summary>
+        /// Selects all fields
+        /// </summary>
+        /// <returns></returns>
         public IBooleanOperation SelectAllFieldsInternal()
         {
             _fieldsToLoad = null;
             return CreateOp();
         }
 
+        /// <summary>
+        /// Creates a new <see cref="LuceneBooleanOperation"/>
+        /// </summary>
+        /// <returns></returns>
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
         internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField> facetConfiguration, params string[] values)

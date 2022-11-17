@@ -10,13 +10,20 @@ namespace Examine.Lucene.Indexing
     /// </summary>
     public interface IIndexFieldValueType
     {
+        /// <summary>
+        /// The field name
+        /// </summary>
         string FieldName { get; }
 
         /// <summary>
         /// Returns the sortable field name or null if the value isn't sortable
         /// </summary>
+        /// <remarks>By default it will not be sortable</remarks>
         string SortableFieldName { get; }
 
+        /// <summary>
+        /// Should the value be stored
+        /// </summary>
         bool Store { get; }
 
         /// <summary>
@@ -24,8 +31,18 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         Analyzer Analyzer { get; }
 
+        /// <summary>
+        /// Adds a value to the document
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <param name="value"></param>
         void AddValue(Document doc, object value);
-        
+
+        /// <summary>
+        /// Gets a query as <see cref="Query"/>
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
         Query GetQuery(string query);
 
         //IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader);

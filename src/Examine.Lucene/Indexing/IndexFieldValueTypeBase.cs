@@ -8,15 +8,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
 {
+    /// <inheritdoc/>
     public abstract class IndexFieldValueTypeBase : IIndexFieldValueType
     {
+        /// <inheritdoc/>
         public string FieldName { get; }
 
-        //by default it will not be sortable
+        /// <inheritdoc/>
         public virtual string SortableFieldName => null;
 
+        /// <inheritdoc/>
         public bool Store { get; }
 
+        /// <inheritdoc/>
         protected IndexFieldValueTypeBase(string fieldName, ILoggerFactory loggerFactory, bool store = true)
         {
             FieldName = fieldName;
@@ -24,10 +28,15 @@ namespace Examine.Lucene.Indexing
             Store = store;
         }
 
+        /// <inheritdoc/>
         public virtual Analyzer Analyzer => null;
 
+        /// <summary>
+        /// The logger
+        /// </summary>
         public ILogger Logger { get; }
 
+        /// <inheritdoc/>
         public virtual void AddValue(Document doc, object value) => AddSingleValueInternal(doc, value);
 
         private void AddSingleValueInternal(Document doc, object value)
@@ -38,6 +47,11 @@ namespace Examine.Lucene.Indexing
             }
         }
 
+        /// <summary>
+        /// Adds a single value to the document
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <param name="value"></param>
         protected abstract void AddSingleValue(Document doc, object value);
 
         /// <summary>

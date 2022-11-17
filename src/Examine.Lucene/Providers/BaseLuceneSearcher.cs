@@ -33,6 +33,10 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer LuceneAnalyzer { get; }
 
+        /// <summary>
+        /// Gets the seach context
+        /// </summary>
+        /// <returns></returns>
         public abstract ISearchContext GetSearchContext();
 
         /// <inheritdoc />

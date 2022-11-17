@@ -10,6 +10,7 @@ namespace Examine
     ///</summary>
     public class ExamineManager : IDisposable, IExamineManager
     {
+        /// <inheritdoc/>
         public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers)
         {
             foreach(IIndex i in indexes)
@@ -68,6 +69,8 @@ namespace Examine
         public void Dispose() => Dispose(true);
 
         private bool _disposed = false;
+
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)

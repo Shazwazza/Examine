@@ -152,6 +152,9 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer DefaultAnalyzer { get; }
 
+        /// <summary>
+        /// Gets the field ananlyzer
+        /// </summary>
         public PerFieldAnalyzerWrapper FieldAnalyzer => _fieldAnalyzer
             ?? (_fieldAnalyzer =
                 (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
@@ -159,6 +162,9 @@ namespace Examine.Lucene.Providers
                     : _fieldValueTypeCollection.Value.Analyzer);
 
 
+        /// <summary>
+        /// Not used, will be removed in future versions
+        /// </summary>
         [Obsolete("Not used, will be removed in future versions")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int CommitCount { get; protected internal set; }
@@ -183,6 +189,9 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
 
+        /// <summary>
+        /// Occurs when an index is commited
+        /// </summary>
         public event EventHandler IndexCommitted;
 
         #endregion
@@ -205,6 +214,10 @@ namespace Examine.Lucene.Providers
 
         }
 
+        /// <summary>
+        /// Called when a document in writing
+        /// </summary>
+        /// <param name="docArgs"></param>
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
             => DocumentWriting?.Invoke(this, docArgs);
 
@@ -212,6 +225,7 @@ namespace Examine.Lucene.Providers
 
         #region Provider implementation
 
+        /// <inheritdoc/>
         protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
         {
             // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
@@ -641,7 +655,6 @@ namespace Examine.Lucene.Providers
         /// Removes the specified term from the index
         /// </summary>
         /// <param name="indexTerm"></param>
-        /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
         private bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
@@ -681,7 +694,6 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="doc"></param>
         /// <param name="valueSet">The data to index.</param>
-        /// <param name="writer">The writer that will be used to update the Lucene index.</param>
         protected virtual void AddDocument(Document doc, ValueSet valueSet)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
@@ -1055,7 +1067,6 @@ namespace Examine.Lucene.Providers
         /// Deletes the item from the index either by id or by category
         /// </summary>
         /// <param name="op"></param>
-        /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         private void ProcessDeleteQueueItem(IndexOperation op, bool performCommit = true)
         {
@@ -1214,8 +1225,10 @@ namespace Examine.Lucene.Providers
             protected override void DisposeResources() => _index.RunAsync = _orig;
         }
 
+        /// <inheritdoc/>
         public long GetDocumentCount() => IndexWriter.IndexWriter.NumDocs;
 
+        /// <inheritdoc/>
         public IEnumerable<string> GetFieldNames()
         {
             var writer = IndexWriter;
@@ -1248,6 +1261,7 @@ namespace Examine.Lucene.Providers
             return false;
         }
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -1313,6 +1327,7 @@ namespace Examine.Lucene.Providers
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose() => Dispose(disposing: true);
 
         void ReferenceManager.IRefreshListener.BeforeRefresh() { }

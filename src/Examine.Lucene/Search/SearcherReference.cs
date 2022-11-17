@@ -3,17 +3,20 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
+    /// <inheritdoc/>
     public class SearcherReference : ISearcherReference
     {
         private bool _disposedValue;
         private readonly SearcherManager _searcherManager;
         private IndexSearcher _searcher;
 
+        /// <inheritdoc/>
         public SearcherReference(SearcherManager searcherManager)
         {
             _searcherManager = searcherManager;
         }
 
+        /// <inheritdoc/>
         public IndexSearcher IndexSearcher
         {
             get
@@ -26,6 +29,7 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -42,6 +46,7 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

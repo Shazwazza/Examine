@@ -9,19 +9,37 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Represents a base for <see cref="LuceneSearchQuery"/>
+    /// </summary>
     public abstract class LuceneSearchQueryBase : IQuery, INestedQuery
     {
         private readonly CustomMultiFieldQueryParser _queryParser;
+
+        /// <summary>
+        /// The query parser of the query
+        /// </summary>
         public QueryParser QueryParser => _queryParser;
 
         internal Stack<BooleanQuery> Queries { get; } = new Stack<BooleanQuery>();
+
+        /// <summary>
+        /// The <see cref="BooleanQuery"/>
+        /// </summary>
         public BooleanQuery Query => Queries.Peek();
 
+        /// <summary>
+        /// The sort fields of the query
+        /// </summary>
         public IList<SortField> SortFields { get; } = new List<SortField>();
 
+        /// <summary>
+        /// Specifies how clauses are to occur in matching documents
+        /// </summary>
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
+        /// <inheritdoc/>
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
@@ -32,8 +50,15 @@ namespace Examine.Lucene.Search
             _queryParser = queryParser;
         }
 
+        /// <summary>
+        /// Creates a <see cref="LuceneBooleanOperationBase"/>
+        /// </summary>
+        /// <returns></returns>
         protected abstract LuceneBooleanOperationBase CreateOp();
 
+        /// <summary>
+        /// The type of boolean operation
+        /// </summary>
         public BooleanOperation BooleanOperation
         {
             get => _boolOp;
@@ -44,10 +69,19 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <summary>
+        /// The category of the query
+        /// </summary>
         public string Category { get; }
 
+        /// <summary>
+        /// All the searchable fields of the query
+        /// </summary>
         public string[] AllFields => _queryParser.SearchableFields;
 
+        /// <summary>
+        /// The query search options
+        /// </summary>
         public LuceneSearchOptions SearchOptions { get; }
 
         /// <inheritdoc />
@@ -58,6 +92,7 @@ namespace Examine.Lucene.Search
             return bo;
         }
 
+        /// <inheritdoc/>
         public IOrdering All()
         {
             Query.Add(new MatchAllDocsQuery(), BooleanOperation.ToLuceneOccurrence());
@@ -83,21 +118,31 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <inheritdoc/>
         public IBooleanOperation Id(string id) => IdInternal(id, Occurrence);
 
+        /// <inheritdoc/>
         public abstract IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct;
+
+        /// <inheritdoc/>
         public abstract IBooleanOperation ManagedQuery(string query, string[] fields = null);
+
+        /// <inheritdoc/>
         public abstract IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
+        /// <inheritdoc/>
         public IBooleanOperation Field(string fieldName, string fieldValue)
             => FieldInternal(fieldName, new ExamineValue(Examineness.Explicit, fieldValue), Occurrence);
 
+        /// <inheritdoc/>
         public IBooleanOperation Field(string fieldName, IExamineValue fieldValue)
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
+        /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params string[] query)
             => GroupedAnd(fields, query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
+        /// <inheritdoc/>
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[] fieldVals)
         {
             if (fields == null)
@@ -108,9 +153,11 @@ namespace Examine.Lucene.Search
             return GroupedAndInternal(fields.ToArray(), fieldVals, Occurrence);
         }
 
+        /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params string[] query)
             => GroupedOr(fields, query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
+        /// <inheritdoc/>
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
         {
             if (fields == null)
@@ -121,9 +168,11 @@ namespace Examine.Lucene.Search
             return GroupedOrInternal(fields.ToArray(), query, Occurrence);
         }
 
+        /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params string[] query)
             => GroupedNot(fields, query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
+        /// <inheritdoc/>
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
             if (fields == null)
@@ -138,8 +187,34 @@ namespace Examine.Lucene.Search
 
         private static readonly string[] s_emptyStringArray = new string[0];
 
+        /// <summary>
+        /// Query on a specific field
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldValue"></param>
+        /// <returns></returns>
         protected abstract INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue) where T : struct;
+
+        /// <summary>
+        /// The index will determine the most appropiate way to query the fields specified
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="fields"></param>
+        /// <returns></returns>
         protected abstract INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null);
+
+        /// <summary>
+        /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
+        /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fields"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="minInclusive"></param>
+        /// <param name="maxInclusive"></param>
+        /// <returns></returns>
         protected abstract INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
         INestedBooleanOperation INestedQuery.Field(string fieldName, string fieldValue)
@@ -177,6 +252,7 @@ namespace Examine.Lucene.Search
 
         #region Internal
 
+        /// <inheritdoc/>
         protected internal LuceneBooleanOperationBase FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence)
         {
             if (fieldName == null)
@@ -186,6 +262,7 @@ namespace Examine.Lucene.Search
             return FieldInternal(fieldName, fieldValue, occurrence, true);
         }
 
+        /// <inheritdoc/>
         private LuceneBooleanOperationBase FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence, bool useQueryParser)
         {
             Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
@@ -196,6 +273,7 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <inheritdoc/>
         protected internal LuceneBooleanOperationBase GroupedAndInternal(string[] fields, IExamineValue[] fieldVals, Occur occurrence)
         {
             if (fields == null)
@@ -212,6 +290,7 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <inheritdoc/>
         protected internal LuceneBooleanOperationBase GroupedNotInternal(string[] fields, IExamineValue[] fieldVals)
         {
             if (fields == null)
@@ -247,6 +326,7 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <inheritdoc/>
         protected internal LuceneBooleanOperationBase GroupedOrInternal(string[] fields, IExamineValue[] fieldVals, Occur occurrence)
         {
             if (fields == null)
@@ -263,6 +343,7 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <inheritdoc/>
         protected internal LuceneBooleanOperationBase IdInternal(string id, Occur occurrence)
         {
             if (id == null)

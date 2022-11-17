@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 
 namespace Examine
 {
+    /// <inheritdoc/>
     public class SearchResult : ISearchResult
     {
         private OrderedDictionary<string, string> _fields;
@@ -33,7 +34,10 @@ namespace Examine
             });
         }
 
+        /// <inheritdoc/>
         public string Id { get;  }
+
+        /// <inheritdoc/>
         public float Score { get; }
 
         /// <summary>

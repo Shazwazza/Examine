@@ -18,9 +18,9 @@ namespace Examine
         /// <summary>
         /// Constructor for creating an indexer at runtime
         /// </summary>
+        /// <param name="loggerFactory"></param>
         /// <param name="name"></param>
-        /// <param name="fieldDefinitions"></param>
-        /// <param name="validator"></param>
+        /// <param name="indexOptions"></param>
         protected BaseIndexProvider(ILoggerFactory loggerFactory, string name,
             IOptionsMonitor<IndexOptions> indexOptions)
         {
@@ -33,7 +33,15 @@ namespace Examine
             _indexOptions = indexOptions.GetNamedOptions(name);
         }
 
+        /// <summary>
+        /// Represents a type used to configure the logging system and create instances of
+        /// <see cref="ILogger"/> from the registered Microsoft.Extensions.Logging.ILoggerProviders.
+        /// </summary>
         protected ILoggerFactory LoggerFactory { get; }
+
+        /// <summary>
+        /// The index name
+        /// </summary>
         public virtual string Name { get; }
 
         /// <summary>
@@ -73,6 +81,9 @@ namespace Examine
 
         #region IIndex members
 
+        /// <summary>
+        /// The default searcher of the index
+        /// </summary>
         public abstract ISearcher Searcher { get; }
 
         /// <inheritdoc />
@@ -125,6 +136,10 @@ namespace Examine
 
         #region Protected Event callers
 
+        /// <summary>
+        /// Run when a index operation completes
+        /// </summary>
+        /// <param name="e"></param>
         protected void OnIndexOperationComplete(IndexOperationEventArgs e) => IndexOperationComplete?.Invoke(this, e);
 
         /// <summary>

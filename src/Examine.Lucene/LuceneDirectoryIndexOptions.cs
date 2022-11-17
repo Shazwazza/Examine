@@ -4,6 +4,9 @@ using Lucene.Net.Store;
 
 namespace Examine.Lucene
 {
+    /// <summary>
+    /// Represents options for the lucene index
+    /// </summary>
     public class LuceneDirectoryIndexOptions : LuceneIndexOptions
     {
         /// <summary>

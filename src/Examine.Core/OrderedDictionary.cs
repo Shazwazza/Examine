@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -12,14 +12,17 @@ namespace Examine
     /// <typeparam name="TVal"></typeparam>
     public class OrderedDictionary<TKey, TVal> : KeyedCollection<TKey, KeyValuePair<TKey, TVal>>, IDictionary<TKey, TVal>, IReadOnlyDictionary<TKey, TVal>
     {
+        /// <inheritdoc/>
         public OrderedDictionary()
         {
         }
 
+        /// <inheritdoc/>
         public OrderedDictionary(IEqualityComparer<TKey> comparer) : base(comparer)
         {
         }
-        
+
+        /// <inheritdoc/>
         public TVal GetItem(int index)
         {
             if (index >= Count) throw new IndexOutOfRangeException();
@@ -29,6 +32,7 @@ namespace Examine
             return base[found.Key].Value;
         }
 
+        /// <inheritdoc/>
         public int IndexOf(TKey key)
         {
             if (base.Dictionary == null) return -1;
@@ -39,16 +43,19 @@ namespace Examine
             return -1;
         }
 
+        /// <inheritdoc/>
         protected override TKey GetKeyForItem(KeyValuePair<TKey, TVal> item)
         {
             return item.Key;
         }
 
+        /// <inheritdoc/>
         public bool ContainsKey(TKey key)
         {            
             return base.Contains(key);
         }
 
+        /// <inheritdoc/>
         public void Add(TKey key, TVal value)
         {
             if (base.Contains(key)) throw new ArgumentException("The key " + key + " already exists in this collection");
@@ -56,6 +63,7 @@ namespace Examine
             base.Add(new KeyValuePair<TKey, TVal>(key, value));
         }
 
+        /// <inheritdoc/>
         public bool TryGetValue(TKey key, out TVal value)
         {
             if (base.Dictionary == null)
@@ -109,8 +117,10 @@ namespace Examine
         private static readonly ICollection<TKey> EmptyCollection = new List<TKey>();
         private static readonly ICollection<TVal> EmptyValues = new List<TVal>();
 
+        /// <inheritdoc/>
         public ICollection<TKey> Keys => base.Dictionary != null ? base.Dictionary.Keys : EmptyCollection;
 
+        /// <inheritdoc/>
         public ICollection<TVal> Values => base.Dictionary != null ? base.Dictionary.Values.Select(x => x.Value).ToArray() : EmptyValues;
     }
 }

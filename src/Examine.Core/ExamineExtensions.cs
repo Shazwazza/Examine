@@ -8,6 +8,14 @@ namespace Examine
     /// </summary>
     public static class ExamineExtensions
     {
+        /// <summary>
+        /// Gets named options from an <see cref="IOptionsMonitor{TOptions}"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="optionsMonitor"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static T GetNamedOptions<T>(this IOptionsMonitor<T> optionsMonitor, string name)
             where T : class
         {
@@ -36,6 +44,11 @@ namespace Examine
             throw new InvalidOperationException("No index found with name " + indexName);
         }
 
+        /// <summary>
+        /// Deletes a node from the index
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="itemId"></param>
         public static void DeleteFromIndex(this IIndex index, string itemId)
         {
             index.DeleteFromIndex(new[] {itemId});

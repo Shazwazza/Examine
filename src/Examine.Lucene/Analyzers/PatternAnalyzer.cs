@@ -32,6 +32,7 @@ namespace Examine.Lucene.Analyzers
             _pattern = new Regex(format);
         }
 
+        /// <inheritdoc/>
         protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
         {
             Tokenizer tokenizer = new PatternTokenizer(reader, _pattern, _regexGroup);

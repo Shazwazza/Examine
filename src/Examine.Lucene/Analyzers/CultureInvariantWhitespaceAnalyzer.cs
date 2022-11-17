@@ -19,16 +19,19 @@ namespace Examine.Lucene.Analyzers
         private readonly bool _caseInsensitive;
         private readonly bool _ignoreLanguageAccents;
 
+        /// <inheritdoc/>
         public CultureInvariantWhitespaceAnalyzer() : this(true, true)
         {
         }
 
+        /// <inheritdoc/>
         public CultureInvariantWhitespaceAnalyzer(bool caseInsensitive, bool ignoreLanguageAccents)
         {
             _caseInsensitive = caseInsensitive;
             _ignoreLanguageAccents = ignoreLanguageAccents;
         }
 
+        /// <inheritdoc/>
         protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
         {
             Tokenizer tokenizer = new LetterOrDigitTokenizer(reader);
