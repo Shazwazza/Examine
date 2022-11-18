@@ -26,7 +26,7 @@ namespace Examine.Lucene.Search
         private int? _maxDoc;
         private readonly FacetsConfig _facetsConfig;
 
-        internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
+        internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string>? fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
