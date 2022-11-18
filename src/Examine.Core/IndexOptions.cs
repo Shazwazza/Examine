@@ -16,6 +16,6 @@ namespace Examine
         /// <summary>
         /// The validator for the <see cref="IIndex"/>
         /// </summary>
-        public IValueSetValidator Validator { get; set; }
+        public IValueSetValidator? Validator { get; set; }
     }
 }

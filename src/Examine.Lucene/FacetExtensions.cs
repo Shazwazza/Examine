@@ -13,14 +13,14 @@ namespace Examine.Lucene
         /// <summary>
         /// Get the values for a particular facet in the results
         /// </summary>
-        public static Examine.Search.IFacetResult GetFacet(this ISearchResults searchResults, string field)
+        public static Examine.Search.IFacetResult? GetFacet(this ISearchResults searchResults, string field)
         {
             if (!(searchResults is Examine.Search.IFacetResults facetResults))
             {
                 throw new NotSupportedException("Result does not support facets");
             }
 
-            facetResults.Facets.TryGetValue(field, out Examine.Search.IFacetResult facet);
+            facetResults.Facets.TryGetValue(field, out Examine.Search.IFacetResult? facet);
 
             return facet;
         }

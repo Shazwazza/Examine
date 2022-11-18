@@ -31,7 +31,7 @@ namespace Examine.Search
         }
 
         /// <inheritdoc/>
-        public IFacetValue Facet(string label)
+        public IFacetValue? Facet(string label)
         {
             SetValuesDictionary();
             return _dictValues[label];

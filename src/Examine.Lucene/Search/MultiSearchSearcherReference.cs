@@ -12,7 +12,7 @@ namespace Examine.Lucene.Search
         public MultiSearchSearcherReference(ISearcherReference[] inner) => _inner = inner;
 
         private bool _disposedValue;
-        private IndexSearcher _searcher;
+        private IndexSearcher? _searcher;
         private readonly ISearcherReference[] _inner;
 
         /// <inheritdoc/>

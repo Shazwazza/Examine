@@ -37,7 +37,7 @@ namespace Examine
         /// <returns></returns>
         public static IIndex GetIndex(this IExamineManager examineManager, string indexName)
         {
-            if (examineManager.TryGetIndex(indexName, out IIndex index))
+            if (examineManager.TryGetIndex(indexName, out IIndex? index))
             {
                 return index;
             }

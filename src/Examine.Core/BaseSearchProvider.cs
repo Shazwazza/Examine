@@ -19,10 +19,10 @@ namespace Examine
         public string Name { get; }
 
         /// <inheritdoc/>
-        public abstract ISearchResults Search(string searchText, QueryOptions options = null);
+        public abstract ISearchResults Search(string searchText, QueryOptions? options = null);
 
         /// <inheritdoc />
-		public abstract IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And);
+		public abstract IQuery CreateQuery(string? category = null, BooleanOperation defaultOperation = BooleanOperation.And);
         
     }
 }

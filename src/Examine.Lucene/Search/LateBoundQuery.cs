@@ -13,7 +13,7 @@ namespace Examine.Lucene.Search
     {
         private readonly Func<Query> _factory;
 
-        private Query _wrapped;
+        private Query? _wrapped;
 
         /// <summary>
         /// The wrapped query
@@ -27,13 +27,13 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public override object Clone()
+        public override object? Clone()
         {
             return Wrapped.Clone();
         }
 
         /// <inheritdoc/>
-        public override Weight CreateWeight(IndexSearcher searcher)
+        public override Weight? CreateWeight(IndexSearcher searcher)
         {
             return Wrapped.CreateWeight(searcher);
         }
@@ -60,13 +60,13 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public override Query Rewrite(IndexReader reader)
+        public override Query? Rewrite(IndexReader reader)
         {
             return Wrapped.Rewrite(reader);
         }
 
         /// <inheritdoc/>
-        public override string ToString(string field)
+        public override string? ToString(string field)
         {
             return Wrapped.ToString(field);
         }

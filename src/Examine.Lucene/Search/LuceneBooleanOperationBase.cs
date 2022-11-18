@@ -119,7 +119,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public abstract ISearchResults Execute(QueryOptions options = null);
+        public abstract ISearchResults Execute(QueryOptions? options = null);
 
         /// <inheritdoc/>
         public abstract IOrdering OrderBy(params SortableField[] fields);

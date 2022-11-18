@@ -72,7 +72,7 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        public override Query GetQuery(string query)
+        public override Query? GetQuery(string query)
         {
             if (!TryConvert(query, out DateTime parsedVal))
                 return null;

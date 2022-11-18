@@ -19,7 +19,7 @@ namespace Examine.Lucene.Indexing
         /// Returns the sortable field name or null if the value isn't sortable
         /// </summary>
         /// <remarks>By default it will not be sortable</remarks>
-        string SortableFieldName { get; }
+        string? SortableFieldName { get; }
 
         /// <summary>
         /// Should the value be stored
@@ -29,21 +29,21 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Returns the analyzer for this field type, or null to use the default
         /// </summary>
-        Analyzer Analyzer { get; }
+        Analyzer? Analyzer { get; }
 
         /// <summary>
         /// Adds a value to the document
         /// </summary>
         /// <param name="doc"></param>
         /// <param name="value"></param>
-        void AddValue(Document doc, object value);
+        void AddValue(Document doc, object? value);
 
         /// <summary>
         /// Gets a query as <see cref="Query"/>
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        Query GetQuery(string query);
+        Query? GetQuery(string query);
 
         //IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader);
 

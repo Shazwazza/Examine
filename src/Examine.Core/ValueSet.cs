@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,17 +20,17 @@ namespace Examine
         /// <remarks>
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </remarks>
-        public string Category { get; }
+        public string? Category { get; }
 
         /// <summary>
         /// The item's node type (in umbraco terms this would be the doc type alias)
         /// </summary>
-        public string ItemType { get; }
+        public string? ItemType { get; }
 
         /// <summary>
         /// The values to be indexed
         /// </summary>
-        public IReadOnlyDictionary<string, IReadOnlyList<object>> Values { get; }
+        public IReadOnlyDictionary<string, IReadOnlyList<object>>? Values { get; }
 
         /// <summary>
         /// Constructor that only specifies an ID
@@ -109,17 +110,17 @@ namespace Examine
         /// Used to categorize the item in the index (in umbraco terms this would be content vs media)
         /// </param>
         /// <param name="values"></param>
-        public ValueSet(string id, string category, string itemType, IDictionary<string, IEnumerable<object>> values)
+        public ValueSet(string id, string? category, string? itemType, IDictionary<string, IEnumerable<object>> values)
             : this(id, category, itemType, values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList()))
         {
         }
 
-        private ValueSet(string id, string category, string itemType, IReadOnlyDictionary<string, IReadOnlyList<object>> values)
+        private ValueSet(string id, string? category, string? itemType, IReadOnlyDictionary<string, IReadOnlyList<object>>? values)
         {
             Id = id;
             Category = category;
             ItemType = itemType;
-            Values = values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList());
+            Values = values?.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList()) ?? default;
         }
 
         /// <summary>
@@ -129,7 +130,7 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<object> GetValues(string key)
         {
-            return !Values.TryGetValue(key, out var values) ? Enumerable.Empty<object>() : values;
+            return Values != null && Values.TryGetValue(key, out var values) ? values : Enumerable.Empty<object>();
         }
 
         /// <summary>
@@ -139,9 +140,9 @@ namespace Examine
         /// <returns>
         /// If there are multiple values, this will return the first
         /// </returns>
-        public object GetValue(string key)
+        public object? GetValue(string key)
         {
-            return !Values.TryGetValue(key, out var values) ? null : values.Count > 0 ? values[0] : null;
+            return Values != null && Values.TryGetValue(key, out var values) ? values.Count > 0 ? values[0] : null : null;
         }
 
         /// <summary>

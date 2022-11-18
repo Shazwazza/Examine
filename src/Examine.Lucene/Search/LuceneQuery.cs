@@ -68,7 +68,7 @@ namespace Examine.Lucene.Search
         public IOrdering All() => _search.All();
 
         /// <inheritdoc/>
-        public IBooleanOperation ManagedQuery(string query, string[] fields = null) 
+        public IBooleanOperation ManagedQuery(string query, string[]? fields = null) 
             => _search.ManagedQueryInternal(query, fields, _occurrence);
 
         /// <inheritdoc/>
@@ -78,7 +78,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// The category of the query
         /// </summary>
-        public string Category => _search.Category;
+        public string? Category => _search.Category;
 
         /// <inheritdoc/>
         public IBooleanOperation NativeQuery(string query) => _search.NativeQuery(query);
@@ -131,7 +131,7 @@ namespace Examine.Lucene.Search
             => _search.GroupedNotInternal(fields.ToArray(), query);
 
         /// <inheritdoc/>
-        INestedBooleanOperation INestedQuery.ManagedQuery(string query, string[] fields) 
+        INestedBooleanOperation INestedQuery.ManagedQuery(string query, string[]? fields) 
             => _search.ManagedQueryInternal(query, fields, _occurrence);
 
         /// <inheritdoc/>

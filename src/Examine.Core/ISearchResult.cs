@@ -50,6 +50,6 @@ namespace Examine
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        string this[string key] { get; }
+        string? this[string key] { get; }
     }
 }

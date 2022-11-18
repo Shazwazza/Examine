@@ -26,7 +26,7 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Can be sorted by a concatenated field name since to be sortable it cannot be analyzed
         /// </summary>
-        public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
+        public override string? SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
 
         /// <inheritdoc/>
         public override Analyzer Analyzer => _analyzer;

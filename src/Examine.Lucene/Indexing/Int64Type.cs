@@ -52,7 +52,7 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        public override Query GetQuery(string query)
+        public override Query? GetQuery(string query)
         {
             return !TryConvert(query, out long parsedVal) ? null : GetQuery(parsedVal, parsedVal);
         }
