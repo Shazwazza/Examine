@@ -160,6 +160,23 @@ namespace Examine.Lucene.Search
                             inner.Add(q, Occur.SHOULD);
                         }
                     }
+#if !NETSTANDARD2_0 && !NETSTANDARD2_1
+                    else if(typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
+                    {
+                        TimeOnly minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
+                        var minValue = min.HasValue ? (min.Value as DateOnly?)?.ToDateTime(minValueTime) : null;
+
+                        TimeOnly maxValueTime = maxInclusive ? TimeOnly.MaxValue : TimeOnly.MinValue;
+                        var maxValue = max.HasValue ? (max.Value as DateOnly?)?.ToDateTime(maxValueTime) : null;
+
+                        var q = dateOnlyType.GetQuery(minValue, maxValue, minInclusive, maxInclusive);
+
+                        if (q != null)
+                        {
+                            inner.Add(q, Occur.SHOULD);
+                        }
+                    }
+#endif
                     else
                     {
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
