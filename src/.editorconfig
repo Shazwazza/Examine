@@ -135,19 +135,19 @@ dotnet_style_prefer_simplified_interpolation = true:warning
 [*.{cs,csx,cake}]
 # Implicit and explicit types
 # https://docs.microsoft.com/visualstudio/ide/editorconfig-language-conventions#implicit-and-explicit-types
-csharp_style_var_for_built_in_types = never
+csharp_style_var_for_built_in_types = true:silent
 csharp_style_var_when_type_is_apparent = true:warning
-csharp_style_var_elsewhere = false:warning
+csharp_style_var_elsewhere = true:warning
 # Expression-bodied members
 # https://docs.microsoft.com/visualstudio/ide/editorconfig-language-conventions#expression-bodied-members
-csharp_style_expression_bodied_methods = true:warning
-csharp_style_expression_bodied_constructors = true:warning
-csharp_style_expression_bodied_operators = true:warning
-csharp_style_expression_bodied_properties = true:warning
-csharp_style_expression_bodied_indexers = true:warning
-csharp_style_expression_bodied_accessors = true:warning
-csharp_style_expression_bodied_lambdas = true:warning
-csharp_style_expression_bodied_local_functions = true:warning
+csharp_style_expression_bodied_methods = when_on_single_line:warning
+csharp_style_expression_bodied_constructors = false:warning
+csharp_style_expression_bodied_operators = when_on_single_line:warning
+csharp_style_expression_bodied_properties = when_on_single_line:warning
+csharp_style_expression_bodied_indexers = when_on_single_line:warning
+csharp_style_expression_bodied_accessors = when_on_single_line:warning
+csharp_style_expression_bodied_lambdas = when_on_single_line:warning
+csharp_style_expression_bodied_local_functions = when_on_single_line:warning
 # Pattern matching
 # https://docs.microsoft.com/visualstudio/ide/editorconfig-language-conventions#pattern-matching
 csharp_style_pattern_matching_over_is_with_cast_check = true:warning
