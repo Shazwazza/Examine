@@ -12,7 +12,7 @@ _**Tip**: There are many examples of searching in the [`FluentApiTests` source c
 
 ## All fields (managed queries)
 
-The simplest way of querying with examine is with the `Search` method:
+The simplest way of querying with Examine is with the `Search` method:
 
 ```cs
 var results = searcher.Search("hello world");
@@ -21,8 +21,8 @@ var results = searcher.Search("hello world");
 The above is just shorthand for doing this:
 
 ```cs
-var query = CreateQuery().ManagedQuery("hello world");
-var results = sc.Execute(options);
+var query = searcher.CreateQuery().ManagedQuery("hello world");
+var results = query.Execute(QueryOptions.Default);
 ```
 
 A Managed query is a search operation that delegates to the underlying field types to determine how the field should
@@ -31,103 +31,222 @@ be searched. In most cases the field value type will be 'Full Text', others may 
 ## Per field
 
 ```csharp
-var searcher = myIndex.GetSearcher(); // Get a searcher
+var searcher = myIndex.Searcher; // Get a searcher
 var results = searcher.CreateQuery() // Create a query
  .Field("Address", "Hills") // Look for any "Hills" addresses
  .Execute(); // Execute the search
 ```
 
+### Terms and Phrases
+
+When searching on fields like in the example above you might want to search on more than one word/term. In Examine this can be done by simply adding more terms to the field filter.
+
+```csharp
+var searcher = myIndex.Searcher;
+var results = searcher.CreateQuery()
+  // Look for any addresses that has "Hills" or "Rockyroad" or "Hollywood"
+ .Field("Address", "Hills Rockyroad Hollywood")
+ .Execute();
+```
+
+The way that terms are split depends on the Analyzer being used. The StandardAnalyzer is the default. An example of how Analyzers work are:
+
+- StandardAnalyzer - will split a string based on whitespace and 'stop words' (i.e. common words that are not normally searched on like "and")
+- WhitespaceAnalyzer - will split a string based only on whitespace
+- KeywordAnalyzer - will not split a string and will treat the single string as one term - this means that searching will be done on an exact match
+
+There are many [Analyzers](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/core/Lucene.Net.Analysis.html) and you can even create your own. See more about analyzers in [configuration](./configuration.md#example---phone-number).
+
+Looking at this example when using the default StandardAnalyser the code above means that the `Address` in this example has to match any the values set in the statement. This is because Examine will create a Lucene query like this one where every word is matched separately: `Address:hills Address:rockyroad Address:hollywood`.
+
+Instead, if you want to search for entries with the values above in that exact order you specified you will need to use the `.Escape()` method. See under [Escape](#escape).
+
+```csharp
+var searcher = myIndex.Searcher;
+var results = searcher.CreateQuery()
+  // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
+ .Field("Address", "Hills Rockyroad Hollywood".Escape())
+ .Execute();
+```
+
+This creates a query like this instead: `Address:"Hills Rockyroad Hollywood"`. This means that you're now searching for the exact phrase instead of entries where terms appear.
+
 ## Range queries
+
+Range Queries allow one to match documents whose field(s) values are between the lower and upper bound specified by the Range Query
 
 ### Float Range
 
+Example:
+
 ```csharp
-var searcher = indexer.GetSearcher();
-var criteria1 = searcher.CreateQuery();  
-var filter1 = criteria1.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, true, true);
+var searcher = myIndex.Searcher;
+var query = searcher.CreateQuery();
+query.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, minInclusive: true, maxInclusive: true);
+var results = query.Execute(QueryOptions.Default);
 ```
+
+This will return results where the field `SomeFloat` is within the range 0 - 100 (min value and max value included).
 
 ### Date Range
 
-```csharp
-var searcher = indexer.GetSearcher();
+Example:
 
-var numberSortedCriteria = searcher.CreateQuery()
+```csharp
+var searcher = indexer.Searcher;
+
+var query = searcher.CreateQuery()
   .RangeQuery<DateTime>(
-      new[] { "created" }, 
-      new DateTime(2000, 01, 02), 
-      new DateTime(2000, 01, 05), 
+      new[] { "created" },
+      new DateTime(2000, 01, 02),
+      new DateTime(2000, 01, 05),
+      minInclusive: true,
       maxInclusive: false);
+
+var results = query.Execute();
 ```
+
+This will return results where the field `created` is within the date 2000/01/02 and 2000/01/05 (min value included and max value excluded).
 
 ## Booleans, Groups & Sub Groups
 
 _TODO: Fill this in..._
 
+## Boosting
+
+Boosting is the practice of making some parts of your query more relevant than others. This means that you can have terms that will make entries matching that term score higher in the search results.
+
+Example:
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery("content");
+query.Field("nodeTypeAlias", "CWS_Home".Boost(20));
+var results = query.Execute();
+```
+
+This will boost the term `CWS_Home` and make enteries with `nodeTypeAlias:CWS_Home` score higher in the results.
+
+## Proximity
+
+Proximity searching helps in finding entries where words that are within a specific distance away from each other.
+
+Example:
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery("content");
+
+// Get all nodes that contain the words warren and creative within 5 words of each other
+query.Field("metaKeywords", "Warren creative".Proximity(5));
+var results = query.Execute();
+```
+
+## Fuzzy
+
+Fuzzy searching is the practice of finding spellings that are similar to each other. Examine searches based on the [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance). The parameter given in the `.Fuzzy()` method is the edit distance allowed by default this value is `0.5` if not specified.
+
+The value on `.Fuzzy()` can be between 0 and 2. Any number higher than 2 will be lowered to 2 when creating the query.
+
+Example:
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery();
+
+query.Field("Content", "think".Fuzzy(0.1F));
+var results = query.Execute();
+```
+
+## Escape
+
+Escapes the string within Lucene.
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery("content");
+
+query.Field("__Path", "-1,123,456,789".Escape());
+var results = query.Execute();
+```
+
+## Wildcards
+
+Examine supports single and multiple-character wildcards on single terms. (Cannot be used with the `.Escape()` method)
+
+### Examine query (Single character)
+
+The `.SingleCharacterWildcard()` method will add a single character wildcard to the end of the term or terms being searched on a field. 
+
+```csharp
+var query = searcher.CreateQuery()
+    .Field("type", "test".SingleCharacterWildcard());
+```
+
+This will match for example: `test` and `tests`
+
+### Examine query (Multiple characters)
+
+The `.MultipleCharacterWildcard()` method will add a multiple characters wildcard to the end of the term or terms being searched on a field.
+
+```csharp
+var query = searcher.CreateQuery()
+    .Field("type", "test".MultipleCharacterWildcard());
+```
+
+This will match for example: `test`, `tests` , `tester`, `testers`
+
+### Lucene native query (Multiple characters)
+
+The multiple wildcard character is `*`. It will match 0 or more characters.
+
+Example
+
+```csharp
+var query = searcher.CreateQuery()
+    .NativeQuery("equipment:t*pad");
+```
+
+This will match for example: `Trackpad` and `Teleportationpad`
+
+Example
+
+```csharp
+var query = searcher.CreateQuery()
+    .NativeQuery("role:test*");
+```
+
+This will match for example: `test`, `tests` and `tester`
+
 ## Lucene queries
+
+Find a reference to how to write Lucene queries in the [Lucene 4.8.0 docs](https://lucene.apache.org/core/4_8_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).
 
 ### Native Query
 
 ```csharp
-var searcher = indexer.GetSearcher();  
-var criteria = (LuceneSearchQuery)searcher.CreateQuery();  
-//combine a custom lucene query with raw lucene query  
-var op = criteria.NativeQuery("hello:world").And();
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery();
+var results = query.NativeQuery("hello:world").Execute();
+```
+
+### Combine a native query and Fluent API searching.
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery();
+query.NativeQuery("hello:world");
+query.And().Field("Address", "Hills"); // Combine queries
+var results = query.Execute();
 ```
 
 ### Combine a custom lucene query with raw lucene query
 
 ```csharp
-var criteria = (LuceneSearchQuery)searcher.CreateQuery();
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery();
 
-//combine a custom lucene query with raw lucene query
-
-var op = criteria.NativeQuery("hello:world").And();                                
-
-criteria.LuceneQuery(NumericRangeQuery.NewLongRange("numTest", 4, 5, true, true));
-```
-
-## Boosting, Proximity, Fuzzy & Escape
-
-### Boosting
-
-```csharp
-var searcher = indexer.GetSearcher();
-
-
-var criteria = searcher.CreateQuery("content");
-
-var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Boost(20));
-```
-
-### Proximity
-
-```csharp
-var searcher = indexer.GetSearcher();
-
-//Arrange
-
-var criteria = searcher.CreateQuery("content");
-
-//get all nodes that contain the words warren and creative within 5 words of each other
-var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5));
-```
-
-### Fuzzy
-
-```csharp
-var searcher = indexer.GetSearcher();
-var criteria = searcher.CreateQuery();
-
-var filter = criteria.Field("Content", "think".Fuzzy(0.1F));
-```
-
-### Escape
-
-```csharp
-var exactcriteria = searcher.CreateQuery("content");
-
-var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
-
-var results2 = exactfilter.Execute();
+var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make query ready for extending
+query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
+var results = query.Execute();
 ```
