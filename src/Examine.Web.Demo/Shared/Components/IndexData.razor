@@ -5,7 +5,7 @@
 @inject IndexService IndexService
 
 <div style="display:flex" class="mb-2">
-    <h3>@Index.Name</h3>
+    <h3>@Index?.Name</h3>
     <div style="display: flex; width: 100%; justify-content:flex-end; align-items:center">
         <p style="margin: auto 0">Auto-refresh:</p>
         <button style="font-size:12px;" class="btn btn-secondary col-1 mx-1 my-1 @(_timer.Enabled && _timer.Interval == 100 ? "active" : "")" @onclick="() => SetRefreshTimer(100)">100ms</button>
@@ -20,11 +20,11 @@
         <div class="col-12 border-bottom mb-1 fw-bold">Information</div>
         <div class="row mb-1">
             <div class="col-4">Document count</div>
-            <div class="col-8">@Information.DocumentCount</div>
+            <div class="col-8">@Information?.DocumentCount</div>
         </div>
         <div class="row">
             <div class="col-4">Field count</div>
-            <div class="col-8">@Information.FieldCount</div>
+            <div class="col-8">@Information?.FieldCount</div>
         </div>
 
         <div style="display:flex; margin-top: 100px" class="col-12">
@@ -36,8 +36,8 @@
                     <input type="number" @bind="dataSize" />
                     <small>Document count on rebuild.</small>
                 </div>
-                <button class="btn btn-outline-danger" @onclick="() => RebuildIndex(Index.Name, dataSize)" disabled="@IndexCommandsActive">Rebuild index</button>
-                <button class="btn btn-outline-secondary" @onclick="() => RebuildIndex(Index.Name, 0)" disabled="@IndexCommandsActive">Clear index</button>
+                <button class="btn btn-outline-danger" @onclick="() => RebuildIndex(Index?.Name ?? string.Empty, dataSize)" disabled="@IndexCommandsActive">Rebuild index</button>
+                <button class="btn btn-outline-secondary" @onclick="() => RebuildIndex(Index?.Name ?? string.Empty, 0)" disabled="@IndexCommandsActive">Clear index</button>
             </div>
         </div>
 
@@ -53,23 +53,26 @@
 
         <div hidden="@(!_showIndexFields)" class="row">
             <p class="col-12 border-bottom">Fields</p>
-            @foreach (var field in Information.Fields)
+            @if(Information != null)
             {
-                <p class="col-6">@field</p>
+                foreach (var field in Information.Fields)
+                {
+                    <p class="col-6">@field</p>
+                }
             }
         </div>
     </div>
 </div>
 @code {
     [Parameter, EditorRequired]
-    public IIndex Index { get; set; }
+    public IIndex? Index { get; set; }
 
     [Parameter, EditorRequired]
-    public IndexInformation Information { get; set; }
+    public IndexInformation? Information { get; set; }
 
     private bool _showIndexFields = false;
     private bool _showIndexOperations = false;
-    private System.Timers.Timer _timer;
+    private System.Timers.Timer _timer = new();
     private int dataSize = 27000;
     private List<string> _indexOperations = new();
     private Stopwatch _stopwatch = new();
@@ -87,6 +90,10 @@
         _timer = new System.Timers.Timer(1000);
         _timer.Elapsed += RefreshIndexInformation;
         _timer.Enabled = true;
+
+        if(Index == null){
+            throw new InvalidOperationException("Failed to get index");
+        }
 
         Index.IndexOperationComplete += IndexOpreationComplete;
     }
@@ -109,9 +116,14 @@
 
     public async void RefreshIndexInformation(object? source, System.Timers.ElapsedEventArgs e)
     {
+        if (Index == null)
+        {
+            throw new InvalidOperationException("Failed to get index");
+        }
+
         Information = IndexService.GetIndexInformation(Index.Name);
 
-        await InvokeAsync(async () =>
+        await InvokeAsync(() =>
         {
             StateHasChanged();
         });

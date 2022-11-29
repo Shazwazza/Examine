@@ -42,11 +42,11 @@
 </div>
 
 @code {
-    private List<IIndex> _indexes;
-    private string _selectedIndex;
-    private string _query;
-    private ISearchResults _searchResults;
-    private string _searchTime;
+    private List<IIndex> _indexes = new();
+    private string _selectedIndex = string.Empty;
+    private string _query = string.Empty;
+    private ISearchResults? _searchResults;
+    private string _searchTime = string.Empty;
 
     protected override void OnInitialized()
     {
