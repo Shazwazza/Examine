@@ -23,7 +23,7 @@ namespace Examine.Lucene.Directories
             var path = Path.Combine(_baseDir.FullName, luceneIndex.Name);
             var luceneIndexFolder = new DirectoryInfo(path);
 
-            var dir = new SimpleFSDirectory(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));
+            var dir = FSDirectory.Open(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));
             if (forceUnlock)
             {
                 IndexWriter.Unlock(dir);
