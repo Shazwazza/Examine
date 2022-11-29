@@ -18,12 +18,12 @@ namespace Examine.Lucene.Directories
 
         public ILockFactory LockFactory { get; }
 
-        protected override Directory CreateDirectory(LuceneIndex index, bool forceUnlock)
+        protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
-            var path = Path.Combine(_baseDir.FullName, index.Name);
+            var path = Path.Combine(_baseDir.FullName, luceneIndex.Name);
             var luceneIndexFolder = new DirectoryInfo(path);
 
-            var dir = new SimpleFSDirectory(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));
+            var dir = FSDirectory.Open(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));
             if (forceUnlock)
             {
                 IndexWriter.Unlock(dir);

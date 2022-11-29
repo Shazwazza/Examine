@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
 using J2N;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using NUnit.Framework;
 
@@ -16,6 +18,49 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class FluentApiTests : ExamineBaseTest
     {
+        [Test]
+        public void Allow_Leading_Wildcards()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
+                    });
+
+                var searcher = (BaseLuceneSearcher)indexer.Searcher;
+
+                var query1 = searcher.CreateQuery(
+                    "content",
+                    BooleanOperation.And,
+                    searcher.LuceneAnalyzer,
+                    new LuceneSearchOptions
+                    {
+                        AllowLeadingWildcard = true
+                    }).NativeQuery("*dney");
+
+                Assert.Throws<ParseException>(() =>
+                    searcher.CreateQuery(
+                        "content",
+                        BooleanOperation.And,
+                        searcher.LuceneAnalyzer,
+                        new LuceneSearchOptions
+                        {
+                            AllowLeadingWildcard = false
+                        }).NativeQuery("*dney"));
+
+                var results1 = query1.Execute();
+                               
+                Assert.AreEqual(2, results1.TotalItemCount);               
+            }
+        }
+
         [Test]
         public void NativeQuery_Single_Word()
         {
@@ -44,6 +89,37 @@ namespace Examine.Test.Examine.Lucene.Search
                 var results = query.Execute();
 
                 Assert.AreEqual(2, results.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Uppercase_Category()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "cOntent",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "cOntent",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "cOntent",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery("cOntent").All();
+
+                Console.WriteLine(query);
+
+                var results = query.Execute();
+
+                Assert.AreEqual(3, results.TotalItemCount);
             }
         }
 
@@ -842,13 +918,20 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("__Path", "-1,123,456,789");
                 var results1 = filter.Execute();
-                Assert.AreEqual(0, results1.TotalItemCount);
+                Assert.AreEqual(1, results1.TotalItemCount);
 
                 //now escape it
                 var exactcriteria = searcher.CreateQuery("content");
                 var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
                 var results2 = exactfilter.Execute();
                 Assert.AreEqual(1, results2.TotalItemCount);
+
+                //now try with native
+                var nativeCriteria = searcher.CreateQuery();
+                var nativeFilter = nativeCriteria.NativeQuery("__Path:\\-1,123,456,789");
+                Console.WriteLine(nativeFilter);
+                var results5 = nativeFilter.Execute();
+                Assert.AreEqual(1, results5.TotalItemCount);
 
                 //now try wildcards
                 var wildcardcriteria = searcher.CreateQuery("content");
@@ -1450,6 +1533,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Arrange
                 var sc = searcher.CreateQuery("content").Field("nodeName", "codegarden 09".Escape());
 
+                Console.WriteLine(sc.ToString());
+
                 //Act
                 var results = sc.Execute();
 
@@ -1795,6 +1880,9 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.Field("Content", "thought".Fuzzy());
+
+                Console.WriteLine(filter);
+                Console.WriteLine(filter2);
 
                 ////Act
                 var results = filter.Execute();
@@ -2467,5 +2555,154 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(expectedResults, results.Count());
             }
         }
+
+#if NET6_0_OR_GREATER
+        [Test]
+        public void Range_DateOnly()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+            {
+
+
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    ValueSet.FromObject(2123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    ValueSet.FromObject(3123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+
+                var searcher = indexer.Searcher;
+
+                var numberSortedCriteria = searcher.CreateQuery()
+                    .RangeQuery<DateOnly>(new[] { "created" }, new DateOnly(2000, 01, 02), new DateOnly(2000, 01, 05), maxInclusive: false);
+
+                var numberSortedResult = numberSortedCriteria.Execute();
+
+                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Range_DateOnly_Min_And_Max_Inclusive()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+            {
+
+
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    ValueSet.FromObject(2123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    ValueSet.FromObject(3123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+
+                var searcher = indexer.Searcher;
+
+                var numberSortedCriteria = searcher.CreateQuery()
+                    .RangeQuery<DateOnly>(new[] { "created" }, new DateOnly(2000, 01, 02), new DateOnly(2000, 01, 05));
+
+                var numberSortedResult = numberSortedCriteria.Execute();
+
+                Assert.AreEqual(3, numberSortedResult.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Range_DateOnly_No_Inclusive()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+            {
+
+
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    ValueSet.FromObject(2123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    ValueSet.FromObject(3123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+
+                var searcher = indexer.Searcher;
+
+                var numberSortedCriteria = searcher.CreateQuery()
+                    .RangeQuery<DateOnly>(new[] { "created" }, new DateOnly(2000, 01, 02), new DateOnly(2000, 01, 05), minInclusive: false, maxInclusive: false);
+
+                var numberSortedResult = numberSortedCriteria.Execute();
+
+                Assert.AreEqual(1, numberSortedResult.TotalItemCount);
+            }
+        }
+#endif
     }
 }

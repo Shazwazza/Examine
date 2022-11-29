@@ -21,13 +21,61 @@ namespace Examine.Lucene.Search
         public LuceneSearchQuery(
             ISearchContext searchContext,
             string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
-            : base(CreateQueryParser(searchContext, analyzer), category, searchOptions, occurance)
+            : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
         {   
             _searchContext = searchContext;
         }
 
-        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer)
-            => new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, analyzer);
+        private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer, LuceneSearchOptions searchOptions)
+        {
+            var parser = new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, analyzer);
+
+            if (searchOptions != null)
+            {
+                if (searchOptions.LowercaseExpandedTerms.HasValue)
+                {
+                    parser.LowercaseExpandedTerms = searchOptions.LowercaseExpandedTerms.Value;
+                }
+                if (searchOptions.AllowLeadingWildcard.HasValue)
+                {
+                    parser.AllowLeadingWildcard = searchOptions.AllowLeadingWildcard.Value;
+                }
+                if (searchOptions.EnablePositionIncrements.HasValue)
+                {
+                    parser.EnablePositionIncrements = searchOptions.EnablePositionIncrements.Value;
+                }
+                if (searchOptions.MultiTermRewriteMethod != null)
+                {
+                    parser.MultiTermRewriteMethod = searchOptions.MultiTermRewriteMethod;
+                }
+                if (searchOptions.FuzzyPrefixLength.HasValue)
+                {
+                    parser.FuzzyPrefixLength = searchOptions.FuzzyPrefixLength.Value;
+                }
+                if (searchOptions.Locale != null)
+                {
+                    parser.Locale = searchOptions.Locale;
+                }
+                if (searchOptions.TimeZone != null)
+                {
+                    parser.TimeZone = searchOptions.TimeZone;
+                }
+                if (searchOptions.PhraseSlop.HasValue)
+                {
+                    parser.PhraseSlop = searchOptions.PhraseSlop.Value;
+                }
+                if (searchOptions.FuzzyMinSim.HasValue)
+                {
+                    parser.FuzzyMinSim = searchOptions.FuzzyMinSim.Value;
+                }
+                if (searchOptions.DateResolution.HasValue)
+                {
+                    parser.SetDateResolution(searchOptions.DateResolution.Value);
+                }
+            }
+
+            return parser;
+        }
 
         public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
@@ -112,6 +160,23 @@ namespace Examine.Lucene.Search
                             inner.Add(q, Occur.SHOULD);
                         }
                     }
+#if !NETSTANDARD2_0 && !NETSTANDARD2_1
+                    else if(typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
+                    {
+                        TimeOnly minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
+                        var minValue = min.HasValue ? (min.Value as DateOnly?)?.ToDateTime(minValueTime) : null;
+
+                        TimeOnly maxValueTime = maxInclusive ? TimeOnly.MaxValue : TimeOnly.MinValue;
+                        var maxValue = max.HasValue ? (max.Value as DateOnly?)?.ToDateTime(maxValueTime) : null;
+
+                        var q = dateOnlyType.GetQuery(minValue, maxValue, minInclusive, maxInclusive);
+
+                        if (q != null)
+                        {
+                            inner.Add(q, Occur.SHOULD);
+                        }
+                    }
+#endif
                     else
                     {
                         throw new InvalidOperationException($"Could not perform a range query on the field {f}, it's value type is {valueType?.GetType()}");
@@ -152,7 +217,7 @@ namespace Examine.Lucene.Search
                 query = new BooleanQuery
                 {
                     // prefix the category field query as a must
-                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), false), Occur.MUST }
+                    { GetFieldInternalQuery(ExamineFieldNames.CategoryFieldName, new ExamineValue(Examineness.Explicit, Category), true), Occur.MUST }
                 };
 
                 // add the ones that we're already existing
@@ -200,20 +265,14 @@ namespace Examine.Lucene.Search
                         defaultSort = SortFieldType.INT32;
                         break;
                     case SortType.Float:
-                        defaultSort = SortFieldType.DOUBLE;
+                        defaultSort = SortFieldType.SINGLE;
                         break;
                     case SortType.Long:
                         defaultSort = SortFieldType.INT64;
                         break;
                     case SortType.Double:
                         defaultSort = SortFieldType.DOUBLE;
-                        break;
-                    case SortType.Short:
-                        defaultSort = SortFieldType.INT16;
-                        break;
-                    case SortType.Byte:
-                        defaultSort = SortFieldType.BYTE;
-                        break;
+                        break;                   
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

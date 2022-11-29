@@ -9,14 +9,14 @@ namespace Examine.Lucene.Indexing
 
     public class DateTimeType : IndexFieldRangeValueType<DateTime>
     {
-        public DateTools.Resolution Resolution { get; }
+        public DateResolution Resolution { get; }
 
         /// <summary>
         /// Can be sorted by the normal field name
         /// </summary>
         public override string SortableFieldName => FieldName;
 
-        public DateTimeType(string fieldName, ILoggerFactory logger, DateTools.Resolution resolution, bool store = true)
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;

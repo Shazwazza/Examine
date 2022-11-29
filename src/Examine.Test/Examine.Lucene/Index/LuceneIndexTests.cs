@@ -127,7 +127,7 @@ namespace Examine.Test.Examine.Lucene.Index
 
                 Assert.IsFalse(IndexWriter.IsLocked(luceneDir));
             }
-            
+
         }
 
         [Test]
@@ -254,7 +254,7 @@ namespace Examine.Test.Examine.Lucene.Index
                 using (var reader = indexWriter.IndexWriter.GetReader(true))
                 {
                     Assert.AreEqual(9, reader.NumDocs);
-                }   
+                }
             }
         }
 
@@ -321,6 +321,52 @@ namespace Examine.Test.Examine.Lucene.Index
                 }
             }
         }
+
+        [Test]
+        public void Can_Manipulate_ValueSet_In_TransformingIndexValues_Event()
+        {
+            void AddData(object sender, IndexingItemEventArgs e, string key, string value)
+            {
+                var updatedValues = e.ValueSet.Values.ToDictionary(x => x.Key, x => x.Value.ToList());
+
+                updatedValues[key] = new List<object>() { value };
+
+                e.SetValues(updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
+            }
+
+            void RemoveData(object sender, IndexingItemEventArgs e, string key)
+            {
+                var updatedValues = e.ValueSet.Values.ToDictionary(x => x.Key, x => x.Value.ToList());
+
+                updatedValues.Remove(key);
+
+                e.SetValues(updatedValues.ToDictionary(x=>x.Key, x=>(IEnumerable<object>) x.Value));
+            }
+
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            {
+
+                indexer.TransformingIndexValues += (sender, e) => AddData(sender, e, "newItem1", "value1");
+                indexer.TransformingIndexValues += (sender, e) => RemoveData(sender, e, "item1");
+
+                indexer.IndexItem(ValueSet.FromObject(1.ToString(), "content",
+                    new { item1 = "value1" }));
+
+                var s = (LuceneSearcher)indexer.Searcher;
+                var searchContext = s.GetSearchContext();
+                using (var searchRef = searchContext.GetSearcher())
+                {
+                    var luceneSearcher = searchRef.IndexSearcher;
+                    var fields = luceneSearcher.Doc(0).Fields.ToArray();
+                    Assert.IsNull(fields.SingleOrDefault(x => x.Name == "item1"));
+                    Assert.AreEqual("value1", fields.Single(x => x.Name == "newItem1").GetStringValue());
+                }
+            }
+        }
+
+
+
 
         [Test]
         public void Can_Have_Multiple_Values_In_Fields()
@@ -505,7 +551,7 @@ namespace Examine.Test.Examine.Lucene.Index
                         {
                             // mimic a slower machine
                             Thread.Sleep(rand.Next(0, 20));
-                            //get next id and put it to the back of the list                            
+                            //get next id and put it to the back of the list
                             var cloned = new XElement(node);
                             cloned.SetAttributeValue("id", docId);
                             WriteLog("Indexing " + docId);
@@ -513,7 +559,7 @@ namespace Examine.Test.Examine.Lucene.Index
                         }));
                     }
 
-                    // wait till we're halfway done 
+                    // wait till we're halfway done
                     middleCompletedWaitHandle.WaitOne();
 
                     // and then overwrite!
@@ -556,7 +602,7 @@ namespace Examine.Test.Examine.Lucene.Index
         }
 
         /// <summary>
-        /// This will create a new index queue item for the same ID multiple times to ensure that the 
+        /// This will create a new index queue item for the same ID multiple times to ensure that the
         /// index does not end up with duplicate entries.
         /// </summary>
         [Test]
@@ -712,7 +758,7 @@ namespace Examine.Test.Examine.Lucene.Index
                     var searchCountPerThread = Convert.ToInt32(searchCount / searchThreadCount);
                     var indexCountPerThread = Convert.ToInt32(indexCount / indexThreadCount);
 
-                    //spawn a bunch of threads to perform some reading                              
+                    //spawn a bunch of threads to perform some reading
                     var tasks = new List<Task>();
 
                     void doSearch(ISearcher s)

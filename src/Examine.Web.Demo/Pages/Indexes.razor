@@ -1,0 +1,35 @@
+@page "/indexes"
+@using Examine.Web.Demo.Data
+@using System.Linq
+@using Examine.Web.Demo.Data.Models
+@inject IndexService IndexService
+
+<h1>Indexes</h1>
+<p>Here is a list of the indexes created in the demo application.</p>
+
+@foreach (var indexData in _indexes)
+{
+    <Examine.Web.Demo.Shared.Components.IndexData Index="indexData.Index" Information="indexData.Information" />
+}
+
+@code {
+    private List<IndexData> _indexes = new();
+
+    protected override void OnInitialized()
+    {
+        _indexes = IndexService.GetAllIndexes().Select(index => new IndexData(index, IndexService.GetIndexInformation(index.Name))).ToList();
+    }
+
+
+    private class IndexData
+    {
+        public IndexData(IIndex index, IndexInformation indexInformation)
+        {
+            Index = index;
+            Information = indexInformation;
+        }
+
+        public IIndex Index { get; }
+        public IndexInformation Information { get; set; }
+    }
+}

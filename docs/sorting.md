@@ -46,7 +46,37 @@ var orderedDescendingResults = searcher
 
 ## Limiting results
 
-_TODO: Fill this in..._
+To limit results we can use the `QueryOptions` class when executing a search query. The `QueryOptions` class provides the ability to skip and take.
+
+Examples:
+
+```csharp
+ var searcher = indexer.GetSearcher();
+
+ var takeFirstTenInIndex = searcher
+   .CreateQuery()
+   .All()
+   .Execute(QueryOptions.SkipTake(0, 10))
+
+ var skipFiveAndTakeFirstTenInIndex = searcher
+   .CreateQuery()
+   .All()
+   .Execute(QueryOptions.SkipTake(5, 10))
+
+ var takeThreeResults = searcher
+   .CreateQuery("content")
+   .Field("writerName", "administrator")
+   .OrderBy(new SortableField("name", SortType.String))
+   .Execute(QueryOptions.SkipTake(0, 3));
+   
+var takeSevenHundredResults = searcher
+   .CreateQuery("content")
+   .Field("writerName", "administrator")
+   .OrderByDescending(new SortableField("name", SortType.String))
+   .Execute(QueryOptions.SkipTake(0, 700));
+```
+
+By default when using `Execute()` or `Execute(QueryOptions.SkipTake(0))` where no take parameter is provided the take of the search will be set to `QueryOptions.DefaultMaxResults` (500).
 
 ## Paging
 

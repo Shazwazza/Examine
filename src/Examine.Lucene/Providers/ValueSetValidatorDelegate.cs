@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 
 namespace Examine.Lucene.Providers
 {
-
-
     /// <summary>
     /// Simple validator that uses a delegate for validation
     /// </summary>
@@ -12,13 +10,9 @@ namespace Examine.Lucene.Providers
         private readonly Func<ValueSet, ValueSetValidationResult> _validator;
 
         public ValueSetValidatorDelegate(Func<ValueSet, ValueSetValidationResult> validator)
-        {
-            _validator = validator;
-        }
+            => _validator = validator;
 
         public ValueSetValidationResult Validate(ValueSet valueSet)
-        {
-            return _validator(valueSet);
-        }
+            => _validator(valueSet);
     }
 }

@@ -1,20 +1,15 @@
-﻿namespace Examine
+namespace Examine
 {
-    public enum ValueSetValidationResult
+    public struct ValueSetValidationResult
     {
-        /// <summary>
-        /// If the result is valid
-        /// </summary>
-        Valid,
+        public ValueSetValidationResult(ValueSetValidationStatus status, ValueSet valueSet)
+        {
+            Status = status;
+            ValueSet = valueSet;
+        }
 
-        /// <summary>
-        /// If validation failed, the value set will not be included in the index
-        /// </summary>
-        Failed,
+        public ValueSetValidationStatus Status { get; }
 
-        /// <summary>
-        /// If validation passed but the value set was filtered
-        /// </summary>
-        Filtered
+        public ValueSet ValueSet { get; }
     }
 }

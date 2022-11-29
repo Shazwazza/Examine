@@ -1,0 +1,72 @@
+@page "/search"
+@using Examine.Web.Demo.Data
+@using System.Diagnostics
+@inject IndexService IndexService
+
+<h3>Search</h3>
+
+<p>Examine uses Lucenenet under the hood. Therefore, the query language from Lucene can be used to create queries. See the <a href="https://lucene.apache.org/core/4_8_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description">Lucene docs</a> for more information.</p>
+
+<p class="border-bottom">Here you can try searching in the indexes created in the demo application.</p>
+
+<h5>Quick searches</h5>
+
+<button class="btn btn-outline-primary" type="button" @onclick="() => GetFirst100Items()">Get first 100 items in index</button>
+
+<h4 style="margin-top:20px">Index to search</h4>
+<select @bind="_selectedIndex">
+    @foreach (var index in _indexes)
+    {
+        <option>@index.Name</option>
+    }
+</select>
+
+<h5 style="margin-top:30px">Lucene query</h5>
+<div>
+    <input placeholder="query" class="col-10" @bind="_query" />
+    <button type="button" class="btn btn-primary" @onclick="() => SearchIndex()" disabled="@(_query == null || _query == "")">Search</button>
+</div>
+
+<div class="row mt-2">
+    @if (_searchResults != null)
+    {
+        <p class="my-2 fw-bold">@_searchResults.TotalItemCount Results found (Showing @_searchResults.Count()) - Found in: @_searchTime</p>
+        @foreach(var searchResult in _searchResults){
+            <p class="col-12">Id: @searchResult.Id, Score: @searchResult.Score, Values: @(string.Join(", ", searchResult.Values.Select(x => $"[{x.Key}: {x.Value}]")))</p>
+        }
+    }
+    else
+    {
+        <p>No results</p>
+    }
+</div>
+
+@code {
+    private List<IIndex> _indexes = new();
+    private string _selectedIndex = string.Empty;
+    private string _query = string.Empty;
+    private ISearchResults? _searchResults;
+    private string _searchTime = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _indexes = IndexService.GetAllIndexes().ToList();
+        _selectedIndex = _indexes.First().Name;
+    }
+
+    private void SearchIndex(){
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        _searchResults = IndexService.SearchNativeQuery(_selectedIndex, _query.Trim());
+        stopwatch.Stop();
+        _searchTime = $"{stopwatch.ElapsedMilliseconds} Milliseconds ({stopwatch.Elapsed:g})";
+    }
+
+    private void GetFirst100Items(){
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        _searchResults = IndexService.GetAllIndexedItems(_selectedIndex, 0, 100);
+        stopwatch.Stop();
+        _searchTime = $"{stopwatch.ElapsedMilliseconds} Milliseconds ({stopwatch.Elapsed:g})";
+    }
+}

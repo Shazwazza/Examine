@@ -41,7 +41,7 @@ namespace Examine.Lucene
                 loggerFactory.CreateLogger<LoggingReplicationClient>(),
                 _replicator,
                 new IndexReplicationHandler(
-                    destinationDirectory,                    
+                    destinationDirectory,
                     () =>
                     {
                         if (_logger.IsEnabled(LogLevel.Debug))
@@ -50,14 +50,16 @@ namespace Examine.Lucene
                             var destDir = destinationDirectory as FSDirectory;
 
                             // Callback, can be used to notifiy when replication is done (i.e. to open the index)
-                            _logger.LogDebug(
-                                "{IndexName} replication complete from {SourceDirectory} to {DestinationDirectory}",
-                                sourceIndex.Name,
-                                sourceDir?.Directory.ToString() ?? "InMemory",
-                                destDir?.Directory.ToString() ?? "InMemory");
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug(
+                                    "{IndexName} replication complete from {SourceDirectory} to {DestinationDirectory}",
+                                    sourceIndex.Name,
+                                    sourceDir?.Directory.ToString() ?? "InMemory",
+                                    destDir?.Directory.ToString() ?? "InMemory");
+                            }
                         }
-                        // Doesn't matter what is returned, Lucene.Net doesn't use this value
-                        return true;
+                  
                     }),
                 new PerSessionDirectoryFactory(tempStorage.FullName));
         }
@@ -75,7 +77,7 @@ namespace Examine.Lucene
             IndexRevision rev;
             try
             {
-                rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);                
+                rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
             }
             catch (InvalidOperationException)
             {
@@ -120,7 +122,10 @@ namespace Examine.Lucene
         private void SourceIndex_IndexCommitted(object sender, EventArgs e)
         {
             var index = (LuceneIndex)sender;
-            _logger.LogDebug("{IndexName} committed", index.Name);
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("{IndexName} committed", index.Name);
+            }
             var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
             _replicator.Publish(rev);
         }

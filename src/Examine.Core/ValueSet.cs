@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Examine
@@ -29,27 +29,20 @@ namespace Examine
         /// <summary>
         /// The values to be indexed
         /// </summary>
-        public IDictionary<string, List<object>> Values { get; }
+        public IReadOnlyDictionary<string, IReadOnlyList<object>> Values { get; }
 
         /// <summary>
         /// Constructor that only specifies an ID
         /// </summary>
         /// <param name="id"></param>
         /// <remarks>normally used for deletions</remarks>
-        public ValueSet(string id)
-        {
-            Id = id;
-        }
+        public ValueSet(string id) => Id = id;
 
         public static ValueSet FromObject(string id, string category, string itemType, object values)
-        {
-            return new ValueSet(id, category, itemType, ObjectExtensions.ConvertObjectToDictionary(values));
-        }
+            => new ValueSet(id, category, itemType, ObjectExtensions.ConvertObjectToDictionary(values));
 
         public static ValueSet FromObject(string id, string category, object values)
-        {
-            return new ValueSet(id, category, ObjectExtensions.ConvertObjectToDictionary(values));
-        }
+            => new ValueSet(id, category, ObjectExtensions.ConvertObjectToDictionary(values));
 
         /// <summary>
         /// Constructor
@@ -102,84 +95,17 @@ namespace Examine
         /// </param>
         /// <param name="values"></param>
         public ValueSet(string id, string category, string itemType, IDictionary<string, IEnumerable<object>> values)
+            : this(id, category, itemType, values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList()))
+        {
+        }
+
+        private ValueSet(string id, string category, string itemType, IReadOnlyDictionary<string, IReadOnlyList<object>> values)
         {
             Id = id;
             Category = category;
             ItemType = itemType;
-            Values = values.ToDictionary(x => x.Key, x => x.Value.ToList());
+            Values = values.ToDictionary(x => x.Key, x => (IReadOnlyList<object>)x.Value.ToList());
         }
-
-        ///// <summary>
-        ///// Constructor
-        ///// </summary>
-        ///// <param name="id"></param>        
-        ///// <param name="category">
-        ///// Used to categorize the item in the index (in umbraco terms this would be content vs media)
-        ///// </param>
-        ///// <param name="values"></param>
-        //public ValueSet(string id, string category, Dictionary<string, List<object>> values = null)
-        //    : this(id, category, string.Empty, values) { }
-
-        ///// <summary>
-        ///// Constructor
-        ///// </summary>
-        ///// <param name="id"></param>
-        ///// <param name="itemType">
-        ///// The item's node type (in umbraco terms this would be the doc type alias)</param>
-        ///// <param name="category">
-        ///// Used to categorize the item in the index (in umbraco terms this would be content vs media)
-        ///// </param>
-        ///// <param name="values"></param>
-        //public ValueSet(string id, string category, string itemType, IEnumerable<KeyValuePair<string, object>> values)
-        //    : this(id, category, itemType, values.GroupBy(v => v.Key).ToDictionary(v => v.Key, v => v.Select(vv => vv.Value))) { }
-
-        ///// <summary>
-        ///// Constructor
-        ///// </summary>
-        ///// <param name="id"></param>
-        ///// <param name="category">
-        ///// Used to categorize the item in the index (in umbraco terms this would be content vs media)
-        ///// </param>
-        ///// <param name="values"></param>
-        //public ValueSet(string id, string category, IEnumerable<KeyValuePair<string, object>> values)
-        //    : this(id, category, string.Empty, values) { }
-
-        ///// <summary>
-        ///// Constructor
-        ///// </summary>
-        ///// <param name="id"></param>
-        ///// <param name="category">
-        ///// Used to categorize the item in the index (in umbraco terms this would be content vs media)
-        ///// </param>
-        ///// <param name="values"></param>
-        //public ValueSet(string id, string category, IEnumerable<KeyValuePair<string, IEnumerable<object>>> values)
-        //    : this(id, category, string.Empty, values)
-        //{
-        //}
-
-        ///// <summary>
-        ///// Primary Constructor
-        ///// </summary>
-        ///// <param name="id"></param>
-        ///// <param name="itemType">
-        ///// The item's node type (in umbraco terms this would be the doc type alias)</param>
-        ///// <param name="category">
-        ///// Used to categorize the item in the index (in umbraco terms this would be content vs media)
-        ///// </param>
-        ///// <param name="values"></param>
-        //public ValueSet(string id, string category, string itemType, IEnumerable<KeyValuePair<string, IEnumerable<object>>> values)
-        //{
-        //    Id = id;
-        //    Category = category;
-        //    ItemType = itemType;
-        //    var v = new Dictionary<string, List<object>>();
-        //    if (values != null)
-        //    {
-        //        foreach (var val in values)
-        //            v[val.Key] = val.Value.ToList();
-        //    }
-        //    Values = v;
-        //}
 
         /// <summary>
         /// Gets the values for the key
@@ -200,49 +126,7 @@ namespace Examine
         /// </returns>
         public object GetValue(string key)
         {
-            return !Values.TryGetValue(key, out var values) ? null : values.FirstOrDefault();
-        }
-
-        /// <summary>
-        /// Adds a value to the keyed item, if it doesn't exist the key will be created
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns>
-        /// The number of items stored for the key
-        /// </returns>
-        public int Add(string key, object value)
-        {
-            if (!Values.TryGetValue(key, out var values))
-            {
-                Values.Add(key, values = new List<object>());
-            }
-            values.Add(value);
-            return values.Count;
-        }
-
-        /// <summary>
-        /// sets a value to the keyed item, if it doesn't exist the key will be created
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        public void Set(string key, object value)
-        {
-            //replace
-            Values[key] = new List<object> { value };
-        }
-
-        /// <summary>
-        /// Adds a value to the keyed item if it doesn't exist
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        public bool TryAdd(string key, object value)
-        {
-            if (Values.ContainsKey(key)) return false;
-            Values.Add(key, new List<object> {value});
-            return true;
-
+            return !Values.TryGetValue(key, out var values) ? null : values.Count > 0 ? values[0] : null;
         }
 
         /// <summary>
@@ -254,5 +138,7 @@ namespace Examine
         {
             yield return i;
         }
+
+        public ValueSet Clone() => new ValueSet(Id, Category, ItemType, Values);
     }
 }

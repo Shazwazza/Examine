@@ -158,10 +158,9 @@ namespace Examine.Lucene.Providers
                     ? pfa
                     : _fieldValueTypeCollection.Value.Analyzer);
 
-        /// <summary>
-        /// Used to keep track of how many index commits have been performed.
-        /// This is used to determine when index optimization needs to occur.
-        /// </summary>
+
+        [Obsolete("Not used, will be removed in future versions")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public int CommitCount { get; protected internal set; }
 
         /// <summary>
@@ -321,7 +320,10 @@ namespace Examine.Lucene.Providers
 
                         if (!indexExists)
                         {
-                            _logger.LogDebug("Initializing new index {IndexName}", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("Initializing new index {IndexName}", Name);
+                            }
 
                             //if there's no index, we need to create one
                             CreateNewIndex(dir);
@@ -329,8 +331,10 @@ namespace Examine.Lucene.Providers
                         else
                         {
                             //it does exists so we'll need to clear it out
-
-                            _logger.LogDebug("Clearing existing index {IndexName}", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("Clearing existing index {IndexName}", Name);
+                            }
 
                             if (_writer == null)
                             {
@@ -645,7 +649,7 @@ namespace Examine.Lucene.Providers
             string itemId = null;
             if (indexTerm.Field == "id")
             {
-                itemId = indexTerm.Text();
+                itemId = indexTerm.Text;
             }
 
             try
@@ -671,14 +675,7 @@ namespace Examine.Lucene.Providers
                 return false;
             }
         }
-
-        private static IEnumerable<KeyValuePair<string, List<object>>> CopyDictionary(IDictionary<string, List<object>> d)
-        {
-            var result = new KeyValuePair<string, List<object>>[d.Count];
-            d.CopyTo(result, 0);
-            return result;
-        }
-
+        
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
@@ -687,11 +684,14 @@ namespace Examine.Lucene.Providers
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
         protected virtual void AddDocument(Document doc, ValueSet valueSet)
         {
-            _logger.LogDebug("{IndexName} Write lucene doc id:{DocumentId}, category:{DocumentCategory}, type:{DocumentItemType}",
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("{IndexName} Write lucene doc id:{DocumentId}, category:{DocumentCategory}, type:{DocumentItemType}",
                 Name,
                 valueSet.Id,
                 valueSet.Category,
                 valueSet.ItemType);
+            }
 
             //add node id
             IIndexFieldValueType nodeIdValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemIdFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.Raw));
@@ -705,11 +705,7 @@ namespace Examine.Lucene.Providers
             IIndexFieldValueType indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            //copy to a new dictionary, there has been cases of an exception "Collection was modified; enumeration operation may not execute."
-            // TODO: This is because ValueSet can be shared between indexes (same value set passed to each)
-            // we should remove this since this will cause mem overheads and it's not actually going to fix the problem since it's only copying
-            // this dictionary but not the entire value set
-            foreach (KeyValuePair<string, List<object>> field in CopyDictionary(valueSet.Values))
+            foreach (KeyValuePair<string, IReadOnlyList<object>> field in valueSet.Values)
             {
                 //check if we have a defined one
                 if (FieldDefinitions.TryGetValue(field.Key, out FieldDefinition definedFieldDefinition))
@@ -913,8 +909,10 @@ namespace Examine.Lucene.Providers
             {
                 if (IsLocked(dir))
                 {
-                    _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
-
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
+                    }
                     //unlock it!
                     Unlock(dir);
                 }
@@ -1071,8 +1069,6 @@ namespace Examine.Lucene.Providers
             {
                 DeleteFromIndex(new Term(ExamineFieldNames.CategoryFieldName, op.ValueSet.Category), performCommit);
             }
-
-            CommitCount++;
         }
 
 
@@ -1088,9 +1084,7 @@ namespace Examine.Lucene.Providers
             }
 
             var d = new Document();
-            AddDocument(d, op.ValueSet);
-
-            CommitCount++;
+            AddDocument(d, indexingNodeDataArgs.ValueSet);
 
             return true;
         }
@@ -1105,14 +1099,20 @@ namespace Examine.Lucene.Providers
                 {
                     if (_asyncTask.IsCanceled)
                     {
-                        _logger.LogDebug("{IndexName} Indexing cancellation requested, cannot proceed", Name);
+                        if (_logger.IsEnabled(LogLevel.Debug))
+                        {
+                            _logger.LogDebug("{IndexName} Indexing cancellation requested, cannot proceed", Name);
+                        }
                         onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                     }
                     else
                     {
                         if (_asyncTask.IsCompleted)
                         {
-                            _logger.LogDebug("{IndexName} Queuing a new background thread", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("{IndexName} Queuing a new background thread", Name);
+                            }
                         }
 
                         // The task is initialized to completed so just continue with
@@ -1145,12 +1145,18 @@ namespace Examine.Lucene.Providers
 
                         if (t.IsCanceled)
                         {
-                            _logger.LogDebug("{IndexName} Task was cancelled before it began", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("{IndexName} Task was cancelled before it began", Name);
+                            }
                             onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                         }
                         else if (t.IsFaulted)
                         {
-                            _logger.LogDebug(_asyncTask.Exception, "{IndexName} Task was cancelled before it began", Name);
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug(_asyncTask.Exception, "{IndexName} Task was cancelled before it began", Name);
+                            }
                             onComplete?.Invoke(new IndexOperationEventArgs(this, 0));
                         }
 
@@ -1175,7 +1181,10 @@ namespace Examine.Lucene.Providers
             if (_latestGen.HasValue && !_disposedValue && !_cancellationToken.IsCancellationRequested)
             {
                 var found = _nrtReopenThread?.WaitForGeneration(_latestGen.Value, 5000);
-                _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("{IndexName} WaitForChanges returned {GenerationFound}", Name, found);
+                }
             }
         }
 
@@ -1309,7 +1318,12 @@ namespace Examine.Lucene.Providers
         void ReferenceManager.IRefreshListener.BeforeRefresh() { }
 
         void ReferenceManager.IRefreshListener.AfterRefresh(bool didRefresh)
-            => _logger.LogDebug("{IndexName} searcher refreshed? {DidRefresh}", Name, didRefresh);
+        {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("{IndexName} searcher refreshed? {DidRefresh}", Name, didRefresh);
+            }
+        }
     }
 
 

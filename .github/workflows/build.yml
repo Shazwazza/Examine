@@ -40,6 +40,11 @@ jobs:
       with:
         dotnet-version: 5.0.x
     
+    - name: Setup .NET SDK 6.0.x
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.9
       with:
@@ -56,8 +61,6 @@ jobs:
     
     - name: Test
       run: dotnet test "${{ env.Test_Proj }}" --no-build --verbosity normal --results-directory ${{ github.workspace }}/_TestResults  --logger "trx;logfilename=tests.trx"
-    
-# TODO: Update the script to build the nuget packages (for now we use dev-ops)
 
     - name: Upload test results
       uses: actions/upload-artifact@v2  # upload test results
