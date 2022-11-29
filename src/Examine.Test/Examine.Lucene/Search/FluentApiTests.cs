@@ -2555,5 +2555,154 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(expectedResults, results.Count());
             }
         }
+
+#if NET6_0_OR_GREATER
+        [Test]
+        public void Range_DateOnly()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+            {
+
+
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    ValueSet.FromObject(2123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    ValueSet.FromObject(3123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+
+                var searcher = indexer.Searcher;
+
+                var numberSortedCriteria = searcher.CreateQuery()
+                    .RangeQuery<DateOnly>(new[] { "created" }, new DateOnly(2000, 01, 02), new DateOnly(2000, 01, 05), maxInclusive: false);
+
+                var numberSortedResult = numberSortedCriteria.Execute();
+
+                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Range_DateOnly_Min_And_Max_Inclusive()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+            {
+
+
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    ValueSet.FromObject(2123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    ValueSet.FromObject(3123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+
+                var searcher = indexer.Searcher;
+
+                var numberSortedCriteria = searcher.CreateQuery()
+                    .RangeQuery<DateOnly>(new[] { "created" }, new DateOnly(2000, 01, 02), new DateOnly(2000, 01, 05));
+
+                var numberSortedResult = numberSortedCriteria.Execute();
+
+                Assert.AreEqual(3, numberSortedResult.TotalItemCount);
+            }
+        }
+
+        [Test]
+        public void Range_DateOnly_No_Inclusive()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+            {
+
+
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home"
+                        }),
+                    ValueSet.FromObject(2123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test"
+                        }),
+                    ValueSet.FromObject(3123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page"
+                        })
+                });
+
+
+                var searcher = indexer.Searcher;
+
+                var numberSortedCriteria = searcher.CreateQuery()
+                    .RangeQuery<DateOnly>(new[] { "created" }, new DateOnly(2000, 01, 02), new DateOnly(2000, 01, 05), minInclusive: false, maxInclusive: false);
+
+                var numberSortedResult = numberSortedCriteria.Execute();
+
+                Assert.AreEqual(1, numberSortedResult.TotalItemCount);
+            }
+        }
+#endif
     }
 }
