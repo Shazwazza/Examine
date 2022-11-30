@@ -214,9 +214,9 @@ private void IndexOperationComplete(object sender, IndexOperationEventArgs e)
 }
 ```
 
-### BaseIndexProvider.TransformingIndexValues
+### IIndex.TransformingIndexValues
 
-Most Examine index implementations will inherit from `BaseIndexProvider`. This event allows for customizing the `ValueSet` before it is passed to the indexer to be indexed. You can use this event to add additional field values or modify existing field values.
+This event is part of the base interface `IIndex` so it is available to use on any implementation of an Examine index. This event allows for customizing the `ValueSet` before it is passed to the indexer to be indexed. You can use this event to add additional field values or modify existing field values.
 
 Example of how to listen the event:
 
@@ -234,9 +234,9 @@ private void TransformingIndexValues(object sender, IndexingItemEventArgs e)
 }
 ```
 
-### BaseIndexProvider.IndexingError
+### IIndex.IndexingError
 
-Most Examine index implementations will inherit from `BaseIndexProvider`. This event can be used for reacting to when an error occurs during index. For example, you could add an event handler for this event to facilitate error logging.
+This event is part of the base interface `IIndex` so it is available to use on any implementation of an Examine index. This event can be used for reacting to when an error occurs during index. For example, you could add an event handler for this event to facilitate error logging.
 
 Example of how to listen the event:
 
