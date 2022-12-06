@@ -76,7 +76,7 @@ namespace Examine.Lucene.Directories
 
             // now create the replicator that will copy from local to main on schedule
             _replicator = new ExamineReplicator(_loggerFactory, luceneIndex, mainDir, tempDir);
-            var localLuceneDir = new SimpleFSDirectory(
+            var localLuceneDir = FSDirectory.Open(
                 localLuceneIndexFolder,
                 LockFactory.GetLockFactory(localLuceneIndexFolder));
 
