@@ -2,7 +2,7 @@
 layout: page
 title: Configuration
 permalink: /configuration
-uid: configuration
+uid: v2configuration
 order: 1
 ---
 
@@ -19,7 +19,9 @@ A Field Definition is a mapping of a field name to a ["Value Types"](#value-type
 
 You can map a field to any value type when configuring the index.
 
-### IConfigureNamedOptions
+### Examine V2
+
+#### IConfigureNamedOptions
 
 Configuration of Examine indexes is done with [.NET's Options pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0). For Examine, this is done with named options: `IConfigureNamedOptions`.
 
@@ -53,7 +55,30 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
 }
 ```
 
-### After construction
+### Examine V1
+
+#### Via constructor
+
+The `LuceneIndex` constructor has several **optional** parameters that can be supplied to configure the index:
+
+* __fieldDefinitions__ _`FieldDefinitionCollection`_ - Manages the mappings between a field name and it's index value type
+* __analyzer__ _`Analyzer`_ - The default Lucene Analyzer to use for each field (default = `StandardAnalyzer`)
+* __validator__ _`IValueSetValidator`_ - Used to validate a value set to be indexed, if validation fails it will not be indexed
+* __indexValueTypesFactory__ _`IReadOnlyDictionary<string, IFieldValueTypeFactory>`_ - Allows you to define custom Value Types
+
+```cs
+// Create and add a new index to the manager
+var myIndex = examineManager.AddIndex(
+    new LuceneIndex(            
+        "MyIndex",              
+        new SimpleFSDirectory(new DirectoryInfo("C:\\TestIndexes")),
+        // Pass in a custom field definition collection
+        new FieldDefinitionCollection(            
+            // Set the "Price" field to map to the 'Double' value type.
+            new FieldDefinition("Price", FieldDefinitionTypes.Double))));
+```
+
+#### After construction
 
 You can modify the field definitions for an index after it is constructed by using any of the following methods:
 
@@ -63,7 +88,7 @@ You can modify the field definitions for an index after it is constructed by usi
 
 These modifications __must__ be done before any indexing or searching is executed.
 
-### Add a field value type after construction
+#### Add a field value type after construction
 
 It is possible to add custom field value types after the construction of the index, but this must be done before the index is used. Some people may prefer this method of adding custom field value types. Generally, these should be modified directly after the construction of the index.
 
@@ -131,6 +156,8 @@ A common implementation that can be used for field value types for custom Analyz
 
 A phone number stored in Lucene could require a custom analyzer to index and search it properly. So the best way to set this up in Examine would be to have a custom field value type for it. Since this field value type doesn't need to do anything more fancy than to provide a custom analyzer, we can create it with the `GenericAnalyzerFieldValueType`.
 
+##### Examine V2
+
 ```cs
 /// <summary>
 /// Configure Examine indexes using .NET IOptions
@@ -173,11 +200,39 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
 }
 ```
 
+##### Examine V1
+
+```cs
+// Create a writeable dictionary based off of the 
+// Examine default field value types
+var fieldValueTypes = ValueTypeFactoryCollection.DefaultValueTypes
+    .ToDictionary(x => x.Key, x => x.Value);
+
+// Add a new phone number field value type
+fieldValueTypes.Add(
+    "phonenumber",  // Each field value type needs a unique name
+    new DelegateFieldValueTypeFactory(name =>
+        new GenericAnalyzerFieldValueType(
+            name, 
+            new PhoneNumberAnalyzer()))); // Pass in a custom analyzer
+
+// Create the index with the dictionary
+var myIndex = new LuceneIndex(
+    "MyIndex",
+    new SimpleFSDirectory(new DirectoryInfo("C:\\TestIndexes")),
+    // Pass in a custom field definition collection
+    new FieldDefinitionCollection(            
+        // Set the "Phone" field to map to the 'phonenumber' value type.
+        new FieldDefinition("Phone", "phonenumber"))
+    // Pass in the custom field value type dictionary with the phonenumber type
+    indexValueTypesFactory: fieldValueTypes);
+```
+
 The above creates a custom field value type using a custom analyzer and maps the "Phone" field to use this value type.
 
 ## ValueSet validators
 
-An `IValueSetValidator` is a simple interface:
+An `IValueSetValidator` is a simple interface: 
 
 ```cs
 public interface IValueSetValidator
@@ -186,7 +241,7 @@ public interface IValueSetValidator
 }
 ```
 
-That returns an enum `ValueSetValidationResult` of values:
+That returns an enum `ValueSetValidationResult` of values: 
 
 * `Valid` - The ValueSet is valid and will be indexed
 * `Failed` - The ValueSet was invalid and will not be indexed

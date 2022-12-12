@@ -33,7 +33,9 @@
           "articles/**.md",
           "articles/**/toc.yml",
           "toc.yml",
-          "*.md"
+          "*.md",
+          "docs-v1-v2/**.md",
+          "docs-v1-v2/**/toc.yml"
         ]
       }
     ],
