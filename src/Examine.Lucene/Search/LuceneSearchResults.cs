@@ -6,11 +6,11 @@ namespace Examine.Lucene.Search
 {
     public class LuceneSearchResults : ILuceneSearchResults, IFacetResults
     {
-        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0,float.NaN, default, new Dictionary<string, IFacetResult>());
+        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, float.NaN, default, new Dictionary<string, IFacetResult>());
 
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount,float maxScore, SearchAfterOptions searchAfterOptions, IDictionary<string, IFacetResult> facets)
+        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, float maxScore, SearchAfterOptions searchAfterOptions, IDictionary<string, IFacetResult> facets)
         {
             _results = results;
             TotalItemCount = totalItemCount;
