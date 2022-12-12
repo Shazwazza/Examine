@@ -6,6 +6,9 @@
           "files": [
             "src/**.csproj"
           ],
+          "exclude":[
+            "**/Examine.Test**"
+          ],
 		      "src": "../"
         }
       ],
@@ -69,7 +72,9 @@
       "_gitContribute": {
         "repo": "https://github.com/Shazwazza/Examine",
         "branch": "release/v3.0"
-      }
+      },
+      "_appLogoPath": "/images/headerlogo.png",
+      "_appFaviconPath": "favicon.ico"
     }
   }
 }

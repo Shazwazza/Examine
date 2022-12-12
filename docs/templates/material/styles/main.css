@@ -304,3 +304,10 @@ pre {
   box-shadow: var(--card-box-shadow);
   max-width: 700px;
 }
+
+/* Examine Docs Overrides */
+
+/* Logo */
+#logo {
+  vertical-align: middle;
+}

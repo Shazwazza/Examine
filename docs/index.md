@@ -26,11 +26,12 @@ Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https:/
 ## Quick Start
 
 #### Examine V2
+
 **Tip**: `IExamineManager` is the gateway to working with examine. It is registered in DI as a singleton and can be injected into your services._
 
 1. Install
 
-    ```
+    ```powershell
     > dotnet add package Examine --version 2.0.0-beta2
     ```
 
@@ -44,6 +45,7 @@ Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https:/
     // Create a Lucene based index
     services.AddExamineLuceneIndex("MyIndex");
     ```
+
 1. Populate the index
 
     ```cs
@@ -58,6 +60,7 @@ Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https:/
             {"Address", "Beverly Hills, 90210" }
         }));
     ```
+
 1. Search the index
 
     ```cs
@@ -66,13 +69,14 @@ Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https:/
         .Field("Address", "Hills")        // Look for any "Hills" addresses
         .Execute();                       // Execute the search
     ```
+
 #### Examine V1
 
 **Tip**: `IExamineManager` is the gateway to working with examine. It can be registered in DI as a singleton or can be accessed via `ExamineManager.Instance`._
 
 1. Install
 
-    ```
+    ```powershell
     PM> Install-Package Examine -Version 1.2.2
     ```
 
@@ -89,6 +93,7 @@ Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https:/
                     new DirectoryInfo("C:\\TestIndexes"))));
     }
     ```
+
 1. Populate the index
 
     ```cs
@@ -103,6 +108,7 @@ Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https:/
             {"Address", "Beverly Hills, 90210" }
         }));
     ```
+
 1. Search the index
 
     ```cs
