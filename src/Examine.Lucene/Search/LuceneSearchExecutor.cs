@@ -118,9 +118,13 @@ namespace Examine.Lucene.Search
                     topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
                 }
 
-                if (scoreDocAfter != null)
+                if (scoreDocAfter != null && sort != null)
                 {
-                    topDocs = searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, filter, _options.Take, sort, true, trackMaxScore);
+                    topDocs = searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, filter, _options.Take, sort, trackDocScores, trackMaxScore);
+                }
+                else if (scoreDocAfter != null && sort == null)
+                {
+                    topDocs = searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, _options.Take);
                 }
                 else
                 {
@@ -174,17 +178,18 @@ namespace Examine.Lucene.Search
 
         private static SearchAfterOptions GetSearchAfterOptions(TopDocs topDocs)
         {
-            SearchAfterOptions searchAfterOptions = null;
             if (topDocs.TotalHits > 0)
             {
-                FieldDoc lastFieldDoc = topDocs.ScoreDocs.LastOrDefault() as FieldDoc;
-                if (lastFieldDoc != null)
+                if (topDocs.ScoreDocs.LastOrDefault() is FieldDoc lastFieldDoc && lastFieldDoc != null)
                 {
-                    searchAfterOptions = new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
+                    return new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
+                }
+                if (topDocs.ScoreDocs.LastOrDefault() is ScoreDoc scoreDoc && scoreDoc != null)
+                {
+                    return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, new object[0], scoreDoc.ShardIndex);
                 }
             }
-
-            return searchAfterOptions;
+            return null;
         }
 
         private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)

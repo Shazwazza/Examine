@@ -2557,7 +2557,7 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
-        public void SearchAfter_Results_Returns_Different_Results()
+        public void SearchAfter_Sorted_Results_Returns_Different_Results()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
@@ -2582,6 +2582,73 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content")
                     .Field("writerName", "administrator")
                     .OrderByDescending(new SortableField("id", SortType.Int));
+                var luceneOptions = new LuceneQueryOptions(0, 2);
+                //Act
+
+                //There are 4 results
+                // First query skips 0 and takes 2.
+                var results = sc.Execute(luceneOptions);
+                var luceneResults = results as ILuceneSearchResults;
+                Assert.IsNotNull(luceneResults);
+                Assert.IsNotNull(luceneResults.SearchAfter, "Search After details should be available");
+                var luceneResults1List = luceneResults.ToList();
+                Assert.IsTrue(luceneResults1List.Any(x => x.Id == "1"));
+                Assert.IsTrue(luceneResults1List.Any(x => x.Id == "2"));
+
+                // Second query result continues after result 1 (zero indexed), Takes 1, should not include any of the results before or include the SearchAfter docid / scoreid
+                var searchAfter = new SearchAfterOptions(luceneResults.SearchAfter.DocumentId,
+                    luceneResults.SearchAfter.DocumentScore,
+                    luceneResults.SearchAfter.Fields,
+                    luceneResults.SearchAfter.ShardIndex.Value);
+                var luceneOptions2 = new LuceneQueryOptions(0, 1, searchAfter);
+                var results2 = sc.Execute(luceneOptions2);
+                var luceneResults2 = results2 as ILuceneSearchResults;
+                var luceneResults2List = luceneResults2.ToList();
+                Assert.IsTrue(luceneResults2List.Any(x => x.Id == "3"), $"Expected to contain next result after docId {luceneResults.SearchAfter.DocumentId}");
+                Assert.IsNotNull(luceneResults2);
+
+                Assert.IsFalse(luceneResults2List.Any(x => luceneResults.ToList().Any(y => y.Id == x.Id)), "Results should not overlap");
+
+                // Third query result continues after result 2 (zero indexed), Takes 1
+                var searchAfter2 = new SearchAfterOptions(luceneResults2.SearchAfter.DocumentId, luceneResults2.SearchAfter.DocumentScore, luceneResults2.SearchAfter.Fields, luceneResults2.SearchAfter.ShardIndex.Value);
+                var luceneOptions3 = new LuceneQueryOptions(0, 1, searchAfter2);
+                var results3 = sc.Execute(luceneOptions3);
+                var luceneResults3 = results3 as ILuceneSearchResults;
+                Assert.IsNotNull(luceneResults3);
+                var luceneResults3List = luceneResults3.ToList();
+                Assert.IsTrue(luceneResults3List.Any(x => x.Id == "4"), $"Expected to contain next result after docId {luceneResults2.SearchAfter.DocumentId}");
+                Assert.IsFalse(luceneResults3.ToList().Any(x => luceneResults2.Any(y => y.Id == x.Id)), "Results should not overlap");
+                Assert.IsFalse(luceneResults3.ToList().Any(x => luceneResults.Any(y => y.Id == x.Id)), "Results should not overlap");
+
+                Assert.AreNotEqual(results.First().Id, results2.First().Id, "Results should be different");
+            }
+        }
+
+        [Test]
+        public void SearchAfter_NonSorted_Results_Returns_Different_Results()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "umbraco", writerName = "administrator" }),
+                    ValueSet.FromObject(4.ToString(), "content",
+                        new { nodeName = "umbraco", headerText = "nz", writerName = "administrator" }),
+                    ValueSet.FromObject(5.ToString(), "content",
+                        new { nodeName = "hello", headerText = "world", writerName = "blah" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+                var sc = searcher.CreateQuery("content")
+                    .Field("writerName", "administrator");
                 var luceneOptions = new LuceneQueryOptions(0, 2);
                 //Act
 
