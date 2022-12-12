@@ -193,16 +193,20 @@ namespace Examine.Lucene.Search
 
         private static SearchAfterOptions GetSearchAfterOptions(TopDocs topDocs)
         {
-            SearchAfterOptions searchAfterOptions = null;
             if (topDocs.TotalHits > 0)
             {
                 FieldDoc lastFieldDoc = topDocs.ScoreDocs.LastOrDefault() as FieldDoc;
                 if (lastFieldDoc != null)
                 {
-                    searchAfterOptions = new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
+                    return new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
+                }
+                ScoreDoc scoreDoc = topDocs.ScoreDocs.LastOrDefault() as ScoreDoc;
+                if (scoreDoc != null)
+                {
+                    return new SearchAfterOptions(scoreDoc.Doc, scoreDoc.Score, new object[0], scoreDoc.ShardIndex);
                 }
             }
-            return searchAfterOptions;
+            return null;
         }
 
         private IDictionary<string, IFacetResult> ExtractFacets(FacetsCollector facetsCollector, ISearcherReference searcher)
