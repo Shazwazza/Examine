@@ -103,7 +103,7 @@ Steps:
 2. Cast the ISearchResults from IQueryExecutor.Execute to ILuceneSearchResults
 3. Store ILuceneSearchResults.SearchAfter (SearchAfterOptions) for the next page. It may be worth serializing this class and cryptographically hashing it to prevent tampering in a web application so that it can be made available to the next request for the next page.
 4. Create the same query as the previous request.
-5. When calling IQueryExecutor.Execute. Pass in new LuceneQueryOptions(skip,take, SearchAfterOptions); Skip is still relative to the start of the search results.
+5. When calling IQueryExecutor.Execute. Pass in new LuceneQueryOptions(skip,take, SearchAfterOptions); Skip will be ignored, the next take documents will be retrieved after the SearchAfterOptions document.
 6. Repeat Steps 2-5 for each page.
 
 ### Example

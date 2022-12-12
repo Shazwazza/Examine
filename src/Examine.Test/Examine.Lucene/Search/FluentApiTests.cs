@@ -56,8 +56,8 @@ namespace Examine.Test.Examine.Lucene.Search
                         }).NativeQuery("*dney"));
 
                 var results1 = query1.Execute();
-                               
-                Assert.AreEqual(2, results1.TotalItemCount);               
+
+                Assert.AreEqual(2, results1.TotalItemCount);
             }
         }
 
@@ -1949,7 +1949,7 @@ namespace Examine.Test.Examine.Lucene.Search
             {
                 for (int i = 0; i < 1000; i++)
                 {
-                    indexer.IndexItems(new[] {ValueSet.FromObject(i.ToString(), "content", new { Content = "hello world" })});
+                    indexer.IndexItems(new[] { ValueSet.FromObject(i.ToString(), "content", new { Content = "hello world" }) });
                 }
 
                 indexer.IndexItems(new[] { ValueSet.FromObject(2000.ToString(), "content", new { Content = "donotfind" }) });
@@ -2490,7 +2490,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var results = sc
                     .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();                    
+                    .ToList();
                 Assert.AreEqual(2, results.Count);
 
                 pageIndex++;
@@ -2581,7 +2581,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Arrange
                 var sc = searcher.CreateQuery("content")
                     .Field("writerName", "administrator")
-                    .OrderByDescending(new SortableField("id",SortType.Int));
+                    .OrderByDescending(new SortableField("id", SortType.Int));
                 var luceneOptions = new LuceneQueryOptions(0, 2);
                 //Act
 
@@ -2590,14 +2590,17 @@ namespace Examine.Test.Examine.Lucene.Search
                 var results = sc.Execute(luceneOptions);
                 var luceneResults = results as ILuceneSearchResults;
                 Assert.IsNotNull(luceneResults);
-                Assert.IsNotNull(luceneResults.SearchAfter,"Search After details should be available");
+                Assert.IsNotNull(luceneResults.SearchAfter, "Search After details should be available");
                 var luceneResults1List = luceneResults.ToList();
                 Assert.IsTrue(luceneResults1List.Any(x => x.Id == "1"));
                 Assert.IsTrue(luceneResults1List.Any(x => x.Id == "2"));
 
                 // Second query result continues after result 1 (zero indexed), Takes 1, should not include any of the results before or include the SearchAfter docid / scoreid
-                var searchAfter = new SearchAfterOptions(luceneResults.SearchAfter.DocumentId, luceneResults.SearchAfter.DocumentScore, luceneResults.SearchAfter.Fields, luceneResults.SearchAfter.ShardIndex.Value);
-                var luceneOptions2 = new LuceneQueryOptions(1,1, searchAfter);
+                var searchAfter = new SearchAfterOptions(luceneResults.SearchAfter.DocumentId,
+                    luceneResults.SearchAfter.DocumentScore,
+                    luceneResults.SearchAfter.Fields,
+                    luceneResults.SearchAfter.ShardIndex.Value);
+                var luceneOptions2 = new LuceneQueryOptions(0, 1, searchAfter);
                 var results2 = sc.Execute(luceneOptions2);
                 var luceneResults2 = results2 as ILuceneSearchResults;
                 var luceneResults2List = luceneResults2.ToList();
@@ -2608,7 +2611,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 // Third query result continues after result 2 (zero indexed), Takes 1
                 var searchAfter2 = new SearchAfterOptions(luceneResults2.SearchAfter.DocumentId, luceneResults2.SearchAfter.DocumentScore, luceneResults2.SearchAfter.Fields, luceneResults2.SearchAfter.ShardIndex.Value);
-                var luceneOptions3 = new LuceneQueryOptions(2, 1, searchAfter2);
+                var luceneOptions3 = new LuceneQueryOptions(0, 1, searchAfter2);
                 var results3 = sc.Execute(luceneOptions3);
                 var luceneResults3 = results3 as ILuceneSearchResults;
                 Assert.IsNotNull(luceneResults3);

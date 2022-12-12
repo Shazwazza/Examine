@@ -83,14 +83,12 @@ namespace Examine.Lucene.Search
             int numHits = maxResults;
 
             SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
-
-            bool doSearchAfter = false;
+            Sort sort = null;
             FieldDoc scoreDocAfter = null;
-            bool scoredInOrder = false;
+            Filter filter = null;
 
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
-                Sort sort = null;
                 if (sortFields.Length > 0)
                 {
                     sort = new Sort(sortFields);
@@ -99,53 +97,33 @@ namespace Examine.Lucene.Search
                 if (_luceneQueryOptions != null && _luceneQueryOptions.SearchAfter != null)
                 {
                     //The document to find results after.
-                    var searchAfter = _luceneQueryOptions.SearchAfter;
-                    doSearchAfter = true;
+                    scoreDocAfter = GetScoreDocAfter(_luceneQueryOptions);
 
-
-                    object[] searchAfterSortFields = new object[0];
-                    if (_luceneQueryOptions.SearchAfter.Fields != null && _luceneQueryOptions.SearchAfter.Fields.Length > 0)
-                    {
-                        searchAfterSortFields = _luceneQueryOptions.SearchAfter.Fields;
-                    }
-                    if (searchAfter.ShardIndex != null)
-                    {
-                        scoreDocAfter = new FieldDoc(searchAfter.DocumentId, searchAfter.DocumentScore, searchAfterSortFields, searchAfter.ShardIndex.Value);
-                    }
-                    else
-                    {
-                        scoreDocAfter = new FieldDoc(searchAfter.DocumentId, searchAfter.DocumentScore, searchAfterSortFields);
-                    }
-
-
-                    // We want to only collect only the actual number of hits we want to take after the last document. We don't need to collect all previous docs
+                    // We want to only collect only the actual number of hits we want to take after the last document. We don't need to collect all previous/next docs.
                     numHits = _options.Take >= 1 ? _options.Take : QueryOptions.DefaultMaxResults;
                 }
 
                 TopDocs topDocs;
-                if (doSearchAfter)
-                {
-                    topDocs =searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, _options.Take, sort);
-                }
-                else if (sort != null)
-                {
-                    int topN = numHits;
+                ICollector topDocsCollector;
+                bool trackMaxScore = _luceneQueryOptions == null ? false : _luceneQueryOptions.TrackDocumentMaxScore;
+                bool trackDocScores = _luceneQueryOptions == null ? false : _luceneQueryOptions.TrackDocumentScores;
 
-                    topDocs = searcher.IndexSearcher.Search(_luceneQuery, null, topN, sort, true, true);
+                if (sortFields.Length > 0)
+                {
+                    bool fillFields = true;
+                    topDocsCollector = TopFieldCollector.Create(sort, numHits, scoreDocAfter, fillFields, trackDocScores, trackMaxScore, false);
                 }
                 else
                 {
-                    ICollector topDocsCollector;
+                    topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
+                }
 
-                    if (sortFields.Length > 0)
-                    {
-                        topDocsCollector = TopFieldCollector.Create(
-                            new Sort(sortFields), numHits, scoreDocAfter, false, false, false, scoredInOrder);
-                    }
-                    else
-                    {
-                        topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
-                    }
+                if (scoreDocAfter != null)
+                {
+                    topDocs = searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, filter, _options.Take, sort, true, trackMaxScore);
+                }
+                else
+                {
                     searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
                     if (sortFields.Length > 0)
                     {
@@ -159,20 +137,54 @@ namespace Examine.Lucene.Search
 
                 var totalItemCount = topDocs.TotalHits;
 
-                var results = new List<ISearchResult>();
+                var results = new List<ISearchResult>(topDocs.ScoreDocs.Length);
                 for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
                 {
                     var result = GetSearchResult(i, topDocs, searcher.IndexSearcher);
                     results.Add(result);
                 }
-                SearchAfterOptions searchAfterOptions = null;
-                var lastFieldDoc = topDocs.ScoreDocs.LastOrDefault() as FieldDoc;
+                var searchAfterOptions = GetSearchAfterOptions(topDocs);
+                float maxScore = topDocs.MaxScore;
+
+                return new LuceneSearchResults(results, totalItemCount, maxScore, searchAfterOptions);
+            }
+        }
+
+        private static FieldDoc GetScoreDocAfter(LuceneQueryOptions luceneQueryOptions)
+        {
+            FieldDoc scoreDocAfter;
+            var searchAfter = luceneQueryOptions.SearchAfter;
+
+            object[] searchAfterSortFields = new object[0];
+            if (luceneQueryOptions.SearchAfter.Fields != null && luceneQueryOptions.SearchAfter.Fields.Length > 0)
+            {
+                searchAfterSortFields = luceneQueryOptions.SearchAfter.Fields;
+            }
+            if (searchAfter.ShardIndex != null)
+            {
+                scoreDocAfter = new FieldDoc(searchAfter.DocumentId, searchAfter.DocumentScore, searchAfterSortFields, searchAfter.ShardIndex.Value);
+            }
+            else
+            {
+                scoreDocAfter = new FieldDoc(searchAfter.DocumentId, searchAfter.DocumentScore, searchAfterSortFields);
+            }
+
+            return scoreDocAfter;
+        }
+
+        private static SearchAfterOptions GetSearchAfterOptions(TopDocs topDocs)
+        {
+            SearchAfterOptions searchAfterOptions = null;
+            if (topDocs.TotalHits > 0)
+            {
+                FieldDoc lastFieldDoc = topDocs.ScoreDocs.LastOrDefault() as FieldDoc;
                 if (lastFieldDoc != null)
                 {
                     searchAfterOptions = new SearchAfterOptions(lastFieldDoc.Doc, lastFieldDoc.Score, lastFieldDoc.Fields?.ToArray(), lastFieldDoc.ShardIndex);
                 }
-                return new LuceneSearchResults(results, totalItemCount, searchAfterOptions);
             }
+
+            return searchAfterOptions;
         }
 
         private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
