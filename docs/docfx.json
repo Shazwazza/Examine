@@ -7,7 +7,10 @@
             "src/**.csproj"
           ],
           "exclude":[
-            "**/Examine.Test**"
+            "**/bin/**",
+            "**/obj/**",
+            "**/Examine.Test**",
+            "**/Examine.Web**"
           ],
 		      "src": "../"
         }
