@@ -65,7 +65,11 @@
     "globalMetadata": {
       "_appTitle": "Examine Documentation",
       "_appFooter": "Examine Documentation",
-      "_enableSearch": true
+      "_enableSearch": true,
+      "_gitContribute": {
+        "repo": "https://github.com/Shazwazza/Examine",
+        "branch": "release/v3.0"
+      }
     }
   }
 }
