@@ -133,7 +133,7 @@ namespace Examine.Lucene.Search
                 {
                     if (facetsCollector != null)
                     {
-                        topDocs = facetsCollector.SearchAfter(searcher.IndexSearcher, scoreDocAfter, _luceneQuery, _options.Take, topDocsCollector);
+                        topDocs = FacetsCollector.SearchAfter(searcher.IndexSearcher, scoreDocAfter, _luceneQuery, filter, _options.Take, sort, MultiCollector.Wrap(topDocsCollector, facetsCollector));
                     }
                     else
                     {
@@ -144,7 +144,7 @@ namespace Examine.Lucene.Search
                 {
                     if (facetsCollector != null)
                     {
-                        topDocs = FacetsCollector.SearchAfter(searcher.IndexSearcher, scoreDocAfter, _luceneQuery, filter, _options.Take, sort, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                        topDocs = facetsCollector.SearchAfter(searcher.IndexSearcher, scoreDocAfter, _luceneQuery, _options.Take, topDocsCollector);
                     }
                     else
                     {
