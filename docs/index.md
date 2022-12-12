@@ -16,36 +16,16 @@ Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https:/
 
 ## Minimum requirements
 
-<!-- Tabs -->
-<div class="container">
-  <input type="radio" id="tab-link-10" name="minrequirements" checked />
-  <label for="tab-link-10">V2</label>
-  <input type="radio" id="tab-link-11" name="minrequirements" />
-  <label for="tab-link-11">V1</label>
-  <!-- Tab content -->
-  <div class="tab-content">
-    <section class="tab-panel" id="tab-10">
-        .NET Standard 2.0
-    </section>
-    <section class="tab-panel" id="tab-11">
-        .NET Framework 4.5.2
-    </section>    
-  </div>
-</div>
+| Examine Version | .NET |
+| --------------- | ---- |
+| V3 | .NET Standard 2.0 |
+| V2 | .NET Standard 2.0 |
+| V1 | .NET Framework 4.5.2 |
 
 ## Quick Start
 
-<!-- Tabs -->
-<div class="container">
-  <input type="radio" id="tab-link-20" name="quickstart" checked />
-  <label for="tab-link-20">V2</label>
-  <input type="radio" id="tab-link-21" name="quickstart" />
-  <label for="tab-link-21">V1</label>
-  <!-- Tab content -->
-  <div class="tab-content">
-<section class="tab-panel" id="tab-20" markdown="block">
-
-_**Tip**: `IExamineManager` is the gateway to working with examine. It is registered in DI as a singleton and can be injected into your services._
+#### Examine V2
+**Tip**: `IExamineManager` is the gateway to working with examine. It is registered in DI as a singleton and can be injected into your services._
 
 1. Install
 
@@ -85,10 +65,9 @@ _**Tip**: `IExamineManager` is the gateway to working with examine. It is regist
         .Field("Address", "Hills")        // Look for any "Hills" addresses
         .Execute();                       // Execute the search
     ```
-</section>
-<section class="tab-panel" id="tab-21" markdown="block">
+#### Examine V1
 
-_**Tip**: `IExamineManager` is the gateway to working with examine. It can be registered in DI as a singleton or can be accessed via `ExamineManager.Instance`._
+**Tip**: `IExamineManager` is the gateway to working with examine. It can be registered in DI as a singleton or can be accessed via `ExamineManager.Instance`._
 
 1. Install
 
@@ -131,9 +110,6 @@ _**Tip**: `IExamineManager` is the gateway to working with examine. It can be re
         .Field("Address", "Hills")        // Look for any "Hills" addresses
         .Execute();                       // Execute the search
     ```
-</section>
-  </div>
-</div>
 
 ## Documentation
 

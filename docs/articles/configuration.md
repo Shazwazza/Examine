@@ -19,17 +19,9 @@ A Field Definition is a mapping of a field name to a ["Value Types"](#value-type
 
 You can map a field to any value type when configuring the index.
 
-<!-- Tabs -->
-<div class="container">
-  <input type="radio" id="tab-link-30" name="fielddefs" checked />
-  <label for="tab-link-30">V2</label>
-  <input type="radio" id="tab-link-31" name="fielddefs" />
-  <label for="tab-link-31">V1</label>
-  <!-- Tab content -->
-  <div class="tab-content">
-<section class="tab-panel" id="tab-30" markdown="block">
+### Examine V2
 
-### IConfigureNamedOptions
+#### IConfigureNamedOptions
 
 Configuration of Examine indexes is done with [.NET's Options pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0). For Examine, this is done with named options: `IConfigureNamedOptions`.
 
@@ -63,10 +55,9 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
 }
 ```
 
-</section>
-<section class="tab-panel" id="tab-31" markdown="block">
+### Examine V1
 
-### Via constructor
+#### Via constructor
 
 The `LuceneIndex` constructor has several **optional** parameters that can be supplied to configure the index:
 
@@ -87,7 +78,7 @@ var myIndex = examineManager.AddIndex(
             new FieldDefinition("Price", FieldDefinitionTypes.Double))));
 ```
 
-### After construction
+#### After construction
 
 You can modify the field definitions for an index after it is constructed by using any of the following methods:
 
@@ -97,7 +88,7 @@ You can modify the field definitions for an index after it is constructed by usi
 
 These modifications __must__ be done before any indexing or searching is executed.
 
-### Add a field value type after construction
+#### Add a field value type after construction
 
 It is possible to add custom field value types after the construction of the index, but this must be done before the index is used. Some people may prefer this method of adding custom field value types. Generally, these should be modified directly after the construction of the index.
 
@@ -120,9 +111,6 @@ myIndex.FieldDefinitionCollection.TryAdd(
     new FieldDefinition("Phone", "phonenumber"));
 ```
 
-</section>
-</div>
-</div>
 
 ## Value types
 
@@ -168,15 +156,7 @@ A common implementation that can be used for field value types for custom Analyz
 
 A phone number stored in Lucene could require a custom analyzer to index and search it properly. So the best way to set this up in Examine would be to have a custom field value type for it. Since this field value type doesn't need to do anything more fancy than to provide a custom analyzer, we can create it with the `GenericAnalyzerFieldValueType`.
 
-<!-- Tabs -->
-<div class="container">
-  <input type="radio" id="tab-link-20" name="phonenum" checked />
-  <label for="tab-link-20">V2</label>
-  <input type="radio" id="tab-link-21" name="phonenum" />
-  <label for="tab-link-21">V1</label>
-  <!-- Tab content -->
-  <div class="tab-content">
-<section class="tab-panel" id="tab-20" markdown="block">
+##### Examine V2
 
 ```cs
 /// <summary>
@@ -220,8 +200,7 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
 }
 ```
 
-</section>
-<section class="tab-panel" id="tab-21" markdown="block">
+##### Examine V1
 
 ```cs
 // Create a writeable dictionary based off of the 
@@ -250,10 +229,6 @@ var myIndex = new LuceneIndex(
 ```
 
 The above creates a custom field value type using a custom analyzer and maps the "Phone" field to use this value type.
-
-</section>
-</div>
-</div>
 
 ## ValueSet validators
 
