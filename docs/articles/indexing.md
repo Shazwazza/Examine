@@ -2,7 +2,7 @@
 layout: page
 title: Indexing
 permalink: /indexing
-ref: indexing
+uid: indexing
 order: 0
 ---
 
@@ -25,7 +25,7 @@ It also has some methods that you can use to manipulate it's data.
 
 _How to index a single `ValueSet`_
 
-[See quickstart](index#quick-start)
+[See quickstart](xref:index#quick-start)
 
 ## Multiple values
 

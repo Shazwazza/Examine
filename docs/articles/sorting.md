@@ -2,7 +2,7 @@
 layout: page
 title: Sorting
 permalink: /sorting
-ref: sorting
+uid: sorting
 order: 3
 ---
 

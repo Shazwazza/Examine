@@ -3,6 +3,7 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: default
+uid: index
 ---
 
 Examine Documentation
@@ -115,7 +116,7 @@ Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https:/
 
 _**Tip**: There are many unit tests in the source code that can be used as Examples of how to do things. There is also a test web project that has plenty of examples of how to configure indexes and search them._
 
-* [Indexing](indexing)
-* [Configuration](configuration)
-* [Searching](searching)
-* [Sorting](sorting)
+* [Indexing](xref:indexing)
+* [Configuration](xref:configuration)
+* [Searching](xref:searching)
+* [Sorting](xref:sorting)

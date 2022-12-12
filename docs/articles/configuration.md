@@ -2,7 +2,7 @@
 layout: page
 title: Configuration
 permalink: /configuration
-ref: configuration
+uid: configuration
 order: 1
 ---
 
