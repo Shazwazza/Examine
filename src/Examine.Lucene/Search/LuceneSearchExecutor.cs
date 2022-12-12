@@ -144,7 +144,7 @@ namespace Examine.Lucene.Search
                 {
                     if (facetsCollector != null)
                     {
-                        topDocs = facetsCollector.SearchAfter(searcher.IndexSearcher, scoreDocAfter, _luceneQuery, _options.Take, topDocsCollector);
+                        topDocs = facetsCollector.SearchAfter(searcher.IndexSearcher, scoreDocAfter, _luceneQuery, _options.Take, MultiCollector.Wrap(topDocsCollector, facetsCollector));
                     }
                     else
                     {
