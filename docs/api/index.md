@@ -1,4 +1,7 @@
-# Examine API Documentation
+---
+uid: apidocsindex
+---
+# Examine V3 API Documentation
 
 API documentation is automatically generated.
 
