@@ -8,11 +8,16 @@ order: 2
 Searching
 ===
 
-_**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/master/src/Examine.Test/Search/FluentApiTests.cs) to use as examples/reference._
+_**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/release/3.0/src/Examine.Test/Examine.Lucene/Search/FluentApiTests.cs) to use as examples/reference._
+
+
+## Common
+
+Obtain an instance of [`ISearcher`](xref:Examine.ISearcher) for the index to be searched from [`IExamineManager`](xref:Examine.IExamineManager).
 
 ## All fields (managed queries)
 
-The simplest way of querying with Examine is with the `Search` method:
+The simplest way of querying with Examine is with the [`Search`](xref:Examine.ISearcher#Examine_ISearcher_Search_System_String_Examine_Search_QueryOptions_) method:
 
 ```cs
 var results = searcher.Search("hello world");
@@ -29,6 +34,9 @@ A Managed query is a search operation that delegates to the underlying field typ
 be searched. In most cases the field value type will be 'Full Text', others may be numeric fields, etc... So the query is built up based on the data passed in and what each field type is capable of searching.
 
 ## Per field
+
+To create a query using the fluent builder query syntax start by calling [`ISearcher.CreateQuery()`](xref:Examine.ISearcher#Examine_ISearcher_Search_System_String_Examine_Search_QueryOptions_) then chain options as required.
+Finally call [`Execute`](xref:Examine.Search.IQueryExecutor#Examine_Search_IQueryExecutor_Execute_Examine_Search_QueryOptions_) to execute the query.
 
 ```csharp
 var searcher = myIndex.Searcher; // Get a searcher
@@ -49,17 +57,17 @@ var results = searcher.CreateQuery()
  .Execute();
 ```
 
-The way that terms are split depends on the Analyzer being used. The StandardAnalyzer is the default. An example of how Analyzers work are:
+The way that terms are split depends on the Analyzer being used. The [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html) is the default. An example of how Analyzers work are:
 
-- StandardAnalyzer - will split a string based on whitespace and 'stop words' (i.e. common words that are not normally searched on like "and")
-- WhitespaceAnalyzer - will split a string based only on whitespace
-- KeywordAnalyzer - will not split a string and will treat the single string as one term - this means that searching will be done on an exact match
+- [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html) - will split a string based on whitespace and 'stop words' (i.e. common words that are not normally searched on like "and")
+- [`WhitespaceAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Core.WhitespaceAnalyzer.html) - will split a string based only on whitespace
+- [`KeywordAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Core.KeywordAnalyzer.html) - will not split a string and will treat the single string as one term - this means that searching will be done on an exact match
 
 There are many [Analyzers](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/core/Lucene.Net.Analysis.html) and you can even create your own. See more about analyzers in [configuration](./configuration.md#example---phone-number).
 
 Looking at this example when using the default StandardAnalyser the code above means that the `Address` in this example has to match any the values set in the statement. This is because Examine will create a Lucene query like this one where every word is matched separately: `Address:hills Address:rockyroad Address:hollywood`.
 
-Instead, if you want to search for entries with the values above in that exact order you specified you will need to use the `.Escape()` method. See under [Escape](#escape).
+Instead, if you want to search for entries with the values above in that exact order you specified you will need to use the [`.Escape()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Escape_System_String_) method. See under [Escape](#escape).
 
 ```csharp
 var searcher = myIndex.Searcher;
@@ -144,9 +152,9 @@ var results = query.Execute();
 
 ## Fuzzy
 
-Fuzzy searching is the practice of finding spellings that are similar to each other. Examine searches based on the [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance). The parameter given in the `.Fuzzy()` method is the edit distance allowed by default this value is `0.5` if not specified.
+Fuzzy searching is the practice of finding spellings that are similar to each other. Examine searches based on the [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance). The parameter given in the [`.Fuzzy()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Fuzzy_System_String_) method is the edit distance allowed by default this value is `0.5` if not specified.
 
-The value on `.Fuzzy()` can be between 0 and 2. Any number higher than 2 will be lowered to 2 when creating the query.
+The value on [`.Fuzzy()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Fuzzy_System_String_System_Single_) can be between 0 and 2. Any number higher than 2 will be lowered to 2 when creating the query.
 
 Example:
 
@@ -172,11 +180,11 @@ var results = query.Execute();
 
 ## Wildcards
 
-Examine supports single and multiple-character wildcards on single terms. (Cannot be used with the `.Escape()` method)
+Examine supports single and multiple-character wildcards on single terms. (Cannot be used with the [`.Escape()`](xref) method)
 
 ### Examine query (Single character)
 
-The `.SingleCharacterWildcard()` method will add a single character wildcard to the end of the term or terms being searched on a field. 
+The [`.SingleCharacterWildcard()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_Escape_System_String_) method will add a single character wildcard to the end of the term or terms being searched on a field. 
 
 ```csharp
 var query = searcher.CreateQuery()
@@ -187,7 +195,7 @@ This will match for example: `test` and `tests`
 
 ### Examine query (Multiple characters)
 
-The `.MultipleCharacterWildcard()` method will add a multiple characters wildcard to the end of the term or terms being searched on a field.
+The [`.MultipleCharacterWildcard()`](xref:Examine.SearchExtensions#Examine_SearchExtensions_MultipleCharacterWildcard_System_String_) method will add a multiple characters wildcard to the end of the term or terms being searched on a field.
 
 ```csharp
 var query = searcher.CreateQuery()
