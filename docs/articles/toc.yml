@@ -6,3 +6,5 @@
   href: searching.md
 - name: Sorting
   href: sorting.md
+- name: Paging
+  href: sorting.md#paging-and-limiting-results
