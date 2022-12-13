@@ -71,8 +71,8 @@
     "cleanupCacheHistory": false,
     "disableGitFeatures": false,
     "globalMetadata": {
-      "_appTitle": "Examine Documentation",
-      "_appFooter": "Examine Documentation",
+      "_appTitle": "Examine",
+      "_appFooter": "Examine",
       "_enableSearch": true,
       "_gitContribute": {
         "repo": "https://github.com/Shazwazza/Examine",
