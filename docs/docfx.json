@@ -79,7 +79,7 @@
         "branch": "release/v3.0"
       },
       "_appLogoPath": "/images/headerlogo.png",
-      "_appFaviconPath": "favicon.ico"
+      "_appFaviconPath": "/images/favicon.ico"
     }
   }
 }
