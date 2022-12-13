@@ -27,6 +27,11 @@ Not all features of [Lucene.NET](https://lucenenet.apache.org/) have Examine abs
 
 Conceptual documentation is available for V1 and V2 of Examine.
 
+## [Releases](https://github.com/Shazwazza/Examine/releases)
+
+Releases are available [here](https://github.com/Shazwazza/Examine/releases) and on [NuGet](https://www.nuget.org/packages/Examine/).
+
+
 ## Minimum requirements
 
 | Examine Version | .NET |
