@@ -144,29 +144,21 @@ namespace Examine.Search
         IFacetQueryField Facet(string field);
 
         /// <summary>
-        /// Add a facet string to the current query, filtered by value
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        IFacetQueryField Facet(string field, string value);
-
-        /// <summary>
-        /// Add a facet string to the current query, filtered by multiple values
+        /// Add a facet string to the current query, filtered by a single value or multiple values
         /// </summary>
         /// <param name="field"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        IFacetQueryField Facet(string field, string[] values);
+        IFacetQueryField Facet(string field, params string[] values);
 
         /// <summary>
         /// Add a range facet to the current query
         /// </summary>
-        IFacetDoubleRangeQueryField Facet(string field, DoubleRange[] doubleRanges);
+        IFacetDoubleRangeQueryField Facet(string field, params DoubleRange[] doubleRanges);
 
         /// <summary>
         /// Add a range facet to the current query
         /// </summary>
-        IFacetLongRangeQueryField Facet(string field, Int64Range[] longRanges);
+        IFacetLongRangeQueryField Facet(string field, params Int64Range[] longRanges);
     }
 }
