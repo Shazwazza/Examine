@@ -1,16 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Examine.Lucene.Search
 {
     public class LuceneSearchResults : ISearchResults, IFacetResults
     {
-        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>());
+        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new ReadOnlyDictionary<string, IFacetResult>(new Dictionary<string, IFacetResult>()));
 
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IDictionary<string, IFacetResult> facets)
+        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IReadOnlyDictionary<string, IFacetResult> facets)
         {
             _results = results;
             TotalItemCount = totalItemCount;
@@ -19,7 +20,7 @@ namespace Examine.Lucene.Search
 
         public long TotalItemCount { get; }
 
-        public IDictionary<string, IFacetResult> Facets { get; }
+        public IReadOnlyDictionary<string, IFacetResult> Facets { get; }
 
         public IEnumerator<ISearchResult> GetEnumerator() => _results.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

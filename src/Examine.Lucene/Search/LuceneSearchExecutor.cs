@@ -23,10 +23,10 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
-        private readonly IList<IFacetField> _facetFields;
+        private readonly IEnumerable<IFacetField> _facetFields;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IList<IFacetField> facetFields)
+        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
@@ -100,7 +100,7 @@ namespace Examine.Lucene.Search
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
                 FacetsCollector facetsCollector;
-                if(_facetFields.Count > 0)
+                if(_facetFields.Any())
                 {
                     facetsCollector = new FacetsCollector();
                     searcher.IndexSearcher.Search(_luceneQuery, MultiCollector.Wrap(topDocsCollector, facetsCollector));
@@ -136,10 +136,10 @@ namespace Examine.Lucene.Search
             }
         }
 
-        private IDictionary<string, IFacetResult> ExtractFacets(FacetsCollector facetsCollector, ISearcherReference searcher)
+        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector facetsCollector, ISearcherReference searcher)
         {
-            var facets = new Dictionary<string, IFacetResult>();
-            if (facetsCollector == null || _facetFields.Count == 0)
+            var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
+            if (facetsCollector == null || !_facetFields.Any())
             {
                 return facets;
             }
