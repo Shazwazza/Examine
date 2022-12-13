@@ -140,15 +140,15 @@ Data is easily deleted from the index by the unique identifier you provided in y
 
 ## Events
 
-#### IIndex.IndexOperationComplete
+#### [IIndex.IndexOperationComplete](xref:Examine.IIndex#Examine_IIndex_IndexOperationComplete)
 
 This event is part of the base interface [`IIndex`](xref:Examine.IIndex) so it is available to use on any implementation of an Examine index. This can be useful to know when an indexing operation is completed.
 
-#### IIndex.TransformingIndexValues
+#### [IIndex.TransformingIndexValues](xref:Examine.IIndex#Examine_IIndex_TransformingIndexValues)
 
 This event allows for customizing the [`ValueSet`](xref:Examine.ValueSet) before it is passed to the indexer to be indexed. You can use this event to add additional field values or modify existing field values.
 
-#### IIndex.IndexingError
+#### [IIndex.IndexingError](xref:Examine.IIndex#Examine_IIndex_IndexingError)
 
 This event can be used for reacting to when an error occurs during index. For example, you could add an event handler for this event to facilitate error logging.
 
