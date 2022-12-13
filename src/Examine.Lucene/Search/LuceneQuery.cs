@@ -107,16 +107,16 @@ namespace Examine.Lucene.Search
         INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
 
-        public IFacetQueryField Facet(string field)
+        public IFacetQueryField WithFacet(string field)
             => _search.FacetInternal(field);
 
-        public IFacetQueryField Facet(string field, params string[] values)
+        public IFacetQueryField WithFacet(string field, params string[] values)
             => _search.FacetInternal(field, values);
 
-        public IFacetDoubleRangeQueryField Facet(string field, params DoubleRange[] doubleRanges)
+        public IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges)
             => _search.FacetInternal(field, doubleRanges);
 
-        public IFacetLongRangeQueryField Facet(string field, params Int64Range[] longRanges)
+        public IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges)
             => _search.FacetInternal(field, longRanges);
     }
 }

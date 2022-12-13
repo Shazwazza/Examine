@@ -311,13 +311,13 @@ namespace Examine.Lucene.Search
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        public override IFacetQueryField Facet(string field) => FacetInternal(field);
+        public override IFacetQueryField WithFacet(string field) => FacetInternal(field);
 
-        public override IFacetQueryField Facet(string field, params string[] values) => FacetInternal(field, values);
+        public override IFacetQueryField WithFacet(string field, params string[] values) => FacetInternal(field, values);
 
-        public override IFacetDoubleRangeQueryField Facet(string field, params DoubleRange[] doubleRanges) => FacetInternal(field, doubleRanges);
+        public override IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges) => FacetInternal(field, doubleRanges);
 
-        public override IFacetLongRangeQueryField Facet(string field, params Int64Range[] longRanges) => FacetInternal(field, longRanges);
+        public override IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges) => FacetInternal(field, longRanges);
 
         internal IFacetQueryField FacetInternal(string field)
             => FacetInternal(field, Array.Empty<string>());

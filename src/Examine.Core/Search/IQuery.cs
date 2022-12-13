@@ -141,7 +141,7 @@ namespace Examine.Search
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
-        IFacetQueryField Facet(string field);
+        IFacetQueryField WithFacet(string field);
 
         /// <summary>
         /// Add a facet string to the current query, filtered by a single value or multiple values
@@ -149,16 +149,16 @@ namespace Examine.Search
         /// <param name="field"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        IFacetQueryField Facet(string field, params string[] values);
+        IFacetQueryField WithFacet(string field, params string[] values);
 
         /// <summary>
         /// Add a range facet to the current query
         /// </summary>
-        IFacetDoubleRangeQueryField Facet(string field, params DoubleRange[] doubleRanges);
+        IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges);
 
         /// <summary>
         /// Add a range facet to the current query
         /// </summary>
-        IFacetLongRangeQueryField Facet(string field, params Int64Range[] longRanges);
+        IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges);
     }
 }
