@@ -1,5 +1,6 @@
 ---
 uid: v2index
+title: V1/V2 Quickstart
 ---
 
 Examine Documentation

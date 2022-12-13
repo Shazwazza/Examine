@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Searching
+title: V1/V2 Searching
 permalink: /searching
 uid: v2searching
 order: 2
