@@ -40,7 +40,7 @@ _**Tip**: There are many unit tests in the source code that can be used as Examp
 1. Install
 
     ```powershell
-    > dotnet add package Examine --version 2.0.0-beta2
+    > dotnet add package Examine --version 2.1.0
     ```
 
 1. Configure Services and create an index

@@ -7,7 +7,7 @@ Examine Documentation
 
 ## What is Examine?
 
-<img align="right" src="https://github.com/Shazwazza/Examine/raw/master/assets/logo-round-small.png?raw=true"> Examine allows you to index and search data easily and wraps the [Lucene.NET](https://lucenenet.apache.org/) indexing/searching engine. Lucene is _super_ fast and allows for very fast searching even on very large amounts of data. Examine is very extensible and allows you to configure as many indexes as you like and each may be configured individually. Out of the box Examine gives you a Lucene based index implementation as well as a Fluent API that can be used to search for your data.
+<img align="right" src="https://github.com/Shazwazza/Examine/raw/master/assets/logo-round-small.png?raw=true"> Examine allows you to index and search data easily and wraps the [Lucene.NET](https://lucenenet.apache.org/) indexing/searching engine. [Lucene](https://lucene.apache.org/) is _super_ fast and allows for very fast searching even on very large amounts of data. Examine is very extensible and allows you to configure as many indexes as you like and each may be configured individually. Out of the box Examine gives you a Lucene based index implementation as well as a Fluent API that can be used to search for your data.
 
 Examine is installed via Nuget: [https://www.nuget.org/packages/Examine](https://www.nuget.org/packages/Examine)
 
@@ -48,7 +48,6 @@ Conceptual documentation is available for V1 and V2 of Examine.
 1. Configure Services and create an index
 
     ```cs
-
     // Adds Examine Core services
     services.AddExamine();
 
