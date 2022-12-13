@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Examine.Lucene.Providers;
 using Examine.Search;
+using Lucene.Net.Facet.Range;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -65,5 +67,13 @@ namespace Examine.Lucene.Search
         #endregion
 
         public override string ToString() => _search.ToString();
+
+        public override IFacetQueryField WithFacet(string field) => _search.FacetInternal(field, Array.Empty<string>());
+
+        public override IFacetQueryField WithFacet(string field, params string[] values) => _search.FacetInternal(field, values);
+
+        public override IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
+
+        public override IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
     }
 }

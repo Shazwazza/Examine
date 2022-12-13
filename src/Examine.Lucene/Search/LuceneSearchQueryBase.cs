@@ -505,13 +505,5 @@ namespace Examine.Lucene.Search
         {
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
-
-        public abstract IFacetQueryField WithFacet(string field);
-
-        public abstract IFacetQueryField WithFacet(string field, params string[] values);
-
-        public abstract IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges);
-
-        public abstract IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges);
     }
 }
