@@ -171,12 +171,12 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = indexer.Searcher;
 
-                var query = searcher.CreateQuery("content").NativeQuery("\"town called\"").WithFacet("bodyText");
+                var query = searcher.CreateQuery("content").NativeQuery("\"town called\"");
 
                 Console.WriteLine(query);
                 Assert.AreEqual("{ Category: content, LuceneQuery: +(nodeName:\"town called\" bodyText:\"town called\") }", query.ToString());
 
-                var results = query.Execute();
+                var results = query.WithFacet("bodyText").Execute();
 
                 var facetResults = results.GetFacet("bodyText");
 
