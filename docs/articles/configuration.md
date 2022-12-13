@@ -15,20 +15,20 @@ _**Note**: This documentation refers to using Lucene based indexes in Examine (t
 
 ## Field definitions
 
-A Field Definition is a mapping of a field name to a ["Value Types"](#value-types). By default all fields are mapped to the default Value Type: `FieldDefinitionTypes.FullText`. 
+A Field Definition is a mapping of a field name to a ["Value Types"](#value-types). By default all fields are mapped to the default Value Type: [`FieldDefinitionTypes.FullText`](xref:Examine.FieldDefinitionTypes#Examine_FieldDefinitionTypes_FullText).
 
 You can map a field to any value type when configuring the index.
 
 ### IConfigureNamedOptions
 
-Configuration of Examine indexes is done with [.NET's Options pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0). For Examine, this is done with named options: `IConfigureNamedOptions`.
+Configuration of Examine indexes is done with [.NET's Options pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0). For Examine, this is done with named options: [`IConfigureNamedOptions`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.iconfigurenamedoptions-1).
 
 There are several options that can be configured, the most common ones are:
 
-* __FieldDefinitions__ _`FieldDefinitionCollection`_ - Manages the mappings between a field name and it's index value type
-* __Analyzer__ _`Analyzer`_ - The default Lucene Analyzer to use for each field (default = `StandardAnalyzer`)
-* __Validator__ _`IValueSetValidator`_ - Used to validate a value set to be indexed, if validation fails it will not be indexed
-* __IndexValueTypesFactory__ _`IReadOnlyDictionary<string, IFieldValueTypeFactory>`_ - Allows you to define custom Value Types
+* __FieldDefinitions__ _[`FieldDefinitionCollection`](xref:Examine.FieldDefinitionCollection)_ - Manages the mappings between a field name and it's index value type
+* __Analyzer__ _`Analyzer`_ - The default Lucene Analyzer to use for each field (default = [`StandardAnalyzer`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/analysis-common/Lucene.Net.Analysis.Standard.StandardAnalyzer.html))
+* __Validator__ _[`IValueSetValidator`]([`IValueSetValidator`](xref:Examine.IValueSetValidator))_ - Used to validate a value set to be indexed, if validation fails it will not be indexed
+* __[IndexValueTypesFactory](xref:Examine.Lucene.IFieldValueTypeFactory)__ _`IReadOnlyDictionary<string, IFieldValueTypeFactory>`_ - Allows you to define custom Value Types
 
 ```cs
 /// <summary>
@@ -55,7 +55,7 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
 
 ### After construction
 
-You can modify the field definitions for an index after it is constructed by using any of the following methods:
+You can modify the field definitions [FieldDefinitionCollection](xref:Examine.FieldDefinitionCollection) for an index after it is constructed by using any of the following methods:
 
 * `myIndex.FieldDefinitionCollection.TryAdd`
 * `myIndex.FieldDefinitionCollection.AddOrUpdate`
@@ -97,7 +97,7 @@ Value types are responsible for:
 * Configuring the analyzer for the field
 * Generating the Query for the field
 
-These are the default field value types provided with Examine. Each value type can be resolved from the static class `Examine.FieldDefinitionTypes` (i.e. `Examine.FieldDefinitionTypes.FullText`).
+These are the default field value types provided with Examine. Each value type can be resolved from the static class [`Examine.FieldDefinitionTypes`](xref:Examine.FieldDefinitionTypes) (i.e. [`Examine.FieldDefinitionTypes.FullText`](xref:Examine.FieldDefinitionTypes#Examine_FieldDefinitionTypes_FullText)).
 
 | Value Type                 | Description                                                                                                                                                                          | Sortable |
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
@@ -119,17 +119,17 @@ These are the default field value types provided with Examine. Each value type c
 
 ### Custom field value types
 
-A field value type is defined by `IIndexFieldValueType`
+A field value type is defined by [`IIndexFieldValueType`](xref:Examine.Lucene.Indexing.IIndexFieldValueType)
 
 _**Tip**: There are many implementations of IIndexFieldValueType in the source code to use as examples/reference._
 
-A common base class that can be used for field value types is: `IndexFieldValueTypeBase`.
+A common base class that can be used for field value types is: [`IndexFieldValueTypeBase`](xref:Examine.Lucene.Indexing.IndexFieldValueTypeBase).
 
-A common implementation that can be used for field value types for custom Analyzers is: `GenericAnalyzerFieldValueType`.
+A common implementation that can be used for field value types for custom Analyzers is: [`GenericAnalyzerFieldValueType`](xref:Examine.Lucene.Indexing.GenericAnalyzerFieldValueType).
 
 #### Example - Phone Number
 
-A phone number stored in Lucene could require a custom analyzer to index and search it properly. So the best way to set this up in Examine would be to have a custom field value type for it. Since this field value type doesn't need to do anything more fancy than to provide a custom analyzer, we can create it with the `GenericAnalyzerFieldValueType`.
+A phone number stored in Lucene could require a custom analyzer to index and search it properly. So the best way to set this up in Examine would be to have a custom field value type for it. Since this field value type doesn't need to do anything more fancy than to provide a custom analyzer, we can create it with the [`GenericAnalyzerFieldValueType`](xref:Examine.Lucene.Indexing.GenericAnalyzerFieldValueType).
 
 ```cs
 /// <summary>
@@ -177,7 +177,7 @@ The above creates a custom field value type using a custom analyzer and maps the
 
 ## ValueSet validators
 
-An `IValueSetValidator` is a simple interface:
+An [`IValueSetValidator`](xref:Examine.IValueSetValidator) is a simple interface:
 
 ```cs
 public interface IValueSetValidator
@@ -186,10 +186,10 @@ public interface IValueSetValidator
 }
 ```
 
-That returns an enum `ValueSetValidationResult` of values:
+That returns an result [`ValueSetValidationResult`](xref:Examine.ValueSetValidationResult) with an enum of [`ValueSetValidationStatus`](xref:Examine.ValueSetValidationStatus) values:
 
 * `Valid` - The ValueSet is valid and will be indexed
 * `Failed` - The ValueSet was invalid and will not be indexed
 * `Filtered` - The ValueSet has been filtered/modified by the validator and will be indexed
 
-Examine only has one implementation: `ValueSetValidatorDelegate` which can be used by developers as a simple way to create a validator based on a callback, else developers can implement this interface if required. By default, no ValueSet validation is done with Examine.
+Examine only has one implementation: [`ValueSetValidatorDelegate`](xref:Examine.Lucene.Providers.ValueSetValidatorDelegate) which can be used by developers as a simple way to create a validator based on a callback, else developers can implement this interface if required. By default, no ValueSet validation is done with Examine.
