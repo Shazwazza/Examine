@@ -152,7 +152,7 @@ This event allows for customizing the [`ValueSet`](xref:Examine.ValueSet) before
 
 This event can be used for reacting to when an error occurs during index. For example, you could add an event handler for this event to facilitate error logging.
 
-#### LuceneIndex.DocumentWriting
+#### [LuceneIndex.DocumentWriting](xref:Examine.Lucene.Providers.LuceneIndex#Examine_Lucene_Providers_LuceneIndex_DocumentWriting)
 
 If using Examine with the default Lucene implementation then the [`IIndex`](xref:Examine.IIndex) implementation will be [`LuceneIndex`](xref:Examine.Lucene.Providers.LuceneIndex). This event provides access to the Lucene [`Document`](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/core/Lucene.Net.Documents.Document.html) object before it gets added to the Lucene Index.
 
