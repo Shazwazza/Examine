@@ -42,7 +42,7 @@ Conceptual documentation is available for V1 and V2 of Examine.
 1. Install
 
     ```powershell
-    > dotnet add package Examine --version 2.0.0-beta2
+    > dotnet add package Examine --version 3.0.1
     ```
 
 1. Configure Services and create an index
