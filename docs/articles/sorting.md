@@ -76,4 +76,4 @@ var takeSevenHundredResults = searcher
    .Execute(QueryOptions.SkipTake(0, 700));
 ```
 
-By default when using [`Execute()`](xref:Examine.Search.IQueryExecutor#Examine_Search_IQueryExecutor_Execute_Examine_Search_QueryOptions_) or `Execute(QueryOptions.SkipTake(0))` where no take parameter is provided the take of the search will be set to [`QueryOptions.DefaultMaxResults`](Examine.Search.QueryOptions#Examine_Search_QueryOptions_DefaultMaxResults) (500).
+By default when using [`Execute()`](xref:Examine.Search.IQueryExecutor#Examine_Search_IQueryExecutor_Execute_Examine_Search_QueryOptions_) or `Execute(QueryOptions.SkipTake(0))` where no take parameter is provided the take of the search will be set to [`QueryOptions.DefaultMaxResults`](xref:Examine.Search.QueryOptions#Examine_Search_QueryOptions_DefaultMaxResults) (500).

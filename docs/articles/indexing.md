@@ -97,7 +97,7 @@ myIndex.IndexItem(new ValueSet(
 
 ### Strongly typed
 
-As you can see, the values being passed into the ValueSet are type `object`. Examine will determine if the object type maps to a [field definition](configuration#custom-field-definitions)
+As you can see, the values being passed into the ValueSet are type `object`. Examine will determine if the object type maps to a field definition
 
 ```cs
 myIndex.IndexItem(new ValueSet(

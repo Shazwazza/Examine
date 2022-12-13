@@ -180,7 +180,7 @@ var results = query.Execute();
 
 ## Wildcards
 
-Examine supports single and multiple-character wildcards on single terms. (Cannot be used with the [`.Escape()`](xref) method)
+Examine supports single and multiple-character wildcards on single terms. (Cannot be used with the `.Escape()` method)
 
 ### Examine query (Single character)
 

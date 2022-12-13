@@ -86,7 +86,6 @@ myIndex.FieldDefinitionCollection.TryAdd(
     new FieldDefinition("Phone", "phonenumber"));
 ```
 
-
 ## Value types
 
 Value types are responsible for:
