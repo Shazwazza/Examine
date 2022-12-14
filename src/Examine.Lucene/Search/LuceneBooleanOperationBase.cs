@@ -136,6 +136,7 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public abstract IOrdering SelectAllFields();
 
+        /// <inheritdoc/>
         public abstract IQueryExecutor WithFacets(Action<IFacetOperations> facets);
     }
 }
