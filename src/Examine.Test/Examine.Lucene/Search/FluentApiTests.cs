@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
 using J2N;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.Range;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using NUnit.Framework;
@@ -18,12 +21,16 @@ namespace Examine.Test.Examine.Lucene.Search
     [TestFixture]
     public class FluentApiTests : ExamineBaseTest
     {
-        [Test]
-        public void Allow_Leading_Wildcards()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Allow_Leading_Wildcards(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -55,21 +62,38 @@ namespace Examine.Test.Examine.Lucene.Search
                             AllowLeadingWildcard = false
                         }).NativeQuery("*dney"));
 
-                var results1 = query1.Execute();
+                if (withFacets)
+                {
+                    var results1 = query1.WithFacet("nodeName").Execute();
 
-                Assert.AreEqual(2, results1.TotalItemCount);
+                    var facetResults = results1.GetFacet("nodeName");
+
+                    Assert.AreEqual(2, results1.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(1, facetResults.First().Value);
+                }
+                else
+                {
+                    var results1 = query1.Execute();
+
+                    Assert.AreEqual(2, results1.TotalItemCount);
+                }             
             }
         }
 
-        [Test]
-        public void NativeQuery_Single_Word()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void NativeQuery_Single_Word(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -86,21 +110,38 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                var results = query.Execute();
+                if (withFacets)
+                {
+                    var results = query.WithFacet("nodeName").Execute();
 
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(1, facetResults.Last().Value);
+                }
+                else
+                {
+                    var results = query.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Uppercase_Category()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Uppercase_Category(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "cOntent",
@@ -117,21 +158,37 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                var results = query.Execute();
+                if (withFacets)
+                {
+                    var results = query.WithFacet("nodeName").Execute();
 
-                Assert.AreEqual(3, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(3, results.TotalItemCount);
+                    Assert.AreEqual(3, facetResults.Count());
+                }
+                else
+                {
+                    var results = query.Execute();
+
+                    Assert.AreEqual(3, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void NativeQuery_Phrase()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void NativeQuery_Phrase(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("bodyText", FieldDefinitionTypes.FacetFullText))
+                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -149,21 +206,37 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(query);
                 Assert.AreEqual("{ Category: content, LuceneQuery: +(nodeName:\"town called\" bodyText:\"town called\") }", query.ToString());
 
-                var results = query.Execute();
+                if (withFacets)
+                {
+                    var results = query.WithFacet("bodyText").Execute();
 
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("bodyText");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = query.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Managed_Range_Date()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Managed_Range_Date(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"), new FieldDefinition("created", FieldDefinitionTypes.FacetDateTime))
+                : new FieldDefinitionCollection(new FieldDefinition("created", "datetime"));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+                fieldDefinitionCollection))
             {
 
 
@@ -198,19 +271,43 @@ namespace Examine.Test.Examine.Lucene.Search
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01, 02), new DateTime(2000, 01, 05), maxInclusive: false);
 
-                var numberSortedResult = numberSortedCriteria.Execute();
+                if(withFacets)
+                {
+                    var numberSortedResult = numberSortedCriteria.WithFacet("created", new Int64Range[]
+                    {
+                        new Int64Range("First days", new DateTime(2000, 01, 01).Ticks, true, new DateTime(2000, 01, 03).Ticks, true),
+                        new Int64Range("Last days", new DateTime(2000, 01, 04).Ticks, true, new DateTime(2000, 01, 06).Ticks, true)
+                    }).Execute();
 
-                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                    var facetResult = numberSortedResult.GetFacet("created");
+
+                    Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                    Assert.AreEqual(2, facetResult.Count());
+                    Assert.AreEqual(1, facetResult.First().Value);
+                    Assert.AreEqual("First days", facetResult.First().Label);
+                    Assert.AreEqual(1, facetResult.Last().Value);
+                    Assert.AreEqual("Last days", facetResult.Last().Label);
+                }
+                else
+                {
+                    var numberSortedResult = numberSortedCriteria.Execute();
+
+                    Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Managed_Full_Text()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Managed_Full_Text(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, fieldDefinitionCollection))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
                 indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -222,32 +319,71 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = indexer1.Searcher;
 
-                var result = searcher.Search("darkness");
-
-                Assert.AreEqual(4, result.TotalItemCount);
-                Console.WriteLine("Search 1:");
-                foreach (var r in result)
+                if (withFacets)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    var result = searcher.CreateQuery()
+                        .ManagedQuery("darkness")
+                        .WithFacet("item1")
+                        .Execute();
+
+                    var facetResults = result.GetFacet("item1");
+
+                    Assert.AreEqual(4, result.TotalItemCount);
+                    Assert.AreEqual(4, facetResults.Count());
+
+                    Console.WriteLine("Search 1:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
+
+                    result = searcher.CreateQuery()
+                        .ManagedQuery("total darkness")
+                        .WithFacet("item1")
+                        .Execute();
+                    facetResults = result.GetFacet("item1");
+
+                    Assert.AreEqual(2, result.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                    Console.WriteLine("Search 2:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
                 }
-
-                result = searcher.Search("total darkness");
-                Assert.AreEqual(2, result.TotalItemCount);
-                Console.WriteLine("Search 2:");
-                foreach (var r in result)
+                else
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    var result = searcher.Search("darkness");
+
+                    Assert.AreEqual(4, result.TotalItemCount);
+                    Console.WriteLine("Search 1:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
+
+                    result = searcher.Search("total darkness");
+                    Assert.AreEqual(2, result.TotalItemCount);
+                    Console.WriteLine("Search 2:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
                 }
             }
         }
 
-        [Test]
-        public void Managed_Full_Text_With_Bool()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Managed_Full_Text_With_Bool(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, fieldDefinitionCollection))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
                 indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -260,36 +396,73 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var qry = searcher.CreateQuery().ManagedQuery("darkness").And().Field("item1", "value1");
                 Console.WriteLine(qry);
-                var result = qry.Execute();
 
-                Assert.AreEqual(1, result.TotalItemCount);
-                Console.WriteLine("Search 1:");
-                foreach (var r in result)
+                if (withFacets)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    var result = qry.WithFacet("item1").Execute();
+
+                    var facetResults = result.GetFacet("item1");
+
+                    Assert.AreEqual(1, result.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                    Console.WriteLine("Search 1:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
+
+                    qry = searcher.CreateQuery().ManagedQuery("darkness")
+                        .And(query => query.Field("item1", "value1").Or().Field("item1", "value2"), BooleanOperation.Or);
+                    Console.WriteLine(qry);
+                    result = qry.WithFacet("item1").Execute();
+
+                    facetResults = result.GetFacet("item1");
+
+                    Assert.AreEqual(2, result.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                    Console.WriteLine("Search 2:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
                 }
-
-                qry = searcher.CreateQuery().ManagedQuery("darkness")
-                    .And(query => query.Field("item1", "value1").Or().Field("item1", "value2"), BooleanOperation.Or);
-                Console.WriteLine(qry);
-                result = qry.Execute();
-
-                Assert.AreEqual(2, result.TotalItemCount);
-                Console.WriteLine("Search 2:");
-                foreach (var r in result)
+                else
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    var result = qry.Execute();
+
+                    Assert.AreEqual(1, result.TotalItemCount);
+                    Console.WriteLine("Search 1:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
+
+                    qry = searcher.CreateQuery().ManagedQuery("darkness")
+                        .And(query => query.Field("item1", "value1").Or().Field("item1", "value2"), BooleanOperation.Or);
+                    Console.WriteLine(qry);
+                    result = qry.Execute();
+
+                    Assert.AreEqual(2, result.TotalItemCount);
+                    Console.WriteLine("Search 2:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
                 }
             }
         }
 
-        [Test]
-        public void Not_Managed_Full_Text()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Not_Managed_Full_Text(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer))
+            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, fieldDefinitionCollection))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute chaos." }));
                 indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value1", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -305,28 +478,52 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Not().ManagedQuery("darkness");
 
                 Console.WriteLine(qry);
-                var result = qry.Execute();
 
-                Assert.AreEqual(1, result.TotalItemCount);
-                Assert.AreEqual("1", result.ElementAt(0).Id);
-
-                Console.WriteLine("Search 1:");
-                foreach (var r in result)
+                if (withFacets)
                 {
-                    Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    var result = qry.WithFacet("item1").Execute();
+
+                    var facetResults = result.GetFacet("item1");
+
+                    Assert.AreEqual(1, result.TotalItemCount);
+                    Assert.AreEqual("1", result.ElementAt(0).Id);
+                    Assert.AreEqual(1, facetResults.Count());
+
+                    Console.WriteLine("Search 1:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
+                }
+                else
+                {
+                    var result = qry.Execute();
+
+                    Assert.AreEqual(1, result.TotalItemCount);
+                    Assert.AreEqual("1", result.ElementAt(0).Id);
+
+                    Console.WriteLine("Search 1:");
+                    foreach (var r in result)
+                    {
+                        Console.WriteLine($"Id = {r.Id}, Score = {r.Score}");
+                    }
                 }
             }
         }
 
-        [Test]
-        public void Managed_Range_Int()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Managed_Range_Int(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
+                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
 
 
@@ -360,21 +557,44 @@ namespace Examine.Test.Examine.Lucene.Search
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<int>(new[] { "parentID" }, 122, 124);
 
-                var numberSortedResult = numberSortedCriteria.Execute();
+                if (withFacets)
+                {
+                    var numberSortedResult = numberSortedCriteria
+                        .WithFacet("parentID", new Int64Range[]
+                        {
+                            new Int64Range("120-122", 120, true, 122, true),
+                            new Int64Range("123-125", 123, true, 125, true)
+                        }).Execute();
 
-                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                    var facetResults = numberSortedResult.GetFacet("parentID");
+
+                    Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                    Assert.AreEqual(0, facetResults.First(result => result.Label == "120-122").Value);
+                    Assert.AreEqual(2, facetResults.First(result => result.Label == "123-125").Value);
+                }
+                else
+                {
+                    var numberSortedResult = numberSortedCriteria.Execute();
+
+                    Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Legacy_ParentId()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Legacy_ParentId(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
+                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
 
 
@@ -409,20 +629,37 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Field("parentID", 123)
                     .OrderBy(new SortableField("sortOrder", SortType.Int));
 
-                var numberSortedResult = numberSortedCriteria.Execute();
+                if (withFacets)
+                {
+                    var numberSortedResult = numberSortedCriteria.WithFacet("parentID").Execute();
 
-                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                    var facetResults = numberSortedResult.GetFacet("parentID");
+
+                    Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(2, facetResults.Facet("123").Value);
+                }
+                else
+                {
+                    var numberSortedResult = numberSortedCriteria.Execute();
+
+                    Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                }
             }
 
 
         }
 
-        [Test]
-        public void Grouped_Or_Examiness()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Grouped_Or_Examiness(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[]
                 {
@@ -461,14 +698,32 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(filter);
 
-                var results = filter.Execute();
-
-                foreach (var r in results)
+                if (withFacets)
                 {
-                    Console.WriteLine($"Id = {r.Id}");
-                }
+                    var results = filter.WithFacet("nodeTypeAlias").Execute();
 
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeTypeAlias");
+
+                    foreach (var r in results)
+                    {
+                        Console.WriteLine($"Id = {r.Id}");
+                    }
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = filter.Execute();
+
+                    foreach (var r in results)
+                    {
+                        Console.WriteLine($"Id = {r.Id}");
+                    }
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
 
             }
         }
@@ -486,35 +741,35 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedOr(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3 blahID:1 blahID:2 blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1" });
+                criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1" });
+                criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1)", criteria.Query.ToString());
 
@@ -537,7 +792,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 //We used to assert this, but it must be allowed to do an add on the same field multiple times
                 //Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
@@ -546,7 +801,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 //The field/value array lengths are equal so we will match the key/value pairs
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
@@ -554,7 +809,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 //There are more than one field and there are more values than fields, in this case we align the key/value pairs
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
@@ -562,14 +817,14 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1" });
+                criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1" });
+                criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
             }
@@ -591,47 +846,50 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" });
+                criteria.GroupedNot(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3 -blahID:1 -blahID:2 -blahID:3", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1" });
+                criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -parentID:1", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1" });
+                criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1" }).WithFacet("SomeFacet");
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1", criteria.Query.ToString());
             }
         }
 
-        [Test]
-        public void Grouped_Not_Single_Field_Single_Value()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Grouped_Not_Single_Field_Single_Value(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
 
                 indexer.IndexItems(new[] {
@@ -646,18 +904,34 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = (LuceneSearchQuery)searcher.CreateQuery("content");
                 query.GroupedNot(new[] { "umbracoNaviHide" }, 1.ToString());
                 Console.WriteLine(query.Query);
-                var results = query.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results = query.All().WithFacet("nodeName").Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    var results = query.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Grouped_Not_Multi_Field_Single_Value()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Grouped_Not_Multi_Field_Single_Value(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
-                luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
 
                 indexer.IndexItems(new[] {
@@ -675,14 +949,32 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var query = searcher.CreateQuery("content").GroupedNot(new[] { "umbracoNaviHide", "show" }, 1.ToString());
                 Console.WriteLine(query);
-                var results = query.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results = query.WithFacet("nodeName").Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults.Facet("my name 2").Value);
+                }
+                else
+                {
+                    var results = query.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Grouped_Or_With_Not()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Grouped_Or_With_Not(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("headerText", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
@@ -691,7 +983,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 // It's because the searching is NOT using a managed search
                 //new[] { new FieldDefinition("umbracoNaviHide", FieldDefinitionTypes.Integer) }, 
 
-                luceneDir, analyzer))
+                luceneDir, analyzer, fieldDefinitionCollection))
             {
 
 
@@ -707,17 +999,34 @@ namespace Examine.Test.Examine.Lucene.Search
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.GroupedOr(new[] { "nodeName", "bodyText", "headerText" }, "ipsum").Not().Field("umbracoNaviHide", "1");
-                var results = filter.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results = filter.WithFacet("headerText").Execute();
+
+                    var facetResults = results.GetFacet("headerText");
+
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Facet("header 2").Value);
+                }
+                else
+                {
+                    var results = filter.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void And_Grouped_Not_Single_Value()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void And_Grouped_Not_Single_Value(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -734,17 +1043,34 @@ namespace Examine.Test.Examine.Lucene.Search
                     .And().GroupedNot(new[] { "umbracoNaviHide" }, new[] { 1.ToString() });
 
                 Console.WriteLine(query);
-                var results = query.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results = query.WithFacet("nodeName").Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    var results = query.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void And_Grouped_Not_Multi_Value()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void And_Grouped_Not_Multi_Value(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -761,17 +1087,33 @@ namespace Examine.Test.Examine.Lucene.Search
                     .And().GroupedNot(new[] { "umbracoNaviHide" }, new[] { 1.ToString(), 2.ToString() });
 
                 Console.WriteLine(query);
-                var results = query.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results = query.WithFacet("nodeName").Execute();
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    var results = query.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void And_Not_Single_Field()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void And_Not_Single_Field(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -788,17 +1130,35 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Not().Field("umbracoNaviHide", 1.ToString());
 
                 Console.WriteLine(query);
-                var results = query.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results = query.WithFacet("nodeName").Execute();
+
+                    var facetResults = results.GetFacets();
+
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(1, facetResults.First().Count());
+                }
+                else
+                {
+                    var results = query.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void AndNot_Nested()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void AndNot_Nested(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -818,17 +1178,33 @@ namespace Examine.Test.Examine.Lucene.Search
                 // Which I don't think is right with the -(+ syntax but it still seems to work.
 
                 Console.WriteLine(query);
-                var results = query.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results = query.WithFacet("nodeName").Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    var results = query.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void And_Not_Added_Later()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void And_Not_Added_Later(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -848,17 +1224,33 @@ namespace Examine.Test.Examine.Lucene.Search
                 // Results in { Category: content, LuceneQuery: +nodeName:name -umbracoNaviHide:1 -umbracoNaviHide:2 }
 
                 Console.WriteLine(query);
-                var results = query.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results = query.WithFacet("nodeName").Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    var results = query.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Not_Range()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Not_Range(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.FacetInteger))
+                : new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.Integer))))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -874,22 +1266,42 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Not().Field("start", 200);
 
                 Console.WriteLine(query);
-                var results = query.Execute();
-                Assert.AreEqual(1, results.TotalItemCount);
-                Assert.AreEqual(results.First().Id, 1.ToString());
+
+                if (withFacets)
+                {
+
+                    var results = query
+                        .WithFacet("start", new Int64Range("Label", 100, false, 200, false))
+                        .Execute();
+
+                    var facetResults = results.GetFacet("start");
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(results.First().Id, 1.ToString());
+                    Assert.AreEqual(0, facetResults.Facet("Label").Value);
+                }
+                else
+                {
+                    var results = query.Execute();
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(results.First().Id, 1.ToString());
+                }
             }
         }
 
-        [Test]
-        public void Match_By_Path()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Match_By_Path(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"))))
+                fieldDefinitionCollection))
             {
 
 
@@ -917,46 +1329,107 @@ namespace Examine.Test.Examine.Lucene.Search
                 //paths contain punctuation, we'll escape it and ensure an exact match
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("__Path", "-1,123,456,789");
-                var results1 = filter.Execute();
-                Assert.AreEqual(1, results1.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results1 = filter.WithFacet("nodeName").Execute();
+                    var facetResults1 = results1.GetFacet("nodeName");
+                    Assert.AreEqual(1, results1.TotalItemCount);
+                    Assert.AreEqual(1, facetResults1.Count());
+                }
+                else
+                {
+                    var results1 = filter.Execute();
+                    Assert.AreEqual(1, results1.TotalItemCount);
+                }
 
                 //now escape it
                 var exactcriteria = searcher.CreateQuery("content");
                 var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
-                var results2 = exactfilter.Execute();
-                Assert.AreEqual(1, results2.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results2 = exactfilter.WithFacet("nodeName").Execute();
+                    var facetResults2 = results2.GetFacet("nodeName");
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                    Assert.AreEqual(1, facetResults2.Count());
+                }
+                else
+                {
+                    var results2 = exactfilter.Execute();
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                }
 
                 //now try with native
                 var nativeCriteria = searcher.CreateQuery();
                 var nativeFilter = nativeCriteria.NativeQuery("__Path:\\-1,123,456,789");
                 Console.WriteLine(nativeFilter);
-                var results5 = nativeFilter.Execute();
-                Assert.AreEqual(1, results5.TotalItemCount);
+
+                if (withFacets)
+                {
+
+                    var results5 = nativeFilter.WithFacet("nodeName").Execute();
+                    var facetResults5 = results5.GetFacet("nodeName");
+                    Assert.AreEqual(1, results5.TotalItemCount);
+                    Assert.AreEqual(1, facetResults5.Count());
+                }
+                else
+                {
+                    var results5 = nativeFilter.Execute();
+                    Assert.AreEqual(1, results5.TotalItemCount);
+                }
 
                 //now try wildcards
                 var wildcardcriteria = searcher.CreateQuery("content");
                 var wildcardfilter = wildcardcriteria.Field("__Path", "-1,123,456,".MultipleCharacterWildcard());
-                var results3 = wildcardfilter.Execute();
-                Assert.AreEqual(2, results3.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results3 = wildcardfilter.WithFacet("nodeName").Execute();
+                    var facetResults3 = results3.GetFacet("nodeName");
+                    Assert.AreEqual(2, results3.TotalItemCount);
+                    Assert.AreEqual(2, facetResults3.Count());
+                }
+                else
+                {
+                    var results3 = wildcardfilter.Execute();
+                    Assert.AreEqual(2, results3.TotalItemCount);
+                }
+
                 //not found
                 wildcardcriteria = searcher.CreateQuery("content");
                 wildcardfilter = wildcardcriteria.Field("__Path", "-1,123,457,".MultipleCharacterWildcard());
-                results3 = wildcardfilter.Execute();
-                Assert.AreEqual(0, results3.TotalItemCount);
+
+                if (withFacets)
+                {
+                    var results3 = wildcardfilter.WithFacet("nodeName").Execute();
+                    var facetResults3 = results3.GetFacet("nodeName");
+                    Assert.AreEqual(0, results3.TotalItemCount);
+                    Assert.AreEqual(0, facetResults3?.Count() ?? 0);
+                }
+                else
+                {
+                    var results3 = wildcardfilter.Execute();
+                    Assert.AreEqual(0, results3.TotalItemCount);
+                }
             }
 
 
         }
 
-        [Test]
-        public void Find_By_ParentId()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Find_By_ParentId(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -972,21 +1445,37 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("parentID", 1139);
 
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    var results = filter.WithFacet("nodeName").Execute();
 
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = filter.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Find_By_ParentId_Native_Query()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Find_By_ParentId_Native_Query(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
+                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1013,21 +1502,38 @@ namespace Examine.Test.Examine.Lucene.Search
                 //We can use a Lucene query directly instead:
                 //((LuceneSearchQuery)criteria).LuceneQuery(NumericRangeQuery)
 
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    var results = filter.WithFacet("parentID").Execute();
 
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("parentID");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(2, facetResults.Facet("1139").Value);
+                }
+                else
+                {
+                    var results = filter.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Find_By_NodeTypeAlias()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Find_By_NodeTypeAlias(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"))))
+                fieldDefinitionCollection))
             {
 
 
@@ -1062,19 +1568,34 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Escape());
 
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    var results = filter.WithFacet("nodeName").Execute();
 
+                    var facetResults = results.GetFacet("nodeName");
 
-                Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = filter.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Search_With_Stop_Words()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Search_With_Stop_Words(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
 
             {
@@ -1099,18 +1620,34 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(filter);
 
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    var results = filter.WithFacet("nodeName").Execute();
 
-                Assert.AreEqual(0, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(0, results.TotalItemCount);
+                    Assert.AreEqual(0, facetResults?.Count() ?? 0);
+                }
+                else
+                {
+                    var results = filter.Execute();
+
+                    Assert.AreEqual(0, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Search_Native_Query()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Search_Native_Query(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
 
             {
@@ -1142,22 +1679,39 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = indexer.Searcher;
 
-                var criteria = searcher.CreateQuery("content");
+                var criteria = searcher.CreateQuery("content").NativeQuery("nodeTypeAlias:CWS_Home");
 
-                var results = criteria.NativeQuery("nodeTypeAlias:CWS_Home").Execute();
+                if (withFacets)
+                {
+                    var results = criteria.WithFacet("nodeTypeAlias").Execute();
 
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeTypeAlias");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(2, facetResults.Facet("CWS_Home").Value);
+                }
+                else
+                {
+                    var results = criteria.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
 
         }
 
 
-        [Test]
-        public void Find_Only_Image_Media()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Find_Only_Image_Media(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
 
             {
@@ -1177,18 +1731,35 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("media");
                 var filter = criteria.Field("nodeTypeAlias", "image");
 
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    var results = filter.WithFacet("nodeTypeAlias").Execute();
 
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeTypeAlias");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(2, facetResults.Facet("image").Value);
+                }
+                else
+                {
+                    var results = filter.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Find_Both_Media_And_Content()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Find_Both_Media_And_Content(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "media",
@@ -1209,22 +1780,38 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Or()
                     .Field(ExamineFieldNames.CategoryFieldName, "content");
 
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    var results = filter.WithFacet("nodeName").Execute();
 
-                Assert.AreEqual(3, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(3, results.TotalItemCount);
+                    Assert.AreEqual(3, facetResults.Count());
+                }
+                else
+                {
+                    var results = filter.Execute();
+
+                    Assert.AreEqual(3, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Sort_Result_By_Number_Field()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Sort_Result_By_Number_Field(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.FacetInteger), new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
+                : new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.Integer), new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
                 //Ensure it's set to a number, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.Integer), new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1242,29 +1829,59 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("sortOrder", SortType.Int));
 
-                var results1 = sc1.Execute().ToArray();
-
-                Assert.AreEqual(3, results1.Length);
-
-                var currSort = 0;
-                for (var i = 0; i < results1.Length; i++)
+                if (withFacets)
                 {
-                    Assert.GreaterOrEqual(int.Parse(results1[i].Values["sortOrder"]), currSort);
-                    currSort = int.Parse(results1[i].Values["sortOrder"]);
+                    var results1 = sc1
+                        .WithFacet("sortOrder")
+                        .And()
+                        .WithFacet("parentID")
+                        .Execute();
+
+                    var facetResults = results1.GetFacet("sortOrder");
+                    var facetReuslts2 = results1.GetFacet("parentID");
+
+                    Assert.AreEqual(3, results1.Count());
+                    Assert.AreEqual(3, facetResults.Count());
+                    Assert.AreEqual(1, facetReuslts2.Count());
+
+                    var results2 = results1.ToArray();
+                    double currSort = 0;
+                    for (var i = 0; i < results2.Length; i++)
+                    {
+                        Assert.GreaterOrEqual(double.Parse(results2[i].Values["sortOrder"]), currSort);
+                        currSort = double.Parse(results2[i].Values["sortOrder"]);
+                    }
+                }
+                else
+                {
+                    var results1 = sc1.Execute().ToArray();
+
+                    Assert.AreEqual(3, results1.Length);
+
+                    var currSort = 0;
+                    for (var i = 0; i < results1.Length; i++)
+                    {
+                        Assert.GreaterOrEqual(int.Parse(results1[i].Values["sortOrder"]), currSort);
+                        currSort = int.Parse(results1[i].Values["sortOrder"]);
+                    }
                 }
             }
         }
 
-        [Test]
-        public void Sort_Result_By_Date_Field()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Sort_Result_By_Date_Field(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.FacetDateTime), new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
+                : new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.DateTime), new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
                 //Ensure it's set to a date, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.DateTime), new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
 
 
@@ -1287,29 +1904,59 @@ namespace Examine.Test.Examine.Lucene.Search
                 //note: dates internally are stored as Long, see DateTimeType
                 var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("updateDate", SortType.Long));
 
-                var results1 = sc1.Execute().ToArray();
-
-                Assert.AreEqual(3, results1.Length);
-
-                double currSort = 0;
-                for (var i = 0; i < results1.Length; i++)
+                if (withFacets)
                 {
-                    Assert.GreaterOrEqual(double.Parse(results1[i].Values["updateDate"]), currSort);
-                    currSort = double.Parse(results1[i].Values["updateDate"]);
+                    var results1 = sc1
+                        .WithFacet("updateDate")
+                        .And()
+                        .WithFacet("parentID")
+                        .Execute();
+
+                    var facetResults = results1.GetFacet("updateDate");
+                    var facetReuslts2 = results1.GetFacet("parentID");
+
+                    Assert.AreEqual(3, results1.Count());
+                    Assert.AreEqual(3, facetResults.Count());
+                    Assert.AreEqual(1, facetReuslts2.Count());
+
+                    var results2 = results1.ToArray();
+                    double currSort = 0;
+                    for (var i = 0; i < results2.Length; i++)
+                    {
+                        Assert.GreaterOrEqual(double.Parse(results2[i].Values["updateDate"]), currSort);
+                        currSort = double.Parse(results2[i].Values["updateDate"]);
+                    }
+                }
+                else
+                {
+                    var results1 = sc1.Execute().ToArray();
+
+                    Assert.AreEqual(3, results1.Length);
+
+                    double currSort = 0;
+                    for (var i = 0; i < results1.Length; i++)
+                    {
+                        Assert.GreaterOrEqual(double.Parse(results1[i].Values["updateDate"]), currSort);
+                        currSort = double.Parse(results1[i].Values["updateDate"]);
+                    }
                 }
             }
         }
 
-        [Test]
-        public void Sort_Result_By_Single_Field()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Sort_Result_By_Single_Field(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullTextSortable))
+                : new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1332,32 +1979,52 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc2 = sc.Field("writerName", "administrator")
                     .OrderByDescending(new SortableField("nodeName", SortType.String));
 
-                var results1 = sc1.Execute();
-                var results2 = sc2.Execute();
+                if (withFacets)
+                {
+                    var results1 = sc1.WithFacet("nodeName").Execute();
+                    var results2 = sc2.WithFacet("nodeName").Execute();
 
-                Assert.AreNotEqual(results1.First().Id, results2.First().Id);
+                    var facetResults1 = results1.GetFacet("nodeName");
+                    var facetResults2 = results2.GetFacet("nodeName");
+
+                    Assert.AreNotEqual(results1.First().Id, results2.First().Id);
+
+                    Assert.AreEqual(3, facetResults1.Count());
+                    Assert.AreEqual(3, facetResults2.Count());
+                }
+                else
+                {
+                    var results1 = sc1.Execute();
+                    var results2 = sc2.Execute();
+
+                    Assert.AreNotEqual(results1.First().Id, results2.First().Id);
+                }
             }
 
 
         }
 
-        [TestCase(FieldDefinitionTypes.Double, SortType.Double)]
-        //[TestCase(FieldDefinitionTypes.Double, SortType.String)] // This differs from Lucene 3.x, if string is specified it will still sort like as string
-        [TestCase(FieldDefinitionTypes.FullText, SortType.Double)]
-        [TestCase(FieldDefinitionTypes.FullText, SortType.String)]
-        [TestCase(FieldDefinitionTypes.FullTextSortable, SortType.Double)]
-        [TestCase(FieldDefinitionTypes.FullTextSortable, SortType.String)]
-        public void Sort_Result_By_Double_Fields(string fieldType, SortType sortType)
+        [TestCase(FieldDefinitionTypes.FacetDouble, SortType.Double, true)]
+        //[TestCase(FieldDefinitionTypes.FacetDouble, SortType.String, true)] // This differs from Lucene 3.x, if string is specified it will still sort like as string
+        [TestCase(FieldDefinitionTypes.FacetFullText, SortType.Double, true)]
+        [TestCase(FieldDefinitionTypes.FacetFullText, SortType.String, true)]
+        [TestCase(FieldDefinitionTypes.FacetFullTextSortable, SortType.Double, true)]
+        [TestCase(FieldDefinitionTypes.FacetFullTextSortable, SortType.String, true)]
+        [TestCase(FieldDefinitionTypes.Double, SortType.Double, false)]
+        //[TestCase(FieldDefinitionTypes.Double, SortType.String, false)] // This differs from Lucene 3.x, if string is specified it will still sort like as string
+        [TestCase(FieldDefinitionTypes.FullText, SortType.Double, false)]
+        [TestCase(FieldDefinitionTypes.FullText, SortType.String, false)]
+        [TestCase(FieldDefinitionTypes.FullTextSortable, SortType.Double, false)]
+        [TestCase(FieldDefinitionTypes.FullTextSortable, SortType.String, false)]
+        public void Sort_Result_By_Double_Fields(string fieldType, SortType sortType, bool withFacets)
         {
             // See: https://github.com/Shazwazza/Examine/issues/242
-
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(
-                    new FieldDefinition("field1", fieldType))))
+                new FieldDefinitionCollection(new FieldDefinition("field1", fieldType))))
             {
                 indexer.IndexItems(new[]
                 {
@@ -1379,37 +2046,75 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc2 = sc.All()
                     .OrderByDescending(new SortableField("field1", sortType));
 
-                var results1 = sc1.Execute().ToList();
-                var results2 = sc2.Execute().ToList();
+                if (withFacets)
+                {
+                    var results1 = sc1.WithFacet("field1").Execute();
+                    var results2 = sc2.WithFacet("field1").Execute();
 
-                Assert.AreEqual(2.6, double.Parse(results1[0].Values["field1"]));
-                Assert.AreEqual(3.8, double.Parse(results1[1].Values["field1"]));
-                Assert.AreEqual(3.9, double.Parse(results1[2].Values["field1"]));
-                Assert.AreEqual(4.5, double.Parse(results1[3].Values["field1"]));
-                Assert.AreEqual(4.9, double.Parse(results1[4].Values["field1"]));
-                Assert.AreEqual(5.0, double.Parse(results1[5].Values["field1"]));
+                    var facetResults1 = results1.GetFacet("field1");
+                    var facetResults2 = results2.GetFacet("field1");
+
+                    var results3 = results1.ToList();
+                    var results4 = results2.ToList();
+
+                    Assert.AreEqual(2.6, double.Parse(results3[0].Values["field1"]));
+                    Assert.AreEqual(3.8, double.Parse(results3[1].Values["field1"]));
+                    Assert.AreEqual(3.9, double.Parse(results3[2].Values["field1"]));
+                    Assert.AreEqual(4.5, double.Parse(results3[3].Values["field1"]));
+                    Assert.AreEqual(4.9, double.Parse(results3[4].Values["field1"]));
+                    Assert.AreEqual(5.0, double.Parse(results3[5].Values["field1"]));
 
 
-                Assert.AreEqual(2.6, double.Parse(results2[5].Values["field1"]));
-                Assert.AreEqual(3.8, double.Parse(results2[4].Values["field1"]));
-                Assert.AreEqual(3.9, double.Parse(results2[3].Values["field1"]));
-                Assert.AreEqual(4.5, double.Parse(results2[2].Values["field1"]));
-                Assert.AreEqual(4.9, double.Parse(results2[1].Values["field1"]));
-                Assert.AreEqual(5.0, double.Parse(results2[0].Values["field1"]));
+                    Assert.AreEqual(2.6, double.Parse(results4[5].Values["field1"]));
+                    Assert.AreEqual(3.8, double.Parse(results4[4].Values["field1"]));
+                    Assert.AreEqual(3.9, double.Parse(results4[3].Values["field1"]));
+                    Assert.AreEqual(4.5, double.Parse(results4[2].Values["field1"]));
+                    Assert.AreEqual(4.9, double.Parse(results4[1].Values["field1"]));
+                    Assert.AreEqual(5.0, double.Parse(results4[0].Values["field1"]));
+
+                    Assert.AreEqual(6, facetResults1.Count());
+                    Assert.AreEqual(6, facetResults2.Count());
+                }
+                else
+                {
+                    var results1 = sc1.Execute().ToList();
+                    var results2 = sc2.Execute().ToList();
+
+                    Assert.AreEqual(2.6, double.Parse(results1[0].Values["field1"]));
+                    Assert.AreEqual(3.8, double.Parse(results1[1].Values["field1"]));
+                    Assert.AreEqual(3.9, double.Parse(results1[2].Values["field1"]));
+                    Assert.AreEqual(4.5, double.Parse(results1[3].Values["field1"]));
+                    Assert.AreEqual(4.9, double.Parse(results1[4].Values["field1"]));
+                    Assert.AreEqual(5.0, double.Parse(results1[5].Values["field1"]));
+
+
+                    Assert.AreEqual(2.6, double.Parse(results2[5].Values["field1"]));
+                    Assert.AreEqual(3.8, double.Parse(results2[4].Values["field1"]));
+                    Assert.AreEqual(3.9, double.Parse(results2[3].Values["field1"]));
+                    Assert.AreEqual(4.5, double.Parse(results2[2].Values["field1"]));
+                    Assert.AreEqual(4.9, double.Parse(results2[1].Values["field1"]));
+                    Assert.AreEqual(5.0, double.Parse(results2[0].Values["field1"]));
+                }
             }
         }
 
-        [Test]
-        public void Sort_Result_By_Multiple_Fields()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Sort_Result_By_Multiple_Fields(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(
+                    new FieldDefinition("field1", FieldDefinitionTypes.FacetDouble),
+                    new FieldDefinition("field2", FieldDefinitionTypes.FacetInteger))
+                : new FieldDefinitionCollection(
+                    new FieldDefinition("field1", FieldDefinitionTypes.Double),
+                    new FieldDefinition("field2", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(
-                    new FieldDefinition("field1", FieldDefinitionTypes.Double),
-                    new FieldDefinition("field2", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[]
                 {
@@ -1428,23 +2133,48 @@ namespace Examine.Test.Examine.Lucene.Search
                     .OrderByDescending(new SortableField("field2", SortType.Int))
                     .OrderBy(new SortableField("field1", SortType.Double));
 
-                var results1 = sc1.Execute().ToList();
+                if (withFacets)
+                {
+                    var results1 = sc1.WithFacet("field1").And().WithFacet("field2").Execute();
 
-                Assert.AreEqual("3", results1[0].Id);
-                Assert.AreEqual("2", results1[1].Id);
-                Assert.AreEqual("1", results1[2].Id);
-                Assert.AreEqual("6", results1[3].Id);
-                Assert.AreEqual("5", results1[4].Id);
-                Assert.AreEqual("4", results1[5].Id);
+                    var facetResults = results1.GetFacet("field1");
+                    var facetResults2 = results1.GetFacet("field2");
+
+                    var results2 = results1.ToList();
+                    Assert.AreEqual("3", results2[0].Id);
+                    Assert.AreEqual("2", results2[1].Id);
+                    Assert.AreEqual("1", results2[2].Id);
+                    Assert.AreEqual("6", results2[3].Id);
+                    Assert.AreEqual("5", results2[4].Id);
+                    Assert.AreEqual("4", results2[5].Id);
+
+                    Assert.AreEqual(6, facetResults.Count());
+                    Assert.AreEqual(2, facetResults2.Count());
+                }
+                else
+                {
+                    var results1 = sc1.Execute().ToList();
+
+                    Assert.AreEqual("3", results1[0].Id);
+                    Assert.AreEqual("2", results1[1].Id);
+                    Assert.AreEqual("1", results1[2].Id);
+                    Assert.AreEqual("6", results1[3].Id);
+                    Assert.AreEqual("5", results1[4].Id);
+                    Assert.AreEqual("4", results1[5].Id);
+                }
             }
         }
 
-        [Test]
-        public void Standard_Results_Sorted_By_Score()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Standard_Results_Sorted_By_Score(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("bodyText", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1462,29 +2192,56 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content", BooleanOperation.Or);
                 var sc1 = sc.Field("nodeName", "umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco");
 
-                var results = sc1.Execute();
-
-                //Assert
-                for (int i = 0; i < results.TotalItemCount - 1; i++)
+                if (withFacets)
                 {
-                    var curr = results.ElementAt(i);
-                    var next = results.ElementAtOrDefault(i + 1);
+                    var results = sc1.WithFacet("bodyText").And().Execute();
 
-                    if (next == null)
-                        break;
+                    var facetResults = results.GetFacet("bodyText");
 
-                    Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
+                    Assert.AreEqual(2, facetResults.Count());
+
+                    //Assert
+                    for (int i = 0; i < results.TotalItemCount - 1; i++)
+                    {
+                        var curr = results.ElementAt(i);
+                        var next = results.ElementAtOrDefault(i + 1);
+
+                        if (next == null)
+                            break;
+
+                        Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
+                    }
+                }
+                else
+                {
+                    var results = sc1.Execute();
+
+                    //Assert
+                    for (int i = 0; i < results.TotalItemCount - 1; i++)
+                    {
+                        var curr = results.ElementAt(i);
+                        var next = results.ElementAtOrDefault(i + 1);
+
+                        if (next == null)
+                            break;
+
+                        Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
+                    }
                 }
             }
 
         }
 
-        [Test]
-        public void Skip_Results_Returns_Different_Results()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Skip_Results_Returns_Different_Results(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1502,20 +2259,38 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Arrange
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
 
-                //Act
-                var results = sc.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results = sc.WithFacet("nodeName").Execute();
 
-                //Assert
-                Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
+                    var facetResults = results.GetFacet("nodeName");
+
+                    //Assert
+                    Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    //Act
+                    var results = sc.Execute();
+
+                    //Assert
+                    Assert.AreNotEqual(results.First(), results.Skip(2).First(), "Third result should be different");
+                }
             }
         }
 
-        [Test]
-        public void Escaping_Includes_All_Words()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Escaping_Includes_All_Words(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1535,23 +2310,42 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(sc.ToString());
 
-                //Act
-                var results = sc.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results = sc.WithFacet("nodeName").Execute();
 
-                //Assert
-                //NOTE: The result is 2 because the double space is removed with the analyzer
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeName");
+
+                    //Assert
+                    //NOTE: The result is 2 because the double space is removed with the analyzer
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    //Act
+                    var results = sc.Execute();
+
+                    //Assert
+                    //NOTE: The result is 2 because the double space is removed with the analyzer
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
 
 
         }
 
-        [Test]
-        public void Grouped_And_Examiness()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Grouped_And_Examiness(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1575,20 +2369,38 @@ namespace Examine.Test.Examine.Lucene.Search
                     new[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() });
 
 
-                //Act
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results = filter.WithFacet("nodeName").Execute();
 
-                //Assert
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeName");
+
+                    //Assert
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    //Act
+                    var results = filter.Execute();
+
+                    //Assert
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Examiness_Proximity()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Examiness_Proximity(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1609,33 +2421,56 @@ namespace Examine.Test.Examine.Lucene.Search
                 //get all nodes that contain the words warren and creative within 5 words of each other
                 var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5));
 
-                //Act
-                var results = filter.Execute();
-
-                foreach (var r in results)
+                if (withFacets)
                 {
-                    Console.WriteLine($"Id = {r.Id}");
-                }
+                    //Act
+                    var results = filter.WithFacet("nodeName").And().Execute();
 
-                //Assert
-                Assert.AreEqual(3, results.TotalItemCount);
+                    var facetResults = results.GetFacet("nodeName");
+
+                    foreach (var r in results)
+                    {
+                        Console.WriteLine($"Id = {r.Id}");
+                    }
+
+                    //Assert
+                    Assert.AreEqual(3, results.TotalItemCount);
+                    Assert.AreEqual(3, facetResults.Count());
+                }
+                else
+                {
+                    //Act
+                    var results = filter.Execute();
+
+                    foreach (var r in results)
+                    {
+                        Console.WriteLine($"Id = {r.Id}");
+                    }
+
+                    //Assert
+                    Assert.AreEqual(3, results.TotalItemCount);
+                }
             }
         }
 
         /// <summary>
         /// test range query with a Float structure
         /// </summary>
-        [Test]
-        public void Float_Range_SimpleIndexSet()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Float_Range_SimpleIndexSet(bool withFacets)
         {
 
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.FacetFloat))
+                : new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.Float));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.Float))))
+                fieldDefinitionCollection))
             {
 
 
@@ -1659,13 +2494,42 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<float>(new[] { "SomeFloat" }, 101f, 200f, true, true);
 
-                //Act
-                var results1 = filter1.Execute();
-                var results2 = filter2.Execute();
+                if (withFacets)
+                {
 
-                //Assert
-                Assert.AreEqual(3, results1.TotalItemCount);
-                Assert.AreEqual(1, results2.TotalItemCount);
+                    //Act
+                    var results1 = filter1.WithFacet("SomeFloat", new DoubleRange[]
+                        {
+                            new DoubleRange("1", 0, true, 12, true),
+                            new DoubleRange("2", 13, true, 250, true)
+                        }).IsFloat(true).Execute();
+                    var results2 = filter2.WithFacet("SomeFloat", new DoubleRange[]
+                        {
+                            new DoubleRange("1", 0, true, 12, true),
+                            new DoubleRange("2", 13, true, 250, true)
+                        }).IsFloat(true).Execute();
+
+                    var facetResults1 = results1.GetFacet("SomeFloat");
+                    var facetResults2 = results2.GetFacet("SomeFloat");
+
+                    //Assert
+                    Assert.AreEqual(3, results1.TotalItemCount);
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                    Assert.AreEqual(2, facetResults1.Facet("1").Value);
+                    Assert.AreEqual(1, facetResults1.Facet("2").Value);
+                    Assert.AreEqual(0, facetResults2.Facet("1").Value);
+                    Assert.AreEqual(1, facetResults2.Facet("2").Value);
+                }
+                else
+                {
+                    //Act
+                    var results1 = filter1.Execute();
+                    var results2 = filter2.Execute();
+
+                    //Assert
+                    Assert.AreEqual(3, results1.TotalItemCount);
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                }
             }
 
 
@@ -1674,16 +2538,20 @@ namespace Examine.Test.Examine.Lucene.Search
         /// <summary>
         /// test range query with a Number structure
         /// </summary>
-        [Test]
-        public void Number_Range_SimpleIndexSet()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Number_Range_SimpleIndexSet(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.FacetInteger))
+                : new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.Integer));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.Integer))))
+                fieldDefinitionCollection))
             {
 
 
@@ -1707,29 +2575,51 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<int>(new[] { "SomeNumber" }, 101, 200, true, true);
 
-                //Act
-                var results1 = filter1.Execute();
-                var results2 = filter2.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results1 = filter1.WithFacet("SomeNumber").MaxCount(1).Execute();
+                    var results2 = filter2.WithFacet("SomeNumber").MaxCount(1).Execute();
 
-                //Assert
-                Assert.AreEqual(3, results1.TotalItemCount);
-                Assert.AreEqual(1, results2.TotalItemCount);
+                    var facetResults1 = results1.GetFacet("SomeNumber");
+                    var facetResults2 = results2.GetFacet("SomeNumber");
+
+                    //Assert
+                    Assert.AreEqual(3, results1.TotalItemCount);
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                    Assert.AreEqual(1, facetResults1.Count());
+                    Assert.AreEqual(1, facetResults2.Count());
+                }
+                else
+                {
+                    //Act
+                    var results1 = filter1.Execute();
+                    var results2 = filter2.Execute();
+
+                    //Assert
+                    Assert.AreEqual(3, results1.TotalItemCount);
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                }
             }
         }
 
         /// <summary>
         /// test range query with a Number structure
         /// </summary>
-        [Test]
-        public void Double_Range_SimpleIndexSet()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Double_Range_SimpleIndexSet(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.FacetDouble))
+                : new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.Double));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.Double))))
+                fieldDefinitionCollection))
             {
 
 
@@ -1753,29 +2643,61 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery("content");
                 var filter2 = criteria2.RangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true);
 
-                //Act
-                var results1 = filter1.Execute();
-                var results2 = filter2.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results1 = filter1.WithFacet("SomeDouble", new DoubleRange[]
+                        {
+                            new DoubleRange("1", 0, true, 100, true),
+                            new DoubleRange("2", 101, true, 200, true)
+                        }).Execute();
+                    var results2 = filter2.WithFacet("SomeDouble", new DoubleRange[]
+                        {
+                            new DoubleRange("1", 0, true, 100, true),
+                            new DoubleRange("2", 101, true, 200, true)
+                        }).Execute();
 
-                //Assert
-                Assert.AreEqual(3, results1.TotalItemCount);
-                Assert.AreEqual(1, results2.TotalItemCount);
+                    var facetResults1 = results1.GetFacet("SomeDouble");
+                    var facetResults2 = results2.GetFacet("SomeDouble");
+
+                    //Assert
+                    Assert.AreEqual(3, results1.TotalItemCount);
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                    Assert.AreEqual(3, facetResults1.Facet("1").Value);
+                    Assert.AreEqual(0, facetResults1.Facet("2").Value);
+                    Assert.AreEqual(0, facetResults2.Facet("1").Value);
+                    Assert.AreEqual(1, facetResults2.Facet("2").Value);
+                }
+                else
+                {
+                    //Act
+                    var results1 = filter1.Execute();
+                    var results2 = filter2.Execute();
+
+                    //Assert
+                    Assert.AreEqual(3, results1.TotalItemCount);
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                }
             }
         }
 
         /// <summary>
         /// test range query with a Double structure
         /// </summary>
-        [Test]
-        public void Long_Range_SimpleIndexSet()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Long_Range_SimpleIndexSet(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("SomeLong", FieldDefinitionTypes.FacetLong))
+                : new FieldDefinitionCollection(new FieldDefinition("SomeLong", FieldDefinitionTypes.Long));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
                 //Ensure it's set to a float
-                new FieldDefinitionCollection(new FieldDefinition("SomeLong", "long"))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1797,13 +2719,41 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<long>(new[] { "SomeLong" }, 101L, 200L, true, true);
 
-                //Act
-                var results1 = filter1.Execute();
-                var results2 = filter2.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results1 = filter1.WithFacet("SomeLong", new Int64Range[]
+                        {
+                            new Int64Range("1", 0L, true, 100L, true),
+                            new Int64Range("2", 101L, true, 200L, true)
+                        }).Execute();
+                    var results2 = filter2.WithFacet("SomeLong", new Int64Range[]
+                        {
+                            new Int64Range("1", 0L, true, 100L, true),
+                            new Int64Range("2", 101L, true, 200L, true)
+                        }).Execute();
 
-                //Assert
-                Assert.AreEqual(3, results1.TotalItemCount);
-                Assert.AreEqual(1, results2.TotalItemCount);
+                    var facetResults1 = results1.GetFacet("SomeLong");
+                    var facetResults2 = results2.GetFacet("SomeLong");
+
+                    //Assert
+                    Assert.AreEqual(3, results1.TotalItemCount);
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                    Assert.AreEqual(3, facetResults1.Facet("1").Value);
+                    Assert.AreEqual(0, facetResults1.Facet("2").Value);
+                    Assert.AreEqual(0, facetResults2.Facet("1").Value);
+                    Assert.AreEqual(1, facetResults2.Facet("2").Value);
+                }
+                else
+                {
+                    //Act
+                    var results1 = filter1.Execute();
+                    var results2 = filter2.Execute();
+
+                    //Assert
+                    Assert.AreEqual(3, results1.TotalItemCount);
+                    Assert.AreEqual(1, results2.TotalItemCount);
+                }
             }
         }
 
@@ -1812,9 +2762,13 @@ namespace Examine.Test.Examine.Lucene.Search
         /// <summary>
         /// Test range query with a DateTime structure
         /// </summary>
-        [Test]
-        public void Date_Range_SimpleIndexSet()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Date_Range_SimpleIndexSet(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("DateCreated", FieldDefinitionTypes.FacetDateTime))
+                : new FieldDefinitionCollection(new FieldDefinition("DateCreated", FieldDefinitionTypes.DateTime));
             var reIndexDateTime = DateTime.Now;
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
@@ -1822,7 +2776,7 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("DateCreated", "datetime"))))
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1843,24 +2797,56 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true);
 
-                ////Act
-                var results = filter.Execute();
-                var results2 = filter2.Execute();
+                if (withFacets)
+                {
+                    ////Act
+                    var results = filter.WithFacet("DateCreated", new Int64Range[]
+                        {
+                            new Int64Range("1", reIndexDateTime.AddYears(-1).Ticks, true, reIndexDateTime.Ticks, true),
+                            new Int64Range("2", reIndexDateTime.AddMinutes(1).Ticks, true, reIndexDateTime.AddDays(1).Ticks, true)
+                        }).Execute();
+                    var results2 = filter2.WithFacet("DateCreated", new Int64Range[]
+                        {
+                            new Int64Range("1", reIndexDateTime.AddYears(-1).Ticks, true, reIndexDateTime.Ticks, true),
+                            new Int64Range("2", reIndexDateTime.AddMinutes(1).Ticks, true, reIndexDateTime.AddDays(1).Ticks, true)
+                        }).Execute();
 
-                ////Assert
-                Assert.IsTrue(results.TotalItemCount > 0);
-                Assert.IsTrue(results2.TotalItemCount == 0);
+                    var facetResults1 = results.GetFacet("DateCreated");
+                    var facetResults2 = results2.GetFacet("DateCreated");
+
+                    ////Assert
+                    Assert.IsTrue(results.TotalItemCount > 0);
+                    Assert.IsTrue(results2.TotalItemCount == 0);
+                    Assert.AreEqual(3, facetResults1.Facet("1").Value);
+                    Assert.AreEqual(0, facetResults1.Facet("2").Value);
+                    Assert.AreEqual(0, facetResults2.Facet("1").Value);
+                    Assert.AreEqual(0, facetResults2.Facet("2").Value);
+                }
+                else
+                {
+                    ////Act
+                    var results = filter.Execute();
+                    var results2 = filter2.Execute();
+
+                    ////Assert
+                    Assert.IsTrue(results.TotalItemCount > 0);
+                    Assert.IsTrue(results2.TotalItemCount == 0);
+                }
             }
 
 
         }
 
-        [Test]
-        public void Fuzzy_Search()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Fuzzy_Search(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("Content", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new EnglishAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1884,23 +2870,51 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(filter);
                 Console.WriteLine(filter2);
 
-                ////Act
-                var results = filter.Execute();
-                var results2 = filter2.Execute();
-
-                foreach (var r in results)
+                if (withFacets)
                 {
-                    Console.WriteLine($"Result Id: {r.Id}");
-                }
+                    ////Act
+                    var results = filter.WithFacet("Content").Execute();
+                    var results2 = filter2.WithFacet("Content").Execute();
 
-                foreach (var r in results2)
+                    var facetResults1 = results.GetFacet("Content");
+                    var facetResults2 = results2.GetFacet("Content");
+
+                    foreach (var r in results)
+                    {
+                        Console.WriteLine($"Result Id: {r.Id}");
+                    }
+
+                    foreach (var r in results2)
+                    {
+                        Console.WriteLine($"Result2 Id: {r.Id}");
+                    }
+
+                    ////Assert
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, results2.TotalItemCount);
+                    Assert.AreEqual(2, facetResults1.Count());
+                    Assert.AreEqual(2, facetResults2.Count());
+                }
+                else
                 {
-                    Console.WriteLine($"Result2 Id: {r.Id}");
-                }
+                    ////Act
+                    var results = filter.Execute();
+                    var results2 = filter2.Execute();
 
-                ////Assert
-                Assert.AreEqual(2, results.TotalItemCount);
-                Assert.AreEqual(2, results2.TotalItemCount);
+                    foreach (var r in results)
+                    {
+                        Console.WriteLine($"Result Id: {r.Id}");
+                    }
+
+                    foreach (var r in results2)
+                    {
+                        Console.WriteLine($"Result2 Id: {r.Id}");
+                    }
+
+                    ////Assert
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, results2.TotalItemCount);
+                }
             }
         }
 
@@ -1969,12 +2983,16 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 
-        [Test]
-        public void Inner_Or_Query()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Inner_Or_Query(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
 
             {
@@ -2001,20 +3019,38 @@ namespace Examine.Test.Examine.Lucene.Search
                 var filter = criteria.Field("Type", "type1")
                     .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or);
 
-                //Act
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results = filter.WithFacet("Type").Execute();
 
-                //Assert
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("Type");
+
+                    //Assert
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    //Act
+                    var results = filter.Execute();
+
+                    //Assert
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Inner_And_Query()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Inner_And_Query(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
 
             {
@@ -2043,20 +3079,38 @@ namespace Examine.Test.Examine.Lucene.Search
                 var filter = criteria.Field("Type", "type1")
                     .And(query => query.Field("Content", "world").And().Field("Content", "hello"));
 
-                //Act
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results = filter.WithFacet("Type").Execute();
 
-                //Assert
-                Assert.AreEqual(2, results.TotalItemCount);
+                    var facetResults = results.GetFacet("Type");
+
+                    //Assert
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    //Act
+                    var results = filter.Execute();
+
+                    //Assert
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Inner_Not_Query()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Inner_Not_Query(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
 
             {
@@ -2085,20 +3139,38 @@ namespace Examine.Test.Examine.Lucene.Search
                 var filter = criteria.Field("Type", "type1")
                     .And(query => query.Field("Content", "world").Not().Field("Content", "something"));
 
-                //Act
-                var results = filter.Execute();
+                if (withFacets)
+                {
+                    //Act
+                    var results = filter.WithFacet("Type").Execute();
 
-                //Assert
-                Assert.AreEqual(1, results.TotalItemCount);
+                    var facetResults = results.GetFacet("Type");
+
+                    //Assert
+                    Assert.AreEqual(1, results.TotalItemCount);
+                    Assert.AreEqual(1, facetResults.Count());
+                }
+                else
+                {
+                    //Act
+                    var results = filter.Execute();
+
+                    //Assert
+                    Assert.AreEqual(1, results.TotalItemCount);
+                }
             }
         }
 
-        [Test]
-        public void Complex_Or_Group_Nested_Query()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Complex_Or_Group_Nested_Query(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -2133,21 +3205,42 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(filter);
 
-                //Act
-                var results = filter.Execute();
-
-                //Assert
-                foreach (var r in results)
+                if (withFacets)
                 {
-                    Console.WriteLine($"Result Id: {r.Id}");
+
+                    //Act
+                    var results = filter.WithFacet("Type").Execute();
+
+                    var facetResults = results.GetFacet("Type");
+
+                    //Assert
+                    foreach (var r in results)
+                    {
+                        Console.WriteLine($"Result Id: {r.Id}");
+                    }
+                    Assert.AreEqual(3, results.TotalItemCount);
+
+                    Assert.AreEqual(2, facetResults.Count());
                 }
-                Assert.AreEqual(3, results.TotalItemCount);
+                else
+                {
+                    //Act
+                    var results = filter.Execute();
+
+                    //Assert
+                    foreach (var r in results)
+                    {
+                        Console.WriteLine($"Result Id: {r.Id}");
+                    }
+                    Assert.AreEqual(3, results.TotalItemCount);
+                }
             }
         }
 
 
-        [Test]
-        public void Custom_Lucene_Query_With_Native()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Custom_Lucene_Query_With_Native(bool withFacets)
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
@@ -2159,7 +3252,14 @@ namespace Examine.Test.Examine.Lucene.Search
                 //combine a custom lucene query with raw lucene query
                 var op = criteria.NativeQuery("hello:world").And();
 
-                criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true));
+                if (withFacets)
+                {
+                    criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)).WithFacet("SomeFacet");
+                }
+                else
+                {
+                    criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true));
+                }
 
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+hello:world +numTest:[4 TO 5]", criteria.Query.ToString());
@@ -2263,12 +3363,16 @@ namespace Examine.Test.Examine.Lucene.Search
         //}
 
 
-        [Test]
-        public void Select_Field()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Select_Field(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
             {
                 indexer.IndexItems(new[] {
@@ -2294,20 +3398,39 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectField("__Path");
 
-                var results = sc1.Execute();
-                var expectedLoadedFields = new string[] { "__Path" };
-                var keys = results.First().Values.Keys.ToArray();
-                Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
-                Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+                if (withFacets)
+                {
+                    var results = sc1.WithFacet("nodeName").Execute();
+                    var facetResults = results.GetFacet("nodeName");
+
+                    var expectedLoadedFields = new string[] { "__Path" };
+                    var keys = results.First().Values.Keys.ToArray();
+                    Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                    Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = sc1.Execute();
+                    var expectedLoadedFields = new string[] { "__Path" };
+                    var keys = results.First().Values.Keys.ToArray();
+                    Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                    Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+                }
             }
         }
 
-        [Test]
-        public void Select_Fields()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Select_Fields(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
             {
                 indexer.IndexItems(new[] {
@@ -2333,21 +3456,40 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectFields(new HashSet<string>(new[] { "nodeName", "bodyText", "id", "__NodeId" }));
 
-                var results = sc1.Execute();
-                var expectedLoadedFields = new string[] { "nodeName", "bodyText", "id", "__NodeId" };
-                var keys = results.First().Values.Keys.ToArray();
-                Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
-                Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+                if (withFacets)
+                {
+                    var results = sc1.WithFacet("nodeName").Execute();
+                    var facetResults = results.GetFacet("nodeName");
+
+                    var expectedLoadedFields = new string[] { "nodeName", "bodyText", "id", "__NodeId" };
+                    var keys = results.First().Values.Keys.ToArray();
+                    Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                    Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = sc1.Execute();
+                    var expectedLoadedFields = new string[] { "nodeName", "bodyText", "id", "__NodeId" };
+                    var keys = results.First().Values.Keys.ToArray();
+                    Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                    Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+                }
             }
 
         }
 
-        [Test]
-        public void Select_Fields_HashSet()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Select_Fields_HashSet(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
 
             {
                 indexer.IndexItems(new[] {
@@ -2373,11 +3515,26 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectFields(new HashSet<string>(new string[] { "nodeName", "bodyText" }));
 
-                var results = sc1.Execute();
-                var expectedLoadedFields = new string[] { "nodeName", "bodyText" };
-                var keys = results.First().Values.Keys.ToArray();
-                Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
-                Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+                if (withFacets)
+                {
+                    var results = sc1.WithFacet("nodeName").Execute();
+                    var facetResults = results.GetFacet("nodeName");
+
+                    var expectedLoadedFields = new string[] { "nodeName", "bodyText" };
+                    var keys = results.First().Values.Keys.ToArray();
+                    Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                    Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = sc1.Execute();
+                    var expectedLoadedFields = new string[] { "nodeName", "bodyText" };
+                    var keys = results.First().Values.Keys.ToArray();
+                    Assert.True(keys.All(x => expectedLoadedFields.Contains(x)));
+                    Assert.True(expectedLoadedFields.All(x => keys.Contains(x)));
+                }
             }
         }
 
@@ -2456,12 +3613,16 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [Test]
-        public void Paging_With_Skip_Take()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Paging_With_Skip_Take(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("writerName", FieldDefinitionTypes.FacetFullText))
+                : null;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -2487,54 +3648,109 @@ namespace Examine.Test.Examine.Lucene.Search
                 int pageSize = 2;
 
                 //Act
+                if (withFacets)
+                {
 
-                var results = sc
-                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();
-                Assert.AreEqual(2, results.Count);
+                    var results = sc.WithFacet("writerName")
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
+                    Assert.AreEqual(2, results.Count());
+                    var facetResults = results.GetFacet("writerName");
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(5, facetResults.Facet("administrator").Value);
 
-                pageIndex++;
+                    pageIndex++;
 
-                results = sc
-                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();
-                Assert.AreEqual(2, results.Count);
+                    results = sc
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
+                    Assert.AreEqual(2, results.Count());
+                    facetResults = results.GetFacet("writerName");
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(5, facetResults.Facet("administrator").Value);
 
-                pageIndex++;
+                    pageIndex++;
 
-                results = sc
-                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();
-                Assert.AreEqual(1, results.Count);
+                    results = sc
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
+                    Assert.AreEqual(1, results.Count());
+                    facetResults = results.GetFacet("writerName");
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(5, facetResults.Facet("administrator").Value);
 
-                pageIndex++;
+                    pageIndex++;
 
-                results = sc
-                    .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
-                    .ToList();
-                Assert.AreEqual(0, results.Count);
+                    results = sc
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
+                    Assert.AreEqual(0, results.Count());
+                    facetResults = results.GetFacet("writerName");
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(5, facetResults.Facet("administrator").Value);
+                }
+                else
+                {
+                    var results = sc
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                        .ToList();
+                    Assert.AreEqual(2, results.Count);
+
+                    pageIndex++;
+
+                    results = sc
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                        .ToList();
+                    Assert.AreEqual(2, results.Count);
+
+                    pageIndex++;
+
+                    results = sc
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                        .ToList();
+                    Assert.AreEqual(1, results.Count);
+
+                    pageIndex++;
+
+                    results = sc
+                        .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize))
+                        .ToList();
+                    Assert.AreEqual(0, results.Count);
+                }
             }
         }
 
-        [TestCase(0, 1, 1)]
-        [TestCase(0, 2, 2)]
-        [TestCase(0, 3, 3)]
-        [TestCase(0, 4, 4)]
-        [TestCase(0, 5, 5)]
-        [TestCase(0, 100, 5)]
-        [TestCase(1, 1, 1)]
-        [TestCase(1, 2, 2)]
-        [TestCase(1, 3, 3)]
-        [TestCase(1, 4, 4)]
-        [TestCase(1, 5, 4)]
-        [TestCase(2, 2, 2)]
-        [TestCase(2, 5, 3)]
-        public void Given_SkipTake_Returns_ExpectedTotals(int skip, int take, int expectedResults)
+        [TestCase(0, 1, 1, true)]
+        [TestCase(0, 2, 2, true)]
+        [TestCase(0, 3, 3, true)]
+        [TestCase(0, 4, 4, true)]
+        [TestCase(0, 5, 5, true)]
+        [TestCase(0, 100, 5, true)]
+        [TestCase(1, 1, 1, true)]
+        [TestCase(1, 2, 2, true)]
+        [TestCase(1, 3, 3, true)]
+        [TestCase(1, 4, 4, true)]
+        [TestCase(1, 5, 4, true)]
+        [TestCase(2, 2, 2, true)]
+        [TestCase(2, 5, 3, true)]
+        [TestCase(0, 1, 1, false)]
+        [TestCase(0, 2, 2, false)]
+        [TestCase(0, 3, 3, false)]
+        [TestCase(0, 4, 4, false)]
+        [TestCase(0, 5, 5, false)]
+        [TestCase(0, 100, 5, false)]
+        [TestCase(1, 1, 1, false)]
+        [TestCase(1, 2, 2, false)]
+        [TestCase(1, 3, 3, false)]
+        [TestCase(1, 4, 4, false)]
+        [TestCase(1, 5, 4, false)]
+        [TestCase(2, 2, 2, false)]
+        [TestCase(2, 5, 3, false)]
+        public void Given_SkipTake_Returns_ExpectedTotals(int skip, int take, int expectedResults, bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
+                : null;
             const int indexSize = 5;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
             {
                 var items = Enumerable.Range(0, indexSize).Select(x => ValueSet.FromObject(x.ToString(), "content",
                     new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }));
@@ -2549,10 +3765,24 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 //Act
 
-                var results = sc.Execute(QueryOptions.SkipTake(skip, take));
+                if (withFacets)
+                {
+                    var results = sc.WithFacet("nodeName").Execute(QueryOptions.SkipTake(skip, take));
 
-                Assert.AreEqual(indexSize, results.TotalItemCount);
-                Assert.AreEqual(expectedResults, results.Count());
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(indexSize, results.TotalItemCount);
+                    Assert.AreEqual(expectedResults, results.Count());
+                    Assert.AreEqual(1, facetResults.Count());
+                    Assert.AreEqual(5, facetResults.Facet("umbraco").Value);
+                }
+                else
+                {
+                    var results = sc.Execute(QueryOptions.SkipTake(skip, take));
+
+                    Assert.AreEqual(indexSize, results.TotalItemCount);
+                    Assert.AreEqual(expectedResults, results.Count());
+                }
             }
         }
 
@@ -2692,15 +3922,19 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 #if NET6_0_OR_GREATER
-        [Test]
-        public void Range_DateOnly()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Range_DateOnly(bool withFacets)
         {
+            var fieldDefinitionCollection = withFacets ?
+                new FieldDefinitionCollection(new FieldDefinition("created", FieldDefinitionTypes.FacetDateTime))
+                : new FieldDefinitionCollection(new FieldDefinition("created", FieldDefinitionTypes.DateTime));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+                fieldDefinitionCollection))
             {
 
 
@@ -2735,9 +3969,20 @@ namespace Examine.Test.Examine.Lucene.Search
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<DateOnly>(new[] { "created" }, new DateOnly(2000, 01, 02), new DateOnly(2000, 01, 05), maxInclusive: false);
 
-                var numberSortedResult = numberSortedCriteria.Execute();
+                if (withFacets)
+                {
+                    var numberSortedResult = numberSortedCriteria.WithFacet("created").Execute();
+                    var facetResult = numberSortedResult.GetFacet("created");
 
-                Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                    Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                    Assert.AreEqual(2, facetResult.Count());
+                }
+                else
+                {
+                    var numberSortedResult = numberSortedCriteria.Execute();
+
+                    Assert.AreEqual(2, numberSortedResult.TotalItemCount);
+                }
             }
         }
 
@@ -2790,8 +4035,9 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [Test]
-        public void Range_DateOnly_No_Inclusive()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Range_DateOnly_No_Inclusive(bool withFacets)
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
@@ -2839,5 +4085,55 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 #endif
+
+        [TestCase(1, 2, 1, 2)]
+        [TestCase(2, 2, 2, 2)]
+        public void GivenSearchAfterTake_Returns_ExpectedTotals_Facet(int firstTake, int secondTake, int expectedFirstResultCount, int expectedSecondResultCount)
+        {
+            const int indexSize = 5;
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
+            {
+                var items = Enumerable.Range(0, indexSize).Select(x => ValueSet.FromObject(x.ToString(), "content",
+                    new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }));
+
+                indexer.IndexItems(items);
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+
+                var sc = searcher.CreateQuery("content").Field("writerName", "administrator")
+                    .WithFacet("nodeName");
+
+                //Act
+
+                var results1 = sc.Execute(new LuceneQueryOptions(0, firstTake));
+
+                var facetResults1 = results1.GetFacet("nodeName");
+
+                Assert.AreEqual(indexSize, results1.TotalItemCount);
+                Assert.AreEqual(expectedFirstResultCount, results1.Count());
+                Assert.AreEqual(1, facetResults1.Count());
+                Assert.AreEqual(5, facetResults1.Facet("umbraco").Value);
+
+                var lucenceSearchResults1 = results1 as ILuceneSearchResults;
+                Assert.IsNotNull(lucenceSearchResults1);
+
+                var results2 = sc.Execute(new LuceneQueryOptions(0, secondTake, lucenceSearchResults1.SearchAfter));
+
+                var facetResults2 = results2.GetFacet("nodeName");
+
+                Assert.AreEqual(indexSize, results2.TotalItemCount);
+                Assert.AreEqual(expectedSecondResultCount, results2.Count());
+                Assert.AreEqual(1, facetResults2.Count());
+                Assert.AreEqual(5, facetResults2.Facet("umbraco").Value);
+                var firstResults = results1.ToArray();
+                var secondResults = results2.ToArray();
+                Assert.IsFalse(firstResults.Any(x => secondResults.Any(y => y.Id == x.Id)), "The second set of results should not contain the first set of results");
+
+            }
+        }
     }
 }

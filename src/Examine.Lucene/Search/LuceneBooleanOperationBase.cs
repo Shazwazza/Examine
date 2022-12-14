@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Examine.Search;
+using Lucene.Net.Facet.Range;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -77,5 +78,13 @@ namespace Examine.Lucene.Search
         public abstract IOrdering SelectFields(ISet<string> fieldNames);
         public abstract IOrdering SelectField(string fieldName);
         public abstract IOrdering SelectAllFields();
+
+        public abstract IFacetQueryField WithFacet(string field);
+
+        public abstract IFacetQueryField WithFacet(string field, params string[] values);
+
+        public abstract IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges);
+
+        public abstract IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges);
     }
 }

@@ -1,6 +1,6 @@
 namespace Examine.Search
 {
-    public interface IFacetQueryField : IBooleanOperation
+    public interface IFacetQueryField : IFacetAppending, IQueryExecutor
     {
         /// <summary>
         /// Maximum number of terms to return

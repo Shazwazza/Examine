@@ -1,6 +1,6 @@
 namespace Examine.Search
 {
-    public interface IFacetLongRangeQueryField : IBooleanOperation
+    public interface IFacetLongRangeQueryField : IFacetAppending, IQueryExecutor
     {
     }
 }

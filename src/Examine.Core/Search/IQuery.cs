@@ -135,38 +135,5 @@ namespace Examine.Search
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
         IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
-
-        /// <summary>
-        /// Add a facet string to the current query
-        /// </summary>
-        /// <param name="field"></param>
-        /// <returns></returns>
-        IFacetQueryField Facet(string field);
-
-        /// <summary>
-        /// Add a facet string to the current query, filtered by value
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        IFacetQueryField Facet(string field, string value);
-
-        /// <summary>
-        /// Add a facet string to the current query, filtered by multiple values
-        /// </summary>
-        /// <param name="field"></param>
-        /// <param name="values"></param>
-        /// <returns></returns>
-        IFacetQueryField Facet(string field, string[] values);
-
-        /// <summary>
-        /// Add a range facet to the current query
-        /// </summary>
-        IFacetDoubleRangeQueryField Facet(string field, DoubleRange[] doubleRanges);
-
-        /// <summary>
-        /// Add a range facet to the current query
-        /// </summary>
-        IFacetLongRangeQueryField Facet(string field, Int64Range[] longRanges);
     }
 }

@@ -2,14 +2,19 @@ using Examine.Lucene.Search;
 
 namespace Examine.Search
 {
-    public class FacetQueryField : LuceneBooleanOperation, IFacetQueryField
+    public class FacetQueryField : IFacetQueryField
     {
+        private readonly LuceneSearchQuery _search;
         private readonly FacetFullTextField _field;
 
-        public FacetQueryField(LuceneSearchQuery search, FacetFullTextField field) : base(search)
+        public FacetQueryField(LuceneSearchQuery search, FacetFullTextField field)
         {
+            _search = search;
             _field = field;
         }
+
+        public IOrdering And() => new LuceneBooleanOperation(_search);
+        public ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
 
         public IFacetQueryField FacetField(string fieldName)
         {

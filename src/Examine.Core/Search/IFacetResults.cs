@@ -7,6 +7,6 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Facets from the search
         /// </summary>
-        IDictionary<string, IFacetResult> Facets { get; }
+        IReadOnlyDictionary<string, IFacetResult> Facets { get; }
     }
 }

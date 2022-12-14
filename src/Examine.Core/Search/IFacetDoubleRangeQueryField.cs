@@ -1,6 +1,6 @@
 namespace Examine.Search
 {
-    public interface IFacetDoubleRangeQueryField : IBooleanOperation
+    public interface IFacetDoubleRangeQueryField : IFacetAppending, IQueryExecutor
     {
         /// <summary>
         /// Sets if the range query is on <see cref="float"/> values

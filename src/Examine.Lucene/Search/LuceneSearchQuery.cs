@@ -311,24 +311,13 @@ namespace Examine.Lucene.Search
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        public override IFacetQueryField Facet(string field) => FacetInternal(field);
-
-        public override IFacetQueryField Facet(string field, string value) => FacetInternal(field, value);
-
-        public override IFacetQueryField Facet(string field, string[] values) => FacetInternal(field, values);
-
-        public override IFacetDoubleRangeQueryField Facet(string field, DoubleRange[] doubleRanges) => FacetInternal(field, doubleRanges);
-
-        public override IFacetLongRangeQueryField Facet(string field, Int64Range[] longRanges) => FacetInternal(field, longRanges);
-
-        internal IFacetQueryField FacetInternal(string field)
-            => FacetInternal(field, Array.Empty<string>());
-
-        internal IFacetQueryField FacetInternal(string field, string value)
-            => FacetInternal(field, new[] { value });
-
-        internal IFacetQueryField FacetInternal(string field, string[] values)
+        internal IFacetQueryField FacetInternal(string field, params string[] values)
         {
+            if(values == null)
+            {
+                values = Array.Empty<string>();
+            }
+
             var facet = new FacetFullTextField(field, values);
 
             _facetFields.Add(facet);
@@ -337,8 +326,13 @@ namespace Examine.Lucene.Search
         }
 
 
-        internal IFacetDoubleRangeQueryField FacetInternal(string field, DoubleRange[] doubleRanges)
+        internal IFacetDoubleRangeQueryField FacetInternal(string field, params DoubleRange[] doubleRanges)
         {
+            if(doubleRanges == null)
+            {
+                doubleRanges = Array.Empty<DoubleRange>();
+            }
+
             var facet = new FacetDoubleField(field, doubleRanges);
 
             _facetFields.Add(facet);
@@ -346,8 +340,13 @@ namespace Examine.Lucene.Search
             return new FacetDoubleRangeQueryField(this, facet);
         }
 
-        internal IFacetLongRangeQueryField FacetInternal(string field, Int64Range[] longRanges)
+        internal IFacetLongRangeQueryField FacetInternal(string field, params Int64Range[] longRanges)
         {
+            if(longRanges == null)
+            {
+                longRanges = Array.Empty<Int64Range>();
+            }
+
             var facet = new FacetLongField(field, longRanges);
 
             _facetFields.Add(facet);

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Examine.Search
 {
-    public interface IOrdering : IQueryExecutor
+    public interface IOrdering : IQueryExecutor, IFaceting
     {
         /// <summary>
         /// Orders the results by the specified fields
