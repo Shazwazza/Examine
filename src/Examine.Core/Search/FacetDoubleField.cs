@@ -12,7 +12,7 @@ namespace Examine.Search
 
         public string Field { get; }
 
-        public string FacetField { get; set; } = "$facets";
+        public string FacetField { get; set; }
 
         public bool IsFloat { get; set; }
 
@@ -20,6 +20,7 @@ namespace Examine.Search
         {
             Field = field;
             DoubleRanges = doubleRanges;
+            FacetField = ExamineFieldNames.DefaultFacetsName;
         }
     }
 }
