@@ -1,5 +1,4 @@
 using Examine.Lucene.Search;
-using Lucene.Net.Facet.Range;
 
 namespace Examine.Search
 {

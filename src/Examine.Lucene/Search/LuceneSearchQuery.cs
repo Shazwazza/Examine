@@ -5,7 +5,6 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search

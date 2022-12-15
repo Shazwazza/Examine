@@ -8,8 +8,6 @@ using Examine.Search;
 using J2N;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Facet;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using NUnit.Framework;

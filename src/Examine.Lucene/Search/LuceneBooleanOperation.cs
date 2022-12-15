@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Examine.Lucene.Providers;
 using Examine.Search;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Examine.Search;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search

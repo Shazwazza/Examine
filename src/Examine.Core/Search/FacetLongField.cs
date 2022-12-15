@@ -1,5 +1,3 @@
-using Lucene.Net.Facet.Range;
-
 namespace Examine.Search
 {
     public class FacetLongField : IFacetLongField

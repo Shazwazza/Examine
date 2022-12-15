@@ -156,7 +156,7 @@ namespace Examine.Lucene.Search
                 }
                 else if (field is FacetLongField facetLongField)
                 {
-                    var longFacetCounts = new Int64RangeFacetCounts(facetLongField.Field, facetsCollector, facetLongField.LongRanges);
+                    var longFacetCounts = new Int64RangeFacetCounts(facetLongField.Field, facetsCollector, facetLongField.LongRanges.AsLuceneRange().ToArray());
 
                     var longFacets = longFacetCounts.GetTopChildren(0, facetLongField.Field);
 
@@ -172,11 +172,11 @@ namespace Examine.Lucene.Search
                     DoubleRangeFacetCounts doubleFacetCounts;
                     if (facetDoubleField.IsFloat)
                     {
-                        doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, new SingleFieldSource(facetDoubleField.Field), facetsCollector, facetDoubleField.DoubleRanges);
+                        doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, new SingleFieldSource(facetDoubleField.Field), facetsCollector, facetDoubleField.DoubleRanges.AsLuceneRange().ToArray());
                     }
                     else
                     {
-                        doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, facetsCollector, facetDoubleField.DoubleRanges);
+                        doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, facetsCollector, facetDoubleField.DoubleRanges.AsLuceneRange().ToArray());
                     }
 
                     var doubleFacets = doubleFacetCounts.GetTopChildren(0, facetDoubleField.Field);
