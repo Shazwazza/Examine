@@ -8,11 +8,11 @@ namespace Examine.Search
 
         public string FacetField { get; set; }
 
-        public FacetLongField(string field, Int64Range[] longRanges)
+        public FacetLongField(string field, Int64Range[] longRanges, string facetField = ExamineFieldNames.DefaultFacetsName)
         {
             Field = field;
             LongRanges = longRanges;
-            FacetField = ExamineFieldNames.DefaultFacetsName;
+            FacetField = facetField;
         }
     }
 }

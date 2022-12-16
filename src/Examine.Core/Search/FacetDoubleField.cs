@@ -15,11 +15,11 @@ namespace Examine.Search
 
         public bool IsFloat { get; set; }
 
-        public FacetDoubleField(string field, DoubleRange[] doubleRanges)
+        public FacetDoubleField(string field, DoubleRange[] doubleRanges, string facetField = ExamineFieldNames.DefaultFacetsName)
         {
             Field = field;
             DoubleRanges = doubleRanges;
-            FacetField = ExamineFieldNames.DefaultFacetsName;
+            FacetField = facetField;
         }
     }
 }
