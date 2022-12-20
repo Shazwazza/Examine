@@ -22,5 +22,13 @@ namespace Examine.Lucene.Search
 
             return this;
         }
+
+        /// <inheritdoc/>
+        public IFacetDoubleRangeQueryField FacetField(string fieldName)
+        {
+            _field.FacetField = fieldName;
+
+            return this;
+        }
     }
 }
