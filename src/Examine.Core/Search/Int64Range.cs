@@ -3,7 +3,7 @@ namespace Examine.Search
     /// <summary>
     /// Represents a range over <see cref="long"/> values.
     /// </summary>
-    public class Int64Range
+    public readonly struct Int64Range
     {
         /// <inheritdoc/>
         public Int64Range(string label, long min, bool minInclusive, long max, bool maxInclusive)

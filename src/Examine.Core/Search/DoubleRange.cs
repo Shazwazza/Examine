@@ -3,7 +3,7 @@ namespace Examine.Search
     /// <summary>
     /// Represents a range over <see cref="double"/> values.
     /// </summary>
-    public class DoubleRange
+    public readonly struct DoubleRange
     {
         /// <inheritdoc/>
         public DoubleRange(string label, double min, bool minInclusive, double max, bool maxInclusive)
