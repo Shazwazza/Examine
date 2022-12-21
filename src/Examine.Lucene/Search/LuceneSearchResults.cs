@@ -1,13 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Examine.Lucene.Search
 {
     public class LuceneSearchResults : ISearchResults, IFacetResults
     {
-        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new ReadOnlyDictionary<string, IFacetResult>(new Dictionary<string, IFacetResult>()));
+        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>());
 
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
