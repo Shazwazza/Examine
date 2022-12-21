@@ -4,6 +4,7 @@ using Examine.Lucene.Providers;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 using Lucene.Net.Analysis.Util;
+using Lucene.Net.Facet;
 
 namespace Examine.Test.Examine.Lucene.Search
 {
@@ -36,6 +37,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = new MultiIndexSearcher("testSearcher",
                     new[] { indexer1, indexer2 },
+                    new FacetsConfig(),
                     customAnalyzer);
 
                 // Even though the custom analyzer doesn't have a stop word of 'will'
@@ -63,6 +65,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = new MultiIndexSearcher("testSearcher",
                     new[] { indexer1, indexer2 },
+                    new FacetsConfig(),
                     // The Analyzer here is used for query parsing values when 
                     // non ManagedQuery queries are executed.
                     standardAnalyzer);
@@ -94,6 +97,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = new MultiIndexSearcher("testSearcher",
                     new[] { indexer1, indexer2 },
+                    new FacetsConfig(),
                     // The Analyzer here is used for query parsing values when 
                     // non ManagedQuery queries are executed.
                     standardAnalyzer);
@@ -133,6 +137,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = new MultiIndexSearcher("testSearcher",
                     new[] { indexer1, indexer2, indexer3, indexer4 },
+                    new FacetsConfig(),
                     analyzer);
 
                 var result = searcher.Search("darkness");
@@ -169,6 +174,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = new MultiIndexSearcher(
                     "testSearcher",
                     new[] { indexer1, indexer2, indexer3, indexer4 },
+                    new FacetsConfig(),
                     analyzer);
 
                 var searchContext = searcher.GetSearchContext();

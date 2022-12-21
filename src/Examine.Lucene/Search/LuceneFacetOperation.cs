@@ -12,7 +12,7 @@ namespace Examine.Lucene.Search
     /// An implementation of the fluent API boolean operations
     /// </summary>
     [DebuggerDisplay("{_search}")]
-    public class LuceneFacetOperation : LuceneFacetOperationBase
+    public class LuceneFacetOperation : IFaceting
     {
         private readonly LuceneSearchQuery _search;
 
@@ -21,17 +21,17 @@ namespace Examine.Lucene.Search
             _search = search;
         }
 
-        public override ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
+        public ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
 
-        public override IFacetQueryField WithFacet(string field) => _search.FacetInternal(field, Array.Empty<string>());
+        public IFaceting Facet(string field, Action<IFacetQueryField> facetConfiguration = null) => _search.FacetInternal(field, facetConfiguration, Array.Empty<string>());
 
-        public override IFacetQueryField WithFacet(string field, params string[] values) => _search.FacetInternal(field, values);
+        public IFaceting Facet(string field, Action<IFacetQueryField> facetConfiguration = null, params string[] values) => _search.FacetInternal(field, facetConfiguration, values);
 
-        public override IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
+        public IFaceting Facet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
 
-        public override IFacetFloatRangeQueryField WithFacet(string field, params FloatRange[] floatRanges) => _search.FacetInternal(field, floatRanges);
+        public IFaceting Facet(string field, params FloatRange[] floatRanges) => _search.FacetInternal(field, floatRanges);
 
-        public override IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
+        public IFaceting Facet(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
 
         public override string ToString() => _search.ToString();
     }

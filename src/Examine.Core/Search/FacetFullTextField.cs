@@ -8,14 +8,14 @@ namespace Examine.Search
 
         public string Field { get; }
 
-        public string FacetField { get; set; }
+        public string FacetField { get; }
 
-        public FacetFullTextField(string field, string[] values, int maxCount = 10, string facetField = ExamineFieldNames.DefaultFacetsName)
+        public FacetFullTextField(string field, string[] values, string facetField, int maxCount = 10)
         {
             Field = field;
             Values = values;
-            MaxCount = maxCount;
             FacetField = facetField;
+            MaxCount = maxCount;
         }
     }
 }

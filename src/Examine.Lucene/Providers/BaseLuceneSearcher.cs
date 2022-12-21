@@ -3,6 +3,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Examine.Lucene.Search;
 using Examine.Search;
+using Lucene.Net.Facet;
 
 namespace Examine.Lucene.Providers
 {
@@ -11,17 +12,20 @@ namespace Examine.Lucene.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
+        private readonly FacetsConfig _facetsConfig;
+
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="name"></param>
         /// <param name="analyzer"></param>
-        protected BaseLuceneSearcher(string name, Analyzer analyzer)
+        protected BaseLuceneSearcher(string name, Analyzer analyzer, FacetsConfig facetsConfig)
             : base(name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
             LuceneAnalyzer = analyzer;
+            _facetsConfig = facetsConfig;
         }
 
         /// <summary>
@@ -48,7 +52,7 @@ namespace Examine.Lucene.Providers
             if (luceneAnalyzer == null)
                 throw new ArgumentNullException(nameof(luceneAnalyzer));
 
-            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation);
+            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation, _facetsConfig);
         }
 
         /// <inheritdoc />

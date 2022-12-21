@@ -1,14 +1,14 @@
 namespace Examine.Search
 {
-    public class FacetFloatField : IFacetFloatField
+    public readonly struct FacetFloatField : IFacetFloatField
     {
         public FloatRange[] FloatRanges { get; }
 
         public string Field { get; }
 
-        public string FacetField { get; set; }
+        public string FacetField { get; }
 
-        public FacetFloatField(string field, FloatRange[] floatRanges, string facetField = ExamineFieldNames.DefaultFacetsName)
+        public FacetFloatField(string field, FloatRange[] floatRanges, string facetField)
         {
             Field = field;
             FloatRanges = floatRanges;

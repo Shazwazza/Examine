@@ -4,6 +4,7 @@ using System.Linq;
 using Examine.Lucene.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Facet;
 
 namespace Examine.Lucene.Providers
 {
@@ -20,9 +21,10 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="indexes"></param>
+        /// <param name="facetsConfig">Get the current <see cref="FacetsConfig"/> by injecting <see cref="LuceneIndexOptions.FacetsConfig"/> or use <code>new FacetsConfig()</code> for an empty configuration</param>
         /// <param name="analyzer"></param>
-        public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
+        public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, FacetsConfig facetsConfig, Analyzer analyzer = null)
+            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion), facetsConfig)
         {
             _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.Searcher));
         }
@@ -32,9 +34,10 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="searchers"></param>
+        /// <param name="facetsConfig">Get the current <see cref="FacetsConfig"/> by injecting <see cref="LuceneIndexOptions.FacetsConfig"/> or use <code>new FacetsConfig()</code> for an empty configuration</param>
         /// <param name="analyzer"></param>
-        public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, Analyzer analyzer = null)
-            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
+        public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, FacetsConfig facetsConfig, Analyzer analyzer = null)
+            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion), facetsConfig)
         {
             _searchers = searchers;
         }
