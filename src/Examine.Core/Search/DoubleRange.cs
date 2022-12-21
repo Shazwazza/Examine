@@ -18,26 +18,26 @@ namespace Examine.Search
         /// <summary>
         /// Label that identifies this range.
         /// </summary>
-        public string Label { get; set; }
+        public string Label { get; }
 
         /// <summary>
         /// Minimum.
         /// </summary>
-        public double Min { get; set; }
+        public double Min { get; }
 
         /// <summary>
         /// True if the minimum value is inclusive.
         /// </summary>
-        public bool MinInclusive { get; set; }
+        public bool MinInclusive { get; }
 
         /// <summary>
         /// Maximum.
         /// </summary>
-        public double Max { get; set; }
+        public double Max { get; }
 
         /// <summary>
         /// True if the maximum value is inclusive.
         /// </summary>
-        public bool MaxInclusive { get; set; }
+        public bool MaxInclusive { get; }
     }
 }
