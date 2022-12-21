@@ -1,6 +1,6 @@
 namespace Examine.Search
 {
-    public readonly struct FacetLongField : IFacetLongField
+    public readonly struct FacetLongField : IFacetField
     {
         public string Field { get; }
 

@@ -150,11 +150,11 @@ namespace Examine.Lucene.Search
 
             foreach(var field in facetFields)
             {
-                if (field is IFacetFullTextField facetFullTextField)
+                if (field is FacetFullTextField facetFullTextField)
                 {
                     ExtractFullTextFacets(facetsCollector, searcher, facets, sortedSetReaderState, field, facetFullTextField);
                 }
-                else if (field is IFacetLongField facetLongField)
+                else if (field is FacetLongField facetLongField)
                 {
                     var longFacetCounts = new Int64RangeFacetCounts(facetLongField.Field, facetsCollector, facetLongField.LongRanges.AsLuceneRange().ToArray());
 
@@ -167,7 +167,7 @@ namespace Examine.Lucene.Search
 
                     facets.Add(facetLongField.Field, new Examine.Search.FacetResult(longFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
                 }
-                else if (field is IFacetDoubleField facetDoubleField)
+                else if (field is FacetDoubleField facetDoubleField)
                 {
                     var doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, facetsCollector, facetDoubleField.DoubleRanges.AsLuceneRange().ToArray());
                     
@@ -180,7 +180,7 @@ namespace Examine.Lucene.Search
 
                     facets.Add(facetDoubleField.Field, new Examine.Search.FacetResult(doubleFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
                 }
-                else if(field is IFacetFloatField facetFloatField)
+                else if(field is FacetFloatField facetFloatField)
                 {
                     var floatFacetCounts = new DoubleRangeFacetCounts(facetFloatField.Field, new SingleFieldSource(facetFloatField.Field), facetsCollector, facetFloatField.FloatRanges.AsLuceneRange().ToArray());
                     
@@ -198,7 +198,7 @@ namespace Examine.Lucene.Search
             return facets;
         }
 
-        private static void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field, IFacetFullTextField facetFullTextField)
+        private static void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field, FacetFullTextField facetFullTextField)
         {
             if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
             {

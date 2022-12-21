@@ -1,6 +1,6 @@
 namespace Examine.Search
 {
-    public class FacetFullTextField : IFacetFullTextField
+    public class FacetFullTextField : IFacetField
     {
         public int MaxCount { get; internal set; }
 

@@ -1,6 +1,6 @@
 namespace Examine.Search
 {
-    public readonly struct FacetFloatField : IFacetFloatField
+    public readonly struct FacetFloatField : IFacetField
     {
         public FloatRange[] FloatRanges { get; }
 
