@@ -1,4 +1,4 @@
-namespace Examine.Lucene.Search
+namespace Examine.Search
 {
     public interface IFacetValue
     {

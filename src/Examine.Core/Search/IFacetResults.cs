@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Examine.Lucene.Search
+namespace Examine.Search
 {
     public interface IFacetResults
     {

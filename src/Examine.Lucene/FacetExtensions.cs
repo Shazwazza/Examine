@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.Lucene.Search;
 using Lucene.Net.Facet.Range;
 
 namespace Examine.Lucene
@@ -11,14 +10,14 @@ namespace Examine.Lucene
         /// <summary>
         /// Get the values for a particular facet in the results
         /// </summary>
-        public static IFacetResult GetFacet(this ISearchResults searchResults, string field)
+        public static Examine.Search.IFacetResult GetFacet(this ISearchResults searchResults, string field)
         {
-            if (!(searchResults is IFacetResults facetResults))
+            if (!(searchResults is Examine.Search.IFacetResults facetResults))
             {
                 throw new NotSupportedException("Result does not support facets");
             }
 
-            facetResults.Facets.TryGetValue(field, out IFacetResult facet);
+            facetResults.Facets.TryGetValue(field, out Examine.Search.IFacetResult facet);
 
             return facet;
         }
@@ -26,9 +25,9 @@ namespace Examine.Lucene
         /// <summary>
         /// Get all of the facets in the results
         /// </summary>
-        public static IEnumerable<IFacetResult> GetFacets(this ISearchResults searchResults)
+        public static IEnumerable<Examine.Search.IFacetResult> GetFacets(this ISearchResults searchResults)
         {
-            if (!(searchResults is IFacetResults facetResults))
+            if (!(searchResults is Examine.Search.IFacetResults facetResults))
             {
                 throw new NotSupportedException("Result does not support facets");
             }
