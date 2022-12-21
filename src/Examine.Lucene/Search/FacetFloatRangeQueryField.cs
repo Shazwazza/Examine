@@ -2,12 +2,12 @@ using Examine.Search;
 
 namespace Examine.Lucene.Search
 {
-    public class FacetDoubleRangeQueryField : IFacetDoubleRangeQueryField
+    public class FacetFloatRangeQueryField : IFacetFloatRangeQueryField
     {
         private readonly LuceneSearchQuery _search;
-        private readonly FacetDoubleField _field;
+        private readonly FacetFloatField _field;
 
-        public FacetDoubleRangeQueryField(LuceneSearchQuery search, FacetDoubleField field)
+        public FacetFloatRangeQueryField(LuceneSearchQuery search, FacetFloatField field)
         {
             _search = search;
             _field = field;
@@ -17,7 +17,7 @@ namespace Examine.Lucene.Search
         public ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
 
         /// <inheritdoc/>
-        public IFacetDoubleRangeQueryField FacetField(string fieldName)
+        public IFacetFloatRangeQueryField FacetField(string fieldName)
         {
             _field.FacetField = fieldName;
 

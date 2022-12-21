@@ -13,8 +13,6 @@ namespace Examine.Search
 
         public string FacetField { get; set; }
 
-        public bool IsFloat { get; set; }
-
         public FacetDoubleField(string field, DoubleRange[] doubleRanges, string facetField = ExamineFieldNames.DefaultFacetsName)
         {
             Field = field;

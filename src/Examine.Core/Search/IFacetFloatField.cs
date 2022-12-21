@@ -5,8 +5,8 @@ using Examine.Lucene.Search;
 
 namespace Examine.Search
 {
-    public interface IFacetDoubleField : IFacetField
+    public interface IFacetFloatField : IFacetField
     {
-        DoubleRange[] DoubleRanges { get; }
+        FloatRange[] FloatRanges { get; }
     }
 }

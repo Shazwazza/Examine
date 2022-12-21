@@ -84,6 +84,8 @@ namespace Examine.Lucene.Search
 
         public abstract IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges);
 
+        public abstract IFacetFloatRangeQueryField WithFacet(string field, params FloatRange[] floatRanges);
+
         public abstract IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges);
     }
 }

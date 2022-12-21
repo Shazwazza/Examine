@@ -73,6 +73,8 @@ namespace Examine.Lucene.Search
 
         public override IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
 
+        public override IFacetFloatRangeQueryField WithFacet(string field, params FloatRange[] floatRanges) => _search.FacetInternal(field, floatRanges);
+
         public override IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
     }
 }

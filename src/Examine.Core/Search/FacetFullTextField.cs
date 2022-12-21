@@ -4,9 +4,9 @@ namespace Examine.Search
     {
         public int MaxCount { get; set; }
 
-        public string[] Values { get; set; }
+        public string[] Values { get; }
 
-        public string Field { get; set; }
+        public string Field { get; }
 
         public string FacetField { get; set; }
 

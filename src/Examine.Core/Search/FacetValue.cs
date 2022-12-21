@@ -5,7 +5,7 @@ using Examine.Lucene.Search;
 
 namespace Examine.Search
 {
-    public class FacetValue : IFacetValue
+    public readonly struct FacetValue : IFacetValue
     {
         public string Label { get; }
 

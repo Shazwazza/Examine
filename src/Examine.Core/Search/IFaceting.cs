@@ -34,6 +34,11 @@ namespace Examine.Search
         /// <summary>
         /// Add a range facet to the current query
         /// </summary>
+        IFacetFloatRangeQueryField WithFacet(string field, params FloatRange[] floatRanges);
+
+        /// <summary>
+        /// Add a range facet to the current query
+        /// </summary>
         IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges);
     }
 }

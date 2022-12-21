@@ -7,11 +7,11 @@ namespace Examine.Search
         /// <summary>
         /// Maximum number of terms to return
         /// </summary>
-        int MaxCount { get; set; }
+        int MaxCount { get; }
 
         /// <summary>
         /// Filter values
         /// </summary>
-        string[] Values { get; set; }
+        string[] Values { get; }
     }
 }

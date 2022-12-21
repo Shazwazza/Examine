@@ -339,6 +339,20 @@ namespace Examine.Lucene.Search
             return new FacetDoubleRangeQueryField(this, facet);
         }
 
+        internal IFacetFloatRangeQueryField FacetInternal(string field, params FloatRange[] floatRanges)
+        {
+            if (floatRanges == null)
+            {
+                floatRanges = Array.Empty<FloatRange>();
+            }
+
+            var facet = new FacetFloatField(field, floatRanges);
+
+            _facetFields.Add(facet);
+
+            return new FacetFloatRangeQueryField(this, facet);
+        }
+
         internal IFacetLongRangeQueryField FacetInternal(string field, params Int64Range[] longRanges)
         {
             if(longRanges == null)

@@ -2645,16 +2645,16 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
 
                     //Act
-                    var results1 = filter1.WithFacet("SomeFloat", new DoubleRange[]
+                    var results1 = filter1.WithFacet("SomeFloat", new FloatRange[]
                         {
-                            new DoubleRange("1", 0, true, 12, true),
-                            new DoubleRange("2", 13, true, 250, true)
-                        }).IsFloat(true).Execute();
-                    var results2 = filter2.WithFacet("SomeFloat", new DoubleRange[]
+                            new FloatRange("1", 0, true, 12, true),
+                            new FloatRange("2", 13, true, 250, true)
+                        }).Execute();
+                    var results2 = filter2.WithFacet("SomeFloat", new FloatRange[]
                         {
-                            new DoubleRange("1", 0, true, 12, true),
-                            new DoubleRange("2", 13, true, 250, true)
-                        }).IsFloat(true).Execute();
+                            new FloatRange("1", 0, true, 12, true),
+                            new FloatRange("2", 13, true, 250, true)
+                        }).Execute();
 
                     var facetResults1 = results1.GetFacet("SomeFloat");
                     var facetResults2 = results2.GetFacet("SomeFloat");
