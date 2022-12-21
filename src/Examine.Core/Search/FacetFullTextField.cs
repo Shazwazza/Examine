@@ -2,7 +2,7 @@ namespace Examine.Search
 {
     public class FacetFullTextField : IFacetFullTextField
     {
-        public int MaxCount { get; set; }
+        public int MaxCount { get; internal set; }
 
         public string[] Values { get; }
 
