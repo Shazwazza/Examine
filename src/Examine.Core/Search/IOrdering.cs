@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 
 namespace Examine.Search
 {
-    public interface IOrdering : IQueryExecutor, IFaceting
+    public interface IOrdering : IQueryExecutor
     {
         /// <summary>
         /// Orders the results by the specified fields
@@ -37,5 +38,12 @@ namespace Examine.Search
         /// </summary>
         /// <returns></returns>
         IOrdering SelectAllFields();
+
+        /// <summary>
+        /// Allows for selecting facets to return in your query
+        /// </summary>
+        /// <param name="facets"></param>
+        /// <returns></returns>
+        IQueryExecutor WithFacets(Action<IFaceting> facets);
     }
 }

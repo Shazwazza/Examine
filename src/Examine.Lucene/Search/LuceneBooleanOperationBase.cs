@@ -78,14 +78,6 @@ namespace Examine.Lucene.Search
         public abstract IOrdering SelectField(string fieldName);
         public abstract IOrdering SelectAllFields();
 
-        public abstract IFacetQueryField WithFacet(string field);
-
-        public abstract IFacetQueryField WithFacet(string field, params string[] values);
-
-        public abstract IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges);
-
-        public abstract IFacetFloatRangeQueryField WithFacet(string field, params FloatRange[] floatRanges);
-
-        public abstract IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges);
+        public abstract IQueryExecutor WithFacets(Action<IFaceting> facets);
     }
 }

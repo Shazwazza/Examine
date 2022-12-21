@@ -13,7 +13,7 @@ namespace Examine.Search
             _field = field;
         }
 
-        public IOrdering And() => new LuceneBooleanOperation(_search);
+        public IFaceting And() => new LuceneFacetOperation(_search);
         public ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
 
         public IFacetQueryField FacetField(string fieldName)

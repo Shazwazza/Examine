@@ -1,4 +1,4 @@
-﻿namespace Examine.Search
+namespace Examine.Search
 {
     /// <summary>
     /// Allows for appending more operations
@@ -9,6 +9,6 @@
         /// Allows for adding more operations
         /// </summary>
         /// <returns></returns>
-        IOrdering And();
+        IFaceting And();
     }
 }

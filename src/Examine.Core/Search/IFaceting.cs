@@ -9,7 +9,7 @@ namespace Examine.Search
     /// <summary>
     /// Faceting operations
     /// </summary>
-    public interface IFaceting
+    public interface IFaceting : IQueryExecutor
     {
         /// <summary>
         /// Add a facet string to the current query
