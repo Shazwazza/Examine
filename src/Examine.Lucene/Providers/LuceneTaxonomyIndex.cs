@@ -22,7 +22,7 @@ namespace Examine.Lucene.Providers
     // task processing? seems it would be a lot simpler? Then can be replaced with aspnetcore implementation
 
     ///<summary>
-    /// Abstract object containing all of the logic used to use Lucene as an indexer
+    /// Lucene Index with Taxonomy Index
     ///</summary>
     public class LuceneTaxonomyIndex : LuceneIndex, IDisposable, IIndexStats, ReferenceManager.IRefreshListener
     {
