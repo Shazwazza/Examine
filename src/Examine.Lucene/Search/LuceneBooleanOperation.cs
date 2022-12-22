@@ -67,12 +67,11 @@ namespace Examine.Lucene.Search
 
         public override string ToString() => _search.ToString();
 
-        public override IFacetQueryField WithFacet(string field) => _search.FacetInternal(field, Array.Empty<string>());
-
-        public override IFacetQueryField WithFacet(string field, params string[] values) => _search.FacetInternal(field, values);
-
-        public override IFacetDoubleRangeQueryField WithFacet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
-
-        public override IFacetLongRangeQueryField WithFacet(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
+        public override IQueryExecutor WithFacets(Action<IFaceting> facets)
+        {
+            var luceneFacetOperation = new LuceneFacetOperation(_search);
+            facets.Invoke(luceneFacetOperation);
+            return luceneFacetOperation;
+        }
     }
 }

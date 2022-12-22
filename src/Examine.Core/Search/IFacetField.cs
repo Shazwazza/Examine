@@ -1,4 +1,4 @@
-namespace Examine.Lucene.Search
+namespace Examine.Search
 {
     public interface IFacetField
     {
@@ -10,6 +10,6 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// The field to get the facet field from
         /// </summary>
-        string FacetField { get; set; }
+        string FacetField { get; }
     }
 }

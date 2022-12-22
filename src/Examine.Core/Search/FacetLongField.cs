@@ -1,14 +1,14 @@
 namespace Examine.Search
 {
-    public class FacetLongField : IFacetLongField
+    public readonly struct FacetLongField : IFacetField
     {
         public string Field { get; }
 
         public Int64Range[] LongRanges { get; }
 
-        public string FacetField { get; set; }
+        public string FacetField { get; }
 
-        public FacetLongField(string field, Int64Range[] longRanges, string facetField = ExamineFieldNames.DefaultFacetsName)
+        public FacetLongField(string field, Int64Range[] longRanges, string facetField)
         {
             Field = field;
             LongRanges = longRanges;

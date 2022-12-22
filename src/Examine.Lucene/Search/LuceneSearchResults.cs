@@ -1,14 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using Examine.Search;
 
 namespace Examine.Lucene.Search
 {
     public class LuceneSearchResults : ILuceneSearchResults, IFacetResults
     {
-        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0,float.NaN, default, new ReadOnlyDictionary<string, IFacetResult>(new Dictionary<string, IFacetResult>(0)));
-
+        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, float.NaN, default, new Dictionary<string, IFacetResult>());
+        
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
         public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, float maxScore, SearchAfterOptions searchAfterOptions, IReadOnlyDictionary<string, IFacetResult> facets)
@@ -17,7 +17,6 @@ namespace Examine.Lucene.Search
             TotalItemCount = totalItemCount;
             MaxScore = maxScore;
             SearchAfter = searchAfterOptions;
-            Facets = facets;
             Facets = facets;
         }
 

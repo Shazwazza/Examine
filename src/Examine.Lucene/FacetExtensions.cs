@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Examine.Lucene.Search;
 using Lucene.Net.Facet.Range;
 
 namespace Examine.Lucene
@@ -12,14 +10,14 @@ namespace Examine.Lucene
         /// <summary>
         /// Get the values for a particular facet in the results
         /// </summary>
-        public static IFacetResult GetFacet(this ISearchResults searchResults, string field)
+        public static Examine.Search.IFacetResult GetFacet(this ISearchResults searchResults, string field)
         {
-            if (!(searchResults is IFacetResults facetResults))
+            if (!(searchResults is Examine.Search.IFacetResults facetResults))
             {
-                throw new ArgumentException("Result does not support facets");
+                throw new NotSupportedException("Result does not support facets");
             }
 
-            facetResults.Facets.TryGetValue(field, out IFacetResult facet);
+            facetResults.Facets.TryGetValue(field, out Examine.Search.IFacetResult facet);
 
             return facet;
         }
@@ -27,11 +25,11 @@ namespace Examine.Lucene
         /// <summary>
         /// Get all of the facets in the results
         /// </summary>
-        public static IEnumerable<IFacetResult> GetFacets(this ISearchResults searchResults)
+        public static IEnumerable<Examine.Search.IFacetResult> GetFacets(this ISearchResults searchResults)
         {
-            if (!(searchResults is IFacetResults facetResults))
+            if (!(searchResults is Examine.Search.IFacetResults facetResults))
             {
-                throw new ArgumentException("Result does not support facets");
+                throw new NotSupportedException("Result does not support facets");
             }
 
             return facetResults.Facets.Values;
@@ -42,27 +40,41 @@ namespace Examine.Lucene
         /// </summary>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public static IEnumerable<Int64Range> AsLuceneRange(this IEnumerable<Examine.Search.Int64Range> ranges) => ranges.Select(range => range.AsLuceneRange());
+        internal static IEnumerable<Int64Range> AsLuceneRange(this IEnumerable<Examine.Search.Int64Range> ranges) => ranges.Select(range => range.AsLuceneRange());
 
         /// <summary>
         /// Converts a <see cref="Examine.Search.Int64Range"/> to the Lucene equivalent <see cref="Int64Range"/>
         /// </summary>
         /// <param name="range"></param>
         /// <returns></returns>
-        public static Int64Range AsLuceneRange(this Examine.Search.Int64Range range) => new Int64Range(range.Label, range.Min, range.MinInclusive, range.Max, range.MaxInclusive);
+        internal static Int64Range AsLuceneRange(this Examine.Search.Int64Range range) => new Int64Range(range.Label, range.Min, range.MinInclusive, range.Max, range.MaxInclusive);
 
         /// <summary>
         /// Converts <see cref="Examine.Search.DoubleRange"/> to the Lucene equivalent <see cref="DoubleRange"/>
         /// </summary>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public static IEnumerable<DoubleRange> AsLuceneRange(this IEnumerable<Examine.Search.DoubleRange> ranges) => ranges.Select(range => range.AsLuceneRange());
+        internal static IEnumerable<DoubleRange> AsLuceneRange(this IEnumerable<Examine.Search.DoubleRange> ranges) => ranges.Select(range => range.AsLuceneRange());
 
         /// <summary>
         /// Converts a <see cref="Examine.Search.DoubleRange"/> to the Lucene equivalent <see cref="DoubleRange"/>
         /// </summary>
         /// <param name="range"></param>
         /// <returns></returns>
-        public static DoubleRange AsLuceneRange(this Examine.Search.DoubleRange range) => new DoubleRange(range.Label, range.Min, range.MinInclusive, range.Max, range.MaxInclusive);
+        internal static DoubleRange AsLuceneRange(this Examine.Search.DoubleRange range) => new DoubleRange(range.Label, range.Min, range.MinInclusive, range.Max, range.MaxInclusive);
+
+        /// <summary>
+        /// Converts <see cref="Examine.Search.FloatRange"/> to the Lucene equivalent <see cref="DoubleRange"/>
+        /// </summary>
+        /// <param name="ranges"></param>
+        /// <returns></returns>
+        internal static IEnumerable<DoubleRange> AsLuceneRange(this IEnumerable<Examine.Search.FloatRange> ranges) => ranges.Select(range => range.AsLuceneRange());
+
+        /// <summary>
+        /// Converts a <see cref="Examine.Search.DoubleRange"/> to the Lucene equivalent <see cref="DoubleRange"/>
+        /// </summary>
+        /// <param name="range"></param>
+        /// <returns></returns>
+        internal static DoubleRange AsLuceneRange(this Examine.Search.FloatRange range) => new DoubleRange(range.Label, range.Min, range.MinInclusive, range.Max, range.MaxInclusive);
     }
 }

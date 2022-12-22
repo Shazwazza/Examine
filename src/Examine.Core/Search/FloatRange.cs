@@ -1,12 +1,12 @@
 namespace Examine.Search
 {
     /// <summary>
-    /// Represents a range over <see cref="double"/> values.
+    /// Represents a range over <see cref="float"/> values.
     /// </summary>
-    public readonly struct DoubleRange
+    public readonly struct FloatRange
     {
         /// <inheritdoc/>
-        public DoubleRange(string label, double min, bool minInclusive, double max, bool maxInclusive)
+        public FloatRange(string label, float min, bool minInclusive, float max, bool maxInclusive)
         {
             Label = label;
             Min = min;
@@ -23,7 +23,7 @@ namespace Examine.Search
         /// <summary>
         /// Minimum.
         /// </summary>
-        public double Min { get; }
+        public float Min { get; }
 
         /// <summary>
         /// True if the minimum value is inclusive.
@@ -33,7 +33,7 @@ namespace Examine.Search
         /// <summary>
         /// Maximum.
         /// </summary>
-        public double Max { get; }
+        public float Max { get; }
 
         /// <summary>
         /// True if the maximum value is inclusive.

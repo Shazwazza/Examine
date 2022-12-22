@@ -1,21 +1,21 @@
 namespace Examine.Search
 {
-    public class FacetFullTextField : IFacetFullTextField
+    public class FacetFullTextField : IFacetField
     {
-        public int MaxCount { get; set; }
+        public int MaxCount { get; internal set; }
 
-        public string[] Values { get; set; }
+        public string[] Values { get; }
 
-        public string Field { get; set; }
+        public string Field { get; }
 
-        public string FacetField { get; set; }
+        public string FacetField { get; }
 
-        public FacetFullTextField(string field, string[] values, int maxCount = 10, string facetField = ExamineFieldNames.DefaultFacetsName)
+        public FacetFullTextField(string field, string[] values, string facetField, int maxCount = 10)
         {
             Field = field;
             Values = values;
-            MaxCount = maxCount;
             FacetField = facetField;
+            MaxCount = maxCount;
         }
     }
 }
