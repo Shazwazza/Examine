@@ -1,4 +1,5 @@
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Microsoft.Extensions.Logging;
 
@@ -6,8 +7,11 @@ namespace Examine.Lucene.Indexing
 {
     public class FacetDoubleType : DoubleType
     {
-        public FacetDoubleType(string fieldName, ILoggerFactory logger, bool store = true) : base(fieldName, logger, store)
+        private readonly bool _taxonomyIndex;
+
+        public FacetDoubleType(string fieldName, ILoggerFactory logger, bool store = true, bool taxonomyIndex = false) : base(fieldName, logger, store)
         {
+            _taxonomyIndex = taxonomyIndex;
         }
 
         protected override void AddSingleValue(Document doc, object value)
@@ -17,8 +21,16 @@ namespace Examine.Lucene.Indexing
             if (!TryConvert(value, out double parsedVal))
                 return;
 
-            doc.Add(new SortedSetDocValuesFacetField(FieldName, parsedVal.ToString()));
-            doc.Add(new DoubleDocValuesField(FieldName, parsedVal));
+            if (_taxonomyIndex)
+            {
+                doc.Add(new FacetField(FieldName, parsedVal.ToString()));
+                doc.Add(new DoubleDocValuesField(FieldName, parsedVal));
+            }
+            else
+            {
+                doc.Add(new SortedSetDocValuesFacetField(FieldName, parsedVal.ToString()));
+                doc.Add(new DoubleDocValuesField(FieldName, parsedVal));
+            }
         }
     }
 }

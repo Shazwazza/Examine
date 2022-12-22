@@ -84,7 +84,18 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FacetDateMinute, name => new FacetDateTimeType(name, loggerFactory, DateResolution.MINUTE)},
                 {FieldDefinitionTypes.FacetFullText, name => new FacetFullTextType(name, loggerFactory, defaultAnalyzer)},
                 {FieldDefinitionTypes.FacetFullTextSortable, name => new FacetFullTextType(name, loggerFactory, defaultAnalyzer, true)},
-                {FieldDefinitionTypes.TaxonomyFacet, name => new TaxonomyFacetType(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetTaxonomyInteger, name => new FacetInt32Type(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetTaxonomyFloat, name => new FacetSingleType(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetTaxonomyDouble, name => new FacetDoubleType(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetTaxonomyLong, name => new FacetInt64Type(name, loggerFactory)},
+                {FieldDefinitionTypes.FacetTaxonomyDateTime, name => new FacetDateTimeType(name, loggerFactory, DateResolution.MILLISECOND, taxonomyIndex: true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateYear, name => new FacetDateTimeType(name, loggerFactory, DateResolution.YEAR, taxonomyIndex: true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateMonth, name => new FacetDateTimeType(name, loggerFactory, DateResolution.MONTH, taxonomyIndex: true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateDay, name => new FacetDateTimeType(name, loggerFactory, DateResolution.DAY, taxonomyIndex: true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateHour, name => new FacetDateTimeType(name, loggerFactory, DateResolution.HOUR, taxonomyIndex: true)},
+                {FieldDefinitionTypes.FacetTaxonomyDateMinute, name => new FacetDateTimeType(name, loggerFactory, DateResolution.MINUTE, taxonomyIndex: true)},
+                {FieldDefinitionTypes.FacetTaxonomyFullText, name => new FacetFullTextType(name, loggerFactory, defaultAnalyzer, false, taxonomyIndex: true)},
+                {FieldDefinitionTypes.FacetTaxonomyFullTextSortable, name => new FacetFullTextType(name, loggerFactory, defaultAnalyzer, true, taxonomyIndex: true)},
                 };
 
 

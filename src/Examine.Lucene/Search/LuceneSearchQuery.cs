@@ -231,7 +231,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields,_facetsConfig);
 
             var pagesResults = executor.Execute();
 
@@ -381,6 +381,22 @@ namespace Examine.Lucene.Search
                 return _facetsConfig.DimConfigs[field].IndexFieldName;
             }
             return ExamineFieldNames.DefaultFacetsName;
+        }
+        private bool GetFacetFieldIsMultiValued(string field)
+        {
+            if (_facetsConfig.DimConfigs.ContainsKey(field))
+            {
+                return _facetsConfig.DimConfigs[field].IsMultiValued;
+            }
+            return false;
+        }
+        private bool GetFacetFieldIsHierarchical(string field)
+        {
+            if (_facetsConfig.DimConfigs.ContainsKey(field))
+            {
+                return _facetsConfig.DimConfigs[field].IsHierarchical;
+            }
+            return false;
         }
     }
 }

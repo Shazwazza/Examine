@@ -1,5 +1,6 @@
 using System;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Microsoft.Extensions.Logging;
 
@@ -7,8 +8,11 @@ namespace Examine.Lucene.Indexing
 {
     public class FacetDateTimeType : DateTimeType
     {
-        public FacetDateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true) : base(fieldName, logger, resolution, store)
+        private readonly bool _taxonomyIndex;
+
+        public FacetDateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true, bool taxonomyIndex = false) : base(fieldName, logger, resolution, store)
         {
+            _taxonomyIndex = taxonomyIndex;
         }
 
         protected override void AddSingleValue(Document doc, object value)
@@ -19,9 +23,16 @@ namespace Examine.Lucene.Indexing
                 return;
 
             var val = DateToLong(parsedVal);
-
-            doc.Add(new SortedSetDocValuesFacetField(FieldName, val.ToString()));
-            doc.Add(new NumericDocValuesField(FieldName, val));
+            if (_taxonomyIndex)
+            {
+                doc.Add(new FacetField(FieldName, val.ToString()));
+                doc.Add(new NumericDocValuesField(FieldName, val));
+            }
+            else
+            {
+                doc.Add(new SortedSetDocValuesFacetField(FieldName, val.ToString()));
+                doc.Add(new NumericDocValuesField(FieldName, val));
+            }
         }
     }
 }

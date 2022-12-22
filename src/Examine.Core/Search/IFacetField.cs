@@ -11,5 +11,6 @@ namespace Examine.Search
         /// The field to get the facet field from
         /// </summary>
         string FacetField { get; }
+
     }
 }

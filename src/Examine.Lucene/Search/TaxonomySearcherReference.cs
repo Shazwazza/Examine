@@ -35,7 +35,7 @@ namespace Examine.Lucene.Search
                 {
                     throw new ObjectDisposedException($"{nameof(TaxonomySearcherReference)} is disposed");
                 }
-                return _searcherAndTaxonomy.TaxonomyReader ?? (_searcherAndTaxonomy = _searcherManager.Acquire()).TaxonomyReader;
+                return _searcherAndTaxonomy?.TaxonomyReader ?? (_searcherAndTaxonomy = _searcherManager.Acquire()).TaxonomyReader;
             }
         }
 

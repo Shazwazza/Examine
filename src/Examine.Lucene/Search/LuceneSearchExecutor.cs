@@ -6,6 +6,7 @@ using Lucene.Net.Documents;
 using Lucene.Net.Facet;
 using Lucene.Net.Facet.Range;
 using Lucene.Net.Facet.SortedSet;
+using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Index;
 using Lucene.Net.Queries.Function.ValueSources;
 using Lucene.Net.Search;
@@ -25,9 +26,11 @@ namespace Examine.Lucene.Search
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
         private readonly IEnumerable<IFacetField> _facetFields;
+        private readonly FacetsConfig _facetsConfig;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields)
+        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
+            ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -36,6 +39,7 @@ namespace Examine.Lucene.Search
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
             _facetFields = facetFields;
+            _facetsConfig = facetsConfig;
         }
 
         private int MaxDoc
@@ -229,12 +233,18 @@ namespace Examine.Lucene.Search
             var facetFields = _facetFields.OrderBy(field => field.FacetField);
 
             SortedSetDocValuesReaderState sortedSetReaderState = null;
+            Facets fastTaxonomyFacetCounts = null;
+            if (searcher is ITaxonomySearcherReference taxonomySearcher)
+            {
+                var taxonomyReader = taxonomySearcher.TaxonomyReader;
+                fastTaxonomyFacetCounts = new FastTaxonomyFacetCounts(taxonomySearcher.TaxonomyReader, _facetsConfig, facetsCollector);
+            }
 
             foreach (var field in facetFields)
             {
                 if (field is FacetFullTextField facetFullTextField)
                 {
-                    ExtractFullTextFacets(facetsCollector, searcher, facets, sortedSetReaderState, field, facetFullTextField);
+                    ExtractFullTextFacets(facetsCollector, searcher, facets, sortedSetReaderState, field, facetFullTextField, fastTaxonomyFacetCounts);
                 }
                 else if (field is FacetLongField facetLongField)
                 {
@@ -252,7 +262,7 @@ namespace Examine.Lucene.Search
                 else if (field is FacetDoubleField facetDoubleField)
                 {
                     var doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, facetsCollector, facetDoubleField.DoubleRanges.AsLuceneRange().ToArray());
-                    
+
                     var doubleFacets = doubleFacetCounts.GetTopChildren(0, facetDoubleField.Field);
 
                     if (doubleFacets == null)
@@ -262,10 +272,10 @@ namespace Examine.Lucene.Search
 
                     facets.Add(facetDoubleField.Field, new Examine.Search.FacetResult(doubleFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
                 }
-                else if(field is FacetFloatField facetFloatField)
+                else if (field is FacetFloatField facetFloatField)
                 {
                     var floatFacetCounts = new DoubleRangeFacetCounts(facetFloatField.Field, new SingleFieldSource(facetFloatField.Field), facetsCollector, facetFloatField.FloatRanges.AsLuceneRange().ToArray());
-                    
+
                     var floatFacets = floatFacetCounts.GetTopChildren(0, facetFloatField.Field);
 
                     if (floatFacets == null)
@@ -280,28 +290,38 @@ namespace Examine.Lucene.Search
             return facets;
         }
 
-        private static void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field, FacetFullTextField facetFullTextField)
+        private static void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets,
+            SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field, FacetFullTextField facetFullTextField,
+            Facets fastTaxonomyFacetCounts)
         {
+            Facets sortedSetfacetCounts;
             if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
             {
                 sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
             }
-
-            var sortedFacetsCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
+            sortedSetfacetCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
 
             if (facetFullTextField.Values != null && facetFullTextField.Values.Length > 0)
             {
                 var facetValues = new List<FacetValue>();
                 foreach (var label in facetFullTextField.Values)
                 {
-                    var value = sortedFacetsCounts.GetSpecificValue(facetFullTextField.Field, label);
+                    var value = sortedSetfacetCounts.GetSpecificValue(facetFullTextField.Field, label);
+                    if(value == -1 && fastTaxonomyFacetCounts != null)
+                    {
+                        value = fastTaxonomyFacetCounts.GetSpecificValue(facetFullTextField.Field, label);
+                    }
                     facetValues.Add(new FacetValue(label, value));
                 }
                 facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(facetValues.OrderBy(value => value.Value).Take(facetFullTextField.MaxCount).OfType<IFacetValue>()));
             }
             else
             {
-                var sortedFacets = sortedFacetsCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
+                var sortedFacets = sortedSetfacetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
+                if (sortedFacets == null && fastTaxonomyFacetCounts != null)
+                {
+                    sortedFacets = fastTaxonomyFacetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
+                }
 
                 if (sortedFacets == null)
                 {
