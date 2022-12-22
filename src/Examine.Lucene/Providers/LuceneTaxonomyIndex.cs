@@ -1,51 +1,86 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
-using Examine.Lucene.Indexing;
 using Lucene.Net.Documents;
-using Lucene.Net.Facet.Taxonomy;
-using Lucene.Net.Facet.Taxonomy.Directory;
-using Lucene.Net.Facet.Taxonomy.WriterCache;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
-using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
+using Directory = Lucene.Net.Store.Directory;
+using static Lucene.Net.Index.IndexWriter;
 using Microsoft.Extensions.Options;
-using static Lucene.Net.Facet.Taxonomy.SearcherTaxonomyManager;
+using Examine.Lucene.Indexing;
+using Examine.Lucene.Directories;
+using Lucene.Net.Facet.Taxonomy;
+using Lucene.Net.Facet.Taxonomy.Directory;
 
 namespace Examine.Lucene.Providers
 {
-    public class LuceneTaxonomyIndex : LuceneIndex
+    // TODO: I think we should borrow the IBackgroundTaskQueue from Umbraco and use that to do all background
+    // task processing? seems it would be a lot simpler? Then can be replaced with aspnetcore implementation
+
+    ///<summary>
+    /// Abstract object containing all of the logic used to use Lucene as an indexer
+    ///</summary>
+    public class LuceneTaxonomyIndex : LuceneIndex, IDisposable, IIndexStats, ReferenceManager.IRefreshListener
     {
+        #region Constructors
+
+        private LuceneTaxonomyIndex(
+            ILoggerFactory loggerFactory,
+            string name,
+            IOptionsMonitor<LuceneIndexOptions> indexOptions)
+            : base(loggerFactory, name, indexOptions, CreateIndexCommiter())
+        {
+            _options = indexOptions.GetNamedOptions(name);
+            _logger = loggerFactory.CreateLogger<LuceneIndex>();
+
+            _searcher = new Lazy<LuceneTaxonomySearcher>(CreateSearcher);
+        }
+
+        private static Func<LuceneIndex, IIndexCommiter> CreateIndexCommiter() => (index) =>
+        {
+            if (!(index is LuceneTaxonomyIndex taxonomyIndex))
+            {
+                throw new NotSupportedException("TaxonomyIndexCommiter only supports LuceneTaxonomyIndex");
+            }
+            return new TaxonomyIndexCommiter(taxonomyIndex);
+        };
+
+        /// <summary>
+        /// Constructor to create an indexer
+        /// </summary>
         public LuceneTaxonomyIndex(
             ILoggerFactory loggerFactory,
             string name,
-            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions) : base(loggerFactory, name, indexOptions)
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
+           : this(loggerFactory, name, (IOptionsMonitor<LuceneIndexOptions>)indexOptions)
         {
-            _logger = loggerFactory.CreateLogger<LuceneTaxonomyIndex>();
-            _options = indexOptions.CurrentValue;
         }
 
-        internal LuceneTaxonomyIndex(
-            ILoggerFactory loggerFactory,
-            string name,
-            IOptionsMonitor<LuceneIndexOptions> indexOptions,
-            IndexWriter writer) : base(loggerFactory, name, indexOptions, writer)
-        {
-            _logger = loggerFactory.CreateLogger<LuceneTaxonomyIndex>();
-            _options = indexOptions.CurrentValue;
-        }
-        private ILogger<LuceneTaxonomyIndex> _logger;
+        #endregion
+
         private volatile DirectoryTaxonomyWriter _taxonomyWriter;
-        private ControlledRealTimeReopenThread<SearcherAndTaxonomy> _nrtTaxonomyReopenThread;
-        // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
-        private long? _latestGen;
+        
         private readonly LuceneIndexOptions _options;
+        private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy> _nrtReopenThread;
+        private readonly ILogger<LuceneIndex> _logger;
+
+        /// <summary>
+        /// Used to aquire the index writer
+        /// </summary>
+        private readonly object _writerLocker = new object();
+
         private readonly Lazy<LuceneTaxonomySearcher> _searcher;
-        private object _taxonomyWriterLocker = new object();
+
+
+        /// <summary>
+        /// Gets a searcher for the index
+        /// </summary>
+        public override ISearcher Searcher => _searcher.Value;
+
+        #region Protected
 
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
@@ -53,7 +88,7 @@ namespace Examine.Lucene.Providers
         /// <param name="doc"></param>
         /// <param name="valueSet">The data to index.</param>
         /// <param name="writer">The writer that will be used to update the Lucene index.</param>
-        protected virtual void AddDocument(Document doc, ValueSet valueSet)
+        protected override void AddDocument(Document doc, ValueSet valueSet)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
             {
@@ -125,14 +160,131 @@ namespace Examine.Lucene.Providers
             }
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
-            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetsConfig.Build(TaxonomyWriter, doc));
+            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetsConfig.Build(TaxonomyWriter,doc));
+        }
+
+        /// <summary>
+        /// This queues up a commit for the index so that a commit doesn't happen on every individual write since that is quite expensive
+        /// </summary>
+        private class TaxonomyIndexCommiter : DisposableObjectSlim, IIndexCommiter
+        {
+            private readonly LuceneTaxonomyIndex _index;
+            private DateTime _timestamp;
+            private Timer _timer;
+            private readonly object _locker = new object();
+            private const int WaitMilliseconds = 2000;
+
+            /// <summary>
+            /// The maximum time period that will elapse until we must commit (5 mins)
+            /// </summary>
+            private const int MaxWaitMilliseconds = 300000;
+
+            public TaxonomyIndexCommiter(LuceneTaxonomyIndex index)
+            {
+                _index = index;
+            }
+
+            public void CommitNow()
+            {
+                _index._taxonomyWriter?.Commit();
+                // Taxonomy Writer must commit before IndexWriter.
+                _index.IndexWriter?.IndexWriter?.Commit();
+                _index.RaiseIndexCommited(_index, EventArgs.Empty);
+            }
+
+            public void ScheduleCommit()
+            {
+                lock (_locker)
+                {
+                    if (_timer == null)
+                    {
+                        //if we've been cancelled then be sure to commit now
+                        if (_index.IsCancellationRequested)
+                        {
+                            // perform the commit
+                            CommitNow();
+                        }
+                        else
+                        {
+                            //It's the initial call to this at the beginning or after successful commit
+                            _timestamp = DateTime.Now;
+                            _timer = new Timer(_ => TimerRelease());
+                            _timer.Change(WaitMilliseconds, 0);
+                        }
+                    }
+                    else
+                    {
+                        //if we've been cancelled then be sure to cancel the timer and commit now
+                        if (_index.IsCancellationRequested)
+                        {
+                            //Stop the timer
+                            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                            _timer.Dispose();
+                            _timer = null;
+
+                            //perform the commit
+                            CommitNow();
+                        }
+                        else if (
+                            // must be less than the max
+                            DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(MaxWaitMilliseconds) &&
+                            // and less than the delay
+                            DateTime.Now - _timestamp < TimeSpan.FromMilliseconds(WaitMilliseconds))
+                        {
+                            //Delay  
+                            _timer.Change(WaitMilliseconds, 0);
+                        }
+                        else
+                        {
+                            //Cannot delay! the callback will execute on the pending timeout
+                        }
+                    }
+                }
+            }
+
+
+            private void TimerRelease()
+            {
+                lock (_locker)
+                {
+                    //if the timer is not null then a commit has been scheduled
+                    if (_timer != null)
+                    {
+                        //Stop the timer
+                        _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                        _timer.Dispose();
+                        _timer = null;
+
+                        try
+                        {
+                            //perform the commit
+                            CommitNow();
+
+                            // after the commit, refresh the searcher
+                            _index.WaitForChanges();
+                        }
+                        catch (Exception e)
+                        {
+                            // It is unclear how/why this happens but probably indicates index corruption
+                            // see https://github.com/Shazwazza/Examine/issues/164
+                            _index.OnIndexingError(new IndexingErrorEventArgs(
+                                _index,
+                                "An error occurred during the index commit operation, if this error is persistent then index rebuilding is necessary",
+                                "-1",
+                                e));
+                        }
+                    }
+                }
+            }
+
+            protected override void DisposeResources() => TimerRelease();
         }
 
         /// <summary>
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
         /// <returns></returns>
-        private DirectoryTaxonomyWriter CreateTaxonomyIndexWriterInternal()
+        private DirectoryTaxonomyWriter CreateTaxonomyWriterInternal()
         {
             Directory dir = GetLuceneDirectory();
 
@@ -156,50 +308,45 @@ namespace Examine.Lucene.Providers
                 return null;
             }
 
-            return CreateTaxonomyIndexWriter(dir);
-        }
+            DirectoryTaxonomyWriter writer = CreateTaxonomyWriter(dir);
 
+            return writer;
+        }
         /// <summary>
         /// Method that creates the IndexWriter
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        protected virtual DirectoryTaxonomyWriter CreateTaxonomyIndexWriter(Directory d)
+        protected virtual DirectoryTaxonomyWriter CreateTaxonomyWriter(Directory d)
         {
             if (d == null)
             {
                 throw new ArgumentNullException(nameof(d));
             }
-
-            var taxonomyWriterCache = new LruTaxonomyWriterCache(10000);
-            var taxonomyWriter = new DirectoryTaxonomyWriter(d, OpenMode.CREATE_OR_APPEND, taxonomyWriterCache);
+            var taxonomyWriter = new DirectoryTaxonomyWriter(d);
 
             return taxonomyWriter;
         }
 
-        /// <summary>
-        /// Gets the ITaxonomyWriter for the current directory
-        /// </summary>
-        /// <remarks>
         public DirectoryTaxonomyWriter TaxonomyWriter
         {
             get
             {
-                //EnsureTaxonomyIndex(false);
+                EnsureIndex(false);
 
                 if (_taxonomyWriter == null)
                 {
-                    Monitor.Enter(_taxonomyWriterLocker);
+                    Monitor.Enter(_writerLocker);
                     try
                     {
                         if (_taxonomyWriter == null)
                         {
-                            _taxonomyWriter = CreateTaxonomyIndexWriterInternal();
+                            _taxonomyWriter = CreateTaxonomyWriterInternal();
                         }
                     }
                     finally
                     {
-                        Monitor.Exit(_taxonomyWriterLocker);
+                        Monitor.Exit(_writerLocker);
                     }
 
                 }
@@ -208,7 +355,11 @@ namespace Examine.Lucene.Providers
             }
         }
 
-        private LuceneTaxonomySearcher CreateTaxonomySearcher()
+        #endregion
+
+        #region Private
+
+        private LuceneTaxonomySearcher CreateSearcher()
         {
             var possibleSuffixes = new[] { "Index", "Indexer" };
             var name = Name;
@@ -221,107 +372,43 @@ namespace Examine.Lucene.Providers
             }
 
             TrackingIndexWriter writer = IndexWriter;
-            var taxonomySearcherManager = new SearcherTaxonomyManager(writer.IndexWriter, true, new SearcherFactory(), TaxonomyWriter);
-            taxonomySearcherManager.AddListener(this);
-            _nrtTaxonomyReopenThread = new ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>(writer, taxonomySearcherManager, 5.0, 1.0)
+            DirectoryTaxonomyWriter taxonomyWriter = TaxonomyWriter;
+            var searcherManager = new SearcherTaxonomyManager(writer.IndexWriter, true, new SearcherFactory(), taxonomyWriter);
+            searcherManager.AddListener(this);
+            _nrtReopenThread = new ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>(writer, searcherManager, 5.0, 1.0)
             {
-                Name = $"{Name} NRT Taxonomy Reopen Thread",
+                Name = $"{Name} Taxonomy NRT Reopen Thread",
                 IsBackground = true
             };
 
-            _nrtTaxonomyReopenThread.Start();
+            _nrtReopenThread.Start();
 
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneTaxonomySearcher(name + "Searcher", taxonomySearcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig);
-
+            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig);
         }
 
+        #endregion
 
-        protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
+        protected override void Dispose(bool disposing)
         {
-            // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
-            lock (_writerLocker)
+            base.Dispose(disposing);
+            if (disposing)
             {
-                var currentToken = _cancellationToken;
-
-                if (RunAsync)
+                _nrtReopenThread?.Dispose();
+                if (_taxonomyWriter != null)
                 {
-                    QueueTask(() => PerformIndexItemsInternal(values, currentToken), onComplete, currentToken);
-                }
-                else
-                {
-                    var count = 0;
                     try
                     {
-                        count = PerformIndexItemsInternal(values, currentToken);
+                        _taxonomyWriter?.Dispose();
                     }
-                    finally
+                    catch (Exception e)
                     {
-                        onComplete?.Invoke(new IndexOperationEventArgs(this, count));
+                        OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the Taxonomy index", "-1", e));
                     }
                 }
             }
-        }
-
-        private int PerformIndexItemsInternal(IEnumerable<ValueSet> valueSets, CancellationToken cancellationToken)
-        {
-            //check if the index is ready to be written to.
-            if (!IndexReady())
-            {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Cannot index queue items, the index is currently locked", null, null));
-                return 0;
-            }
-
-            //track all of the nodes indexed
-            var indexedNodes = 0;
-
-            Interlocked.Increment(ref _activeWrites);
-
-            try
-            {
-                foreach (var valueSet in valueSets)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    var op = new IndexOperation(valueSet, IndexOperationType.Add);
-                    if (ProcessQueueItem(op))
-                    {
-                        indexedNodes++;
-                    }
-                }
-
-                if (indexedNodes > 0)
-                {
-                    //this is required to ensure the index is written to during the same thread execution
-                    if (!RunAsync)
-                    {
-                        //commit the changes
-                        _committer.CommitNow();
-
-                        // now force any searcher to be updated.
-                        WaitForChanges();
-                    }
-                    else
-                    {
-                        _committer.ScheduleCommit();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                OnIndexingError(new IndexingErrorEventArgs(this, "Error indexing queue items", null, ex));
-            }
-            finally
-            {
-                Interlocked.Decrement(ref _activeWrites);
-            }
-
-            return indexedNodes;
         }
     }
 }

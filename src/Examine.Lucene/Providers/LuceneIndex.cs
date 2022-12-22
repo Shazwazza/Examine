@@ -31,7 +31,28 @@ namespace Examine.Lucene.Providers
     {
         #region Constructors
 
-        private LuceneIndex(
+        protected LuceneIndex(
+           ILoggerFactory loggerFactory,
+           string name,
+           IOptionsMonitor<LuceneIndexOptions> indexOptions,
+           Func<LuceneIndex,IIndexCommiter> indexCommiterFactory)
+           : base(loggerFactory, name, indexOptions)
+        {
+            _options = indexOptions.GetNamedOptions(name);
+            _committer = indexCommiterFactory(this);
+            _logger = loggerFactory.CreateLogger<LuceneIndex>();
+
+            //initialize the field types
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
+
+            _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
+
+            DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+        }
+
+        protected LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
             IOptionsMonitor<LuceneIndexOptions> indexOptions)
@@ -95,7 +116,7 @@ namespace Examine.Lucene.Providers
         private readonly Lazy<Directory> _directory;
         private FileStream _logOutput;
         private bool _disposedValue;
-        private readonly IndexCommiter _committer;
+        private readonly IIndexCommiter _committer;
 
         private volatile TrackingIndexWriter _writer;
 
@@ -138,7 +159,9 @@ namespace Examine.Lucene.Providers
         private readonly Lazy<FieldValueTypeCollection> _fieldValueTypeCollection;
 
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
-        private long? _latestGen;
+#pragma warning disable IDE1006 // Naming Styles
+        protected long? _latestGen;
+#pragma warning restore IDE1006 // Naming Styles
 
         #region Properties
 
@@ -184,6 +207,11 @@ namespace Examine.Lucene.Providers
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
 
         public event EventHandler IndexCommitted;
+
+        protected void RaiseIndexCommited(object sender, EventArgs e)
+        {
+            IndexCommitted?.Invoke(sender, e);
+        }
 
         #endregion
 
@@ -760,7 +788,7 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// This queues up a commit for the index so that a commit doesn't happen on every individual write since that is quite expensive
         /// </summary>
-        private class IndexCommiter : DisposableObjectSlim
+        private class IndexCommiter : DisposableObjectSlim, IIndexCommiter
         {
             private readonly LuceneIndex _index;
             private DateTime _timestamp;
