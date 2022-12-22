@@ -4271,7 +4271,7 @@ namespace Examine.Test.Examine.Lucene.Search
             const int indexSize = 5;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             var facetConfigs = new FacetsConfig();
-            facetConfigs.SetIndexFieldName("taxonomynodeName", "taxonomynodeName");
+            facetConfigs.SetIndexFieldName("taxonomynodeName", "taxonomy_nodeName");
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTaxonomyTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(
                 new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText),
