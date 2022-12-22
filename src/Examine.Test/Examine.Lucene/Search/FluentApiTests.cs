@@ -3951,8 +3951,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 //There are 4 results
                 // First query skips 0 and takes 2.
-                var results = sc.Execute(luceneOptions);
-                var luceneResults = results as ILuceneSearchResults;
+                var luceneResults = sc.ExecuteWithLucene(luceneOptions);
                 Assert.IsNotNull(luceneResults);
                 Assert.IsNotNull(luceneResults.SearchAfter, "Search After details should be available");
                 var luceneResults1List = luceneResults.ToList();
@@ -3965,8 +3964,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     luceneResults.SearchAfter.Fields,
                     luceneResults.SearchAfter.ShardIndex.Value);
                 var luceneOptions2 = new LuceneQueryOptions(0, 1, searchAfter);
-                var results2 = sc.Execute(luceneOptions2);
-                var luceneResults2 = results2 as ILuceneSearchResults;
+                var luceneResults2 = sc.ExecuteWithLucene(luceneOptions2);
                 var luceneResults2List = luceneResults2.ToList();
                 Assert.IsTrue(luceneResults2List.Any(x => x.Id == "3"), $"Expected to contain next result after docId {luceneResults.SearchAfter.DocumentId}");
                 Assert.IsNotNull(luceneResults2);
@@ -3976,15 +3974,14 @@ namespace Examine.Test.Examine.Lucene.Search
                 // Third query result continues after result 2 (zero indexed), Takes 1
                 var searchAfter2 = new SearchAfterOptions(luceneResults2.SearchAfter.DocumentId, luceneResults2.SearchAfter.DocumentScore, luceneResults2.SearchAfter.Fields, luceneResults2.SearchAfter.ShardIndex.Value);
                 var luceneOptions3 = new LuceneQueryOptions(0, 1, searchAfter2);
-                var results3 = sc.Execute(luceneOptions3);
-                var luceneResults3 = results3 as ILuceneSearchResults;
+                var luceneResults3 = sc.ExecuteWithLucene(luceneOptions3);
                 Assert.IsNotNull(luceneResults3);
                 var luceneResults3List = luceneResults3.ToList();
                 Assert.IsTrue(luceneResults3List.Any(x => x.Id == "4"), $"Expected to contain next result after docId {luceneResults2.SearchAfter.DocumentId}");
                 Assert.IsFalse(luceneResults3.ToList().Any(x => luceneResults2.Any(y => y.Id == x.Id)), "Results should not overlap");
                 Assert.IsFalse(luceneResults3.ToList().Any(x => luceneResults.Any(y => y.Id == x.Id)), "Results should not overlap");
 
-                Assert.AreNotEqual(results.First().Id, results2.First().Id, "Results should be different");
+                Assert.AreNotEqual(luceneResults.First().Id, luceneResults2.First().Id, "Results should be different");
             }
         }
 
@@ -4018,8 +4015,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 //There are 4 results
                 // First query skips 0 and takes 2.
-                var results = sc.Execute(luceneOptions);
-                var luceneResults = results as ILuceneSearchResults;
+                var luceneResults = sc.ExecuteWithLucene(luceneOptions);
                 Assert.IsNotNull(luceneResults);
                 Assert.IsNotNull(luceneResults.SearchAfter, "Search After details should be available");
                 var luceneResults1List = luceneResults.ToList();
@@ -4032,8 +4028,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     luceneResults.SearchAfter.Fields,
                     luceneResults.SearchAfter.ShardIndex.Value);
                 var luceneOptions2 = new LuceneQueryOptions(0, 1, searchAfter);
-                var results2 = sc.Execute(luceneOptions2);
-                var luceneResults2 = results2 as ILuceneSearchResults;
+                var luceneResults2 = sc.ExecuteWithLucene(luceneOptions2);
                 var luceneResults2List = luceneResults2.ToList();
                 Assert.IsTrue(luceneResults2List.Any(x => x.Id == "3"), $"Expected to contain next result after docId {luceneResults.SearchAfter.DocumentId}");
                 Assert.IsNotNull(luceneResults2);
@@ -4043,15 +4038,14 @@ namespace Examine.Test.Examine.Lucene.Search
                 // Third query result continues after result 2 (zero indexed), Takes 1
                 var searchAfter2 = new SearchAfterOptions(luceneResults2.SearchAfter.DocumentId, luceneResults2.SearchAfter.DocumentScore, luceneResults2.SearchAfter.Fields, luceneResults2.SearchAfter.ShardIndex.Value);
                 var luceneOptions3 = new LuceneQueryOptions(0, 1, searchAfter2);
-                var results3 = sc.Execute(luceneOptions3);
-                var luceneResults3 = results3 as ILuceneSearchResults;
+                var luceneResults3 = sc.ExecuteWithLucene(luceneOptions3);
                 Assert.IsNotNull(luceneResults3);
                 var luceneResults3List = luceneResults3.ToList();
                 Assert.IsTrue(luceneResults3List.Any(x => x.Id == "4"), $"Expected to contain next result after docId {luceneResults2.SearchAfter.DocumentId}");
                 Assert.IsFalse(luceneResults3.ToList().Any(x => luceneResults2.Any(y => y.Id == x.Id)), "Results should not overlap");
                 Assert.IsFalse(luceneResults3.ToList().Any(x => luceneResults.Any(y => y.Id == x.Id)), "Results should not overlap");
 
-                Assert.AreNotEqual(results.First().Id, results2.First().Id, "Results should be different");
+                Assert.AreNotEqual(luceneResults.First().Id, luceneResults2.First().Id, "Results should be different");
             }
         }
 

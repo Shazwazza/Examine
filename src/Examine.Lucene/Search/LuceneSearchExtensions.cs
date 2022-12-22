@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Examine.Search;
 using Lucene.Net.Search;
 
@@ -49,6 +49,22 @@ namespace Examine.Lucene.Search
             {
                 return BooleanOperation.Or;
             }
+        }
+        /// <summary>
+        /// Executes the query
+        /// </summary>
+        public static ILuceneSearchResults ExecuteWithLucene(this IQueryExecutor queryExecutor, QueryOptions options = null)
+        {
+            if(queryExecutor is LuceneBooleanOperation
+                || queryExecutor is LuceneSearchQuery)
+            {
+                var results = queryExecutor.Execute(options);
+                if(results is ILuceneSearchResults luceneSearchResults)
+                {
+                    return luceneSearchResults;
+                }
+            }
+            throw new NotSupportedException("QueryExecutor is not Lucene.NET");
         }
     }
 }

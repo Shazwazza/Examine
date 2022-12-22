@@ -24,7 +24,6 @@ namespace Examine
 
 		public long TotalItemCount => 0;
 
-        public string ContinueWith => default;
 
         public IEnumerable<ISearchResult> Skip(int skip)
 		{
