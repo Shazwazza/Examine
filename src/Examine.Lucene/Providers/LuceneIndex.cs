@@ -34,7 +34,7 @@ namespace Examine.Lucene.Providers
         protected LuceneIndex(
            ILoggerFactory loggerFactory,
            string name,
-           IOptionsMonitor<LuceneIndexOptions> indexOptions,
+           IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions,
            Func<LuceneIndex,IIndexCommiter> indexCommiterFactory)
            : base(loggerFactory, name, indexOptions)
         {
@@ -49,9 +49,17 @@ namespace Examine.Lucene.Providers
             _cancellationToken = _cancellationTokenSource.Token;
 
             DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
+
+            if (directoryOptions.DirectoryFactory == null)
+            {
+                throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
+            }
+
+            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
         }
 
-        protected LuceneIndex(
+        private LuceneIndex(
             ILoggerFactory loggerFactory,
             string name,
             IOptionsMonitor<LuceneIndexOptions> indexOptions)
@@ -1287,7 +1295,7 @@ namespace Examine.Lucene.Providers
                         _nrtReopenThread.Dispose();
                     }
 
-                    if (_searcher.IsValueCreated)
+                    if (_searcher != null && _searcher.IsValueCreated)
                     {
                         _searcher.Value.Dispose();
                     }

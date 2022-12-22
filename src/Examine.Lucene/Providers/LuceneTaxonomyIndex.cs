@@ -27,10 +27,10 @@ namespace Examine.Lucene.Providers
     {
         #region Constructors
 
-        private LuceneTaxonomyIndex(
+        public LuceneTaxonomyIndex(
             ILoggerFactory loggerFactory,
             string name,
-            IOptionsMonitor<LuceneIndexOptions> indexOptions)
+            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
             : base(loggerFactory, name, indexOptions, CreateIndexCommiter())
         {
             _options = indexOptions.GetNamedOptions(name);
@@ -48,16 +48,6 @@ namespace Examine.Lucene.Providers
             return new TaxonomyIndexCommiter(taxonomyIndex);
         };
 
-        /// <summary>
-        /// Constructor to create an indexer
-        /// </summary>
-        public LuceneTaxonomyIndex(
-            ILoggerFactory loggerFactory,
-            string name,
-            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions)
-           : this(loggerFactory, name, (IOptionsMonitor<LuceneIndexOptions>)indexOptions)
-        {
-        }
 
         #endregion
 

@@ -4262,5 +4262,54 @@ namespace Examine.Test.Examine.Lucene.Search
 
             }
         }
+        [TestCase(1, 2, 1, 2)]
+        [TestCase(2, 2, 2, 2)]
+        public void GivenTaxonomyIndexSearchAfterTake_Returns_ExpectedTotals_Facet(int firstTake, int secondTake, int expectedFirstResultCount, int expectedSecondResultCount)
+        {
+            const int indexSize = 5;
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
+            {
+                var items = Enumerable.Range(0, indexSize).Select(x => ValueSet.FromObject(x.ToString(), "content",
+                    new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }));
+
+                indexer.IndexItems(items);
+
+                var searcher = indexer.Searcher;
+
+                //Arrange
+
+                var sc = searcher.CreateQuery("content")
+                    .Field("writerName", "administrator")
+                    .WithFacets(facets => facets.Facet("nodeName"));
+
+                //Act
+
+                var results1 = sc.ExecuteWithLucene(new LuceneQueryOptions(0, firstTake));
+
+                var facetResults1 = results1.GetFacet("nodeName");
+
+                Assert.AreEqual(indexSize, results1.TotalItemCount);
+                Assert.AreEqual(expectedFirstResultCount, results1.Count());
+                Assert.AreEqual(1, facetResults1.Count());
+                Assert.AreEqual(5, facetResults1.Facet("umbraco").Value);
+
+                Assert.IsNotNull(results1);
+
+                var results2 = sc.Execute(new LuceneQueryOptions(0, secondTake, results1.SearchAfter));
+
+                var facetResults2 = results2.GetFacet("nodeName");
+
+                Assert.AreEqual(indexSize, results2.TotalItemCount);
+                Assert.AreEqual(expectedSecondResultCount, results2.Count());
+                Assert.AreEqual(1, facetResults2.Count());
+                Assert.AreEqual(5, facetResults2.Facet("umbraco").Value);
+                var firstResults = results1.ToArray();
+                var secondResults = results2.ToArray();
+                Assert.IsFalse(firstResults.Any(x => secondResults.Any(y => y.Id == x.Id)), "The second set of results should not contain the first set of results");
+
+            }
+        }
     }
 }

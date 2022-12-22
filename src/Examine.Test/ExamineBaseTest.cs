@@ -45,5 +45,22 @@ namespace Examine.Test
                 Mock.Of<IOptionsMonitor<LuceneIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneIndexOptions()),
                 writer);
         }
+
+        public TestTaxonomyIndex GetTaxonomyTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig? facetsConfig = null)
+        {
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
+            return new TestTaxonomyIndex(
+                loggerFactory,
+                Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestTaxonomyIndex.TestIndexName) == new LuceneDirectoryIndexOptions
+                {
+                    FieldDefinitions = fieldDefinitions,
+                    DirectoryFactory = new GenericDirectoryFactory(_ => d),
+                    Analyzer = analyzer,
+                    IndexDeletionPolicy = indexDeletionPolicy,
+                    IndexValueTypesFactory = indexValueTypesFactory,
+                    FacetsConfig = facetsConfig ?? new FacetsConfig()
+                }));
+        }
+
     }
 }

@@ -33,4 +33,31 @@ namespace Examine.Test
             return data;
         }
     }
+
+    public class TestTaxonomyIndex : LuceneTaxonomyIndex
+    {
+        public const string TestIndexName = "testIndexer";
+
+        public TestTaxonomyIndex(ILoggerFactory loggerFactory, IOptionsMonitor<LuceneDirectoryIndexOptions> options)
+            : base(loggerFactory, TestIndexName, options)
+        {
+            RunAsync = false;
+        }
+
+        //public TestTaxonomyIndex(ILoggerFactory loggerFactory, IOptionsMonitor<LuceneIndexOptions> options, IndexWriter writer)
+        //    : base(loggerFactory, TestIndexName, options, writer)
+        //{
+        //    RunAsync = false;
+        //}
+
+        public IEnumerable<ValueSet> AllData()
+        {
+            var data = new List<ValueSet>();
+            for (int i = 0; i < 100; i++)
+            {
+                data.Add(ValueSet.FromObject(i.ToString(), "category" + (i % 2), new { item1 = "value" + i, item2 = "value" + i }));
+            }
+            return data;
+        }
+    }
 }
