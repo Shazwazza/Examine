@@ -4268,11 +4268,17 @@ namespace Examine.Test.Examine.Lucene.Search
         {
             const int indexSize = 5;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            var facetConfigs = new FacetsConfig();
+            facetConfigs.SetIndexFieldName("taxonomynodeName", "taxonomynodeName");
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))))
+            using (var indexer = GetTaxonomyTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(
+                new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText),
+                new FieldDefinition("taxonomynodeName", FieldDefinitionTypes.FacetTaxonomyFullText)
+
+                ), facetsConfig: facetConfigs))
             {
                 var items = Enumerable.Range(0, indexSize).Select(x => ValueSet.FromObject(x.ToString(), "content",
-                    new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }));
+                    new { nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }));
 
                 indexer.IndexItems(items);
 
@@ -4283,7 +4289,11 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var sc = taxonomySearcher.CreateQuery("content")
                     .Field("writerName", "administrator")
-                    .WithFacets(facets => facets.Facet("nodeName"));
+                    .WithFacets(facets =>
+                    {
+                        facets.Facet("nodeName");
+                        facets.Facet("taxonomynodeName");
+                    });
 
                 //Act
 
@@ -4298,9 +4308,14 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Assert.IsNotNull(results1);
 
+                var facetTaxonomyResults1 = results1.GetFacet("taxonomynodeName");
+                Assert.AreEqual(1, facetTaxonomyResults1.Count());
+                Assert.AreEqual(5, facetTaxonomyResults1.Facet("umbraco").Value);
+
                 var results2 = sc.Execute(new LuceneQueryOptions(0, secondTake, results1.SearchAfter));
 
                 var facetResults2 = results2.GetFacet("nodeName");
+                var facetTaxonomyResults2 = results2.GetFacet("taxonomynodeName");
 
                 Assert.AreEqual(indexSize, results2.TotalItemCount);
                 Assert.AreEqual(expectedSecondResultCount, results2.Count());

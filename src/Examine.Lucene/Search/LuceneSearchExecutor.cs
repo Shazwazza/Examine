@@ -234,11 +234,7 @@ namespace Examine.Lucene.Search
 
             SortedSetDocValuesReaderState sortedSetReaderState = null;
             Facets fastTaxonomyFacetCounts = null;
-            if (searcher is ITaxonomySearcherReference taxonomySearcher)
-            {
-                var taxonomyReader = taxonomySearcher.TaxonomyReader;
-                fastTaxonomyFacetCounts = new FastTaxonomyFacetCounts(taxonomySearcher.TaxonomyReader, _facetsConfig, facetsCollector);
-            }
+
 
             foreach (var field in facetFields)
             {
@@ -290,38 +286,49 @@ namespace Examine.Lucene.Search
             return facets;
         }
 
-        private static void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets,
+        private void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets,
             SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field, FacetFullTextField facetFullTextField,
             Facets fastTaxonomyFacetCounts)
         {
-            Facets sortedSetfacetCounts;
-            if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
+            Facets facetCounts;
+            var facetDimConfig = _facetsConfig.GetDimConfig(facetFullTextField.Field);
+            string facetIndexFieldName;
+            if (facetDimConfig == null || FacetsConfig.DEFAULT_INDEX_FIELD_NAME == facetDimConfig.IndexFieldName)
             {
-                sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
+                // Can't be Taxonomy
+                if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
+                {
+                    sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
+                }
+                facetCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
+                facetIndexFieldName = FacetsConfig.DEFAULT_INDEX_FIELD_NAME;
             }
-            sortedSetfacetCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
+            else
+            {
+                // Taxonomy
+                facetIndexFieldName = facetDimConfig?.IndexFieldName ?? FacetsConfig.DEFAULT_INDEX_FIELD_NAME;
+                if (searcher is ITaxonomySearcherReference taxonomySearcher)
+                {
+                    var taxonomyReader = taxonomySearcher.TaxonomyReader;
+                    fastTaxonomyFacetCounts = new FastTaxonomyFacetCounts(facetIndexFieldName, taxonomySearcher.TaxonomyReader, _facetsConfig, facetsCollector);
+                }
+                facetCounts = fastTaxonomyFacetCounts;
+            }
+
 
             if (facetFullTextField.Values != null && facetFullTextField.Values.Length > 0)
             {
                 var facetValues = new List<FacetValue>();
                 foreach (var label in facetFullTextField.Values)
                 {
-                    var value = sortedSetfacetCounts.GetSpecificValue(facetFullTextField.Field, label);
-                    if(value == -1 && fastTaxonomyFacetCounts != null)
-                    {
-                        value = fastTaxonomyFacetCounts.GetSpecificValue(facetFullTextField.Field, label);
-                    }
+                    var value = fastTaxonomyFacetCounts.GetSpecificValue(facetFullTextField.Field, label);
                     facetValues.Add(new FacetValue(label, value));
                 }
                 facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(facetValues.OrderBy(value => value.Value).Take(facetFullTextField.MaxCount).OfType<IFacetValue>()));
             }
             else
             {
-                var sortedFacets = sortedSetfacetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
-                if (sortedFacets == null && fastTaxonomyFacetCounts != null)
-                {
-                    sortedFacets = fastTaxonomyFacetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
-                }
+                var sortedFacets = facetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
 
                 if (sortedFacets == null)
                 {
