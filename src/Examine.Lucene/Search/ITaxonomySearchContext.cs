@@ -1,4 +1,4 @@
-﻿namespace Examine.Lucene.Search
+namespace Examine.Lucene.Search
 {
     public interface ITaxonomySearchContext : ISearchContext
     {

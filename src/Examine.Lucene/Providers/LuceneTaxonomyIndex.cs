@@ -88,7 +88,13 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Gets a searcher for the index
         /// </summary>
-        public override ISearcher Searcher => _searcher.Value;
+        public virtual ILuceneTaxonomySearcher TaxonomySearcher => _searcher.Value;
+
+
+        /// <summary>
+        /// Gets a searcher for the index
+        /// </summary>
+        public virtual ISearcher Searcher => _searcher.Value;
 
         #region Protected
 

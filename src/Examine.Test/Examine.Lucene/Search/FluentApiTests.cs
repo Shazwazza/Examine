@@ -77,7 +77,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     var results1 = query1.Execute();
 
                     Assert.AreEqual(2, results1.TotalItemCount);
-                }             
+                }
             }
         }
 
@@ -404,7 +404,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01, 02), new DateTime(2000, 01, 05), maxInclusive: false);
 
-                if(withFacets)
+                if (withFacets)
                 {
                     var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.Facet("created", new Int64Range[]
                     {
@@ -4276,11 +4276,12 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 indexer.IndexItems(items);
 
-                var searcher = indexer.Searcher;
+                var taxonomySearcher = indexer.TaxonomySearcher;
+                var taxonomyCategoryCount = taxonomySearcher.CategoryCount;
 
                 //Arrange
 
-                var sc = searcher.CreateQuery("content")
+                var sc = taxonomySearcher.CreateQuery("content")
                     .Field("writerName", "administrator")
                     .WithFacets(facets => facets.Facet("nodeName"));
 

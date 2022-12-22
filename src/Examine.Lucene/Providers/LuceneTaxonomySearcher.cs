@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Examine.Lucene.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Facet;
@@ -6,7 +6,7 @@ using Lucene.Net.Facet.Taxonomy;
 
 namespace Examine.Lucene.Providers
 {
-    public class LuceneTaxonomySearcher : BaseLuceneSearcher, IDisposable
+    public class LuceneTaxonomySearcher : BaseLuceneSearcher, IDisposable, ILuceneTaxonomySearcher
     {
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
@@ -50,6 +50,23 @@ namespace Examine.Lucene.Providers
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
+        }
+
+        /// <inheritdoc/>
+        public long CategoryCount
+        {
+            get
+            {
+                var taxonomyReader = GetTaxonomySearchContext().GetTaxonomyAndSearcher().TaxonomyReader;
+                return taxonomyReader.Count;
+            }
+        }
+
+        /// <inheritdoc/>
+        public int GetOrdinal(string dim, string[] path)
+        {
+            var taxonomyReader = GetTaxonomySearchContext().GetTaxonomyAndSearcher().TaxonomyReader;
+            return taxonomyReader.GetOrdinal(dim, path);
         }
     }
 }
