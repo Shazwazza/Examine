@@ -177,16 +177,17 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
-        public void FacetsConfig_SetIndexName_FullText()
+        public void Taxonomy_FacetsConfig_SetIndexName_FullText()
         {
-            var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+            var fieldDefinitionCollection = new FieldDefinitionCollection(
+                new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
 
             var facetsConfig = new FacetsConfig();
             facetsConfig.SetIndexFieldName("nodeName", "facet_nodeName");
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
                 analyzer,
                 fieldDefinitionCollection,
@@ -218,7 +219,7 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
-        public void FacetsConfig_SetIndexName_Long()
+        public void Taxonomy_FacetsConfig_SetIndexName_Long()
         {
             var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("LongValue", FieldDefinitionTypes.FacetLong));
 
@@ -227,7 +228,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
                 analyzer,
                 fieldDefinitionCollection,
@@ -264,7 +265,7 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
-        public void FacetsConfig_SetIndexName_Double()
+        public void Taxonomy_FacetsConfig_SetIndexName_Double()
         {
             var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("DoubleValue", FieldDefinitionTypes.FacetDouble));
 
@@ -273,7 +274,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
                 analyzer,
                 fieldDefinitionCollection,
