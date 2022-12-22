@@ -409,7 +409,6 @@ namespace Examine.Lucene.Providers
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
             if (disposing)
             {
                 _nrtReopenThread?.Dispose();
@@ -417,6 +416,7 @@ namespace Examine.Lucene.Providers
                 {
                     try
                     {
+                        // Taxonomy writer must be disposed before index writer
                         _taxonomyWriter?.Dispose();
                     }
                     catch (Exception e)
@@ -425,6 +425,7 @@ namespace Examine.Lucene.Providers
                     }
                 }
             }
+            base.Dispose(disposing);
         }
     }
 }
