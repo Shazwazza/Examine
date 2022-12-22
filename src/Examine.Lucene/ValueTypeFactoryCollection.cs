@@ -84,7 +84,8 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FacetDateMinute, name => new FacetDateTimeType(name, loggerFactory, DateResolution.MINUTE)},
                 {FieldDefinitionTypes.FacetFullText, name => new FacetFullTextType(name, loggerFactory, defaultAnalyzer)},
                 {FieldDefinitionTypes.FacetFullTextSortable, name => new FacetFullTextType(name, loggerFactory, defaultAnalyzer, true)},
-            };
+                {FieldDefinitionTypes.TaxonomyFacet, name => new TaxonomyFacetType(name, loggerFactory)},
+                };
 
 
         public IEnumerator<KeyValuePair<string, IFieldValueTypeFactory>> GetEnumerator()

@@ -100,5 +100,11 @@ namespace Examine
         /// Facetable version of <see cref="FullTextSortable"/>
         /// </summary>
         public const string FacetFullTextSortable = "facetfulltextsortable";
+
+        /// <summary>
+        /// Taxonomy Facetable version of path
+        /// </summary>
+        public const string TaxonomyFacet = "taxonomyfacet";
+
     }
 }
