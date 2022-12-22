@@ -44,11 +44,11 @@ namespace Examine.Test
             RunAsync = false;
         }
 
-        //public TestTaxonomyIndex(ILoggerFactory loggerFactory, IOptionsMonitor<LuceneIndexOptions> options, IndexWriter writer)
-        //    : base(loggerFactory, TestIndexName, options, writer)
-        //{
-        //    RunAsync = false;
-        //}
+        public TestTaxonomyIndex(ILoggerFactory loggerFactory, IOptionsMonitor<LuceneIndexOptions> options, IndexWriter writer)
+            : base(loggerFactory, TestIndexName, options, writer)
+        {
+            RunAsync = false;
+        }
 
         public IEnumerable<ValueSet> AllData()
         {

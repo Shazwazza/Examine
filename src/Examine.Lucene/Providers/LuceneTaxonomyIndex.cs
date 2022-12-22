@@ -14,6 +14,7 @@ using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Facet.Taxonomy.Directory;
+using static Lucene.Net.Util.Packed.PackedInt32s;
 
 namespace Examine.Lucene.Providers
 {
@@ -38,6 +39,25 @@ namespace Examine.Lucene.Providers
 
             _searcher = new Lazy<LuceneTaxonomySearcher>(CreateSearcher);
         }
+
+        //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
+        // with all of the field definitions in place, etc... but that will most likely never happen
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime - using NRT
+        /// </summary>
+        internal LuceneTaxonomyIndex(
+            ILoggerFactory loggerFactory,
+            string name,
+            IOptionsMonitor<LuceneIndexOptions> indexOptions,
+            IndexWriter writer)
+               : base(loggerFactory, name, indexOptions, writer)
+        {
+            _options = indexOptions.GetNamedOptions(name);
+            _logger = loggerFactory.CreateLogger<LuceneIndex>();
+
+            _searcher = new Lazy<LuceneTaxonomySearcher>(CreateSearcher);
+        }
+
 
         private static Func<LuceneIndex, IIndexCommiter> CreateIndexCommiter() => (index) =>
         {

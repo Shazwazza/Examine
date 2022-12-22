@@ -35,7 +35,8 @@ namespace Examine.Lucene.Providers
            ILoggerFactory loggerFactory,
            string name,
            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions,
-           Func<LuceneIndex,IIndexCommiter> indexCommiterFactory)
+           Func<LuceneIndex,IIndexCommiter> indexCommiterFactory,
+           IndexWriter writer = null)
            : base(loggerFactory, name, indexOptions)
         {
             _options = indexOptions.GetNamedOptions(name);
@@ -48,7 +49,15 @@ namespace Examine.Lucene.Providers
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
-            DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            if(writer != null)
+            {
+                _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
+                DefaultAnalyzer = writer.Analyzer;
+            }
+            else
+            {
+                DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            }
             LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
 
             if (directoryOptions.DirectoryFactory == null)
@@ -58,6 +67,7 @@ namespace Examine.Lucene.Providers
 
             _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
         }
+        
 
         private LuceneIndex(
             ILoggerFactory loggerFactory,
