@@ -30,5 +30,10 @@ namespace Examine.Lucene
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </summary>
         public IReadOnlyDictionary<string, IFieldValueTypeFactory> IndexValueTypesFactory { get; set; }
+
+        /// <summary>
+        /// Gets or Sets whether to use a Taxonomy Index
+        /// </summary>
+        public bool UseTaxonomyIndex { get; set; }
     }
 }

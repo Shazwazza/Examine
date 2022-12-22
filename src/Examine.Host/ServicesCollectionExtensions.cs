@@ -70,6 +70,8 @@ namespace Examine
                         options.FieldDefinitions = fieldDefinitions ?? options.FieldDefinitions;
                         options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
                         options.FacetsConfig = facetsConfig ?? new FacetsConfig();
+                        options.TaxonomyDirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
+                        options.UseTaxonomyIndex= true;
                     }));
 
             return serviceCollection.AddSingleton<IIndex>(services =>

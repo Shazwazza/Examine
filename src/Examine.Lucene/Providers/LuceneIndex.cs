@@ -18,6 +18,9 @@ using Microsoft.Extensions.Options;
 using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
+using Lucene.Net.Facet.Taxonomy;
+using Lucene.Net.Facet.Taxonomy.Directory;
+using Lucene.Net.Facet.Taxonomy.WriterCache;
 
 namespace Examine.Lucene.Providers
 {
@@ -67,7 +70,15 @@ namespace Examine.Lucene.Providers
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
 
-            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));            
+            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
+
+
+            if (directoryOptions.UseTaxonomyIndex && directoryOptions.TaxonomyDirectoryFactory == null)
+            {
+                throw new InvalidOperationException($"No Taxonomy {typeof(IDirectoryFactory)} assigned");
+            }
+
+            _taxonomyDirectory = new Lazy<Directory>(() => directoryOptions.TaxonomyDirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -139,6 +150,18 @@ namespace Examine.Lucene.Providers
 
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
+
+        /// <summary>
+        /// Seperate Taxonomy Directory
+        /// </summary>
+        private readonly Lazy<Directory> _taxonomyDirectory;
+
+
+        /// <summary>
+        /// Used to aquire the index taxonomy writer
+        /// </summary>
+        private readonly object _taxonomyWriterLocker = new object();
+        private volatile ITaxonomyWriter _taxonomyWriter;
 
         #region Properties
 
@@ -297,6 +320,100 @@ namespace Examine.Lucene.Providers
             return indexedNodes;
         }
 
+        
+        /// <summary>
+        /// Creates a brand new index, this will override any existing index with an empty one
+        /// </summary>
+        public void EnsureTaxonomyIndex(bool forceOverwrite)
+        {
+            if (!forceOverwrite && _exists.HasValue && _exists.Value)
+            {
+                return;
+            }
+
+            var indexExists = IndexExists();
+            if (!indexExists || forceOverwrite)
+            {
+                //if we can't acquire the lock exit - this will happen if this method is called multiple times but we don't want this 
+                // logic to actually execute multiple times
+                if (Monitor.TryEnter(_writerLocker))
+                {
+                    try
+                    {
+                        var dir = GetLuceneDirectory();
+
+                        if (!indexExists)
+                        {
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("Initializing new index {IndexName}", Name);
+                            }
+
+                            //if there's no index, we need to create one
+                            CreateNewIndex(dir);
+                        }
+                        else
+                        {
+                            //it does exists so we'll need to clear it out
+                            if (_logger.IsEnabled(LogLevel.Debug))
+                            {
+                                _logger.LogDebug("Clearing existing index {IndexName}", Name);
+                            }
+
+                            if (_writer == null)
+                            {
+                                //This will happen if the writer hasn't been created/initialized yet which
+                                // might occur if a rebuild is triggered before any indexing has been triggered.
+                                //In this case we need to initialize a writer and continue as normal.
+                                //Since we are already inside the writer lock and it is null, we are allowed to 
+                                // make this call with out using GetIndexWriter() to do the initialization.
+                                _writer = CreateIndexWriterInternal();
+                            }
+
+                            //We're forcing an overwrite, 
+                            // this means that we need to cancel all operations currently in place,
+                            // clear the queue and delete all of the data in the index.
+
+                            //cancel any operation currently in place
+                            _cancellationTokenSource.Cancel();
+
+                            // indicates that it was locked, this generally shouldn't happen but we don't want to have unhandled exceptions
+                            if (_writer == null)
+                            {
+                                _logger.LogWarning("{IndexName} writer was null, exiting", Name);
+                                return;
+                            }
+
+                            try
+                            {
+                                //remove all of the index data
+                                _latestGen = _writer.DeleteAll();
+                                _committer.CommitNow();
+                            }
+                            finally
+                            {
+                                _cancellationTokenSource.Dispose();
+                                _cancellationTokenSource = new CancellationTokenSource();
+                                _cancellationToken = _cancellationTokenSource.Token;
+
+                                // we need to reset this task because if any faults occur when rebuilding
+                                // the task will remain in a canceled state and nothing will ever run again.
+                                _asyncTask = Task.CompletedTask;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(_writerLocker);
+                    }
+                }
+                else
+                {
+                    // we cannot acquire the lock, this is because the main writer is being created, or the index is being created currently
+                    OnIndexingError(new IndexingErrorEventArgs(this, "Could not acquire lock in EnsureIndex so cannot create new index", null, null));
+                }
+            }
+        }
         /// <summary>
         /// Creates a brand new index, this will override any existing index with an empty one
         /// </summary>
@@ -895,6 +1012,13 @@ namespace Examine.Lucene.Providers
         /// <returns></returns>
         public Directory GetLuceneDirectory() => _writer != null ? _writer.IndexWriter.Directory : _directory.Value;
 
+
+        /// <summary>
+        /// Returns the Lucene Directory used to store the index
+        /// </summary>
+        /// <returns></returns>
+        public Directory GetLuceneTaxonomyDirectory() => _taxonomyDirectory.Value; //_taxonomyWriter != null ? _taxonomyWriter..IndexWriter.Directory : _taxonomyDirectory.Value;
+
         /// <summary>
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
@@ -1014,6 +1138,89 @@ namespace Examine.Lucene.Providers
                 }
 
                 return _writer;
+            }
+        }
+
+
+        /// <summary>
+        /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
+        /// </summary>
+        /// <returns></returns>
+        private ITaxonomyWriter CreateTaxonomyIndexWriterInternal()
+        {
+            Directory dir = GetLuceneTaxonomyDirectory();
+
+            // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
+            // ensure that it's unlocked here in that case.
+            try
+            {
+                if (IsLocked(dir))
+                {
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
+                    }
+                    //unlock it!
+                    Unlock(dir);
+                }
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs(this, "The index was locked and could not be unlocked", null, ex));
+                return null;
+            }
+
+            ITaxonomyWriter writer = CreateTaxonomyIndexWriter(dir);
+
+            return writer;
+        }
+
+        /// <summary>
+        /// Method that creates the IndexWriter
+        /// </summary>
+        /// <param name="d"></param>
+        /// <returns></returns>
+        protected virtual ITaxonomyWriter CreateTaxonomyIndexWriter(Directory d)
+        {
+            if (d == null)
+            {
+                throw new ArgumentNullException(nameof(d));
+            }
+
+            var taxonomyWriterCache = new LruTaxonomyWriterCache(10000);
+            var taxonomyWriter = new DirectoryTaxonomyWriter(d, OpenMode.CREATE_OR_APPEND, taxonomyWriterCache);
+           
+            return taxonomyWriter;
+        }
+
+        /// <summary>
+        /// Gets the ITaxonomyWriter for the current directory
+        /// </summary>
+        /// <remarks>
+        public ITaxonomyWriter TaxonomyWriter
+        {
+            get
+            {
+                EnsureTaxonomyIndex(false);
+
+                if (_taxonomyWriter == null)
+                {
+                    Monitor.Enter(_taxonomyWriterLocker);
+                    try
+                    {
+                        if (_taxonomyWriter == null)
+                        {
+                            _taxonomyWriter = CreateTaxonomyIndexWriterInternal();
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(_taxonomyWriterLocker);
+                    }
+
+                }
+
+                return _taxonomyWriter;
             }
         }
 
