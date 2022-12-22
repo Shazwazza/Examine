@@ -221,7 +221,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [Test]
         public void Taxonomy_FacetsConfig_SetIndexName_Long()
         {
-            var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("LongValue", FieldDefinitionTypes.FacetLong));
+            var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("LongValue", FieldDefinitionTypes.FacetTaxonomyLong));
 
             var facetsConfig = new FacetsConfig();
             facetsConfig.SetIndexFieldName("LongValue", "facet_longvalue");
@@ -267,7 +267,8 @@ namespace Examine.Test.Examine.Lucene.Search
         [Test]
         public void Taxonomy_FacetsConfig_SetIndexName_Double()
         {
-            var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("DoubleValue", FieldDefinitionTypes.FacetDouble));
+            var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer),
+                new FieldDefinition("DoubleValue", FieldDefinitionTypes.FacetTaxonomyDouble));
 
             var facetsConfig = new FacetsConfig();
             facetsConfig.SetIndexFieldName("DoubleValue", "facet_doublevalue");
