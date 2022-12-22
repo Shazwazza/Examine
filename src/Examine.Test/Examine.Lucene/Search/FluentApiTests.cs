@@ -4237,7 +4237,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 //Act
 
-                var results1 = sc.Execute(new LuceneQueryOptions(0, firstTake));
+                var results1 = sc.ExecuteWithLucene(new LuceneQueryOptions(0, firstTake));
 
                 var facetResults1 = results1.GetFacet("nodeName");
 
@@ -4246,10 +4246,9 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(1, facetResults1.Count());
                 Assert.AreEqual(5, facetResults1.Facet("umbraco").Value);
 
-                var lucenceSearchResults1 = results1 as ILuceneSearchResults;
-                Assert.IsNotNull(lucenceSearchResults1);
+                Assert.IsNotNull(results1);
 
-                var results2 = sc.Execute(new LuceneQueryOptions(0, secondTake, lucenceSearchResults1.SearchAfter));
+                var results2 = sc.Execute(new LuceneQueryOptions(0, secondTake, results1.SearchAfter));
 
                 var facetResults2 = results2.GetFacet("nodeName");
 
