@@ -1,5 +1,6 @@
 using System;
 using Examine.Lucene.Search;
+using Examine.Search;
 
 namespace Examine.Lucene.Providers
 {
@@ -14,5 +15,6 @@ namespace Examine.Lucene.Providers
         /// Returns the Ordinal for the dim and path
         /// </summary>
         int GetOrdinal(string dim, string[] path);
+        IFacetLabel GetPath(int ordinal);
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Facet;
 using Lucene.Net.Facet.Taxonomy;
@@ -53,7 +54,7 @@ namespace Examine.Lucene.Providers
         }
 
         /// <inheritdoc/>
-        public long CategoryCount
+        public int CategoryCount
         {
             get
             {
@@ -63,10 +64,20 @@ namespace Examine.Lucene.Providers
         }
 
         /// <inheritdoc/>
-        public int GetOrdinal(string dim, string[] path)
+        public int GetOrdinal(string dimension, string[] path)
         {
             var taxonomyReader = GetTaxonomySearchContext().GetTaxonomyAndSearcher().TaxonomyReader;
-            return taxonomyReader.GetOrdinal(dim, path);
+            return taxonomyReader.GetOrdinal(dimension, path);
+        }
+
+
+        /// <inheritdoc/>
+        public IFacetLabel GetPath(int ordinal)
+        {
+            var taxonomyReader = GetTaxonomySearchContext().GetTaxonomyAndSearcher().TaxonomyReader;
+            var facetLabel = taxonomyReader.GetPath(ordinal);
+            var examineFacetLabel = new LuceneFacetLabel(facetLabel);
+            return examineFacetLabel;
         }
     }
 }
