@@ -1,5 +1,6 @@
 using Examine.Lucene.Providers;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 
@@ -7,9 +8,12 @@ namespace Examine.Lucene.Indexing
 {
     public class SingleType : IndexFieldRangeValueType<float>
     {
-        public SingleType(string fieldName, ILoggerFactory logger, bool store = true)
+        private readonly bool _isFacetable;
+
+        public SingleType(string fieldName, ILoggerFactory logger, bool store = true, bool isFacetable = false)
             : base(fieldName, logger, store)
         {
+            _isFacetable = isFacetable;
         }
 
         /// <summary>
@@ -23,6 +27,12 @@ namespace Examine.Lucene.Indexing
                 return;
 
             doc.Add(new DoubleField(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+
+            if (_isFacetable)
+            {
+                doc.Add(new SortedSetDocValuesFacetField(FieldName, parsedVal.ToString()));
+                doc.Add(new SingleDocValuesField(FieldName, parsedVal));
+            }
         }
 
         public override Query GetQuery(string query)
