@@ -43,12 +43,7 @@ namespace Examine.Lucene.Providers
                 throw new NotSupportedException("UseTaxonomyIndex must be true in order to use the LuceneTaxonomyIndex");
             }
 
-            if (directoryOptions.TaxonomyDirectoryFactory == null)
-            {
-                throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned for the Taxonomy Index");
-            }
-
-            _taxonomyDirectory = new Lazy<Directory>(() => directoryOptions.TaxonomyDirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
+            _taxonomyDirectory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex));
 
             _searcher = new Lazy<LuceneTaxonomySearcher>(CreateSearcher);
         }

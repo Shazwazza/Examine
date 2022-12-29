@@ -20,5 +20,14 @@ namespace Examine.Lucene.Directories
             }
             return dir;
         }
+        protected override Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        {
+            Directory dir = _factory(luceneIndex.Name + "taxonomy");
+            if (forceUnlock)
+            {
+                IndexWriter.Unlock(dir);
+            }
+            return dir;
+        }
     }
 }
