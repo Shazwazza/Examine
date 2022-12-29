@@ -32,9 +32,16 @@
     @if (_searchResults != null && _searchResults is IFacetResults facetSearchResults)
     {
         <p class="my-2 fw-bold">Facets found (Showing @facetSearchResults.Facets.Count())</p>
+
         @foreach (var facet in facetSearchResults.Facets)
         {
-            <p class="col-12">Facet Key: @facet.Key, Labels: @string.Join(", ", facet.Value.Select(x=> x.Label))</p>
+            <h6>@facet.Key</h6>
+            <ul>
+                @foreach (var item in facet.Value)
+                {
+                    <li>@item.Label (@item.Value)</li>
+                }
+            </ul>
         }
     }
     else
