@@ -55,7 +55,6 @@ namespace Examine.Test
                 {
                     FieldDefinitions = fieldDefinitions,
                     DirectoryFactory = new GenericDirectoryFactory(_ => d),
-                    TaxonomyDirectoryFactory= new GenericDirectoryFactory(_ => d),
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
