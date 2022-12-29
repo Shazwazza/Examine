@@ -6,6 +6,8 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
@@ -24,6 +26,8 @@ namespace Examine.Lucene.Indexing
     {
         private readonly bool _sortable;
         private readonly Analyzer _analyzer;
+        private readonly bool _isFacetable;
+        private readonly bool _taxonomyIndex;
 
         /// <summary>
         /// Constructor
@@ -33,11 +37,13 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false)
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, bool isFacetable = false, bool taxonomyIndex = false)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _isFacetable = isFacetable;
+            _taxonomyIndex = taxonomyIndex;
         }
 
         /// <summary>
@@ -60,6 +66,15 @@ namespace Examine.Lucene.Indexing
                         ExamineFieldNames.SortedFieldNamePrefix + FieldName,
                         str,
                         Field.Store.YES));
+                }
+
+                if (_isFacetable && _taxonomyIndex)
+                {
+                    doc.Add(new FacetField(FieldName, str));
+                }
+                else if (_isFacetable && !_taxonomyIndex)
+                {
+                    doc.Add(new SortedSetDocValuesFacetField(FieldName, str));
                 }
             }
         }

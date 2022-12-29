@@ -293,7 +293,7 @@ namespace Examine.Lucene.Search
             Facets facetCounts;
             var facetDimConfig = _facetsConfig.GetDimConfig(facetFullTextField.Field);
             string facetIndexFieldName;
-            if (facetDimConfig == null || FacetsConfig.DEFAULT_INDEX_FIELD_NAME == facetDimConfig.IndexFieldName)
+            if (FacetIsSortedSet(facetDimConfig, facetFullTextField))
             {
                 // Can't be Taxonomy
                 if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
@@ -338,6 +338,12 @@ namespace Examine.Lucene.Search
                 facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
             }
 
+        }
+
+        private static bool FacetIsSortedSet(FacetsConfig.DimConfig facetDimConfig, FacetFullTextField facetFullTextField)
+        {
+            //TODO: Determine another way.
+            return facetDimConfig == null || FacetsConfig.DEFAULT_INDEX_FIELD_NAME == facetFullTextField.FacetField;
         }
 
         private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)

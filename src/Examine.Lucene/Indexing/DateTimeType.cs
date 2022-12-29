@@ -1,6 +1,8 @@
 using System;
 using Examine.Lucene.Providers;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 
@@ -11,15 +13,20 @@ namespace Examine.Lucene.Indexing
     {
         public DateResolution Resolution { get; }
 
+        private readonly bool _isFacetable;
+        private readonly bool _taxonomyIndex;
+
         /// <summary>
         /// Can be sorted by the normal field name
         /// </summary>
         public override string SortableFieldName => FieldName;
 
-        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true)
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true, bool isFacetable = false, bool taxonomyIndex = false)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;
+            _isFacetable = isFacetable;
+            _taxonomyIndex = taxonomyIndex;
         }
 
         protected override void AddSingleValue(Document doc, object value)
@@ -29,7 +36,18 @@ namespace Examine.Lucene.Indexing
 
             var val = DateToLong(parsedVal);
 
-            doc.Add(new Int64Field(FieldName,val, Store ? Field.Store.YES : Field.Store.NO));;
+            doc.Add(new Int64Field(FieldName,val, Store ? Field.Store.YES : Field.Store.NO));
+
+            if (_isFacetable && _taxonomyIndex)
+            {
+                doc.Add(new FacetField(FieldName, val.ToString()));
+                doc.Add(new NumericDocValuesField(FieldName, val));
+            }
+            else if (_isFacetable && !_taxonomyIndex)
+            {
+                doc.Add(new SortedSetDocValuesFacetField(FieldName, val.ToString()));
+                doc.Add(new NumericDocValuesField(FieldName, val));
+            }
         }
 
         /// <summary>
