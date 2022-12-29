@@ -43,6 +43,11 @@ namespace Examine.Web.Demo
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetTaxonomyFullText));
                     break;
 
+                case "FacetIndex":
+                    options.UseTaxonomyIndex = false;
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetFullText));
+                    break;
+
             }
         }
 

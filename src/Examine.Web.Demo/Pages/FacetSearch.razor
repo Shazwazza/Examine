@@ -55,7 +55,8 @@
     else if (_searchResults != null)
     {
         <p class="my-2 fw-bold">@_searchResults.TotalItemCount Results found (Showing @_searchResults.Count()) - Found in: @_searchTime</p>
-        @foreach(var searchResult in _searchResults){
+        @foreach (var searchResult in _searchResults)
+        {
             <p class="col-12">Id: @searchResult.Id, Score: @searchResult.Score, Values: @(string.Join(", ", searchResult.Values.Select(x => $"[{x.Key}: {x.Value}]")))</p>
         }
     }
@@ -74,11 +75,12 @@
 
     protected override void OnInitialized()
     {
-        _indexes = IndexService.GetAllIndexes().Where(x => x.Name == "TaxonomyFacetIndex").ToList();
-        _selectedIndex = _indexes.First().Name;
+        _indexes = IndexService.GetAllIndexes().Where(x => x.Name.Contains("Facet")).ToList();
+        _selectedIndex = _indexes.FirstOrDefault(x => x.Name.Contains("TaxonomyFacet"))?.Name ?? _indexes.First().Name;
     }
 
-    private void SearchIndex(){
+    private void SearchIndex()
+    {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
         _searchResults = IndexService.SearchNativeQuery(_selectedIndex, _query.Trim());
@@ -86,7 +88,8 @@
         _searchTime = $"{stopwatch.ElapsedMilliseconds} Milliseconds ({stopwatch.Elapsed:g})";
     }
 
-    private void GetFirst100Items(){
+    private void GetFirst100Items()
+    {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
         var luceneSearchResults = IndexService.SearchLucene(

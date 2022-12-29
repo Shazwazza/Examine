@@ -15,14 +15,23 @@ namespace Examine.Web.Demo
             services.AddExamineLuceneIndex("SyncedIndex");
 
             var taxonomyFacetIndexFacetsConfig = new FacetsConfig();
+            taxonomyFacetIndexFacetsConfig.SetIndexFieldName("dimaddressstate", "AddressState");
 
             services.AddExamineLuceneTaxonomyIndex(
                 "TaxonomyFacetIndex",
                 facetsConfig: taxonomyFacetIndexFacetsConfig);
 
+
+            var facetIndexFacetsConfig = new FacetsConfig();;
+
+            services.AddExamineLuceneIndex(
+                "FacetIndex",
+                facetsConfig: facetIndexFacetsConfig);
+
+
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",
-                new[] { "MyIndex", "SyncedIndex" },
+                new[] { "MyIndex", "SyncedIndex", "FacetIndex" },
                 facetsConfig: new FacetsConfig());
 
             services.ConfigureOptions<ConfigureIndexOptions>();
