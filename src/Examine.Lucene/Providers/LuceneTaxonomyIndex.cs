@@ -106,7 +106,7 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Gets a searcher for the index
         /// </summary>
-        public virtual ISearcher Searcher => _searcher.Value;
+        public override ISearcher Searcher => _searcher.Value;
 
         /// <summary>
         /// Returns the Lucene Directory used to store the index
