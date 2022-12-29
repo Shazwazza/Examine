@@ -293,26 +293,21 @@ namespace Examine.Lucene.Search
             Facets facetCounts;
             var facetDimConfig = _facetsConfig.GetDimConfig(facetFullTextField.Field);
             string facetIndexFieldName;
-            if (FacetIsSortedSet(facetDimConfig, facetFullTextField))
+            if (searcher is ITaxonomySearcherReference taxonomySearcher)
             {
-                // Can't be Taxonomy
+                facetIndexFieldName = facetDimConfig?.IndexFieldName ?? FacetsConfig.DEFAULT_INDEX_FIELD_NAME;
+                var taxonomyReader = taxonomySearcher.TaxonomyReader;
+                fastTaxonomyFacetCounts = new FastTaxonomyFacetCounts(facetIndexFieldName, taxonomySearcher.TaxonomyReader, _facetsConfig, facetsCollector);
+                facetCounts = fastTaxonomyFacetCounts;
+            }
+            else
+            {
                 if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
                 {
                     sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
                 }
                 facetCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
                 facetIndexFieldName = FacetsConfig.DEFAULT_INDEX_FIELD_NAME;
-            }
-            else
-            {
-                // Taxonomy
-                facetIndexFieldName = facetDimConfig?.IndexFieldName ?? FacetsConfig.DEFAULT_INDEX_FIELD_NAME;
-                if (searcher is ITaxonomySearcherReference taxonomySearcher)
-                {
-                    var taxonomyReader = taxonomySearcher.TaxonomyReader;
-                    fastTaxonomyFacetCounts = new FastTaxonomyFacetCounts(facetIndexFieldName, taxonomySearcher.TaxonomyReader, _facetsConfig, facetsCollector);
-                }
-                facetCounts = fastTaxonomyFacetCounts;
             }
 
 
@@ -338,12 +333,6 @@ namespace Examine.Lucene.Search
                 facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
             }
 
-        }
-
-        private static bool FacetIsSortedSet(FacetsConfig.DimConfig facetDimConfig, FacetFullTextField facetFullTextField)
-        {
-            //TODO: Determine another way.
-            return facetDimConfig == null || FacetsConfig.DEFAULT_INDEX_FIELD_NAME == facetFullTextField.FacetField;
         }
 
         private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)

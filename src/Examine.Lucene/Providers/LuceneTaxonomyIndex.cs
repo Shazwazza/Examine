@@ -36,7 +36,10 @@ namespace Examine.Lucene.Providers
         {
             _options = indexOptions.GetNamedOptions(name);
             _logger = loggerFactory.CreateLogger<LuceneIndex>();
-
+            if (!_options.UseTaxonomyIndex)
+            {
+                throw new NotSupportedException("UseTaxonomyIndex must be true in order to use the LuceneTaxonomyIndex");
+            }
             _searcher = new Lazy<LuceneTaxonomySearcher>(CreateSearcher);
         }
 
@@ -54,7 +57,10 @@ namespace Examine.Lucene.Providers
         {
             _options = indexOptions.GetNamedOptions(name);
             _logger = loggerFactory.CreateLogger<LuceneIndex>();
-
+            if (!_options.UseTaxonomyIndex)
+            {
+                throw new NotSupportedException("UseTaxonomyIndex must be true in order to use the LuceneTaxonomyIndex");
+            }
             _searcher = new Lazy<LuceneTaxonomySearcher>(CreateSearcher);
         }
 
