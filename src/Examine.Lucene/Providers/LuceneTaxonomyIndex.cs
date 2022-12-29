@@ -36,10 +36,20 @@ namespace Examine.Lucene.Providers
         {
             _options = indexOptions.GetNamedOptions(name);
             _logger = loggerFactory.CreateLogger<LuceneIndex>();
-            if (!_options.UseTaxonomyIndex)
+            LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
+
+            if (!directoryOptions.UseTaxonomyIndex)
             {
                 throw new NotSupportedException("UseTaxonomyIndex must be true in order to use the LuceneTaxonomyIndex");
             }
+
+            if (directoryOptions.TaxonomyDirectoryFactory == null)
+            {
+                throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned for the Taxonomy Index");
+            }
+
+            _taxonomyDirectory = new Lazy<Directory>(() => directoryOptions.TaxonomyDirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
+
             _searcher = new Lazy<LuceneTaxonomySearcher>(CreateSearcher);
         }
 
@@ -89,6 +99,7 @@ namespace Examine.Lucene.Providers
         private readonly object _writerLocker = new object();
 
         private readonly Lazy<LuceneTaxonomySearcher> _searcher;
+        private readonly Lazy<Directory> _taxonomyDirectory;
 
 
         /// <summary>
@@ -101,6 +112,12 @@ namespace Examine.Lucene.Providers
         /// Gets a searcher for the index
         /// </summary>
         public virtual ISearcher Searcher => _searcher.Value;
+
+        /// <summary>
+        /// Returns the Lucene Directory used to store the index
+        /// </summary>
+        /// <returns></returns>
+        public Directory GetLuceneTaxonomyDirectory() => _taxonomyWriter != null ? _taxonomyWriter.Directory : _taxonomyDirectory.Value;
 
         #region Protected
 
@@ -308,7 +325,7 @@ namespace Examine.Lucene.Providers
         /// <returns></returns>
         private DirectoryTaxonomyWriter CreateTaxonomyWriterInternal()
         {
-            Directory dir = GetLuceneDirectory();
+            Directory dir = GetLuceneTaxonomyDirectory();
 
             // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
