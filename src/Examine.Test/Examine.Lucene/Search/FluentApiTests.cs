@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.X86;
+using System.Security.Principal;
 using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
@@ -9,8 +11,11 @@ using J2N;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
+using Lucene.Net.Spatial.Prefix.Tree;
+using Moq;
 using NUnit.Framework;
 
 
@@ -173,6 +178,138 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     Assert.AreEqual(3, results.TotalItemCount);
                 }
+            }
+        }
+
+        [Test]
+        public void FacetsConfig_SetIndexName_FullText()
+        {
+            var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+
+            var facetsConfig = new FacetsConfig();
+            facetsConfig.SetIndexFieldName("nodeName", "facet_nodeName");
+            
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                fieldDefinitionCollection,
+                facetsConfig:
+            facetsConfig))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "cOntent",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa"}),
+                    ValueSet.FromObject(2.ToString(), "cOntent",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia"}),
+                    ValueSet.FromObject(3.ToString(), "cOntent",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia"})
+                    });
+                var searcher = indexer.Searcher;
+                var query = searcher.CreateQuery("cOntent").All();
+
+                Console.WriteLine(query);
+
+                var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+
+                var facetResults = results.GetFacet("nodeName");
+
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(3, facetResults.Count());
+            }
+        }
+
+        [Test]
+        public void FacetsConfig_SetIndexName_Long()
+        {
+            var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("LongValue", FieldDefinitionTypes.FacetLong));
+
+            var facetsConfig = new FacetsConfig();
+            facetsConfig.SetIndexFieldName("LongValue", "facet_longvalue");
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                fieldDefinitionCollection,
+                facetsConfig: facetsConfig))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "cOntent",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa", LongValue = 10L }),
+                    ValueSet.FromObject(2.ToString(), "cOntent",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia", LongValue = 20L }),
+                    ValueSet.FromObject(3.ToString(), "cOntent",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia", LongValue = 30L })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery("cOntent").All();
+
+                Console.WriteLine(query);
+
+
+                var results = query.WithFacets(facets => facets.Facet("LongValue", new Int64Range[]
+                {
+                    new Int64Range("10", 10, true, 11, true),
+                    new Int64Range("20", 20, true, 21, true),
+                    new Int64Range("30", 30, true, 31, true),
+                })).Execute();
+
+                var facetResults = results.GetFacet("LongValue");
+
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(3, facetResults.Count());
+            }
+        }
+
+        [Test]
+        public void FacetsConfig_SetIndexName_Double()
+        {
+            var fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("DoubleValue", FieldDefinitionTypes.FacetDouble));
+
+            var facetsConfig = new FacetsConfig();
+            facetsConfig.SetIndexFieldName("DoubleValue", "facet_doublevalue");
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                fieldDefinitionCollection,
+                facetsConfig:
+            facetsConfig))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "cOntent",
+                        new { nodeName = "location 1", bodyText = "Zanzibar is in Africa", DoubleValue = 10D }),
+                    ValueSet.FromObject(2.ToString(), "cOntent",
+                        new { nodeName = "location 2", bodyText = "In Canada there is a town called Sydney in Nova Scotia", DoubleValue = 20D }),
+                    ValueSet.FromObject(3.ToString(), "cOntent",
+                        new { nodeName = "location 3", bodyText = "Sydney is the capital of NSW in Australia", DoubleValue = 30D })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery("cOntent").All();
+
+                Console.WriteLine(query);
+
+
+                var results = query.WithFacets(factes => factes.Facet("DoubleValue", new DoubleRange[]
+                {
+                    new DoubleRange("10", 10, true, 11, true),
+                    new DoubleRange("20", 20, true, 21, true),
+                    new DoubleRange("30", 30, true, 31, true),
+                })).Execute();
+
+                var facetResults = results.GetFacet("DoubleValue");
+
+                Assert.AreEqual(3, results.TotalItemCount);
+                Assert.AreEqual(3, facetResults.Count());
             }
         }
 
