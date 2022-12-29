@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Examine.Lucene;
 using Examine.Lucene.Analyzers;
-using Examine.Lucene.Directories;
 using Examine.Lucene.Indexing;
-using Lucene.Net.Index;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Examine.Web.Demo
@@ -44,6 +38,11 @@ namespace Examine.Web.Demo
                     // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
                     break;
+                case "TaxonomyFacetIndex":
+                    options.UseTaxonomyIndex = true;
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+
             }
         }
 

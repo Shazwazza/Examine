@@ -14,6 +14,12 @@ namespace Examine.Web.Demo
 
             services.AddExamineLuceneIndex("SyncedIndex");
 
+            var taxonomyFacetIndexFacetsConfig = new FacetsConfig();
+
+            services.AddExamineLuceneTaxonomyIndex(
+                "TaxonomyFacetIndex",
+                facetsConfig: taxonomyFacetIndexFacetsConfig);
+
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",
                 new[] { "MyIndex", "SyncedIndex" },
