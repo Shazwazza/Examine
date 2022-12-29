@@ -94,7 +94,7 @@
         stopwatch.Start();
         var luceneSearchResults = IndexService.SearchLucene(
             _selectedIndex,
-            (query) => query.All().WithFacets(facets => { facets.Facet("AddressState"); }),
+            (query) => query.GroupedOr(new string[] { "AddressState" }, new string[] { "Florida", "Hawaii", "Connecticut", "Indiana" }).WithFacets(facets => { facets.Facet("AddressState"); }),
             new LuceneQueryOptions(0, 100)
         );
         _searchResults = luceneSearchResults;
