@@ -1,3 +1,4 @@
+using Lucene.Net.Facet;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Examine.Web.Demo
@@ -15,7 +16,8 @@ namespace Examine.Web.Demo
 
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",
-                new[] { "MyIndex", "SyncedIndex" });
+                new[] { "MyIndex", "SyncedIndex" },
+                facetsConfig: new FacetsConfig());
 
             services.ConfigureOptions<ConfigureIndexOptions>();
 

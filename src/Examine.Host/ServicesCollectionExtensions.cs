@@ -119,7 +119,8 @@ namespace Examine
             this IServiceCollection serviceCollection,
             string name,
             string[] indexNames,
-            Analyzer analyzer = null)
+            Analyzer analyzer = null,
+            FacetsConfig facetsConfig = null)
             => serviceCollection.AddExamineSearcher<MultiIndexSearcher>(name, s =>
             {
                 IEnumerable<IIndex> matchedIndexes = s.GetServices<IIndex>()
@@ -127,8 +128,13 @@ namespace Examine
 
                 var parameters = new List<object>
                 {
-                    matchedIndexes
+                    matchedIndexes,
                 };
+
+                if (facetsConfig != null)
+                {
+                    parameters.Add(facetsConfig);
+                }
 
                 if (analyzer != null)
                 {
