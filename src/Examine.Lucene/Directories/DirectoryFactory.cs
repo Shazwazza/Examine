@@ -8,8 +8,13 @@ namespace Examine.Lucene.Directories
     public class GenericDirectoryFactory : DirectoryFactoryBase
     {
         private readonly Func<string, Directory> _factory;
+        private readonly Func<string, Directory> _taxonomyDirectoryFactory;
 
-        public GenericDirectoryFactory(Func<string, Directory> factory) => _factory = factory;
+        public GenericDirectoryFactory(Func<string, Directory> factory, Func<string, Directory> taxonomyDirectoryFactory = null)
+        {
+            _factory = factory;
+            _taxonomyDirectoryFactory = taxonomyDirectoryFactory;
+        }
 
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
@@ -20,9 +25,9 @@ namespace Examine.Lucene.Directories
             }
             return dir;
         }
-        protected override Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        protected override Directory CreateTaxonomyDirectory(LuceneTaxonomyIndex luceneIndex, bool forceUnlock)
         {
-            Directory dir = _factory(luceneIndex.Name + "taxonomy");
+            Directory dir = _taxonomyDirectoryFactory(luceneIndex.Name + "taxonomy");
             if (forceUnlock)
             {
                 IndexWriter.Unlock(dir);

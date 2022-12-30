@@ -32,6 +32,6 @@ namespace Examine.Lucene.Directories
         /// <remarks>
         /// Any subsequent calls for the same index will return the same directory instance
         /// </remarks>
-        Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock);
+        Directory CreateTaxonomyDirectory(LuceneTaxonomyIndex luceneIndex, bool forceUnlock);
     }
 }

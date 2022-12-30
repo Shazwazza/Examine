@@ -324,8 +324,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection,
                 facetsConfig: facetsConfig))
@@ -365,8 +367,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection,
                 facetsConfig: facetsConfig))
@@ -412,8 +416,10 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
             using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection,
                 facetsConfig: facetsConfig))
@@ -4410,7 +4416,8 @@ namespace Examine.Test.Examine.Lucene.Search
             var facetConfigs = new FacetsConfig();
             facetConfigs.SetIndexFieldName("taxonomynodeName", "taxonomy_nodeName");
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(luceneDir, analyzer, new FieldDefinitionCollection(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(luceneDir,luceneTaxonomyDir, analyzer, new FieldDefinitionCollection(
                 new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText),
                 new FieldDefinition("taxonomynodeName", FieldDefinitionTypes.FacetTaxonomyFullText)
 

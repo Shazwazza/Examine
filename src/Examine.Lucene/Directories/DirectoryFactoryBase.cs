@@ -14,14 +14,14 @@ namespace Examine.Lucene.Directories
                 luceneIndex.Name,
                 s => CreateDirectory(luceneIndex, forceUnlock));
 
-        Directory IDirectoryFactory.CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        Directory IDirectoryFactory.CreateTaxonomyDirectory(LuceneTaxonomyIndex luceneIndex, bool forceUnlock)
             => _createdDirectories.GetOrAdd(
                 luceneIndex.Name + "_taxonomy",
                 s => CreateTaxonomyDirectory(luceneIndex, forceUnlock));
 
         protected abstract Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
-        protected abstract Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock);
+        protected abstract Directory CreateTaxonomyDirectory(LuceneTaxonomyIndex luceneIndex, bool forceUnlock);
 
         protected virtual void Dispose(bool disposing)
         {
