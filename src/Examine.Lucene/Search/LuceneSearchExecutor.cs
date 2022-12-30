@@ -128,7 +128,11 @@ namespace Examine.Lucene.Search
                     topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
                 }
                 FacetsCollector facetsCollector = null;
-                if (_facetFields.Any())
+                if (_facetFields.Any() && _luceneQueryOptions != null && _luceneQueryOptions.FacetRandomSampling != null)
+                {
+                    var facetsCollectors = new RandomSamplingFacetsCollector(_luceneQueryOptions.FacetRandomSampling.SampleSize, _luceneQueryOptions.FacetRandomSampling.Seed);
+                }
+                else if (_facetFields.Any())
                 {
                     facetsCollector = new FacetsCollector();
                 }
