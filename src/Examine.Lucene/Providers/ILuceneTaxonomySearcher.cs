@@ -1,9 +1,11 @@
 using System;
-using Examine.Lucene.Search;
 using Examine.Search;
 
 namespace Examine.Lucene.Providers
 {
+    /// <summary>
+    /// Lucene Taxonomy Searcher
+    /// </summary>
     public interface ILuceneTaxonomySearcher : ISearcher, IDisposable
     {
         /// <summary>
@@ -15,6 +17,12 @@ namespace Examine.Lucene.Providers
         /// Returns the Ordinal for the dim and path
         /// </summary>
         int GetOrdinal(string dim, string[] path);
+
+        /// <summary>
+        /// Given a dimensions ordinal (id), get the Path.
+        /// </summary>
+        /// <param name="ordinal">Demension ordinal (id)</param>
+        /// <returns>Path</returns>
         IFacetLabel GetPath(int ordinal);
     }
 }
