@@ -41,6 +41,8 @@ namespace Examine.Web.Demo
                 case "TaxonomyFacetIndex":
                     options.UseTaxonomyIndex = true;
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressStateCity", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("Tags", FieldDefinitionTypes.FacetTaxonomyFullText));
                     break;
 
                 case "FacetIndex":

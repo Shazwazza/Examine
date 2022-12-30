@@ -15,14 +15,20 @@ namespace Examine.Web.Demo
             services.AddExamineLuceneIndex("SyncedIndex");
 
             var taxonomyFacetIndexFacetsConfig = new FacetsConfig();
-            taxonomyFacetIndexFacetsConfig.SetIndexFieldName("dimaddressstate", "AddressState");
+            taxonomyFacetIndexFacetsConfig.SetIndexFieldName("AddressState", "AddressState");
+
+            taxonomyFacetIndexFacetsConfig.SetIndexFieldName("AddressStateCity", "AddressStateCity");
+            taxonomyFacetIndexFacetsConfig.SetHierarchical("AddressStateCity", true);
+            taxonomyFacetIndexFacetsConfig.SetMultiValued("AddressStateCity", false);
+
+            taxonomyFacetIndexFacetsConfig.SetIndexFieldName("Tags", "Tags");
+            taxonomyFacetIndexFacetsConfig.SetMultiValued("Tags", true);
 
             services.AddExamineLuceneTaxonomyIndex(
                 "TaxonomyFacetIndex",
                 facetsConfig: taxonomyFacetIndexFacetsConfig);
 
-
-            var facetIndexFacetsConfig = new FacetsConfig();;
+            var facetIndexFacetsConfig = new FacetsConfig();
 
             services.AddExamineLuceneIndex(
                 "FacetIndex",

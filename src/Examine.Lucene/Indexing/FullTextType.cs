@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Examine.Lucene.Analyzers;
@@ -52,6 +53,37 @@ namespace Examine.Lucene.Indexing
         public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
 
         public override Analyzer Analyzer => _analyzer;
+
+        public override void AddValue(Document doc, object value)
+        {
+            // TryConvert<string[]>(value, out var str) too slow due to throwing exceptions
+            if (value is string[] strArr)
+            {
+                foreach (var str in strArr)
+                {
+                    doc.Add(new TextField(FieldName, str, Field.Store.YES));
+
+                    if (_sortable)
+                    {
+                        //to be sortable it cannot be analyzed so we have to make a different field
+                        doc.Add(new StringField(
+                            ExamineFieldNames.SortedFieldNamePrefix + FieldName,
+                            str,
+                            Field.Store.YES));
+                    }
+                }
+                if (_isFacetable && _taxonomyIndex)
+                {
+                    doc.Add(new FacetField(FieldName, strArr));
+                }
+                else if (_isFacetable && !_taxonomyIndex)
+                {
+                    throw new NotSupportedException("Unable to set a hierarchical facet value when not using the Taxonomy Index.");
+                }
+                return;
+            }
+            base.AddValue(doc, value);
+        }
 
         protected override void AddSingleValue(Document doc, object value)
         {

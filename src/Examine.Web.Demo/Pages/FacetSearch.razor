@@ -92,7 +92,7 @@
         stopwatch.Start();
         var luceneSearchResults = IndexService.SearchLucene(
            _selectedIndex,
-           (query) => query.NativeQuery(_query.Trim()).WithFacets(facets => { facets.Facet("AddressState"); }),
+           (query) => query.NativeQuery(_query.Trim()).WithFacets(facets => { facets.Facet("AddressState"); facets.Facet("AddressStateCity"); facets.Facet("Tags"); }),
            new LuceneQueryOptions(0, 100)
        );
         _searchResults = luceneSearchResults;
@@ -106,7 +106,7 @@
         stopwatch.Start();
         var luceneSearchResults = IndexService.SearchLucene(
             _selectedIndex,
-            (query) => query.All().WithFacets(facets => { facets.Facet("AddressState"); }),
+            (query) => query.All().WithFacets(facets => { facets.Facet("AddressState"); facets.Facet("AddressStateCity"); facets.Facet("Tags"); }),
             new LuceneQueryOptions(0, 100)
         );
         _searchResults = luceneSearchResults;
