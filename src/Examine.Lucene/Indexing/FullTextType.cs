@@ -59,6 +59,7 @@ namespace Examine.Lucene.Indexing
             // TryConvert<string[]>(value, out var str) too slow due to throwing exceptions
             if (value is string[] strArr)
             {
+                // Support for Hierarchical Facets
                 foreach (var str in strArr)
                 {
                     doc.Add(new TextField(FieldName, str, Field.Store.YES));
@@ -78,7 +79,7 @@ namespace Examine.Lucene.Indexing
                 }
                 else if (_isFacetable && !_taxonomyIndex)
                 {
-                    throw new NotSupportedException("Unable to set a hierarchical facet value when not using the Taxonomy Index.");
+                    throw new NotSupportedException("Unable to set a Hierarchical Facet value when not using the Taxonomy Index.");
                 }
                 return;
             }
