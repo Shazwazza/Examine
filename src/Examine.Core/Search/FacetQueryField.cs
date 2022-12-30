@@ -15,5 +15,13 @@ namespace Examine.Search
 
             return this;
         }
+
+        /// <inheritdoc/>
+        public IFacetQueryField Path(params string[] path)
+        {
+            _field.Path = path;
+
+            return this;
+        }
     }
 }

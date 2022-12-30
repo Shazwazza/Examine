@@ -10,6 +10,7 @@ using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Index;
 using Lucene.Net.Queries.Function.ValueSources;
 using Lucene.Net.Search;
+using LuceneFacetResult = Lucene.Net.Facet.FacetResult;
 
 namespace Examine.Lucene.Search
 {
@@ -327,8 +328,16 @@ namespace Examine.Lucene.Search
             }
             else
             {
-                var sortedFacets = facetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
+                LuceneFacetResult sortedFacets;
 
+                if(facetFullTextField.Path != null)
+                {
+                    sortedFacets = facetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field, facetFullTextField.Path);
+                }
+                else
+                {
+                    sortedFacets = facetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
+                } 
                 if (sortedFacets == null)
                 {
                     return;

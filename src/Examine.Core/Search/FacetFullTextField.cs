@@ -10,6 +10,8 @@ namespace Examine.Search
 
         public string FacetField { get; }
 
+        public string[] Path { get; internal set; }
+
         public FacetFullTextField(string field, string[] values, string facetField, int maxCount = 10)
         {
             Field = field;
