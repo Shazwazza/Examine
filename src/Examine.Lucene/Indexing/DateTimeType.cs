@@ -29,6 +29,27 @@ namespace Examine.Lucene.Indexing
             _taxonomyIndex = taxonomyIndex;
         }
 
+        public override void AddValue(Document doc, object value)
+        {
+            // Support setting taxonomy path
+            if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
+            {
+                if (!TryConvert(objArr[0], out DateTime parsedVal))
+                    return;
+                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                    return;
+
+                var val = DateToLong(parsedVal);
+
+                doc.Add(new Int64Field(FieldName, val, Store ? Field.Store.YES : Field.Store.NO));
+
+                doc.Add(new FacetField(FieldName, parsedPathVal));
+                doc.Add(new NumericDocValuesField(FieldName, val));
+                return;
+            }
+            base.AddValue(doc, value);
+        }
+
         protected override void AddSingleValue(Document doc, object value)
         {
             if (!TryConvert(value, out DateTime parsedVal))

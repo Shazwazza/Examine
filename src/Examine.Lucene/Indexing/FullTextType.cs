@@ -56,31 +56,26 @@ namespace Examine.Lucene.Indexing
 
         public override void AddValue(Document doc, object value)
         {
-            // TryConvert<string[]>(value, out var str) too slow due to throwing exceptions
-            if (value is string[] strArr)
+            // Support setting taxonomy path
+            if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
             {
-                // Support for Hierarchical Facets
-                foreach (var str in strArr)
-                {
-                    doc.Add(new TextField(FieldName, str, Field.Store.YES));
+                if (!TryConvert(objArr[0], out string str))
+                    return;
+                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                    return;
 
-                    if (_sortable)
-                    {
-                        //to be sortable it cannot be analyzed so we have to make a different field
-                        doc.Add(new StringField(
-                            ExamineFieldNames.SortedFieldNamePrefix + FieldName,
-                            str,
-                            Field.Store.YES));
-                    }
-                }
-                if (_isFacetable && _taxonomyIndex)
+                doc.Add(new TextField(FieldName, str, Field.Store.YES));
+
+                if (_sortable)
                 {
-                    doc.Add(new FacetField(FieldName, strArr));
+                    //to be sortable it cannot be analyzed so we have to make a different field
+                    doc.Add(new StringField(
+                        ExamineFieldNames.SortedFieldNamePrefix + FieldName,
+                        str,
+                        Field.Store.YES));
                 }
-                else if (_isFacetable && !_taxonomyIndex)
-                {
-                    throw new NotSupportedException("Unable to set a Hierarchical Facet value when not using the Taxonomy Index.");
-                }
+
+                doc.Add(new FacetField(FieldName, parsedPathVal));
                 return;
             }
             base.AddValue(doc, value);
