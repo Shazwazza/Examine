@@ -24,7 +24,7 @@ namespace Examine.Web.Demo
             taxonomyFacetIndexFacetsConfig.SetIndexFieldName("Tags", "Tags");
             taxonomyFacetIndexFacetsConfig.SetMultiValued("Tags", true);
 
-            services.AddExamineLuceneTaxonomyIndex(
+            services.AddExamineLuceneIndex(
                 "TaxonomyFacetIndex",
                 facetsConfig: taxonomyFacetIndexFacetsConfig);
 

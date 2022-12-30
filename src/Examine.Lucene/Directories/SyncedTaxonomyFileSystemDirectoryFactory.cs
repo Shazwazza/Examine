@@ -39,7 +39,7 @@ namespace Examine.Lucene.Directories
 
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
-            var luceneTaxonomyIndex = luceneIndex as LuceneTaxonomyIndex;
+            var luceneTaxonomyIndex = luceneIndex as LuceneIndex;
             var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
             var localLuceneIndexFolder = new DirectoryInfo(path);
 
@@ -66,7 +66,7 @@ namespace Examine.Lucene.Directories
                         OpenMode = OpenMode.APPEND,
                         IndexDeletionPolicy = new SnapshotDeletionPolicy(new KeepOnlyLastCommitDeletionPolicy())
                     }))
-                using (var tempMainIndex = new LuceneTaxonomyIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
+                using (var tempMainIndex = new LuceneIndex(_loggerFactory, luceneIndex.Name, new TempOptions(), tempMainIndexWriter))
                 using (var tempLocalDirectory = new SimpleFSDirectory(localLuceneIndexFolder, LockFactory.GetLockFactory(localLuceneIndexFolder)))
                 using (var tempTaxonomyLocalDirectory = new SimpleFSDirectory(localLuceneTaxonomyIndexFolder, LockFactory.GetLockFactory(localLuceneTaxonomyIndexFolder)))
                 using (var replicator = new ExamineTaxonomyReplicator(_loggerFactory, tempMainIndex, tempLocalDirectory, tempTaxonomyLocalDirectory, tempDir))

@@ -20,7 +20,7 @@ namespace Examine.Lucene
     {
         private bool _disposedValue;
         private readonly IReplicator _replicator;
-        private readonly LuceneTaxonomyIndex _sourceIndex;
+        private readonly LuceneIndex _sourceIndex;
         private readonly Directory _destinationDirectory;
         private readonly ReplicationClient _localReplicationClient;
         private readonly object _locker = new object();
@@ -29,7 +29,7 @@ namespace Examine.Lucene
 
         public ExamineTaxonomyReplicator(
             ILoggerFactory loggerFactory,
-            LuceneTaxonomyIndex sourceIndex,
+            LuceneIndex sourceIndex,
             Directory destinationDirectory,
             Directory destinationTaxonomyDirectory,
             DirectoryInfo tempStorage)
@@ -131,7 +131,7 @@ namespace Examine.Lucene
         /// <param name="e"></param>
         private void SourceIndex_IndexCommitted(object sender, EventArgs e)
         {
-            var index = (LuceneTaxonomyIndex)sender;
+            var index = (LuceneIndex)sender;
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug("{IndexName} committed", index.Name);

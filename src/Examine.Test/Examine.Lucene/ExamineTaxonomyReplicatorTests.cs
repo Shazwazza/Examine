@@ -25,7 +25,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var localDir = new RandomIdRAMDirectory())
             using (var mainTaxonomyDir = new RandomIdRAMDirectory())
             using (var localTaxonomyDir = new RandomIdRAMDirectory())
-            using (TestTaxonomyIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+            using (TestIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
             using (var replicator = new ExamineTaxonomyReplicator(GetLoggerFactory(), mainIndex, localDir, localTaxonomyDir, tempStorage))
             {
                 mainIndex.CreateIndex();
@@ -44,7 +44,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                 // publish on a schedule.
                 replicator.ReplicateIndex();
 
-                using (TestTaxonomyIndex localIndex = GetTaxonomyTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                using (TestIndex localIndex = GetTaxonomyTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                 {
                     DirectoryReader localReader = localIndex.IndexWriter.IndexWriter.GetReader(true);
                     Assert.AreEqual(100, localReader.NumDocs);
@@ -62,9 +62,9 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var localDir = new RandomIdRAMDirectory())
             using (var mainTaxonomyDir = new RandomIdRAMDirectory())
             using (var localTaxonomyDir = new RandomIdRAMDirectory())
-            using (TestTaxonomyIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+            using (TestIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
             using (var replicator = new ExamineTaxonomyReplicator(GetLoggerFactory(), mainIndex, localDir, localTaxonomyDir, tempStorage))
-            using (TestTaxonomyIndex localIndex = GetTaxonomyTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (TestIndex localIndex = GetTaxonomyTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 mainIndex.CreateIndex();
 
@@ -93,7 +93,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var mainTaxonomyDir = new RandomIdRAMDirectory())
             using (var localTaxonomyDir = new RandomIdRAMDirectory())
             {
-                using (TestTaxonomyIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (TestIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 using (var replicator = new ExamineTaxonomyReplicator(GetLoggerFactory(), mainIndex, localDir, localTaxonomyDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
@@ -101,7 +101,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                     replicator.ReplicateIndex();
                 }
 
-                using (TestTaxonomyIndex localIndex = GetTaxonomyTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (TestIndex localIndex = GetTaxonomyTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 {
                     localIndex.IndexItem(new ValueSet(9999.ToString(), "content",
                             new Dictionary<string, IEnumerable<object>>
@@ -116,7 +116,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                         replicator.ReplicateIndex();
                     }
 
-                    using (TestTaxonomyIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                    using (TestIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                     {
                         DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                         Assert.AreEqual(101, mainReader.NumDocs);
@@ -137,7 +137,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var mainTaxonomyDir = new RandomIdRAMDirectory())
             using (var localTaxonomyDir = new RandomIdRAMDirectory())
             {
-                using (TestTaxonomyIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (TestIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 using (var replicator = new ExamineTaxonomyReplicator(GetLoggerFactory(), mainIndex, localDir, localTaxonomyDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
@@ -145,7 +145,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                     replicator.ReplicateIndex();
                 }
 
-                using (TestTaxonomyIndex localIndex = GetTaxonomyTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (TestIndex localIndex = GetTaxonomyTestIndex(localDir, localTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 {
                     using (var replicator = new ExamineTaxonomyReplicator(
                         GetLoggerFactory(),
@@ -173,7 +173,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                         Thread.Sleep(2000);
                     }
 
-                    using (TestTaxonomyIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                    using (TestIndex mainIndex = GetTaxonomyTestIndex(mainDir, mainTaxonomyDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                     {
                         DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                         Assert.AreEqual(110, mainReader.NumDocs);

@@ -16,19 +16,6 @@ namespace Examine
 {
     public static class ServicesCollectionExtensions
     {
-        /// <summary>
-        /// Registers a file system based Lucene with Taxonomy Examine index
-        /// </summary>
-        public static IServiceCollection AddExamineLuceneTaxonomyIndex(
-            this IServiceCollection serviceCollection,
-            string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
-            FacetsConfig facetsConfig = null)
-            => serviceCollection.AddExamineLuceneIndex<LuceneTaxonomyIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, facetsConfig);
-
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
