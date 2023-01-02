@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
@@ -8,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Examine.Lucene.Indexing
 {
 
-    public class DateTimeType : IndexFieldRangeValueType<DateTime>
+    public class DateTimeType : IndexFieldRangeValueType<DateTime>, IIndexFacetValueType
     {
         public DateResolution Resolution { get; }
 
@@ -66,5 +70,7 @@ namespace Examine.Lucene.Indexing
                 lower != null ? DateToLong(lower.Value) : (long?)null,
                 upper != null ? DateToLong(upper.Value) : (long?)null, lowerInclusive, upperInclusive);
         }
+
+        public virtual void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets, IFacetField field) => field.ExtractFacets(facetsCollector, sortedSetReaderState, facets);
     }
 }

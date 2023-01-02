@@ -1,12 +1,16 @@
+using System.Collections.Generic;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
 {
-    public class Int64Type : IndexFieldRangeValueType<long>
+    public class Int64Type : IndexFieldRangeValueType<long>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
 
@@ -46,5 +50,6 @@ namespace Examine.Lucene.Indexing
                 lower,
                 upper, lowerInclusive, upperInclusive);
         }
+        public virtual void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets, IFacetField field) => field.ExtractFacets(facetsCollector, sortedSetReaderState, facets);
     }
 }

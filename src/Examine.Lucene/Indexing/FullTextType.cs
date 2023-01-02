@@ -2,10 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -21,7 +24,7 @@ namespace Examine.Lucene.Indexing
     /// do an exact match search if the term is less than 4 chars, else it will do a full text search on the phrase
     /// with a higher boost, then 
     /// </remarks>
-    public class FullTextType : IndexFieldValueTypeBase
+    public class FullTextType : IndexFieldValueTypeBase, IIndexFacetValueType
     {
         private readonly bool _sortable;
         private readonly Analyzer _analyzer;
@@ -150,5 +153,6 @@ namespace Examine.Lucene.Indexing
             return GenerateQuery(FieldName, query, _analyzer);
         }
 
+        public virtual void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets, IFacetField field) => field.ExtractFacets(facetsCollector, sortedSetReaderState, facets);
     }
 }
