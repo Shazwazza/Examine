@@ -8,6 +8,8 @@ using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Suggest;
+using Lucene.Net.Search.Suggest.Analyzing;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
@@ -23,6 +25,8 @@ namespace Examine.Lucene.Indexing
     public class FullTextType : IndexFieldValueTypeBase
     {
         private readonly bool _sortable;
+        private readonly bool _suggestable;
+        private readonly Lookup _lookup;
         private readonly Analyzer _analyzer;
 
         /// <summary>
@@ -33,11 +37,14 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false)
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, bool suggestable = false, Lookup lookup = null)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
+            _suggestable = suggestable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _lookup = lookup ?? new AnalyzingSuggester(_analyzer);
+
         }
 
         /// <summary>

@@ -18,6 +18,8 @@ using Microsoft.Extensions.Options;
 using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
+using Examine.Suggest;
+using Examine.Lucene.Suggest;
 
 namespace Examine.Lucene.Providers
 {
@@ -49,6 +51,9 @@ namespace Examine.Lucene.Providers
             _cancellationToken = _cancellationTokenSource.Token;
 
             DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+
+
+            _suggester = new Lazy<LuceneSuggester>(CreateSuggester);
         }
 
         /// <summary>
@@ -91,6 +96,7 @@ namespace Examine.Lucene.Providers
         private readonly LuceneIndexOptions _options;
         private PerFieldAnalyzerWrapper _fieldAnalyzer;
         private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
+        private ControlledRealTimeReopenThread<DirectoryReader> _nrtSuggesterReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
         private readonly Lazy<Directory> _directory;
         private FileStream _logOutput;
@@ -119,6 +125,14 @@ namespace Examine.Lucene.Providers
         /// Gets a searcher for the index
         /// </summary>
         public override ISearcher Searcher => _searcher.Value;
+
+
+
+        private readonly Lazy<LuceneSuggester> _suggester;
+        /// <summary>
+        /// Gets a suggester for the index
+        /// </summary>
+        public override ISuggester Suggester => _suggester.Value;
 
         /// <summary>
         /// The async task that runs during an async indexing operation
@@ -1021,6 +1035,36 @@ namespace Examine.Lucene.Providers
 
         #region Private
 
+        private LuceneSuggester CreateSuggester()
+        {
+            var possibleSuffixes = new[] { "Index", "Indexer" };
+            var name = Name;
+            foreach (var suffix in possibleSuffixes)
+            {
+                //trim the "Indexer" / "Index" suffix if it exists
+                if (!name.EndsWith(suffix))
+                    continue;
+                name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
+            }
+
+            TrackingIndexWriter writer = IndexWriter;
+            var suggesterManager = new ReaderManager(writer.IndexWriter, true);
+            suggesterManager.AddListener(this);
+
+            _nrtSuggesterReopenThread = new ControlledRealTimeReopenThread<DirectoryReader>(writer, suggesterManager, 5.0, 1.0)
+            {
+                Name = $"{Name} Suggester NRT Reopen Thread",
+                IsBackground = true
+            };
+
+            _nrtSuggesterReopenThread.Start();
+
+            // wait for most recent changes when first creating the suggester
+            WaitForChanges();
+
+            return new LuceneSuggester(name + "Suggester", suggesterManager, FieldValueTypeCollection, FieldAnalyzer);
+        }
+
         private LuceneSearcher CreateSearcher()
         {
             var possibleSuffixes = new[] { "Index", "Indexer" };
@@ -1263,6 +1307,11 @@ namespace Examine.Lucene.Providers
                     if (_searcher.IsValueCreated)
                     {
                         _searcher.Value.Dispose();
+                    }
+
+                    if (_suggester.IsValueCreated)
+                    {
+                        _suggester.Value.Dispose();
                     }
 
                     //cancel any operation currently in place

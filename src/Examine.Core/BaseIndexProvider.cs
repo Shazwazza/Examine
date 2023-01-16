@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Suggest;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -74,6 +75,8 @@ namespace Examine
         #region IIndex members
 
         public abstract ISearcher Searcher { get; }
+
+        public abstract ISuggester Suggester { get; }
 
         /// <inheritdoc />
         /// <summary>

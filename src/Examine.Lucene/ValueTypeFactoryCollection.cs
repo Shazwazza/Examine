@@ -7,6 +7,8 @@ using Examine.Lucene.Analyzers;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
+using Lucene.Net.Search.Suggest.Analyzing;
+using Lucene.Net.Search.Suggest.Jaspell;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene
@@ -71,7 +73,13 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory, defaultAnalyzer)},
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
-                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())}
+                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
+                {FieldDefinitionTypes.FullTextSuggestable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, false, true, new AnalyzingSuggester(defaultAnalyzer))},
+                {FieldDefinitionTypes.FullTextSortableSuggestable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true, true, new AnalyzingSuggester(defaultAnalyzer))},
+                {FieldDefinitionTypes.FullTextFuzzySuggestable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, false, true, new FuzzySuggester(defaultAnalyzer))},
+                {FieldDefinitionTypes.FullTextSortableFuzzySuggestable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true, true, new FuzzySuggester(defaultAnalyzer))},
+                {FieldDefinitionTypes.FullTextSpelling, name => new FullTextType(name, loggerFactory, defaultAnalyzer, false, true, new JaspellLookup())},
+                {FieldDefinitionTypes.FullTextSortableSpelling, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true, true, new JaspellLookup())},
             };
 
 
