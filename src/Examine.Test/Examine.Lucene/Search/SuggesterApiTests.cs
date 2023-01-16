@@ -37,6 +37,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     Top = 5,
                     SuggesterName = "test"
                 });
+                Assert.IsTrue(results.Any(x => x.Text.Equals("location")));
             }
         }
     }
