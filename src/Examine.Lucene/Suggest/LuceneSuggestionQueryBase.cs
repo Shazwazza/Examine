@@ -28,9 +28,9 @@ namespace Examine.Lucene.Suggest
         {
             return new LuceneSuggestionQuery(GetSuggesterContext(), options);
         }
-        public override ISuggestionResults Suggest(string searchText, string sourceFieldName, SuggestionOptions options = null)
+        public override ISuggestionResults Suggest(string searchText, ISet<string> sourceFieldNames, SuggestionOptions options = null)
         {
-            var suggestionExecutor = CreateSuggestionQuery().SourceField(sourceFieldName);
+            var suggestionExecutor = CreateSuggestionQuery().SourceFields(sourceFieldNames);
             return suggestionExecutor.Execute(searchText, options);
         }
     }

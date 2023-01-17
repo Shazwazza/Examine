@@ -2,7 +2,6 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
-using Lucene.Net.Search.Suggest;
 
 namespace Examine.Lucene.Indexing
 {
@@ -24,11 +23,6 @@ namespace Examine.Lucene.Indexing
         /// Returns the analyzer for this field type, or null to use the default
         /// </summary>
         Analyzer Analyzer { get; }
-
-        /// <summary>
-        /// Returns the lookup for this field type, or null to use the default
-        /// </summary>
-        Lookup Lookup { get; }
 
         void AddValue(Document doc, object value);
         

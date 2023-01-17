@@ -1,33 +1,41 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Examine.Search;
 using Examine.Suggest;
 
 namespace Examine.Lucene.Suggest
 {
-    public class LuceneSuggestionQuery : ISuggestionQuery, ISuggestionExecutor
+    public class LuceneSuggestionQuery : ISuggestionQuery,  ISuggestionExecutor
     {
         private ISuggesterContext _suggesterContext;
-        private string _sourceField = null;
+        private ISet<string> _sourceFields = null;
 
         public LuceneSuggestionQuery(ISuggesterContext suggesterContext, SuggestionOptions options)
         {
             _suggesterContext = suggesterContext;
         }
 
-        /// <inheritdoc/>
-        public ISuggestionQuery SourceField(string fieldName)
+        public ISuggestionQuery SourceFields(ISet<string> fieldNames)
         {
-            if (fieldName == null)
+            if (fieldNames == null)
             {
-                throw new ArgumentNullException(nameof(fieldName));
+                throw new ArgumentNullException(nameof(fieldNames));
             }
-            _sourceField = fieldName;
+            if(fieldNames.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(fieldNames));
+            }
+            _sourceFields = fieldNames;
             return this;
         }
 
-        /// <inheritdoc/>
+
         public ISuggestionResults Execute(string searchText, SuggestionOptions options = null)
         {
-            var executor = new LuceneSuggesterExecutor(searchText, options, _sourceField, _suggesterContext);
+            var executor = new LuceneSuggesterExecutor(searchText, options, _sourceFields, _suggesterContext);
             var results = executor.Execute();
             return results;
         }
