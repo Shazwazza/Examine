@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Examine.Suggest;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
@@ -55,13 +52,12 @@ namespace Examine.Test.Examine.Lucene.Suggest
                     ValueSet.FromObject(3.ToString(), "content",
                         new { nodeName = "content localization 3", bodyText = "Sydney is the capital of NSW in Australia"}),
 
-                    
+
                     });
 
                 var suggester = indexer.Suggester;
                 var query = suggester.CreateSuggestionQuery()
-                    .SourceFields(new HashSet<string>(){
-                        "nodeName" });
+                    .SourceField("nodeName");
 
                 var results = query.Execute("loc", new SuggestionOptions(5, "AnalyzingSuggester"));
                 Assert.IsTrue(results.Count() == 4);
@@ -124,8 +120,7 @@ namespace Examine.Test.Examine.Lucene.Suggest
 
                 var suggester = indexer.Suggester;
                 var query = suggester.CreateSuggestionQuery()
-                    .SourceFields(new HashSet<string>(){
-                        "nodeName" });
+                    .SourceField("nodeName");
 
                 var results = query.Execute("logomotave", new SuggestionOptions(5, "DirectSpellChecker"));
                 Assert.IsTrue(results.Count() == 1);

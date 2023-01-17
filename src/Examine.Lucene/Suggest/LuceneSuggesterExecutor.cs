@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Examine.Suggest;
 using Lucene.Net.Index;
 using Lucene.Net.Search.Spell;
+using Lucene.Net.Search.Suggest;
 using Lucene.Net.Search.Suggest.Analyzing;
 
 namespace Examine.Lucene.Suggest
@@ -14,14 +13,14 @@ namespace Examine.Lucene.Suggest
     {
         private string _searchText;
         private SuggestionOptions _options;
-        private ISet<string> _sourceFields;
+        private string _sourceField;
         private ISuggesterContext _suggesterContext;
 
-        public LuceneSuggesterExecutor(string searchText, SuggestionOptions options, ISet<string> sourceFields, ISuggesterContext suggesterContext)
+        public LuceneSuggesterExecutor(string searchText, SuggestionOptions options, string sourceField, ISuggesterContext suggesterContext)
         {
             _searchText = searchText;
             _options = options;
-            _sourceFields = sourceFields;
+            _sourceField = sourceField;
             _suggesterContext = suggesterContext;
         }
 
@@ -29,9 +28,15 @@ namespace Examine.Lucene.Suggest
         {
             using (var readerReference = _suggesterContext.GetIndexReader())
             {
-                if(_options.SuggesterName == null)
+                string field = _sourceField;
+                var fieldValue = _suggesterContext.GetFieldValueType(field);
+                if (fieldValue != null && fieldValue.Lookup != null)
                 {
-                    return AnalyzingSuggester(readerReference);
+                    return FieldDefinitionLookup(readerReference);
+                }
+                if (_options.SuggesterName == null)
+                {
+                    return FieldDefinitionLookup(readerReference);
                 }
                 if (_options.SuggesterName.Equals("AnalyzingSuggester", StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -41,13 +46,13 @@ namespace Examine.Lucene.Suggest
                 {
                     return DirectSpellChecker(readerReference);
                 }
-                return AnalyzingSuggester(readerReference);
+                return FieldDefinitionLookup(readerReference);
             }
         }
 
         private ISuggestionResults DirectSpellChecker(IIndexReaderReference readerReference)
         {
-            string field = _sourceFields.First();
+            string field = _sourceField;
             var fieldValue = _suggesterContext.GetFieldValueType(field);
 
             DirectSpellChecker spellchecker = new DirectSpellChecker();
@@ -71,9 +76,8 @@ namespace Examine.Lucene.Suggest
 
         private ISuggestionResults AnalyzingSuggester(IIndexReaderReference readerReference)
         {
-            string field = _sourceFields.First();
+            string field = _sourceField;
             var fieldValue = _suggesterContext.GetFieldValueType(field);
-
             LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
             AnalyzingSuggester analyzingSuggester = new AnalyzingSuggester(fieldValue.Analyzer);
             analyzingSuggester.Build(luceneDictionary);
@@ -82,5 +86,19 @@ namespace Examine.Lucene.Suggest
             LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
             return suggestionResults;
         }
+
+        private ISuggestionResults FieldDefinitionLookup(IIndexReaderReference readerReference)
+        {
+            string field = _sourceField;
+            var fieldValue = _suggesterContext.GetFieldValueType(field);
+            LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
+            Lookup lookup = fieldValue.Lookup;
+            lookup.Build(luceneDictionary);
+            var lookupResults = lookup.DoLookup(_searchText, false, _options.Top);
+            var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
+            LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
+            return suggestionResults;
+        }
+            
     }
 }

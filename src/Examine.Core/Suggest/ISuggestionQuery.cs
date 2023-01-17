@@ -8,9 +8,9 @@ namespace Examine.Suggest
     public interface ISuggestionQuery : ISuggestionExecutor
     {
         /// <summary>
-        /// The source fields
+        /// The source field
         /// </summary>
-        /// <param name="fieldNames">The field names for fields base suggestion on.</param>
-        ISuggestionQuery SourceFields(ISet<string> fieldNames);
+        /// <param name="fieldName">The field name for field to base suggestion on.</param>
+        ISuggestionQuery SourceField(string fieldName);
     }
 }

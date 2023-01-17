@@ -15,10 +15,11 @@ namespace Examine.Suggest
         /// <summary>
         /// Suggest query terms for the given search Text
         /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="options"></param>
+        /// <param name="searchText">Text to suggest on</param>
+        /// <param name="sourceFieldName">Index field to suggest for</param>
+        /// <param name="options">Options</param>
         /// <returns></returns>
-        ISuggestionResults Suggest(string searchText, ISet<string> sourceFieldNames, SuggestionOptions options = null);
+        ISuggestionResults Suggest(string searchText, string sourceFieldName, SuggestionOptions options = null);
 
         ISuggestionQuery CreateSuggestionQuery();
 
