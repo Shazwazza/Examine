@@ -43,6 +43,10 @@ namespace Examine.Lucene.Suggest
                 {
                     return AnalyzingSuggester(readerReference);
                 }
+                if (_options.SuggesterName.Equals(ExamineLuceneSuggesterNames.FuzzySuggester, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return FuzzySuggester(readerReference);
+                }
                 if (_options.SuggesterName.StartsWith(ExamineLuceneSuggesterNames.DirectSpellChecker, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return DirectSpellChecker(readerReference);
@@ -87,6 +91,20 @@ namespace Examine.Lucene.Suggest
             LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
             return suggestionResults;
         }
+
+        private ISuggestionResults FuzzySuggester(IIndexReaderReference readerReference)
+        {
+            string field = _sourceField;
+            var fieldValue = _suggesterContext.GetFieldValueType(field);
+            LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
+            FuzzySuggester suggester = new FuzzySuggester(fieldValue.Analyzer);
+            suggester.Build(luceneDictionary);
+            var lookupResults = suggester.DoLookup(_searchText, false, _options.Top);
+            var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
+            LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
+            return suggestionResults;
+        }
+
 
         private ISuggestionResults FieldDefinitionLookup(IIndexReaderReference readerReference)
         {

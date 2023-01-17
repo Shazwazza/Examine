@@ -11,6 +11,11 @@ namespace Examine
         public const string AnalyzingSuggester = "LuceneAnalyzingSuggester";
 
         /// <summary>
+        /// Lucene.NET FuzzySuggester Suggester
+        /// </summary>
+        public const string FuzzySuggester = "LuceneFuzzySuggester";
+
+        /// <summary>
         /// Lucene.NET DirectSpellChecker with default string distance implementation.
         /// </summary>
         public const string DirectSpellChecker = "LuceneDirectSpellChecker";
