@@ -63,22 +63,14 @@ namespace Examine.Test.Examine.Lucene.Suggest
                     .SourceFields(new HashSet<string>(){
                         "nodeName" });
 
-                var results = query.Execute("loc", new SuggestionOptions
-                {
-                    Top = 5,
-                    SuggesterName = "AnalyzingSuggester"
-                });
+                var results = query.Execute("loc", new SuggestionOptions(5, "AnalyzingSuggester"));
                 Assert.IsTrue(results.Count() == 4);
                 Assert.IsTrue(results.Any(x => x.Text.Equals("location")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locksmiths")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locomotive")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("localization")));
 
-                var results2 = query.Execute("loco", new SuggestionOptions
-                {
-                    Top = 5,
-                    SuggesterName = "AnalyzingSuggester"
-                });
+                var results2 = query.Execute("loco", new SuggestionOptions(5, "AnalyzingSuggester"));
                 Assert.IsTrue(results2.Count() == 1);
                 Assert.IsTrue(results2.Any(x => x.Text.Equals("locomotive")));
             }
@@ -135,19 +127,11 @@ namespace Examine.Test.Examine.Lucene.Suggest
                     .SourceFields(new HashSet<string>(){
                         "nodeName" });
 
-                var results = query.Execute("logomotave", new SuggestionOptions
-                {
-                    Top = 5,
-                    SuggesterName = "DirectSpellChecker"
-                });
+                var results = query.Execute("logomotave", new SuggestionOptions(5, "DirectSpellChecker"));
                 Assert.IsTrue(results.Count() == 1);
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locomotive")));
 
-                var results2 = query.Execute("localisation", new SuggestionOptions
-                {
-                    Top = 5,
-                    SuggesterName = "DirectSpellChecker"
-                });
+                var results2 = query.Execute("localisation", new SuggestionOptions(5, "DirectSpellChecker"));
                 Assert.IsTrue(results2.Count() == 1);
                 Assert.IsTrue(results2.Any(x => x.Text.Equals("localization")));
             }

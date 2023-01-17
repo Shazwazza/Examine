@@ -1,9 +1,33 @@
 namespace Examine.Suggest
 {
+    /// <summary>
+    /// Suggester Options
+    /// </summary>
     public class SuggestionOptions
     {
-        public int Top { get; set; } = 5;
+        /// <summary>
+        /// Contstuctor
+        /// </summary>
+        /// <param name="top">Clamp number of results</param>
+        /// <param name="suggesterName">The name of the Suggester to use</param>
+        public SuggestionOptions(int top = 5, string suggesterName = null)
+        {
+            Top = top;
+            if (top < 0)
+            {
+                top = 0;
+            }
+            SuggesterName = suggesterName;
+        }
 
-        public string SuggesterName { get; set; }
+        /// <summary>
+        /// Clamp number of results.
+        /// </summary>
+        public int Top { get; }
+
+        /// <summary>
+        /// The name of the Suggester to use
+        /// </summary>
+        public string SuggesterName { get; }
     }
 }
