@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Suggest;
+using J2N.Text;
 using Lucene.Net.Index;
 using Lucene.Net.Search.Spell;
 using Lucene.Net.Search.Suggest;
@@ -38,11 +39,11 @@ namespace Examine.Lucene.Suggest
                 {
                     return FieldDefinitionLookup(readerReference);
                 }
-                if (_options.SuggesterName.Equals("AnalyzingSuggester", StringComparison.InvariantCultureIgnoreCase))
+                if (_options.SuggesterName.Equals(ExamineLuceneSuggesterNames.AnalyzingSuggester, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return AnalyzingSuggester(readerReference);
                 }
-                if (_options.SuggesterName.Equals("DirectSpellChecker", StringComparison.InvariantCultureIgnoreCase))
+                if (_options.SuggesterName.StartsWith(ExamineLuceneSuggesterNames.DirectSpellChecker, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return DirectSpellChecker(readerReference);
                 }
@@ -56,14 +57,14 @@ namespace Examine.Lucene.Suggest
             var fieldValue = _suggesterContext.GetFieldValueType(field);
 
             DirectSpellChecker spellchecker = new DirectSpellChecker();
-            if (_options.SuggesterName.EndsWith("|JaroWinklerDistance")){
+            if (_options.SuggesterName.Equals(ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, StringComparison.InvariantCultureIgnoreCase)){
                 spellchecker.Distance = new JaroWinklerDistance();
             }
-            else if (_options.SuggesterName.EndsWith("|LevensteinDistance"))
+            else if (_options.SuggesterName.Equals(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, StringComparison.InvariantCultureIgnoreCase))
             {
                 spellchecker.Distance = new LevensteinDistance();
             }
-            else if (_options.SuggesterName.EndsWith("|NGramDistance"))
+            else if (_options.SuggesterName.Equals(ExamineLuceneSuggesterNames.DirectSpellChecker_NGramDistance, StringComparison.InvariantCultureIgnoreCase))
             {
                 spellchecker.Distance = new NGramDistance();
             }
