@@ -4,6 +4,8 @@ namespace Examine.Suggest
     {
         string Text { get; }
 
-        long Weight { get; }
+        float? Weight { get; }
+
+        int? Frequency { get; }
     }
 }

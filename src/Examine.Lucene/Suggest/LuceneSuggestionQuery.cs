@@ -8,27 +8,17 @@ using Examine.Suggest;
 
 namespace Examine.Lucene.Suggest
 {
-    public class LuceneSuggestionQuery : ISuggestionQuery, ISuggestionOrdering, ISuggestionSelectFields, ISuggestionExecutor
+    public class LuceneSuggestionQuery : ISuggestionQuery,  ISuggestionExecutor
     {
         private ISuggesterContext _suggesterContext;
-        private SuggestionOptions _options;
-        private ISet<string> _fieldsToLoad = null;
         private ISet<string> _sourceFields = null;
 
         public LuceneSuggestionQuery(ISuggesterContext suggesterContext, SuggestionOptions options)
         {
             _suggesterContext = suggesterContext;
-            _options = options;
         }
 
-        public ISuggestionSelectFields OrderBy(params SortableField[] fields) => throw new NotImplementedException();
-        public ISuggestionSelectFields OrderByDescending(params SortableField[] fields) => throw new NotImplementedException();
-        public ISuggestionSelectFields SelectFields(ISet<string> fieldNames)
-        {
-            _fieldsToLoad = fieldNames;
-            return this;
-        }
-        public ISuggestionOrdering SourceFields(ISet<string> fieldNames)
+        public ISuggestionQuery SourceFields(ISet<string> fieldNames)
         {
             if (fieldNames == null)
             {
@@ -45,7 +35,7 @@ namespace Examine.Lucene.Suggest
 
         public ISuggestionResults Execute(string searchText, SuggestionOptions options = null)
         {
-            var executor = new LuceneSuggesterExecutor(searchText, options, _sourceFields, _fieldsToLoad, _suggesterContext);
+            var executor = new LuceneSuggesterExecutor(searchText, options, _sourceFields, _suggesterContext);
             var results = executor.Execute();
             return results;
         }
