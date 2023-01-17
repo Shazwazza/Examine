@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Suggest;
 
 namespace Examine
 {
@@ -10,7 +11,7 @@ namespace Examine
     ///</summary>
     public class ExamineManager : IDisposable, IExamineManager
     {
-        public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers)
+        public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers, IEnumerable<ISuggester> suggesters)
         {
             foreach(IIndex i in indexes)
             {
@@ -21,10 +22,16 @@ namespace Examine
             {
                 AddSearcher(s);
             }
+
+            foreach (ISuggester s in suggesters)
+            {
+                AddSuggester(s);
+            }
         }
 
         private readonly ConcurrentDictionary<string, IIndex> _indexers = new ConcurrentDictionary<string, IIndex>(StringComparer.InvariantCultureIgnoreCase);
         private readonly ConcurrentDictionary<string, ISearcher> _searchers = new ConcurrentDictionary<string, ISearcher>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly ConcurrentDictionary<string, ISuggester> _suggesters = new ConcurrentDictionary<string, ISuggester>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <inheritdoc />
         public bool TryGetSearcher(string searcherName, out ISearcher searcher) => 
@@ -34,12 +41,19 @@ namespace Examine
         public bool TryGetIndex(string indexName, out IIndex index) => 
             (index = _indexers.TryGetValue(indexName, out var i) ? i : null) != null;
 
+
+        /// <inheritdoc />
+        public bool TryGetSuggester(string suggesterName, out ISuggester suggester) =>
+            (suggester = _suggesters.TryGetValue(suggesterName, out var s) ? s : null) != null;
+
         /// <inheritdoc />
         public IEnumerable<ISearcher> RegisteredSearchers => _searchers.Values;
 
         /// <inheritdoc />
         public IEnumerable<IIndex> Indexes => _indexers.Values;
-       
+
+        public IEnumerable<ISuggester> RegisteredSuggesters => _suggesters.Values;
+
         private IIndex AddIndex(IIndex index)
         {
             //make sure this name doesn't exist in
@@ -60,6 +74,17 @@ namespace Examine
             }
 
             return searcher;
+        }
+
+        private ISuggester AddSuggester(ISuggester suggester)
+        {
+            //make sure this name doesn't exist in
+            if (!_suggesters.TryAdd(suggester.Name, suggester))
+            {
+                throw new InvalidOperationException("The suggester with name " + suggester.Name + " already exists");
+            }
+
+            return suggester;
         }
 
         /// <summary>
@@ -110,7 +135,15 @@ namespace Examine
                 {
                     // we don't want to kill the app or anything, even though it is terminating, best to just ensure that 
                     // no strange lucene background thread stuff causes issues here.
-                }                
+                }
+                try
+                {
+                    foreach (var suggester in RegisteredSuggesters.OfType<IDisposable>())
+                    {
+                        suggester.Dispose();
+                    }
+                }
+                catch { }
             }
             else
             {

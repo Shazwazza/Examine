@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Suggest;
 
 namespace Examine
 {
@@ -21,6 +22,14 @@ namespace Examine
         /// </remarks>
         IEnumerable<ISearcher> RegisteredSearchers { get; }
 
+        /// <summary>
+        /// Gets a list of all manually configured suggester providers
+        /// </summary>
+        /// <remarks>
+        /// This returns only those suggesters explicitly registered with <see cref="AddSuggester"/> or config based suggesters
+        /// </remarks>
+        IEnumerable<ISuggester> RegisteredSuggesters { get; }
+
         void Dispose();
 
         /// <summary>
@@ -40,6 +49,16 @@ namespace Examine
         /// true if the searcher was found by name
         /// </returns>
         bool TryGetSearcher(string searcherName, out ISearcher searcher);
+
+        /// <summary>
+        /// Returns a sugesster that was registered with <see cref="AddSuggester"/> or via config
+        /// </summary>
+        /// <param name="suggesterName"></param>
+        /// <param name="suggester"></param>
+        /// <returns>
+        /// true if the suggester was found by name
+        /// </returns>
+        bool TryGetSuggester(string suggesterName, out ISuggester suggester);
 
     }
 }
