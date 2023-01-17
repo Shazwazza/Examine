@@ -54,6 +54,8 @@ namespace Examine.Lucene.Indexing
 
         public override Analyzer Analyzer => _analyzer;
 
+        public Lookup Lookup => _suggestable ? _lookup : null;
+
         protected override void AddSingleValue(Document doc, object value)
         {
             if (TryConvert<string>(value, out var str))
