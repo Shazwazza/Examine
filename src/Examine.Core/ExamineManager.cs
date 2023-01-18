@@ -143,7 +143,10 @@ namespace Examine
                         suggester.Dispose();
                     }
                 }
-                catch { }
+                catch {
+                    // we don't want to kill the app or anything, even though it is terminating, best to just ensure that 
+                    // no strange lucene background thread stuff causes issues here.
+                }
             }
             else
             {

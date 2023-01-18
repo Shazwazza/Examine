@@ -6,7 +6,7 @@ namespace Examine.Suggest
     public class SuggestionOptions
     {
         /// <summary>
-        /// Contstuctor
+        /// Constructor
         /// </summary>
         /// <param name="top">Clamp number of results</param>
         /// <param name="suggesterName">The name of the Suggester to use</param>

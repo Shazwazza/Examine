@@ -4,12 +4,12 @@ using Lucene.Net.Analysis;
 namespace Examine.Lucene.Suggest
 {
     /// <summary>
-    /// Lucene Suggester query qime options
+    /// Lucene Suggester query time options
     /// </summary>
     public class LuceneSuggestionOptions : SuggestionOptions
     {
         /// <summary>
-        /// Contstuctor
+        /// Constructor
         /// </summary>
         /// <param name="top">Clamp number of results</param>
         /// <param name="suggesterName">The name of the Suggester to use</param>

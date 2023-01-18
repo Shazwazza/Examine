@@ -70,5 +70,6 @@ To use a suggester data source other than a field in the index or to use another
         /// Returns the lookup for this field type, or null to use the default
         /// </summary>
         Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> Lookup { get; }
-...
+        ...
     }
+```
