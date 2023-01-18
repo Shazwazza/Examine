@@ -160,9 +160,23 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Analyzing Suggester Lookup
         /// </summary>
-        public static LuceneSuggestionResults ExecuteAnalyzingSuggester(IIndexReaderReference readerReference, SuggestionOptions suggestionOptions, string searchText, string fieldName, Analyzer indexTimeAnalyzer)
+        public static LuceneSuggestionResults ExecuteAnalyzingSuggester(IIndexReaderReference readerReference,
+                                                                        SuggestionOptions suggestionOptions,
+                                                                        string searchText,
+                                                                        string fieldName,
+                                                                        Analyzer indexTimeAnalyzer, IDictionary dictionary = null)
         {
-            LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, fieldName);
+            IDictionary lookupDictionary;
+            if (dictionary != null)
+            {
+                lookupDictionary = dictionary;
+            }
+            else
+            {
+                lookupDictionary = new LuceneDictionary(readerReference.IndexReader, fieldName);
+            }
+           
+
             AnalyzingSuggester analyzingSuggester;
             var onlyMorePopular = false;
             if (suggestionOptions is LuceneSuggestionOptions luceneSuggestionOptions)
@@ -185,7 +199,7 @@ namespace Examine.Lucene.Indexing
                 analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer);
             }
 
-            analyzingSuggester.Build(luceneDictionary);
+            analyzingSuggester.Build(lookupDictionary);
             var lookupResults = analyzingSuggester.DoLookup(searchText, onlyMorePopular, suggestionOptions.Top);
             var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
             LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
@@ -195,9 +209,21 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Fuzzy Suggester Lookup
         /// </summary>
-        public static LuceneSuggestionResults ExecuteFuzzySuggester(IIndexReaderReference readerReference, SuggestionOptions suggestionOptions, string searchText, string fieldName, Analyzer indexTimeAnalyzer)
+        public static LuceneSuggestionResults ExecuteFuzzySuggester(IIndexReaderReference readerReference,
+                                                                    SuggestionOptions suggestionOptions,
+                                                                    string searchText,
+                                                                    string fieldName,
+                                                                    Analyzer indexTimeAnalyzer, IDictionary dictionary = null)
         {
-            LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, fieldName);
+            IDictionary lookupDictionary;
+            if (dictionary != null)
+            {
+                lookupDictionary = dictionary;
+            }
+            else
+            {
+                lookupDictionary = new LuceneDictionary(readerReference.IndexReader, fieldName);
+            }
             FuzzySuggester analyzingSuggester;
             var onlyMorePopular = false;
             if (suggestionOptions is LuceneSuggestionOptions luceneSuggestionOptions)
@@ -220,7 +246,7 @@ namespace Examine.Lucene.Indexing
                 analyzingSuggester = new FuzzySuggester(indexTimeAnalyzer);
             }
 
-            analyzingSuggester.Build(luceneDictionary);
+            analyzingSuggester.Build(lookupDictionary);
             var lookupResults = analyzingSuggester.DoLookup(searchText, onlyMorePopular, suggestionOptions.Top);
             var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
             LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
@@ -230,7 +256,11 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Fuzzy Suggester Lookup
         /// </summary>
-        public static LuceneSuggestionResults ExecuteDirectSpellChecker(IIndexReaderReference readerReference, SuggestionOptions suggestionOptions, string searchText, string fieldName, Analyzer indexTimeAnalyzer)
+        public static LuceneSuggestionResults ExecuteDirectSpellChecker(IIndexReaderReference readerReference,
+                                                                        SuggestionOptions suggestionOptions,
+                                                                        string searchText,
+                                                                        string fieldName,
+                                                                        Analyzer indexTimeAnalyzer)
         {
             DirectSpellChecker spellchecker = new DirectSpellChecker();
             if (suggestionOptions.SuggesterName.Equals(ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, StringComparison.InvariantCultureIgnoreCase))
