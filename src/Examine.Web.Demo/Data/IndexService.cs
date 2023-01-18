@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Examine.Lucene.Providers;
 using Examine.Search;
+using Examine.Suggest;
 using Examine.Web.Demo.Controllers;
 using Examine.Web.Demo.Data.Models;
 using Lucene.Net.Search;
@@ -109,6 +110,15 @@ namespace Examine.Web.Demo.Data
             }
 
             return index;
+        }
+
+        public ISuggestionResults Suggest(string indexName, string query)
+        {
+            var index = GetIndex(indexName);
+
+            var suggester = index.Suggester;
+            var criteria = suggester.CreateSuggestionQuery();
+            return criteria.SourceField("FullName").Execute(query, new SuggestionOptions(5, ExamineLuceneSuggesterNames.DirectSpellChecker));
         }
     }
 

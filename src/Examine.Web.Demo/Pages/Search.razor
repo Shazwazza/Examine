@@ -1,4 +1,5 @@
 @page "/search"
+@using Examine.Suggest;
 @using Examine.Web.Demo.Data
 @using System.Diagnostics
 @inject IndexService IndexService
@@ -28,6 +29,21 @@
 </div>
 
 <div class="row mt-2">
+    @if (_suggesterResults != null)
+    {
+        <p class="my-2 fw-bold">@_suggesterResults.Count() Suggestions found (Showing @_suggesterResults.Count()) - Found in: @_suggesterTime</p>
+        @foreach (var suggesterResult in _suggesterResults)
+        {
+            <p class="col-12">Suggestion Text:@suggesterResult.Text, Weight:@suggesterResult.Weight, Frequency:@suggesterResult.Frequency</p>
+        }
+    }
+    else
+    {
+        <p>No results</p>
+    }
+</div>
+
+<div class="row mt-2">
     @if (_searchResults != null)
     {
         <p class="my-2 fw-bold">@_searchResults.TotalItemCount Results found (Showing @_searchResults.Count()) - Found in: @_searchTime</p>
@@ -47,6 +63,8 @@
     private string _query = string.Empty;
     private ISearchResults? _searchResults;
     private string _searchTime = string.Empty;
+    private ISuggestionResults? _suggesterResults;
+    private string _suggesterTime = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -60,6 +78,18 @@
         _searchResults = IndexService.SearchNativeQuery(_selectedIndex, _query.Trim());
         stopwatch.Stop();
         _searchTime = $"{stopwatch.ElapsedMilliseconds} Milliseconds ({stopwatch.Elapsed:g})";
+
+        try
+        {
+            var stopwatchSuggester = Stopwatch.StartNew();
+            _suggesterResults = IndexService.Suggest(_selectedIndex, _query.Trim());
+            stopwatchSuggester.Stop();
+            _suggesterTime = $"{stopwatchSuggester.ElapsedMilliseconds} Milliseconds ({stopwatch.Elapsed:g})";
+        }
+        catch
+        {
+            
+        }
     }
 
     private void GetFirst100Items(){

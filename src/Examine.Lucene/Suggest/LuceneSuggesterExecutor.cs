@@ -12,11 +12,11 @@ namespace Examine.Lucene.Suggest
 {
     public class LuceneSuggesterExecutor
     {
-        private string _searchText;
-        private SuggestionOptions _options;
-        private string _sourceField;
-        private ISuggesterContext _suggesterContext;
-
+        private readonly string _searchText;
+        private readonly SuggestionOptions _options;
+        private readonly string _sourceField;
+        private readonly ISuggesterContext _suggesterContext;
+        private readonly ISuggestionResults _emptySuggestionResults = new LuceneSuggestionResults(Array.Empty<ISuggestionResult>());
         public LuceneSuggesterExecutor(string searchText, SuggestionOptions options, string sourceField, ISuggesterContext suggesterContext)
         {
             _searchText = searchText;
@@ -37,7 +37,7 @@ namespace Examine.Lucene.Suggest
                 }
                 if (_options.SuggesterName == null)
                 {
-                    return FieldDefinitionLookup(readerReference);
+                    return _emptySuggestionResults;
                 }
                 if (_options.SuggesterName.Equals(ExamineLuceneSuggesterNames.AnalyzingSuggester, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -51,7 +51,7 @@ namespace Examine.Lucene.Suggest
                 {
                     return DirectSpellChecker(readerReference);
                 }
-                return FieldDefinitionLookup(readerReference);
+                return _emptySuggestionResults;
             }
         }
 
