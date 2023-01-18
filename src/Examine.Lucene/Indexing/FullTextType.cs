@@ -306,49 +306,55 @@ namespace Examine.Lucene.Indexing
                                                                         int minPrefixChars,
                                                                         IInputEnumerator suggesterData = null)
         {
-
-            AnalyzingInfixSuggester suggester;
-            var onlyMorePopular = false;
-            if (suggestionOptions is LuceneSuggestionOptions luceneSuggestionOptions)
+            AnalyzingInfixSuggester suggester = null;
+            try
             {
-                if (luceneSuggestionOptions.Analyzer != null)
+                var onlyMorePopular = false;
+                if (suggestionOptions is LuceneSuggestionOptions luceneSuggestionOptions)
                 {
-                    suggester = new AnalyzingInfixSuggester(luceneVersion, directory, indexTimeAnalyzer, luceneSuggestionOptions.Analyzer, minPrefixChars);
+                    if (luceneSuggestionOptions.Analyzer != null)
+                    {
+                        suggester = new AnalyzingInfixSuggester(luceneVersion, directory, indexTimeAnalyzer, luceneSuggestionOptions.Analyzer, minPrefixChars);
+                    }
+                    else
+                    {
+                        suggester = new AnalyzingInfixSuggester(luceneVersion, directory, indexTimeAnalyzer);
+                    }
+                    if (luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
+                    {
+                        onlyMorePopular = true;
+                    }
                 }
                 else
                 {
                     suggester = new AnalyzingInfixSuggester(luceneVersion, directory, indexTimeAnalyzer);
                 }
-                if (luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
+                if (suggesterData != null)
                 {
-                    onlyMorePopular = true;
+                    suggester.Build(suggesterData);
                 }
+                else
+                {
+                    var lookupDictionary = new LuceneDictionary(readerReference.IndexReader, fieldName);
+                    suggester.Build(lookupDictionary);
+                }
+                IList<LookupResult> lookupResults;
+                if (suggestionOptions.Highlight)
+                {
+                    lookupResults = suggester.DoLookup(searchText, null, suggestionOptions.Top, false, suggestionOptions.Highlight);
+                }
+                else
+                {
+                    lookupResults = suggester.DoLookup(searchText, onlyMorePopular, suggestionOptions.Top);
+                }
+                var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
+                LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
+                return suggestionResults;
             }
-            else
+            finally
             {
-                suggester = new AnalyzingInfixSuggester(luceneVersion, directory, indexTimeAnalyzer);
+                suggester?.Dispose();
             }
-            if (suggesterData != null)
-            {
-                suggester.Build(suggesterData);
-            }
-            else
-            {
-                var lookupDictionary = new LuceneDictionary(readerReference.IndexReader, fieldName);
-                suggester.Build(lookupDictionary);
-            }
-            IList<LookupResult> lookupResults;
-            if (suggestionOptions.Highlight)
-            {
-                lookupResults = suggester.DoLookup(searchText, null, suggestionOptions.Top, false, suggestionOptions.Highlight);
-            }
-            else
-            {
-                lookupResults = suggester.DoLookup(searchText, onlyMorePopular, suggestionOptions.Top);
-            }
-            var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
-            LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
-            return suggestionResults;
         }
     }
 }
