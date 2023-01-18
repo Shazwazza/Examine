@@ -42,6 +42,7 @@ namespace Examine.Lucene.Suggest
             // wait for most recent changes when first creating the suggester
             luceneIndex.WaitForChanges();
             _fieldValueTypeCollection = fieldValueTypeCollection;
+            _readerManager = suggesterManager;
         }
 
         public override ISuggesterContext GetSuggesterContext() => new SuggesterContext(_readerManager, _fieldValueTypeCollection);
