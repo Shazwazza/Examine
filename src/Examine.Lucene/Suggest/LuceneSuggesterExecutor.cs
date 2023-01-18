@@ -82,7 +82,16 @@ namespace Examine.Lucene.Suggest
                 spellchecker.Distance = new NGramDistance();
             }
 
-            var lookupResults = spellchecker.SuggestSimilar(new Term(field, _searchText), _options.Top, readerReference.IndexReader, SuggestMode.SUGGEST_WHEN_NOT_IN_INDEX);
+            var suggestMode = SuggestMode.SUGGEST_WHEN_NOT_IN_INDEX;
+            if (_options is LuceneSuggestionOptions luceneSuggestionOptions)
+            {
+                suggestMode = (SuggestMode)luceneSuggestionOptions.SuggestionMode;
+            }
+
+            var lookupResults = spellchecker.SuggestSimilar(new Term(field, _searchText),
+                                                            _options.Top,
+                                                            readerReference.IndexReader,
+                                                            suggestMode);
             var results = lookupResults.Select(x => new SuggestionResult(x.String, x.Score, x.Freq));
             LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
             return suggestionResults;
@@ -95,9 +104,21 @@ namespace Examine.Lucene.Suggest
             LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
             var indexTimeAnalyzer = fieldValue.Analyzer;
             AnalyzingSuggester analyzingSuggester;
-            if (_options is LuceneSuggestionOptions luceneSuggestionOptions && luceneSuggestionOptions.Analyzer != null)
+            var onlyMorePopular = false;
+            if (_options is LuceneSuggestionOptions luceneSuggestionOptions)
             {
-                analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer, luceneSuggestionOptions.Analyzer);
+                if (luceneSuggestionOptions.Analyzer != null)
+                {
+                    analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer, luceneSuggestionOptions.Analyzer);
+                }
+                else
+                {
+                    analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer);
+                }
+                if (luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
+                {
+                    onlyMorePopular = true;
+                }
             }
             else
             {
@@ -105,7 +126,7 @@ namespace Examine.Lucene.Suggest
             }
 
             analyzingSuggester.Build(luceneDictionary);
-            var lookupResults = analyzingSuggester.DoLookup(_searchText, false, _options.Top);
+            var lookupResults = analyzingSuggester.DoLookup(_searchText, onlyMorePopular, _options.Top);
             var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
             LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
             return suggestionResults;
@@ -119,16 +140,29 @@ namespace Examine.Lucene.Suggest
             var indexTimeAnalyzer = fieldValue.Analyzer;
 
             FuzzySuggester suggester;
-            if (_options is LuceneSuggestionOptions luceneSuggestionOptions && luceneSuggestionOptions.Analyzer != null)
+            var onlyMorePopular = false;
+            if (_options is LuceneSuggestionOptions luceneSuggestionOptions)
             {
-                suggester = new FuzzySuggester(indexTimeAnalyzer, luceneSuggestionOptions.Analyzer);
+                if (luceneSuggestionOptions.Analyzer != null)
+                {
+                    suggester = new FuzzySuggester(indexTimeAnalyzer, luceneSuggestionOptions.Analyzer);
+                }
+                else
+                {
+                    suggester = new FuzzySuggester(indexTimeAnalyzer);
+                }
+                if (luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
+                {
+                    onlyMorePopular = true;
+                }
             }
             else
             {
                 suggester = new FuzzySuggester(indexTimeAnalyzer);
             }
+
             suggester.Build(luceneDictionary);
-            var lookupResults = suggester.DoLookup(_searchText, false, _options.Top);
+            var lookupResults = suggester.DoLookup(_searchText, onlyMorePopular, _options.Top);
             var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
             LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
             return suggestionResults;
@@ -142,7 +176,16 @@ namespace Examine.Lucene.Suggest
             LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
             Lookup lookup = fieldValue.Lookup;
             lookup.Build(luceneDictionary);
-            var lookupResults = lookup.DoLookup(_searchText, false, _options.Top);
+
+            var onlyMorePopular = false;
+            if (_options is LuceneSuggestionOptions luceneSuggestionOptions)
+            {
+                if (luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
+                {
+                    onlyMorePopular = true;
+                }
+            }
+            var lookupResults = lookup.DoLookup(_searchText, onlyMorePopular, _options.Top);
             var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
             LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
             return suggestionResults;
