@@ -1,8 +1,13 @@
+using System;
+using System.Collections.Generic;
+using Examine.Lucene.Suggest;
+using Examine.Suggest;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Suggest;
+using static Lucene.Net.Search.Suggest.Lookup;
 
 namespace Examine.Lucene.Indexing
 {
@@ -28,7 +33,7 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Returns the lookup for this field type, or null to use the default
         /// </summary>
-        Lookup Lookup { get; }
+        Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> Lookup { get; }
 
         void AddValue(Document doc, object value);
         

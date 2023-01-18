@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using Examine.Lucene.Suggest;
+using Examine.Suggest;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Suggest;
 using Microsoft.Extensions.Logging;
+using static Lucene.Net.Search.Suggest.Lookup;
 
 namespace Examine.Lucene.Indexing
 {
@@ -27,7 +31,7 @@ namespace Examine.Lucene.Indexing
 
         public virtual Analyzer Analyzer => null;
 
-        public virtual Lookup Lookup => null;
+        public virtual Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> Lookup => null;
 
         public ILogger Logger { get; }
 
