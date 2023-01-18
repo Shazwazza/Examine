@@ -65,4 +65,4 @@ plugins:
 #   - vendor/gems/
 #   - vendor/ruby/
 
-header_page_refs: ['configuration', 'indexing', 'searching', 'sorting']
+header_page_refs: ['configuration', 'indexing', 'searching', 'sorting', 'suggesting']
