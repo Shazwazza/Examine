@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Examine.Suggest;
-using J2N.Text;
 using Lucene.Net.Index;
 using Lucene.Net.Search.Spell;
 using Lucene.Net.Search.Suggest;
@@ -10,6 +8,9 @@ using Lucene.Net.Search.Suggest.Analyzing;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Suggester Executor for a Lucene Index
+    /// </summary>
     public class LuceneSuggesterExecutor
     {
         private readonly string _searchText;
@@ -17,6 +18,8 @@ namespace Examine.Lucene.Suggest
         private readonly string _sourceField;
         private readonly ISuggesterContext _suggesterContext;
         private readonly ISuggestionResults _emptySuggestionResults = new LuceneSuggestionResults(Array.Empty<ISuggestionResult>());
+
+
         public LuceneSuggesterExecutor(string searchText, SuggestionOptions options, string sourceField, ISuggesterContext suggesterContext)
         {
             _searchText = searchText;
@@ -25,6 +28,10 @@ namespace Examine.Lucene.Suggest
             _suggesterContext = suggesterContext;
         }
 
+        /// <summary>
+        /// Execute the Suggester
+        /// </summary>
+        /// <returns>Suggestion Results</returns>
         public ISuggestionResults Execute()
         {
             using (var readerReference = _suggesterContext.GetIndexReader())
@@ -84,7 +91,13 @@ namespace Examine.Lucene.Suggest
             string field = _sourceField;
             var fieldValue = _suggesterContext.GetFieldValueType(field);
             LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
-            AnalyzingSuggester analyzingSuggester = new AnalyzingSuggester(fieldValue.Analyzer);
+            var analyzer = fieldValue.Analyzer;
+            if(_options is LuceneSuggestionOptions luceneSuggestionOptions && luceneSuggestionOptions.Analyzer != null)
+            {
+                analyzer = luceneSuggestionOptions.Analyzer;
+            }
+
+            AnalyzingSuggester analyzingSuggester = new AnalyzingSuggester(analyzer);
             analyzingSuggester.Build(luceneDictionary);
             var lookupResults = analyzingSuggester.DoLookup(_searchText, false, _options.Top);
             var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
@@ -97,7 +110,12 @@ namespace Examine.Lucene.Suggest
             string field = _sourceField;
             var fieldValue = _suggesterContext.GetFieldValueType(field);
             LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
-            FuzzySuggester suggester = new FuzzySuggester(fieldValue.Analyzer);
+            var analyzer = fieldValue.Analyzer;
+            if (_options is LuceneSuggestionOptions luceneSuggestionOptions && luceneSuggestionOptions.Analyzer != null)
+            {
+                analyzer = luceneSuggestionOptions.Analyzer;
+            }
+            FuzzySuggester suggester = new FuzzySuggester(analyzer);
             suggester.Build(luceneDictionary);
             var lookupResults = suggester.DoLookup(_searchText, false, _options.Top);
             var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));

@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Examine.Lucene.Providers;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
@@ -10,12 +6,23 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Lucene Index based Suggester
+    /// </summary>
     public class LuceneSuggester : BaseLuceneSuggester, IDisposable
     {
         private readonly ReaderManager _readerManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private bool _disposedValue;
         private ControlledRealTimeReopenThread<DirectoryReader> _nrtSuggesterReopenThread;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name">Name of the Suggester</param>
+        /// <param name="readerManager">Retrieves a IndexReaderReference for the index the Suggester is for</param>
+        /// <param name="fieldValueTypeCollection">Index Field Types</param>
+        /// <param name="suggestionSearchAnalyzer">Search time Analyzer</param>
         public LuceneSuggester(string name, ReaderManager readerManager, FieldValueTypeCollection fieldValueTypeCollection, Analyzer suggestionSearchAnalyzer = null)
             : base(name, suggestionSearchAnalyzer)
         {
@@ -24,6 +31,13 @@ namespace Examine.Lucene.Suggest
             _nrtSuggesterReopenThread = null;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name">Name of the Suggester</param>
+        /// <param name="luceneIndex">Index the Suggester is for</param>
+        /// <param name="fieldValueTypeCollection">Index Field Types</param>
+        /// <param name="suggestionSearchAnalyzer">Search time Analyzer</param>
         public LuceneSuggester(string name, LuceneIndex luceneIndex, FieldValueTypeCollection fieldValueTypeCollection, Analyzer suggestionSearchAnalyzer = null)
          : base(name, suggestionSearchAnalyzer)
         {

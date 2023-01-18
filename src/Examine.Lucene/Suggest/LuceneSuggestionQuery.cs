@@ -3,11 +3,19 @@ using Examine.Suggest;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Lucene Search Suggestion Query
+    /// </summary>
     public class LuceneSuggestionQuery : ISuggestionQuery, ISuggestionExecutor
     {
-        private ISuggesterContext _suggesterContext;
+        private readonly ISuggesterContext _suggesterContext;
         private string _sourceField = null;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="suggesterContext">Lucene Suggestion Query Context</param>
+        /// <param name="options">Query time suggester options</param>
         public LuceneSuggestionQuery(ISuggesterContext suggesterContext, SuggestionOptions options)
         {
             _suggesterContext = suggesterContext;

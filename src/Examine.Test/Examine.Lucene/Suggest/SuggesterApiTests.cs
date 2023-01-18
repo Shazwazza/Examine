@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Suggest;
 using Examine.Suggest;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
@@ -59,14 +60,14 @@ namespace Examine.Test.Examine.Lucene.Suggest
                 var query = suggester.CreateSuggestionQuery()
                     .SourceField("nodeName");
 
-                var results = query.Execute("loc", new SuggestionOptions(5, ExamineLuceneSuggesterNames.AnalyzingSuggester));
+                var results = query.Execute("loc", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.AnalyzingSuggester));
                 Assert.IsTrue(results.Count() == 4);
                 Assert.IsTrue(results.Any(x => x.Text.Equals("location")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locksmiths")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locomotive")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("localization")));
 
-                var results2 = query.Execute("loco", new SuggestionOptions(5, ExamineLuceneSuggesterNames.AnalyzingSuggester));
+                var results2 = query.Execute("loco", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.AnalyzingSuggester));
                 Assert.IsTrue(results2.Count() == 1);
                 Assert.IsTrue(results2.Any(x => x.Text.Equals("locomotive")));
             }
@@ -122,14 +123,14 @@ namespace Examine.Test.Examine.Lucene.Suggest
                 var query = suggester.CreateSuggestionQuery()
                     .SourceField("nodeName");
 
-                var results = query.Execute("loc", new SuggestionOptions(5, ExamineLuceneSuggesterNames.FuzzySuggester));
+                var results = query.Execute("loc", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.FuzzySuggester));
                 Assert.IsTrue(results.Count() == 4);
                 Assert.IsTrue(results.Any(x => x.Text.Equals("location")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locksmiths")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locomotive")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("localization")));
 
-                var results2 = query.Execute("loco", new SuggestionOptions(5, ExamineLuceneSuggesterNames.FuzzySuggester));
+                var results2 = query.Execute("loco", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.FuzzySuggester));
                 Assert.IsTrue(results.Count() == 4);
                 Assert.IsTrue(results.Any(x => x.Text.Equals("location")));
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locksmiths")));
@@ -189,11 +190,11 @@ namespace Examine.Test.Examine.Lucene.Suggest
                 var query = suggester.CreateSuggestionQuery()
                     .SourceField("nodeName");
 
-                var results = query.Execute("logomotave", new SuggestionOptions(5, ExamineLuceneSuggesterNames.DirectSpellChecker));
+                var results = query.Execute("logomotave", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.DirectSpellChecker));
                 Assert.IsTrue(results.Count() == 1);
                 Assert.IsTrue(results.Any(x => x.Text.Equals("locomotive")));
 
-                var results2 = query.Execute("localisation", new SuggestionOptions(5, ExamineLuceneSuggesterNames.DirectSpellChecker));
+                var results2 = query.Execute("localisation", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.DirectSpellChecker));
                 Assert.IsTrue(results2.Count() == 1);
                 Assert.IsTrue(results2.Any(x => x.Text.Equals("localization")));
             }

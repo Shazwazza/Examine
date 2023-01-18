@@ -3,16 +3,21 @@ using Lucene.Net.Index;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Reference to an instance of an IndexReader on a Lucene Index
+    /// </summary>
     public class IndexReaderReference : IIndexReaderReference
     {
-        private ReaderManager _readerManager;
+        private readonly ReaderManager _readerManager;
         private bool _disposedValue;
         private DirectoryReader _indexReader;
+
         public IndexReaderReference(ReaderManager readerManager)
         {
             _readerManager = readerManager;
         }
 
+        /// <inheritdoc/>
         public DirectoryReader IndexReader
         {
             get
@@ -41,6 +46,7 @@ namespace Examine.Lucene.Suggest
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
