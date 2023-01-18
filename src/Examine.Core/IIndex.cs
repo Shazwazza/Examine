@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Examine.Suggest;
 
 namespace Examine
 {
@@ -58,5 +59,11 @@ namespace Examine
         /// Occurs for an Indexing Error
         /// </summary>
         event EventHandler<IndexingErrorEventArgs> IndexingError;
+
+        /// <summary>
+        /// Returns a suggester for the index
+        /// </summary>
+        /// <returns></returns>
+        ISuggester Suggester { get; }
     }
 }

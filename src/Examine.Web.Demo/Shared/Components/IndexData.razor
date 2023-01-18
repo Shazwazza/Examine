@@ -61,6 +61,26 @@
                 }
             }
         </div>
+        <div  class="row">
+            <p class="col-12 border-bottom">Searchers</p>
+            @if (Information != null)
+            {
+                foreach (var field in Information.Searchers)
+                {
+                    <p class="col-6">@field</p>
+                }
+            }
+        </div>
+        <div class="row">
+            <p class="col-12 border-bottom">Suggesters</p>
+            @if (Information != null)
+            {
+                foreach (var field in Information.Suggesters)
+                {
+                    <p class="col-6">@field</p>
+                }
+            }
+        </div>
     </div>
 </div>
 @code {

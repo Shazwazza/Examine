@@ -12,7 +12,8 @@ namespace Examine.Web.Demo.Data
         private readonly IExamineManager _examineManager;
         private readonly BogusDataService _bogusDataService;
 
-        public IndexService(IExamineManager examineManager, BogusDataService bogusDataService) {
+        public IndexService(IExamineManager examineManager, BogusDataService bogusDataService)
+        {
             _examineManager = examineManager;
             _bogusDataService = bogusDataService;
         }
@@ -35,9 +36,20 @@ namespace Examine.Web.Demo.Data
             if (index is IIndexStats indexStats)
             {
                 var fields = indexStats.GetFieldNames();
+                var searchers = new List<string>();
+                var suggesters = new List<string>();
+                if (!string.IsNullOrWhiteSpace(index.Searcher?.Name))
+                {
+                    searchers.Add(index.Searcher?.Name);
+                }
+                if (!string.IsNullOrWhiteSpace(index.Suggester?.Name))
+                {
+                    suggesters.Add(index.Suggester?.Name);
+                }
+               
                 return new IndexInformation(
                     indexStats.GetDocumentCount(),
-                    fields.ToList());
+                    fields.ToList(), searchers, suggesters);
             }
             else
             {
