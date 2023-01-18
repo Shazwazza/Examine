@@ -1303,6 +1303,11 @@ namespace Examine.Lucene.Providers
                         _nrtReopenThread.Interrupt();
                         _nrtReopenThread.Dispose();
                     }
+                    if (_nrtSuggesterReopenThread != null)
+                    {
+                        _nrtSuggesterReopenThread.Interrupt();
+                        _nrtSuggesterReopenThread.Dispose();
+                    }
 
                     if (_searcher.IsValueCreated)
                     {

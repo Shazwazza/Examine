@@ -1,3 +1,6 @@
+using Examine.Lucene.Suggest;
+using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Util;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Examine.Web.Demo
@@ -18,6 +21,8 @@ namespace Examine.Web.Demo
                 new[] { "MyIndex", "SyncedIndex" });
 
             services.ConfigureOptions<ConfigureIndexOptions>();
+
+            services.AddExamineLuceneSuggester("LuceneSuggester", "MyIndex", new StandardAnalyzer(LuceneVersion.LUCENE_CURRENT));
 
             return services;
         }

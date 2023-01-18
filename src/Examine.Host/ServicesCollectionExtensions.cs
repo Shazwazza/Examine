@@ -2,10 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using Examine.Lucene;
 using Examine.Lucene.Directories;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Suggest;
+using Examine.Suggest;
 using Lucene.Net.Analysis;
+using Lucene.Net.Index;
+using Lucene.Net.Search;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -87,7 +92,7 @@ namespace Examine
         /// <param name="serviceCollection"></param>
         /// <param name="name"></param>
         /// <param name="parameterFactory">
-        /// A factory to fullfill the custom searcher construction parameters excluding the name that are not already registerd in DI.
+        /// A factory to fullfill the custom searcher construction parameters excluding the name that are not already registered in DI.
         /// </param>
         /// <returns></returns>
         public static IServiceCollection AddExamineSearcher<TSearcher>(
@@ -171,5 +176,59 @@ namespace Examine
 
             return services;
         }
+
+        /// <summary>
+        /// Registers a standalone Examine suggester
+        /// </summary>
+        /// <typeparam name="TSearcher"></typeparam>
+        /// <param name="serviceCollection"></param>
+        /// <param name="name"></param>
+        /// <param name="parameterFactory">
+        /// A factory to fullfill the custom suggester construction parameters excluding the name that are not already registerd in DI.
+        /// </param>
+        /// <returns></returns>
+        public static IServiceCollection AddExamineSuggester<TSuggester>(
+            this IServiceCollection serviceCollection,
+            string name,
+            Func<IServiceProvider, IList<object>> parameterFactory)
+            where TSuggester : ISuggester
+           => serviceCollection.AddTransient<ISuggester>(services =>
+           {
+               IList<object> parameters = parameterFactory(services);
+               parameters.Insert(0, name);
+
+               ISuggester suggester = ActivatorUtilities.CreateInstance<TSuggester>(
+                   services,
+                   parameters.ToArray());
+
+               return suggester;
+           });
+
+        /// <summary>
+        /// Registers a lucene suggester
+        /// </summary>
+        public static IServiceCollection AddExamineLuceneSuggester(
+            this IServiceCollection serviceCollection,
+            string name,
+            string indexName,
+            Analyzer queryAanalyzer = null)
+            => serviceCollection.AddExamineSuggester<LuceneSuggester>(name, s =>
+            {
+                IIndex matchedIndex = s.GetServices<IIndex>()
+                     .First(x => x.Name.Equals(indexName));
+                if (!(matchedIndex is LuceneIndex luceneIndex))
+                {
+                    throw new InvalidOperationException("LuceneSuggester can not operate on non Lucene Indexes");
+                }
+
+                var parameters = new List<object>
+                {
+                    luceneIndex,
+                    luceneIndex.FieldValueTypeCollection,
+                    queryAanalyzer
+                };
+
+                return parameters;
+            });
     }
 }
