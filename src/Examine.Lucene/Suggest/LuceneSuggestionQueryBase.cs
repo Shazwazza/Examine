@@ -1,21 +1,12 @@
-using System;
-using System.Collections.Generic;
 using Examine.Suggest;
-using Lucene.Net.Analysis;
 
 namespace Examine.Lucene.Suggest
 {
     public abstract class BaseLuceneSuggester : BaseSuggesterProvider
     {
-        private readonly Analyzer _suggestionSearchAnalyzer;
-
-        protected BaseLuceneSuggester(string name, Analyzer suggestionSearchAnalyzer = null) : base(name)
+        protected BaseLuceneSuggester(string name) : base(name)
         {
-            _suggestionSearchAnalyzer = suggestionSearchAnalyzer;
         }
-
-        public Analyzer SuggestionSearchAnalyzer => _suggestionSearchAnalyzer;
-
 
         public abstract ISuggesterContext GetSuggesterContext();
 
@@ -28,9 +19,9 @@ namespace Examine.Lucene.Suggest
         {
             return new LuceneSuggestionQuery(GetSuggesterContext(), options);
         }
-        public override ISuggestionResults Suggest(string searchText, string sourceFieldName, SuggestionOptions options = null)
+        public override ISuggestionResults Suggest(string searchText, SuggestionOptions options = null)
         {
-            var suggestionExecutor = CreateSuggestionQuery().SourceField(sourceFieldName);
+            var suggestionExecutor = CreateSuggestionQuery();
             return suggestionExecutor.Execute(searchText, options);
         }
     }

@@ -4,7 +4,6 @@ using Examine.Suggest;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Search.Spell;
-using Lucene.Net.Search.Suggest;
 using Lucene.Net.Search.Suggest.Analyzing;
 
 namespace Examine.Lucene.Suggest
@@ -20,11 +19,10 @@ namespace Examine.Lucene.Suggest
         private readonly ISuggesterContext _suggesterContext;
         private readonly ISuggestionResults _emptySuggestionResults = new LuceneSuggestionResults(Array.Empty<ISuggestionResult>());
 
-        public LuceneSuggesterExecutor(string searchText, SuggestionOptions options, string sourceField, ISuggesterContext suggesterContext)
+        public LuceneSuggesterExecutor(string searchText, SuggestionOptions options, ISuggesterContext suggesterContext)
         {
             _searchText = searchText;
             _options = options;
-            _sourceField = sourceField;
             _suggesterContext = suggesterContext;
         }
 
@@ -34,12 +32,6 @@ namespace Examine.Lucene.Suggest
         /// <returns>Suggestion Results</returns>
         public ISuggestionResults Execute()
         {
-            string field = _sourceField;
-            var fieldValue = _suggesterContext.GetFieldValueType(field);
-            if (fieldValue != null && fieldValue.Lookup != null)
-            {
-                return FieldDefinitionLookup();
-            }
             if (_options.SuggesterName == null)
             {
                 return _emptySuggestionResults;
@@ -172,16 +164,6 @@ namespace Examine.Lucene.Suggest
                 var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
                 LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
                 return suggestionResults;
-            }
-        }
-
-        private ISuggestionResults FieldDefinitionLookup()
-        {
-            using (var readerReference = _suggesterContext.GetIndexReader())
-            {
-                string field = _sourceField;
-                var fieldValue = _suggesterContext.GetFieldValueType(field);
-                return fieldValue.Lookup(readerReference,_options, _searchText);
             }
         }
 

@@ -1,8 +1,5 @@
 using System;
-using Examine.Lucene.Providers;
-using Lucene.Net.Analysis;
 using Lucene.Net.Index;
-using Lucene.Net.Search;
 
 namespace Examine.Lucene.Suggest
 {
@@ -13,8 +10,8 @@ namespace Examine.Lucene.Suggest
     {
         private readonly ReaderManager _readerManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly SuggesterDefinitionCollection _suggesterDefinitions;
         private bool _disposedValue;
-        private ControlledRealTimeReopenThread<DirectoryReader> _nrtSuggesterReopenThread;
 
         /// <summary>
         /// Constructor
@@ -23,40 +20,12 @@ namespace Examine.Lucene.Suggest
         /// <param name="readerManager">Retrieves a IndexReaderReference for the index the Suggester is for</param>
         /// <param name="fieldValueTypeCollection">Index Field Types</param>
         /// <param name="suggestionSearchAnalyzer">Search time Analyzer</param>
-        public LuceneSuggester(string name, ReaderManager readerManager, FieldValueTypeCollection fieldValueTypeCollection, Analyzer suggestionSearchAnalyzer = null)
-            : base(name, suggestionSearchAnalyzer)
+        public LuceneSuggester(string name, ReaderManager readerManager, FieldValueTypeCollection fieldValueTypeCollection, SuggesterDefinitionCollection suggesterDefinitions)
+            : base(name)
         {
             _readerManager = readerManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
-            _nrtSuggesterReopenThread = null;
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="name">Name of the Suggester</param>
-        /// <param name="luceneIndex">Index the Suggester is for</param>
-        /// <param name="fieldValueTypeCollection">Index Field Types</param>
-        /// <param name="suggestionSearchAnalyzer">Search time Analyzer</param>
-        public LuceneSuggester(string name, LuceneIndex luceneIndex, FieldValueTypeCollection fieldValueTypeCollection, Analyzer suggestionSearchAnalyzer = null)
-         : base(name, suggestionSearchAnalyzer)
-        {
-            TrackingIndexWriter writer = luceneIndex.IndexWriter;
-            var suggesterManager = new ReaderManager(writer.IndexWriter, true);
-            suggesterManager.AddListener(luceneIndex);
-
-            _nrtSuggesterReopenThread = new ControlledRealTimeReopenThread<DirectoryReader>(writer, suggesterManager, 5.0, 1.0)
-            {
-                Name = $"{Name} Suggester Index {luceneIndex.Name} NRT Reopen Thread",
-                IsBackground = true
-            };
-
-            _nrtSuggesterReopenThread.Start();
-
-            // wait for most recent changes when first creating the suggester
-            luceneIndex.WaitForChanges();
-            _fieldValueTypeCollection = fieldValueTypeCollection;
-            _readerManager = suggesterManager;
+            _suggesterDefinitions = suggesterDefinitions;
         }
 
         public override ISuggesterContext GetSuggesterContext() => new SuggesterContext(_readerManager, _fieldValueTypeCollection);
@@ -68,11 +37,6 @@ namespace Examine.Lucene.Suggest
                 if (disposing)
                 {
                     _readerManager.Dispose();
-                    if (_nrtSuggesterReopenThread != null)
-                    {
-                        _nrtSuggesterReopenThread.Interrupt();
-                        _nrtSuggesterReopenThread.Dispose();
-                    }
                 }
 
                 _disposedValue = true;

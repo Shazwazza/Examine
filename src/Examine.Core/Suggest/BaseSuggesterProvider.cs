@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace Examine.Suggest
 {
@@ -14,6 +13,6 @@ namespace Examine.Suggest
         public string Name { get; }
 
         public abstract ISuggestionQuery CreateSuggestionQuery();
-        public abstract ISuggestionResults Suggest(string searchText, string sourceFieldName, SuggestionOptions options = null);
+        public abstract ISuggestionResults Suggest(string searchText, SuggestionOptions options = null);
     }
 }

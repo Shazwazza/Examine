@@ -118,7 +118,7 @@ namespace Examine.Web.Demo.Data
 
             var suggester = index.Suggester;
             var criteria = suggester.CreateSuggestionQuery();
-            return criteria.SourceField("FullName").Execute(query, new SuggestionOptions(5, ExamineLuceneSuggesterNames.DirectSpellChecker));
+            return criteria.Execute(query, new SuggestionOptions(5, ExamineLuceneSuggesterNames.DirectSpellChecker));
         }
     }
 

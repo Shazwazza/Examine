@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Examine.Suggest
 {
     /// <summary>
@@ -19,7 +17,7 @@ namespace Examine.Suggest
         /// <param name="sourceFieldName">Index field to suggest for</param>
         /// <param name="options">Options</param>
         /// <returns></returns>
-        ISuggestionResults Suggest(string searchText, string sourceFieldName, SuggestionOptions options = null);
+        ISuggestionResults Suggest(string searchText, SuggestionOptions options = null);
 
         ISuggestionQuery CreateSuggestionQuery();
 

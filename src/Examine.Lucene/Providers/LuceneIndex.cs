@@ -52,6 +52,8 @@ namespace Examine.Lucene.Providers
 
             DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
+            //initialize the field types
+            _suggesterDefinitionCollection = _options.SuggesterDefinitions;
 
             _suggester = new Lazy<LuceneSuggester>(CreateSuggester);
         }
@@ -160,6 +162,13 @@ namespace Examine.Lucene.Providers
         /// Returns the <see cref="FieldValueTypeCollection"/> configured for this index
         /// </summary>
         public FieldValueTypeCollection FieldValueTypeCollection => _fieldValueTypeCollection.Value;
+
+        private readonly SuggesterDefinitionCollection _suggesterDefinitionCollection;
+
+        /// <summary>
+        /// Returns the <see cref="SuggesterDefinitionCollection"/> configured for this index
+        /// </summary>
+        public SuggesterDefinitionCollection SuggesterDefinitionCollection => _suggesterDefinitionCollection;
 
         /// <summary>
         /// The default analyzer to use when indexing content, by default, this is set to StandardAnalyzer
@@ -1062,7 +1071,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the suggester
             WaitForChanges();
 
-            return new LuceneSuggester(name + "Suggester", suggesterManager, FieldValueTypeCollection, FieldAnalyzer);
+            return new LuceneSuggester(name + "Suggester", suggesterManager, FieldValueTypeCollection, SuggesterDefinitionCollection);
         }
 
         private LuceneSearcher CreateSearcher()

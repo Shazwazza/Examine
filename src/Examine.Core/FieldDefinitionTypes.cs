@@ -40,36 +40,5 @@ namespace Examine
         /// Will be indexed with an email address analyzer
         /// </summary>
         public const string EmailAddress = "emailaddress";
-
-        /// <summary>
-        /// The default type, will be indexed with the specified indexer's analyzer and the AnalyzingSuggester Lookup
-        /// </summary>
-        public const string FullTextSuggestable = "fulltextsuggestable";
-
-        /// <summary>
-        /// Will be indexed with the specified indexer's analyzer and with a sorting field and the AnalyzingSuggester Lookup
-        /// </summary>
-        public const string FullTextSortableSuggestable = "fulltextsortablesuggestable";
-
-        /// <summary>
-        /// The default type, will be indexed with the specified indexer's analyzer and the JaspellLookup Lookup
-        /// </summary>
-        public const string FullTextSpelling = "fulltextspelling";
-
-        /// <summary>
-        /// Will be indexed with the specified indexer's analyzer and with a sorting field and the JaspellLookup Lookup
-        /// </summary>
-        public const string FullTextSortableSpelling = "fulltextsortablespelling";
-
-        /// <summary>
-        /// The default type, will be indexed with the specified indexer's analyzer and the FuzzySuggester Lookup
-        /// </summary>
-        public const string FullTextFuzzySuggestable = "fulltextfuzzysuggestable";
-
-        /// <summary>
-        /// Will be indexed with the specified indexer's analyzer and with a sorting field and the FuzzySuggester Lookup
-        /// </summary>
-        public const string FullTextSortableFuzzySuggestable = "fulltextsortablesfuzzyuggestable";
-
     }
 }

@@ -73,19 +73,7 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory, defaultAnalyzer)},
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
-                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
-                {FieldDefinitionTypes.FullTextSuggestable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, false, true, null,
-                    (readerReference, suggestionOptions, searchText) => FullTextType.ExecuteAnalyzingSuggester(readerReference,suggestionOptions,searchText,name,defaultAnalyzer))},
-                {FieldDefinitionTypes.FullTextSortableSuggestable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true, true,null,
-                    (readerReference, suggestionOptions, searchText) => FullTextType.ExecuteAnalyzingSuggester(readerReference, suggestionOptions, searchText, name, defaultAnalyzer))},
-                {FieldDefinitionTypes.FullTextFuzzySuggestable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, false, true,null,
-                    (readerReference, suggestionOptions, searchText) => FullTextType.ExecuteFuzzySuggester(readerReference, suggestionOptions, searchText, name, defaultAnalyzer))},
-                {FieldDefinitionTypes.FullTextSortableFuzzySuggestable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true, true,null,
-                    (readerReference, suggestionOptions, searchText) => FullTextType.ExecuteFuzzySuggester(readerReference, suggestionOptions, searchText, name, defaultAnalyzer))},
-                {FieldDefinitionTypes.FullTextSpelling, name => new FullTextType(name, loggerFactory, defaultAnalyzer, false, true,null,
-                    (readerReference, suggestionOptions, searchText) => FullTextType.ExecuteDirectSpellChecker(readerReference, suggestionOptions, searchText, name))},
-                {FieldDefinitionTypes.FullTextSortableSpelling, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true, true,null,
-                    (readerReference, suggestionOptions, searchText) => FullTextType.ExecuteDirectSpellChecker(readerReference, suggestionOptions, searchText, name))},
+                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())}
             };
 
 
