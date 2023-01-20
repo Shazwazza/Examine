@@ -10,20 +10,24 @@ namespace Examine.Lucene.Suggest
     {
         private ReaderManager _readerManager;
         private FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly SuggesterDefinitionCollection _suggesterDefinitions;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="readerManager">Reader Manager for IndexReader on the Suggester Index</param>
         /// <param name="fieldValueTypeCollection">Fields of Suggester Index</param>
-        public SuggesterContext(ReaderManager readerManager, FieldValueTypeCollection fieldValueTypeCollection)
+        public SuggesterContext(ReaderManager readerManager, FieldValueTypeCollection fieldValueTypeCollection, SuggesterDefinitionCollection suggesterDefinitions)
         {
             _readerManager = readerManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
+            _suggesterDefinitions = suggesterDefinitions;
         }
 
         /// <inheritdoc>/>
         public IIndexReaderReference GetIndexReader() => new IndexReaderReference(_readerManager);
+
+        public SuggesterDefinitionCollection GetSuggesterDefinitions() => _suggesterDefinitions;
 
         public IIndexFieldValueType GetFieldValueType(string fieldName)
         {

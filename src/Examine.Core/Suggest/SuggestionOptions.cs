@@ -10,7 +10,7 @@ namespace Examine.Suggest
         /// </summary>
         /// <param name="top">Clamp number of results</param>
         /// <param name="suggesterName">The name of the Suggester to use</param>
-        public SuggestionOptions(int top = 5, string suggesterName = null, bool highlight = false)
+        public SuggestionOptions(int top = 5, string suggesterName = null)
         {
             Top = top;
             if (top < 0)
@@ -18,7 +18,6 @@ namespace Examine.Suggest
                 top = 0;
             }
             SuggesterName = suggesterName;
-            Highlight = highlight;
         }
 
         /// <summary>
@@ -30,10 +29,5 @@ namespace Examine.Suggest
         /// The name of the Suggester to use
         /// </summary>
         public string SuggesterName { get; }
-
-        /// <summary>
-        /// Whether to highlight
-        /// </summary>
-        public bool Highlight { get; }
     }
 }

@@ -19,7 +19,6 @@ namespace Examine.Lucene.Suggest
             _suggesterContext = suggesterContext;
         }
 
-
         /// <inheritdoc/>
         public ISuggestionResults Execute(string searchText, SuggestionOptions options = null)
         {

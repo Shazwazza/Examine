@@ -1,12 +1,11 @@
 using System;
-using System.Linq;
 
 namespace Examine
 {
     /// <summary>
     /// Defines a suggester for an Index
     /// </summary>
-    public struct SuggesterDefinition : IEquatable<SuggesterDefinition>
+    public class SuggesterDefinition : IEquatable<SuggesterDefinition>
     {
         /// <summary>
         /// Constructor
@@ -14,7 +13,7 @@ namespace Examine
         /// <param name="name"></param>
         /// <param name="suggesterMode"></param>
         /// <param name="sourceFields"></param>
-        public SuggesterDefinition(string name, string suggesterMode, string[] sourceFields)
+        public SuggesterDefinition(string name, string suggesterMode, string[] sourceFields = null)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));

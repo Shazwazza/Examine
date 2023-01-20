@@ -19,5 +19,8 @@ namespace Examine.Lucene.Suggest
         /// <param name="fieldName">Index Field Name</param>
         /// <returns></returns>
         IIndexFieldValueType GetFieldValueType(string fieldName);
+
+
+        SuggesterDefinitionCollection GetSuggesterDefinitions();
     }
 }

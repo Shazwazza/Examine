@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using Lucene.Net.Analysis.Hunspell;
 using Lucene.Net.Index;
+using Lucene.Net.Search.Suggest;
 
 namespace Examine.Lucene.Suggest
 {
@@ -28,7 +31,7 @@ namespace Examine.Lucene.Suggest
             _suggesterDefinitions = suggesterDefinitions;
         }
 
-        public override ISuggesterContext GetSuggesterContext() => new SuggesterContext(_readerManager, _fieldValueTypeCollection);
+        public override ISuggesterContext GetSuggesterContext() => new SuggesterContext(_readerManager, _fieldValueTypeCollection, _suggesterDefinitions);
 
         protected virtual void Dispose(bool disposing)
         {
