@@ -55,7 +55,7 @@ namespace Examine.Lucene.Providers
             //initialize the field types
             _suggesterDefinitionCollection = _options.SuggesterDefinitions;
 
-            _suggester = new Lazy<LuceneSuggester>(CreateSuggester);
+            _suggester = new Lazy<LuceneSuggester>(CreateSuggesters);
         }
 
         /// <summary>
@@ -1044,7 +1044,7 @@ namespace Examine.Lucene.Providers
 
         #region Private
 
-        private LuceneSuggester CreateSuggester()
+        private LuceneSuggester CreateSuggesters()
         {
             var possibleSuffixes = new[] { "Index", "Indexer" };
             var name = Name;

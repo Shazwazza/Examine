@@ -5,10 +5,7 @@ using Examine.Suggest;
 using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Search.Spell;
-using Lucene.Net.Search.Suggest;
 using Lucene.Net.Search.Suggest.Analyzing;
-using Lucene.Net.Store;
-using Lucene.Net.Util;
 using static Lucene.Net.Search.Suggest.Lookup;
 using LuceneDirectory = Lucene.Net.Store.Directory;
 
@@ -109,26 +106,8 @@ namespace Examine.Lucene.Suggest
 
         private ISuggestionResults ExecuteAnalyzingSuggester(SuggesterDefinition suggesterDefinition)
         {
-            string field = suggesterDefinition.SourceFields.First();
-            var fieldValue = _suggesterContext.GetFieldValueType(field);
-            var indexTimeAnalyzer = fieldValue.Analyzer;
-            AnalyzingSuggester analyzingSuggester;
-            Analyzer queryTimeAnalyzer = null;
-            if (queryTimeAnalyzer != null)
-            {
-                analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer, queryTimeAnalyzer);
-            }
-            else
-            {
-                analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer);
-            }
-
-            using (var readerReference = _suggesterContext.GetIndexReader())
-            {
-                LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
-                analyzingSuggester.Build(luceneDictionary);
-            }
-
+            AnalyzingSuggester analyzingSuggester = _suggesterContext.GetSuggester<AnalyzingSuggester>(suggesterDefinition.Name);
+            
             var onlyMorePopular = false;
             if (_options is LuceneSuggestionOptions luceneSuggestionOptions
                 && luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
@@ -144,26 +123,8 @@ namespace Examine.Lucene.Suggest
 
         private ISuggestionResults ExecuteFuzzySuggester(SuggesterDefinition suggesterDefinition)
         {
-            string field = suggesterDefinition.SourceFields.First();
-            var fieldValue = _suggesterContext.GetFieldValueType(field);
-            var indexTimeAnalyzer = fieldValue.Analyzer;
+            FuzzySuggester suggester = _suggesterContext.GetSuggester<FuzzySuggester>(suggesterDefinition.Name);
 
-            FuzzySuggester suggester;
-            Analyzer queryTimeAnalyzer = null;
-            if (queryTimeAnalyzer != null)
-            {
-                suggester = new FuzzySuggester(indexTimeAnalyzer, queryTimeAnalyzer);
-            }
-            else
-            {
-                suggester = new FuzzySuggester(indexTimeAnalyzer);
-            }
-            using (var readerReference = _suggesterContext.GetIndexReader())
-            {
-                LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
-                suggester.Build(luceneDictionary);
-
-            }
             var onlyMorePopular = false;
             if (_options is LuceneSuggestionOptions luceneSuggestionOptions
                 && luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
@@ -179,56 +140,29 @@ namespace Examine.Lucene.Suggest
         /// <summary>
         /// Analyzing Infix Suggester Lookup
         /// </summary>
-        private LuceneSuggestionResults ExecuteAnalyzingInfixSuggester(LuceneSuggesterDefinition suggesterDefinition, bool highlight = true)
+        private LuceneSuggestionResults ExecuteAnalyzingInfixSuggester(LuceneSuggesterDefinition suggesterDefinition)
         {
-            string field = suggesterDefinition.SourceFields.First();
-            var fieldValue = _suggesterContext.GetFieldValueType(field);
-            var indexTimeAnalyzer = fieldValue.Analyzer;
-            AnalyzingInfixSuggester suggester = null;
-            Analyzer queryTimeAnalyzer = null;
+            AnalyzingInfixSuggester suggester = _suggesterContext.GetSuggester<AnalyzingInfixSuggester>(suggesterDefinition.Name);
 
-            LuceneDirectory luceneDictionary = suggesterDefinition.SuggesterDirectoryFactory.CreateDirectory(suggesterDefinition.Name.Replace(".", "_"), false);
-
-            try
+            var onlyMorePopular = false;
+            if (_options is LuceneSuggestionOptions luceneSuggestionOptions && luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
             {
-                using (var readerReference = _suggesterContext.GetIndexReader())
-                {
-                    var onlyMorePopular = false;
-                    if (queryTimeAnalyzer != null)
-                    {
-                        suggester = new AnalyzingInfixSuggester(_suggesterContext.GetLuceneVersion(), luceneDictionary, indexTimeAnalyzer, queryTimeAnalyzer, AnalyzingInfixSuggester.DEFAULT_MIN_PREFIX_CHARS);
-                    }
-                    else
-                    {
-                        suggester = new AnalyzingInfixSuggester(_suggesterContext.GetLuceneVersion(), luceneDictionary, indexTimeAnalyzer);
-                    }
-
-                    var lookupDictionary = new LuceneDictionary(readerReference.IndexReader, field);
-                    suggester.Build(lookupDictionary);
-
-                    if (_options is LuceneSuggestionOptions luceneSuggestionOptions && luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)
-                    {
-                        onlyMorePopular = true;
-                    }
-
-                    IList<LookupResult> lookupResults;
-                    if (highlight)
-                    {
-                        lookupResults = suggester.DoLookup(_searchText, null, _options.Top, false, true);
-                    }
-                    else
-                    {
-                        lookupResults = suggester.DoLookup(_searchText, onlyMorePopular, _options.Top);
-                    }
-                    var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
-                    LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
-                    return suggestionResults;
-                }
+                onlyMorePopular = true;
             }
-            finally
+
+            IList<LookupResult> lookupResults;
+            bool highlight = true;
+            if (highlight)
             {
-                suggester?.Dispose();
+                lookupResults = suggester.DoLookup(_searchText, null, _options.Top, false, true);
             }
+            else
+            {
+                lookupResults = suggester.DoLookup(_searchText, onlyMorePopular, _options.Top);
+            }
+            var results = lookupResults.Select(x => new SuggestionResult(x.Key, x.Value));
+            LuceneSuggestionResults suggestionResults = new LuceneSuggestionResults(results.ToArray());
+            return suggestionResults;
         }
     }
 }

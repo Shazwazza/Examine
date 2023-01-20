@@ -1,4 +1,5 @@
 using Examine.Lucene.Indexing;
+using Lucene.Net.Search.Suggest;
 using Lucene.Net.Util;
 
 namespace Examine.Lucene.Suggest
@@ -32,5 +33,12 @@ namespace Examine.Lucene.Suggest
         /// </summary>
         /// <returns></returns>
         LuceneVersion GetLuceneVersion();
+
+        /// <summary>
+        /// Get the Suggester
+        /// </summary>
+        /// <param name="name">Suggester Name</param>
+        /// <returns>Suggester</returns>
+        TLookup GetSuggester<TLookup>(string name) where TLookup : Lookup;
     }
 }
