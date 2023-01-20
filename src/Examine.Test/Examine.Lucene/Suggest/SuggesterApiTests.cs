@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
 using Examine.Lucene.Suggest;
+using Examine.Lucene.Suggest.Directories;
 using Examine.Suggest;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
@@ -12,14 +12,16 @@ namespace Examine.Test.Examine.Lucene.Suggest
     {
         FieldDefinitionCollection fieldDefinitionCollection;
         SuggesterDefinitionCollection suggesters;
-        public SuggesterApiTests()
+
+        [SetUp]
+        public void Setup()
         {
             fieldDefinitionCollection = new FieldDefinitionCollection();
             fieldDefinitionCollection.AddOrUpdate(new FieldDefinition("nodeName", FieldDefinitionTypes.FullText));
             fieldDefinitionCollection.AddOrUpdate(new FieldDefinition("bodyText", FieldDefinitionTypes.FullText));
 
             suggesters = new SuggesterDefinitionCollection();
-            suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "nodeName" }));
+            suggesters.AddOrUpdate(new LuceneSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "nodeName" }, new RAMSuggesterDirectoryFactory()));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "nodeName" }));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "nodeName" }));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "nodeName" }));

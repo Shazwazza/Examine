@@ -5,6 +5,8 @@ using Examine.Lucene;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Directories;
 using Examine.Lucene.Indexing;
+using Examine.Lucene.Suggest;
+using Examine.Lucene.Suggest.Directories;
 using Lucene.Net.Index;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -44,7 +46,7 @@ namespace Examine.Web.Demo
                     // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
 
-                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new LuceneSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "fullName" }, new RAMSuggesterDirectoryFactory()));
                     options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "fullName" }));
                     options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "fullName" }));
                     options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "fullName" }));
