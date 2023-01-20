@@ -21,8 +21,16 @@ namespace Examine.Lucene.Suggest
         /// <returns></returns>
         IIndexFieldValueType GetFieldValueType(string fieldName);
 
+        /// <summary>
+        /// Gets the Suggester Definitions
+        /// </summary>
+        /// <returns></returns>
         SuggesterDefinitionCollection GetSuggesterDefinitions();
 
+        /// <summary>
+        /// Gets the Version of the Lucene Index
+        /// </summary>
+        /// <returns></returns>
         LuceneVersion GetLuceneVersion();
     }
 }
