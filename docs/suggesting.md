@@ -19,7 +19,7 @@ Example
 
 ```cs
  var suggesters = new SuggesterDefinitionCollection();
-            suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "nodeName" }));
+            suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "fullName" }));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "fullName" }));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "fullName" }));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "fullName" }));

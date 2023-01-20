@@ -199,32 +199,5 @@ namespace Examine
 
                return suggester;
            });
-
-        /// <summary>
-        /// Registers a lucene suggester
-        /// </summary>
-        public static IServiceCollection AddExamineLuceneSuggester(
-            this IServiceCollection serviceCollection,
-            string name,
-            string indexName,
-            Analyzer queryAanalyzer = null)
-            => serviceCollection.AddExamineSuggester<LuceneSuggester>(name, s =>
-            {
-                IIndex matchedIndex = s.GetServices<IIndex>()
-                     .First(x => x.Name.Equals(indexName));
-                if (!(matchedIndex is LuceneIndex luceneIndex))
-                {
-                    throw new InvalidOperationException("LuceneSuggester can not operate on non Lucene Indexes");
-                }
-
-                var parameters = new List<object>
-                {
-                    luceneIndex,
-                    luceneIndex.FieldValueTypeCollection,
-                    queryAanalyzer
-                };
-
-                return parameters;
-            });
     }
 }

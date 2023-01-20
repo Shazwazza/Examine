@@ -43,6 +43,14 @@ namespace Examine.Web.Demo
                     // Add the field definition for a field called "phone" which maps
                     // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
+
+                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_NGramDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_NGramDistance, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.FuzzySuggester, ExamineLuceneSuggesterNames.FuzzySuggester, new string[] { "fullName" }));
                     break;
             }
         }

@@ -22,7 +22,6 @@ namespace Examine.Web.Demo
 
             services.ConfigureOptions<ConfigureIndexOptions>();
 
-            services.AddExamineLuceneSuggester("LuceneSuggester", "MyIndex", new StandardAnalyzer(LuceneVersion.LUCENE_CURRENT));
 
             return services;
         }
