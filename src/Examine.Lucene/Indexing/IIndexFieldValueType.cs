@@ -1,6 +1,3 @@
-using System;
-using Examine.Lucene.Suggest;
-using Examine.Suggest;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
@@ -30,11 +27,6 @@ namespace Examine.Lucene.Indexing
         /// Returns the search time analyzer for this field type, or null to use the default
         /// </summary>
         Analyzer SearchAnalyzer { get; }
-
-        /// <summary>
-        /// Returns the lookup for this field type, or null to use the default
-        /// </summary>
-        Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> Lookup { get; }
 
         void AddValue(Document doc, object value);
         

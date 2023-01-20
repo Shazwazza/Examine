@@ -68,13 +68,13 @@ namespace Examine.Lucene.Providers
            : this(loggerFactory, name, (IOptionsMonitor<LuceneIndexOptions>)indexOptions)
         {
             LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
-            
+
             if (directoryOptions.DirectoryFactory == null)
             {
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
 
-            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));            
+            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -698,7 +698,7 @@ namespace Examine.Lucene.Providers
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
@@ -1071,8 +1071,13 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the suggester
             WaitForChanges();
 
-            return new LuceneSuggester(name + "Suggester", suggesterManager, FieldValueTypeCollection, SuggesterDefinitionCollection);
+            var suggester = new LuceneSuggester(name + "Suggester", suggesterManager, FieldValueTypeCollection, SuggesterDefinitionCollection);
+
+            IndexCommitted += LuceneIndex_IndexCommitted_RefreshSuggesters;
+            return suggester;
         }
+
+        private void LuceneIndex_IndexCommitted_RefreshSuggesters(object sender, EventArgs e) => _suggester.Value.RebuildSuggesters();
 
         private LuceneSearcher CreateSearcher()
         {
@@ -1325,6 +1330,7 @@ namespace Examine.Lucene.Providers
 
                     if (_suggester.IsValueCreated)
                     {
+                        IndexCommitted -= LuceneIndex_IndexCommitted_RefreshSuggesters;
                         _suggester.Value.Dispose();
                     }
 

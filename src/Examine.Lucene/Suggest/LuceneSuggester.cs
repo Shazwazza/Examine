@@ -41,27 +41,38 @@ namespace Examine.Lucene.Suggest
             BuildSuggesters();
         }
 
-        protected virtual void BuildSuggesters()
+        public void RebuildSuggesters() => BuildSuggesters(true);
+
+        protected virtual void BuildSuggesters(bool rebuild = false)
         {
             foreach (var suggesterDefintion in _suggesterDefinitions)
             {
-                if (_suggesters.ContainsKey(suggesterDefintion.Name))
+                if (!rebuild && _suggesters.ContainsKey(suggesterDefintion.Name))
                 {
                     throw new InvalidOperationException("Can not register more than one Suggester with the same name");
                 }
                 switch (suggesterDefintion.SuggesterMode)
                 {
                     case ExamineLuceneSuggesterNames.AnalyzingInfixSuggester:
-                        var lookupAnalyzingInfix = BuildAnalyzingInfixSuggesterLookup(suggesterDefintion, true);
-                        _suggesters.Add(suggesterDefintion.Name, lookupAnalyzingInfix);
+                        var lookupAnalyzingInfix = BuildAnalyzingInfixSuggesterLookup(suggesterDefintion,rebuild, true);
+                        if (!rebuild)
+                        {
+                            _suggesters.Add(suggesterDefintion.Name, lookupAnalyzingInfix);
+                        }
                         break;
                     case ExamineLuceneSuggesterNames.AnalyzingSuggester:
-                        var lookupAnalyzing = BuildAnalyzingSuggesterLookup(suggesterDefintion);
-                        _suggesters.Add(suggesterDefintion.Name, lookupAnalyzing);
+                        var lookupAnalyzing = BuildAnalyzingSuggesterLookup(suggesterDefintion, rebuild);
+                        if (!rebuild)
+                        {
+                            _suggesters.Add(suggesterDefintion.Name, lookupAnalyzing);
+                        }
                         break;
                     case ExamineLuceneSuggesterNames.FuzzySuggester:
-                        var lookupFuzzy = BuildFuzzySuggesterLookup(suggesterDefintion);
-                        _suggesters.Add(suggesterDefintion.Name, lookupFuzzy);
+                        var lookupFuzzy = BuildFuzzySuggesterLookup(suggesterDefintion, rebuild);
+                        if (!rebuild)
+                        {
+                            _suggesters.Add(suggesterDefintion.Name, lookupFuzzy);
+                        }
                         break;
                     case ExamineLuceneSuggesterNames.DirectSpellChecker:
                         break;
@@ -103,11 +114,13 @@ namespace Examine.Lucene.Suggest
             GC.SuppressFinalize(this);
         }
 
-        protected Lookup BuildAnalyzingInfixSuggesterLookup(SuggesterDefinition suggesterDefinition, bool highlight = true)
+        protected Lookup BuildAnalyzingInfixSuggesterLookup(SuggesterDefinition suggesterDefinition, bool rebuild, bool highlight = true)
         {
             string field = suggesterDefinition.SourceFields.First();
             var fieldValue = GetFieldValueType(field);
             var indexTimeAnalyzer = fieldValue.Analyzer;
+
+
             AnalyzingInfixSuggester suggester = null;
             Analyzer queryTimeAnalyzer = null;
             LuceneSuggesterDefinition luceneSuggesterDefinition = suggesterDefinition as LuceneSuggesterDefinition;
@@ -115,7 +128,11 @@ namespace Examine.Lucene.Suggest
             LuceneDirectory luceneDictionary = luceneSuggesterDefinition.SuggesterDirectoryFactory.CreateDirectory(suggesterDefinition.Name.Replace(".", "_"), false);
             var luceneVersion = LuceneVersion.LUCENE_48;
 
-            if (queryTimeAnalyzer != null)
+            if (rebuild)
+            {
+                suggester = _suggesters[suggesterDefinition.Name] as AnalyzingInfixSuggester;
+            }
+            else if (queryTimeAnalyzer != null)
             {
                 suggester = new AnalyzingInfixSuggester(luceneVersion, luceneDictionary, indexTimeAnalyzer, queryTimeAnalyzer, AnalyzingInfixSuggester.DEFAULT_MIN_PREFIX_CHARS);
             }
@@ -131,7 +148,7 @@ namespace Examine.Lucene.Suggest
             return suggester;
         }
 
-        protected Lookup BuildFuzzySuggesterLookup(SuggesterDefinition suggesterDefinition)
+        protected Lookup BuildFuzzySuggesterLookup(SuggesterDefinition suggesterDefinition,bool rebuild)
         {
             string field = suggesterDefinition.SourceFields.First();
             var fieldValue = GetFieldValueType(field);
@@ -139,7 +156,11 @@ namespace Examine.Lucene.Suggest
 
             FuzzySuggester suggester;
             Analyzer queryTimeAnalyzer = null;
-            if (queryTimeAnalyzer != null)
+            if (rebuild)
+            {
+                suggester = _suggesters[suggesterDefinition.Name] as FuzzySuggester;
+            }
+            else if (queryTimeAnalyzer != null)
             {
                 suggester = new FuzzySuggester(indexTimeAnalyzer, queryTimeAnalyzer);
             }
@@ -156,29 +177,33 @@ namespace Examine.Lucene.Suggest
             return suggester;
         }
 
-        protected Lookup BuildAnalyzingSuggesterLookup(SuggesterDefinition suggesterDefinition)
+        protected Lookup BuildAnalyzingSuggesterLookup(SuggesterDefinition suggesterDefinition, bool rebuild)
         {
             string field = suggesterDefinition.SourceFields.First();
             var fieldValue = GetFieldValueType(field);
             var indexTimeAnalyzer = fieldValue.Analyzer;
-            AnalyzingSuggester analyzingSuggester;
+            AnalyzingSuggester suggester;
             Analyzer queryTimeAnalyzer = null;
-            if (queryTimeAnalyzer != null)
+            if (rebuild)
             {
-                analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer, queryTimeAnalyzer);
+                suggester = _suggesters[suggesterDefinition.Name] as AnalyzingSuggester;
+            }
+            else if (queryTimeAnalyzer != null)
+            {
+                suggester = new AnalyzingSuggester(indexTimeAnalyzer, queryTimeAnalyzer);
             }
             else
             {
-                analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer);
+                suggester = new AnalyzingSuggester(indexTimeAnalyzer);
             }
 
             using (var readerReference = new IndexReaderReference(_readerManager))
             {
                 LuceneDictionary luceneDictionary = new LuceneDictionary(readerReference.IndexReader, field);
-                analyzingSuggester.Build(luceneDictionary);
+                suggester.Build(luceneDictionary);
             }
 
-            return analyzingSuggester;
+            return suggester;
         }
 
         private IIndexFieldValueType GetFieldValueType(string fieldName)

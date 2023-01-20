@@ -33,7 +33,6 @@ namespace Examine.Lucene.Indexing
     public class FullTextType : IndexFieldValueTypeBase
     {
         private readonly bool _sortable;
-        private readonly bool _suggestable;
         private readonly Analyzer _searchAnalyzer;
         private readonly Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> _lookup;
         private readonly Analyzer _analyzer;
@@ -46,11 +45,10 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, bool suggestable = false, Analyzer searchAnalyzer = null, Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> lookup = null)
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, Analyzer searchAnalyzer = null, Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> lookup = null)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
-            _suggestable = suggestable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
             _searchAnalyzer = searchAnalyzer ?? _analyzer;
             _lookup = lookup;
@@ -65,8 +63,6 @@ namespace Examine.Lucene.Indexing
         public override Analyzer Analyzer => _analyzer;
 
         public override Analyzer SearchAnalyzer => _searchAnalyzer;
-
-        public override Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> Lookup => _suggestable ? _lookup : null;
 
         protected override void AddSingleValue(Document doc, object value)
         {
