@@ -10,9 +10,9 @@ namespace Examine
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="suggesterMode"></param>
-        /// <param name="sourceFields"></param>
+        /// <param name="name">Name of the suggester</param>
+        /// <param name="suggesterMode">Suggester Mode</param>
+        /// <param name="sourceFields">Source Index Fields for the Suggester</param>
         public SuggesterDefinition(string name, string suggesterMode, string[] sourceFields = null)
         {
             if (string.IsNullOrWhiteSpace(name))
