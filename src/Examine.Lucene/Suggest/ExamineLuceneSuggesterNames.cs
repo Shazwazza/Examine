@@ -6,6 +6,11 @@ namespace Examine
     public class ExamineLuceneSuggesterNames
     {
         /// <summary>
+        /// Lucene.NET AnalyzingInfixSuggester Suggester
+        /// </summary>
+        public const string AnalyzingInfixSuggester = "Lucene.AnalyzingInfixSuggester";
+
+        /// <summary>
         /// Lucene.NET AnalyzingSuggester Suggester
         /// </summary>
         public const string AnalyzingSuggester = "Lucene.AnalyzingSuggester";
@@ -20,12 +25,10 @@ namespace Examine
         /// </summary>
         public const string DirectSpellChecker = "Lucene.DirectSpellChecker";
 
-
         /// <summary>
         /// Lucene.NET DirectSpellChecker with JaroWinklerDistance string distance implementation.
         /// </summary>
         public const string DirectSpellChecker_JaroWinklerDistance = "Lucene.DirectSpellChecker.JaroWinklerDistance";
-
 
         /// <summary>
         /// Lucene.NET DirectSpellChecker with LevensteinDistance string distance implementation.
@@ -36,5 +39,6 @@ namespace Examine
         /// Lucene.NET DirectSpellChecker with NGramDistance string distance implementation.
         /// </summary>
         public const string DirectSpellChecker_NGramDistance = "Lucene.DirectSpellChecker.NGramDistance";
+
     }
 }

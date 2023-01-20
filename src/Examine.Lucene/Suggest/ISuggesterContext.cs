@@ -1,4 +1,5 @@
 using Examine.Lucene.Indexing;
+using Lucene.Net.Util;
 
 namespace Examine.Lucene.Suggest
 {
@@ -20,7 +21,8 @@ namespace Examine.Lucene.Suggest
         /// <returns></returns>
         IIndexFieldValueType GetFieldValueType(string fieldName);
 
-
         SuggesterDefinitionCollection GetSuggesterDefinitions();
+
+        LuceneVersion GetLuceneVersion();
     }
 }

@@ -1,5 +1,6 @@
 using Examine.Lucene.Indexing;
 using Lucene.Net.Index;
+using Lucene.Net.Util;
 
 namespace Examine.Lucene.Suggest
 {
@@ -36,5 +37,7 @@ namespace Examine.Lucene.Suggest
                 fieldName,
                 _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
         }
+
+        public LuceneVersion GetLuceneVersion() => LuceneVersion.LUCENE_48;
     }
 }

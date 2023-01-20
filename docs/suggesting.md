@@ -19,6 +19,7 @@ Example
 
 ```cs
  var suggesters = new SuggesterDefinitionCollection();
+            suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "nodeName" }));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "fullName" }));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "fullName" }));
             suggesters.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "fullName" }));
@@ -35,7 +36,7 @@ var query = suggester.CreateSuggestionQuery();
 var results = query.Execute("Sam", new SuggestionOptions(5,ExamineLuceneSuggesterNames.AnalyzingSuggester));
 ```
 
-This code will run a suggestion for the input text "Sam" with the "FullName" field in the index as the source of terms for the suggestions, returning up to 5 suggestions.
+This code will run a suggestion for the input text "Sam", returning up to 5 suggestions.
 
 ## Lucene Suggesters
 
@@ -46,10 +47,20 @@ To generate suggestions for input text, retreive the ISuggester from the index I
 ```cs
 var suggester = index.Suggester;
 var query = suggester.CreateSuggestionQuery();
+var results = query.Execute("Sam", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester));
+```
+
+This code will run a suggestion for the input text "Sam", returning up to 5 suggestions, and will highlight the result text which matches the input text..
+
+### Analyzing Suggester
+
+```cs
+var suggester = index.Suggester;
+var query = suggester.CreateSuggestionQuery();
 var results = query.Execute("Sam", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.AnalyzingSuggester));
 ```
 
-This code will run a suggestion for the input text "Sam" with the "FullName" field in the index as the source of terms for the suggestions, returning up to 5 suggestions.
+This code will run a suggestion for the input text "Sam", returning up to 5 suggestions.
 
 ### Fuzzy Suggester
 
@@ -59,7 +70,7 @@ var query = suggester.CreateSuggestionQuery();
 var results = query.Execute("Sam", new LuceneSuggestionOptions(5, ExamineLuceneSuggesterNames.FuzzySuggester));
 ```
 
-This code will run a Fuzzy suggestion for the input text "Sam" with the "FullName" field in the index as the source of terms for the suggestions, returning up to 5 suggestions.
+This code will run a Fuzzy suggestion for the input text "Sam", returning up to 5 suggestions.
 
 ### Direct SpellChecker Suggester
 
