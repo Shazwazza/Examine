@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Examine.Suggest;
+using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.Search.Spell;
 using Lucene.Net.Search.Suggest;
@@ -105,11 +106,12 @@ namespace Examine.Lucene.Suggest
                 var indexTimeAnalyzer = fieldValue.Analyzer;
                 AnalyzingSuggester analyzingSuggester;
                 var onlyMorePopular = false;
+                Analyzer queryTimeAnalyzer = null;
                 if (_options is LuceneSuggestionOptions luceneSuggestionOptions)
                 {
-                    if (luceneSuggestionOptions.Analyzer != null)
+                    if (queryTimeAnalyzer != null)
                     {
-                        analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer, luceneSuggestionOptions.Analyzer);
+                        analyzingSuggester = new AnalyzingSuggester(indexTimeAnalyzer, queryTimeAnalyzer);
                     }
                     else
                     {
@@ -144,11 +146,12 @@ namespace Examine.Lucene.Suggest
 
                 FuzzySuggester suggester;
                 var onlyMorePopular = false;
+                Analyzer queryTimeAnalyzer = null;
                 if (_options is LuceneSuggestionOptions luceneSuggestionOptions)
                 {
-                    if (luceneSuggestionOptions.Analyzer != null)
+                    if (queryTimeAnalyzer != null)
                     {
-                        suggester = new FuzzySuggester(indexTimeAnalyzer, luceneSuggestionOptions.Analyzer);
+                        suggester = new FuzzySuggester(indexTimeAnalyzer, queryTimeAnalyzer);
                     }
                     else
                     {

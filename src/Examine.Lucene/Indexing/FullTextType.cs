@@ -34,6 +34,7 @@ namespace Examine.Lucene.Indexing
     {
         private readonly bool _sortable;
         private readonly bool _suggestable;
+        private readonly Analyzer _searchAnalyzer;
         private readonly Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> _lookup;
         private readonly Analyzer _analyzer;
 
@@ -45,11 +46,12 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, bool suggestable = false, Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> lookup = null)
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, bool suggestable = false, Analyzer searchAnalyzer = null, Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> lookup = null)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
             _suggestable = suggestable;
+            _searchAnalyzer = searchAnalyzer;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
             _lookup = lookup;
 
@@ -166,7 +168,7 @@ namespace Examine.Lucene.Indexing
                                                                         SuggestionOptions suggestionOptions,
                                                                         string searchText,
                                                                         string fieldName,
-                                                                        Analyzer indexTimeAnalyzer, IDictionary suggesterData = null)
+                                                                        Analyzer indexTimeAnalyzer, Analyzer searchAnalyzer = null, IDictionary suggesterData = null)
         {
             IDictionary lookupDictionary;
             if (suggesterData != null)
@@ -183,9 +185,9 @@ namespace Examine.Lucene.Indexing
             var onlyMorePopular = false;
             if (suggestionOptions is LuceneSuggestionOptions luceneSuggestionOptions)
             {
-                if (luceneSuggestionOptions.Analyzer != null)
+                if (searchAnalyzer != null)
                 {
-                    suggester = new AnalyzingSuggester(indexTimeAnalyzer, luceneSuggestionOptions.Analyzer);
+                    suggester = new AnalyzingSuggester(indexTimeAnalyzer, searchAnalyzer);
                 }
                 else
                 {
@@ -228,11 +230,12 @@ namespace Examine.Lucene.Indexing
             }
             FuzzySuggester suggester;
             var onlyMorePopular = false;
+            Analyzer queryTimeAnalyzer = null;
             if (suggestionOptions is LuceneSuggestionOptions luceneSuggestionOptions)
             {
-                if (luceneSuggestionOptions.Analyzer != null)
+                if (queryTimeAnalyzer != null)
                 {
-                    suggester = new FuzzySuggester(indexTimeAnalyzer, luceneSuggestionOptions.Analyzer);
+                    suggester = new FuzzySuggester(indexTimeAnalyzer, queryTimeAnalyzer);
                 }
                 else
                 {
@@ -261,8 +264,7 @@ namespace Examine.Lucene.Indexing
         public static LuceneSuggestionResults ExecuteDirectSpellChecker(IIndexReaderReference readerReference,
                                                                         SuggestionOptions suggestionOptions,
                                                                         string searchText,
-                                                                        string fieldName,
-                                                                        Analyzer indexTimeAnalyzer)
+                                                                        string fieldName)
         {
             DirectSpellChecker spellchecker = new DirectSpellChecker();
             if (suggestionOptions.SuggesterName.Equals(ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, StringComparison.InvariantCultureIgnoreCase))
@@ -304,6 +306,7 @@ namespace Examine.Lucene.Indexing
                                                                         LuceneVersion luceneVersion,
                                                                         LuceneDirectory directory,
                                                                         int minPrefixChars,
+                                                                        Analyzer searchAnalyzer = null,
                                                                         IInputEnumerator suggesterData = null)
         {
             AnalyzingInfixSuggester suggester = null;
@@ -312,9 +315,9 @@ namespace Examine.Lucene.Indexing
                 var onlyMorePopular = false;
                 if (suggestionOptions is LuceneSuggestionOptions luceneSuggestionOptions)
                 {
-                    if (luceneSuggestionOptions.Analyzer != null)
+                    if (searchAnalyzer != null)
                     {
-                        suggester = new AnalyzingInfixSuggester(luceneVersion, directory, indexTimeAnalyzer, luceneSuggestionOptions.Analyzer, minPrefixChars);
+                        suggester = new AnalyzingInfixSuggester(luceneVersion, directory, indexTimeAnalyzer, searchAnalyzer, minPrefixChars);
                     }
                     else
                     {

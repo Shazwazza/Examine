@@ -15,16 +15,10 @@ namespace Examine.Lucene.Suggest
         /// <param name="suggesterName">The name of the Suggester to use</param>
         /// <param name="analyzer">Query time Analyzer</param>
         /// <param name="suggestionMode">Suggestion Mode</param>
-        public LuceneSuggestionOptions(int top = 5, string suggesterName = null, Analyzer analyzer = null, SuggestMode suggestionMode = default) : base(top, suggesterName)
+        public LuceneSuggestionOptions(int top = 5, string suggesterName = null, SuggestMode suggestionMode = default) : base(top, suggesterName)
         {
-            Analyzer = analyzer;
             SuggestionMode = suggestionMode;
         }
-
-        /// <summary>
-        /// Query Time Analyzer
-        /// </summary>
-        public Analyzer Analyzer { get; }
 
         public SuggestMode SuggestionMode { get; }
 
