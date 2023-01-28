@@ -17,8 +17,8 @@ jobs:
         args: docs/v2/docfx.json
 
     # Publish generated site using GitHub Pages
-    - uses: nzdev/ghpages@master
+    - uses: nzdev/examine@master
       name: Publish Documentation on GitHub Pages
       env:
         BUILD_DIR: _site # docfx's default output directory is _site
-        GH_PAT: ${{ secrets.GH_PAT }} # See https://github.com/maxheld83/ghpages
+        GH_PAT: ${{ secrets.GH_PAT }} # See https://github.com/examine/ghpages
