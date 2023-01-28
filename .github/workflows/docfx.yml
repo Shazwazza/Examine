@@ -1,5 +1,9 @@
-- name: docfx-action
-  uses: nikeee/docfx-action@v1.0.0
+on:
+  push:
+    branches:
+    - main
+    - release/*
+    - docfx
 jobs:
   examine_docfx:
     runs-on: ubuntu-latest
