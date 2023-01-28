@@ -10,7 +10,8 @@ jobs:
     name: DocFX 
     steps:
     - uses: actions/checkout@v1
-    # ...
+      with:
+       ref: feature/docfx
     - uses: nikeee/docfx-action@v1.0.0
       name: Build Documentation
       with:
