@@ -39,7 +39,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = new DefaultSimilarity()
+                        Similarity = LuceneSearchOptionsSimilarities.ExamineDefault
                     }).All();
 
                 Console.WriteLine(query);
@@ -74,7 +74,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = new BM25Similarity()
+                        Similarity = LuceneSearchOptionsSimilarities.BM25
                     }).All();
 
                 Console.WriteLine(query);
@@ -110,7 +110,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = new LMDirichletSimilarity()
+                        Similarity = LuceneSearchOptionsSimilarities.LMDirichlet
                     }).All();
 
                 Console.WriteLine(query);
@@ -145,7 +145,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = new LMJelinekMercerSimilarity(0.1f)
+                        Similarity = LuceneSearchOptionsSimilarities.LMJelinekMercerTitle
                     }).All();
 
                 Console.WriteLine(query);
@@ -180,7 +180,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = new LMJelinekMercerSimilarity(0.7f)
+                        Similarity = LuceneSearchOptionsSimilarities.LMJelinekMercerLongText
                     }).All();
 
                 Console.WriteLine(query);

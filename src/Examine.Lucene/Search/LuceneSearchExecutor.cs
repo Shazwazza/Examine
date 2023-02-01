@@ -100,6 +100,10 @@ namespace Examine.Lucene.Search
                 {
                     searcher.IndexSearcher.Similarity = _luceneSearchOptions.Similarity;
                 }
+                else
+                {
+                    searcher.IndexSearcher.Similarity = LuceneSearchOptionsSimilarities.ExamineDefault;
+                }
 
                 searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
 
