@@ -36,7 +36,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
-                var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
+                var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
                         Similarity = LuceneSearchOptionsSimilarities.ExamineDefault
@@ -71,7 +71,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
-                var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
+                var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
                         Similarity = LuceneSearchOptionsSimilarities.BM25
@@ -107,7 +107,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
-                var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
+                var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
                         Similarity = LuceneSearchOptionsSimilarities.LMDirichlet
@@ -142,7 +142,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
-                var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
+                var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
                         Similarity = LuceneSearchOptionsSimilarities.LMJelinekMercerTitle
@@ -177,7 +177,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
-                var query = searcher.CreateQuery("cOntent", BooleanOperation.And, searcher.LuceneAnalyzer,
+                var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
                         Similarity = LuceneSearchOptionsSimilarities.LMJelinekMercerLongText

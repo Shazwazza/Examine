@@ -40,6 +40,16 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="category">The type of data in the index.</param>
         /// <param name="defaultOperation">The default operation.</param>
+        /// <param name="searchOptions">Lucene Search Options</param>
+        /// <returns></returns>
+        public IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And, LuceneSearchOptions searchOptions = null)
+            => CreateQuery(category, defaultOperation, LuceneAnalyzer, searchOptions ?? new LuceneSearchOptions());
+
+        /// <summary>
+        /// Creates an instance of SearchCriteria for the provider
+        /// </summary>
+        /// <param name="category">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
         /// <param name="luceneAnalyzer"></param>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
