@@ -250,3 +250,60 @@ var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make q
 query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
 var results = query.Execute();
 ```
+
+
+### Use a Lucene Similarity
+Simliarity defines the components of Lucene scoring.
+
+See LuceneSearchOptionsSimilarities for Similarities that are available by default.
+
+- LuceneSearchOptionsSimilarities.ExamineDefault is the default Similarity used by Examine
+- LuceneSearchOptionsSimilarities.Classic is the default Similarity used by Lucene.NET 4
+- LuceneSearchOptionsSimilarities.BM25 is the default in later versions of Lucene.
+- LuceneSearchOptionsSimilarities.LMDirichlet
+- LuceneSearchOptionsSimilarities.LMJelinekMercerTitle
+- LuceneSearchOptionsSimilarities.LMJelinekMercerLongText
+
+#### Examine Default Similarity
+
+```csharp
+var searcher = (BaseLuceneSearcher)indexer.Searcher;
+var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
+                    {
+                        // Set Similarity
+                        Similarity = LuceneSearchOptionsSimilarities.ExamineDefault
+                    });
+  // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
+ .Field("Address", "Hills Rockyroad Hollywood".Escape())
+ .Execute();
+
+```
+
+#### Classic/Default Similarity
+
+```csharp
+var searcher = (BaseLuceneSearcher)indexer.Searcher;
+var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
+                    {
+                        // Set Similarity
+                        Similarity = LuceneSearchOptionsSimilarities.Classic
+                    });
+  // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
+ .Field("Address", "Hills Rockyroad Hollywood".Escape())
+ .Execute();
+
+```
+
+#### BM25 Similarity
+
+```csharp
+var searcher = (BaseLuceneSearcher)indexer.Searcher;
+var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
+                    {
+                        Similarity = LuceneSearchOptionsSimilarities.BM25
+                    });
+  // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
+ .Field("Address", "Hills Rockyroad Hollywood".Escape())
+ .Execute();
+
+```
