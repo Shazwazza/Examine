@@ -5,6 +5,7 @@ using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Similarities;
 
 namespace Examine.Lucene.Search
 {
@@ -19,13 +20,15 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
+        private readonly LuceneSearchOptions _luceneSearchOptions;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad)
+        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, LuceneSearchOptions luceneSearchOptions)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
             _fieldsToLoad = fieldsToLoad;
+            _luceneSearchOptions = luceneSearchOptions;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
         }
@@ -93,6 +96,11 @@ namespace Examine.Lucene.Search
 
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
+                if (_luceneSearchOptions != null && _luceneSearchOptions.Similarity != null)
+                {
+                    searcher.IndexSearcher.Similarity = _luceneSearchOptions.Similarity;
+                }
+
                 searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
 
                 TopDocs topDocs;

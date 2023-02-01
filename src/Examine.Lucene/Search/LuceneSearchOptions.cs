@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Similarities;
 
 namespace Examine.Lucene.Search
 {
@@ -76,5 +77,10 @@ namespace Examine.Lucene.Search
         //     Sets the default Lucene.Net.Documents.DateTools.Resolution used for certain field
         //     when no Lucene.Net.Documents.DateTools.Resolution is defined for this field.
         public DateResolution? DateResolution { get; set; }
+
+        /// <summary>
+        /// Search Similarity.
+        /// </summary>
+        public Similarity Similarity { get; set; }
     }
 }
