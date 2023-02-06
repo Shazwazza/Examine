@@ -6,20 +6,25 @@ on:
     - feature/docfx
 jobs:
   examine_docfx:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     name: DocFX 
     steps:
-    - uses: actions/checkout@v2
-      with:
-       ref: feature/docfx
-    - uses: nikeee/docfx-action@v1.0.0
-      name: Build Documentation
-      with:
+     - name: Checkout Examine 
+       uses: actions/checkout@v2
+       with:
+        path: feature/docfx
+        fetch-depth: 0
+     - name: Setup .NET 6 SDK
+       uses: actions/setup-dotnet@v1
+       with:
+        dotnet-version: '6.0.101'
+     - name: Build Documentation
+       uses: nikeee/docfx-action@v1.0.0
+       with:
         args: docs/v2/docfx.json
-
-    # Publish generated site using GitHub Pages
-    - uses: nzdev/examine@feature/docfx
-      name: Publish Documentation on GitHub Pages
-      env:
+     # Publish generated site using GitHub Pages
+     - name: Publish Documentation on GitHub Pages
+       uses: nzdev/examine@feature/docfx
+       env:
         BUILD_DIR: _site # docfx's default output directory is _site
         GH_PAT: ${{ secrets.GH_PAT }} # See https://github.com/examine/ghpages
