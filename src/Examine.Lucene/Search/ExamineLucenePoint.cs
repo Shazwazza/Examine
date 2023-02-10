@@ -1,13 +1,13 @@
-﻿using Examine.Search;
+using Examine.Search;
 using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Search
 {
-    public class ExamineLucenePoint : IExamineSpatialPoint
+    public class ExamineLucenePoint : ExamineLuceneShape, IExamineSpatialPoint
     {
         private readonly IPoint _point;
 
-        public ExamineLucenePoint(IPoint point)
+        public ExamineLucenePoint(IPoint point) : base(point)
         {
             _point = point;
         }

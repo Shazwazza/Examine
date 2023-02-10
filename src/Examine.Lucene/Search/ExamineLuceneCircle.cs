@@ -8,19 +8,16 @@ using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Search
 {
-    public class ExamineLuceneCircle : IExamineSpatialCircle
+    public class ExamineLuceneCircle : ExamineLuceneShape, IExamineSpatialCircle
     {
         private readonly ICircle _circle;
 
-        public ExamineLuceneCircle(ICircle circle)
+        public ExamineLuceneCircle(ICircle circle) : base(circle)
         {
             _circle = circle;
         }
 
         public double Radius => _circle.Radius;
 
-        public IExamineSpatialPoint Center => new ExamineLucenePoint(_circle.Center);
-
-        public bool IsEmpty => false;
     }
 }

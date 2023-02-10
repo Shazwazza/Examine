@@ -8,17 +8,14 @@ using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Search
 {
-    public class ExamineLuceneRectangle : IExamineSpatialRectangle
+    public class ExamineLuceneRectangle : ExamineLuceneShape, IExamineSpatialRectangle
     {
         private readonly IRectangle _rectangle;
 
-        public ExamineLuceneRectangle(IRectangle rectangle)
+        public ExamineLuceneRectangle(IRectangle rectangle) : base(rectangle) 
         {
             _rectangle = rectangle;
         }
-        public IExamineSpatialPoint Center => new ExamineLucenePoint(_rectangle.Center);
-
-        public bool IsEmpty => false;
 
         public double MinX => _rectangle.MinX;
 
