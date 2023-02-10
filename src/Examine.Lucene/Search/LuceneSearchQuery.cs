@@ -5,7 +5,9 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Queries.Function;
 using Lucene.Net.Search;
+using Spatial4n.Distance;
 
 namespace Examine.Lucene.Search
 {
@@ -22,7 +24,7 @@ namespace Examine.Lucene.Search
             ISearchContext searchContext,
             string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
             : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
-        {   
+        {
             _searchContext = searchContext;
         }
 
@@ -78,6 +80,8 @@ namespace Examine.Lucene.Search
         }
 
         public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
+
+        internal IOrdering OrderBy(Sorting[] sorts) => OrderByInternal(sorts);
 
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
@@ -161,7 +165,7 @@ namespace Examine.Lucene.Search
                         }
                     }
 #if !NETSTANDARD2_0 && !NETSTANDARD2_1
-                    else if(typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
+                    else if (typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
                     {
                         TimeOnly minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
                         var minValue = min.HasValue ? (min.Value as DateOnly?)?.ToDateTime(minValueTime) : null;
@@ -226,13 +230,12 @@ namespace Examine.Lucene.Search
                     query.Add(c);
                 }
             }
-
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, Sortings, SearchOptions.SpatialStrategy);
 
             var pagesResults = executor.Execute();
 
             return pagesResults;
-        }        
+        }
 
         /// <summary>
         /// Internal operation for adding the ordered results
@@ -242,13 +245,14 @@ namespace Examine.Lucene.Search
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         private LuceneBooleanOperationBase OrderByInternal(bool descending, params SortableField[] fields)
         {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (fields == null)
+                throw new ArgumentNullException(nameof(fields));
 
             foreach (var f in fields)
             {
                 var fieldName = f.FieldName;
 
-                var defaultSort =  SortFieldType.STRING;
+                var defaultSort = SortFieldType.STRING;
 
                 switch (f.SortType)
                 {
@@ -272,7 +276,7 @@ namespace Examine.Lucene.Search
                         break;
                     case SortType.Double:
                         defaultSort = SortFieldType.DOUBLE;
-                        break;                   
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -284,6 +288,39 @@ namespace Examine.Lucene.Search
                     fieldName = valType.SortableFieldName;
 
                 SortFields.Add(new SortField(fieldName, defaultSort, descending));
+            }
+
+            return CreateOp();
+        }
+
+        /// <summary>
+        /// Internal operation for adding the ordered results
+        /// </summary>
+        /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
+        private LuceneBooleanOperationBase OrderByInternal(params Sorting[] sorting)
+        {
+            if (sorting == null)
+                throw new ArgumentNullException(nameof(sorting));
+
+            SortFields.Clear();
+            Sortings.Clear();
+            foreach (var item in sorting)
+            {
+                switch (item.Field.SortType)
+                {
+                    case SortType.SpatialDistance:
+                    case SortType.Score:
+                    case SortType.DocumentOrder:
+                    case SortType.String:
+                    case SortType.Int:
+                    case SortType.Float:
+                    case SortType.Long:
+                    case SortType.Double:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                Sortings.Add(item);
             }
 
             return CreateOp();
@@ -308,6 +345,5 @@ namespace Examine.Lucene.Search
         }
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
-
     }
 }

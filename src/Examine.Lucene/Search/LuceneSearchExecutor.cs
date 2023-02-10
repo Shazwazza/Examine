@@ -4,7 +4,11 @@ using System.Linq;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Queries.Function;
 using Lucene.Net.Search;
+using Lucene.Net.Spatial;
+using Spatial4n.Distance;
+using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Search
 {
@@ -19,13 +23,23 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
+        private readonly IList<Sorting> _sortings;
+        private readonly SpatialStrategy _spatialStrategy;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad)
+        internal LuceneSearchExecutor(QueryOptions options,
+                                      Query query,
+                                      IEnumerable<SortField> sortField,
+                                      ISearchContext searchContext,
+                                      ISet<string> fieldsToLoad,
+                                      IList<Sorting> sortings,
+                                      SpatialStrategy spatialStrategy)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
             _fieldsToLoad = fieldsToLoad;
+            _sortings = sortings;
+            _spatialStrategy = spatialStrategy;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
         }
@@ -80,19 +94,83 @@ namespace Examine.Lucene.Search
             maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
 
             ICollector topDocsCollector;
-            SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
-            if (sortFields.Length > 0)
+            SortField[] sortFields;
+            if (_sortings.Count > 0)
             {
-                topDocsCollector = TopFieldCollector.Create(
-                    new Sort(sortFields), maxResults, false, false, false, false);
+                List<SortField> sortFieldsList = new List<SortField>();
+                foreach (var s in _sortings)
+                {
+                    var f = s.Field;
+                    var fieldName = f.FieldName;
+
+                    var defaultSort = SortFieldType.STRING;
+
+                    switch (f.SortType)
+                    {
+                        case SortType.Score:
+                            defaultSort = SortFieldType.SCORE;
+                            break;
+                        case SortType.DocumentOrder:
+                            defaultSort = SortFieldType.DOC;
+                            break;
+                        case SortType.String:
+                            defaultSort = SortFieldType.STRING;
+                            break;
+                        case SortType.Int:
+                            defaultSort = SortFieldType.INT32;
+                            break;
+                        case SortType.Float:
+                            defaultSort = SortFieldType.SINGLE;
+                            break;
+                        case SortType.Long:
+                            defaultSort = SortFieldType.INT64;
+                            break;
+                        case SortType.Double:
+                            defaultSort = SortFieldType.DOUBLE;
+                            break;
+                        case SortType.SpatialDistance:
+                            defaultSort = SortFieldType.CUSTOM;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    //get the sortable field name if this field type has one
+                    var valType = _searchContext.GetFieldValueType(fieldName);
+
+                    if (valType?.SortableFieldName != null)
+                    {
+                        fieldName = valType.SortableFieldName;
+                    }
+                    if (f.SortType == SortType.SpatialDistance)
+                    {
+                        IPoint pt = (f.SpatialPoint as ExamineLucenePoint).Shape as IPoint;
+                        ValueSource valueSource = _spatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
+                        sortFieldsList.Add(valueSource.GetSortField(s.Direction == SortDirection.Descending));
+                    }
+                    else
+                    {
+                        sortFieldsList.Add(new SortField(fieldName, defaultSort, s.Direction == SortDirection.Descending));
+                    }
+                }
+                sortFields = sortFieldsList.ToArray();
             }
             else
             {
-                topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
+                sortFields = _sortField as SortField[] ?? _sortField.ToArray();
             }
 
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
+                if (sortFields.Length > 0)
+                {
+                    topDocsCollector = TopFieldCollector.Create(
+                        new Sort(sortFields).Rewrite(searcher.IndexSearcher), maxResults, false, false, false, false);
+                }
+                else
+                {
+                    topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
+                }
                 searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
 
                 TopDocs topDocs;
