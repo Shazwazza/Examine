@@ -154,14 +154,6 @@ namespace Examine.Search
         IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
 
         /// <summary>
-        /// Executes Spatial operation on field and shape
-        /// </summary>
-        /// <param name="field">Index field name</param>
-        /// <param name="shape">Shape</param>
-        /// <returns></returns>
-        IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point);
-
-        /// <summary>
         /// Executes Spatial operation on field and shapes
         /// </summary>
         /// <param name="field">Index field name</param>

@@ -4,12 +4,16 @@ using Spatial4n.Distance;
 
 namespace Examine.Lucene.Search
 {
-    public class Spatial4nShapeFactory : IExamineSpatialPointFactory, IExamineSpatialShapeFactory
+    public class Spatial4nShapeFactory : IExamineSpatialShapeFactory
     {
         private SpatialContext _spatialContext;
-        public Spatial4nShapeFactory()
+        /// <summary>
+        /// Contructor
+        /// </summary>
+        /// <param name="spatialContext">Spatial Context</param>
+        public Spatial4nShapeFactory(SpatialContext spatialContext)
         {
-            _spatialContext = SpatialContext.Geo;
+            _spatialContext = spatialContext;
         }
         public IExamineSpatialCircle CreateCircle(double x, double y, double distance)
         {

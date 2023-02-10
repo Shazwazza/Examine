@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Examine.Search
 {
-    public interface IExamineSpatialPoint
+    public interface IExamineSpatialPoint : IExamineSpatialShape
     {
         double X { get; }
 

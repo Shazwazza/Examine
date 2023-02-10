@@ -5,6 +5,8 @@ using Examine.Search;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
+using Lucene.Net.Spatial;
+using Spatial4n.Context;
 
 namespace Examine.Lucene.Search
 {
@@ -21,6 +23,9 @@ namespace Examine.Lucene.Search
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
+        public IExamineSpatialShapeFactory ExamineSpatialShapeFactory { get;}
+        public SpatialStrategy SpatialStrategy { get;  }
+
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -30,6 +35,8 @@ namespace Examine.Lucene.Search
             Queries.Push(new BooleanQuery());
             BooleanOperation = occurance;
             _queryParser = queryParser;
+            ExamineSpatialShapeFactory = new Spatial4nShapeFactory(searchOptions.SpatialContext);
+            SpatialStrategy = searchOptions.SpatialStrategy;
         }
 
         protected abstract LuceneBooleanOperationBase CreateOp();
@@ -512,11 +519,6 @@ namespace Examine.Lucene.Search
         }
 
         public virtual IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point)
         {
             throw new NotImplementedException();
         }
