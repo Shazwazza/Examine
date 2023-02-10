@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -105,6 +105,13 @@ namespace Examine.Lucene.Search
 
         INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
-
+        public IBooleanOperation SpatialDistanceQuery(string field, Func<IExamineSpatialPointFactory, IExamineSpatialPoint> point, ExamineSpatialDistanceComparison distanceComparison, double distance)
+            => _search.SpatialDistanceQuery(field, point, distanceComparison, distance);
+        public IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+            => _search.SpatialOperationQuery(field, shape);
+        public IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point)
+            => _search.SpatialOperationQuery(field, point);
+        public IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IEnumerable<IExamineSpatialShape>> shapes)
+            => _search.SpatialOperationQuery(field, shapes);
     }
 }

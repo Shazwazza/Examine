@@ -77,5 +77,6 @@ namespace Examine.Lucene.Search
         public abstract IOrdering SelectFields(ISet<string> fieldNames);
         public abstract IOrdering SelectField(string fieldName);
         public abstract IOrdering SelectAllFields();
+        public abstract IOrdering OrderBy(params Sorting[] sorts);
     }
 }

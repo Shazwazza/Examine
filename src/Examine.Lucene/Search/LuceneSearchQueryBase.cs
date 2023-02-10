@@ -21,6 +21,7 @@ namespace Examine.Lucene.Search
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
+
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
@@ -505,6 +506,24 @@ namespace Examine.Lucene.Search
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
 
+        public virtual IBooleanOperation SpatialDistanceQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point, ExamineSpatialDistanceComparison distanceComparison, double distance)
+        {
+            throw new NotImplementedException();
+        }
 
+        public virtual IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IEnumerable<IExamineSpatialShape>> shapes)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

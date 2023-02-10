@@ -19,6 +19,13 @@ namespace Examine.Search
         IOrdering OrderByDescending(params SortableField[] fields);
 
         /// <summary>
+        /// Orders the results by the specified sorts
+        /// </summary>
+        /// <param name="sorts">The sorts.</param>
+        /// <returns></returns>
+        IOrdering OrderBy(params Sorting[] sorts);
+
+        /// <summary>
         /// Return only the specified fields
         /// </summary>
         /// <param name="fieldNames">The field names for fields to load</param>

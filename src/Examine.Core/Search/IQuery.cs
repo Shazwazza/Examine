@@ -134,5 +134,39 @@ namespace Examine.Search
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
         IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+
+        /// <summary>
+        /// Matches items with distance between index field and point
+        /// </summary>
+        /// <param name="field">Index field name</param>
+        /// <param name="point"></param>
+        /// <param name="distanceComparison">Type of comparison</param>
+        /// <param name="distance">Distance in Kilometers</param>
+        /// <returns></returns>
+        IBooleanOperation SpatialDistanceQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point, ExamineSpatialDistanceComparison distanceComparison, double distance);
+
+        /// <summary>
+        /// Executes Spatial operation on field and shape
+        /// </summary>
+        /// <param name="field">Index field name</param>
+        /// <param name="shape">Shape</param>
+        /// <returns></returns>
+        IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+
+        /// <summary>
+        /// Executes Spatial operation on field and shape
+        /// </summary>
+        /// <param name="field">Index field name</param>
+        /// <param name="shape">Shape</param>
+        /// <returns></returns>
+        IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point);
+
+        /// <summary>
+        /// Executes Spatial operation on field and shapes
+        /// </summary>
+        /// <param name="field">Index field name</param>
+        /// <param name="shapes">Shapes</param>
+        /// <returns></returns>
+        IBooleanOperation SpatialOperationQuery(string field, Func<IExamineSpatialShapeFactory, IEnumerable<IExamineSpatialShape>> shapes);
     }
 }
