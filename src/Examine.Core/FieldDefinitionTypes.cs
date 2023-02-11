@@ -42,13 +42,9 @@ namespace Examine
         public const string EmailAddress = "emailaddress";
 
         /// <summary>
-        /// Spatial single point. Index as GeoJson
+        /// GEO Spatial Shape. Index as WKT
         /// </summary>
-        public const string SpatialPoint = "spatial.point.wkt";
+        public const string GeoSpatialWKT = "spatial.geo.wkt";
 
-        /// <summary>
-        /// Spatial collection of points. Index as GeoJson
-        /// </summary>
-        public const string SpatialCollectionPoint = "spatial.collection.wkt";
     }
 }

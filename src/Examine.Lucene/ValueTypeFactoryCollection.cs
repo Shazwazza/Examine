@@ -7,7 +7,11 @@ using Examine.Lucene.Analyzers;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
+using Lucene.Net.Spatial;
+using Lucene.Net.Spatial.Prefix.Tree;
+using Lucene.Net.Spatial.Prefix;
 using Microsoft.Extensions.Logging;
+using Spatial4n.Context;
 
 namespace Examine.Lucene
 {
@@ -52,8 +56,17 @@ namespace Examine.Lucene
         public static IReadOnlyDictionary<string, IFieldValueTypeFactory> GetDefaultValueTypes(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer)
             => GetDefaults(loggerFactory, defaultAnalyzer).ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
 
-        private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer = null) =>
-            new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
+        private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer = null)
+        {
+            Func<string, SpatialStrategy> geoSpatialPrefixTreeStrategy = (fieldName) =>
+            {
+                SpatialContext ctx = SpatialContext.Geo;
+                int maxLevels = 11; //results in sub-meter precision for geohash
+                SpatialPrefixTree grid = new GeohashPrefixTree(ctx, maxLevels);
+                var strategy = new RecursivePrefixTreeStrategy(grid, fieldName);
+                return strategy;
+            };
+            return new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
                 {"number", name => new Int32Type(name, loggerFactory)},
                 {FieldDefinitionTypes.Integer, name => new Int32Type(name, loggerFactory)},
@@ -72,10 +85,9 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
-                {FieldDefinitionTypes.SpatialPoint, name => new WKTIndexFieldValueType(name, loggerFactory,false)},
-                {FieldDefinitionTypes.SpatialCollectionPoint, name => new WKTIndexFieldValueType(name, loggerFactory,true)},
+                {FieldDefinitionTypes.GeoSpatialWKT, name => new WKTSpatialIndexFieldValueType(name, loggerFactory, geoSpatialPrefixTreeStrategy,true)},
             };
-
+        }
 
         public IEnumerator<KeyValuePair<string, IFieldValueTypeFactory>> GetEnumerator()
             => _valueTypeFactories.GetEnumerator();

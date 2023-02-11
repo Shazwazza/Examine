@@ -15,6 +15,9 @@ namespace Examine.Lucene.Search
         {
             _spatialContext = spatialContext;
         }
+
+        public SpatialContext SpatialContext { get => _spatialContext; }
+
         public IExamineSpatialCircle CreateCircle(double x, double y, double distance)
         {
             var spatial4NCircle = _spatialContext.MakeCircle(x, y, distance);

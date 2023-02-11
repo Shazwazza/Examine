@@ -7,7 +7,10 @@ using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Queries.Function;
 using Lucene.Net.Search;
+using Lucene.Net.Spatial.Queries;
+using Lucene.Net.Spatial;
 using Spatial4n.Distance;
+using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Search
 {
@@ -230,7 +233,7 @@ namespace Examine.Lucene.Search
                     query.Add(c);
                 }
             }
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, Sortings, SearchOptions.SpatialStrategy);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, Sortings);
 
             var pagesResults = executor.Execute();
 
@@ -345,5 +348,103 @@ namespace Examine.Lucene.Search
         }
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
+
+        public override IBooleanOperation SpatialDistanceQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point, ExamineSpatialDistanceComparison distanceComparison, double distance)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        {
+            var spatialField = _searchContext.GetFieldValueType(field) as ShapeIndexFieldValueTypeBase;
+            var shapeVal = shape(spatialField.ExamineSpatialShapeFactory);
+            SpatialOperation luceneSpatialOperation;
+            switch (spatialOperation)
+            {
+                case ExamineSpatialOperation.Intersects:
+                    luceneSpatialOperation = SpatialOperation.Intersects;
+                    break;
+                case ExamineSpatialOperation.Overlaps:
+                    luceneSpatialOperation = SpatialOperation.Overlaps;
+                    break;
+                case ExamineSpatialOperation.IsWithin:
+                    luceneSpatialOperation = SpatialOperation.IsWithin;
+                    break;
+                case ExamineSpatialOperation.BoundingBoxIntersects:
+                    luceneSpatialOperation = SpatialOperation.BBoxIntersects;
+                    break;
+                case ExamineSpatialOperation.BoundingBoxWithin:
+                    luceneSpatialOperation = SpatialOperation.BBoxWithin;
+                    break;
+                case ExamineSpatialOperation.Contains:
+                    luceneSpatialOperation = SpatialOperation.Contains;
+                    break;
+                case ExamineSpatialOperation.IsDisjointTo:
+                    luceneSpatialOperation = SpatialOperation.IsDisjointTo;
+                    break;
+                case ExamineSpatialOperation.IsEqualTo:
+                    luceneSpatialOperation = SpatialOperation.IsEqualTo;
+                    break;
+                default:
+                    throw new NotSupportedException(nameof(spatialOperation));
+            }
+            var spatial4nShape = (shapeVal as ExamineLuceneShape)?.Shape;
+            var spatialArgs = new SpatialArgs(luceneSpatialOperation, spatial4nShape);
+            var queryToAdd = spatialField.SpatialStrategy.MakeQuery(spatialArgs);
+            var occurrence = Occur.SHOULD;
+            if (queryToAdd != null)
+            {
+                Query.Add(queryToAdd, occurrence);
+            }
+
+            return CreateOp();
+        }
+
+        public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IEnumerable<IExamineSpatialShape>> shapes)
+        {
+            var spatialField = _searchContext.GetFieldValueType(field) as ShapeIndexFieldValueTypeBase;
+            var shapeVals = shapes(spatialField.ExamineSpatialShapeFactory);
+            SpatialOperation luceneSpatialOperation;
+            switch (spatialOperation)
+            {
+                case ExamineSpatialOperation.Intersects:
+                    luceneSpatialOperation = SpatialOperation.Intersects;
+                    break;
+                case ExamineSpatialOperation.Overlaps:
+                    luceneSpatialOperation = SpatialOperation.Overlaps;
+                    break;
+                case ExamineSpatialOperation.IsWithin:
+                    luceneSpatialOperation = SpatialOperation.IsWithin;
+                    break;
+                case ExamineSpatialOperation.BoundingBoxIntersects:
+                    luceneSpatialOperation = SpatialOperation.BBoxIntersects;
+                    break;
+                case ExamineSpatialOperation.BoundingBoxWithin:
+                    luceneSpatialOperation = SpatialOperation.BBoxWithin;
+                    break;
+                case ExamineSpatialOperation.Contains:
+                    luceneSpatialOperation = SpatialOperation.Contains;
+                    break;
+                case ExamineSpatialOperation.IsDisjointTo:
+                    luceneSpatialOperation = SpatialOperation.IsDisjointTo;
+                    break;
+                case ExamineSpatialOperation.IsEqualTo:
+                    luceneSpatialOperation = SpatialOperation.IsEqualTo;
+                    break;
+                default:
+                    throw new NotSupportedException(nameof(spatialOperation));
+            }
+            var shapeList = shapeVals.Select(x => x as ExamineLuceneShape).Select(x => x.Shape).ToList();
+            var shapeCollection = new ShapeCollection(shapeList, spatialField.SpatialStrategy.SpatialContext);
+            var spatialArgs = new SpatialArgs(luceneSpatialOperation, shapeCollection);
+            var queryToAdd = spatialField.SpatialStrategy.MakeQuery(spatialArgs);
+            var occurrence = Occur.SHOULD;
+            if (queryToAdd != null)
+            {
+                Query.Add(queryToAdd, occurrence);
+            }
+
+            return CreateOp();
+        }
     }
 }

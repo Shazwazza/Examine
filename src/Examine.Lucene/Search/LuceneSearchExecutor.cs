@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
@@ -24,7 +25,6 @@ namespace Examine.Lucene.Search
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
         private readonly IList<Sorting> _sortings;
-        private readonly SpatialStrategy _spatialStrategy;
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions options,
@@ -32,14 +32,12 @@ namespace Examine.Lucene.Search
                                       IEnumerable<SortField> sortField,
                                       ISearchContext searchContext,
                                       ISet<string> fieldsToLoad,
-                                      IList<Sorting> sortings,
-                                      SpatialStrategy spatialStrategy)
+                                      IList<Sorting> sortings)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
             _fieldsToLoad = fieldsToLoad;
             _sortings = sortings;
-            _spatialStrategy = spatialStrategy;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
         }
@@ -144,8 +142,10 @@ namespace Examine.Lucene.Search
                     }
                     if (f.SortType == SortType.SpatialDistance)
                     {
+                        var spatialField = valType as ShapeIndexFieldValueTypeBase;
+                        var fieldSpatialStrategy = spatialField.SpatialStrategy;
                         IPoint pt = (f.SpatialPoint as ExamineLucenePoint).Shape as IPoint;
-                        ValueSource valueSource = _spatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
+                        ValueSource valueSource = fieldSpatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
                         sortFieldsList.Add(valueSource.GetSortField(s.Direction == SortDirection.Descending));
                     }
                     else
