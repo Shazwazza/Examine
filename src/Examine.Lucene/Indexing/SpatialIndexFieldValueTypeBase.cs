@@ -10,7 +10,7 @@ using Spatial4n.Context;
 
 namespace Examine.Lucene.Indexing
 {
-    public abstract class ShapeIndexFieldValueTypeBase : IndexFieldValueTypeBase
+    public abstract class SpatialIndexFieldValueTypeBase : IndexFieldValueTypeBase
     {
         private readonly SpatialStrategy _spatialStrategy;
         private readonly SpatialArgsParser _spatialArgsParser;
@@ -21,7 +21,7 @@ namespace Examine.Lucene.Indexing
 
         public abstract IExamineSpatialShapeFactory ExamineSpatialShapeFactory { get; }
 
-        protected ShapeIndexFieldValueTypeBase(string fieldName, ILoggerFactory loggerFactory, Func<string, SpatialStrategy> spatialStrategyFactory, bool store = true)
+        protected SpatialIndexFieldValueTypeBase(string fieldName, ILoggerFactory loggerFactory, Func<string, SpatialStrategy> spatialStrategyFactory, bool store = true)
             : base(fieldName, loggerFactory, store)
         {
             _spatialStrategy = spatialStrategyFactory(fieldName);

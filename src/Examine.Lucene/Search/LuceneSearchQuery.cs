@@ -356,7 +356,7 @@ namespace Examine.Lucene.Search
 
         public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
         {
-            var spatialField = _searchContext.GetFieldValueType(field) as ShapeIndexFieldValueTypeBase;
+            var spatialField = _searchContext.GetFieldValueType(field) as SpatialIndexFieldValueTypeBase;
             var shapeVal = shape(spatialField.ExamineSpatialShapeFactory);
             SpatialOperation luceneSpatialOperation;
             switch (spatialOperation)
@@ -402,7 +402,7 @@ namespace Examine.Lucene.Search
 
         public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IEnumerable<IExamineSpatialShape>> shapes)
         {
-            var spatialField = _searchContext.GetFieldValueType(field) as ShapeIndexFieldValueTypeBase;
+            var spatialField = _searchContext.GetFieldValueType(field) as SpatialIndexFieldValueTypeBase;
             var shapeVals = shapes(spatialField.ExamineSpatialShapeFactory);
             SpatialOperation luceneSpatialOperation;
             switch (spatialOperation)

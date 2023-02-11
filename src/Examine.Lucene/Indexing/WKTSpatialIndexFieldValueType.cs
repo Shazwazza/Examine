@@ -19,7 +19,7 @@ using Spatial4n.Shapes;
 namespace Examine.Lucene.Indexing
 {
 
-    public class WKTSpatialIndexFieldValueType : ShapeIndexFieldValueTypeBase
+    public class WKTSpatialIndexFieldValueType : SpatialIndexFieldValueTypeBase
     {
         private readonly bool _stored;
         private Spatial4nShapeFactory _shapeFactory;
@@ -60,7 +60,5 @@ namespace Examine.Lucene.Indexing
             var spatialArgs = SpatialArgsParser.Parse(query, SpatialStrategy.SpatialContext);
             return SpatialStrategy.MakeQuery(spatialArgs);
         }
-
-       
     }
 }
