@@ -92,6 +92,18 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <summary>
+        /// Adds a true Lucene Filter 
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public LuceneBooleanOperationBase LuceneFilter(Filter filter, BooleanOperation? op = null)
+        {
+            Filter.Add(filter, (op ?? BooleanOperation).ToLuceneOccurrence());
+            return CreateOp();
+        }
+
         public IBooleanOperation Id(string id) => IdInternal(id, Occurrence);
 
         public abstract IBooleanOperation Field<T>(string fieldName, T fieldValue) where T : struct;
