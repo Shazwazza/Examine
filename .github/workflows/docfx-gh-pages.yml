@@ -1,5 +1,4 @@
-# Sample workflow for building and deploying a Jekyll site to GitHub Pages
-name: Deploy Jekyll with GitHub Pages dependencies preinstalled
+name: Deploy DocFX with GitHub Pages dependencies preinstalled
 
 on:
   # Runs on pushes targeting the default branch
@@ -27,16 +26,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup Pages
+      - name: Setup Github Pages
         uses: actions/configure-pages@v3
         
-      - name: docfx-pdf-action
-       # You may pin to the exact commit or the version.
-       # uses: VakuWare/docfx-pdf-action@c8edf99121b8375c6a0920068de633a8d0fe071f
+      - name: Build DocFX Site
         uses: VakuWare/docfx-pdf-action@v1.4.0
         with:
          args: docs/v2/docfx.json
-      - name: Upload artifact
+      - name: Upload docfx built site artifact
         uses: actions/upload-pages-artifact@v1
         with:
          path: docs/v2/_site
