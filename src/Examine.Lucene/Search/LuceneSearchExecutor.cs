@@ -21,6 +21,7 @@ namespace Examine.Lucene.Search
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
         private readonly IList<Sorting> _sortings;
+        private readonly Filter _filter;
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions options,
@@ -28,12 +29,14 @@ namespace Examine.Lucene.Search
                                       IEnumerable<SortField> sortField,
                                       ISearchContext searchContext,
                                       ISet<string> fieldsToLoad,
-                                      IList<Sorting> sortings)
+                                      IList<Sorting> sortings,
+                                      Filter filter)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
             _fieldsToLoad = fieldsToLoad;
             _sortings = sortings;
+            _filter = filter;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
         }
@@ -164,7 +167,14 @@ namespace Examine.Lucene.Search
                 {
                     topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
                 }
-                searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
+                if(_filter != null)
+                {
+                    searcher.IndexSearcher.Search(_luceneQuery, _filter,topDocsCollector);
+                }
+                else
+                {
+                    searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
+                }
 
                 TopDocs topDocs;
                 if (sortFields.Length > 0)

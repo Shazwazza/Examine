@@ -5,6 +5,7 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Queries;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -228,7 +229,14 @@ namespace Examine.Lucene.Search
                     query.Add(c);
                 }
             }
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, Sortings);
+
+            // capture local
+            Filter filter = Filter;
+            if(filter is BooleanFilter boolFilter && boolFilter.Clauses.Count == 0)
+            {
+                filter = null;
+            }
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, Sortings, filter);
 
             var pagesResults = executor.Execute();
 
@@ -345,13 +353,29 @@ namespace Examine.Lucene.Search
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
         public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+            => SpatialOperationQueryInternal(field, spatialOperation, shape, Occurrence);
+
+        public override IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+            => SpatialOperationFilterInternal(field, spatialOperation, shape, Occurrence);
+        internal IBooleanOperation SpatialOperationQueryInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
         {
-            var occurrence = Occur.SHOULD;
             var spatialField = _searchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
             var queryToAdd = spatialField.GetQuery(field, spatialOperation, shape);
             if (queryToAdd != null)
             {
-                Query.Add(queryToAdd, occurrence);
+                Query.Add(queryToAdd, occurance);
+            }
+
+            return CreateOp();
+        }
+
+        internal IBooleanOperation SpatialOperationFilterInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
+        {
+            var spatialField = _searchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
+            var filterToAdd = spatialField.GetFilter(field, spatialOperation, shape);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
             }
 
             return CreateOp();

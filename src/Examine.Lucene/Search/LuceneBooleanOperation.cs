@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Examine.Lucene.Providers;
@@ -67,5 +68,13 @@ namespace Examine.Lucene.Search
         #endregion
 
         public override string ToString() => _search.ToString();
+
+        #region Filter Fields
+
+        /// <inheritdoc />
+        public override IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+            => _search.SpatialOperationFilter(field, spatialOperation, shape);
+
+        #endregion
     }
 }

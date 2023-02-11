@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
 using Lucene.Net.Index;
+using Lucene.Net.Queries;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 
@@ -24,6 +25,10 @@ namespace Examine.Lucene.Search
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
+        internal Stack<BooleanFilter> Filters { get; } = new Stack<BooleanFilter>();
+
+        internal BooleanFilter Filter => Filters.Peek();
+
 
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string category, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -31,6 +36,7 @@ namespace Examine.Lucene.Search
             Category = category;
             SearchOptions = searchOptions;
             Queries.Push(new BooleanQuery());
+            Filters.Push(new BooleanFilter());
             BooleanOperation = occurance;
             _queryParser = queryParser;
         }
@@ -511,5 +517,8 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+
+        /// <inheritdoc/>
+        public abstract IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

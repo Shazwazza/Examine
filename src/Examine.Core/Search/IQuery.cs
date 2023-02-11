@@ -6,7 +6,7 @@ namespace Examine.Search
     /// <summary>
     /// Defines the query methods for the fluent search API
     /// </summary>
-    public interface IQuery
+    public interface IQuery : IFiltering
     {
         /// <summary>
         /// Passes a text string which is preformatted for the underlying search API. Examine will not modify this
@@ -136,7 +136,7 @@ namespace Examine.Search
         IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
         /// <summary>
-        /// Executes Spatial operation on field and shape
+        /// Executes Spatial operation on field and shape as a Query
         /// </summary>
         /// <param name="field">Index field name</param>
         /// <param name="shape">Shape</param>

@@ -11,5 +11,7 @@ namespace Examine.Lucene.Indexing
         SortField ToSpatialDistanceSortField(SortableField sortableField, SortDirection sortDirection);
 
         Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+
+        Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

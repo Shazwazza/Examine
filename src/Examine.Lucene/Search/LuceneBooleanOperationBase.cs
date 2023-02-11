@@ -5,7 +5,7 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
-    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering
+    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFiltering
     {
         private readonly LuceneSearchQueryBase _search;
 
@@ -78,5 +78,6 @@ namespace Examine.Lucene.Search
         public abstract IOrdering SelectField(string fieldName);
         public abstract IOrdering SelectAllFields();
         public abstract IOrdering OrderBy(params Sorting[] sorts);
+        public abstract IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

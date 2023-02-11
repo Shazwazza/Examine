@@ -107,6 +107,9 @@ namespace Examine.Lucene.Search
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
 
         public IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
-            => _search.SpatialOperationQuery(field, spatialOperation, shape);
+            => _search.SpatialOperationQueryInternal(field, spatialOperation, shape, _occurrence);
+
+        public IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+            => _search.SpatialOperationFilterInternal(field, spatialOperation, shape, _occurrence);
     }
 }

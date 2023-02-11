@@ -85,8 +85,18 @@ namespace Examine.Lucene.Spatial.Indexing
             var luceneSpatialOperation = MapToSpatialOperation(spatialOperation);
             var spatial4nShape = (shapeVal as ExamineLuceneShape)?.Shape;
             var spatialArgs = new SpatialArgs(luceneSpatialOperation, spatial4nShape);
-            var queryToAdd = SpatialStrategy.MakeQuery(spatialArgs);
-            return queryToAdd;
+            var query = SpatialStrategy.MakeQuery(spatialArgs);
+            return query;
+        }
+
+        public override Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        {
+            var shapeVal = shape(ExamineSpatialShapeFactory);
+            var luceneSpatialOperation = MapToSpatialOperation(spatialOperation);
+            var spatial4nShape = (shapeVal as ExamineLuceneShape)?.Shape;
+            var spatialArgs = new SpatialArgs(luceneSpatialOperation, spatial4nShape);
+            var filter = SpatialStrategy.MakeFilter(spatialArgs);
+            return filter;
         }
 
         private static SpatialOperation MapToSpatialOperation(ExamineSpatialOperation spatialOperation)
