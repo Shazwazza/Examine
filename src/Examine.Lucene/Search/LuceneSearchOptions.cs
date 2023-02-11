@@ -2,8 +2,6 @@ using System;
 using System.Globalization;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
-using Lucene.Net.Spatial;
-using Spatial4n.Context;
 
 namespace Examine.Lucene.Search
 {

@@ -7,11 +7,7 @@ using Examine.Lucene.Analyzers;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
-using Lucene.Net.Spatial;
-using Lucene.Net.Spatial.Prefix.Tree;
-using Lucene.Net.Spatial.Prefix;
 using Microsoft.Extensions.Logging;
-using Spatial4n.Context;
 
 namespace Examine.Lucene
 {

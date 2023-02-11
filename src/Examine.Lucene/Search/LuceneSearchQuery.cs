@@ -5,11 +5,8 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
-using Lucene.Net.Queries.Function;
 using Lucene.Net.Search;
 using Lucene.Net.Spatial.Queries;
-using Lucene.Net.Spatial;
-using Spatial4n.Distance;
 using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Search

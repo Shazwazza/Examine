@@ -3,7 +3,6 @@ using System;
 using Microsoft.Extensions.Logging;
 using Lucene.Net.Spatial.Queries;
 using Examine.Search;
-using Examine.Lucene.Search;
 using Lucene.Net.Spatial.Prefix.Tree;
 using Lucene.Net.Spatial.Prefix;
 using Spatial4n.Context;
