@@ -71,7 +71,10 @@ namespace Examine.Lucene.Spatial.Indexing
         public override SortField ToSpatialDistanceSortField(SortableField sortableField, SortDirection sortDirection)
         {
             IPoint pt = (sortableField.SpatialPoint as ExamineLucenePoint).Shape as IPoint;
-            //Reconsider line below as won't work in non geo
+            if (!SpatialStrategy.SpatialContext.IsGeo)
+            {
+                throw new NotSupportedException("This implementation may not be suitable for non GeoSpatial SpatialContext");
+            }
             ValueSource valueSource = SpatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
             return(valueSource.GetSortField(sortDirection == SortDirection.Descending));
         }
