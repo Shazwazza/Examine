@@ -7,8 +7,9 @@ using Lucene.Net.Spatial.Prefix.Tree;
 using Lucene.Net.Spatial.Prefix;
 using Spatial4n.Context;
 using Lucene.Net.Search;
+using Examine.Lucene.Indexing;
 
-namespace Examine.Lucene.Indexing
+namespace Examine.Lucene.Spatial.Indexing
 {
     public abstract class SpatialIndexFieldValueTypeBase : IndexFieldValueTypeBase, ISpatialIndexFieldValueTypeBase
     {

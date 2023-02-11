@@ -1,6 +1,6 @@
 using Examine.Search;
 
-namespace Examine.Lucene.Search
+namespace Examine.Lucene.Spatial.Search
 {
     public class ExamineLuceneEmptyShape : ExamineLuceneShape, IExamineSpatialEmptyShape
     {

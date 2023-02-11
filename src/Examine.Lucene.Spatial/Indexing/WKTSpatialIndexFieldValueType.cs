@@ -1,5 +1,6 @@
 using System;
 using Examine.Lucene.Search;
+using Examine.Lucene.Spatial.Search;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Queries.Function;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using Spatial4n.Distance;
 using Spatial4n.Shapes;
 
-namespace Examine.Lucene.Indexing
+namespace Examine.Lucene.Spatial.Indexing
 {
     public class WKTSpatialIndexFieldValueType : SpatialIndexFieldValueTypeBase
     {

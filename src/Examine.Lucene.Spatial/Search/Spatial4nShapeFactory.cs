@@ -5,7 +5,7 @@ using Spatial4n.Context;
 using Spatial4n.Distance;
 using Spatial4n.Shapes;
 
-namespace Examine.Lucene.Search
+namespace Examine.Lucene.Spatial.Search
 {
     public class Spatial4nShapeFactory : IExamineSpatialShapeFactory
     {

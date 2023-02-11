@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Lucene.Indexing;
+using Examine.Lucene.Spatial.Indexing;
 using Lucene.Net.Analysis;
 using Microsoft.Extensions.Logging;
 
