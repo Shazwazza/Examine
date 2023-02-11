@@ -5,11 +5,6 @@ using Examine.Search;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
-using Lucene.Net.Spatial;
-using Lucene.Net.Spatial.Queries;
-using Spatial4n.Context;
-using Spatial4n.Shapes;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Examine.Lucene.Search
 {
