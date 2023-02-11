@@ -1,19 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Examine.Lucene.Search;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Lucene.Net.Spatial;
-using Lucene.Net.Spatial.Prefix.Tree;
-using Lucene.Net.Spatial.Prefix;
 using Lucene.Net.Spatial.Queries;
 using Microsoft.Extensions.Logging;
-using Spatial4n.Context;
 using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Indexing
@@ -51,7 +43,7 @@ namespace Examine.Lucene.Indexing
 
                 if (_stored)
                 {
-                    doc.Add(new StoredField(ExamineFieldNames.SpecialFieldPrefix + FieldName, str));
+                    doc.Add(new StoredField(ExamineFieldNames.SpecialFieldPrefix + FieldName, SpatialStrategy.SpatialContext.ToString(shape)));
                 }
             }
         }
