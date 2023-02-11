@@ -158,7 +158,7 @@ namespace Examine.Test.Examine.Lucene.Search
             {
                 var now = DateTime.Now;
                 var geoSpatialFieldType = indexer.FieldValueTypeCollection.ValueTypes.First(f
-                    => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeBase;
+                    => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeShapesBase;
 
                 var fieldShapeFactory = geoSpatialFieldType.ExamineSpatialShapeFactory;
 

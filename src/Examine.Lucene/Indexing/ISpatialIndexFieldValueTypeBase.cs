@@ -4,7 +4,7 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Indexing
 {
-    public interface ISpatialIndexFieldValueTypeBase
+    public interface ISpatialIndexFieldValueTypeBase : ISpatialIndexFieldValueTypeShapesBase
     {
         IExamineSpatialShapeFactory ExamineSpatialShapeFactory { get; }
 
