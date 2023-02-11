@@ -1,4 +1,4 @@
-﻿namespace Examine
+namespace Examine
 {
     /// <summary>
     /// Contains the names of field definition types
@@ -40,5 +40,15 @@
         /// Will be indexed with an email address analyzer
         /// </summary>
         public const string EmailAddress = "emailaddress";
+
+        /// <summary>
+        /// Spatial single point. Index as GeoJson
+        /// </summary>
+        public const string SpatialPoint = "spatial.point.wkt";
+
+        /// <summary>
+        /// Spatial collection of points. Index as GeoJson
+        /// </summary>
+        public const string SpatialCollectionPoint = "spatial.collection.wkt";
     }
 }

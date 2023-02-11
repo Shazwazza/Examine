@@ -71,7 +71,9 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FullText, name => new FullTextType(name, loggerFactory, defaultAnalyzer)},
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
-                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())}
+                {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
+                {FieldDefinitionTypes.SpatialPoint, name => new WKTIndexFieldValueType(name, loggerFactory,false)},
+                {FieldDefinitionTypes.SpatialCollectionPoint, name => new WKTIndexFieldValueType(name, loggerFactory,true)},
             };
 
 
