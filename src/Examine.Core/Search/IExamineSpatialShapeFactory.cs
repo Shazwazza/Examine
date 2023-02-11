@@ -17,6 +17,14 @@ namespace Examine.Search
         IExamineSpatialPoint CreatePoint(double x, double y);
 
         /// <summary>
+        /// Create a Point from a Lattitude and longitude
+        /// </summary>
+        /// <param name="lattitude"></param>
+        /// <param name="longitude"></param>
+        /// <returns></returns>
+        IExamineSpatialPoint CreateGeoPoint(double lattitude, double longitude);
+
+        /// <summary>
         /// Create a Rectangle.
         /// </summary>
         /// <param name="minX"></param>

@@ -49,11 +49,22 @@ namespace Examine.Lucene.Spatial.Search
         }
 
         /// <inheritdoc/>
+        public IExamineSpatialPoint CreateGeoPoint(double lattitude, double longitude)
+        {
+            //Swapped on purpose
+            double y = lattitude;
+            double x = longitude;
+            var spatial4NPoint = _spatialContext.MakePoint(x, y);
+            return new ExamineLucenePoint(spatial4NPoint);
+        }
+
+        /// <inheritdoc/>
         public IExamineSpatialPoint CreatePoint(double x, double y)
         {
             var spatial4NPoint = _spatialContext.MakePoint(x, y);
             return new ExamineLucenePoint(spatial4NPoint);
         }
+
         /// <inheritdoc/>
         public IExamineSpatialRectangle CreateRectangle(double minX, double maxX, double minY, double maxY)
         {
