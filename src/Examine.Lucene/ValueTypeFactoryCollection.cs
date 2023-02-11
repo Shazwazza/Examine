@@ -58,14 +58,6 @@ namespace Examine.Lucene
 
         private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer = null)
         {
-            Func<string, SpatialStrategy> geoSpatialPrefixTreeStrategy = (fieldName) =>
-            {
-                SpatialContext ctx = SpatialContext.Geo;
-                int maxLevels = 11; //results in sub-meter precision for geohash
-                SpatialPrefixTree grid = new GeohashPrefixTree(ctx, maxLevels);
-                var strategy = new RecursivePrefixTreeStrategy(grid, fieldName);
-                return strategy;
-            };
             return new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
                 {"number", name => new Int32Type(name, loggerFactory)},
@@ -85,7 +77,7 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FullTextSortable, name => new FullTextType(name, loggerFactory, defaultAnalyzer, true)},
                 {FieldDefinitionTypes.InvariantCultureIgnoreCase, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new CultureInvariantWhitespaceAnalyzer())},
                 {FieldDefinitionTypes.EmailAddress, name => new GenericAnalyzerFieldValueType(name, loggerFactory, new EmailAddressAnalyzer())},
-                {FieldDefinitionTypes.GeoSpatialWKT, name => new WKTSpatialIndexFieldValueType(name, loggerFactory, geoSpatialPrefixTreeStrategy,true)},
+                {FieldDefinitionTypes.GeoSpatialWKT, name => new WKTSpatialIndexFieldValueType(name, loggerFactory, ShapeIndexFieldValueTypeBase.GeoSpatialPrefixTreeStrategyFactory(),true)},
             };
         }
 

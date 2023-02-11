@@ -9,8 +9,11 @@ using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Lucene.Net.Spatial;
+using Lucene.Net.Spatial.Prefix.Tree;
+using Lucene.Net.Spatial.Prefix;
 using Lucene.Net.Spatial.Queries;
 using Microsoft.Extensions.Logging;
+using Spatial4n.Context;
 using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Indexing
@@ -57,5 +60,7 @@ namespace Examine.Lucene.Indexing
             var spatialArgs = SpatialArgsParser.Parse(query, SpatialStrategy.SpatialContext);
             return SpatialStrategy.MakeQuery(spatialArgs);
         }
+
+       
     }
 }

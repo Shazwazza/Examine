@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 using Lucene.Net.Spatial.Queries;
 using Examine.Search;
 using Examine.Lucene.Search;
+using Lucene.Net.Spatial.Prefix.Tree;
+using Lucene.Net.Spatial.Prefix;
+using Spatial4n.Context;
 
 namespace Examine.Lucene.Indexing
 {
@@ -23,6 +26,24 @@ namespace Examine.Lucene.Indexing
         {
             _spatialStrategy = spatialStrategyFactory(fieldName);
             _spatialArgsParser = new SpatialArgsParser();
+        }
+
+        /// <summary>
+        /// Creates a RecursivePrefixTreeStrategy for A Geo SpatialContext
+        /// </summary>
+        /// <param name="maxLevels">Default value of 11 results in sub-meter precision for geohash</param>
+        /// <returns>SpatialStrategy Factory</returns>
+        public static Func<string, SpatialStrategy> GeoSpatialPrefixTreeStrategyFactory(int maxLevels = 11)
+        {
+            Func<string, SpatialStrategy> geoSpatialPrefixTreeStrategy = (fieldName) =>
+            {
+                SpatialContext ctx = SpatialContext.Geo;
+                
+                SpatialPrefixTree grid = new GeohashPrefixTree(ctx, maxLevels);
+                var strategy = new RecursivePrefixTreeStrategy(grid, fieldName);
+                return strategy;
+            };
+            return geoSpatialPrefixTreeStrategy;
         }
     }
 }
