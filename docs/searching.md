@@ -250,3 +250,41 @@ var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make q
 query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
 var results = query.Execute();
 ```
+
+## Spatial
+
+Examine supports Spatial Querying and Filtering.
+The Examine.Lucene.Spatial package needs to be installed.
+
+### Spatial Operations
+Below are the available Spatial Operations in Examine that are supported by the Examine.Lucene.Spatial package. Available operations may vary by provider.
+- ExamineSpatialOperation.Intersects
+- ExamineSpatialOperation.Overlaps
+- ExamineSpatialOperation.IsWithin
+- ExamineSpatialOperation.BoundingBoxIntersects
+- ExamineSpatialOperation.BoundingBoxWithin
+- ExamineSpatialOperation.Contains
+- ExamineSpatialOperation.IsDisjointTo
+- ExamineSpatialOperation.IsEqualTo
+
+
+### Spatial Querying
+
+The `.SpatialOperationQuery()` method adds a query.
+
+The example below demonstrates querying results where the shape stored in the "spatialWKT" field  intersect the rectangle defined.
+
+```csharp
+var query = searcher.CreateQuery()
+    .SpatialOperationQuery("spatialWKT", ExamineSpatialOperation.Intersects, (shapeFactory) => shapeFactory.CreateRectangle(0.0, 1.0, 0.0, 1.0));
+```
+
+### Spatial Filtering
+
+The `.SpatialOperationFilter()` method adds a filter to the query results to remove any results that do not pass the filter.
+The example below demonstrates filtering results where the shape stored in the "spatialWKT" field must intersect the rectangle defined.
+
+```csharp
+var query = searcher.CreateQuery()
+    .SpatialOperationFilter("spatialWKT", ExamineSpatialOperation.Intersects, (shapeFactory) => shapeFactory.CreateRectangle(0.0, 1.0, 0.0, 1.0));
+```

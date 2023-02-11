@@ -42,6 +42,14 @@ var orderedDescendingResults = searcher
    .Field("writerName", "administrator")
    .OrderByDescending(new SortableField("name", SortType.String))
    .Execute();
+
+var orderedDescendingResults = searcher
+   .CreateQuery("content")
+   .Field("writerName", "administrator")
+   .OrderBy(
+      new Sorting(new SortableField("name", SortType.String), SortDirection.Descending),
+      new Sorting(new SortableField("date", SortType.String), SortDirection.Ascending)
+   ).Execute();
 ```
 
 ## Limiting results
