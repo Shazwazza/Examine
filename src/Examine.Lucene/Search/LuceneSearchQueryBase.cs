@@ -509,8 +509,7 @@ namespace Examine.Lucene.Search
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
 
+        /// <inheritdoc/>
         public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
-
-        public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IEnumerable<IExamineSpatialShape>> shapes);
     }
 }

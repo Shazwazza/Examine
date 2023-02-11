@@ -5,11 +5,7 @@ using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.Queries.Function;
 using Lucene.Net.Search;
-using Lucene.Net.Spatial;
-using Spatial4n.Distance;
-using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Search
 {
@@ -142,7 +138,7 @@ namespace Examine.Lucene.Search
                     }
                     if (f.SortType == SortType.SpatialDistance)
                     {
-                        var spatialField = valType as SpatialIndexFieldValueTypeBase;
+                        var spatialField = valType as ISpatialIndexFieldValueTypeBase;
                         sortFieldsList.Add(spatialField.ToSpatialDistanceSortField(f, s.Direction));
                     }
                     else

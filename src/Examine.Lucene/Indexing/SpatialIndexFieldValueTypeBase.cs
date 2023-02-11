@@ -10,7 +10,7 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Indexing
 {
-    public abstract class SpatialIndexFieldValueTypeBase : IndexFieldValueTypeBase
+    public abstract class SpatialIndexFieldValueTypeBase : IndexFieldValueTypeBase, ISpatialIndexFieldValueTypeBase
     {
         private readonly SpatialStrategy _spatialStrategy;
         private readonly SpatialArgsParser _spatialArgsParser;
@@ -40,7 +40,7 @@ namespace Examine.Lucene.Indexing
             Func<string, SpatialStrategy> geoSpatialPrefixTreeStrategy = (fieldName) =>
             {
                 SpatialContext ctx = SpatialContext.Geo;
-                
+
                 SpatialPrefixTree grid = new GeohashPrefixTree(ctx, maxLevels);
                 var strategy = new RecursivePrefixTreeStrategy(grid, fieldName);
                 return strategy;

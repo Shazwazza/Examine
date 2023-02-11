@@ -8,8 +8,22 @@ namespace Examine.Search
 {
     public interface IExamineSpatialShapeFactory
     {
-        IExamineSpatialPoint CreatePoint(double latitude, double longitude);
+        /// <summary>
+        /// Create a Point
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        IExamineSpatialPoint CreatePoint(double x, double y);
 
+        /// <summary>
+        /// Create a Rectangle.
+        /// </summary>
+        /// <param name="minX"></param>
+        /// <param name="maxX"></param>
+        /// <param name="minY"></param>
+        /// <param name="maxY"></param>
+        /// <returns></returns>
         IExamineSpatialRectangle CreateRectangle(double minX, double maxX, double minY, double maxY);
 
         /// <summary>
@@ -18,6 +32,13 @@ namespace Examine.Search
         /// <returns></returns>
         IExamineSpatialEmptyShape CreateEmpty();
 
+        /// <summary>
+        /// Create a circle
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="distance"></param>
+        /// <returns></returns>
         IExamineSpatialCircle CreateCircle(double x, double y, double distance);
 
         /// <summary>
@@ -37,5 +58,12 @@ namespace Examine.Search
         /// <param name="radius"></param>
         /// <returns></returns>
         IExamineSpatialCircle CreateEarthEquatorialSearchRadiusKMCircle(double x, double y, double radius);
+
+        /// <summary>
+        /// Create a Shape Collection from a list of Shapes
+        /// </summary>
+        /// <param name="shapes"></param>
+        /// <returns></returns>
+        IExamineSpatialShapeCollection CreateShapeCollection(IList<IExamineSpatialShape> shapes);
     }
 }

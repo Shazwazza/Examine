@@ -108,7 +108,5 @@ namespace Examine.Lucene.Search
 
         public IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
             => _search.SpatialOperationQuery(field, spatialOperation, shape);
-        public IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IEnumerable<IExamineSpatialShape>> shapes)
-            => _search.SpatialOperationQuery(field, spatialOperation,shapes);
     }
 }
