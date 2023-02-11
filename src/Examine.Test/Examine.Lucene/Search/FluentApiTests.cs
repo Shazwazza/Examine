@@ -16,7 +16,7 @@ using NUnit.Framework;
 namespace Examine.Test.Examine.Lucene.Search
 {
     [TestFixture]
-    public class FluentApiTests : ExamineBaseTest
+    public partial class FluentApiTests : ExamineBaseTest
     {
         [Test]
         public void Allow_Leading_Wildcards()

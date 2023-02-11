@@ -33,7 +33,20 @@ namespace Examine.Lucene.Indexing
 
         protected override void AddSingleValue(Document doc, object value)
         {
-            if (TryConvert<string>(value, out var str))
+            if (TryConvert<ExamineLuceneShape>(value, out var examineLuceneShape))
+            {
+                IShape shape = examineLuceneShape.Shape;
+                foreach (Field field in SpatialStrategy.CreateIndexableFields(shape))
+                {
+                    doc.Add(field);
+                }
+
+                if (_stored)
+                {
+                    doc.Add(new StoredField(ExamineFieldNames.SpecialFieldPrefix + FieldName, SpatialStrategy.SpatialContext.ToString(shape)));
+                }
+            }
+            else if (TryConvert<string>(value, out var str))
             {
                 IShape shape = SpatialStrategy.SpatialContext.ReadShapeFromWkt(str);
                 foreach (Field field in SpatialStrategy.CreateIndexableFields(shape))
