@@ -349,11 +349,6 @@ namespace Examine.Lucene.Search
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        public override IBooleanOperation SpatialDistanceQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point, ExamineSpatialDistanceComparison distanceComparison, double distance)
-        {
-            throw new NotImplementedException();
-        }
-
         public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
         {
             var spatialField = _searchContext.GetFieldValueType(field) as SpatialIndexFieldValueTypeBase;

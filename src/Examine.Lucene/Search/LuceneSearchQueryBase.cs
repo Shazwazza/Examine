@@ -514,8 +514,6 @@ namespace Examine.Lucene.Search
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
 
-        public abstract IBooleanOperation SpatialDistanceQuery(string field, Func<IExamineSpatialShapeFactory, IExamineSpatialPoint> point, ExamineSpatialDistanceComparison distanceComparison, double distance);
-
         public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
 
         public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IEnumerable<IExamineSpatialShape>> shapes);
