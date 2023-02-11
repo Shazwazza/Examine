@@ -12,7 +12,6 @@ using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Indexing
 {
-
     public class WKTSpatialIndexFieldValueType : SpatialIndexFieldValueTypeBase
     {
         private readonly bool _stored;
@@ -58,7 +57,7 @@ namespace Examine.Lucene.Indexing
 
                 if (_stored)
                 {
-                    doc.Add(new StoredField(ExamineFieldNames.SpecialFieldPrefix + FieldName, SpatialStrategy.SpatialContext.ToString(shape)));
+                    doc.Add(new StoredField(ExamineFieldNames.SpecialFieldPrefix + FieldName, str));
                 }
             }
         }
