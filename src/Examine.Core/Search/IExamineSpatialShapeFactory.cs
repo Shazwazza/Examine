@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Examine.Search
 {
+    /// <summary>
+    /// Creates Shapes
+    /// </summary>
     public interface IExamineSpatialShapeFactory
     {
         /// <summary>
