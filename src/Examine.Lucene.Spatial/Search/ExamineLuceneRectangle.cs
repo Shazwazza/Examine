@@ -12,7 +12,7 @@ namespace Examine.Lucene.Spatial.Search
     {
         private readonly IRectangle _rectangle;
 
-        public ExamineLuceneRectangle(IRectangle rectangle) : base(rectangle) 
+        public ExamineLuceneRectangle(IRectangle rectangle) : base(rectangle)
         {
             _rectangle = rectangle;
         }

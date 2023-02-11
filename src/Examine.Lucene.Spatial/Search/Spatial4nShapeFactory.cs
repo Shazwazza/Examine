@@ -80,5 +80,13 @@ namespace Examine.Lucene.Spatial.Search
             var examineShapeCollection = new ExamineLuceneShapeCollection(shapeCollection);
             return examineShapeCollection;
         }
+
+        /// <inheritdoc/>
+        public IExamineSpatialLineString CreateLineString(IList<IExamineSpatialPoint> points)
+        {
+            var shapeList = points.Select(x => x as ExamineLucenePoint).Select(x => x.Shape as IPoint).ToList();
+            var spatial4NRect = _spatialContext.MakeLineString(shapeList);
+            return new ExamineLuceneLineString(spatial4NRect);
+        }
     }
 }

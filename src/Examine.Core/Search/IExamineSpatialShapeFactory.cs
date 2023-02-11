@@ -68,6 +68,13 @@ namespace Examine.Search
         IExamineSpatialCircle CreateEarthEquatorialSearchRadiusKMCircle(double x, double y, double radius);
 
         /// <summary>
+        /// Create a Line String from a ordered set of Points (Vertices)
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        IExamineSpatialLineString CreateLineString(IList<IExamineSpatialPoint> points);
+
+        /// <summary>
         /// Create a Shape Collection from a list of Shapes
         /// </summary>
         /// <param name="shapes"></param>
