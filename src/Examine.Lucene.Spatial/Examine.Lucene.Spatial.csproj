@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lucene.Net.QueryParser" Version="4.8.0-beta00016" />
+    <PackageReference Include="Lucene.Net.Replicator" Version="4.8.0-beta00016" />
+    <PackageReference Include="Lucene.Net.Spatial" Version="4.8.0-beta00016" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Examine.Core\Examine.Core.csproj" />
+    <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj" />
+  </ItemGroup>
+
+</Project>

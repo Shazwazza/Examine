@@ -11,7 +11,7 @@
     </SccProvider>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net5.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
@@ -45,6 +45,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Examine.Core\Examine.Core.csproj" />
     <ProjectReference Include="..\Examine.Host\Examine.csproj" />
+    <ProjectReference Include="..\Examine.Lucene.Spatial\Examine.Lucene.Spatial.csproj" />
     <ProjectReference Include="..\Examine.Lucene\Examine.Lucene.csproj" />
   </ItemGroup>
   <ItemGroup>

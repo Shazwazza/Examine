@@ -47,5 +47,7 @@ namespace Examine.Lucene.Indexing
             };
             return geoSpatialPrefixTreeStrategy;
         }
+
+        public abstract Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

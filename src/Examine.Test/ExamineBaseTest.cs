@@ -15,6 +15,8 @@ namespace Examine.Test
     {
         private ILoggerFactory _loggerFactory;
 
+        protected ILoggerFactory Logging { get => _loggerFactory; }
+
         [SetUp]
         public virtual void Setup()
         {

@@ -1,4 +1,5 @@
-﻿using Examine.Search;
+using System;
+using Examine.Search;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Indexing
@@ -8,5 +9,7 @@ namespace Examine.Lucene.Indexing
         IExamineSpatialShapeFactory ExamineSpatialShapeFactory { get; }
 
         SortField ToSpatialDistanceSortField(SortableField sortableField, SortDirection sortDirection);
+
+        Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

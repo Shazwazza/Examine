@@ -6,8 +6,6 @@ using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
-using Lucene.Net.Spatial.Queries;
-using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Search
 {
@@ -349,7 +347,8 @@ namespace Examine.Lucene.Search
         public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
         {
             var occurrence = Occur.SHOULD;
-            var queryToAdd = SpatialOperationQueryInternal(field, spatialOperation, shape);
+            var spatialField = _searchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
+            var queryToAdd = spatialField.GetQuery(field, spatialOperation, shape);
             if (queryToAdd != null)
             {
                 Query.Add(queryToAdd, occurrence);
@@ -357,53 +356,5 @@ namespace Examine.Lucene.Search
 
             return CreateOp();
         }
-
-        private ConstantScoreQuery SpatialOperationQueryInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
-        {
-            var spatialField = _searchContext.GetFieldValueType(field) as SpatialIndexFieldValueTypeBase;
-            var shapeVal = shape(spatialField.ExamineSpatialShapeFactory);
-            var luceneSpatialOperation = MapToSpatialOperation(spatialOperation);
-            var spatial4nShape = (shapeVal as ExamineLuceneShape)?.Shape;
-            var spatialArgs = new SpatialArgs(luceneSpatialOperation, spatial4nShape);
-            var queryToAdd = spatialField.SpatialStrategy.MakeQuery(spatialArgs);
-            return queryToAdd;
-        }
-
-        private static SpatialOperation MapToSpatialOperation(ExamineSpatialOperation spatialOperation)
-        {
-            SpatialOperation luceneSpatialOperation;
-            switch (spatialOperation)
-            {
-                case ExamineSpatialOperation.Intersects:
-                    luceneSpatialOperation = SpatialOperation.Intersects;
-                    break;
-                case ExamineSpatialOperation.Overlaps:
-                    luceneSpatialOperation = SpatialOperation.Overlaps;
-                    break;
-                case ExamineSpatialOperation.IsWithin:
-                    luceneSpatialOperation = SpatialOperation.IsWithin;
-                    break;
-                case ExamineSpatialOperation.BoundingBoxIntersects:
-                    luceneSpatialOperation = SpatialOperation.BBoxIntersects;
-                    break;
-                case ExamineSpatialOperation.BoundingBoxWithin:
-                    luceneSpatialOperation = SpatialOperation.BBoxWithin;
-                    break;
-                case ExamineSpatialOperation.Contains:
-                    luceneSpatialOperation = SpatialOperation.Contains;
-                    break;
-                case ExamineSpatialOperation.IsDisjointTo:
-                    luceneSpatialOperation = SpatialOperation.IsDisjointTo;
-                    break;
-                case ExamineSpatialOperation.IsEqualTo:
-                    luceneSpatialOperation = SpatialOperation.IsEqualTo;
-                    break;
-                default:
-                    throw new NotSupportedException(nameof(spatialOperation));
-            }
-
-            return luceneSpatialOperation;
-        }
-
     }
 }

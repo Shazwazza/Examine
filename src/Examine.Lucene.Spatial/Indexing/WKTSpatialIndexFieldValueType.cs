@@ -74,5 +74,51 @@ namespace Examine.Lucene.Indexing
             ValueSource valueSource = SpatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
             return(valueSource.GetSortField(sortDirection == SortDirection.Descending));
         }
+
+        public override Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+        {
+            var shapeVal = shape(ExamineSpatialShapeFactory);
+            var luceneSpatialOperation = MapToSpatialOperation(spatialOperation);
+            var spatial4nShape = (shapeVal as ExamineLuceneShape)?.Shape;
+            var spatialArgs = new SpatialArgs(luceneSpatialOperation, spatial4nShape);
+            var queryToAdd = SpatialStrategy.MakeQuery(spatialArgs);
+            return queryToAdd;
+        }
+
+        private static SpatialOperation MapToSpatialOperation(ExamineSpatialOperation spatialOperation)
+        {
+            SpatialOperation luceneSpatialOperation;
+            switch (spatialOperation)
+            {
+                case ExamineSpatialOperation.Intersects:
+                    luceneSpatialOperation = SpatialOperation.Intersects;
+                    break;
+                case ExamineSpatialOperation.Overlaps:
+                    luceneSpatialOperation = SpatialOperation.Overlaps;
+                    break;
+                case ExamineSpatialOperation.IsWithin:
+                    luceneSpatialOperation = SpatialOperation.IsWithin;
+                    break;
+                case ExamineSpatialOperation.BoundingBoxIntersects:
+                    luceneSpatialOperation = SpatialOperation.BBoxIntersects;
+                    break;
+                case ExamineSpatialOperation.BoundingBoxWithin:
+                    luceneSpatialOperation = SpatialOperation.BBoxWithin;
+                    break;
+                case ExamineSpatialOperation.Contains:
+                    luceneSpatialOperation = SpatialOperation.Contains;
+                    break;
+                case ExamineSpatialOperation.IsDisjointTo:
+                    luceneSpatialOperation = SpatialOperation.IsDisjointTo;
+                    break;
+                case ExamineSpatialOperation.IsEqualTo:
+                    luceneSpatialOperation = SpatialOperation.IsEqualTo;
+                    break;
+                default:
+                    throw new NotSupportedException(nameof(spatialOperation));
+            }
+
+            return luceneSpatialOperation;
+        }
     }
 }

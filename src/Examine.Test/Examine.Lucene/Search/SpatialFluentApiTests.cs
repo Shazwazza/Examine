@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Examine.Lucene;
 using Examine.Lucene.Indexing;
+using Examine.Lucene.Spatial;
 using Examine.Search;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
@@ -17,6 +19,14 @@ namespace Examine.Test.Examine.Lucene.Search
         public void Sort_Result_By_Geo_Spatial_Field_Distance()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            var examineDefault = ValueTypeFactoryCollection.GetDefaultValueTypes(Logging, analyzer);
+            var examineSpatialDefault = SpatialValueTypeFactoryCollection.GetDefaultValueTypes(Logging, analyzer);
+            Dictionary<string, IFieldValueTypeFactory> valueTypeFactoryDictionary = new Dictionary<string, IFieldValueTypeFactory>(examineDefault);
+            foreach (var item in examineSpatialDefault)
+            {
+                valueTypeFactoryDictionary.Add(item.Key, item.Value);
+            }
+
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
@@ -26,13 +36,11 @@ namespace Examine.Test.Examine.Lucene.Search
                     new FieldDefinition("updateDate", FieldDefinitionTypes.DateTime),
                     new FieldDefinition("parentID", FieldDefinitionTypes.Integer),
                     new FieldDefinition("spatialWKT", FieldDefinitionTypes.GeoSpatialWKT)
-                )))
+                ), indexValueTypesFactory: valueTypeFactoryDictionary))
             {
-
-
                 var now = DateTime.Now;
                 var geoSpatialFieldType = indexer.FieldValueTypeCollection.ValueTypes.First(f
-                    => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as SpatialIndexFieldValueTypeBase;
+                    => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeBase;
 
                 var fieldShapeFactory = geoSpatialFieldType.ExamineSpatialShapeFactory;
 
