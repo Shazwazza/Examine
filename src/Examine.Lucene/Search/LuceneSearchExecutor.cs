@@ -143,10 +143,7 @@ namespace Examine.Lucene.Search
                     if (f.SortType == SortType.SpatialDistance)
                     {
                         var spatialField = valType as SpatialIndexFieldValueTypeBase;
-                        var fieldSpatialStrategy = spatialField.SpatialStrategy;
-                        IPoint pt = (f.SpatialPoint as ExamineLucenePoint).Shape as IPoint;
-                        ValueSource valueSource = fieldSpatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
-                        sortFieldsList.Add(valueSource.GetSortField(s.Direction == SortDirection.Descending));
+                        sortFieldsList.Add(spatialField.ToSpatialDistanceSortField(f, s.Direction));
                     }
                     else
                     {

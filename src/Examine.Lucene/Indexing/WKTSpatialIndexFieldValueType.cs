@@ -2,10 +2,12 @@ using System;
 using Examine.Lucene.Search;
 using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Queries.Function;
 using Lucene.Net.Search;
 using Lucene.Net.Spatial;
 using Lucene.Net.Spatial.Queries;
 using Microsoft.Extensions.Logging;
+using Spatial4n.Distance;
 using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Indexing
@@ -64,6 +66,14 @@ namespace Examine.Lucene.Indexing
         {
             var spatialArgs = SpatialArgsParser.Parse(query, SpatialStrategy.SpatialContext);
             return SpatialStrategy.MakeQuery(spatialArgs);
+        }
+
+        public override SortField ToSpatialDistanceSortField(SortableField sortableField, SortDirection sortDirection)
+        {
+            IPoint pt = (sortableField.SpatialPoint as ExamineLucenePoint).Shape as IPoint;
+            //Reconsider line below as won't work in non geo
+            ValueSource valueSource = SpatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
+            return(valueSource.GetSortField(sortDirection == SortDirection.Descending));
         }
     }
 }

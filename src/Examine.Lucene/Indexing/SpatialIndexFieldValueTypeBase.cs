@@ -7,6 +7,7 @@ using Examine.Lucene.Search;
 using Lucene.Net.Spatial.Prefix.Tree;
 using Lucene.Net.Spatial.Prefix;
 using Spatial4n.Context;
+using Lucene.Net.Search;
 
 namespace Examine.Lucene.Indexing
 {
@@ -27,6 +28,8 @@ namespace Examine.Lucene.Indexing
             _spatialStrategy = spatialStrategyFactory(fieldName);
             _spatialArgsParser = new SpatialArgsParser();
         }
+
+        public abstract SortField ToSpatialDistanceSortField(SortableField sortableField, SortDirection sortDirection);
 
         /// <summary>
         /// Creates a RecursivePrefixTreeStrategy for A Geo SpatialContext
