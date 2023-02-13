@@ -20,7 +20,7 @@ namespace Examine.Search
         IExamineSpatialPoint CreatePoint(double x, double y);
 
         /// <summary>
-        /// Create a Point from a Lattitude and longitude
+        /// Create a Point from a Latitude and longitude
         /// </summary>
         /// <param name="latitude"></param>
         /// <param name="longitude"></param>
