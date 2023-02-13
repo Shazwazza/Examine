@@ -49,10 +49,10 @@ namespace Examine.Lucene.Spatial.Search
         }
 
         /// <inheritdoc/>
-        public IExamineSpatialPoint CreateGeoPoint(double lattitude, double longitude)
+        public IExamineSpatialPoint CreateGeoPoint(double latitude, double longitude)
         {
             //Swapped on purpose
-            double y = lattitude;
+            double y = latitude;
             double x = longitude;
             var spatial4NPoint = _spatialContext.MakePoint(x, y);
             return new ExamineLucenePoint(spatial4NPoint);

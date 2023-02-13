@@ -22,10 +22,10 @@ namespace Examine.Search
         /// <summary>
         /// Create a Point from a Lattitude and longitude
         /// </summary>
-        /// <param name="lattitude"></param>
+        /// <param name="latitude"></param>
         /// <param name="longitude"></param>
         /// <returns></returns>
-        IExamineSpatialPoint CreateGeoPoint(double lattitude, double longitude);
+        IExamineSpatialPoint CreateGeoPoint(double latitude, double longitude);
 
         /// <summary>
         /// Create a Rectangle.
