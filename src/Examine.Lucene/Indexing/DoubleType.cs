@@ -14,10 +14,16 @@ namespace Examine.Lucene.Indexing
     {
         private readonly bool _isFacetable;
 
-        public DoubleType(string fieldName, ILoggerFactory logger, bool store = true, bool isFacetable = false)
+        public DoubleType(string fieldName, ILoggerFactory logger, bool store, bool isFacetable)
             : base(fieldName, logger, store)
         {
             _isFacetable = isFacetable;
+        }
+
+        public DoubleType(string fieldName, ILoggerFactory logger, bool store = true)
+            : base(fieldName, logger, store)
+        {
+            _isFacetable = false;
         }
 
         /// <summary>

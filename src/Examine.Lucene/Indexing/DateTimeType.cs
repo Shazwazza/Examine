@@ -23,11 +23,18 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         public override string SortableFieldName => FieldName;
 
-        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true, bool isFacetable = false)
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store, bool isFacetable)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;
             _isFacetable = isFacetable;
+        }
+
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true)
+            : base(fieldName, logger, store)
+        {
+            Resolution = resolution;
+            _isFacetable = false;
         }
 
         protected override void AddSingleValue(Document doc, object value)
