@@ -37,13 +37,6 @@ namespace Examine.Search
         /// Return all fields in the index
         /// </summary>
         /// <returns></returns>
-        IOrdering SelectAllFields();
-
-        /// <summary>
-        /// Allows for selecting facets to return in your query
-        /// </summary>
-        /// <param name="facets"></param>
-        /// <returns></returns>
-        IQueryExecutor WithFacets(Action<IFaceting> facets);
+        IOrdering SelectAllFields();        
     }
 }

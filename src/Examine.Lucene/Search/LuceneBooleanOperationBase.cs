@@ -78,6 +78,6 @@ namespace Examine.Lucene.Search
         public abstract IOrdering SelectField(string fieldName);
         public abstract IOrdering SelectAllFields();
 
-        public abstract IQueryExecutor WithFacets(Action<IFaceting> facets);
+        public abstract IQueryExecutor WithFacets(Action<IFacetOperations> facets);
     }
 }

@@ -67,7 +67,7 @@ namespace Examine.Lucene.Search
 
         public override string ToString() => _search.ToString();
 
-        public override IQueryExecutor WithFacets(Action<IFaceting> facets)
+        public override IQueryExecutor WithFacets(Action<IFacetOperations> facets)
         {
             var luceneFacetOperation = new LuceneFacetOperation(_search);
             facets.Invoke(luceneFacetOperation);
