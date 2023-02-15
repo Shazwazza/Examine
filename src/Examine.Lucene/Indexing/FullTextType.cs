@@ -35,12 +35,28 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, bool isFacetable = false)
+        public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer analyzer = null)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
             _isFacetable = isFacetable;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="analyzer">
+        /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
+        /// </param>
+        /// <param name="sortable"></param>
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false)
+            : base(fieldName, logger, true)
+        {
+            _sortable = sortable;
+            _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _isFacetable = false;
         }
 
         /// <summary>
