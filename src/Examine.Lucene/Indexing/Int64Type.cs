@@ -36,7 +36,7 @@ namespace Examine.Lucene.Indexing
             if (!TryConvert(value, out long parsedVal))
                 return;
 
-            doc.Add(new Int64Field(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+            doc.Add(new Int64Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
             if (_isFacetable)
             {
@@ -56,6 +56,7 @@ namespace Examine.Lucene.Indexing
                 lower,
                 upper, lowerInclusive, upperInclusive);
         }
-        public virtual void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets, IFacetField field) => field.ExtractFacets(facetsCollector, sortedSetReaderState, facets);
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field)
+            => field.ExtractFacets(facetsCollector, sortedSetReaderState);
     }
 }

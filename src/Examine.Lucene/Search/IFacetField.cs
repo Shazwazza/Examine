@@ -22,7 +22,7 @@ namespace Examine.Lucene.Search
         /// </summary>
         /// <param name="facetsCollector"></param>
         /// <param name="sortedSetReaderState"></param>
-        /// <param name="facets"></param>
-        void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets);
+        /// <returns>Returns the facets for this field</returns>
+        IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState);
     }
 }

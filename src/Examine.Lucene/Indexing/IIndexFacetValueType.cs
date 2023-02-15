@@ -13,8 +13,8 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         /// <param name="facetsCollector"></param>
         /// <param name="sortedSetReaderState"></param>
-        /// <param name="facets"></param>
         /// <param name="field"></param>
-        void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets, IFacetField field);
+        /// <returns>A dictionary of facets for this field</returns>
+        IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field);
     }
 }

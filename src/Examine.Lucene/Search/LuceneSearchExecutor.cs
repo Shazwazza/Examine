@@ -159,7 +159,12 @@ namespace Examine.Lucene.Search
                         sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
                     }
 
-                    facetValueType.ExtractFacets(facetsCollector, sortedSetReaderState, facets, field);
+                    var fieldFacets = facetValueType.ExtractFacets(facetsCollector, sortedSetReaderState, field);
+                    foreach(var fieldFacet in fieldFacets)
+                    {
+                        // overwrite if necessary (no exceptions thrown in case of collision)
+                        facets[fieldFacet.Key] = fieldFacet.Value;
+                    }
                 }
             }
 

@@ -24,7 +24,7 @@ namespace Examine.Lucene.Search
             MaxCount = maxCount;
         }
 
-        public void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets)
+        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState)
         {
             var sortedFacetsCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
 
@@ -36,7 +36,7 @@ namespace Examine.Lucene.Search
                     var value = sortedFacetsCounts.GetSpecificValue(Field, label);
                     facetValues.Add(new FacetValue(label, value));
                 }
-                facets.Add(Field, new Examine.Search.FacetResult(facetValues.OrderBy(value => value.Value).Take(MaxCount).OfType<IFacetValue>()));
+                yield return new KeyValuePair<string, IFacetResult>(Field, new Examine.Search.FacetResult(facetValues.OrderBy(value => value.Value).Take(MaxCount).OfType<IFacetValue>()));
             }
             else
             {
@@ -44,10 +44,10 @@ namespace Examine.Lucene.Search
 
                 if (sortedFacets == null)
                 {
-                    return;
+                    yield break;
                 }
 
-                facets.Add(Field, new Examine.Search.FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
+                yield return new KeyValuePair<string, IFacetResult>(Field, new Examine.Search.FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
             }
         }
     }

@@ -22,7 +22,7 @@ namespace Examine.Lucene.Search
             FacetField = facetField;
         }
 
-        public void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets)
+        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState)
         {
             var longFacetCounts = new Int64RangeFacetCounts(Field, facetsCollector, LongRanges.AsLuceneRange().ToArray());
 
@@ -30,10 +30,10 @@ namespace Examine.Lucene.Search
 
             if (longFacets == null)
             {
-                return;
+                yield break;
             }
 
-            facets.Add(Field, new Examine.Search.FacetResult(longFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
+            yield return new KeyValuePair<string, IFacetResult>(Field, new Examine.Search.FacetResult(longFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
         }
     }
 }

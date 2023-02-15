@@ -57,6 +57,7 @@ namespace Examine.Lucene.Indexing
                 upper, lowerInclusive, upperInclusive);
         }
 
-        public virtual void ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, Dictionary<string, IFacetResult> facets, IFacetField field) => field.ExtractFacets(facetsCollector, sortedSetReaderState, facets);
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field)
+            => field.ExtractFacets(facetsCollector, sortedSetReaderState);
     }
 }
