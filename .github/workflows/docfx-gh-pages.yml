@@ -32,7 +32,7 @@ jobs:
       - name: Build DocFX Site
         uses: VakuWare/docfx-pdf-action@v1.4.0
         with:
-         args: docs/v2/docfx.json -o "_site/v2"
+         args: docs/v2/docfx.json
       - name: Upload docfx built site artifact
         uses: actions/upload-pages-artifact@v1
         with:
