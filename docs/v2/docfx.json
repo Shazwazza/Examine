@@ -42,6 +42,8 @@
     "resource": [
       {
         "files": [
+          "*.png",
+          "*.webmanifest",
           "images/**"
         ]
       }
