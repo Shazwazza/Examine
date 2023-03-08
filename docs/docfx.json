@@ -12,7 +12,7 @@
             "**/Examine.Test**",
             "**/Examine.Web**"
           ],
-		      "src": "../../"
+           "src": "../"
         }
       ],
       "dest": "api",
