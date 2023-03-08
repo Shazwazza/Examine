@@ -1,6 +1,6 @@
 /* COLOR VARIABLES*/
 :root {
-  --header-bg-color: #0d47a1;
+  --header-bg-color: #159957;
   --header-ft-color: #fff;
   --highlight-light: #5e92f3;
   --highlight-dark: #003c8f;
@@ -310,4 +310,28 @@ pre {
 /* Logo */
 #logo {
   vertical-align: middle;
+  width: 40px;
+  height: 40px;
+  background-color: #fff;  
+  border-radius: 20px;
+  margin:5px;
+}
+
+.navbar {
+  color: var(--header-ft-color);
+  background-color: var(--header-bg-color);
+  background-image: linear-gradient(120deg, #155799, var(--header-bg-color));
+}
+
+.navbar-inverse .navbar-nav > li > a,
+.navbar-inverse .navbar-text {
+  background-color: transparent;
+}
+
+.subnav.navbar * {
+  color: var(--header-ft-color);
+}
+
+h1,h2,h3,h4,h5{
+  color: var(--highlight-dark);
 }

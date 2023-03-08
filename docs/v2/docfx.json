@@ -57,7 +57,7 @@
         ]
       }
     ],
-    "dest": "_site/v2",
+    "dest": "_site",
     "globalMetadataFiles": [],
     "fileMetadataFiles": [],
     "template": [
@@ -76,7 +76,7 @@
       "_enableSearch": true,
       "_gitContribute": {
         "repo": "https://github.com/Shazwazza/Examine",
-        "branch": "release/v3.0"
+        "branch": "feature/docfx"
       },
       "_appLogoPath": "/images/headerlogo.png",
       "_appFaviconPath": "/images/favicon.ico"
