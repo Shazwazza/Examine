@@ -80,8 +80,8 @@
         "repo": "https://github.com/Shazwazza/Examine",
         "branch": "feature/docfx"
       },
-      "_appLogoPath": "/images/headerlogo.png",
-      "_appFaviconPath": "/images/favicon.ico"
+      "_appLogoPath": "images/headerlogo.png",
+      "_appFaviconPath": "images/favicon.ico"
     }
   }
 }
