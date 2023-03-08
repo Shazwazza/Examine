@@ -78,7 +78,8 @@
       "_enableSearch": true,
       "_gitContribute": {
         "repo": "https://github.com/Shazwazza/Examine",
-        "branch": "feature/docfx"
+        "branch": "feature/docfx",
+        "apiSpecFolder": "docs/apiSpec"
       },
       "_appLogoPath": "images/headerlogo.png",
       "_appFaviconPath": "images/favicon.ico"
