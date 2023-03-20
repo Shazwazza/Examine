@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
@@ -8,22 +11,31 @@ using static Lucene.Net.Queries.Function.ValueSources.MultiFunction;
 
 namespace Examine.Lucene.Indexing
 {
-    public class SingleType : IndexFieldRangeValueType<float>
+    public class SingleType : IndexFieldRangeValueType<float>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
         private readonly bool _taxonomyIndex;
 
-        public SingleType(string fieldName, ILoggerFactory logger, bool store = true, bool isFacetable = false, bool taxonomyIndex = false)
+        public SingleType(string fieldName, ILoggerFactory logger, bool store, bool isFacetable, bool taxonomyIndex = false)
             : base(fieldName, logger, store)
         {
             _isFacetable = isFacetable;
             _taxonomyIndex = taxonomyIndex;
         }
 
+        public SingleType(string fieldName, ILoggerFactory logger, bool store = true)
+            : base(fieldName, logger, store)
+        {
+            _isFacetable = false;
+        }
+
         /// <summary>
         /// Can be sorted by the normal field name
         /// </summary>
         public override string SortableFieldName => FieldName;
+
+        /// <inheritdoc/>
+        public bool IsTaxonomyFaceted => _taxonomyIndex;
 
         public override void AddValue(Document doc, object value)
         {
@@ -74,5 +86,8 @@ namespace Examine.Lucene.Indexing
                 lower ?? float.MinValue,
                 upper ?? float.MaxValue, lowerInclusive, upperInclusive);
         }
+
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

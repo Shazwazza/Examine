@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Facet;
@@ -243,109 +244,21 @@ namespace Examine.Lucene.Search
 
             foreach (var field in facetFields)
             {
-                if (field is FacetFullTextField facetFullTextField)
+                var valueType = _searchContext.GetFieldValueType(field.Field);
+                if(valueType is IIndexFacetValueType facetValueType)
                 {
-                    ExtractFullTextFacets(facetsCollector, searcher, facets, sortedSetReaderState, field, facetFullTextField, fastTaxonomyFacetCounts);
-                }
-                else if (field is FacetLongField facetLongField)
-                {
-                    var longFacetCounts = new Int64RangeFacetCounts(facetLongField.Field, facetsCollector, facetLongField.LongRanges.AsLuceneRange().ToArray());
+                    var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
 
-                    var longFacets = longFacetCounts.GetTopChildren(0, facetLongField.Field);
-
-                    if (longFacets == null)
+                    var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
+                    foreach(var fieldFacet in fieldFacets)
                     {
-                        continue;
+                        // overwrite if necessary (no exceptions thrown in case of collision)
+                        facets[fieldFacet.Key] = fieldFacet.Value;
                     }
-
-                    facets.Add(facetLongField.Field, new Examine.Search.FacetResult(longFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
-                }
-                else if (field is FacetDoubleField facetDoubleField)
-                {
-                    var doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, facetsCollector, facetDoubleField.DoubleRanges.AsLuceneRange().ToArray());
-
-                    var doubleFacets = doubleFacetCounts.GetTopChildren(0, facetDoubleField.Field);
-
-                    if (doubleFacets == null)
-                    {
-                        continue;
-                    }
-
-                    facets.Add(facetDoubleField.Field, new Examine.Search.FacetResult(doubleFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
-                }
-                else if (field is FacetFloatField facetFloatField)
-                {
-                    var floatFacetCounts = new DoubleRangeFacetCounts(facetFloatField.Field, new SingleFieldSource(facetFloatField.Field), facetsCollector, facetFloatField.FloatRanges.AsLuceneRange().ToArray());
-
-                    var floatFacets = floatFacetCounts.GetTopChildren(0, facetFloatField.Field);
-
-                    if (floatFacets == null)
-                    {
-                        continue;
-                    }
-
-                    facets.Add(facetFloatField.Field, new Examine.Search.FacetResult(floatFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
                 }
             }
 
             return facets;
-        }
-
-        private void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets,
-            SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field, FacetFullTextField facetFullTextField,
-            Facets fastTaxonomyFacetCounts)
-        {
-            Facets facetCounts;
-            var facetDimConfig = _facetsConfig.GetDimConfig(facetFullTextField.Field);
-            string facetIndexFieldName;
-            if (searcher is ITaxonomySearcherReference taxonomySearcher)
-            {
-                facetIndexFieldName = facetDimConfig?.IndexFieldName ?? FacetsConfig.DEFAULT_INDEX_FIELD_NAME;
-                var taxonomyReader = taxonomySearcher.TaxonomyReader;
-                fastTaxonomyFacetCounts = new FastTaxonomyFacetCounts(facetIndexFieldName, taxonomySearcher.TaxonomyReader, _facetsConfig, facetsCollector);
-                facetCounts = fastTaxonomyFacetCounts;
-            }
-            else
-            {
-                if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
-                {
-                    sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
-                }
-                facetCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
-                facetIndexFieldName = FacetsConfig.DEFAULT_INDEX_FIELD_NAME;
-            }
-
-
-            if (facetFullTextField.Values != null && facetFullTextField.Values.Length > 0)
-            {
-                var facetValues = new List<FacetValue>();
-                foreach (var label in facetFullTextField.Values)
-                {
-                    var value = fastTaxonomyFacetCounts.GetSpecificValue(facetFullTextField.Field, label);
-                    facetValues.Add(new FacetValue(label, value));
-                }
-                facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(facetValues.OrderBy(value => value.Value).Take(facetFullTextField.MaxCount).OfType<IFacetValue>()));
-            }
-            else
-            {
-                LuceneFacetResult sortedFacets;
-
-                if(facetFullTextField.Path != null)
-                {
-                    sortedFacets = facetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field, facetFullTextField.Path);
-                }
-                else
-                {
-                    sortedFacets = facetCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
-                } 
-                if (sortedFacets == null)
-                {
-                    return;
-                }
-
-                facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
-            }
-
         }
 
         private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)

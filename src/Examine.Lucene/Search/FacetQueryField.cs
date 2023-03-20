@@ -1,4 +1,6 @@
-namespace Examine.Search
+using Examine.Search;
+
+namespace Examine.Lucene.Search
 {
     public class FacetQueryField : IFacetQueryField
     {

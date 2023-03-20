@@ -12,7 +12,7 @@ namespace Examine.Lucene.Search
     /// An implementation of the fluent API boolean operations
     /// </summary>
     [DebuggerDisplay("{_search}")]
-    public class LuceneFacetOperation : IFaceting
+    public class LuceneFacetOperation : IFacetOperations
     {
         private readonly LuceneSearchQuery _search;
 
@@ -23,15 +23,15 @@ namespace Examine.Lucene.Search
 
         public ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
 
-        public IFaceting Facet(string field, Action<IFacetQueryField> facetConfiguration = null) => _search.FacetInternal(field, facetConfiguration, Array.Empty<string>());
+        public IFacetOperations Facet(string field, Action<IFacetQueryField> facetConfiguration = null) => _search.FacetInternal(field, facetConfiguration, Array.Empty<string>());
 
-        public IFaceting Facet(string field, Action<IFacetQueryField> facetConfiguration = null, params string[] values) => _search.FacetInternal(field, facetConfiguration, values);
+        public IFacetOperations Facet(string field, Action<IFacetQueryField> facetConfiguration = null, params string[] values) => _search.FacetInternal(field, facetConfiguration, values);
 
-        public IFaceting Facet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
+        public IFacetOperations Facet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
 
-        public IFaceting Facet(string field, params FloatRange[] floatRanges) => _search.FacetInternal(field, floatRanges);
+        public IFacetOperations Facet(string field, params FloatRange[] floatRanges) => _search.FacetInternal(field, floatRanges);
 
-        public IFaceting Facet(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
+        public IFacetOperations Facet(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
 
         public override string ToString() => _search.ToString();
     }

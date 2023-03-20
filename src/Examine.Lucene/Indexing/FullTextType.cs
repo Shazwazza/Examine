@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.TokenAttributes;
@@ -23,7 +25,7 @@ namespace Examine.Lucene.Indexing
     /// do an exact match search if the term is less than 4 chars, else it will do a full text search on the phrase
     /// with a higher boost, then 
     /// </remarks>
-    public class FullTextType : IndexFieldValueTypeBase
+    public class FullTextType : IndexFieldValueTypeBase, IIndexFacetValueType
     {
         private readonly bool _sortable;
         private readonly Analyzer _analyzer;
@@ -38,7 +40,7 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, bool isFacetable = false, bool taxonomyIndex = false)
+        public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer analyzer = null, bool taxonomyIndex = false)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
@@ -48,11 +50,30 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="analyzer">
+        /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
+        /// </param>
+        /// <param name="sortable"></param>
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false)
+            : base(fieldName, logger, true)
+        {
+            _sortable = sortable;
+            _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _isFacetable = false;
+        }
+
+        /// <summary>
         /// Can be sorted by a concatenated field name since to be sortable it cannot be analyzed
         /// </summary>
         public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
 
         public override Analyzer Analyzer => _analyzer;
+
+        /// <inheritdoc/>
+        public bool IsTaxonomyFaceted => _taxonomyIndex;
 
         public override void AddValue(Document doc, object value)
         {
@@ -185,5 +206,7 @@ namespace Examine.Lucene.Indexing
             return GenerateQuery(FieldName, query, _analyzer);
         }
 
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

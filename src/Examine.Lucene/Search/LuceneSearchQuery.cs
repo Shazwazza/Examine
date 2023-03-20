@@ -313,14 +313,16 @@ namespace Examine.Lucene.Search
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        internal IFaceting FacetInternal(string field, Action<IFacetQueryField> facetConfiguration, params string[] values)
+        internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField> facetConfiguration, params string[] values)
         {
             if(values == null)
             {
                 values = Array.Empty<string>();
             }
 
-            var facet = new FacetFullTextField(field, values, GetFacetField(field));
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+
+            var facet = new FacetFullTextField(field, values, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
 
             if(facetConfiguration != null)
             {
@@ -332,42 +334,45 @@ namespace Examine.Lucene.Search
             return new LuceneFacetOperation(this);
         }
 
-        internal IFaceting FacetInternal(string field, params DoubleRange[] doubleRanges)
+        internal IFacetOperations FacetInternal(string field, params DoubleRange[] doubleRanges)
         {
             if(doubleRanges == null)
             {
                 doubleRanges = Array.Empty<DoubleRange>();
             }
 
-            var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field));
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
 
             _facetFields.Add(facet);
 
             return new LuceneFacetOperation(this);
         }
 
-        internal IFaceting FacetInternal(string field, params FloatRange[] floatRanges)
+        internal IFacetOperations FacetInternal(string field, params FloatRange[] floatRanges)
         {
             if (floatRanges == null)
             {
                 floatRanges = Array.Empty<FloatRange>();
             }
 
-            var facet = new FacetFloatField(field, floatRanges, GetFacetField(field));
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetFloatField(field, floatRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
 
             _facetFields.Add(facet);
 
             return new LuceneFacetOperation(this);
         }
 
-        internal IFaceting FacetInternal(string field, params Int64Range[] longRanges)
+        internal IFacetOperations FacetInternal(string field, params Int64Range[] longRanges)
         {
             if(longRanges == null)
             {
                 longRanges = Array.Empty<Int64Range>();
             }
 
-            var facet = new FacetLongField(field, longRanges, GetFacetField(field));
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetLongField(field, longRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
 
             _facetFields.Add(facet);
 

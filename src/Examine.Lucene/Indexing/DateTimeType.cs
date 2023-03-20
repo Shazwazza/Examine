@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
@@ -9,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Examine.Lucene.Indexing
 {
 
-    public class DateTimeType : IndexFieldRangeValueType<DateTime>
+    public class DateTimeType : IndexFieldRangeValueType<DateTime>, IIndexFacetValueType
     {
         public DateResolution Resolution { get; }
 
@@ -21,12 +24,22 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         public override string SortableFieldName => FieldName;
 
-        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true, bool isFacetable = false, bool taxonomyIndex = false)
+        /// <inheritdoc/>
+        public bool IsTaxonomyFaceted => _taxonomyIndex;
+
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store, bool isFacetable, bool taxonomyIndex)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;
             _isFacetable = isFacetable;
             _taxonomyIndex = taxonomyIndex;
+        }
+
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true)
+            : base(fieldName, logger, store)
+        {
+            Resolution = resolution;
+            _isFacetable = false;
         }
 
         public override void AddValue(Document doc, object value)
@@ -95,5 +108,8 @@ namespace Examine.Lucene.Indexing
                 lower != null ? DateToLong(lower.Value) : (long?)null,
                 upper != null ? DateToLong(upper.Value) : (long?)null, lowerInclusive, upperInclusive);
         }
+
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

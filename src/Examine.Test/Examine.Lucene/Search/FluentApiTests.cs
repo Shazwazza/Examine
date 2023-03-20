@@ -1,21 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Intrinsics.X86;
-using System.Security.Principal;
 using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
-using J2N;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
-using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
-using Lucene.Net.Spatial.Prefix.Tree;
-using Moq;
 using NUnit.Framework;
 
 
@@ -26,16 +20,40 @@ namespace Examine.Test.Examine.Lucene.Search
     [Parallelizable(ParallelScope.All)]
     public class FluentApiTests : ExamineBaseTest
     {
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Allow_Leading_Wildcards(bool withFacets)
+        public enum FacetTestType
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            NoFacets,
+            TaxonomyFacets,
+            SortedSetFacets
+        }
+
+        private bool HasFacets(FacetTestType withFacets) => withFacets == FacetTestType.TaxonomyFacets || withFacets == FacetTestType.SortedSetFacets;
+
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Allow_Leading_Wildcards(FacetTestType withFacets)
+        {
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -67,7 +85,7 @@ namespace Examine.Test.Examine.Lucene.Search
                             AllowLeadingWildcard = false
                         }).NativeQuery("*dney"));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results1 = query1.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -86,17 +104,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void NativeQuery_Single_Word(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void NativeQuery_Single_Word(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -115,7 +147,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -134,18 +166,33 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Uppercase_Category(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Uppercase_Category(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
+                //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
@@ -163,7 +210,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -188,7 +235,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             var facetsConfig = new FacetsConfig();
             facetsConfig.SetIndexFieldName("nodeName", "facet_nodeName");
-            
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
@@ -454,17 +501,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void NativeQuery_Phrase(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void NativeQuery_Phrase(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("bodyText", FieldDefinitionTypes.FacetFullText))
-                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("bodyText", FieldDefinitionTypes.FacetTaxonomyFullText), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("bodyText", FieldDefinitionTypes.FacetFullText), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("bodyText", FieldDefinitionTypes.FullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -484,7 +545,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(query);
                 Assert.AreEqual("{ Category: content, LuceneQuery: +(nodeName:\"town called\" bodyText:\"town called\") }", query.ToString());
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("bodyText")).Execute();
 
@@ -502,13 +563,25 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Managed_Range_Date(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Managed_Range_Date(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"), new FieldDefinition("created", FieldDefinitionTypes.FacetDateTime))
-                : new FieldDefinitionCollection(new FieldDefinition("created", "datetime"));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("created", "datetime"), new FieldDefinition("created", FieldDefinitionTypes.FacetDateTime));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("created", "datetime"), new FieldDefinition("created", FieldDefinitionTypes.FacetTaxonomyDateTime));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("created", "datetime"));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
@@ -549,7 +622,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<DateTime>(new[] { "created" }, new DateTime(2000, 01, 02), new DateTime(2000, 01, 05), maxInclusive: false);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.Facet("created", new Int64Range[]
                     {
@@ -575,17 +648,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Managed_Full_Text(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Managed_Full_Text(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTaxonomyTestIndex(
+                luceneDir1,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
                 indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -597,7 +684,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = indexer1.Searcher;
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var result = searcher.CreateQuery()
                         .ManagedQuery("darkness")
@@ -651,17 +738,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Managed_Full_Text_With_Bool(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Managed_Full_Text_With_Bool(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTaxonomyTestIndex(
+                luceneDir1,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute darkness." }));
                 indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value2", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -675,7 +776,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var qry = searcher.CreateQuery().ManagedQuery("darkness").And().Field("item1", "value1");
                 Console.WriteLine(qry);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var result = qry.WithFacets(facets => facets.Facet("item1")).Execute();
 
@@ -730,17 +831,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Not_Managed_Full_Text(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Not_Managed_Full_Text(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("item1", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir1 = new RandomIdRAMDirectory())
-            using (var indexer1 = GetTestIndex(luceneDir1, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer1 = GetTaxonomyTestIndex(
+                luceneDir1,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer1.IndexItem(ValueSet.FromObject("1", "content", new { item1 = "value1", item2 = "The agitated zebras gallop back and forth in short, panicky dashes, then skitter off into the total absolute chaos." }));
                 indexer1.IndexItem(ValueSet.FromObject("2", "content", new { item1 = "value1", item2 = "The festival lasts five days and celebrates the victory of good over evil, light over darkness, and knowledge over ignorance." }));
@@ -757,7 +872,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(qry);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var result = qry.WithFacets(facets => facets.Facet("item1")).Execute();
 
@@ -789,17 +904,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Managed_Range_Int(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Managed_Range_Int(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
-                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetTaxonomyInteger));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -835,7 +964,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<int>(new[] { "parentID" }, 122, 124);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var numberSortedResult = numberSortedCriteria
                         .WithFacets(facets => facets.Facet("parentID", new Int64Range[]
@@ -861,17 +990,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Legacy_ParentId(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Legacy_ParentId(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
-                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetTaxonomyInteger));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -908,7 +1051,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Field("parentID", 123)
                     .OrderBy(new SortableField("sortOrder", SortType.Int));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.Facet("parentID")).Execute();
 
@@ -929,16 +1072,30 @@ namespace Examine.Test.Examine.Lucene.Search
 
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Grouped_Or_Examiness(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Grouped_Or_Examiness(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[]
                 {
@@ -977,7 +1134,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(filter);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = filter.WithFacets(facets => facets.Facet("nodeTypeAlias")).Execute();
 
@@ -1159,16 +1316,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Grouped_Not_Single_Field_Single_Value(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Grouped_Not_Single_Field_Single_Value(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
 
                 indexer.IndexItems(new[] {
@@ -1184,7 +1355,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 query.GroupedNot(new[] { "umbracoNaviHide" }, 1.ToString());
                 Console.WriteLine(query.Query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.All().WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1201,16 +1372,29 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Grouped_Not_Multi_Field_Single_Value(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Grouped_Not_Multi_Field_Single_Value(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
 
                 indexer.IndexItems(new[] {
@@ -1229,7 +1413,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("content").GroupedNot(new[] { "umbracoNaviHide", "show" }, 1.ToString());
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1247,22 +1431,33 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Grouped_Or_With_Not(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Grouped_Or_With_Not(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("headerText", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("headerText", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("headerText", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
                 //TODO: Making this a number makes the query fail - i wonder how to make it work correctly?
                 // It's because the searching is NOT using a managed search
                 //new[] { new FieldDefinition("umbracoNaviHide", FieldDefinitionTypes.Integer) }, 
-
-                luceneDir, analyzer, fieldDefinitionCollection))
+                fieldDefinitionCollection))
             {
 
 
@@ -1279,7 +1474,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.GroupedOr(new[] { "nodeName", "bodyText", "headerText" }, "ipsum").Not().Field("umbracoNaviHide", "1");
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = filter.WithFacets(facets => facets.Facet("headerText")).Execute();
 
@@ -1296,16 +1491,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void And_Grouped_Not_Single_Value(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void And_Grouped_Not_Single_Value(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1323,7 +1532,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1340,16 +1549,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void And_Grouped_Not_Multi_Value(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void And_Grouped_Not_Multi_Value(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1367,7 +1590,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
@@ -1383,16 +1606,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void And_Not_Single_Field(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void And_Not_Single_Field(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1410,7 +1647,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1428,16 +1665,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void AndNot_Nested(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void AndNot_Nested(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1458,7 +1709,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1474,16 +1725,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void And_Not_Added_Later(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void And_Not_Added_Later(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1504,7 +1769,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1520,16 +1785,33 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Not_Range(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Not_Range(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.FacetInteger))
-                : new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.FacetTaxonomyInteger));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.FacetInteger));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("start", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1546,7 +1828,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
 
                     var results = query
@@ -1567,18 +1849,32 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Match_By_Path(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Match_By_Path(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("__Path", "raw"));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
 
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -1609,7 +1905,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("__Path", "-1,123,456,789");
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results1 = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var facetResults1 = results1.GetFacet("nodeName");
@@ -1626,7 +1922,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var exactcriteria = searcher.CreateQuery("content");
                 var exactfilter = exactcriteria.Field("__Path", "-1,123,456,789".Escape());
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results2 = exactfilter.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var facetResults2 = results2.GetFacet("nodeName");
@@ -1644,7 +1940,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var nativeFilter = nativeCriteria.NativeQuery("__Path:\\-1,123,456,789");
                 Console.WriteLine(nativeFilter);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
 
                     var results5 = nativeFilter.WithFacets(facets => facets.Facet("nodeName")).Execute();
@@ -1662,7 +1958,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var wildcardcriteria = searcher.CreateQuery("content");
                 var wildcardfilter = wildcardcriteria.Field("__Path", "-1,123,456,".MultipleCharacterWildcard());
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results3 = wildcardfilter.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var facetResults3 = results3.GetFacet("nodeName");
@@ -1679,7 +1975,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 wildcardcriteria = searcher.CreateQuery("content");
                 wildcardfilter = wildcardcriteria.Field("__Path", "-1,123,457,".MultipleCharacterWildcard());
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results3 = wildcardfilter.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var facetResults3 = results3.GetFacet("nodeName");
@@ -1696,17 +1992,31 @@ namespace Examine.Test.Examine.Lucene.Search
 
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Find_By_ParentId(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Find_By_ParentId(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -1724,7 +2034,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("parentID", 1139);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1742,17 +2052,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Find_By_ParentId_Native_Query(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Find_By_ParentId_Native_Query(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
-                : new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -1781,7 +2105,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 //We can use a Lucene query directly instead:
                 //((LuceneSearchQuery)criteria).LuceneQuery(NumericRangeQuery)
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = filter.WithFacets(facets => facets.Facet("parentID")).Execute();
 
@@ -1800,17 +2124,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Find_By_NodeTypeAlias(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Find_By_NodeTypeAlias(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -1847,7 +2185,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("content");
                 var filter = criteria.Field("nodeTypeAlias", "CWS_Home".Escape());
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1865,18 +2203,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Search_With_Stop_Words(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Search_With_Stop_Words(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -1899,7 +2249,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(filter);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -1917,18 +2267,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Search_Native_Query(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Search_Native_Query(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
 
 
@@ -1960,7 +2322,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var criteria = searcher.CreateQuery("content").NativeQuery("nodeTypeAlias:CWS_Home");
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = criteria.WithFacets(facets => facets.Facet("nodeTypeAlias")).Execute();
 
@@ -1981,18 +2343,30 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Find_Only_Image_Media(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Find_Only_Image_Media(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
 
 
@@ -2010,7 +2384,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria = searcher.CreateQuery("media");
                 var filter = criteria.Field("nodeTypeAlias", "image");
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = filter.WithFacets(facets => facets.Facet("nodeTypeAlias")).Execute();
 
@@ -2029,16 +2403,29 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Find_Both_Media_And_Content(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Find_Both_Media_And_Content(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "media",
@@ -2059,7 +2446,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     .Or()
                     .Field(ExamineFieldNames.CategoryFieldName, "content");
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
 
@@ -2077,17 +2464,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Sort_Result_By_Number_Field(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Sort_Result_By_Number_Field(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.FacetInteger), new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
-                : new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.Integer), new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.FacetTaxonomyInteger), new FieldDefinition("parentID", FieldDefinitionTypes.FacetTaxonomyInteger));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.FacetInteger), new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("sortOrder", FieldDefinitionTypes.Integer), new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 //Ensure it's set to a number, otherwise it's not sortable
                 fieldDefinitionCollection))
@@ -2108,7 +2509,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("sortOrder", SortType.Int));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results1 = sc1
                         .WithFacets(facets => facets
@@ -2147,17 +2548,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Sort_Result_By_Date_Field(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Sort_Result_By_Date_Field(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.FacetDateTime), new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger))
-                : new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.DateTime), new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.FacetTaxonomyDateTime), new FieldDefinition("parentID", FieldDefinitionTypes.FacetTaxonomyInteger));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.FacetDateTime), new FieldDefinition("parentID", FieldDefinitionTypes.FacetInteger));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("updateDate", FieldDefinitionTypes.DateTime), new FieldDefinition("parentID", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 //Ensure it's set to a date, otherwise it's not sortable
                 fieldDefinitionCollection))
@@ -2183,7 +2598,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 //note: dates internally are stored as Long, see DateTimeType
                 var sc1 = sc.Field("parentID", 1143).OrderBy(new SortableField("updateDate", SortType.Long));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results1 = sc1
                         .WithFacets(facets => facets
@@ -2222,17 +2637,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Sort_Result_By_Single_Field(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Sort_Result_By_Single_Field(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullTextSortable))
-                : new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullTextSortable));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullTextSortable));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FullTextSortable));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 //Ensure it's set to a fulltextsortable, otherwise it's not sortable
                 fieldDefinitionCollection))
@@ -2258,7 +2687,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc2 = sc.Field("writerName", "administrator")
                     .OrderByDescending(new SortableField("nodeName", SortType.String));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results1 = sc1.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var results2 = sc2.WithFacets(facets => facets.Facet("nodeName")).Execute();
@@ -2377,21 +2806,35 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Sort_Result_By_Multiple_Fields(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Sort_Result_By_Multiple_Fields(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(
-                    new FieldDefinition("field1", FieldDefinitionTypes.FacetDouble),
-                    new FieldDefinition("field2", FieldDefinitionTypes.FacetInteger))
-                : new FieldDefinitionCollection(
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("field1", FieldDefinitionTypes.FacetTaxonomyDouble),
+                    new FieldDefinition("field2", FieldDefinitionTypes.FacetTaxonomyInteger));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("field1", FieldDefinitionTypes.FacetDouble),
+                    new FieldDefinition("field2", FieldDefinitionTypes.FacetInteger));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(
                     new FieldDefinition("field1", FieldDefinitionTypes.Double),
                     new FieldDefinition("field2", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -2412,7 +2855,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     .OrderByDescending(new SortableField("field2", SortType.Int))
                     .OrderBy(new SortableField("field1", SortType.Double));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results1 = sc1.WithFacets(facets => facets.Facet("field1").Facet("field2")).Execute();
 
@@ -2444,16 +2887,31 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Standard_Results_Sorted_By_Score(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Standard_Results_Sorted_By_Score(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("bodyText", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText), new FieldDefinition("bodyText", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText), new FieldDefinition("bodyText", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                //Ensure it's set to a fulltextsortable, otherwise it's not sortable
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -2471,7 +2929,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content", BooleanOperation.Or);
                 var sc1 = sc.Field("nodeName", "umbraco").Or().Field("headerText", "umbraco").Or().Field("bodyText", "umbraco");
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = sc1.WithFacets(facets => facets.Facet("bodyText")).Execute();
 
@@ -2511,16 +2969,30 @@ namespace Examine.Test.Examine.Lucene.Search
 
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Skip_Results_Returns_Different_Results(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Skip_Results_Returns_Different_Results(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -2538,7 +3010,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Arrange
                 var sc = searcher.CreateQuery("content").Field("writerName", "administrator");
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results = sc.WithFacets(facets => facets.Facet("nodeName")).Execute();
@@ -2560,16 +3032,29 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Escaping_Includes_All_Words(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Escaping_Includes_All_Words(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -2589,7 +3074,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(sc.ToString());
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results = sc.WithFacets(facets => facets.Facet("nodeName")).Execute();
@@ -2615,16 +3100,29 @@ namespace Examine.Test.Examine.Lucene.Search
 
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Grouped_And_Examiness(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Grouped_And_Examiness(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -2648,7 +3146,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     new[] { "CWS".MultipleCharacterWildcard(), "A".MultipleCharacterWildcard() });
 
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
@@ -2670,16 +3168,29 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Examiness_Proximity(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Examiness_Proximity(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -2700,7 +3211,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 //get all nodes that contain the words warren and creative within 5 words of each other
                 var filter = criteria.Field("metaKeywords", "Warren creative".Proximity(5));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
@@ -2735,18 +3246,31 @@ namespace Examine.Test.Examine.Lucene.Search
         /// <summary>
         /// test range query with a Float structure
         /// </summary>
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Float_Range_SimpleIndexSet(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Float_Range_SimpleIndexSet(FacetTestType withFacets)
         {
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.FacetTaxonomyFloat));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.FacetFloat));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.Float));
+                    break;
+            }
 
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.FacetFloat))
-                : new FieldDefinitionCollection(new FieldDefinition("SomeFloat", FieldDefinitionTypes.Float));
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 //Ensure it's set to a float
                 fieldDefinitionCollection))
@@ -2773,7 +3297,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<float>(new[] { "SomeFloat" }, 101f, 200f, true, true);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
 
                     //Act
@@ -2817,19 +3341,32 @@ namespace Examine.Test.Examine.Lucene.Search
         /// <summary>
         /// test range query with a Number structure
         /// </summary>
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Number_Range_SimpleIndexSet(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Number_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.FacetInteger))
-                : new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.Integer));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.FacetTaxonomyInteger));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.FacetInteger));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeNumber", FieldDefinitionTypes.Integer));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
-                //Ensure it's set to a float
                 fieldDefinitionCollection))
             {
 
@@ -2854,7 +3391,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<int>(new[] { "SomeNumber" }, 101, 200, true, true);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results1 = filter1.WithFacets(facets => facets.Facet("SomeNumber", config => config.MaxCount(1))).Execute();
@@ -2885,17 +3422,31 @@ namespace Examine.Test.Examine.Lucene.Search
         /// <summary>
         /// test range query with a Number structure
         /// </summary>
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Double_Range_SimpleIndexSet(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Double_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.FacetDouble))
-                : new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.Double));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.FacetTaxonomyDouble));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.FacetDouble));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeDouble", FieldDefinitionTypes.Double));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 //Ensure it's set to a float
                 fieldDefinitionCollection))
@@ -2922,7 +3473,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery("content");
                 var filter2 = criteria2.RangeQuery<double>(new[] { "SomeDouble" }, 101d, 200d, true, true);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results1 = filter1.WithFacets(facets => facets.Facet("SomeDouble", new DoubleRange[]
@@ -2963,19 +3514,32 @@ namespace Examine.Test.Examine.Lucene.Search
         /// <summary>
         /// test range query with a Double structure
         /// </summary>
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Long_Range_SimpleIndexSet(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Long_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("SomeLong", FieldDefinitionTypes.FacetLong))
-                : new FieldDefinitionCollection(new FieldDefinition("SomeLong", FieldDefinitionTypes.Long));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeLong", FieldDefinitionTypes.FacetTaxonomyLong));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeLong", FieldDefinitionTypes.FacetLong));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("SomeLong", FieldDefinitionTypes.Long));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
-                //Ensure it's set to a float
                 fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
@@ -2998,7 +3562,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<long>(new[] { "SomeLong" }, 101L, 200L, true, true);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results1 = filter1.WithFacets(facets => facets.Facet("SomeLong", new Int64Range[]
@@ -3041,19 +3605,33 @@ namespace Examine.Test.Examine.Lucene.Search
         /// <summary>
         /// Test range query with a DateTime structure
         /// </summary>
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Date_Range_SimpleIndexSet(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Date_Range_SimpleIndexSet(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("DateCreated", FieldDefinitionTypes.FacetDateTime))
-                : new FieldDefinitionCollection(new FieldDefinition("DateCreated", FieldDefinitionTypes.DateTime));
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("DateCreated", FieldDefinitionTypes.FacetTaxonomyDateTime));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("DateCreated", FieldDefinitionTypes.FacetDateTime));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("DateCreated", FieldDefinitionTypes.DateTime));
+                    break;
+            }
+
             var reIndexDateTime = DateTime.Now;
 
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -3076,7 +3654,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var criteria2 = searcher.CreateQuery();
                 var filter2 = criteria2.RangeQuery<DateTime>(new[] { "DateCreated" }, reIndexDateTime.AddDays(-1), reIndexDateTime.AddSeconds(-1), true, true);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     ////Act
                     var results = filter.WithFacets(facets => facets.Facet("DateCreated", new Int64Range[]
@@ -3116,16 +3694,30 @@ namespace Examine.Test.Examine.Lucene.Search
 
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Fuzzy_Search(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Fuzzy_Search(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("Content", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Content", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Content", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new EnglishAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -3149,7 +3741,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(filter);
                 Console.WriteLine(filter2);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     ////Act
                     var results = filter.WithFacets(facets => facets.Facet("Content")).Execute();
@@ -3262,18 +3854,29 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Inner_Or_Query(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Inner_Or_Query(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
 
 
@@ -3298,7 +3901,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var filter = criteria.Field("Type", "type1")
                     .And(query => query.Field("Content", "world").Or().Field("Content", "something"), BooleanOperation.Or);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results = filter.WithFacets(facets => facets.Facet("Type")).Execute();
@@ -3320,18 +3923,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Inner_And_Query(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Inner_And_Query(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
 
 
@@ -3358,7 +3973,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var filter = criteria.Field("Type", "type1")
                     .And(query => query.Field("Content", "world").And().Field("Content", "hello"));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results = filter.WithFacets(facets => facets.Facet("Type")).Execute();
@@ -3380,18 +3995,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Inner_Not_Query(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Inner_Not_Query(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
 
 
@@ -3418,7 +4045,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var filter = criteria.Field("Type", "type1")
                     .And(query => query.Field("Content", "world").Not().Field("Content", "something"));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     //Act
                     var results = filter.WithFacets(facets => facets.Facet("Type")).Execute();
@@ -3440,16 +4067,30 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Complex_Or_Group_Nested_Query(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Complex_Or_Group_Nested_Query(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("Type", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -3484,7 +4125,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(filter);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
 
                     //Act
@@ -3517,13 +4158,18 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Custom_Lucene_Query_With_Native(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Custom_Lucene_Query_With_Native(FacetTestType withFacets)
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer))
             {
                 var searcher = indexer.Searcher;
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
@@ -3531,7 +4177,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 //combine a custom lucene query with raw lucene query
                 var op = criteria.NativeQuery("hello:world").And();
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)).WithFacets(facets => facets.Facet("SomeFacet"));
                 }
@@ -3642,17 +4288,30 @@ namespace Examine.Test.Examine.Lucene.Search
         //}
 
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Select_Field(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Select_Field(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1.ToString(), "content",
@@ -3677,7 +4336,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectField("__Path");
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = sc1.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
@@ -3700,17 +4359,29 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Select_Fields(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Select_Fields(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1.ToString(), "content",
@@ -3735,7 +4406,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectFields(new HashSet<string>(new[] { "nodeName", "bodyText", "id", "__NodeId" }));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = sc1.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
@@ -3759,17 +4430,29 @@ namespace Examine.Test.Examine.Lucene.Search
 
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Select_Fields_HashSet(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Select_Fields_HashSet(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
-
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     new ValueSet(1.ToString(), "content",
@@ -3794,7 +4477,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var sc = searcher.CreateQuery("content");
                 var sc1 = sc.Field("nodeName", "my name 1").SelectFields(new HashSet<string>(new string[] { "nodeName", "bodyText" }));
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var results = sc1.WithFacets(facets => facets.Facet("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
@@ -3892,16 +4575,29 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Paging_With_Skip_Take(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Paging_With_Skip_Take(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("writerName", FieldDefinitionTypes.FacetFullText))
-                : null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("writerName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("writerName", FieldDefinitionTypes.FacetFullText));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -3927,7 +4623,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 int pageSize = 2;
 
                 //Act
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
 
                     var results = sc.WithFacets(facets => facets.Facet("writerName"))
@@ -4029,7 +4725,12 @@ namespace Examine.Test.Examine.Lucene.Search
             const int indexSize = 5;
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection))
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
             {
                 var items = Enumerable.Range(0, indexSize).Select(x => ValueSet.FromObject(x.ToString(), "content",
                     new { nodeName = "umbraco", headerText = "world", writerName = "administrator" }));
@@ -4195,17 +4896,29 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 #if NET6_0_OR_GREATER
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Range_DateOnly(bool withFacets)
+        [TestCase(FacetTestType.TaxonomyFacets)] [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Range_DateOnly(FacetTestType withFacets)
         {
-            var fieldDefinitionCollection = withFacets ?
-                new FieldDefinitionCollection(new FieldDefinition("created", FieldDefinitionTypes.FacetDateTime))
-                : new FieldDefinitionCollection(new FieldDefinition("created", FieldDefinitionTypes.DateTime));
+           FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("created", FieldDefinitionTypes.FacetTaxonomyDateTime));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("created", FieldDefinitionTypes.FacetDateTime));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("created", FieldDefinitionTypes.DateTime));
+                    break;
+            }
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
                 luceneDir,
+                luceneTaxonomyDir,
                 analyzer,
                 fieldDefinitionCollection))
             {
@@ -4242,7 +4955,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var numberSortedCriteria = searcher.CreateQuery()
                     .RangeQuery<DateOnly>(new[] { "created" }, new DateOnly(2000, 01, 02), new DateOnly(2000, 01, 05), maxInclusive: false);
 
-                if (withFacets)
+                if (HasFacets(withFacets))
                 {
                     var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.Facet("created")).Execute();
                     var facetResult = numberSortedResult.GetFacet("created");
@@ -4417,7 +5130,7 @@ namespace Examine.Test.Examine.Lucene.Search
             facetConfigs.SetIndexFieldName("taxonomynodeName", "taxonomy_nodeName");
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTaxonomyTestIndex(luceneDir,luceneTaxonomyDir, analyzer, new FieldDefinitionCollection(
+            using (var indexer = GetTaxonomyTestIndex(luceneDir, luceneTaxonomyDir, analyzer, new FieldDefinitionCollection(
                 new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText),
                 new FieldDefinition("taxonomynodeName", FieldDefinitionTypes.FacetTaxonomyFullText)
 
