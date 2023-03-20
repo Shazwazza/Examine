@@ -6,5 +6,10 @@ namespace Examine.Search
         /// Maximum number of terms to return
         /// </summary>
         IFacetQueryField MaxCount(int count);
+
+        /// <summary>
+        /// Path Hierarchy
+        /// </summary>
+        IFacetQueryField SetPath(string[] path);
     }
 }
