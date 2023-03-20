@@ -9,7 +9,7 @@ namespace Examine.Lucene.Search
     public class FacetFullTextField : IFacetField
     {
         public int MaxCount { get; internal set; }
-
+        public bool IsTaxonomyIndexed { get; }
         public string[] Values { get; }
 
         public string Field { get; }

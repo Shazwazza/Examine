@@ -5,11 +5,9 @@ using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Facet;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Index;
-using Lucene.Net.Queries.Function.ValueSources;
 using Lucene.Net.Search;
 using LuceneFacetResult = Lucene.Net.Facet.FacetResult;
 
@@ -30,6 +28,7 @@ namespace Examine.Lucene.Search
         private readonly IEnumerable<IFacetField> _facetFields;
         private readonly FacetsConfig _facetsConfig;
         private int? _maxDoc;
+        private readonly FacetsConfig _facetsConfig;
 
         internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
             ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)

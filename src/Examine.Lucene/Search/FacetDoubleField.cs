@@ -12,6 +12,7 @@ namespace Examine.Lucene.Search
         public string Field { get; }
 
         public string FacetField { get; }
+        public bool IsTaxonomyIndexed { get; }
 
         public bool IsTaxonomyIndexed { get; }
 

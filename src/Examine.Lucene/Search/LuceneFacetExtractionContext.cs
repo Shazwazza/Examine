@@ -1,5 +1,3 @@
-using System;
-using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Facet.Taxonomy;
 
@@ -17,12 +15,16 @@ namespace Examine.Lucene.Search
             SearcherReference = searcherReference;
         }
 
+        /// <inheritdoc/>
         public FacetsCollector FacetsCollector { get; }
 
+        /// <inheritdoc/>
         public FacetsConfig FacetConfig { get; }
 
+        /// <inheritdoc/>
         public ISearcherReference SearcherReference { get; }
 
+        /// <inheritdoc/>
         public virtual Facets GetFacetCounts(string facetIndexFieldName, bool isTaxonomyIndexed)
         {
             if (isTaxonomyIndexed)
