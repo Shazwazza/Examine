@@ -1,9 +1,7 @@
 using Lucene.Net.Facet.Range;
-using Lucene.Net.Facet;
 using System.Collections.Generic;
 using Examine.Search;
 using System.Linq;
-using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Search
 {
@@ -22,9 +20,9 @@ namespace Examine.Lucene.Search
             FacetField = facetField;
         }
 
-        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState)
+        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
-            var doubleFacetCounts = new DoubleRangeFacetCounts(Field, facetsCollector, DoubleRanges.AsLuceneRange().ToArray());
+            var doubleFacetCounts = new DoubleRangeFacetCounts(Field, facetExtractionContext.FacetsCollector, DoubleRanges.AsLuceneRange().ToArray());
 
             var doubleFacets = doubleFacetCounts.GetTopChildren(0, Field);
 

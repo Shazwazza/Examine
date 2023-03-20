@@ -319,7 +319,7 @@ namespace Examine.Lucene.Search
             {
                 values = Array.Empty<string>();
             }
-
+            var fieldValueType = _searchContext.GetFieldValueType(field);
             var facet = new FacetFullTextField(field, values, GetFacetField(field));
 
             if(facetConfiguration != null)

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using Examine.Search;
-using Lucene.Net.Facet;
-using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Search
 {
@@ -23,6 +21,6 @@ namespace Examine.Lucene.Search
         /// <param name="facetsCollector"></param>
         /// <param name="sortedSetReaderState"></param>
         /// <returns>Returns the facets for this field</returns>
-        IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState);
+        IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext);
     }
 }

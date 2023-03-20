@@ -22,9 +22,9 @@ namespace Examine.Lucene.Search
             FacetField = facetField;
         }
 
-        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState)
+        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
-            var longFacetCounts = new Int64RangeFacetCounts(Field, facetsCollector, LongRanges.AsLuceneRange().ToArray());
+            var longFacetCounts = new Int64RangeFacetCounts(Field, facetExtractionContext.FacetsCollector, LongRanges.AsLuceneRange().ToArray());
 
             var longFacets = longFacetCounts.GetTopChildren(0, Field);
 

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
-using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Search
@@ -24,9 +23,9 @@ namespace Examine.Lucene.Search
             MaxCount = maxCount;
         }
 
-        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState)
+        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
-            var sortedFacetsCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
+            var sortedFacetsCounts = new SortedSetDocValuesFacetCounts(facetExtractionContext.GetSortedSetReaderState(FacetField), facetExtractionContext.FacetsCollector);
 
             if (Values != null && Values.Length > 0)
             {

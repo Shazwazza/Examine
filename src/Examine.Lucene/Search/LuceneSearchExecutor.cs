@@ -154,12 +154,9 @@ namespace Examine.Lucene.Search
                 var valueType = _searchContext.GetFieldValueType(field.Field);
                 if(valueType is IIndexFacetValueType facetValueType)
                 {
-                    if (field is FacetFullTextField && (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField)))
-                    {
-                        sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
-                    }
+                    var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher.IndexSearcher.IndexReader);
 
-                    var fieldFacets = facetValueType.ExtractFacets(facetsCollector, sortedSetReaderState, field);
+                    var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
                     foreach(var fieldFacet in fieldFacets)
                     {
                         // overwrite if necessary (no exceptions thrown in case of collision)

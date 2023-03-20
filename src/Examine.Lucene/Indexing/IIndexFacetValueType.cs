@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using Examine.Lucene.Search;
 using Examine.Search;
-using Lucene.Net.Facet;
-using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Indexing
 {
@@ -15,6 +13,6 @@ namespace Examine.Lucene.Indexing
         /// <param name="sortedSetReaderState"></param>
         /// <param name="field"></param>
         /// <returns>A dictionary of facets for this field</returns>
-        IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field);
+        IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field);
     }
 }
