@@ -14,12 +14,14 @@ namespace Examine.Lucene.Search
         public Examine.Search.Int64Range[] LongRanges { get; }
 
         public string FacetField { get; }
+        public bool IsTaxonomyIndexed { get; }
 
-        public FacetLongField(string field, Examine.Search.Int64Range[] longRanges, string facetField)
+        public FacetLongField(string field, Examine.Search.Int64Range[] longRanges, string facetField, bool isTaxonomyIndexed = false)
         {
             Field = field;
             LongRanges = longRanges;
             FacetField = facetField;
+            IsTaxonomyIndexed = isTaxonomyIndexed;
         }
 
         public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)

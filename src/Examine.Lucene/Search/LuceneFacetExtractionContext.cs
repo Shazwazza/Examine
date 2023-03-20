@@ -1,31 +1,43 @@
-using System;
-using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
-using Lucene.Net.Index;
+using Lucene.Net.Facet;
+using System;
+using Examine.Lucene.Search;
 
-namespace Examine.Lucene.Search
+public class LuceneFacetExtractionContext : IFacetExtractionContext
 {
-    public class LuceneFacetExtractionContext : IFacetExtractionContext
+
+    private SortedSetDocValuesReaderState _sortedSetReaderState = null;
+
+    public LuceneFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcherReference, FacetsConfig facetConfig)
     {
-        private readonly IndexReader _indexReader;
+        FacetsCollector = facetsCollector;
+        FacetConfig = facetConfig;
+        SearcherReference = searcherReference;
+    }
 
-        private SortedSetDocValuesReaderState _sortedSetReaderState = null;
+    /// <inheritdoc/>
+    public FacetsCollector FacetsCollector { get; }
 
-        public LuceneFacetExtractionContext(FacetsCollector facetsCollector, IndexReader indexReader)
+    /// <inheritdoc/>
+    public FacetsConfig FacetConfig { get; }
+
+    /// <inheritdoc/>
+    public ISearcherReference SearcherReference { get; }
+
+    /// <inheritdoc/>
+    public virtual Facets GetFacetCounts(string facetIndexFieldName, bool isTaxonomyIndexed)
+    {
+        if (isTaxonomyIndexed)
         {
-            FacetsCollector = facetsCollector;
-            _indexReader = indexReader;
+            throw new NotSupportedException("Taxonomy Index not supported");
         }
-
-        public FacetsCollector FacetsCollector { get; }
-
-        public virtual SortedSetDocValuesReaderState GetSortedSetReaderState(string facetFieldName)
+        else
         {
-            if (_sortedSetReaderState == null || !_sortedSetReaderState.Field.Equals(facetFieldName))
+            if (_sortedSetReaderState == null || !_sortedSetReaderState.Field.Equals(facetIndexFieldName))
             {
-                _sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(_indexReader, facetFieldName);
+                _sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(SearcherReference.IndexSearcher.IndexReader, facetIndexFieldName);
             }
-            return _sortedSetReaderState;
+            return new SortedSetDocValuesFacetCounts(_sortedSetReaderState, FacetsCollector);
         }
     }
 }

@@ -5,10 +5,8 @@ using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Facet;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Index;
-using Lucene.Net.Queries.Function.ValueSources;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -26,8 +24,9 @@ namespace Examine.Lucene.Search
         private readonly ISet<string> _fieldsToLoad;
         private readonly IEnumerable<IFacetField> _facetFields;
         private int? _maxDoc;
+        private readonly FacetsConfig _facetsConfig;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields)
+        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
@@ -35,6 +34,7 @@ namespace Examine.Lucene.Search
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
             _facetFields = facetFields;
+            _facetsConfig = facetsConfig;
         }
 
         private int MaxDoc
@@ -154,7 +154,7 @@ namespace Examine.Lucene.Search
                 var valueType = _searchContext.GetFieldValueType(field.Field);
                 if(valueType is IIndexFacetValueType facetValueType)
                 {
-                    var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher.IndexSearcher.IndexReader);
+                    var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
 
                     var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
                     foreach(var fieldFacet in fieldFacets)

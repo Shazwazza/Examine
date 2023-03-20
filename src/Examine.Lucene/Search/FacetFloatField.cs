@@ -13,12 +13,14 @@ namespace Examine.Lucene.Search
         public string Field { get; }
 
         public string FacetField { get; }
+        public bool IsTaxonomyIndexed { get; }
 
-        public FacetFloatField(string field, FloatRange[] floatRanges, string facetField)
+        public FacetFloatField(string field, FloatRange[] floatRanges, string facetField, bool isTaxonomyIndexed = false)
         {
             Field = field;
             FloatRanges = floatRanges;
             FacetField = facetField;
+            IsTaxonomyIndexed = isTaxonomyIndexed;
         }
 
         public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
