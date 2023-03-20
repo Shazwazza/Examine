@@ -5,7 +5,7 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
-    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering
+    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFaceting
     {
         private readonly LuceneSearchQueryBase _search;
 
