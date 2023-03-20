@@ -11,6 +11,7 @@ namespace Examine.Lucene.Search
             _field = field;
         }
 
+        /// <inheritdoc/>
         public IFacetQueryField MaxCount(int count)
         {
             _field.MaxCount = count;
