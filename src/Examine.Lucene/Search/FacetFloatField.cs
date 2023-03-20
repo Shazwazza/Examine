@@ -13,9 +13,9 @@ namespace Examine.Lucene.Search
         public string Field { get; }
 
         public string FacetField { get; }
-        public bool IsTaxonomyIndexed { get; }
 
         public bool IsTaxonomyIndexed { get; }
+
 
         public FacetFloatField(string field, FloatRange[] floatRanges, string facetField, bool isTaxonomyIndexed = false)
         {

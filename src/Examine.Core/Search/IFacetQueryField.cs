@@ -11,6 +11,6 @@ namespace Examine.Search
         /// Set the Facet Path
         /// </summary>
         /// <param name="path">Facet Path</param>
-        IFacetQueryField Path(params string[] path);
+        IFacetQueryField SetPath(params string[] path);
     }
 }

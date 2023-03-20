@@ -28,7 +28,6 @@ namespace Examine.Lucene.Search
         private readonly IEnumerable<IFacetField> _facetFields;
         private readonly FacetsConfig _facetsConfig;
         private int? _maxDoc;
-        private readonly FacetsConfig _facetsConfig;
 
         internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
             ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)

@@ -14,7 +14,6 @@ namespace Examine.Lucene.Search
         public string FacetField { get; }
         public bool IsTaxonomyIndexed { get; }
 
-        public bool IsTaxonomyIndexed { get; }
 
         public FacetDoubleField(string field, Examine.Search.DoubleRange[] doubleRanges, string facetField, bool isTaxonomyIndexed = false)
         {
