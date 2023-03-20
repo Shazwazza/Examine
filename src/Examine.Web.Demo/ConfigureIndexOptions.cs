@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Examine.Lucene;
 using Examine.Lucene.Analyzers;
-using Examine.Lucene.Directories;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Suggest;
 using Examine.Lucene.Suggest.Directories;
-using Lucene.Net.Index;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Examine.Web.Demo
@@ -46,13 +40,13 @@ namespace Examine.Web.Demo
                     // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
 
-                    options.SuggesterDefinitions.AddOrUpdate(new LuceneSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "fullName" }, new RAMSuggesterDirectoryFactory()));
-                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "fullName" }));
-                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "fullName" }));
-                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "fullName" }));
-                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, new string[] { "fullName" }));
-                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_NGramDistance, ExamineLuceneSuggesterNames.DirectSpellChecker_NGramDistance, new string[] { "fullName" }));
-                    options.SuggesterDefinitions.AddOrUpdate(new SuggesterDefinition(ExamineLuceneSuggesterNames.FuzzySuggester, ExamineLuceneSuggesterNames.FuzzySuggester, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new AnalyzingInfixSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "fullName" }, new RAMSuggesterDirectoryFactory()));
+                    options.SuggesterDefinitions.AddOrUpdate(new AnalyzingSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new DirectSpellCheckerDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new LevensteinDistanceSuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new JaroWinklerDistanceDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new NGramDistanceSuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_NGramDistance,new string[] { "fullName" }));
+                    options.SuggesterDefinitions.AddOrUpdate(new FuzzySuggesterDefinition(ExamineLuceneSuggesterNames.FuzzySuggester, new string[] { "fullName" }));
                     break;
             }
         }

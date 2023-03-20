@@ -15,7 +15,7 @@ namespace Examine.Lucene.Suggest
         private ReaderManager _readerManager;
         private FieldValueTypeCollection _fieldValueTypeCollection;
         private readonly SuggesterDefinitionCollection _suggesterDefinitions;
-        private readonly Dictionary<string, Lookup> _suggesters;
+        private readonly Dictionary<string, ILookupExecutor> _suggesters;
 
         /// <summary>
         /// Constructor
@@ -23,7 +23,7 @@ namespace Examine.Lucene.Suggest
         /// <param name="readerManager">Reader Manager for IndexReader on the Suggester Index</param>
         /// <param name="fieldValueTypeCollection">Fields of Suggester Index</param>
         public SuggesterContext(ReaderManager readerManager, FieldValueTypeCollection fieldValueTypeCollection, SuggesterDefinitionCollection suggesterDefinitions,
-            Dictionary<string, Lookup> suggesters)
+            Dictionary<string, ILookupExecutor> suggesters)
         {
             _readerManager = readerManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;

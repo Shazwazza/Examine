@@ -11,18 +11,16 @@ namespace Examine
         /// Constructor
         /// </summary>
         /// <param name="name">Name of the suggester</param>
-        /// <param name="suggesterMode">Suggester Mode</param>
         /// <param name="sourceFields">Source Index Fields for the Suggester</param>
-        public SuggesterDefinition(string name, string suggesterMode, string[] sourceFields = null)
+        public SuggesterDefinition(string name, string[] sourceFields = null)
         {
             if (string.IsNullOrWhiteSpace(name))
+            {
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
-            if (string.IsNullOrWhiteSpace(suggesterMode))
-                throw new ArgumentException("Value cannot be null or whitespace.", nameof(suggesterMode));
+            }
 
             Name = name;
             SourceFields = sourceFields;
-            SuggesterMode = suggesterMode;
         }
 
         /// <summary>
@@ -35,12 +33,7 @@ namespace Examine
         /// </summary>
         public string[] SourceFields { get; }
 
-        /// <summary>
-        /// The suggester type
-        /// </summary>
-        public string SuggesterMode { get; }
-
-        public bool Equals(SuggesterDefinition other) => string.Equals(Name, other.Name) && string.Equals(SuggesterMode, other.SuggesterMode);
+        public bool Equals(SuggesterDefinition other) => string.Equals(Name, other.Name);
 
         public override bool Equals(object obj)
         {
@@ -53,7 +46,7 @@ namespace Examine
         {
             unchecked
             {
-                return (Name.GetHashCode() * 397) ^ SuggesterMode.GetHashCode();
+                return (Name.GetHashCode() * 397);
             }
         }
 

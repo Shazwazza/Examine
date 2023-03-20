@@ -5,7 +5,7 @@ namespace Examine.Lucene.Suggest
     /// <summary>
     /// Lucene Search Suggestion Query
     /// </summary>
-    public class LuceneSuggestionQuery : ISuggestionQuery, ISuggestionExecutor
+    public class LuceneSuggestionQuery : ISuggestionQuery, Examine.Suggest.ISuggestionExecutor
     {
         private readonly ISuggesterContext _suggesterContext;
 
