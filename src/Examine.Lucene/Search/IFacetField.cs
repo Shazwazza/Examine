@@ -16,6 +16,11 @@ namespace Examine.Lucene.Search
         string FacetField { get; }
 
         /// <summary>
+        /// Whether the field was indexed in the Taxonomy index
+        /// </summary>
+        bool IsTaxonomyIndexed { get; }
+
+        /// <summary>
         /// Extracts the facets from the field
         /// </summary>
         /// <param name="facetsCollector"></param>

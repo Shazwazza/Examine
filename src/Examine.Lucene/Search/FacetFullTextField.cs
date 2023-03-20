@@ -32,15 +32,8 @@ namespace Examine.Lucene.Search
 
         public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
-            Facets facetCounts;
-            if (!IsTaxonomyIndexed)
-            {
-                facetCounts = new SortedSetDocValuesFacetCounts(facetExtractionContext.GetSortedSetReaderState(FacetField), facetExtractionContext.FacetsCollector);
-            }
-            else
-            {
-                facetCounts = facetExtractionContext.GetTaxonomyFacetCounts(FacetField);
-            }
+            Facets facetCounts = facetExtractionContext.GetFacetCounts(FacetField, IsTaxonomyIndexed);
+
             if (Values != null && Values.Length > 0)
             {
                 var facetValues = new List<FacetValue>();
