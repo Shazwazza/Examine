@@ -1,19 +1,29 @@
+using System.Collections.Generic;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
 {
-    public class Int64Type : IndexFieldRangeValueType<long>
+    public class Int64Type : IndexFieldRangeValueType<long>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
 
-        public Int64Type(string fieldName, ILoggerFactory logger, bool store = true, bool isFacetable = false)
+        public Int64Type(string fieldName, ILoggerFactory logger, bool store, bool isFacetable)
             : base(fieldName, logger, store)
         {
             _isFacetable = isFacetable;
+        }
+
+        public Int64Type(string fieldName, ILoggerFactory logger, bool store = true)
+            : base(fieldName, logger, store)
+        {
+            _isFacetable = false;
         }
 
         /// <summary>
@@ -26,7 +36,7 @@ namespace Examine.Lucene.Indexing
             if (!TryConvert(value, out long parsedVal))
                 return;
 
-            doc.Add(new Int64Field(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+            doc.Add(new Int64Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
             if (_isFacetable)
             {
@@ -46,5 +56,7 @@ namespace Examine.Lucene.Indexing
                 lower,
                 upper, lowerInclusive, upperInclusive);
         }
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field)
+            => field.ExtractFacets(facetsCollector, sortedSetReaderState);
     }
 }

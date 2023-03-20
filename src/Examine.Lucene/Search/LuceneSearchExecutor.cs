@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Facet;
@@ -232,88 +233,27 @@ namespace Examine.Lucene.Search
 
             foreach (var field in facetFields)
             {
-                if (field is FacetFullTextField facetFullTextField)
+                var valueType = _searchContext.GetFieldValueType(field.Field);
+                if(valueType is IIndexFacetValueType facetValueType)
                 {
-                    ExtractFullTextFacets(facetsCollector, searcher, facets, sortedSetReaderState, field, facetFullTextField);
-                }
-                else if (field is FacetLongField facetLongField)
-                {
-                    var longFacetCounts = new Int64RangeFacetCounts(facetLongField.Field, facetsCollector, facetLongField.LongRanges.AsLuceneRange().ToArray());
-
-                    var longFacets = longFacetCounts.GetTopChildren(0, facetLongField.Field);
-
-                    if (longFacets == null)
+                    if (field is FacetFullTextField && (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField)))
                     {
-                        continue;
+                        sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
                     }
 
-                    facets.Add(facetLongField.Field, new Examine.Search.FacetResult(longFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
-                }
-                else if (field is FacetDoubleField facetDoubleField)
-                {
-                    var doubleFacetCounts = new DoubleRangeFacetCounts(facetDoubleField.Field, facetsCollector, facetDoubleField.DoubleRanges.AsLuceneRange().ToArray());
-                    
-                    var doubleFacets = doubleFacetCounts.GetTopChildren(0, facetDoubleField.Field);
-
-                    if (doubleFacets == null)
+                    var fieldFacets = facetValueType.ExtractFacets(facetsCollector, sortedSetReaderState, field);
+                    foreach(var fieldFacet in fieldFacets)
                     {
-                        continue;
+                        // overwrite if necessary (no exceptions thrown in case of collision)
+                        facets[fieldFacet.Key] = fieldFacet.Value;
                     }
-
-                    facets.Add(facetDoubleField.Field, new Examine.Search.FacetResult(doubleFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
-                }
-                else if(field is FacetFloatField facetFloatField)
-                {
-                    var floatFacetCounts = new DoubleRangeFacetCounts(facetFloatField.Field, new SingleFieldSource(facetFloatField.Field), facetsCollector, facetFloatField.FloatRanges.AsLuceneRange().ToArray());
-                    
-                    var floatFacets = floatFacetCounts.GetTopChildren(0, facetFloatField.Field);
-
-                    if (floatFacets == null)
-                    {
-                        continue;
-                    }
-
-                    facets.Add(facetFloatField.Field, new Examine.Search.FacetResult(floatFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
                 }
             }
 
             return facets;
         }
 
-        private static void ExtractFullTextFacets(FacetsCollector facetsCollector, ISearcherReference searcher, Dictionary<string, IFacetResult> facets, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field, FacetFullTextField facetFullTextField)
-        {
-            if (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField))
-            {
-                sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
-            }
-
-            var sortedFacetsCounts = new SortedSetDocValuesFacetCounts(sortedSetReaderState, facetsCollector);
-
-            if (facetFullTextField.Values != null && facetFullTextField.Values.Length > 0)
-            {
-                var facetValues = new List<FacetValue>();
-                foreach (var label in facetFullTextField.Values)
-                {
-                    var value = sortedFacetsCounts.GetSpecificValue(facetFullTextField.Field, label);
-                    facetValues.Add(new FacetValue(label, value));
-                }
-                facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(facetValues.OrderBy(value => value.Value).Take(facetFullTextField.MaxCount).OfType<IFacetValue>()));
-            }
-            else
-            {
-                var sortedFacets = sortedFacetsCounts.GetTopChildren(facetFullTextField.MaxCount, facetFullTextField.Field);
-
-                if (sortedFacets == null)
-                {
-                    return;
-                }
-
-                facets.Add(facetFullTextField.Field, new Examine.Search.FacetResult(sortedFacets.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
-            }
-
-        }
-
-        private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
+        private ISearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
         {
             // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
             // and from that one place "i" is always less than the size of this collection. 

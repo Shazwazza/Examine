@@ -1,19 +1,29 @@
+using System.Collections.Generic;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
 {
-    public class DoubleType : IndexFieldRangeValueType<double>
+    public class DoubleType : IndexFieldRangeValueType<double>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
 
-        public DoubleType(string fieldName, ILoggerFactory logger, bool store = true, bool isFacetable = false)
+        public DoubleType(string fieldName, ILoggerFactory logger, bool store, bool isFacetable)
             : base(fieldName, logger, store)
         {
             _isFacetable = isFacetable;
+        }
+
+        public DoubleType(string fieldName, ILoggerFactory logger, bool store = true)
+            : base(fieldName, logger, store)
+        {
+            _isFacetable = false;
         }
 
         /// <summary>
@@ -46,5 +56,7 @@ namespace Examine.Lucene.Indexing
                 lower ?? double.MinValue,
                 upper ?? double.MaxValue, lowerInclusive, upperInclusive);
         }
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field)
+            => field.ExtractFacets(facetsCollector, sortedSetReaderState);
     }
 }

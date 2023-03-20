@@ -313,7 +313,7 @@ namespace Examine.Lucene.Search
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        internal IFaceting FacetInternal(string field, Action<IFacetQueryField> facetConfiguration, params string[] values)
+        internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField> facetConfiguration, params string[] values)
         {
             if(values == null)
             {
@@ -332,7 +332,7 @@ namespace Examine.Lucene.Search
             return new LuceneFacetOperation(this);
         }
 
-        internal IFaceting FacetInternal(string field, params DoubleRange[] doubleRanges)
+        internal IFacetOperations FacetInternal(string field, params DoubleRange[] doubleRanges)
         {
             if(doubleRanges == null)
             {
@@ -346,7 +346,7 @@ namespace Examine.Lucene.Search
             return new LuceneFacetOperation(this);
         }
 
-        internal IFaceting FacetInternal(string field, params FloatRange[] floatRanges)
+        internal IFacetOperations FacetInternal(string field, params FloatRange[] floatRanges)
         {
             if (floatRanges == null)
             {
@@ -360,7 +360,7 @@ namespace Examine.Lucene.Search
             return new LuceneFacetOperation(this);
         }
 
-        internal IFaceting FacetInternal(string field, params Int64Range[] longRanges)
+        internal IFacetOperations FacetInternal(string field, params Int64Range[] longRanges)
         {
             if(longRanges == null)
             {
