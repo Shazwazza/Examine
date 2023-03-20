@@ -5,7 +5,7 @@ namespace Examine
     /// <summary>
     /// Defines a suggester for an Index
     /// </summary>
-    public class SuggesterDefinition : IEquatable<SuggesterDefinition>
+    public class SuggesterDefinition
     {
         /// <summary>
         /// Constructor
@@ -32,26 +32,5 @@ namespace Examine
         /// Suggester Source Fields
         /// </summary>
         public string[] SourceFields { get; }
-
-        public bool Equals(SuggesterDefinition other) => string.Equals(Name, other.Name);
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj))
-                return false;
-            return obj is SuggesterDefinition definition && Equals(definition);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (Name.GetHashCode() * 397);
-            }
-        }
-
-        public static bool operator ==(SuggesterDefinition left, SuggesterDefinition right) => left.Equals(right);
-
-        public static bool operator !=(SuggesterDefinition left, SuggesterDefinition right) => !left.Equals(right);
     }
 }
