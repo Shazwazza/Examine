@@ -46,7 +46,14 @@ namespace Examine.Lucene.Suggest
                 if (luceneSuggesterDefinition != null)
                 {
                     var lookup = luceneSuggesterDefinition.BuildSuggester(_fieldValueTypeCollection, _readerManager, rebuild);
-                    _suggesters.Add(suggesterDefintion.Name, lookup);
+                    if (_suggesters.ContainsKey(suggesterDefintion.Name))
+                    {
+                        _suggesters[suggesterDefintion.Name] = lookup;
+                    }
+                    else
+                    {
+                        _suggesters.Add(suggesterDefintion.Name, lookup);
+                    }
                 }
             }
         }
