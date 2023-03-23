@@ -1,13 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Examine.Suggest;
-using Lucene.Net.Analysis;
-using Lucene.Net.Index;
-using Lucene.Net.Search.Spell;
-using Lucene.Net.Search.Suggest.Analyzing;
-using static Lucene.Net.Search.Suggest.Lookup;
-using LuceneDirectory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Suggest
 {
@@ -41,7 +34,7 @@ namespace Examine.Lucene.Suggest
 
             var suggesters = _suggesterContext.GetSuggesterDefinitions();
             var suggester = suggesters.FirstOrDefault(x => x.Name == _options.SuggesterName);
-            if (suggester.Name == null || suggester.SourceFields == null)
+            if (suggester?.Name == null || suggester?.SourceFields == null)
             {
                 return _emptySuggestionResults;
             }
