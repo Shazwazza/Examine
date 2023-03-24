@@ -13,8 +13,11 @@ namespace Examine.Lucene.Suggest
         }
         DirectSpellChecker Spellchecker { get; set; }
 
+        /// <inheritdoc/>
         public override ILookupExecutor BuildSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
             => BuildDirectSpellCheckerSuggester(fieldValueTypeCollection, readerManager, rebuild);
+
+        /// <inheritdoc/>
         public override ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext) => ExecuteDirectSpellChecker(searchText, suggestionExecutionContext);
         protected ILookupExecutor BuildDirectSpellCheckerSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
         {

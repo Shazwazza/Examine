@@ -10,14 +10,19 @@ namespace Examine.Lucene.Suggest
 {
     public class AnalyzingSuggesterDefinition : LuceneSuggesterDefinition, ILookupExecutor
     {
-        public AnalyzingSuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null)
-            : base(name, sourceFields, directoryFactory)
+        public AnalyzingSuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null, Analyzer queryTimeAnalyzer = null)
+            : base(name, sourceFields, directoryFactory, queryTimeAnalyzer)
         {
         }
+
+        /// <inheritdoc/>
         public Lookup Lookup { get; internal set; }
 
+        /// <inheritdoc/>
         public override ILookupExecutor BuildSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
             => BuildAnalyzingSuggesterLookup(fieldValueTypeCollection, readerManager, rebuild);
+
+        /// <inheritdoc/>
         public override ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext) => ExecuteAnalyzingSuggester(searchText, suggestionExecutionContext);
 
         protected ILookupExecutor BuildAnalyzingSuggesterLookup(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
@@ -27,7 +32,7 @@ namespace Examine.Lucene.Suggest
             var indexTimeAnalyzer = fieldValue.Analyzer;
 
             AnalyzingSuggester suggester = null;
-            Analyzer queryTimeAnalyzer = null;
+            Analyzer queryTimeAnalyzer = QueryTimeAnalyzer;
 
             if (rebuild)
             {

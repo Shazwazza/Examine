@@ -10,15 +10,18 @@ namespace Examine.Lucene.Suggest
 {
     public class FuzzySuggesterDefinition : LuceneSuggesterDefinition, ILookupExecutor
     {
-        public FuzzySuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null)
-            : base(name, sourceFields, directoryFactory)
+        public FuzzySuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null, Analyzer queryTimeAnalyzer = null)
+            : base(name, sourceFields, directoryFactory, queryTimeAnalyzer)
         {
         }
+        /// <inheritdoc/>
         public Lookup Lookup { get; internal set; }
 
+        /// <inheritdoc/>
         public override ILookupExecutor BuildSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
             => BuildFuzzySuggesterLookup(fieldValueTypeCollection, readerManager, rebuild);
 
+        /// <inheritdoc/>
         public override ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext) => ExecuteFuzzySuggester(searchText, suggestionExecutionContext);
 
         protected ILookupExecutor BuildFuzzySuggesterLookup(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
@@ -29,7 +32,7 @@ namespace Examine.Lucene.Suggest
 
 
             FuzzySuggester suggester = null;
-            Analyzer queryTimeAnalyzer = null;
+            Analyzer queryTimeAnalyzer = QueryTimeAnalyzer;
 
             if (rebuild)
             {

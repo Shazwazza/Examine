@@ -13,15 +13,18 @@ namespace Examine.Lucene.Suggest
 {
     public class AnalyzingInfixSuggesterDefinition : LuceneSuggesterDefinition, ILookupExecutor
     {
-        public AnalyzingInfixSuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null)
-            : base(name, sourceFields, directoryFactory)
+        public AnalyzingInfixSuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null, Analyzer queryTimeAnalyzer = null)
+            : base(name, sourceFields, directoryFactory,queryTimeAnalyzer)
         {
         }
+        /// <inheritdoc/>
         public Lookup Lookup { get; internal set; }
 
+        /// <inheritdoc/>
         public override ILookupExecutor BuildSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
             => BuildAnalyzingInfixSuggesterLookup(fieldValueTypeCollection, readerManager, rebuild);
 
+        /// <inheritdoc/>
         public override ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext) => ExecuteAnalyzingInfixSuggester(searchText, suggestionExecutionContext);
 
         protected ILookupExecutor BuildAnalyzingInfixSuggesterLookup(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
@@ -32,7 +35,7 @@ namespace Examine.Lucene.Suggest
 
 
             AnalyzingInfixSuggester suggester = null;
-            Analyzer queryTimeAnalyzer = null;
+            Analyzer queryTimeAnalyzer = QueryTimeAnalyzer;
 
             var luceneDictionary = SuggesterDirectoryFactory.CreateDirectory(Name.Replace(".", "_"), false);
             var luceneVersion = LuceneVersion.LUCENE_48;

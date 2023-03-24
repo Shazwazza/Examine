@@ -32,5 +32,6 @@ namespace Examine
         /// Suggester Source Fields
         /// </summary>
         public string[] SourceFields { get; }
+
     }
 }
