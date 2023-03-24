@@ -40,6 +40,7 @@ namespace Examine.Web.Demo
                     // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
 
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("FullName", FieldDefinitionTypes.FullText));
                     options.SuggesterDefinitions.AddOrUpdate(new AnalyzingInfixSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "fullName" }, new RAMSuggesterDirectoryFactory()));
                     options.SuggesterDefinitions.AddOrUpdate(new AnalyzingSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "fullName" }));
                     options.SuggesterDefinitions.AddOrUpdate(new DirectSpellCheckerDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "fullName" }));
