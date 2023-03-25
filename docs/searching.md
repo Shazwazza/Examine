@@ -273,7 +273,7 @@ var searcher = (BaseLuceneSearcher)indexer.Searcher;
 var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
                     {
                         // Set Similarity
-                        Similarity = LuceneSearchOptionsSimilarities.Classic
+                        SimilarityName = LuceneSearchOptionsSimilarities.Classic
                     });
   // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
  .Field("Address", "Hills Rockyroad Hollywood".Escape())
@@ -287,7 +287,7 @@ var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = LuceneSearchOptionsSimilarities.BM25
+                        SimilarityName = LuceneSearchOptionsSimilarities.BM25
                     });
   // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
  .Field("Address", "Hills Rockyroad Hollywood".Escape())
@@ -299,7 +299,6 @@ var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
 #### Per Field Similarity Example
 
 ```csharp
-var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
 Dictionary<string, Similarity> fieldSimilarities = new Dictionary<string, Similarity>(StringComparer.OrdinalIgnoreCase)
                 {
@@ -312,10 +311,18 @@ DictionaryPerFieldSimilarityWrapper sampleSimilarity = new DictionaryPerFieldSim
     fieldSimilarities, // Set per field similarities
     LuceneSearchOptionsSimilarities.BM25 // Set fallback similarity for non specified fields
     );
+var sampleSimilarityDefinition = new LuceneSimilarityDefinition("sampleSimilarity", testSimilarity);
+
+// Add to Similarity Definition
+SimilarityDefinitionCollection similarityDefinitions = new SimilarityDefinitionCollection().AddExamineLuceneSimilarities();
+similarityDefinitions.AddOrUpdate(sampleSimilarityDefinition);
+
+
+var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
 var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = sampleSimilarity
+                        SimilarityName = "sampleSimilarity"
                     });
   // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
  .Field("Address", "Hills Rockyroad Hollywood".Escape())

@@ -229,7 +229,7 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),similarityDefinitions: similarityDefinitions))
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)), similarityDefinitions: similarityDefinitions))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "cOntent",
@@ -241,7 +241,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     });
 
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
-              
+
 
                 var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
