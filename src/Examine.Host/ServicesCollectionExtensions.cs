@@ -24,8 +24,9 @@ namespace Examine
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
+            SimilarityDefinitionCollection similarityDefinitions = null)
+            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, similarityDefinitions);
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
@@ -36,9 +37,10 @@ namespace Examine
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
+            SimilarityDefinitionCollection similarityDefinitions = null)
             where TIndex : LuceneIndex
-            => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
+            => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, similarityDefinitions);
 
         /// <summary>
         /// Registers an Examine index
@@ -49,7 +51,8 @@ namespace Examine
             FieldDefinitionCollection fieldDefinitions = null,
             Analyzer analyzer = null,
             IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
+            SimilarityDefinitionCollection similarityDefinitions = null)
             where TIndex : LuceneIndex
             where TDirectoryFactory : class, IDirectoryFactory
         {
@@ -65,6 +68,7 @@ namespace Examine
                         options.IndexValueTypesFactory = indexValueTypesFactory;
                         options.FieldDefinitions = fieldDefinitions ?? options.FieldDefinitions;
                         options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
+                        options.SimilarityDefinitions = similarityDefinitions;
                     }));
 
             return serviceCollection.AddSingleton<IIndex>(services =>
