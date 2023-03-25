@@ -12,12 +12,21 @@ namespace Examine.Lucene.Search
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly SimilarityDefinitionCollection _similarityDefinitionCollection;
         private string[] _searchableFields;
 
         public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
         {
-            _searcherManager = searcherManager;            
+            _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
+            _similarityDefinitionCollection = null;
+        }
+
+        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection similarityDefinitionCollection)
+        {
+            _searcherManager = searcherManager;
+            _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
+            _similarityDefinitionCollection = similarityDefinitionCollection;
         }
 
         public ISearcherReference GetSearcher() => new SearcherReference(_searcherManager);
@@ -33,7 +42,7 @@ namespace Examine.Lucene.Search
                     // performing a 'search'. We must ensure that the underlying reader has the correct reference counts.
                     IndexSearcher searcher = _searcherManager.Acquire();
                     try
-                    {                        
+                    {
                         var fields = MultiFields.GetMergedFieldInfos(searcher.IndexReader)
                                     .Select(x => x.Name)
                                     .ToList();
@@ -57,8 +66,23 @@ namespace Examine.Lucene.Search
         {
             //Get the value type for the field, or use the default if not defined
             return _fieldValueTypeCollection.GetValueType(
-                fieldName, 
+                fieldName,
                 _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+        }
+
+        public SimilarityDefinition GetSimilarity(string similarityName)
+        {
+            //Get the value type for the field, or use the default if not defined
+            if(_similarityDefinitionCollection == null || string.IsNullOrEmpty(similarityName))
+            {
+                return null;
+            }
+
+            if (_similarityDefinitionCollection.TryGetValue(similarityName, out var similarity))
+            {
+                return similarity;
+            };
+            return null;
         }
     }
 }

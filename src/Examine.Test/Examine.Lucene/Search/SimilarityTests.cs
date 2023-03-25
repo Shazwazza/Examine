@@ -36,7 +36,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = LuceneSearchOptionsSimilarities.ExamineDefault
+                        SimilarityName = ExamineLuceneSimilarityNames.ExamineDefault
                     }).All();
 
                 Console.WriteLine(query);
@@ -71,7 +71,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = LuceneSearchOptionsSimilarities.BM25
+                        SimilarityName = ExamineLuceneSimilarityNames.BM25
                     }).All();
 
                 Console.WriteLine(query);
@@ -107,7 +107,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = LuceneSearchOptionsSimilarities.LMDirichlet
+                        SimilarityName = ExamineLuceneSimilarityNames.LMDirichlet
                     }).All();
 
                 Console.WriteLine(query);
@@ -142,7 +142,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = LuceneSearchOptionsSimilarities.LMJelinekMercerTitle
+                        SimilarityName = ExamineLuceneSimilarityNames.LMJelinekMercerTitle
                     }).All();
 
                 Console.WriteLine(query);
@@ -177,7 +177,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = LuceneSearchOptionsSimilarities.LMJelinekMercerLongText
+                        SimilarityName = ExamineLuceneSimilarityNames.LMJelinekMercerLongText
                     }).All();
 
                 Console.WriteLine(query);
@@ -212,7 +212,14 @@ namespace Examine.Test.Examine.Lucene.Search
         [Test]
         public void Custom_PerField_Similarity()
         {
+            Dictionary<string, Similarity> fieldSimilarities = new Dictionary<string, Similarity>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "title", LuceneSearchOptionsSimilarities.LMJelinekMercerTitle },
+                    { "bodyText", LuceneSearchOptionsSimilarities.LMJelinekMercerLongText }
+                };
+            DictionaryPerFieldSimilarityWrapper testSimilarity = new DictionaryPerFieldSimilarityWrapper(fieldSimilarities, LuceneSearchOptionsSimilarities.BM25);
 
+            var sim = new LuceneSimilarityDefinition("dictionarySim", testSimilarity);
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
@@ -230,17 +237,12 @@ namespace Examine.Test.Examine.Lucene.Search
                     });
 
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
-                Dictionary<string, Similarity> fieldSimilarities = new Dictionary<string, Similarity>(StringComparer.OrdinalIgnoreCase)
-                {
-                    { "title", LuceneSearchOptionsSimilarities.LMJelinekMercerTitle },
-                    { "bodyText", LuceneSearchOptionsSimilarities.LMJelinekMercerLongText }
-                };
-                DictionaryPerFieldSimilarityWrapper testSimilarity = new DictionaryPerFieldSimilarityWrapper(fieldSimilarities, LuceneSearchOptionsSimilarities.BM25);
+              
 
                 var query = searcher.CreateQuery("cOntent",
                     searchOptions: new LuceneSearchOptions
                     {
-                        Similarity = testSimilarity
+                        SimilarityName = "dictionarySim"
                     }).All();
 
                 Console.WriteLine(query);

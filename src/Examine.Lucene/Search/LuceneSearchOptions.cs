@@ -79,8 +79,8 @@ namespace Examine.Lucene.Search
         public DateResolution? DateResolution { get; set; }
 
         /// <summary>
-        /// Search Similarity.
+        /// Similarity Name
         /// </summary>
-        public Similarity Similarity { get; set; }
+        public string SimilarityName { get; set; }
     }
 }

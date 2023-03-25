@@ -14,6 +14,7 @@ namespace Examine.Lucene.Providers
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly SimilarityDefinitionCollection _similarityDefinitionCollection;
         private bool _disposedValue;
 
         /// <summary>
@@ -23,6 +24,22 @@ namespace Examine.Lucene.Providers
         /// <param name="writer"></param>
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
+        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection similarityDefinitionCollection)
+            : base(name, analyzer)
+        {
+            _searcherManager = searcherManager;
+            _fieldValueTypeCollection = fieldValueTypeCollection;
+            _similarityDefinitionCollection = similarityDefinitionCollection;
+        }
+
+        /// <summary>
+        /// Constructor allowing for creating a NRT instance based on a given writer
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="writer"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="fieldValueTypeCollection"></param>
+        [Obsolete()]
         public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
             : base(name, analyzer)
         {
@@ -31,7 +48,7 @@ namespace Examine.Lucene.Providers
         }
 
         public override ISearchContext GetSearchContext()
-            => new SearchContext(_searcherManager, _fieldValueTypeCollection);
+            => new SearchContext(_searcherManager, _fieldValueTypeCollection, _similarityDefinitionCollection);
 
         protected virtual void Dispose(bool disposing)
         {

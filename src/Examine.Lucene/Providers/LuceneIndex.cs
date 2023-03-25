@@ -44,6 +44,8 @@ namespace Examine.Lucene.Providers
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
 
+            _similarityDefinitionCollection = new Lazy<SimilarityDefinitionCollection>(() => _options.SimilarityDefinitions);
+
             _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
@@ -140,12 +142,19 @@ namespace Examine.Lucene.Providers
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
 
+        private readonly Lazy<SimilarityDefinitionCollection> _similarityDefinitionCollection;
+
         #region Properties
 
         /// <summary>
         /// Returns the <see cref="FieldValueTypeCollection"/> configured for this index
         /// </summary>
         public FieldValueTypeCollection FieldValueTypeCollection => _fieldValueTypeCollection.Value;
+
+        /// <summary>
+        /// Returns the <see cref="SimilarityDefinitionCollection"/> configured for this index
+        /// </summary>
+        public SimilarityDefinitionCollection SimilarityDefinitionCollection => _similarityDefinitionCollection.Value;
 
         /// <summary>
         /// The default analyzer to use when indexing content, by default, this is set to StandardAnalyzer
@@ -1048,7 +1057,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, SimilarityDefinitionCollection);
         }
 
         /// <summary>

@@ -20,15 +20,15 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
-        private readonly LuceneSearchOptions _luceneSearchOptions;
+        private readonly string _similarityName;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, LuceneSearchOptions luceneSearchOptions)
+        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, string similarityName)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
             _fieldsToLoad = fieldsToLoad;
-            _luceneSearchOptions = luceneSearchOptions;
+            _similarityName = similarityName;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
         }
@@ -96,9 +96,16 @@ namespace Examine.Lucene.Search
 
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
-                if (_luceneSearchOptions != null && _luceneSearchOptions.Similarity != null)
+
+                var similarityDefinition = _searchContext.GetSimilarity(_similarityName);
+
+                if (similarityDefinition != null && similarityDefinition is LuceneSimilarityDefinitionBase luceneSimilarityDefinition)
                 {
-                    searcher.IndexSearcher.Similarity = _luceneSearchOptions.Similarity;
+                    var similarity = luceneSimilarityDefinition?.GetSimilarity();
+                    if (similarity != null)
+                    {
+                        searcher.IndexSearcher.Similarity = similarity;
+                    }
                 }
                 else
                 {
@@ -129,6 +136,7 @@ namespace Examine.Lucene.Search
                 return new LuceneSearchResults(results, totalItemCount);
             }
         }
+
 
         private ISearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
         {

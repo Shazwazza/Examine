@@ -3,39 +3,39 @@ using Lucene.Net.Search.Similarities;
 namespace Examine.Lucene.Search
 {
     /// <summary>
-    /// Common Similarities for Lucene.NET Search
+    /// Built in Similarity names for Examine Lucene
     /// </summary>
-    public static class LuceneSearchOptionsSimilarities
+    public class ExamineLuceneSimilarityNames
     {
         /// <summary>
         /// Default Similarity for Examine Lucene.
         /// </summary>
         /// <remarks>In Examine V3, this is <see cref="DefaultSimilarity"/>. In Examine V4 this will change to <see cref="BM25Similarity"/></remarks>
-        public static readonly Similarity ExamineDefault = new DefaultSimilarity();
+        public const string ExamineDefault = "Examine.Default";
 
         /// <summary>
         /// Classic Similarity for Lucene. <see cref="DefaultSimilarity"/>
         /// </summary>
-        public static readonly Similarity Classic = new DefaultSimilarity();
+        public const string Classic = "Lucene.Classic";
 
         /// <summary>
         /// BM25Similarity with default parameters for Lucene. <see cref="BM25Similarity"/>
         /// </summary>
-        public static readonly Similarity BM25 = new BM25Similarity();
+        public const string BM25 = "Lucene.BM25";
 
         /// <summary>
         /// LMDirichletSimilarity with default parameters for Lucene. <see cref="LMDirichletSimilarity"/>
         /// </summary>
-        public static readonly Similarity LMDirichlet = new LMDirichletSimilarity();
+        public const string LMDirichlet = "Lucene.LMDirichlet";
 
         /// <summary>
         /// LMJelinekMercerSimilarity with parameter 0.1f which is suitable for title searches. <see cref="LMJelinekMercerSimilarity"/>
         /// </summary>
-        public static readonly Similarity LMJelinekMercerTitle = new LMJelinekMercerSimilarity(0.1f);
+        public const string LMJelinekMercerTitle = "Lucene.LMJelinekMercerTitle";
 
         /// <summary>
         /// LMJelinekMercerSimilarity with parameter 0.7f which is suitable for long text searches. <see cref="LMJelinekMercerSimilarity"/>
         /// </summary>
-        public static readonly Similarity LMJelinekMercerLongText = new LMJelinekMercerSimilarity(0.7f);
+        public const string LMJelinekMercerLongText = "Lucene.LMJelinekMercerLongText";
     }
 }
