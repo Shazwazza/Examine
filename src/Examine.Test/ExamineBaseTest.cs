@@ -26,18 +26,6 @@ namespace Examine.Test
         [TearDown]
         public virtual void TearDown() => _loggerFactory.Dispose();
 
-        public virtual SimilarityDefinitionCollection GetSimilarityDefinitions()
-        {
-            SimilarityDefinitionCollection collection = new SimilarityDefinitionCollection();
-            collection.AddOrUpdate(new ExamineLuceneDefaultSimilarityDefinition());
-            collection.AddOrUpdate(new LuceneClassicSimilarityDefinition());
-            collection.AddOrUpdate(new LuceneBM25imilarityDefinition());
-            collection.AddOrUpdate(new LuceneLMDirichletSimilarityDefinition());
-            collection.AddOrUpdate(new LuceneLMJelinekMercerTitleSimilarityDefinition());
-            collection.AddOrUpdate(new LuceneLMJelinekMercerLongTextSimilarityDefinition());
-            return collection;
-
-        }
 
         public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, SimilarityDefinitionCollection similarityDefinitions = null)
             => new TestIndex(
@@ -49,7 +37,7 @@ namespace Examine.Test
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
-                    SimilarityDefinitions = similarityDefinitions ?? GetSimilarityDefinitions()
+                    SimilarityDefinitions = similarityDefinitions ?? new SimilarityDefinitionCollection().AddExamineLuceneSimilarities()
                 }));
 
         public TestIndex GetTestIndex(IndexWriter writer)

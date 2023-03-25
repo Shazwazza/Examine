@@ -68,7 +68,7 @@ namespace Examine
                         options.IndexValueTypesFactory = indexValueTypesFactory;
                         options.FieldDefinitions = fieldDefinitions ?? options.FieldDefinitions;
                         options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
-                        options.SimilarityDefinitions = similarityDefinitions;
+                        options.SimilarityDefinitions = similarityDefinitions ?? new SimilarityDefinitionCollection().AddExamineLuceneSimilarities();
                     }));
 
             return serviceCollection.AddSingleton<IIndex>(services =>
