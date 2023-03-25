@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Lucene.Net.Analysis.Standard;
@@ -220,12 +221,15 @@ namespace Examine.Test.Examine.Lucene.Search
             DictionaryPerFieldSimilarityWrapper testSimilarity = new DictionaryPerFieldSimilarityWrapper(fieldSimilarities, LuceneSearchOptionsSimilarities.BM25);
 
             var sim = new LuceneSimilarityDefinition("dictionarySim", testSimilarity);
+            SimilarityDefinitionCollection similarityDefinitions = new SimilarityDefinitionCollection().AddExamineLuceneSimilarities();
+            similarityDefinitions.AddOrUpdate(sim);
+
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer))))
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)),similarityDefinitions: similarityDefinitions))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "cOntent",

@@ -1,8 +1,8 @@
-﻿using Lucene.Net.Search.Similarities;
+using Lucene.Net.Search.Similarities;
 
 namespace Examine.Lucene.Search
 {
-    public class LuceneSimilarityDefinition : SimilarityDefinition
+    public class LuceneSimilarityDefinition : LuceneSimilarityDefinitionBase
     {
         private readonly Similarity _similarity;
 
@@ -11,6 +11,6 @@ namespace Examine.Lucene.Search
             _similarity = similarity;
         }
 
-        public Similarity GetSimilarity() => _similarity;
+        public override Similarity GetSimilarity() => _similarity;
     }
 }
