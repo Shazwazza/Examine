@@ -83,7 +83,7 @@ namespace Examine.Lucene
                 {FieldDefinitionTypes.FacetDateHour, name => new DateTimeType(name, loggerFactory, DateResolution.HOUR, true, true)},
                 {FieldDefinitionTypes.FacetDateMinute, name => new DateTimeType(name, loggerFactory, DateResolution.MINUTE, true, true)},
                 {FieldDefinitionTypes.FacetFullText, name => new FullTextType(name, loggerFactory, false, true, defaultAnalyzer)},
-                {FieldDefinitionTypes.FacetFullTextSortable, name => new FullTextType(name, loggerFactory, false, true, defaultAnalyzer)},
+                {FieldDefinitionTypes.FacetFullTextSortable, name => new FullTextType(name, loggerFactory, true, true, defaultAnalyzer)},
             };
 
 
