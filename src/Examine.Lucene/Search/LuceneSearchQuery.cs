@@ -231,7 +231,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig);
 
             var pagesResults = executor.Execute();
 
@@ -319,7 +319,7 @@ namespace Examine.Lucene.Search
             {
                 values = Array.Empty<string>();
             }
-
+            var fieldValueType = _searchContext.GetFieldValueType(field);
             var facet = new FacetFullTextField(field, values, GetFacetField(field));
 
             if(facetConfiguration != null)

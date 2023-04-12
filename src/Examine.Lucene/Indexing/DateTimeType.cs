@@ -78,7 +78,7 @@ namespace Examine.Lucene.Indexing
                 upper != null ? DateToLong(upper.Value) : (long?)null, lowerInclusive, upperInclusive);
         }
 
-        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field)
-            => field.ExtractFacets(facetsCollector, sortedSetReaderState);
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

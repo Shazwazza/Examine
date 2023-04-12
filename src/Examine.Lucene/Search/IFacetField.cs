@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using Examine.Search;
-using Lucene.Net.Facet;
-using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Search
 {
@@ -18,11 +16,16 @@ namespace Examine.Lucene.Search
         string FacetField { get; }
 
         /// <summary>
+        /// Whether this field is indexed in the Taxonomy index
+        /// </summary>
+        bool IsTaxonomyIndexed { get; }
+
+        /// <summary>
         /// Extracts the facets from the field
         /// </summary>
         /// <param name="facetsCollector"></param>
         /// <param name="sortedSetReaderState"></param>
         /// <returns>Returns the facets for this field</returns>
-        IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState);
+        IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext);
     }
 }
