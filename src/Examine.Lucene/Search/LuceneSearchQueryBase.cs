@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
+using Lucene.Net.Facet.Range;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
@@ -504,7 +505,5 @@ namespace Examine.Lucene.Search
         {
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
         }
-
-
     }
 }

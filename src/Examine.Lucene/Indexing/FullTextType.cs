@@ -2,10 +2,14 @@ using System.Collections.Generic;
 using System.IO;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
@@ -20,10 +24,27 @@ namespace Examine.Lucene.Indexing
     /// do an exact match search if the term is less than 4 chars, else it will do a full text search on the phrase
     /// with a higher boost, then 
     /// </remarks>
-    public class FullTextType : IndexFieldValueTypeBase
+    public class FullTextType : IndexFieldValueTypeBase, IIndexFacetValueType
     {
         private readonly bool _sortable;
         private readonly Analyzer _analyzer;
+        private readonly bool _isFacetable;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="analyzer">
+        /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
+        /// </param>
+        /// <param name="sortable"></param>
+        public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer analyzer = null)
+            : base(fieldName, logger, true)
+        {
+            _sortable = sortable;
+            _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _isFacetable = isFacetable;
+        }
 
         /// <summary>
         /// Constructor
@@ -38,6 +59,7 @@ namespace Examine.Lucene.Indexing
         {
             _sortable = sortable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _isFacetable = false;
         }
 
         /// <summary>
@@ -60,6 +82,11 @@ namespace Examine.Lucene.Indexing
                         ExamineFieldNames.SortedFieldNamePrefix + FieldName,
                         str,
                         Field.Store.YES));
+                }
+
+                if (_isFacetable)
+                {
+                    doc.Add(new SortedSetDocValuesFacetField(FieldName, str));
                 }
             }
         }
@@ -142,5 +169,7 @@ namespace Examine.Lucene.Indexing
             return GenerateQuery(FieldName, query, _analyzer);
         }
 
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

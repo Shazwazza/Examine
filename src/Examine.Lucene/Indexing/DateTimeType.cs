@@ -1,25 +1,40 @@
 using System;
+using System.Collections.Generic;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
 {
 
-    public class DateTimeType : IndexFieldRangeValueType<DateTime>
+    public class DateTimeType : IndexFieldRangeValueType<DateTime>, IIndexFacetValueType
     {
         public DateResolution Resolution { get; }
+
+        private readonly bool _isFacetable;
 
         /// <summary>
         /// Can be sorted by the normal field name
         /// </summary>
         public override string SortableFieldName => FieldName;
 
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store, bool isFacetable)
+            : base(fieldName, logger, store)
+        {
+            Resolution = resolution;
+            _isFacetable = isFacetable;
+        }
+
         public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;
+            _isFacetable = false;
         }
 
         protected override void AddSingleValue(Document doc, object value)
@@ -29,7 +44,13 @@ namespace Examine.Lucene.Indexing
 
             var val = DateToLong(parsedVal);
 
-            doc.Add(new Int64Field(FieldName,val, Store ? Field.Store.YES : Field.Store.NO));;
+            doc.Add(new Int64Field(FieldName,val, Store ? Field.Store.YES : Field.Store.NO));
+
+            if (_isFacetable)
+            {
+                doc.Add(new SortedSetDocValuesFacetField(FieldName, val.ToString()));
+                doc.Add(new NumericDocValuesField(FieldName, val));
+            }
         }
 
         /// <summary>
@@ -56,5 +77,8 @@ namespace Examine.Lucene.Indexing
                 lower != null ? DateToLong(lower.Value) : (long?)null,
                 upper != null ? DateToLong(upper.Value) : (long?)null, lowerInclusive, upperInclusive);
         }
+
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

@@ -5,7 +5,7 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
-    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering
+    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFaceting
     {
         private readonly LuceneSearchQueryBase _search;
 
@@ -77,5 +77,7 @@ namespace Examine.Lucene.Search
         public abstract IOrdering SelectFields(ISet<string> fieldNames);
         public abstract IOrdering SelectField(string fieldName);
         public abstract IOrdering SelectAllFields();
+
+        public abstract IQueryExecutor WithFacets(Action<IFacetOperations> facets);
     }
 }

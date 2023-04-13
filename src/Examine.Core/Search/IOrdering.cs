@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Examine.Search
@@ -36,6 +37,6 @@ namespace Examine.Search
         /// Return all fields in the index
         /// </summary>
         /// <returns></returns>
-        IOrdering SelectAllFields();
+        IOrdering SelectAllFields();        
     }
 }

@@ -754,7 +754,7 @@ namespace Examine.Lucene.Providers
             }
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
-            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
+            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetsConfig.Build(doc));
         }
 
         /// <summary>
@@ -1048,7 +1048,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig);
         }
 
         /// <summary>

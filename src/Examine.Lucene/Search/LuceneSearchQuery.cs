@@ -5,6 +5,7 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Analysis;
+using Lucene.Net.Facet;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -16,14 +17,17 @@ namespace Examine.Lucene.Search
     public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
+        private readonly FacetsConfig _facetsConfig;
         private ISet<string> _fieldsToLoad = null;
+        private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
 
         public LuceneSearchQuery(
             ISearchContext searchContext,
-            string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
+            string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance, FacetsConfig facetsConfig)
             : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
         {   
             _searchContext = searchContext;
+            _facetsConfig = facetsConfig;
         }
 
         private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer, LuceneSearchOptions searchOptions)
@@ -227,7 +231,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig);
 
             var pagesResults = executor.Execute();
 
@@ -309,5 +313,74 @@ namespace Examine.Lucene.Search
 
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
+        internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField> facetConfiguration, params string[] values)
+        {
+            if(values == null)
+            {
+                values = Array.Empty<string>();
+            }
+            var fieldValueType = _searchContext.GetFieldValueType(field);
+            var facet = new FacetFullTextField(field, values, GetFacetField(field));
+
+            if(facetConfiguration != null)
+            {
+                facetConfiguration.Invoke(new FacetQueryField(facet));
+            }
+
+            _facetFields.Add(facet);
+
+            return new LuceneFacetOperation(this);
+        }
+
+        internal IFacetOperations FacetInternal(string field, params DoubleRange[] doubleRanges)
+        {
+            if(doubleRanges == null)
+            {
+                doubleRanges = Array.Empty<DoubleRange>();
+            }
+
+            var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field));
+
+            _facetFields.Add(facet);
+
+            return new LuceneFacetOperation(this);
+        }
+
+        internal IFacetOperations FacetInternal(string field, params FloatRange[] floatRanges)
+        {
+            if (floatRanges == null)
+            {
+                floatRanges = Array.Empty<FloatRange>();
+            }
+
+            var facet = new FacetFloatField(field, floatRanges, GetFacetField(field));
+
+            _facetFields.Add(facet);
+
+            return new LuceneFacetOperation(this);
+        }
+
+        internal IFacetOperations FacetInternal(string field, params Int64Range[] longRanges)
+        {
+            if(longRanges == null)
+            {
+                longRanges = Array.Empty<Int64Range>();
+            }
+
+            var facet = new FacetLongField(field, longRanges, GetFacetField(field));
+
+            _facetFields.Add(facet);
+
+            return new LuceneFacetOperation(this);
+        }
+
+        private string GetFacetField(string field)
+        {
+            if (_facetsConfig.DimConfigs.ContainsKey(field))
+            {
+                return _facetsConfig.DimConfigs[field].IndexFieldName;
+            }
+            return ExamineFieldNames.DefaultFacetsName;
+        }
     }
 }

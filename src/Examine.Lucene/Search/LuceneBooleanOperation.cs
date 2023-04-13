@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Examine.Lucene.Providers;
@@ -65,5 +66,12 @@ namespace Examine.Lucene.Search
         #endregion
 
         public override string ToString() => _search.ToString();
+
+        public override IQueryExecutor WithFacets(Action<IFacetOperations> facets)
+        {
+            var luceneFacetOperation = new LuceneFacetOperation(_search);
+            facets.Invoke(luceneFacetOperation);
+            return luceneFacetOperation;
+        }
     }
 }

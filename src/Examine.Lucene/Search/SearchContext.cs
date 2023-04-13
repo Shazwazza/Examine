@@ -40,7 +40,7 @@ namespace Examine.Lucene.Search
 
                         //exclude the special index fields
                         _searchableFields = fields
-                            .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
+                            .Where(x => !x.StartsWith(ExamineFieldNames.SpecialFieldPrefix) && !x.Equals(ExamineFieldNames.DefaultFacetsName))
                             .ToArray();
                     }
                     finally

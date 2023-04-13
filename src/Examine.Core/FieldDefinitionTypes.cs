@@ -1,4 +1,4 @@
-﻿namespace Examine
+namespace Examine
 {
     /// <summary>
     /// Contains the names of field definition types
@@ -40,5 +40,65 @@
         /// Will be indexed with an email address analyzer
         /// </summary>
         public const string EmailAddress = "emailaddress";
+
+        /// <summary>
+        /// Facetable version of <see cref="Integer"/>
+        /// </summary>
+        public const string FacetInteger = "facetint";
+
+        /// <summary>
+        /// Facetable version of <see cref="Float"/>
+        /// </summary>
+        public const string FacetFloat = "facetfloat";
+
+        /// <summary>
+        /// Facetable version of <see cref="Double"/>
+        /// </summary>
+        public const string FacetDouble = "facetdouble";
+
+        /// <summary>
+        /// Facetable version of <see cref="Long"/>
+        /// </summary>
+        public const string FacetLong = "facetlong";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateTime"/>
+        /// </summary>
+        public const string FacetDateTime = "facetdatetime";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateYear"/>
+        /// </summary>
+        public const string FacetDateYear = "facetdate.year";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateMonth"/>
+        /// </summary>
+        public const string FacetDateMonth = "facetdate.month";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateDay"/>
+        /// </summary>
+        public const string FacetDateDay = "facetdate.day";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateHour"/>
+        /// </summary>
+        public const string FacetDateHour = "facetdate.hour";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateMinute"/>
+        /// </summary>
+        public const string FacetDateMinute = "facetdate.minute";
+
+        /// <summary>
+        /// Facetable version of <see cref="FullText"/>
+        /// </summary>
+        public const string FacetFullText = "facetfulltext";
+
+        /// <summary>
+        /// Facetable version of <see cref="FullTextSortable"/>
+        /// </summary>
+        public const string FacetFullTextSortable = "facetfulltextsortable";
     }
 }

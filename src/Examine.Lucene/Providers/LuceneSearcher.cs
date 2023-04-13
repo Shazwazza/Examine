@@ -2,7 +2,7 @@ using System;
 using Examine.Lucene.Search;
 using Lucene.Net.Search;
 using Lucene.Net.Analysis;
-
+using Lucene.Net.Facet;
 
 namespace Examine.Lucene.Providers
 {
@@ -23,8 +23,8 @@ namespace Examine.Lucene.Providers
         /// <param name="writer"></param>
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
-        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
-            : base(name, analyzer)
+        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig)
+            : base(name, analyzer, facetsConfig)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;

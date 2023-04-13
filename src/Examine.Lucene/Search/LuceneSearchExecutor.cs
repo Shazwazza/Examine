@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 
@@ -19,15 +22,19 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string> _fieldsToLoad;
+        private readonly IEnumerable<IFacetField> _facetFields;
         private int? _maxDoc;
+        private readonly FacetsConfig _facetsConfig;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad)
+        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQuery = query ?? throw new ArgumentNullException(nameof(query));
             _fieldsToLoad = fieldsToLoad;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
+            _facetFields = facetFields;
+            _facetsConfig = facetsConfig;
         }
 
         private int MaxDoc
@@ -93,7 +100,17 @@ namespace Examine.Lucene.Search
 
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
-                searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
+                FacetsCollector facetsCollector;
+                if(_facetFields.Any())
+                {
+                    facetsCollector = new FacetsCollector();
+                    searcher.IndexSearcher.Search(_luceneQuery, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                }
+                else
+                {
+                    facetsCollector = null;
+                    searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
+                }
 
                 TopDocs topDocs;
                 if (sortFields.Length > 0)
@@ -114,8 +131,41 @@ namespace Examine.Lucene.Search
                     results.Add(result);
                 }
 
-                return new LuceneSearchResults(results, totalItemCount);
+                var facets = ExtractFacets(facetsCollector, searcher);
+
+                return new LuceneSearchResults(results, totalItemCount, facets);
             }
+        }
+
+        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector facetsCollector, ISearcherReference searcher)
+        {
+            var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
+            if (facetsCollector == null || !_facetFields.Any())
+            {
+                return facets;
+            }
+
+            var facetFields = _facetFields.OrderBy(field => field.FacetField);
+
+            SortedSetDocValuesReaderState sortedSetReaderState = null;
+
+            foreach(var field in facetFields)
+            {
+                var valueType = _searchContext.GetFieldValueType(field.Field);
+                if(valueType is IIndexFacetValueType facetValueType)
+                {
+                    var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
+
+                    var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
+                    foreach(var fieldFacet in fieldFacets)
+                    {
+                        // overwrite if necessary (no exceptions thrown in case of collision)
+                        facets[fieldFacet.Key] = fieldFacet.Value;
+                    }
+                }
+            }
+
+            return facets;
         }
 
         private ISearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
