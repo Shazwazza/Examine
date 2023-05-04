@@ -2729,9 +2729,27 @@ namespace Examine.Test.Examine.Lucene.Search
                         {
                             created = new DateTime(2000, 01, 05),
                             bodyText = "lorem ipsum",
-                            nodeTypeAlias = "CWS_Contact",
+                            nodeTypeAlias = "CWS_About",
                             duration = 5.5,
                             mainDuration = 5
+                        }),
+                    ValueSet.FromObject(5123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Contact",
+                            duration = 7.5,
+                            mainDuration = 9.1
+                        }),
+                    ValueSet.FromObject(6123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Unicorn",
+                            duration = 8.5,
+                            mainDuration = 9
                         })
                 });
 
@@ -2739,7 +2757,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
                     //{ 1, 3 },
                     { 4, 5 },
-                    //{ 6, 8 },
+                    { 6, 8 },
                     //{ 8, double.MaxValue },
                 };
 
@@ -2770,7 +2788,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var result = query.Execute();
 
-                Assert.AreEqual(3, result.TotalItemCount);
+                Assert.AreEqual(4, result.TotalItemCount);
             }
         }
 
