@@ -2685,8 +2685,97 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-#if NET6_0_OR_GREATER
         [Test]
+        public void Nested_Range_Query()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
+            {
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Home",
+                            duration = 2.0,
+                            mainDuration = 2.5
+                        }),
+                    ValueSet.FromObject(2123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Test",
+                            duration = 3.5,
+                            mainDuration = 5
+                        }),
+                    ValueSet.FromObject(3123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Page",
+                            duration = 4.2,
+                            mainDuration = 3
+                        }),
+                    ValueSet.FromObject(4123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "CWS_Contact",
+                            duration = 5.5,
+                            mainDuration = 5
+                        })
+                });
+
+                var durations = new Dictionary<double, double>
+                {
+                    //{ 1, 3 },
+                    { 4, 5 },
+                    //{ 6, 8 },
+                    //{ 8, double.MaxValue },
+                };
+
+                var fields = new[] { "duration", "mainDuration" };
+
+                var first = durations.First();
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery()
+                    .RangeQuery<DateTime>(new[] { "created" }, DateTime.MinValue, DateTime.MaxValue)
+                    .And()
+                    .Group(x =>
+                    {
+                        // Start with a range query for first duration range.
+                        var inner = x.RangeQuery<double>(fields, first.Key, first.Value);
+
+                        // Add range queries for next duration ranges.
+                        foreach (var duration in durations.Skip(1))
+                        {
+                            inner.Or().RangeQuery<double>(fields,
+                                duration.Key,
+                                duration.Value);
+                        }
+
+                        return inner;
+                    });
+
+                var result = query.Execute();
+
+                Assert.AreEqual(3, result.TotalItemCount);
+            }
+        }
+
+#if NET6_0_OR_GREATER
+            [Test]
         public void Range_DateOnly()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
