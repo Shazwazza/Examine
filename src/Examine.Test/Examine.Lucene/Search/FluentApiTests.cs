@@ -2686,6 +2686,103 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
         [Test]
+        public void Parse_Nested_DateRange_Query()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(
+                luceneDir,
+                analyzer,
+                new FieldDefinitionCollection(
+                    new FieldDefinition("created", "datetime"),
+                    new FieldDefinition("startDate", "datetime"),
+                    new FieldDefinition("endDate", "datetime")
+                )))
+            {
+                indexer.IndexItems(new[]
+                {
+                    ValueSet.FromObject(123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 02),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "content",
+                        }),
+                    ValueSet.FromObject(2123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 04),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "content",
+                        }),
+                    ValueSet.FromObject(3123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "content",
+                            startDate = new DateTime(2000, 01, 05),
+                            endDate = new DateTime(2000, 01, 05),
+                        }),
+                    ValueSet.FromObject(4123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "content",
+                            startDate = new DateTime(2000, 01, 05),
+                            endDate = new DateTime(2000, 01, 05),
+                        }),
+                    ValueSet.FromObject(5123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "content",
+                            startDate = new DateTime(2000, 01, 05),
+                            endDate = new DateTime(2000, 01, 05),
+                        }),
+                    ValueSet.FromObject(6123.ToString(), "content",
+                        new
+                        {
+                            created = new DateTime(2000, 01, 05),
+                            bodyText = "lorem ipsum",
+                            nodeTypeAlias = "content",
+                            startDate = new DateTime(2000, 01, 05),
+                            endDate = new DateTime(2000, 01, 05),
+                        })
+                });
+
+                var searcher = (LuceneSearcher)indexer.Searcher;
+                var searchContext = searcher.GetSearchContext();
+
+                var min = DateTime.MinValue;
+                var max = DateTime.MaxValue;
+
+                var query = searcher.CreateQuery()
+                    .RangeQuery<DateTime>(new[] { "created" }, min, max)
+                    .And()
+                    .Group(x =>
+                    {
+                        var inner = x
+                            .RangeQuery<DateTime>(new[] { "startDate" }, min, max)
+                            .Or()
+                            .RangeQuery<DateTime>(new[] { "endDate" }, min, max);
+
+                        return inner;
+                    });
+
+                var parser = new ExamineMultiFieldQueryParser(searchContext, LuceneInfo.CurrentVersion, analyzer);
+
+                var q = parser.Parse(query.ToString());
+
+                var result = query.Execute();
+
+                Assert.AreEqual($"created: [{min.Ticks} TO {max.Ticks}] +(startDate: [{min.Ticks} TO {max.Ticks}] endDate: [{min.Ticks} TO {max.Ticks}])", q.ToString());
+            }
+        }
+
+        [Test]
         public void Nested_Range_Query()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
