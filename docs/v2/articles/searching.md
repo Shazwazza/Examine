@@ -258,3 +258,72 @@ var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make q
 query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
 var results = query.Execute();
 ```
+
+### Use a Lucene Similarity
+Simliarity defines the components of Lucene scoring.
+
+See LuceneSearchOptionsSimilarities for Similarities that are available by default.
+
+- LuceneSearchOptionsSimilarities.ExamineDefault is the default Similarity used by Examine
+- LuceneSearchOptionsSimilarities.Classic is the default Similarity used by Lucene.NET 4
+- LuceneSearchOptionsSimilarities.BM25 is the default in later versions of Lucene.
+- LuceneSearchOptionsSimilarities.LMDirichlet
+- LuceneSearchOptionsSimilarities.LMJelinekMercerTitle
+- LuceneSearchOptionsSimilarities.LMJelinekMercerLongText
+
+If you require a different similarity per field, consider subclassing Examine.Lucene.Search.DictionaryPerFieldSimilarityWrapper.
+
+#### Classic/Default Similarity
+
+```csharp
+var searcher = (BaseLuceneSearcher)indexer.Searcher;
+var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
+                    {
+                        // Set Similarity
+                        SimilarityName = LuceneSearchOptionsSimilarities.Classic
+                    });
+  // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
+ .Field("Address", "Hills Rockyroad Hollywood".Escape())
+ .Execute();
+```
+
+#### BM25 Similarity
+
+```csharp
+var searcher = (BaseLuceneSearcher)indexer.Searcher;
+var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
+                    {
+                        SimilarityName = LuceneSearchOptionsSimilarities.BM25
+                    });
+  // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
+ .Field("Address", "Hills Rockyroad Hollywood".Escape())
+ .Execute();
+```
+
+
+#### Per Field Similarity Example
+
+```csharp
+Dictionary<string, Similarity> fieldSimilarities = new Dictionary<string, Similarity>(StringComparer.OrdinalIgnoreCase)
+                {
+                    // Set the title field to use the LMJelinekMercerTitle Similarity
+                    { "title", LuceneSearchOptionsSimilarities.LMJelinekMercerTitle },
+                    // Set the bodyText field to use the LMJelinekMercerLongText Similarity
+                    { "bodyText", LuceneSearchOptionsSimilarities.LMJelinekMercerLongText }
+                };
+DictionaryPerFieldSimilarityWrapper sampleSimilarity = new DictionaryPerFieldSimilarityWrapper(
+    fieldSimilarities, // Set per field similarities
+    LuceneSearchOptionsSimilarities.BM25 // Set fallback similarity for non specified fields
+    );
+var sampleSimilarityDefinition = new LuceneSimilarityDefinition("sampleSimilarity", testSimilarity);
+// Add to Similarity Definition
+SimilarityDefinitionCollection similarityDefinitions = new SimilarityDefinitionCollection().AddExamineLuceneSimilarities();
+similarityDefinitions.AddOrUpdate(sampleSimilarityDefinition);
+var searcher = (BaseLuceneSearcher)indexer.Searcher;
+var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
+                    {
+                        SimilarityName = "sampleSimilarity"
+                    });
+  // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
+ .Field("Address", "Hills Rockyroad Hollywood".Escape())
+ .Execute();
