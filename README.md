@@ -62,16 +62,18 @@ Information and downloads for Examine releases
 
 ## Documentation
 
+The [documentation site is here](https://shazwazza.github.io/Examine/index.html)
+
 _**Tip**: There are many unit tests in the source code that can be used as Examples of how to do things. There is also a test web project that has plenty of examples of how to configure indexes and search them._
 
-* [Indexing](https://shazwazza.github.io/Examine/indexing)
-* [Configuration](https://shazwazza.github.io/Examine/configuration)
-* [Searching](https://shazwazza.github.io/Examine/searching)
-* [Sorting](https://shazwazza.github.io/Examine/sorting)
+* [Indexing](https://shazwazza.github.io/Examine/articles/indexing.html)
+* [Configuration](https://shazwazza.github.io/Examine/articles/configuration.html)
+* [Searching](https://shazwazza.github.io/Examine/articles/searching.html)
+* [Sorting](https://shazwazza.github.io/Examine/articles/sorting.html)
 
 ## Copyright & Licence
 
-&copy; 2021 by Shannon Deminick
+&copy; 2023 by Shannon Deminick
 
 This is free software and is licensed under the [Microsoft Public License (Ms-PL)](http://opensource.org/licenses/MS-PL)
 
