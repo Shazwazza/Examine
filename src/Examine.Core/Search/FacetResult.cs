@@ -37,6 +37,7 @@ namespace Examine.Search
             return _dictValues[label];
         }
 
+        /// <inheritdoc/>
         public bool TryGetFacet(string label, out IFacetValue facetValue)
         {
             SetValuesDictionary();

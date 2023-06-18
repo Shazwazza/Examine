@@ -34,10 +34,12 @@ namespace Examine.Lucene.Indexing
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
+        /// <param name="logger"></param>
+        /// <param name="sortable"></param>
+        /// <param name="isFacetable"></param>
         /// <param name="analyzer">
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
-        /// <param name="sortable"></param>
         public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer analyzer = null)
             : base(fieldName, logger, true)
         {
@@ -178,6 +180,7 @@ namespace Examine.Lucene.Indexing
             return GenerateQuery(FieldName, query, _analyzer);
         }
 
+        /// <inheritdoc/>
         public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
             => field.ExtractFacets(facetExtractionContext);
     }

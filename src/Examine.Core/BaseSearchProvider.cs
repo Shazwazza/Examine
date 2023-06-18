@@ -18,12 +18,7 @@ namespace Examine
         /// <inheritdoc/>
         public string Name { get; }
 
-        /// <summary>
-        /// Searches the index
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public abstract ISearchResults Search(string searchText, QueryOptions options = null);
 
         /// <inheritdoc />

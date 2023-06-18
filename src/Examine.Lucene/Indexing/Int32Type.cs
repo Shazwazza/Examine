@@ -65,6 +65,7 @@ namespace Examine.Lucene.Indexing
                 upper, lowerInclusive, upperInclusive);
         }
 
+        /// <inheritdoc/>
         public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
             => field.ExtractFacets(facetExtractionContext);
     }

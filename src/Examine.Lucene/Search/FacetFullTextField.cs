@@ -5,20 +5,36 @@ using Lucene.Net.Facet;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Represents a full text facet field
+    /// </summary>
     public class FacetFullTextField : IFacetField
     {
+        /// <summary>
+        /// Maximum number of terms to return
+        /// </summary>
         public int MaxCount { get; internal set; }
 
+        /// <summary>
+        /// Filter values
+        /// </summary>
         public string[] Values { get; }
 
+        /// <inheritdoc/>
         public string Field { get; }
 
+        /// <inheritdoc/>
         public string FacetField { get; }
 
+        /// <summary>
+        /// Path hierachy
+        /// </summary>
         public string[] Path { get; internal set; }
 
+        /// <inheritdoc/>
         public bool IsTaxonomyIndexed { get; }
 
+        /// <inheritdoc/>
         public FacetFullTextField(string field, string[] values, string facetField, int maxCount = 10, string[] path = null, bool isTaxonomyIndexed = false)
         {
             Field = field;
@@ -29,6 +45,7 @@ namespace Examine.Lucene.Search
             IsTaxonomyIndexed = isTaxonomyIndexed;
         }
 
+        /// <inheritdoc/>
         public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
             Facets facetCounts = facetExtractionContext.GetFacetCounts(FacetField, false);

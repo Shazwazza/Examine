@@ -23,6 +23,7 @@ namespace Examine.Lucene.Providers
         /// <param name="searcherManager"></param>
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
+        /// <param name="facetsConfig"></param>
         public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig)
             : base(name, analyzer, facetsConfig)
         {

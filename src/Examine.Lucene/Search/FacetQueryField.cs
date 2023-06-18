@@ -23,6 +23,7 @@ namespace Examine.Lucene.Search
             return this;
         }
 
+        /// <inheritdoc/>
         public IFacetQueryField SetPath(params string[] path)
         {
             _field.Path = path;
