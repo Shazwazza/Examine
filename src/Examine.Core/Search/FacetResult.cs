@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Examine.Search
@@ -8,7 +9,12 @@ namespace Examine.Search
     public class FacetResult : IFacetResult
     {
         private readonly IEnumerable<IFacetValue> _values;
+#if NETSTANDARD2_1
+        [AllowNull]
         private IDictionary<string, IFacetValue> _dictValues;
+#else
+        private IDictionary<string, IFacetValue>? _dictValues;
+#endif
 
         /// <inheritdoc/>
         public FacetResult(IEnumerable<IFacetValue> values)
@@ -22,6 +28,9 @@ namespace Examine.Search
             return _values.GetEnumerator();
         }
 
+#if !NETSTANDARD2_0 && !NETSTANDARD2_1
+        [MemberNotNull(nameof(_dictValues))]
+#endif
         private void SetValuesDictionary()
         {
             if(_dictValues == null)
@@ -38,7 +47,7 @@ namespace Examine.Search
         }
 
         /// <inheritdoc/>
-        public bool TryGetFacet(string label, out IFacetValue facetValue)
+        public bool TryGetFacet(string label, out IFacetValue? facetValue)
         {
             SetValuesDictionary();
             return _dictValues.TryGetValue(label, out facetValue);

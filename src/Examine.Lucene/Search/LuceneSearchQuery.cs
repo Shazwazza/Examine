@@ -338,7 +338,7 @@ namespace Examine.Lucene.Search
         /// <returns></returns>
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField> facetConfiguration, params string[] values)
+        internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField>? facetConfiguration, params string[] values)
         {
             if(values == null)
             {

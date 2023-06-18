@@ -14,7 +14,7 @@ namespace Examine.Search
         /// <param name="field"></param>
         /// <param name="facetConfiguration"></param>
         /// <returns></returns>
-        IFacetOperations Facet(string field, Action<IFacetQueryField> facetConfiguration = null);
+        IFacetOperations Facet(string field, Action<IFacetQueryField>? facetConfiguration = null);
 
         /// <summary>
         /// Add a facet string to the current query, filtered by a single value or multiple values
@@ -23,7 +23,7 @@ namespace Examine.Search
         /// <param name="facetConfiguration"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        IFacetOperations Facet(string field, Action<IFacetQueryField> facetConfiguration = null, params string[] values);
+        IFacetOperations Facet(string field, Action<IFacetQueryField>? facetConfiguration = null, params string[] values);
 
         /// <summary>
         /// Add a range facet to the current query
