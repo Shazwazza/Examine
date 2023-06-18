@@ -207,7 +207,9 @@ if (!_examineManager.TryGetIndex(indexName, out var index))
 }
 
 index.IndexOperationComplete += IndexOperationComplete;
+```
 
+```csharp
 private void IndexOperationComplete(object sender, IndexOperationEventArgs e)
 {
     // Index operation completed
@@ -227,7 +229,9 @@ if (!_examineManager.TryGetIndex(indexName, out var index))
 }
 
 index.TransformingIndexValues += TransformingIndexValues;
+```
 
+```csharp
 private void TransformingIndexValues(object sender, IndexingItemEventArgs e)
 {
     // Customize the ValueSet
@@ -247,7 +251,9 @@ if (!_examineManager.TryGetIndex(indexName, out var index))
 }
 
 index.IndexingError += IndexingError;
+```
 
+```csharp
 private void IndexingError(object sender, IndexingErrorEventArgs e)
 {
     // An indexing error occored
@@ -271,7 +277,9 @@ if (!_examineManager.TryGetIndex(indexName, out var index))
 if (index is LuceneIndex luceneIndex){
     luceneIndex.DocumentWriting += DocumentWriting;
 }
+```
 
+```csharp
 private void DocumentWriting(object sender, DocumentWritingEventArgs e)
 {
     // Customize how the data is stored in the Lucene index
@@ -293,7 +301,9 @@ if (!_examineManager.TryGetIndex(indexName, out var index))
 if (index is LuceneIndex luceneIndex){
     luceneIndex.IndexCommitted += IndexCommited;
 }
+```
 
+```csharp
 private void IndexCommited(object sender, EventArgs e)
 {
     // Triggered when the index is commited
