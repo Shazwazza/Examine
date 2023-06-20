@@ -5,6 +5,9 @@ using Lucene.Net.Facet.Range;
 
 namespace Examine.Lucene
 {
+    /// <summary>
+    /// Extensions related to faceting
+    /// </summary>
     public static class FacetExtensions
     {
         /// <summary>

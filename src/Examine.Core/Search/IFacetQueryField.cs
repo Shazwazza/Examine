@@ -1,5 +1,8 @@
 namespace Examine.Search
 {
+    /// <summary>
+    /// Represents a facet fulltext query field
+    /// </summary>
     public interface IFacetQueryField
     {
         /// <summary>

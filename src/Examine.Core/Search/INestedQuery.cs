@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Examine.Search
 {
+    /// <summary>
+    /// Represents a nested query
+    /// </summary>
     public interface INestedQuery
     {
-
-
         /// <summary>
         /// Query on the specified field for a struct value which will try to be auto converted with the correct query
         /// </summary>

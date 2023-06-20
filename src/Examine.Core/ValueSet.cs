@@ -38,9 +38,24 @@ namespace Examine
         /// <remarks>normally used for deletions</remarks>
         public ValueSet(string id) => Id = id;
 
+        /// <summary>
+        /// Creates a value set from an object
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="category"></param>
+        /// <param name="itemType"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
         public static ValueSet FromObject(string id, string category, string itemType, object values)
             => new ValueSet(id, category, itemType, ObjectExtensions.ConvertObjectToDictionary(values));
 
+       /// <summary>
+       /// Creates a value set from an object
+       /// </summary>
+       /// <param name="id"></param>
+       /// <param name="category"></param>
+       /// <param name="values"></param>
+       /// <returns></returns>
         public static ValueSet FromObject(string id, string category, object values)
             => new ValueSet(id, category, ObjectExtensions.ConvertObjectToDictionary(values));
 
@@ -139,6 +154,10 @@ namespace Examine
             yield return i;
         }
 
+        /// <summary>
+        /// Clones the value set
+        /// </summary>
+        /// <returns></returns>
         public ValueSet Clone() => new ValueSet(Id, Category, ItemType, Values);
     }
 }

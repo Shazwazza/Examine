@@ -47,9 +47,12 @@ namespace Examine.Lucene.Providers
         ///</summary>
         public IEnumerable<LuceneSearcher> Searchers => _searchers.Value.OfType<LuceneSearcher>();
 
-        // for tests
+        /// <summary>
+        /// Are the searchers initialized
+        /// </summary>
         public bool SearchersInitialized => _searchers.IsValueCreated;
 
+        /// <inheritdoc/>
         public override ISearchContext GetSearchContext()
             => new MultiSearchContext(Searchers.Select(s => s.GetSearchContext()).ToArray());
 

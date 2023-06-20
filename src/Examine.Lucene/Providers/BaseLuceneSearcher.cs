@@ -19,6 +19,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="analyzer"></param>
+        /// <param name="facetsConfig"></param>
         protected BaseLuceneSearcher(string name, Analyzer analyzer, FacetsConfig facetsConfig)
             : base(name)
         {
@@ -33,6 +34,10 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer LuceneAnalyzer { get; }
 
+        /// <summary>
+        /// Gets the seach context
+        /// </summary>
+        /// <returns></returns>
         public abstract ISearchContext GetSearchContext();
 
         /// <inheritdoc />

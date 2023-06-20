@@ -1,43 +1,47 @@
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Facet;
 using System;
-using Examine.Lucene.Search;
 
-public class LuceneFacetExtractionContext : IFacetExtractionContext
+namespace Examine.Lucene.Search
 {
-
-    private SortedSetDocValuesReaderState _sortedSetReaderState = null;
-
-    public LuceneFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcherReference, FacetsConfig facetConfig)
+    /// <inheritdoc/>
+    public class LuceneFacetExtractionContext : IFacetExtractionContext
     {
-        FacetsCollector = facetsCollector;
-        FacetConfig = facetConfig;
-        SearcherReference = searcherReference;
-    }
 
-    /// <inheritdoc/>
-    public FacetsCollector FacetsCollector { get; }
+        private SortedSetDocValuesReaderState _sortedSetReaderState = null;
 
-    /// <inheritdoc/>
-    public FacetsConfig FacetConfig { get; }
-
-    /// <inheritdoc/>
-    public ISearcherReference SearcherReference { get; }
-
-    /// <inheritdoc/>
-    public virtual Facets GetFacetCounts(string facetIndexFieldName, bool isTaxonomyIndexed)
-    {
-        if (isTaxonomyIndexed)
+        /// <inheritdoc/>
+        public LuceneFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcherReference, FacetsConfig facetConfig)
         {
-            throw new NotSupportedException("Taxonomy Index not supported");
+            FacetsCollector = facetsCollector;
+            FacetConfig = facetConfig;
+            SearcherReference = searcherReference;
         }
-        else
+
+        /// <inheritdoc/>
+        public FacetsCollector FacetsCollector { get; }
+
+        /// <inheritdoc/>
+        public FacetsConfig FacetConfig { get; }
+
+        /// <inheritdoc/>
+        public ISearcherReference SearcherReference { get; }
+
+        /// <inheritdoc/>
+        public virtual Facets GetFacetCounts(string facetIndexFieldName, bool isTaxonomyIndexed)
         {
-            if (_sortedSetReaderState == null || !_sortedSetReaderState.Field.Equals(facetIndexFieldName))
+            if (isTaxonomyIndexed)
             {
-                _sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(SearcherReference.IndexSearcher.IndexReader, facetIndexFieldName);
+                throw new NotSupportedException("Taxonomy Index not supported");
             }
-            return new SortedSetDocValuesFacetCounts(_sortedSetReaderState, FacetsCollector);
+            else
+            {
+                if (_sortedSetReaderState == null || !_sortedSetReaderState.Field.Equals(facetIndexFieldName))
+                {
+                    _sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(SearcherReference.IndexSearcher.IndexReader, facetIndexFieldName);
+                }
+                return new SortedSetDocValuesFacetCounts(_sortedSetReaderState, FacetsCollector);
+            }
         }
     }
 }

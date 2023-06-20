@@ -1,11 +1,20 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Examine
 {
+    /// <summary>
+    /// Represents a search result
+    /// </summary>
     public interface ISearchResult
     {
+        /// <summary>
+        /// The id of the search result
+        /// </summary>
         string Id { get; }
 
+        /// <summary>
+        /// The score of the search result
+        /// </summary>
         float Score { get; }
 
         /// <summary>

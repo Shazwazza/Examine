@@ -14,6 +14,9 @@ using Microsoft.Extensions.Options;
 
 namespace Examine
 {
+    /// <summary>
+    /// Extensions for <see cref="IServiceCollection"/>
+    /// </summary>
     public static class ServicesCollectionExtensions
     {
         /// <summary>
@@ -142,6 +145,7 @@ namespace Examine
         /// Adds the Examine core services
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="appRootDirectory"></param>
         /// <returns></returns>
         public static IServiceCollection AddExamine(this IServiceCollection services, DirectoryInfo appRootDirectory = null)
         {

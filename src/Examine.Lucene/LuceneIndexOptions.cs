@@ -8,12 +8,19 @@ using Lucene.Net.Index;
 
 namespace Examine.Lucene
 {
-
+    /// <summary>
+    /// Represents options for a lucene index
+    /// </summary>
     public class LuceneIndexOptions : IndexOptions
     {
-
+        /// <summary>
+        /// THe index deletion policy
+        /// </summary>
         public IndexDeletionPolicy IndexDeletionPolicy { get; set; }
 
+        /// <summary>
+        /// The analyzer used in the index
+        /// </summary>
         public Analyzer Analyzer { get; set; }
 
         /// <summary>

@@ -2,10 +2,14 @@ using Examine.Search;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Represents a default facet query field (FullText)
+    /// </summary>
     public class FacetQueryField : IFacetQueryField
     {
         private readonly FacetFullTextField _field;
 
+        /// <inheritdoc/>
         public FacetQueryField(FacetFullTextField field)
         {
             _field = field;
@@ -19,6 +23,7 @@ namespace Examine.Lucene.Search
             return this;
         }
 
+        /// <inheritdoc/>
         public IFacetQueryField SetPath(params string[] path)
         {
             _field.Path = path;

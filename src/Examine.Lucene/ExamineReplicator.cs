@@ -26,6 +26,7 @@ namespace Examine.Lucene
         private bool _started = false;
         private readonly ILogger<ExamineReplicator> _logger;
 
+        /// <inheritdoc/>
         public ExamineReplicator(
             ILoggerFactory loggerFactory,
             LuceneIndex sourceIndex,
@@ -89,6 +90,11 @@ namespace Examine.Lucene
             _localReplicationClient.UpdateNow();
         }
 
+        /// <summary>
+        /// Starts index replication
+        /// </summary>
+        /// <param name="milliseconds"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void StartIndexReplicationOnSchedule(int milliseconds)
         {
             lock (_locker)
@@ -130,6 +136,7 @@ namespace Examine.Lucene
             _replicator.Publish(rev);
         }
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -144,6 +151,7 @@ namespace Examine.Lucene
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

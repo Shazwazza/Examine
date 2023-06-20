@@ -52,6 +52,10 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <summary>
+        /// Executes a query
+        /// </summary>
+        /// <returns></returns>
         public ISearchResults Execute()
         {
             var extractTermsSupported = CheckQueryForExtractTerms(_luceneQuery);
@@ -197,7 +201,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <summary>
-        /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
+        /// Creates the search result from a <see cref="Document"/>
         /// </summary>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>

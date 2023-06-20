@@ -34,10 +34,12 @@ namespace Examine.Lucene.Indexing
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
+        /// <param name="logger"></param>
+        /// <param name="sortable"></param>
+        /// <param name="isFacetable"></param>
         /// <param name="analyzer">
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
-        /// <param name="sortable"></param>
         public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer analyzer = null)
             : base(fieldName, logger, true)
         {
@@ -50,6 +52,7 @@ namespace Examine.Lucene.Indexing
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
+        /// <param name="logger"></param>
         /// <param name="analyzer">
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
@@ -67,8 +70,10 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
 
+        /// <inheritdoc/>
         public override Analyzer Analyzer => _analyzer;
 
+        /// <inheritdoc/>
         protected override void AddSingleValue(Document doc, object value)
         {
             if (TryConvert<string>(value, out var str))
@@ -91,6 +96,13 @@ namespace Examine.Lucene.Indexing
             }
         }
 
+        /// <summary>
+        /// Generates a full text query
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="query"></param>
+        /// <param name="analyzer"></param>
+        /// <returns></returns>
         public static Query GenerateQuery(string fieldName, string query, Analyzer analyzer)
         {
             if (query == null)
@@ -162,13 +174,13 @@ namespace Examine.Lucene.Indexing
         /// Builds a full text search query
         /// </summary>
         /// <param name="query"></param>
-        /// 
         /// <returns></returns>
         public override Query GetQuery(string query)
         {
             return GenerateQuery(FieldName, query, _analyzer);
         }
 
+        /// <inheritdoc/>
         public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
             => field.ExtractFacets(facetExtractionContext);
     }

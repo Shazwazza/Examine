@@ -17,7 +17,7 @@ namespace Examine.Lucene
         /// <summary>
         /// Create a <see cref="FieldValueTypeCollection"/>
         /// </summary>
-        /// <param name="analyzer">The default <see cref="Analyzer"/> to use for the resulting <see cref="PerFieldAnalyzerWrapper"/> used for indexing</param>
+        /// <param name="defaultAnalyzer">The default <see cref="Analyzer"/> to use for the resulting <see cref="PerFieldAnalyzerWrapper"/> used for indexing</param>
         /// <param name="valueTypeFactories">List of value type factories to initialize the collection with</param>
         /// <param name="fieldDefinitionCollection"></param>
         public FieldValueTypeCollection(

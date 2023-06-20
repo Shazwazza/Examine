@@ -8,20 +8,17 @@ namespace Examine
     ///</summary>
     public abstract class BaseSearchProvider : ISearcher
     {
+        /// <inheritdoc/>
         protected BaseSearchProvider(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
             Name = name;
         }
 
+        /// <inheritdoc/>
         public string Name { get; }
 
-        /// <summary>
-        /// Searches the index
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="maxResults"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public abstract ISearchResults Search(string searchText, QueryOptions options = null);
 
         /// <inheritdoc />
