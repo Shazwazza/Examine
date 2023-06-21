@@ -105,7 +105,7 @@ namespace Examine
                 {
                     return found.Value;
                 }
-                return default(TVal); // TODO: should this throw instead
+                throw new KeyNotFoundException();
             }
             set
             {
