@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Search;
 using Lucene.Net.Facet.Range;
@@ -265,7 +266,7 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         private LuceneBooleanOperationBase FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence, bool useQueryParser)
         {
-            Query queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
+            Query? queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
 
             if (queryToAdd != null)
                 Query.Add(queryToAdd, occurrence);
@@ -364,7 +365,7 @@ namespace Examine.Lucene.Search
         /// <param name="fieldValue"></param>
         /// <param name="useQueryParser">True to use the query parser to parse the search text, otherwise, manually create the queries</param>
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
-        protected virtual Query GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
+        protected virtual Query? GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
             if (string.IsNullOrEmpty(fieldName))
                 throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
@@ -373,7 +374,7 @@ namespace Examine.Lucene.Search
             if (string.IsNullOrEmpty(fieldValue.Value))
                 throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
 
-            Query queryToAdd;
+            Query? queryToAdd;
 
             switch (fieldValue.Examineness)
             {
@@ -409,10 +410,10 @@ namespace Examine.Lucene.Search
                     if (useQueryParser)
                     {
                         queryToAdd = _queryParser.GetFieldQueryInternal(fieldName, fieldValue.Value);
-                        //if (queryToAdd != null) // TODO: Does this ever happen? Then the method should be made with a nullable return
-                        //{
+                        if (queryToAdd != null)
+                        {
                             queryToAdd.Boost = fieldValue.Level;
-                        //}
+                        }
                     }
                     else
                     {
