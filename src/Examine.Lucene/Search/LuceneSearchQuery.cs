@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Examine.Lucene.Indexing;
+using Examine.Lucene.Scoring;
 using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Search;
@@ -16,14 +17,16 @@ namespace Examine.Lucene.Search
     public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
+        private readonly IList<IScoringProfile> _scoringProfiles;
         private ISet<string> _fieldsToLoad = null;
 
         public LuceneSearchQuery(
             ISearchContext searchContext,
-            string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
+            string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance, IList<IScoringProfile> scoringProfiles)
             : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
         {   
             _searchContext = searchContext;
+            _scoringProfiles = scoringProfiles;
         }
 
         private static CustomMultiFieldQueryParser CreateQueryParser(ISearchContext searchContext, Analyzer analyzer, LuceneSearchOptions searchOptions)
@@ -227,12 +230,24 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad);
+            var scoredQuery = ApplyScoringProfiles(query);
+
+            var executor = new LuceneSearchExecutor(options, scoredQuery, SortFields, _searchContext, _fieldsToLoad);
 
             var pagesResults = executor.Execute();
 
             return pagesResults;
-        }        
+        }
+
+        protected Query ApplyScoringProfiles(Query query)
+        {
+            foreach (var profile in _scoringProfiles)
+            {
+                query = profile.GetScoreQuery(query);
+            }
+
+            return query;
+        }
 
         /// <summary>
         /// Internal operation for adding the ordered results

@@ -1,4 +1,7 @@
 using System;
+using System.Runtime.CompilerServices;
+using Examine.Lucene.Providers;
+using Examine.Lucene.Scoring;
 using Examine.Search;
 using Lucene.Net.Search;
 
@@ -65,6 +68,18 @@ namespace Examine.Lucene.Search
                 }
             }
             throw new NotSupportedException("QueryExecutor is not Lucene.NET");
+        }
+
+        public static void AddScoringProfile(this ISearcher searcher, IScoringProfile scoringProfile)
+        {
+            if(searcher is LuceneSearcher luceneSearcher)
+            {
+                luceneSearcher.ScoringProfiles.Add(scoringProfile);
+
+                return;
+            }
+
+            throw new NotSupportedException("Searcher is not Lucene.NET");
         }
     }
 }

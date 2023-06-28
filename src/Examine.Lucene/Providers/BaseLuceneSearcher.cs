@@ -3,6 +3,8 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Examine.Lucene.Search;
 using Examine.Search;
+using System.Collections.Generic;
+using Examine.Lucene.Scoring;
 
 namespace Examine.Lucene.Providers
 {
@@ -11,17 +13,21 @@ namespace Examine.Lucene.Providers
     ///</summary>
     public abstract class BaseLuceneSearcher : BaseSearchProvider
     {
+        public IList<IScoringProfile> ScoringProfiles { get; }
+
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="name"></param>
         /// <param name="analyzer"></param>
-        protected BaseLuceneSearcher(string name, Analyzer analyzer)
+        protected BaseLuceneSearcher(string name, Analyzer analyzer, IList<IScoringProfile> scoringProfiles = null)
             : base(name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
             LuceneAnalyzer = analyzer;
+
+            ScoringProfiles = scoringProfiles ?? new List<IScoringProfile>();
         }
 
         /// <summary>
@@ -48,7 +54,7 @@ namespace Examine.Lucene.Providers
             if (luceneAnalyzer == null)
                 throw new ArgumentNullException(nameof(luceneAnalyzer));
 
-            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation);
+            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation, ScoringProfiles);
         }
 
         /// <inheritdoc />

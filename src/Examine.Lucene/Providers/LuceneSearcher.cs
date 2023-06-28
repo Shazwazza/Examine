@@ -2,7 +2,8 @@ using System;
 using Examine.Lucene.Search;
 using Lucene.Net.Search;
 using Lucene.Net.Analysis;
-
+using System.Collections.Generic;
+using Examine.Lucene.Scoring;
 
 namespace Examine.Lucene.Providers
 {
@@ -23,8 +24,8 @@ namespace Examine.Lucene.Providers
         /// <param name="writer"></param>
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
-        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
-            : base(name, analyzer)
+        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, IList<IScoringProfile> scoringProfiles = null)
+            : base(name, analyzer, scoringProfiles)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
