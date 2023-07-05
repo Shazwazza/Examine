@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -147,12 +148,23 @@ namespace Examine
 
         /// <summary>
         /// Helper method to return IEnumerable from a single
+        /// If object passed in is also enumerable
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
         private static IEnumerable<object> Yield(object i)
         {
-            yield return i;
+            if (i is IEnumerable enumerable)
+            {
+                foreach (var element in enumerable)
+                {
+                    yield return element;
+                }
+            }
+            else
+            {
+                yield return i;
+            }
         }
 
         /// <summary>
