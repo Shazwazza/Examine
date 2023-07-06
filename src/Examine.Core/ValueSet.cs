@@ -154,7 +154,11 @@ namespace Examine
         /// <returns></returns>
         private static IEnumerable<object> Yield(object i)
         {
-            if (i is IEnumerable enumerable)
+            if (i is string)
+            {
+                yield return i;
+            }
+            else if (i is IEnumerable enumerable)
             {
                 foreach (var element in enumerable)
                 {
