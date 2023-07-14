@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Examine.Lucene.Scoring;
 using Examine.Lucene.Search;
-using Examine.Test.Examine.Lucene.Search.Scoring;
+using Examine.Scoring;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 
@@ -55,7 +54,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 luceneDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("created", "datetime")),
-                scoringProfiles: new List<IScoringProfile> { new FreshnessScoringProfile("created", new TimeSpan(1, 0, 0, 0), 1.5f) }))
+                relevanceScorerDefinitions: new RelevanceScorerDefinitionCollection(
+                    new RelevanceScorerDefinition("freshness", new[] { new LuceneTimeRelevanceScorerFunctionDefintion("created", 1.5f, new TimeSpan(1, 0, 0, 0)) }))))
             {
                 indexer.IndexItems(new[]
                 {
@@ -72,7 +72,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
 
                 var numberSortedCriteria = searcher.CreateQuery()
-                    .Field("bodyText", "ipsum");
+                    .Field("bodyText", "ipsum")
+                    .ScoreWith("freshness");
 
                 var numberSortedResult = numberSortedCriteria
                     .Execute();
@@ -90,7 +91,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 luceneDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("created", "datetime")),
-                scoringProfiles: new List<IScoringProfile> { new FreshnessScoringProfile("created", new TimeSpan(1, 0, 0, 0), 1.5f) }))
+                relevanceScorerDefinitions: new RelevanceScorerDefinitionCollection(
+                    new RelevanceScorerDefinition("freshness", new[] { new LuceneTimeRelevanceScorerFunctionDefintion("created", 1.5f, new TimeSpan(1, 0, 0, 0)) }))))
             {
                 indexer.IndexItems(new[]
                 {
@@ -107,7 +109,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
 
                 var numberSortedCriteria = searcher.CreateQuery()
-                    .Field("bodyText", "ipsum");
+                    .Field("bodyText", "ipsum")
+                    .ScoreWith("freshness");
 
                 var numberSortedResult = numberSortedCriteria
                     .Execute();
@@ -125,7 +128,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 luceneDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("created", "datetime")),
-                scoringProfiles: new List<IScoringProfile> { new FreshnessScoringProfile("created", new TimeSpan(1, 0, 0, 0), 1.5f) }))
+                relevanceScorerDefinitions: new RelevanceScorerDefinitionCollection(
+                    new RelevanceScorerDefinition("freshness", new[] { new LuceneTimeRelevanceScorerFunctionDefintion("created", 1.5f, new TimeSpan(1, 0, 0, 0)) }))))
             {
                 indexer.IndexItems(new[]
                 {
@@ -142,7 +146,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
 
                 var numberSortedCriteria = searcher.CreateQuery()
-                    .Field("bodyText", "ipsum");
+                    .Field("bodyText", "ipsum")
+                    .ScoreWith("freshness");
 
                 var numberSortedResult = numberSortedCriteria
                     .Execute();
@@ -160,7 +165,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 luceneDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("created", "datetime")),
-                scoringProfiles: new List<IScoringProfile> { new FreshnessScoringProfile("created", new TimeSpan(-1, 0, 0, 0), 1.5f) }))
+                relevanceScorerDefinitions: new RelevanceScorerDefinitionCollection(
+                    new RelevanceScorerDefinition("freshness", new[] { new LuceneTimeRelevanceScorerFunctionDefintion("created", 1.5f, new TimeSpan(-1, 0, 0, 0)) }))))
             {
                 indexer.IndexItems(new[]
                 {
@@ -176,7 +182,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
 
                 var numberSortedCriteria = searcher.CreateQuery()
-                    .Field("bodyText", "ipsum");
+                    .Field("bodyText", "ipsum")
+                    .ScoreWith("freshness");
 
                 var numberSortedResult = numberSortedCriteria
                     .Execute();
@@ -194,7 +201,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 luceneDir,
                 analyzer,
                 new FieldDefinitionCollection(new FieldDefinition("created", "datetime")),
-                scoringProfiles: new List<IScoringProfile> { new FreshnessScoringProfile("created", new TimeSpan(-1, 0, 0, 0), 1.5f) }))
+                relevanceScorerDefinitions: new RelevanceScorerDefinitionCollection(
+                    new RelevanceScorerDefinition("freshness", new[] { new LuceneTimeRelevanceScorerFunctionDefintion("created", 1.5f, new TimeSpan(-1, 0, 0, 0)) }))))
             {
                 indexer.IndexItems(new[]
                 {
@@ -210,42 +218,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
 
                 var numberSortedCriteria = searcher.CreateQuery()
-                    .Field("bodyText", "ipsum");
-
-                var numberSortedResult = numberSortedCriteria
-                    .Execute();
-
-                Assert.AreEqual(0.191783011f, numberSortedResult.First().Score);
-            }
-        }
-
-        [Test]
-        public void Score_Freshness_Add_On_Searcher()
-        {
-            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
-            using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(
-                luceneDir,
-                analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("created", "datetime"))))
-            {
-                indexer.IndexItems(new[]
-                {
-                ValueSet.FromObject(123.ToString(), "content",
-                    new
-                    {
-                        created = DateTime.Now.AddDays(-2),
-                        bodyText = "lorem ipsum",
-                        nodeTypeAlias = "CWS_Home"
-                    })
-            });
-
-                var searcher = indexer.Searcher;
-
-                searcher.AddScoringProfile(new FreshnessScoringProfile("created", new TimeSpan(-1, 0, 0, 0), 1.5f));
-
-                var numberSortedCriteria = searcher.CreateQuery()
-                    .Field("bodyText", "ipsum");
+                    .Field("bodyText", "ipsum")
+                    .ScoreWith("freshness");
 
                 var numberSortedResult = numberSortedCriteria
                     .Execute();

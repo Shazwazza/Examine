@@ -8,9 +8,9 @@ namespace Examine.Lucene.Search
     public class MultiSearchContext : ISearchContext
     {
         private readonly ISearchContext[] _inner;
-        
+
         private string[] _fields;
-        
+
         public MultiSearchContext(ISearchContext[] inner) => _inner = inner;
 
         public ISearcherReference GetSearcher()
@@ -21,5 +21,6 @@ namespace Examine.Lucene.Search
         public IIndexFieldValueType GetFieldValueType(string fieldName)
             => _inner.Select(cc => cc.GetFieldValueType(fieldName)).FirstOrDefault(type => type != null);
 
+        public RelevanceScorerDefinition GetRelevanceScorer(string scorerName) => throw new System.NotImplementedException();
     }
 }

@@ -17,7 +17,7 @@ namespace Examine.Lucene.Search
         /// Converts an Examine boolean operation to a Lucene representation
         /// </summary>
         /// <param name="o">The operation.</param>
-        /// <returns>The translated Boolean operation</returns>        
+        /// <returns>The translated Boolean operation</returns>
         public static Occur ToLuceneOccurrence(this BooleanOperation o)
         {
             switch (o)
@@ -68,18 +68,6 @@ namespace Examine.Lucene.Search
                 }
             }
             throw new NotSupportedException("QueryExecutor is not Lucene.NET");
-        }
-
-        public static void AddScoringProfile(this ISearcher searcher, IScoringProfile scoringProfile)
-        {
-            if(searcher is LuceneSearcher luceneSearcher)
-            {
-                luceneSearcher.ScoringProfiles.Add(scoringProfile);
-
-                return;
-            }
-
-            throw new NotSupportedException("Searcher is not Lucene.NET");
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Examine.Test
         [TearDown]
         public virtual void TearDown() => _loggerFactory.Dispose();
 
-        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, IList<IScoringProfile> scoringProfiles = null)
+        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, RelevanceScorerDefinitionCollection relevanceScorerDefinitions = null)
             => new TestIndex(
                 _loggerFactory,
                 Mock.Of<IOptionsMonitor<LuceneDirectoryIndexOptions>>(x => x.Get(TestIndex.TestIndexName) == new LuceneDirectoryIndexOptions
@@ -36,7 +36,7 @@ namespace Examine.Test
                     Analyzer = analyzer,
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
-                    ScoreProfiles = scoringProfiles
+                    RelevanceScorerDefinitions = relevanceScorerDefinitions ?? new RelevanceScorerDefinitionCollection()
                 }));
 
         public TestIndex GetTestIndex(IndexWriter writer)

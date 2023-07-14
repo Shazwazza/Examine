@@ -21,7 +21,5 @@ namespace Examine.Lucene
         /// This is generally used to initialize any custom value types for your indexer since the value type collection cannot be modified at runtime.
         /// </summary>
         public IReadOnlyDictionary<string, IFieldValueTypeFactory> IndexValueTypesFactory { get; set; }
-
-        public IList<IScoringProfile> ScoreProfiles { get; set; }
     }
 }

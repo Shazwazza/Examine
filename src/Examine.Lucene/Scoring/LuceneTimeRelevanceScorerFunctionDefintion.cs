@@ -5,22 +5,14 @@ using Lucene.Net.Index;
 using Lucene.Net.Queries;
 using Lucene.Net.Search;
 
-namespace Examine.Test.Examine.Lucene.Search.Scoring
-{
-    public class FreshnessScoringProfile : IScoringProfile
+namespace Examine.Scoring {
+    public class LuceneTimeRelevanceScorerFunctionDefintion : TimeRelevanceScorerFunctionDefintion, ILuceneRelevanceScorerFunctionDefintion
     {
-        private readonly string _fieldName;
-        private readonly TimeSpan _duration;
-        private readonly float _boost;
-
-        public FreshnessScoringProfile(string fieldName, TimeSpan duration, float boost)
+        public LuceneTimeRelevanceScorerFunctionDefintion(string fieldName, float boost, TimeSpan boostTimeRange) : base(fieldName, boost, boostTimeRange)
         {
-            _fieldName = fieldName;
-            _duration = duration;
-            _boost = boost;
         }
 
-        public Query GetScoreQuery(Query inner) => new FreshnessScoreQuery(inner, _fieldName, _duration, _boost);
+        public Query GetScoreQuery(Query inner) => new FreshnessScoreQuery(inner, FieldName, BoostTimeRange, Boost);
     }
 
     public class FreshnessScoreQuery : CustomScoreQuery
@@ -62,7 +54,7 @@ namespace Examine.Test.Examine.Lucene.Search.Scoring
                     var end = DateTime.Now;
                     var start = end.Subtract(_duration);
 
-                    if (date > start && date < end || date < start && date > end)
+                    if ((date > start && date < end) || (date < start && date > end))
                     {
                         score *= _boost;
                     }
