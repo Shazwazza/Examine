@@ -192,3 +192,8 @@ That returns an result [`ValueSetValidationResult`](xref:Examine.ValueSetValidat
 * `Filtered` - The ValueSet has been filtered/modified by the validator and will be indexed
 
 Examine only has one implementation: [`ValueSetValidatorDelegate`](xref:Examine.Lucene.Providers.ValueSetValidatorDelegate) which can be used by developers as a simple way to create a validator based on a callback, else developers can implement this interface if required. By default, no ValueSet validation is done with Examine.
+
+
+## Luke
+Lucene.NET 4.8 is compatible with Java Luke 4.8.0, a useful tool for working with Lucene Indexes. Newer versions of Luke can't be used with Lucene.NET 4.8 indexes. 
+[Luke 4.8.0](https://github.com/DmitryKey/luke/releases/download/4.8.0/luke-with-deps.jar)
