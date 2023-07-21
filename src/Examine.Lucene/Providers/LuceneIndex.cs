@@ -1273,7 +1273,7 @@ namespace Examine.Lucene.Providers
                     //we are not terminating Lucene while it is actively writing to the index.
                     RetryUntilSuccessOrTimeout(() => _activeWrites == 0, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(1), "Timeout elapsed waiting on final writes during shutdown.");
 
-                    //close the committer, this will ensure a final commit is made if one has been queued
+                    //close the committer, this will ensure a final commit is made if one has been queued.
                     _committer.Dispose();
 
                     if (_writer != null && !_writer.IndexWriter.IsClosed)
