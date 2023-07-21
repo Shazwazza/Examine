@@ -11,7 +11,9 @@ on:
       - 'v*'
   pull_request:
     branches:
-      - '*'  
+      - 'master'
+      - 'dev'
+      - 'release/*'
 
 jobs:
   build:
@@ -90,6 +92,3 @@ jobs:
       with:
         name: examine-nuget-${{ env.GitVersion_SemVer }}
         path:  ${{ github.workspace }}/_NugetOutput/*.*
-
-    - name: Publish to GitHub Packages
-      run: dotnet nuget push "${{ github.workspace }}/_NugetOutput/*.nupkg"  --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/shazwazza/index.json"
