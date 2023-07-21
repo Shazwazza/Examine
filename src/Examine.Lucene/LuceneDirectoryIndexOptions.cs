@@ -12,7 +12,7 @@ namespace Examine.Lucene
         /// <summary>
         /// Returns the directory factory to use
         /// </summary>
-        public IDirectoryFactory DirectoryFactory { get; set; }
+        public IDirectoryFactory? DirectoryFactory { get; set; }
 
         /// <summary>
         /// If true will force unlock the index on startup

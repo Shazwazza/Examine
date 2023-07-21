@@ -23,13 +23,13 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
+        public ISearchResults Execute(QueryOptions? options = null) => _search.Execute(options);
 
         /// <inheritdoc/>
-        public IFacetOperations Facet(string field, Action<IFacetQueryField> facetConfiguration = null) => _search.FacetInternal(field, facetConfiguration, Array.Empty<string>());
+        public IFacetOperations Facet(string field, Action<IFacetQueryField>? facetConfiguration = null) => _search.FacetInternal(field, facetConfiguration, Array.Empty<string>());
 
         /// <inheritdoc/>
-        public IFacetOperations Facet(string field, Action<IFacetQueryField> facetConfiguration = null, params string[] values) => _search.FacetInternal(field, facetConfiguration, values);
+        public IFacetOperations Facet(string field, Action<IFacetQueryField>? facetConfiguration = null, params string[] values) => _search.FacetInternal(field, facetConfiguration, values);
 
         /// <inheritdoc/>
         public IFacetOperations Facet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);

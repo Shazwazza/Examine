@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Examine
@@ -10,7 +11,7 @@ namespace Examine
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TVal"></typeparam>
-    public class OrderedDictionary<TKey, TVal> : KeyedCollection<TKey, KeyValuePair<TKey, TVal>>, IDictionary<TKey, TVal>, IReadOnlyDictionary<TKey, TVal>
+    public class OrderedDictionary<TKey, TVal> : KeyedCollection<TKey, KeyValuePair<TKey, TVal>>, IDictionary<TKey, TVal>, IReadOnlyDictionary<TKey, TVal> where TKey : notnull
     {
         /// <inheritdoc/>
         public OrderedDictionary()
@@ -64,7 +65,14 @@ namespace Examine
         }
 
         /// <inheritdoc/>
-        public bool TryGetValue(TKey key, out TVal value)
+#pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
+        // Justification for warning disabled: IDictionary is missing [MaybeNullWhen(false)] in Netstandard 2.1
+        public bool TryGetValue(TKey key,
+#pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
+#if !NETSTANDARD2_0
+            [MaybeNullWhen(false)]
+#endif
+            out TVal value)
         {
             if (base.Dictionary == null)
             {
@@ -97,7 +105,7 @@ namespace Examine
                 {
                     return found.Value;
                 }
-                return default(TVal);
+                throw new KeyNotFoundException();
             }
             set
             {

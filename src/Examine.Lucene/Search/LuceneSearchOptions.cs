@@ -43,7 +43,7 @@ namespace Examine.Lucene.Search
         /// rewriting and the above points are not relevant then use this change the rewrite
         /// method.
         /// </summary>
-        public MultiTermQuery.RewriteMethod MultiTermRewriteMethod { get; set; }
+        public MultiTermQuery.RewriteMethod? MultiTermRewriteMethod { get; set; }
 
         /// <summary>
         /// Get or Set the prefix length for fuzzy queries. Default is 0.
@@ -53,12 +53,12 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Get or Set locale used by date range parsing.
         /// </summary>
-        public CultureInfo Locale { get; set; }
+        public CultureInfo? Locale { get; set; }
 
         /// <summary>
         /// Gets or Sets the time zone.
         /// </summary>
-        public TimeZoneInfo TimeZone { get; set; }
+        public TimeZoneInfo? TimeZone { get; set; }
 
         /// <summary>
         /// Gets or Sets the default slop for phrases. If zero, then exact phrase matches

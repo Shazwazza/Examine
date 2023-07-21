@@ -47,7 +47,7 @@ namespace Examine.Lucene.Search
         #endregion
 
         /// <inheritdoc/>
-        public override ISearchResults Execute(QueryOptions options = null) => _search.Execute(options);
+        public override ISearchResults Execute(QueryOptions? options = null) => _search.Execute(options);
 
         #region IOrdering
 

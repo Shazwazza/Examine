@@ -24,7 +24,7 @@ namespace Examine.Lucene.Directories
     {
         private readonly DirectoryInfo _localDir;
         private readonly ILoggerFactory _loggerFactory;
-        private ExamineReplicator _replicator;
+        private ExamineReplicator? _replicator;
 
         /// <inheritdoc/>
         public SyncedFileSystemDirectoryFactory(

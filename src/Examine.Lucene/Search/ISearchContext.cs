@@ -24,6 +24,6 @@ namespace Examine.Lucene.Search
         /// </summary>
         /// <param name="fieldName"></param>
         /// <returns></returns>
-        IIndexFieldValueType GetFieldValueType(string fieldName);
+        IIndexFieldValueType? GetFieldValueType(string fieldName);
     }
 }

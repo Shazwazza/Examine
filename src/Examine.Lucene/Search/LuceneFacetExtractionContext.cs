@@ -8,7 +8,7 @@ namespace Examine.Lucene.Search
     public class LuceneFacetExtractionContext : IFacetExtractionContext
     {
 
-        private SortedSetDocValuesReaderState _sortedSetReaderState = null;
+        private SortedSetDocValuesReaderState? _sortedSetReaderState = null;
 
         /// <inheritdoc/>
         public LuceneFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcherReference, FacetsConfig facetConfig)

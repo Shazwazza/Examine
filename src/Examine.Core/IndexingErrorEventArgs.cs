@@ -11,7 +11,7 @@ namespace Examine
     public class IndexingErrorEventArgs : EventArgs
     {
         /// <inheritdoc/>
-        public IndexingErrorEventArgs(IIndex index, string message, string itemId, Exception exception)
+        public IndexingErrorEventArgs(IIndex index, string message, string? itemId, Exception? exception)
         {
             Index = index;
             ItemId = itemId;
@@ -22,7 +22,7 @@ namespace Examine
         /// <summary>
         /// The exception of the error
         /// </summary>
-        public Exception Exception { get; }
+        public Exception? Exception { get; }
 
         /// <summary>
         /// The message of the error
@@ -37,6 +37,6 @@ namespace Examine
         /// <summary>
         /// The item id
         /// </summary>
-        public string ItemId { get; }
+        public string? ItemId { get; }
     }
 }

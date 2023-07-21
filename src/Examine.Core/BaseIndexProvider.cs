@@ -43,7 +43,7 @@ namespace Examine
         /// <summary>
         /// A validator to validate a value set before it's indexed
         /// </summary>
-        public IValueSetValidator ValueSetValidator => _indexOptions.Validator;
+        public IValueSetValidator? ValueSetValidator => _indexOptions.Validator;
 
         /// <summary>
         /// Ensures that the node being indexed is of a correct type
@@ -110,13 +110,13 @@ namespace Examine
         #region Events
 
         /// <inheritdoc />
-        public event EventHandler<IndexOperationEventArgs> IndexOperationComplete;
+        public event EventHandler<IndexOperationEventArgs>? IndexOperationComplete;
 
         /// <inheritdoc />
-        public event EventHandler<IndexingErrorEventArgs> IndexingError;
+        public event EventHandler<IndexingErrorEventArgs>? IndexingError;
 
         /// <inheritdoc />
-        public event EventHandler<IndexingItemEventArgs> TransformingIndexValues;
+        public event EventHandler<IndexingItemEventArgs>? TransformingIndexValues;
 
         #endregion
 
