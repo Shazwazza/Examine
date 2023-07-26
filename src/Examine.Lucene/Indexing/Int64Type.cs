@@ -10,16 +10,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Examine.Lucene.Indexing
 {
+    /// <summary>
+    /// Represents a Int64 <see cref="IndexFieldRangeValueType{T}"/>
+    /// </summary>
     public class Int64Type : IndexFieldRangeValueType<long>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
 
+        /// <inheritdoc/>
         public Int64Type(string fieldName, ILoggerFactory logger, bool store, bool isFacetable)
             : base(fieldName, logger, store)
         {
             _isFacetable = isFacetable;
         }
 
+        /// <inheritdoc/>
         public Int64Type(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
         {
@@ -31,6 +36,7 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         public override string SortableFieldName => FieldName;
 
+        /// <inheritdoc/>
         protected override void AddSingleValue(Document doc, object value)
         {
             if (!TryConvert(value, out long parsedVal))
@@ -45,18 +51,22 @@ namespace Examine.Lucene.Indexing
             }
         }
 
-        public override Query GetQuery(string query)
+        /// <inheritdoc/>
+        public override Query? GetQuery(string query)
         {
             return !TryConvert(query, out long parsedVal) ? null : GetQuery(parsedVal, parsedVal);
         }
 
+        /// <inheritdoc/>
         public override Query GetQuery(long? lower, long? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
             return NumericRangeQuery.NewInt64Range(FieldName,
                 lower,
                 upper, lowerInclusive, upperInclusive);
         }
-        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field)
-            => field.ExtractFacets(facetsCollector, sortedSetReaderState);
+
+        /// <inheritdoc/>
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

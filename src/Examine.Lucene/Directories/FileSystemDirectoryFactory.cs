@@ -10,14 +10,19 @@ namespace Examine.Lucene.Directories
     {
         private readonly DirectoryInfo _baseDir;
 
+        /// <inheritdoc/>
         public FileSystemDirectoryFactory(DirectoryInfo baseDir, ILockFactory lockFactory)
         {
             _baseDir = baseDir;
             LockFactory = lockFactory;
         }
 
+        /// <summary>
+        /// The factory for creating locks
+        /// </summary>
         public ILockFactory LockFactory { get; }
 
+        /// <inheritdoc/>
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var path = Path.Combine(_baseDir.FullName, luceneIndex.Name);

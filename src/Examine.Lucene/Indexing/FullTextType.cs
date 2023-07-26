@@ -34,11 +34,13 @@ namespace Examine.Lucene.Indexing
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
+        /// <param name="logger"></param>
+        /// <param name="sortable"></param>
+        /// <param name="isFacetable"></param>
         /// <param name="analyzer">
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
-        /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer analyzer = null)
+        public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer? analyzer = null)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
@@ -50,11 +52,12 @@ namespace Examine.Lucene.Indexing
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
+        /// <param name="logger"></param>
         /// <param name="analyzer">
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false)
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer? analyzer = null, bool sortable = false)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
@@ -65,10 +68,12 @@ namespace Examine.Lucene.Indexing
         /// <summary>
         /// Can be sorted by a concatenated field name since to be sortable it cannot be analyzed
         /// </summary>
-        public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
+        public override string? SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
 
+        /// <inheritdoc/>
         public override Analyzer Analyzer => _analyzer;
 
+        /// <inheritdoc/>
         protected override void AddSingleValue(Document doc, object value)
         {
             if (TryConvert<string>(value, out var str))
@@ -91,7 +96,14 @@ namespace Examine.Lucene.Indexing
             }
         }
 
-        public static Query GenerateQuery(string fieldName, string query, Analyzer analyzer)
+        /// <summary>
+        /// Generates a full text query
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="query"></param>
+        /// <param name="analyzer"></param>
+        /// <returns></returns>
+        public static Query? GenerateQuery(string fieldName, string query, Analyzer analyzer)
         {
             if (query == null)
             {
@@ -162,14 +174,14 @@ namespace Examine.Lucene.Indexing
         /// Builds a full text search query
         /// </summary>
         /// <param name="query"></param>
-        /// 
         /// <returns></returns>
-        public override Query GetQuery(string query)
+        public override Query? GetQuery(string query)
         {
             return GenerateQuery(FieldName, query, _analyzer);
         }
 
-        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState, IFacetField field)
-            => field.ExtractFacets(facetsCollector, sortedSetReaderState);
+        /// <inheritdoc/>
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

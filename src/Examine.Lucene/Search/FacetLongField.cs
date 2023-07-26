@@ -7,24 +7,38 @@ using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Represents a long facet field
+    /// </summary>
     public readonly struct FacetLongField : IFacetField
     {
+        /// <inheritdoc/>
         public string Field { get; }
 
+        /// <summary>
+        /// The long ranges
+        /// </summary>
         public Examine.Search.Int64Range[] LongRanges { get; }
 
+        /// <inheritdoc/>
         public string FacetField { get; }
 
-        public FacetLongField(string field, Examine.Search.Int64Range[] longRanges, string facetField)
+        /// <inheritdoc/>
+        public bool IsTaxonomyIndexed { get; }
+
+        /// <inheritdoc/>
+        public FacetLongField(string field, Examine.Search.Int64Range[] longRanges, string facetField, bool isTaxonomyIndexed = false)
         {
             Field = field;
             LongRanges = longRanges;
             FacetField = facetField;
+            IsTaxonomyIndexed = isTaxonomyIndexed;
         }
 
-        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState)
+        /// <inheritdoc/>
+        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
-            var longFacetCounts = new Int64RangeFacetCounts(Field, facetsCollector, LongRanges.AsLuceneRange().ToArray());
+            var longFacetCounts = new Int64RangeFacetCounts(Field, facetExtractionContext.FacetsCollector, LongRanges.AsLuceneRange().ToArray());
 
             var longFacets = longFacetCounts.GetTopChildren(0, Field);
 

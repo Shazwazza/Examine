@@ -1,3 +1,5 @@
+using System;
+
 namespace Examine
 {
     /// <summary>
@@ -5,15 +7,54 @@ namespace Examine
     /// </summary>
     public static class FieldDefinitionTypes
     {
+        /// <summary>
+        /// Will be indexed as an integer
+        /// </summary>
         public const string Integer = "int";
+
+        /// <summary>
+        /// Will be indexed as a float
+        /// </summary>
         public const string Float = "float";
+
+        /// <summary>
+        /// Will be indexed as a double
+        /// </summary>
         public const string Double = "double";
+
+        /// <summary>
+        /// Will be indexed as a long
+        /// </summary>
         public const string Long = "long";
+
+        /// <summary>
+        /// Will be indexed DateTime represented as a long
+        /// </summary>
         public const string DateTime = "datetime";
+
+        /// <summary>
+        /// Will be indexed DateTime but with precision only to the year represented as a long
+        /// </summary>
         public const string DateYear = "date.year";
+
+        /// <summary>
+        /// Will be indexed DateTime but with precision only to the month represented as a long
+        /// </summary>
         public const string DateMonth = "date.month";
+
+        /// <summary>
+        /// Will be indexed DateTime but with precision only to the day represented as a long
+        /// </summary>
         public const string DateDay = "date.day";
+
+        /// <summary>
+        /// Will be indexed DateTime but with precision only to the hour represented as a long
+        /// </summary>
         public const string DateHour = "date.hour";
+
+        /// <summary>
+        /// Will be indexed DateTime but with precision only to the minute represented as a long
+        /// </summary>
         public const string DateMinute = "date.minute";
 
         /// <summary>

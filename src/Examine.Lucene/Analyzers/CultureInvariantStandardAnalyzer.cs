@@ -18,17 +18,20 @@ namespace Examine.Lucene.Analyzers
         private readonly bool _caseInsensitive;
         private readonly bool _ignoreLanguageAccents;
 
+        /// <inheritdoc/>
         public CultureInvariantStandardAnalyzer(CharArraySet stopWords)
             : this(stopWords, true, true)
         {
             
         }
 
+        /// <inheritdoc/>
         public CultureInvariantStandardAnalyzer()
             : this(StandardAnalyzer.STOP_WORDS_SET)
         {
         }
 
+        /// <inheritdoc/>
         public CultureInvariantStandardAnalyzer(CharArraySet stopWords, bool caseInsensitive, bool ignoreLanguageAccents)
         {
             _stopWordsSet = stopWords;
@@ -36,6 +39,7 @@ namespace Examine.Lucene.Analyzers
             _ignoreLanguageAccents = ignoreLanguageAccents;
         }
 
+        /// <inheritdoc/>
         protected override TokenStreamComponents CreateComponents(
             string fieldName,
             TextReader reader)
@@ -62,6 +66,9 @@ namespace Examine.Lucene.Analyzers
             return new TokenStreamComponents(tokenizer, result);
         }
 
+        /// <summary>
+        /// Set the max allowed token length. Any token longer than this is skipped
+        /// </summary>
         public int MaxTokenLength { set; get; } = byte.MaxValue;
 
     }

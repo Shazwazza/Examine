@@ -1,30 +1,42 @@
 using Lucene.Net.Facet.Range;
-using Lucene.Net.Facet;
 using System.Collections.Generic;
 using Examine.Search;
 using System.Linq;
-using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Represents a double facet field
+    /// </summary>
     public readonly struct FacetDoubleField : IFacetField
     {
+        /// <summary>
+        /// The double ranges for the field
+        /// </summary>
         public Examine.Search.DoubleRange[] DoubleRanges { get; }
 
+        /// <inheritdoc/>
         public string Field { get; }
 
+        /// <inheritdoc/>
         public string FacetField { get; }
 
-        public FacetDoubleField(string field, Examine.Search.DoubleRange[] doubleRanges, string facetField)
+        /// <inheritdoc/>
+        public bool IsTaxonomyIndexed { get; }
+
+        /// <inheritdoc/>
+        public FacetDoubleField(string field, Examine.Search.DoubleRange[] doubleRanges, string facetField, bool isTaxonomyIndexed = false)
         {
             Field = field;
             DoubleRanges = doubleRanges;
             FacetField = facetField;
+            IsTaxonomyIndexed = isTaxonomyIndexed;
         }
 
-        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(FacetsCollector facetsCollector, SortedSetDocValuesReaderState sortedSetReaderState)
+        /// <inheritdoc/>
+        public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
-            var doubleFacetCounts = new DoubleRangeFacetCounts(Field, facetsCollector, DoubleRanges.AsLuceneRange().ToArray());
+            var doubleFacetCounts = new DoubleRangeFacetCounts(Field, facetExtractionContext.FacetsCollector, DoubleRanges.AsLuceneRange().ToArray());
 
             var doubleFacets = doubleFacetCounts.GetTopChildren(0, Field);
 

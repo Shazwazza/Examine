@@ -19,6 +19,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="name"></param>
         /// <param name="analyzer"></param>
+        /// <param name="facetsConfig"></param>
         protected BaseLuceneSearcher(string name, Analyzer analyzer, FacetsConfig facetsConfig)
             : base(name)
         {
@@ -33,10 +34,14 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer LuceneAnalyzer { get; }
 
+        /// <summary>
+        /// Gets the seach context
+        /// </summary>
+        /// <returns></returns>
         public abstract ISearchContext GetSearchContext();
 
         /// <inheritdoc />
-		public override IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And)
+		public override IQuery CreateQuery(string? category = null, BooleanOperation defaultOperation = BooleanOperation.And)
             => CreateQuery(category, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
 
         /// <summary>
@@ -47,7 +52,7 @@ namespace Examine.Lucene.Providers
         /// <param name="luceneAnalyzer"></param>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        public IQuery CreateQuery(string category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
+        public IQuery CreateQuery(string? category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null)
                 throw new ArgumentNullException(nameof(luceneAnalyzer));
@@ -56,7 +61,7 @@ namespace Examine.Lucene.Providers
         }
 
         /// <inheritdoc />
-        public override ISearchResults Search(string searchText, QueryOptions options = null)
+        public override ISearchResults Search(string searchText, QueryOptions? options = null)
         {
             var sc = CreateQuery().ManagedQuery(searchText);
             return sc.Execute(options);

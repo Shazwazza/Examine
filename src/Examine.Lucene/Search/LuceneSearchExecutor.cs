@@ -5,10 +5,8 @@ using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Facet;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Index;
-using Lucene.Net.Queries.Function.ValueSources;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -24,11 +22,12 @@ namespace Examine.Lucene.Search
         private readonly IEnumerable<SortField> _sortField;
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
-        private readonly ISet<string> _fieldsToLoad;
+        private readonly ISet<string>? _fieldsToLoad;
         private readonly IEnumerable<IFacetField> _facetFields;
         private int? _maxDoc;
+        private readonly FacetsConfig _facetsConfig;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields)
+        internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string>? fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -37,6 +36,7 @@ namespace Examine.Lucene.Search
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
             _facetFields = facetFields;
+            _facetsConfig = facetsConfig;
         }
 
         private int MaxDoc
@@ -54,6 +54,10 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <summary>
+        /// Executes a query
+        /// </summary>
+        /// <returns></returns>
         public ISearchResults Execute()
         {
             var extractTermsSupported = CheckQueryForExtractTerms(_luceneQuery);
@@ -171,13 +175,16 @@ namespace Examine.Lucene.Search
                 for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
                 {
                     var result = GetSearchResult(i, topDocs, searcher.IndexSearcher);
-                    results.Add(result);
+                    if (result != null)
+                    {
+                        results.Add(result);
+                    }
                 }
                 var searchAfterOptions = GetSearchAfterOptions(topDocs);
                 float maxScore = topDocs.MaxScore;
                 var facets = ExtractFacets(facetsCollector, searcher);
 
-                return new LuceneSearchResults(results, totalItemCount, maxScore, searchAfterOptions, facets);
+                return new LuceneSearchResults(results, totalItemCount, facets, maxScore, searchAfterOptions);
             }
         }
 
@@ -219,7 +226,7 @@ namespace Examine.Lucene.Search
             return null;
         }
 
-        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector facetsCollector, ISearcherReference searcher)
+        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector? facetsCollector, ISearcherReference searcher)
         {
             var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
             if (facetsCollector == null || !_facetFields.Any())
@@ -229,20 +236,17 @@ namespace Examine.Lucene.Search
 
             var facetFields = _facetFields.OrderBy(field => field.FacetField);
 
-            SortedSetDocValuesReaderState sortedSetReaderState = null;
+            SortedSetDocValuesReaderState? sortedSetReaderState = null;
 
             foreach (var field in facetFields)
             {
                 var valueType = _searchContext.GetFieldValueType(field.Field);
-                if(valueType is IIndexFacetValueType facetValueType)
+                if (valueType is IIndexFacetValueType facetValueType)
                 {
-                    if (field is FacetFullTextField && (sortedSetReaderState == null || !sortedSetReaderState.Field.Equals(field.FacetField)))
-                    {
-                        sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader, field.FacetField);
-                    }
+                    var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
 
-                    var fieldFacets = facetValueType.ExtractFacets(facetsCollector, sortedSetReaderState, field);
-                    foreach(var fieldFacet in fieldFacets)
+                    var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
+                    foreach (var fieldFacet in fieldFacets)
                     {
                         // overwrite if necessary (no exceptions thrown in case of collision)
                         facets[fieldFacet.Key] = fieldFacet.Value;
@@ -253,12 +257,12 @@ namespace Examine.Lucene.Search
             return facets;
         }
 
-        private ISearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
+        private ISearchResult? GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
         {
             // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
             // and from that one place "i" is always less than the size of this collection. 
             // but we'll error check here anyways
-            if (topDocs?.ScoreDocs.Length < index)
+            if (topDocs.ScoreDocs.Length < index)
             {
                 return null;
             }
@@ -282,7 +286,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <summary>
-        /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
+        /// Creates the search result from a <see cref="Document"/>
         /// </summary>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
