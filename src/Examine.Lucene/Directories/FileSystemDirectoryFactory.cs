@@ -36,6 +36,7 @@ namespace Examine.Lucene.Directories
             return dir;
         }
 
+        /// <inheritdoc/>
         protected override Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var path = Path.Combine(_baseDir.FullName, luceneIndex.Name,"taxonomy");

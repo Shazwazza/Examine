@@ -1,20 +1,29 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Examine.Search
 {
+    /// <summary>
+    /// Holds a sequence of string components, specifying the hierarchical name of a category.
+    /// </summary>
     public readonly struct FacetLabel : IFacetLabel
     {
         private readonly string[] _components;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="components">The components of this FacetLabel</param>
         public FacetLabel(string[] components)
         {
             _components = components;
         }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="dimension">The name of the dimension that stores this FacetLabel</param>
+        /// <param name="components">>The components of this FacetLabel</param>
         public FacetLabel(string dimension, string[] components)
         {
             _components = new string[1 + components.Length];
@@ -22,8 +31,10 @@ namespace Examine.Search
             Array.Copy(components, 0, _components, 1, components.Length);
         }
 
+        /// <inheritdoc/>
         public string[] Components => _components;
 
+        /// <inheritdoc/>
         public int Length => _components.Length;
 
         // From Lucene.NET

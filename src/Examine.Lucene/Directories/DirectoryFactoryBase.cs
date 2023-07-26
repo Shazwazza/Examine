@@ -23,6 +23,7 @@ namespace Examine.Lucene.Directories
         /// <inheritdoc/>
         protected abstract Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
+        /// <inheritdoc/>
         protected abstract Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
         /// <inheritdoc/>

@@ -949,11 +949,16 @@ namespace Examine.Lucene.Providers
             /// </summary>
             private const int MaxWaitMilliseconds = 300000;
 
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="index">Index to commit</param>
             public IndexCommiter(LuceneIndex index)
             {
                 _index = index;
             }
 
+            /// <inheritdoc/>
             public void CommitNow()
             {
                 _index._taxonomyWriter?.Commit();
@@ -961,6 +966,7 @@ namespace Examine.Lucene.Providers
                 _index.IndexCommitted?.Invoke(_index, EventArgs.Empty);
             }
 
+            /// <inheritdoc/>
             public void ScheduleCommit()
             {
                 lock (_locker)

@@ -67,6 +67,7 @@ namespace Examine.Lucene.Providers
             return sc.Execute(options);
         }
 
+        /// <inheritdoc/>
         public virtual void Dispose()
         {
 

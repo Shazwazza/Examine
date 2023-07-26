@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Facet.Taxonomy;
@@ -6,20 +6,31 @@ using Lucene.Net.Index;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Taxonomy Search Context
+    /// </summary>
     public class TaxonomySearchContext : ITaxonomySearchContext
     {
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private string[] _searchableFields;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="searcherManager"></param>
+        /// <param name="fieldValueTypeCollection"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public TaxonomySearchContext(SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
         {
-            _searcherManager = searcherManager;
+            _searcherManager = searcherManager ?? throw new ArgumentNullException(nameof(searcherManager));
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
         }
 
+        /// <inheritdoc/>
         public ISearcherReference GetSearcher() => new TaxonomySearcherReference(_searcherManager);
 
+        /// <inheritdoc/>
         public string[] SearchableFields
         {
             get
@@ -51,6 +62,7 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <inheritdoc/>
         public IIndexFieldValueType GetFieldValueType(string fieldName)
         {
             //Get the value type for the field, or use the default if not defined
@@ -59,6 +71,7 @@ namespace Examine.Lucene.Search
                 _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
         }
 
+        /// <inheritdoc/>
         public ITaxonomySearcherReference GetTaxonomyAndSearcher() => new TaxonomySearcherReference(_searcherManager);
     }
 }

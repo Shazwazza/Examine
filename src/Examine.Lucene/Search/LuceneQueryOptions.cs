@@ -17,7 +17,7 @@ namespace Examine.Lucene.Search
         /// <param name="trackDocumentMaxScore">Whether to track the maximum document score. For best performance, if not needed, leave false.</param>
         /// <param name="trackDocumentScores">Whether to Track Document Scores. For best performance, if not needed, leave false.</param>
         /// <param name="facetSampling">Whether to apply Facet sampling to improve performance. If not required, leave null</param>
-        public LuceneQueryOptions(int skip, int? take = null, SearchAfterOptions searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, LuceneFacetSamplingQueryOptions facetSampling = null)
+        public LuceneQueryOptions(int skip, int? take = null, SearchAfterOptions? searchAfter = null, bool trackDocumentScores = false, bool trackDocumentMaxScore = false, LuceneFacetSamplingQueryOptions? facetSampling = null)
             : base(skip, take)
         {
             TrackDocumentScores = trackDocumentScores;
@@ -39,7 +39,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Options for Searching After. Used for efficent deep paging.
         /// </summary>
-        public SearchAfterOptions SearchAfter { get; }
+        public SearchAfterOptions? SearchAfter { get; }
 
         /// <summary>
         /// Options for Lucene Facet Sampling. If not set, no Facet Sampling is applied. 
@@ -47,6 +47,6 @@ namespace Examine.Lucene.Search
         /// <remarks>
         /// Performance optimization for large sets
         /// </remarks>
-        public LuceneFacetSamplingQueryOptions FacetRandomSampling { get; }
+        public LuceneFacetSamplingQueryOptions? FacetRandomSampling { get; }
     }
 }

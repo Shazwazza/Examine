@@ -27,6 +27,14 @@ namespace Examine.Lucene
         private bool _started = false;
         private readonly ILogger<ExamineTaxonomyReplicator> _logger;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="loggerFactory"></param>
+        /// <param name="sourceIndex"></param>
+        /// <param name="destinationDirectory"></param>
+        /// <param name="destinationTaxonomyDirectory"></param>
+        /// <param name="tempStorage"></param>
         public ExamineTaxonomyReplicator(
             ILoggerFactory loggerFactory,
             LuceneIndex sourceIndex,
@@ -99,6 +107,11 @@ namespace Examine.Lucene
             _localReplicationClient.UpdateNow();
         }
 
+        /// <summary>
+        /// Starts a thread that will replicate the index on a schedule
+        /// </summary>
+        /// <param name="milliseconds">Interval</param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void StartIndexReplicationOnSchedule(int milliseconds)
         {
             lock (_locker)
@@ -140,6 +153,7 @@ namespace Examine.Lucene
             _replicator.Publish(rev);
         }
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -154,6 +168,7 @@ namespace Examine.Lucene
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
