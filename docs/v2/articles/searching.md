@@ -226,45 +226,15 @@ var query = searcher.CreateQuery()
 
 This will match for example: `test`, `tests` and `tester`
 
-## Lucene queries
 
-Find a reference to how to write Lucene queries in the [Lucene 4.8.0 docs](https://lucene.apache.org/core/4_8_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).
-
-### Native Query
-
-```csharp
-var searcher = indexer.Searcher;
-var query = searcher.CreateQuery();
-var results = query.NativeQuery("hello:world").Execute();
-```
-
-### Combine a native query and Fluent API searching.
-
-```csharp
-var searcher = indexer.Searcher;
-var query = searcher.CreateQuery();
-query.NativeQuery("hello:world");
-query.And().Field("Address", "Hills"); // Combine queries
-var results = query.Execute();
-```
-
-### Combine a custom lucene query with raw lucene query
-
-```csharp
-var searcher = indexer.Searcher;
-var query = searcher.CreateQuery();
-
-var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make query ready for extending
-query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
-var results = query.Execute();
-```
-
+## Faceting
 
 ### String Facets
 
 String facets allows for counting the documents that share the same string value. This type of faceting is possible on all faceted index type.
 
-Basic example
+#### Basic example
+
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
@@ -283,7 +253,8 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 var hillsValue = addressFacetResults.Facet("Hills"); // Gets the IFacetValue for the facet Hills
 ```
 
-Filtered value example
+#### Filtered value example
+
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
@@ -301,7 +272,8 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 var hillsValue = addressFacetResults.Facet("Hills"); // Gets the IFacetValue for the facet Hills
 ```
 
-MaxCount example
+#### MaxCount example
+
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
@@ -332,7 +304,8 @@ addressFacetResults = results.GetFacet("Address"); // Returns the facets for the
 */
 ```
 
-FacetField example
+#### FacetField example
+
 ```csharp
 // Setup
 
@@ -373,7 +346,8 @@ Numeric range facets can be used with numbers and get facets for numeric ranges.
 
 There's two categories of numeric ranges - `DoubleRanges` and `Int64Range` for double/float values and int/long/datetime values respectively.
 
-Double range example
+#### Double range example
+
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
@@ -395,7 +369,8 @@ var priceFacetResults = results.GetFacet("Price"); // Returns the facets for the
 var firstRangeValue = priceFacetResults.Facet("0-10"); // Gets the IFacetValue for the facet "0-10"
 ```
 
-Float range example
+#### Float range example
+
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
@@ -417,7 +392,8 @@ var priceFacetResults = results.GetFacet("Price"); // Returns the facets for the
 var firstRangeValue = priceFacetResults.Facet("0-10"); // Gets the IFacetValue for the facet "0-10"
 ```
 
-Int/Long range example
+#### Int/Long range example
+
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
@@ -439,7 +415,8 @@ var priceFacetResults = results.GetFacet("Price"); // Returns the facets for the
 var firstRangeValue = priceFacetResults.Facet("0-10"); // Gets the IFacetValue for the facet "0-10"
 ```
 
-DateTime range example
+#### DateTime range example
+
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
@@ -459,4 +436,37 @@ var createdFacetResults = results.GetFacet("Created"); // Returns the facets for
 */
 
 var firstRangeValue = createdFacetResults.Facet("first"); // Gets the IFacetValue for the facet "first"
+```
+
+## Lucene queries
+
+Find a reference to how to write Lucene queries in the [Lucene 4.8.0 docs](https://lucene.apache.org/core/4_8_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).
+
+### Native Query
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery();
+var results = query.NativeQuery("hello:world").Execute();
+```
+
+### Combine a native query and Fluent API searching.
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery();
+query.NativeQuery("hello:world");
+query.And().Field("Address", "Hills"); // Combine queries
+var results = query.Execute();
+```
+
+### Combine a custom lucene query with raw lucene query
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery();
+
+var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make query ready for extending
+query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
+var results = query.Execute();
 ```

@@ -277,7 +277,7 @@ services.AddExamineLuceneIndex("MyIndex",
     );
 ```
 
-**Note: See more examples of how facets configuration can be used under 'Searching'**
+**Note: See more examples of how facets configuration can be used under [Searching](xref:searching)**
 
 To explore other configuration settings see the links below:
 - [FacetsConfig API docs](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/facet/Lucene.Net.Facet.FacetsConfig.html#methods)
