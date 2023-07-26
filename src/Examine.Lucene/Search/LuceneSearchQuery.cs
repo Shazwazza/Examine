@@ -18,12 +18,13 @@ namespace Examine.Lucene.Search
     {
         private readonly ISearchContext _searchContext;
         private readonly FacetsConfig _facetsConfig;
-        private ISet<string> _fieldsToLoad = null;
+        private ISet<string>? _fieldsToLoad = null;
         private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
 
+        /// <inheritdoc/>
         public LuceneSearchQuery(
             ISearchContext searchContext,
-            string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance, FacetsConfig facetsConfig)
+            string? category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance, FacetsConfig facetsConfig)
             : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
         {   
             _searchContext = searchContext;
@@ -81,36 +82,52 @@ namespace Examine.Lucene.Search
             return parser;
         }
 
+        /// <summary>
+        /// Sets the order by of the query
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
         public virtual IBooleanOperation OrderBy(params SortableField[] fields) => OrderByInternal(false, fields);
 
+        /// <summary>
+        /// Sets the order by of the query in a descending manner
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
+        /// <inheritdoc/>
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
-        public override IBooleanOperation ManagedQuery(string query, string[] fields = null)
+        /// <inheritdoc/>
+        public override IBooleanOperation ManagedQuery(string query, string[]? fields = null)
             => ManagedQueryInternal(query, fields, Occurrence);
 
+        /// <inheritdoc/>
         public override IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
+        /// <inheritdoc/>
         protected override INestedBooleanOperation FieldNested<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
 
-        protected override INestedBooleanOperation ManagedQueryNested(string query, string[] fields = null)
+        /// <inheritdoc/>
+        protected override INestedBooleanOperation ManagedQueryNested(string query, string[]? fields = null)
             => ManagedQueryInternal(query, fields, Occurrence);
 
+        /// <inheritdoc/>
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
-        internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[] fields, Occur occurance)
+        internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[]? fields, Occur occurance)
         {
             Query.Add(new LateBoundQuery(() =>
             {
                 //if no fields are specified then use all fields
                 fields = fields ?? AllFields;
 
-                var types = fields.Select(f => _searchContext.GetFieldValueType(f)).Where(t => t != null);
+                var types = fields.Select(f => _searchContext.GetFieldValueType(f)).OfType<IIndexFieldValueType>();
 
                 //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
                 //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
@@ -196,12 +213,12 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc />
-        public ISearchResults Execute(QueryOptions options = null) => Search(options);
+        public ISearchResults Execute(QueryOptions? options = null) => Search(options);
 
         /// <summary>
         /// Performs a search with a maximum number of results
         /// </summary>
-        private ISearchResults Search(QueryOptions options)
+        private ISearchResults Search(QueryOptions? options)
         {
             // capture local
             var query = Query;
@@ -305,15 +322,23 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
+        /// <summary>
+        /// Selects all fields
+        /// </summary>
+        /// <returns></returns>
         public IBooleanOperation SelectAllFieldsInternal()
         {
             _fieldsToLoad = null;
             return CreateOp();
         }
 
+        /// <summary>
+        /// Creates a new <see cref="LuceneBooleanOperation"/>
+        /// </summary>
+        /// <returns></returns>
         protected override LuceneBooleanOperationBase CreateOp() => new LuceneBooleanOperation(this);
 
-        internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField> facetConfiguration, params string[] values)
+        internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField>? facetConfiguration, params string[] values)
         {
             if(values == null)
             {

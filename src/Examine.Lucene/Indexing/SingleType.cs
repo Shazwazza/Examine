@@ -11,11 +11,15 @@ using static Lucene.Net.Queries.Function.ValueSources.MultiFunction;
 
 namespace Examine.Lucene.Indexing
 {
+    /// <summary>
+    /// Represents a float/single <see cref="IndexFieldRangeValueType{T}"/>
+    /// </summary>
     public class SingleType : IndexFieldRangeValueType<float>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
         private readonly bool _taxonomyIndex;
 
+        /// <inheritdoc/>
         public SingleType(string fieldName, ILoggerFactory logger, bool store, bool isFacetable, bool taxonomyIndex = false)
             : base(fieldName, logger, store)
         {
@@ -23,6 +27,7 @@ namespace Examine.Lucene.Indexing
             _taxonomyIndex = taxonomyIndex;
         }
 
+        /// <inheritdoc/>
         public SingleType(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
         {
@@ -37,6 +42,7 @@ namespace Examine.Lucene.Indexing
         /// <inheritdoc/>
         public bool IsTaxonomyFaceted => _taxonomyIndex;
 
+        /// <inheritdoc/>
         public override void AddValue(Document doc, object value)
         {
             // Support setting taxonomy path
@@ -75,11 +81,13 @@ namespace Examine.Lucene.Indexing
             }
         }
 
-        public override Query GetQuery(string query)
+        /// <inheritdoc/>
+        public override Query? GetQuery(string query)
         {
             return !TryConvert(query, out float parsedVal) ? null : GetQuery(parsedVal, parsedVal);
         }
 
+        /// <inheritdoc/>
         public override Query GetQuery(float? lower, float? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
             return NumericRangeQuery.NewDoubleRange(FieldName,
@@ -87,6 +95,7 @@ namespace Examine.Lucene.Indexing
                 upper ?? float.MaxValue, lowerInclusive, upperInclusive);
         }
 
+        /// <inheritdoc/>
         public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
             => field.ExtractFacets(facetExtractionContext);
     }

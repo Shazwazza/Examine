@@ -5,7 +5,7 @@ using Directory = Lucene.Net.Store.Directory;
 namespace Examine.Lucene.Directories
 {
     /// <summary>
-    /// Creates a Lucene <see cref="Lucene.Net.Store.Directory"/> for an index
+    /// Creates a Lucene <see cref="Directory"/> for an index
     /// </summary>
     /// <remarks>
     /// The directory created must only be created ONCE per index and disposed when the factory is disposed.

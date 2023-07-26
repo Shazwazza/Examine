@@ -5,11 +5,13 @@ using Lucene.Net.Facet.Taxonomy;
 
 namespace Examine.Lucene.Search
 {
+    /// <inheritdoc/>
     public class LuceneFacetExtractionContext : IFacetExtractionContext
     {
 
-        private SortedSetDocValuesReaderState _sortedSetReaderState = null;
+        private SortedSetDocValuesReaderState? _sortedSetReaderState = null;
 
+        /// <inheritdoc/>
         public LuceneFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcherReference, FacetsConfig facetConfig)
         {
             FacetsCollector = facetsCollector;

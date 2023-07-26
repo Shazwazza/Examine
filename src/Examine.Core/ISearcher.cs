@@ -7,15 +7,18 @@ namespace Examine
     /// </summary>
     public interface ISearcher
     {
+        /// <summary>
+        /// The searchers name
+        /// </summary>
         string Name { get; }
 
         /// <summary>
         /// Searches the index
         /// </summary>
         /// <param name="searchText">The search text or a native query</param>
-        /// <param name="maxResults"></param>
+        /// <param name="options"></param>
         /// <returns>Search Results</returns>
-        ISearchResults Search(string searchText, QueryOptions options = null);
+        ISearchResults Search(string searchText, QueryOptions? options = null);
 
         /// <summary>
         /// Creates a search criteria instance as required by the implementation
@@ -25,6 +28,6 @@ namespace Examine
         /// <returns>
         /// An instance of <see cref="IQueryExecutor"/>
         /// </returns>
-        IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And);
+        IQuery CreateQuery(string? category = null, BooleanOperation defaultOperation = BooleanOperation.And);
     }
 }

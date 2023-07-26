@@ -3,6 +3,9 @@ using Examine.Search;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Represents a base facet field
+    /// </summary>
     public interface IFacetField
     {
         /// <summary>
@@ -23,8 +26,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Extracts the facets from the field
         /// </summary>
-        /// <param name="facetsCollector"></param>
-        /// <param name="sortedSetReaderState"></param>
+        /// <param name="facetExtractionContext"></param>
         /// <returns>Returns the facets for this field</returns>
         IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext);
     }

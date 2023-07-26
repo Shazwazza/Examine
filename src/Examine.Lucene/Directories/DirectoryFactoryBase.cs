@@ -4,6 +4,7 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
+    /// <inheritdoc/>
     public abstract class DirectoryFactoryBase : IDirectoryFactory
     {
         private readonly ConcurrentDictionary<string, Directory> _createdDirectories = new ConcurrentDictionary<string, Directory>();
@@ -19,10 +20,12 @@ namespace Examine.Lucene.Directories
                 luceneIndex.Name + "_taxonomy",
                 s => CreateTaxonomyDirectory(luceneIndex, forceUnlock));
 
+        /// <inheritdoc/>
         protected abstract Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
         protected abstract Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -39,6 +42,7 @@ namespace Examine.Lucene.Directories
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

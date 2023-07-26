@@ -7,7 +7,7 @@ namespace Examine.Lucene.Directories
     /// <summary>
     /// Lock that wraps multiple locks
     /// </summary>
-    
+
     internal class MultiIndexLock : Lock
     {
         private readonly Lock _dirMaster;
@@ -28,7 +28,7 @@ namespace Examine.Lucene.Directories
         /// <returns>
         /// true iff exclusive access is obtained
         /// </returns>
-        
+
         public override bool Obtain()
         {
             var master = _dirMaster.Obtain();
@@ -54,7 +54,7 @@ namespace Examine.Lucene.Directories
                         isChild = true;
                         _dirChild.Dispose();
                     }
-                    catch (System.Exception ex2)
+                    catch (System.Exception)
                     {
                         //if an error occurs above for the master still attempt to release child
                         if (!isChild)
@@ -70,9 +70,9 @@ namespace Examine.Lucene.Directories
 
         /// <summary>
         /// Returns true if the resource is currently locked.  Note that one must
-        ///             still call <see cref="M:Lucene.Net.Store.Lock.Obtain"/> before using the resource. 
+        ///             still call <see cref="M:Lucene.Net.Store.Lock.Obtain"/> before using the resource.
         /// </summary>
-        
+
         public override bool IsLocked()
         {
             return _dirMaster.IsLocked() || _dirChild.IsLocked();

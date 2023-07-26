@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Indexing;
@@ -27,7 +28,17 @@ namespace Examine.Lucene
                 valueTypeFactories,
                 StringComparer.InvariantCultureIgnoreCase);
 
-        public bool TryGetFactory(string valueTypeName, out IFieldValueTypeFactory fieldValueTypeFactory)
+        /// <summary>
+        /// Try get for the factory
+        /// </summary>
+        /// <param name="valueTypeName"></param>
+        /// <param name="fieldValueTypeFactory"></param>
+        /// <returns></returns>
+        public bool TryGetFactory(string valueTypeName,
+#if !NETSTANDARD2_0
+            [MaybeNullWhen(false)]
+#endif
+            out IFieldValueTypeFactory fieldValueTypeFactory)
             => _valueTypeFactories.TryGetValue(valueTypeName, out fieldValueTypeFactory);
 
         /// <summary>
@@ -43,6 +54,9 @@ namespace Examine.Lucene
             return fieldValueTypeFactory;
         }
 
+        /// <summary>
+        /// The ammount of key/value pairs in the collection
+        /// </summary>
         public int Count => _valueTypeFactories.Count;
 
         /// <summary>
@@ -52,7 +66,7 @@ namespace Examine.Lucene
         public static IReadOnlyDictionary<string, IFieldValueTypeFactory> GetDefaultValueTypes(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer)
             => GetDefaults(loggerFactory, defaultAnalyzer).ToDictionary(x => x.Key, x => (IFieldValueTypeFactory)new DelegateFieldValueTypeFactory(x.Value));
 
-        private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(ILoggerFactory loggerFactory, Analyzer defaultAnalyzer = null) =>
+        private static IReadOnlyDictionary<string, Func<string, IIndexFieldValueType>> GetDefaults(ILoggerFactory loggerFactory, Analyzer? defaultAnalyzer = null) =>
             new Dictionary<string, Func<string, IIndexFieldValueType>>(StringComparer.InvariantCultureIgnoreCase) //case insensitive
             {
                 {"number", name => new Int32Type(name, loggerFactory)},
@@ -99,9 +113,11 @@ namespace Examine.Lucene
                 };
 
 
+        /// <inheritdoc/>
         public IEnumerator<KeyValuePair<string, IFieldValueTypeFactory>> GetEnumerator()
             => _valueTypeFactories.GetEnumerator();
 
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
     }

@@ -20,9 +20,10 @@ namespace Examine.Lucene.Providers
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="writer"></param>
+        /// <param name="searcherManager"></param>
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
+        /// <param name="facetsConfig"></param>
         public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig)
             : base(name, analyzer, facetsConfig)
         {
@@ -30,9 +31,11 @@ namespace Examine.Lucene.Providers
             _fieldValueTypeCollection = fieldValueTypeCollection;
         }
 
+        /// <inheritdoc/>
         public override ISearchContext GetSearchContext()
             => new SearchContext(_searcherManager, _fieldValueTypeCollection);
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -46,6 +49,7 @@ namespace Examine.Lucene.Providers
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

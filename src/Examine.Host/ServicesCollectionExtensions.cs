@@ -14,6 +14,9 @@ using Microsoft.Extensions.Options;
 
 namespace Examine
 {
+    /// <summary>
+    /// Extensions for <see cref="IServiceCollection"/>
+    /// </summary>
     public static class ServicesCollectionExtensions
     {
 
@@ -23,11 +26,11 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex(
             this IServiceCollection serviceCollection,
             string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
-            FacetsConfig facetsConfig = null)
+            FieldDefinitionCollection? fieldDefinitions = null,
+            Analyzer? analyzer = null,
+            IValueSetValidator? validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null,
+            FacetsConfig? facetsConfig = null)
             => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, facetsConfig);
 
         /// <summary>
@@ -36,11 +39,11 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex>(
             this IServiceCollection serviceCollection,
             string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
-            FacetsConfig facetsConfig = null)
+            FieldDefinitionCollection? fieldDefinitions = null,
+            Analyzer? analyzer = null,
+            IValueSetValidator? validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null,
+            FacetsConfig? facetsConfig = null)
             where TIndex : LuceneIndex
             => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, facetsConfig);
 
@@ -50,11 +53,11 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
             this IServiceCollection serviceCollection,
             string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null,
-            FacetsConfig facetsConfig = null)
+            FieldDefinitionCollection? fieldDefinitions = null,
+            Analyzer? analyzer = null,
+            IValueSetValidator? validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null,
+            FacetsConfig? facetsConfig = null)
             where TIndex : LuceneIndex
             where TDirectoryFactory : class, IDirectoryFactory
         {
@@ -149,8 +152,9 @@ namespace Examine
         /// Adds the Examine core services
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="appRootDirectory"></param>
         /// <returns></returns>
-        public static IServiceCollection AddExamine(this IServiceCollection services, DirectoryInfo appRootDirectory = null)
+        public static IServiceCollection AddExamine(this IServiceCollection services, DirectoryInfo? appRootDirectory = null)
         {
             services.TryAddSingleton<IApplicationRoot, CurrentEnvironmentApplicationRoot>();
             services.TryAddSingleton<IExamineManager, ExamineManager>();

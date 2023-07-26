@@ -8,20 +8,24 @@ using Lucene.Net.Search;
 namespace Examine.Lucene.Search
 {
 
+    /// <inheritdoc/>
     public class SearchContext : ISearchContext
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
-        private string[] _searchableFields;
+        private string[]? _searchableFields;
 
+        /// <inheritdoc/>
         public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
         {
             _searcherManager = searcherManager;            
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
         }
 
+        /// <inheritdoc/>
         public ISearcherReference GetSearcher() => new SearcherReference(_searcherManager);
 
+        /// <inheritdoc/>
         public string[] SearchableFields
         {
             get
@@ -53,6 +57,7 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <inheritdoc/>
         public IIndexFieldValueType GetFieldValueType(string fieldName)
         {
             //Get the value type for the field, or use the default if not defined

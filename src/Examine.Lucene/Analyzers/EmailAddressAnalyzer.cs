@@ -10,6 +10,7 @@ namespace Examine.Lucene.Analyzers
     /// </summary>
     public class EmailAddressAnalyzer : Analyzer
     {
+        /// <inheritdoc/>
         protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
         {
             Tokenizer tokenizer = new EmailAddressTokenizer(reader);

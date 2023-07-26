@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace Examine
 {
-    /// <inheritdoc />
     /// <summary>
     /// Base class for an Examine Index Provider
     /// </summary>
@@ -18,9 +17,9 @@ namespace Examine
         /// <summary>
         /// Constructor for creating an indexer at runtime
         /// </summary>
+        /// <param name="loggerFactory"></param>
         /// <param name="name"></param>
-        /// <param name="fieldDefinitions"></param>
-        /// <param name="validator"></param>
+        /// <param name="indexOptions"></param>
         protected BaseIndexProvider(ILoggerFactory loggerFactory, string name,
             IOptionsMonitor<IndexOptions> indexOptions)
         {
@@ -33,13 +32,18 @@ namespace Examine
             _indexOptions = indexOptions.GetNamedOptions(name);
         }
 
+        /// <summary>
+        /// The factory used to create instances of <see cref="ILogger"/>.
+        /// </summary>
         protected ILoggerFactory LoggerFactory { get; }
+
+        /// <inheritdoc/>
         public virtual string Name { get; }
 
         /// <summary>
         /// A validator to validate a value set before it's indexed
         /// </summary>
-        public IValueSetValidator ValueSetValidator => _indexOptions.Validator;
+        public IValueSetValidator? ValueSetValidator => _indexOptions.Validator;
 
         /// <summary>
         /// Ensures that the node being indexed is of a correct type
@@ -73,11 +77,11 @@ namespace Examine
 
         #region IIndex members
 
+        /// <inheritdoc/>
         public abstract ISearcher Searcher { get; }
 
-        /// <inheritdoc />
         /// <summary>
-        /// Validates the items and calls <see cref="M:Examine.Providers.BaseIndexProvider.PerformIndexItems(System.Collections.Generic.IEnumerable{Examine.ValueSet})" />
+        /// Validates the items and calls <see cref="PerformIndexItems(IEnumerable{ValueSet}, Action{IndexOperationEventArgs})"/>
         /// </summary>
         /// <param name="values"></param>
         public void IndexItems(IEnumerable<ValueSet> values)
@@ -91,21 +95,14 @@ namespace Examine
         public void DeleteFromIndex(IEnumerable<string> itemIds)
             => PerformDeleteFromIndex(itemIds, OnIndexOperationComplete);
 
-        /// <summary>
-        /// Creates a new index, any existing index will be deleted
-        /// </summary>
+        /// <inheritdoc/>
         public abstract void CreateIndex();
 
-        /// <summary>
-        /// Returns the mappings for field types to index field types
-        /// </summary>
+        /// <inheritdoc/>
         public ReadOnlyFieldDefinitionCollection FieldDefinitions =>
             _indexOptions.FieldDefinitions ?? new FieldDefinitionCollection();
 
-        /// <summary>
-        /// Check if the index exists
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public abstract bool IndexExists();
 
         #endregion
@@ -113,24 +110,28 @@ namespace Examine
         #region Events
 
         /// <inheritdoc />
-        public event EventHandler<IndexOperationEventArgs> IndexOperationComplete;
+        public event EventHandler<IndexOperationEventArgs>? IndexOperationComplete;
 
         /// <inheritdoc />
-        public event EventHandler<IndexingErrorEventArgs> IndexingError;
+        public event EventHandler<IndexingErrorEventArgs>? IndexingError;
 
         /// <inheritdoc />
-        public event EventHandler<IndexingItemEventArgs> TransformingIndexValues;
+        public event EventHandler<IndexingItemEventArgs>? TransformingIndexValues;
 
         #endregion
 
         #region Protected Event callers
 
+        /// <summary>
+        /// Run when a index operation completes
+        /// </summary>
+        /// <param name="e"></param>
         protected void OnIndexOperationComplete(IndexOperationEventArgs e) => IndexOperationComplete?.Invoke(this, e);
 
         /// <summary>
-        /// Raises the <see cref="E:IndexingError"/> event.
+        /// Raises the <see cref="IndexingError"/> event.
         /// </summary>
-        /// <param name="e">The <see cref="Examine.IndexingErrorEventArgs"/> instance containing the event data.</param>
+        /// <param name="e">The <see cref="IndexingErrorEventArgs"/> instance containing the event data.</param>
         protected virtual void OnIndexingError(IndexingErrorEventArgs e)
         {
             _logger.LogError(e.Exception, e.Message);
@@ -138,7 +139,7 @@ namespace Examine
         }
 
         /// <summary>
-        /// Raises the <see cref="E:TransformingIndexValues"/> event.
+        /// Raises the <see cref="TransformingIndexValues"/> event.
         /// </summary>
         /// <param name="e">The <see cref="IndexingItemEventArgs"/> instance containing the event data.</param>
         protected virtual void OnTransformingIndexValues(IndexingItemEventArgs e) =>

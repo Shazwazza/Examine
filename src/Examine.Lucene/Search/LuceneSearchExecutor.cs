@@ -24,12 +24,12 @@ namespace Examine.Lucene.Search
         private readonly IEnumerable<SortField> _sortField;
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
-        private readonly ISet<string> _fieldsToLoad;
+        private readonly ISet<string>? _fieldsToLoad;
         private readonly IEnumerable<IFacetField> _facetFields;
         private readonly FacetsConfig _facetsConfig;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
+        internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
             ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
@@ -57,6 +57,10 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <summary>
+        /// Executes a query
+        /// </summary>
+        /// <returns></returns>
         public ISearchResults Execute()
         {
             var extractTermsSupported = CheckQueryForExtractTerms(_luceneQuery);
@@ -178,13 +182,16 @@ namespace Examine.Lucene.Search
                 for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
                 {
                     var result = GetSearchResult(i, topDocs, searcher.IndexSearcher);
-                    results.Add(result);
+                    if (result != null)
+                    {
+                        results.Add(result);
+                    }
                 }
                 var searchAfterOptions = GetSearchAfterOptions(topDocs);
                 float maxScore = topDocs.MaxScore;
                 var facets = ExtractFacets(facetsCollector, searcher);
 
-                return new LuceneSearchResults(results, totalItemCount, maxScore, searchAfterOptions, facets);
+                return new LuceneSearchResults(results, totalItemCount, facets, maxScore, searchAfterOptions);
             }
         }
 
@@ -226,7 +233,7 @@ namespace Examine.Lucene.Search
             return null;
         }
 
-        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector facetsCollector, ISearcherReference searcher)
+        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector? facetsCollector, ISearcherReference searcher)
         {
             var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
             if (facetsCollector == null || !_facetFields.Any())
@@ -243,7 +250,7 @@ namespace Examine.Lucene.Search
             foreach (var field in facetFields)
             {
                 var valueType = _searchContext.GetFieldValueType(field.Field);
-                if(valueType is IIndexFacetValueType facetValueType)
+                if (valueType is IIndexFacetValueType facetValueType)
                 {
                     var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
 
@@ -259,12 +266,12 @@ namespace Examine.Lucene.Search
             return facets;
         }
 
-        private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
+        private LuceneSearchResult? GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
         {
             // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
             // and from that one place "i" is always less than the size of this collection. 
             // but we'll error check here anyways
-            if (topDocs?.ScoreDocs.Length < index)
+            if (topDocs.ScoreDocs.Length < index)
             {
                 return null;
             }
@@ -288,7 +295,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <summary>
-        /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
+        /// Creates the search result from a <see cref="Document"/>
         /// </summary>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>

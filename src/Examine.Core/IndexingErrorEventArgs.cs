@@ -5,10 +5,13 @@ using System.Text;
 
 namespace Examine
 {
+    /// <summary>
+    /// Indexing error event arguments
+    /// </summary>
     public class IndexingErrorEventArgs : EventArgs
     {
-
-        public IndexingErrorEventArgs(IIndex index, string message, string itemId, Exception exception)
+        /// <inheritdoc/>
+        public IndexingErrorEventArgs(IIndex index, string message, string? itemId, Exception? exception)
         {
             Index = index;
             ItemId = itemId;
@@ -16,9 +19,24 @@ namespace Examine
             Exception = exception;
         }
 
-        public Exception Exception { get; }
+        /// <summary>
+        /// The exception of the error
+        /// </summary>
+        public Exception? Exception { get; }
+
+        /// <summary>
+        /// The message of the error
+        /// </summary>
         public string Message { get; }
+
+        /// <summary>
+        /// The index where the error originated
+        /// </summary>
         public IIndex Index { get; }
-        public string ItemId { get; }
+
+        /// <summary>
+        /// The item id
+        /// </summary>
+        public string? ItemId { get; }
     }
 }
