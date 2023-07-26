@@ -96,7 +96,17 @@ namespace Examine.Lucene.Search
             maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
             int numHits = maxResults;
 
+            ICollector topDocsCollector;
             SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
+            if (sortFields.Length > 0)
+            {
+                topDocsCollector = TopFieldCollector.Create(
+                    new Sort(sortFields), maxResults, false, false, false, false);
+            }
+            else
+            {
+                topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
+            }
             Sort sort = null;
             FieldDoc scoreDocAfter = null;
             Filter filter = null;
@@ -117,8 +127,6 @@ namespace Examine.Lucene.Search
                     numHits = _options.Take >= 1 ? _options.Take : QueryOptions.DefaultMaxResults;
                 }
 
-                TopDocs topDocs;
-                ICollector topDocsCollector;
                 bool trackMaxScore = _luceneQueryOptions == null ? false : _luceneQueryOptions.TrackDocumentMaxScore;
                 bool trackDocScores = _luceneQueryOptions == null ? false : _luceneQueryOptions.TrackDocumentScores;
 

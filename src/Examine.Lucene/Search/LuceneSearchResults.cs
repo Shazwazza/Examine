@@ -8,7 +8,7 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Represents the search results of a query
     /// </summary>
-    public class LuceneSearchResults : ISearchResults, ILuceneSearchResults, IFacetResults
+    public class LuceneSearchResults : ILuceneSearchResults, IFacetResults
     {
         private readonly IReadOnlyDictionary<string, IFacetResult> _noFacets = new Dictionary<string, IFacetResult>(0, StringComparer.InvariantCultureIgnoreCase);
 
