@@ -115,6 +115,18 @@ These are the default field value types provided with Examine. Each value type c
 | EmailAddress               | Uses custom analyzers for dealing <br />with email address searching.                                                                                                                      | ❌           |
 | InvariantCultureIgnoreCase | Uses custom analyzers for dealing with text so it<br /> can be searched on regardless of the culture/casing.                                                                               | ❌           |
 | Raw                        | Will be indexed without analysis, searching will<br /> only match with an exact value.                                                                                                     | ❌           |
+| FacetFullText                   | The field will be indexed with the index's <br />default Analyzer without any sortability. <br />Generally this is fine for normal text searching.                                  | ❌           | ✅           |
+| FacetFullTextSortable           | Will be indexed with FullText but also <br />enable sorting on this field for search results. <br />_FullText sortability adds additional overhead <br />since it requires an additional index field._ | ✅           | ✅           |
+| FacetInteger                    | Stored as a numerical structure.                                                                                                                                                     | ✅           | ✅           |
+| FacetFloat                      | Stored as a numerical structure.                                                                                                                                                     | ✅           | ✅           |
+| FacetDouble                     | Stored as a numerical structure.                                                                                                                                                     | ✅           | ✅           |
+| FacetLong                       | Stored as a numerical structure.                                                                                                                                                     | ✅           | ✅           |
+| FacetDateTime                   | Stored as a DateTime, <br />represented by a numerical structure.                                                                                                                          | ✅           | ✅           |
+| FacetDateYear                   | Just like DateTime but with <br />precision only to the year.                                                                                                                              | ✅           | ✅           |
+| FacetDateMonth                  | Just like DateTime but with <br />precision only to the month.                                                                                                                             | ✅           | ✅           |
+| FacetDateDay                    | Just like DateTime but with <br />precision only to the day.                                                                                                                               | ✅           | ✅           |
+| FacetDateHour                   | Just like DateTime but with <br />precision only to the hour.                                                                                                                              | ✅           | ✅           |
+| FacetDateMinute                 | Just like DateTime but with <br />precision only to the minute.                                                                                                                            | ✅           | ✅           |
 
 ### Custom field value types
 
@@ -192,3 +204,35 @@ That returns an result [`ValueSetValidationResult`](xref:Examine.ValueSetValidat
 * `Filtered` - The ValueSet has been filtered/modified by the validator and will be indexed
 
 Examine only has one implementation: [`ValueSetValidatorDelegate`](xref:Examine.Lucene.Providers.ValueSetValidatorDelegate) which can be used by developers as a simple way to create a validator based on a callback, else developers can implement this interface if required. By default, no ValueSet validation is done with Examine.
+
+## Facets configuration
+
+When using the facets feature it's possible to add facets configuration to change the behavior of the indexing.
+
+For example, you can allow multiple values in an indexed field with the configuration below.
+```csharp
+// Create a config
+var facetsConfig = new FacetsConfig();
+
+// Set field to be able to contain multiple values (This is default for a field in Examine. But you only need this if you are actually using multiple values for a single field)
+facetsConfig.SetMultiValued("MultiIdField", true);
+
+services.AddExamineLuceneIndex("MyIndex",
+    // Set the indexing of your fields to use the facet type
+    fieldDefinitions: new FieldDefinitionCollection(
+        new FieldDefinition("Timestamp", FieldDefinitionTypes.FacetDateTime),
+
+        new FieldDefinition("MultiIdField", FieldDefinitionTypes.FacetFullText)
+        ),
+    // Pass your config
+    facetsConfig: facetsConfig
+    );
+```
+
+Without this configuration for multiple values, you'll notice that your faceted search breaks or behaves differently than expected.
+
+**Note: See more examples of how facets configuration can be used under 'Searching'**
+
+To explore other configuration settings see the links below:
+- [FacetsConfig API docs](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/facet/Lucene.Net.Facet.FacetsConfig.html#methods)
+- [Facets with lucene](https://norconex.com/facets-with-lucene/). See how the config is used in the code examples.
