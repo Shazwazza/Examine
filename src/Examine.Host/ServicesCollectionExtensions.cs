@@ -90,6 +90,50 @@ namespace Examine
         }
 
         /// <summary>
+        /// Registers an Examine index
+        /// </summary>
+        public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection? fieldDefinitions = null,
+            Analyzer? analyzer = null,
+            IValueSetValidator? validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null,
+            FacetsConfig? facetsConfig = null,
+            bool useTaxonomyIndex = false)
+            where TIndex : LuceneIndex
+            where TDirectoryFactory : class, IDirectoryFactory
+        {
+            // This is the long way to add IOptions but gives us access to the
+            // services collection which we need to get the dir factory
+            serviceCollection.AddSingleton<IConfigureOptions<LuceneDirectoryIndexOptions>>(
+                services => new ConfigureNamedOptions<LuceneDirectoryIndexOptions>(
+                    name,
+                    (options) =>
+                    {
+                        options.Analyzer = analyzer;
+                        options.Validator = validator;
+                        options.IndexValueTypesFactory = indexValueTypesFactory;
+                        options.FieldDefinitions = fieldDefinitions ?? options.FieldDefinitions;
+                        options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
+                        options.FacetsConfig = facetsConfig ?? new FacetsConfig();
+                        options.UseTaxonomyIndex = useTaxonomyIndex;
+                    }));
+
+            return serviceCollection.AddSingleton<IIndex>(services =>
+            {
+                IOptionsMonitor<LuceneDirectoryIndexOptions> options
+                        = services.GetRequiredService<IOptionsMonitor<LuceneDirectoryIndexOptions>>();
+
+                TIndex index = ActivatorUtilities.CreateInstance<TIndex>(
+                    services,
+                    new object[] { name, options });
+
+                return index;
+            });
+        }
+
+        /// <summary>
         /// Registers a standalone Examine searcher
         /// </summary>
         /// <typeparam name="TSearcher"></typeparam>

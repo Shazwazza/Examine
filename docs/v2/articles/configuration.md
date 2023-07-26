@@ -127,6 +127,18 @@ These are the default field value types provided with Examine. Each value type c
 | FacetDateDay                    | Just like DateTime but with <br />precision only to the day.                                                                                                                               | ✅           | ✅           |
 | FacetDateHour                   | Just like DateTime but with <br />precision only to the hour.                                                                                                                              | ✅           | ✅           |
 | FacetDateMinute                 | Just like DateTime but with <br />precision only to the minute.                                                                                                                            | ✅           | ✅           |
+ FacetTaxonomnyFullText  | The field will be indexed with the index's <br />default Analyzer without any sortability. <br />Generally this is fine for normal text searching.    <br /> Stored in the Taxonmny Facet sidecar index.                                | ❌           | ✅           |
+| FacetTaxonomnyFullTextSortable           | Will be indexed with FullText but also <br />enable sorting on this field for search results. <br />_FullText sortability adds additional overhead <br />since it requires an additional index field._  <br /> Stored in the Taxonmny Facet sidecar index. | ✅           | ✅           |
+| FacetTaxonomnyInteger                    | Stored as a numerical structure.  <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                    | ✅           | ✅           |
+| FacetTaxonomnyFloat                      | Stored as a numerical structure.      <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                                                 | ✅           | ✅           |
+| FacetTaxonomnyDouble                     | Stored as a numerical structure.      <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                                                 | ✅           | ✅           |
+| FacetTaxonomnyLong                       | Stored as a numerical structure.      <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                                                 | ✅           | ✅           |
+| FacetTaxonomnyDateTime                   | Stored as a DateTime, <br />represented by a numerical structure.   <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                         | ✅           | ✅           |
+| FacetTaxonomnyDateYear                   | Just like DateTime but with <br />precision only to the year.           <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                     | ✅           | ✅           |
+| FacetTaxonomnyDateMonth                  | Just like DateTime but with <br />precision only to the month.               <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                | ✅           | ✅           |
+| FacetTaxonomnyDateDay                    | Just like DateTime but with <br />precision only to the day.            <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                     | ✅           | ✅           |
+| FacetTaxonomnyDateHour                   | Just like DateTime but with <br />precision only to the hour.          <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                      | ✅           | ✅           |
+| FacetTaxonomnyDateMinute                 | Just like DateTime but with <br />precision only to the minute.        <br /> Stored in the Taxonmny Facet sidecar index.                                                                                                                      | ✅           | ✅           |
 
 ### Custom field value types
 
@@ -230,6 +242,41 @@ services.AddExamineLuceneIndex("MyIndex",
 ```
 
 Without this configuration for multiple values, you'll notice that your faceted search breaks or behaves differently than expected.
+
+### Hierarchical and Taxonomy Facets configuration
+
+To enable support for hierarchical facets as well as supporting faster faceting the Taxonomy Facet sidecar index can be enabled.
+
+1. Set LuceneIndexOptions.UseTaxonomyIndex = true; for the index. This enables the use of the taxonomny sidecar index.
+2. Change the Field Definitions to use the "FacetTaxonomy" Field Definition Types instead of the "Facet" types. E.g. FieldDefinitionTypes.FacetFullText => FieldDefinitionTypes.FacetTaxonomyFullText.
+3. To enable hierarchical facets on a field, call FacetsConfig.SetHierarchical("facetfieldname", true);
+
+Example:
+
+```csharp
+// Create a config
+var facetsConfig = new FacetsConfig();
+
+// Set field to be able to support hierarchical facets
+facetsConfig.SetHierarchical("hierarchyFacetfield", true);
+
+// Set field to be able to contain multiple values (This is default for a field in Examine. But you only need this if you are actually using multiple values for a single field)
+facetsConfig.SetMultiValued("MultiIdField", true);
+
+services.AddExamineLuceneIndex("MyIndex",
+    // Set the indexing of your fields to use the facet taxonomny type
+    fieldDefinitions: new FieldDefinitionCollection(
+        new FieldDefinition("Timestamp", FieldDefinitionTypes.FacetTaxonomyDateTime),
+        new FieldDefinition("hierarchyFacetfield", FieldDefinitionTypes.FacetTaxonomyFullText),
+
+        new FieldDefinition("MultiIdField", FieldDefinitionTypes.FacetTaxonomyFullText)
+        ),
+    // Pass your config
+    facetsConfig: facetsConfig,
+    // Enable the Taxonomny sidecar index
+    useTaxonomyIndex: true
+    );
+```
 
 **Note: See more examples of how facets configuration can be used under 'Searching'**
 
