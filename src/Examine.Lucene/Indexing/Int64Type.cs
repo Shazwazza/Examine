@@ -16,12 +16,14 @@ namespace Examine.Lucene.Indexing
     public class Int64Type : IndexFieldRangeValueType<long>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
+        private readonly bool _taxonomyIndex;
 
         /// <inheritdoc/>
-        public Int64Type(string fieldName, ILoggerFactory logger, bool store, bool isFacetable)
+        public Int64Type(string fieldName, ILoggerFactory logger, bool store, bool isFacetable, bool taxonomyIndex = false)
             : base(fieldName, logger, store)
         {
             _isFacetable = isFacetable;
+            _taxonomyIndex = taxonomyIndex;
         }
 
         /// <inheritdoc/>
@@ -37,6 +39,28 @@ namespace Examine.Lucene.Indexing
         public override string SortableFieldName => FieldName;
 
         /// <inheritdoc/>
+        public bool IsTaxonomyFaceted => _taxonomyIndex;
+
+        /// <inheritdoc/>
+        public override void AddValue(Document doc, object value)
+        {
+            // Support setting taxonomy path
+            if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
+            {
+                if (!TryConvert(objArr[0], out long parsedVal))
+                    return;
+                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                    return;
+
+                doc.Add(new Int64Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
+
+                doc.Add(new FacetField(FieldName, parsedPathVal));
+                doc.Add(new NumericDocValuesField(FieldName, parsedVal));
+                return;
+            }
+            base.AddValue(doc, value);
+        }
+
         protected override void AddSingleValue(Document doc, object value)
         {
             if (!TryConvert(value, out long parsedVal))
@@ -44,7 +68,12 @@ namespace Examine.Lucene.Indexing
 
             doc.Add(new Int64Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
-            if (_isFacetable)
+            if (_isFacetable && _taxonomyIndex)
+            {
+                doc.Add(new FacetField(FieldName, parsedVal.ToString()));
+                doc.Add(new NumericDocValuesField(FieldName, parsedVal));
+            }
+            else if (_isFacetable && !_taxonomyIndex)
             {
                 doc.Add(new SortedSetDocValuesFacetField(FieldName, parsedVal.ToString()));
                 doc.Add(new NumericDocValuesField(FieldName, parsedVal));

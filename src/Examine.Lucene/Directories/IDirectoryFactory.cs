@@ -23,5 +23,15 @@ namespace Examine.Lucene.Directories
         /// </remarks>
         Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
+        /// <summary>
+        /// Creates the directory instance for the Taxonomy Index
+        /// </summary>
+        /// <param name="luceneIndex"></param>
+        /// <param name="forceUnlock">If true, will force unlock the directory when created</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Any subsequent calls for the same index will return the same directory instance
+        /// </remarks>
+        Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock);
     }
 }

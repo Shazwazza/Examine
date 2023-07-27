@@ -11,8 +11,9 @@ namespace Examine.Search
         IFacetQueryField MaxCount(int count);
 
         /// <summary>
-        /// Path Hierarchy
+        /// Set the Facet Path
         /// </summary>
-        IFacetQueryField SetPath(string[] path);
+        /// <param name="path">Facet Path</param>
+        IFacetQueryField SetPath(params string[] path);
     }
 }

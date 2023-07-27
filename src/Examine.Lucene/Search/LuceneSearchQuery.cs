@@ -248,7 +248,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields,_facetsConfig);
 
             var pagesResults = executor.Execute();
 
@@ -344,8 +344,10 @@ namespace Examine.Lucene.Search
             {
                 values = Array.Empty<string>();
             }
-            var fieldValueType = _searchContext.GetFieldValueType(field);
-            var facet = new FacetFullTextField(field, values, GetFacetField(field));
+
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+
+            var facet = new FacetFullTextField(field, values, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
 
             if(facetConfiguration != null)
             {
@@ -364,7 +366,8 @@ namespace Examine.Lucene.Search
                 doubleRanges = Array.Empty<DoubleRange>();
             }
 
-            var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field));
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
 
             _facetFields.Add(facet);
 
@@ -378,7 +381,8 @@ namespace Examine.Lucene.Search
                 floatRanges = Array.Empty<FloatRange>();
             }
 
-            var facet = new FacetFloatField(field, floatRanges, GetFacetField(field));
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetFloatField(field, floatRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
 
             _facetFields.Add(facet);
 
@@ -392,7 +396,8 @@ namespace Examine.Lucene.Search
                 longRanges = Array.Empty<Int64Range>();
             }
 
-            var facet = new FacetLongField(field, longRanges, GetFacetField(field));
+            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var facet = new FacetLongField(field, longRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
 
             _facetFields.Add(facet);
 
@@ -406,6 +411,22 @@ namespace Examine.Lucene.Search
                 return _facetsConfig.DimConfigs[field].IndexFieldName;
             }
             return ExamineFieldNames.DefaultFacetsName;
+        }
+        private bool GetFacetFieldIsMultiValued(string field)
+        {
+            if (_facetsConfig.DimConfigs.ContainsKey(field))
+            {
+                return _facetsConfig.DimConfigs[field].IsMultiValued;
+            }
+            return false;
+        }
+        private bool GetFacetFieldIsHierarchical(string field)
+        {
+            if (_facetsConfig.DimConfigs.ContainsKey(field))
+            {
+                return _facetsConfig.DimConfigs[field].IsHierarchical;
+            }
+            return false;
         }
     }
 }

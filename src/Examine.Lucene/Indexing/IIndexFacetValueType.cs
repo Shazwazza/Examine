@@ -10,6 +10,11 @@ namespace Examine.Lucene.Indexing
     public interface IIndexFacetValueType
     {
         /// <summary>
+        /// Whether the Field is indexed in the Taxonomy Index
+        /// </summary>
+        bool IsTaxonomyFaceted { get; }
+
+        /// <summary>
         /// Extracts the facets from the field
         /// </summary>
         /// <param name="facetExtractionContext"></param>

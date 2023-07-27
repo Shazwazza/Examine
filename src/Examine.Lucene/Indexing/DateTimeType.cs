@@ -22,6 +22,7 @@ namespace Examine.Lucene.Indexing
         public DateResolution Resolution { get; }
 
         private readonly bool _isFacetable;
+        private readonly bool _taxonomyIndex;
 
         /// <summary>
         /// Can be sorted by the normal field name
@@ -29,11 +30,15 @@ namespace Examine.Lucene.Indexing
         public override string SortableFieldName => FieldName;
 
         /// <inheritdoc/>
-        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store, bool isFacetable)
+        public bool IsTaxonomyFaceted => _taxonomyIndex;
+
+        /// <inheritdoc/>
+        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store, bool isFacetable, bool taxonomyIndex)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;
             _isFacetable = isFacetable;
+            _taxonomyIndex = taxonomyIndex;
         }
 
         /// <inheritdoc/>
@@ -42,6 +47,27 @@ namespace Examine.Lucene.Indexing
         {
             Resolution = resolution;
             _isFacetable = false;
+        }
+
+        public override void AddValue(Document doc, object value)
+        {
+            // Support setting taxonomy path
+            if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
+            {
+                if (!TryConvert(objArr[0], out DateTime parsedVal))
+                    return;
+                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                    return;
+
+                var val = DateToLong(parsedVal);
+
+                doc.Add(new Int64Field(FieldName, val, Store ? Field.Store.YES : Field.Store.NO));
+
+                doc.Add(new FacetField(FieldName, parsedPathVal));
+                doc.Add(new NumericDocValuesField(FieldName, val));
+                return;
+            }
+            base.AddValue(doc, value);
         }
 
         /// <inheritdoc/>
@@ -54,7 +80,12 @@ namespace Examine.Lucene.Indexing
 
             doc.Add(new Int64Field(FieldName,val, Store ? Field.Store.YES : Field.Store.NO));
 
-            if (_isFacetable)
+            if (_isFacetable && _taxonomyIndex)
+            {
+                doc.Add(new FacetField(FieldName, val.ToString()));
+                doc.Add(new NumericDocValuesField(FieldName, val));
+            }
+            else if (_isFacetable && !_taxonomyIndex)
             {
                 doc.Add(new SortedSetDocValuesFacetField(FieldName, val.ToString()));
                 doc.Add(new NumericDocValuesField(FieldName, val));

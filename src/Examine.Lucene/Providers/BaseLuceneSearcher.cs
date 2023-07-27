@@ -10,7 +10,7 @@ namespace Examine.Lucene.Providers
     ///<summary>
     /// Simple abstract class containing basic properties for Lucene searchers
     ///</summary>
-    public abstract class BaseLuceneSearcher : BaseSearchProvider
+    public abstract class BaseLuceneSearcher : BaseSearchProvider, IDisposable
     {
         private readonly FacetsConfig _facetsConfig;
 
@@ -65,6 +65,12 @@ namespace Examine.Lucene.Providers
         {
             var sc = CreateQuery().ManagedQuery(searchText);
             return sc.Execute(options);
+        }
+
+        /// <inheritdoc/>
+        public virtual void Dispose()
+        {
+
         }
 
         ///// <summary>

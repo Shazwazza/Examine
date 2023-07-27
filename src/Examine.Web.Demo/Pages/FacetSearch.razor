@@ -1,0 +1,116 @@
+@page "/facetsearch"
+@using Examine.Lucene.Search;
+@using Examine.Search;
+@using Examine.Web.Demo.Data
+@using System.Diagnostics
+@inject IndexService IndexService
+@inject IExamineManager ExamineMgr
+
+<h3>Faceted Search</h3>
+
+<p class="border-bottom">Here you can try searching in the Faceted index created in the demo application.</p>
+
+<h5>Quick searches</h5>
+
+<button class="btn btn-outline-primary" type="button" @onclick="() => GetFirst100Items()">Get first 100 items in index</button>
+
+<h4 style="margin-top:20px">Index to search</h4>
+<select @bind="_selectedIndex">
+    @foreach (var index in _indexes)
+    {
+        <option>@index.Name</option>
+    }
+</select>
+
+<h5 style="margin-top:30px">Lucene query</h5>
+<div>
+    <input placeholder="query" class="col-10" @bind="_query" />
+    <button type="button" class="btn btn-primary" @onclick="() => SearchIndex()" disabled="@(_query == null || _query == "")">Search</button>
+</div>
+
+<div class="row mt-2">
+    @if (_searchResults != null && _searchResults is IFacetResults facetSearchResults)
+    {
+        <p class="my-2 fw-bold">Facets found (Showing @facetSearchResults.Facets.Count())</p>
+
+        @foreach (var facet in facetSearchResults.Facets)
+        {
+            <h6>@facet.Key</h6>
+            <ul>
+                @foreach (var item in facet.Value)
+                {
+                    <li>@item.Label (@item.Value)</li>
+                }
+            </ul>
+        }
+    }
+    else
+    {
+        <p>No facet results</p>
+    }
+</div>
+
+<div class="row mt-2">
+    @if (_searchResults != null && _searchResults is ILuceneSearchResults luceneSearchResults)
+    {
+        <p class="my-2 fw-bold">@luceneSearchResults.TotalItemCount Results found (Showing @luceneSearchResults.Count()) - Found in: @_searchTime</p>
+        @foreach (var searchResult in luceneSearchResults)
+        {
+            <p class="col-12">Id: @searchResult.Id, Score: @searchResult.Score, Values: @(string.Join(", ", searchResult.Values.Select(x => $"[{x.Key}: {x.Value}]")))</p>
+        }
+    }
+    else if (_searchResults != null)
+    {
+        <p class="my-2 fw-bold">@_searchResults.TotalItemCount Results found (Showing @_searchResults.Count()) - Found in: @_searchTime</p>
+        @foreach (var searchResult in _searchResults)
+        {
+            <p class="col-12">Id: @searchResult.Id, Score: @searchResult.Score, Values: @(string.Join(", ", searchResult.Values.Select(x => $"[{x.Key}: {x.Value}]")))</p>
+        }
+    }
+    else
+    {
+        <p>No results</p>
+    }
+</div>
+
+@code {
+    private List<IIndex> _indexes = new();
+    private string _selectedIndex = string.Empty;
+    private string _query = string.Empty;
+    private ISearchResults? _searchResults;
+    private string _searchTime = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _indexes = IndexService.GetAllIndexes().Where(x => x.Name.Contains("Facet")).ToList();
+        _selectedIndex = _indexes.FirstOrDefault(x => x.Name.Contains("TaxonomyFacet"))?.Name ?? _indexes.First().Name;
+    }
+
+    private void SearchIndex()
+    {
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        var luceneSearchResults = IndexService.SearchLucene(
+           _selectedIndex,
+           (query) => query.NativeQuery(_query.Trim()).WithFacets(facets => { facets.Facet("AddressState"); facets.Facet("AddressStateCity"); facets.Facet("Tags"); }),
+           new LuceneQueryOptions(0, 100)
+       );
+        _searchResults = luceneSearchResults;
+        stopwatch.Stop();
+        _searchTime = $"{stopwatch.ElapsedMilliseconds} Milliseconds ({stopwatch.Elapsed:g})";
+    }
+
+    private void GetFirst100Items()
+    {
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        var luceneSearchResults = IndexService.SearchLucene(
+            _selectedIndex,
+            (query) => query.All().WithFacets(facets => { facets.Facet("AddressState"); facets.Facet("AddressStateCity"); facets.Facet("Tags"); }),
+            new LuceneQueryOptions(0, 100)
+        );
+        _searchResults = luceneSearchResults;
+        stopwatch.Stop();
+        _searchTime = $"{stopwatch.ElapsedMilliseconds} Milliseconds ({stopwatch.Elapsed:g})";
+    }
+}

@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
-using Lucene.Net.Facet;
 using Lucene.Net.Facet.Range;
-using Lucene.Net.Facet.SortedSet;
 
 namespace Examine.Lucene.Search
 {

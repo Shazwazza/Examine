@@ -43,12 +43,12 @@ namespace Examine.Search
         }
 
         /// <summary>
-        /// The ammount of items to skip
+        /// The number of documents to skip in the result set.
         /// </summary>
         public int Skip { get; }
 
         /// <summary>
-        /// The ammount of items to take
+        /// The number of documents to take in the result set.
         /// </summary>
         public int Take { get; }
     }

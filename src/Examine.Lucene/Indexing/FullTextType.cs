@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Examine.Lucene.Analyzers;
@@ -29,6 +30,7 @@ namespace Examine.Lucene.Indexing
         private readonly bool _sortable;
         private readonly Analyzer _analyzer;
         private readonly bool _isFacetable;
+        private readonly bool _taxonomyIndex;
 
         /// <summary>
         /// Constructor
@@ -38,14 +40,16 @@ namespace Examine.Lucene.Indexing
         /// <param name="sortable"></param>
         /// <param name="isFacetable"></param>
         /// <param name="analyzer">
+        /// <param name="taxonomyIndex"></param>
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
-        public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer? analyzer = null)
+        public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer? analyzer = null, bool taxonomyIndex = false)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
             _isFacetable = isFacetable;
+            _taxonomyIndex = taxonomyIndex;
         }
 
         /// <summary>
@@ -74,6 +78,36 @@ namespace Examine.Lucene.Indexing
         public override Analyzer Analyzer => _analyzer;
 
         /// <inheritdoc/>
+        public bool IsTaxonomyFaceted => _taxonomyIndex;
+
+        /// <inheritdoc/>
+        public override void AddValue(Document doc, object value)
+        {
+            // Support setting taxonomy path
+            if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
+            {
+                if (!TryConvert(objArr[0], out string str))
+                    return;
+                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                    return;
+
+                doc.Add(new TextField(FieldName, str, Field.Store.YES));
+
+                if (_sortable)
+                {
+                    //to be sortable it cannot be analyzed so we have to make a different field
+                    doc.Add(new StringField(
+                        ExamineFieldNames.SortedFieldNamePrefix + FieldName,
+                        str,
+                        Field.Store.YES));
+                }
+
+                doc.Add(new FacetField(FieldName, parsedPathVal));
+                return;
+            }
+            base.AddValue(doc, value);
+        }
+
         protected override void AddSingleValue(Document doc, object value)
         {
             if (TryConvert<string>(value, out var str))
@@ -89,7 +123,11 @@ namespace Examine.Lucene.Indexing
                         Field.Store.YES));
                 }
 
-                if (_isFacetable)
+                if (_isFacetable && _taxonomyIndex)
+                {
+                    doc.Add(new FacetField(FieldName, str));
+                }
+                else if (_isFacetable && !_taxonomyIndex)
                 {
                     doc.Add(new SortedSetDocValuesFacetField(FieldName, str));
                 }

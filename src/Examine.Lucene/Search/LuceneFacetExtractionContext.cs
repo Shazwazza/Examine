@@ -1,6 +1,7 @@
-using Lucene.Net.Facet.SortedSet;
-using Lucene.Net.Facet;
 using System;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
+using Lucene.Net.Facet.Taxonomy;
 
 namespace Examine.Lucene.Search
 {
@@ -32,7 +33,11 @@ namespace Examine.Lucene.Search
         {
             if (isTaxonomyIndexed)
             {
-                throw new NotSupportedException("Taxonomy Index not supported");
+                if (SearcherReference is ITaxonomySearcherReference taxonomySearcher)
+                {
+                    return new FastTaxonomyFacetCounts(facetIndexFieldName, taxonomySearcher.TaxonomyReader, FacetConfig, FacetsCollector);
+                }
+                throw new InvalidOperationException("Cannot get FastTaxonomyFacetCounts for field not stored in the Taxonomy index");
             }
             else
             {

@@ -35,5 +35,19 @@ namespace Examine.Lucene.Directories
             }
             return dir;
         }
+
+        /// <inheritdoc/>
+        protected override Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock)
+        {
+            var path = Path.Combine(_baseDir.FullName, luceneIndex.Name,"taxonomy");
+            var luceneIndexFolder = new DirectoryInfo(path);
+
+            var dir = FSDirectory.Open(luceneIndexFolder, LockFactory.GetLockFactory(luceneIndexFolder));
+            if (forceUnlock)
+            {
+                IndexWriter.Unlock(dir);
+            }
+            return dir;
+        }
     }
 }

@@ -141,5 +141,67 @@ namespace Examine
         /// Facetable version of <see cref="FullTextSortable"/>
         /// </summary>
         public const string FacetFullTextSortable = "facetfulltextsortable";
+
+        /// <summary>
+        /// Facetable version of <see cref="Integer"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyInteger = "facettaxonomyint";
+
+        /// <summary>
+        /// Facetable version of <see cref="Float"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyFloat = "facettaxonomyfloat";
+
+        /// <summary>
+        /// Facetable version of <see cref="Double"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyDouble = "facettaxonomydouble";
+
+        /// <summary>
+        /// Facetable version of <see cref="Long"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyLong = "facettaxonomylong";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateTime"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyDateTime = "facettaxonomydatetime";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateYear"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyDateYear = "facettaxonomydate.year";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateMonth"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyDateMonth = "facettaxonomydate.month";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateDay"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyDateDay = "facettaxonomydate.day";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateHour"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyDateHour = "facettaxonomydate.hour";
+
+        /// <summary>
+        /// Facetable version of <see cref="DateMinute"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyDateMinute = "facettaxonomydate.minute";
+
+        /// <summary>
+        /// Facetable version of <see cref="FullText"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyFullText = "facettaxonomyfulltext";
+
+        /// <summary>
+        /// Facetable version of <see cref="FullTextSortable"/> stored in the Taxonomy Index
+        /// </summary>
+        public const string FacetTaxonomyFullTextSortable = "facettaxonomyfulltextsortable";
+
+
     }
 }

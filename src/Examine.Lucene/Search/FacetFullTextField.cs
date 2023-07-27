@@ -48,7 +48,7 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
-            Facets facetCounts = facetExtractionContext.GetFacetCounts(FacetField, false);
+            Facets facetCounts = facetExtractionContext.GetFacetCounts(FacetField, IsTaxonomyIndexed);
 
             if (Values != null && Values.Length > 0)
             {
