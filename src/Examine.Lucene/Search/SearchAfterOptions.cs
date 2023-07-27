@@ -41,6 +41,6 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Search fields. Should contain null or J2N.Int
         /// </summary>
-        public object[] Fields { get; }
+        public object[]? Fields { get; }
     }
 }

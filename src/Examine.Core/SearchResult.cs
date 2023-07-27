@@ -5,7 +5,9 @@ using System.Linq;
 
 namespace Examine
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Represents a search result
+    /// </summary>
     public class SearchResult : ISearchResult
     {
         private OrderedDictionary<string, string>? _fields;
