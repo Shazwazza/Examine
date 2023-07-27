@@ -20,7 +20,7 @@ namespace Examine.Lucene.Search
     public class LuceneSearchExecutor
     {
         private readonly QueryOptions _options;
-        private readonly LuceneQueryOptions _luceneQueryOptions;
+        private readonly LuceneQueryOptions? _luceneQueryOptions;
         private readonly IEnumerable<SortField> _sortField;
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
@@ -48,10 +48,8 @@ namespace Examine.Lucene.Search
             {
                 if (_maxDoc == null)
                 {
-                    using (ISearcherReference searcher = _searchContext.GetSearcher())
-                    {
-                        _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
-                    }
+                    using var searcher = _searchContext.GetSearcher();
+                    _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
                 }
                 return _maxDoc.Value;
             }
@@ -96,17 +94,7 @@ namespace Examine.Lucene.Search
             maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
             int numHits = maxResults;
 
-            ICollector topDocsCollector;
             SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
-            if (sortFields.Length > 0)
-            {
-                topDocsCollector = TopFieldCollector.Create(
-                    new Sort(sortFields), maxResults, false, false, false, false);
-            }
-            else
-            {
-                topDocsCollector = TopScoreDocCollector.Create(maxResults, true);
-            }
             Sort sort = null;
             FieldDoc scoreDocAfter = null;
             Filter filter = null;
@@ -127,6 +115,9 @@ namespace Examine.Lucene.Search
                     numHits = _options.Take >= 1 ? _options.Take : QueryOptions.DefaultMaxResults;
                 }
 
+                TopDocs topDocs;
+                ICollector topDocsCollector;
+                var facetsCollector = _facetFields.Any() ? new FacetsCollector() : null;
                 bool trackMaxScore = _luceneQueryOptions == null ? false : _luceneQueryOptions.TrackDocumentMaxScore;
                 bool trackDocScores = _luceneQueryOptions == null ? false : _luceneQueryOptions.TrackDocumentScores;
 
