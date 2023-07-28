@@ -39,7 +39,7 @@ namespace Examine.Lucene.Providers
            string name,
            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions,
            Func<LuceneIndex, IIndexCommiter> indexCommiterFactory,
-           IndexWriter writer = null)
+           IndexWriter? writer = null)
            : base(loggerFactory, name, indexOptions)
         {
             _options = indexOptions.GetNamedOptions(name);
@@ -190,7 +190,7 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Gets a Taxonomy searcher for the index
         /// </summary>
-        public virtual ILuceneTaxonomySearcher TaxonomySearcher => _taxonomySearcher.Value;
+        public virtual ILuceneTaxonomySearcher? TaxonomySearcher => _taxonomySearcher?.Value;
 
         /// <summary>
         /// The async task that runs during an async indexing operation
@@ -212,11 +212,11 @@ namespace Examine.Lucene.Providers
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
 
-        private volatile DirectoryTaxonomyWriter _taxonomyWriter;
-        private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy> _taxonomyNrtReopenThread;
+        private volatile DirectoryTaxonomyWriter? _taxonomyWriter;
+        private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>? _taxonomyNrtReopenThread;
 
-        private readonly Lazy<LuceneTaxonomySearcher> _taxonomySearcher;
-        private readonly Lazy<Directory> _taxonomyDirectory;
+        private readonly Lazy<LuceneTaxonomySearcher>? _taxonomySearcher;
+        private readonly Lazy<Directory>? _taxonomyDirectory;
 
         #region Properties
 
@@ -428,6 +428,12 @@ namespace Examine.Lucene.Providers
                             {
                                 //Now create the taxonomy index
                                 var taxonomyDir = GetLuceneTaxonomyDirectory();
+
+                                if(taxonomyDir == null)
+                                {
+                                    throw new InvalidOperationException($"{Name} is configured to use a taxonomy index but the directory is null");
+                                }
+
                                 CreateNewTaxonomyIndex(taxonomyDir);
                             }
                         }
@@ -539,7 +545,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         private void CreateNewTaxonomyIndex(Directory dir)
         {
-            DirectoryTaxonomyWriter writer = null;
+            DirectoryTaxonomyWriter? writer = null;
             try
             {
                 if (IsLocked(dir))
@@ -779,7 +785,7 @@ namespace Examine.Lucene.Providers
             return _exists.Value;
         }
 
-        // <summary>
+        /// <summary>
         /// This will check one time if the taxonomny index exists, we don't want to keep using IndexReader.IndexExists because that will literally go list
         /// every file in the index folder and we don't need any more IO ops
         /// </summary>
@@ -1082,7 +1088,7 @@ namespace Examine.Lucene.Providers
         /// Returns the Lucene Directory used to store the taxonomy index
         /// </summary>
         /// <returns></returns>
-        public Directory GetLuceneTaxonomyDirectory() => _taxonomyWriter != null ? _taxonomyWriter.Directory : _taxonomyDirectory.Value;
+        public Directory? GetLuceneTaxonomyDirectory() => _taxonomyWriter != null ? _taxonomyWriter.Directory : _taxonomyDirectory?.Value;
 
 
         /// <summary>
@@ -1211,9 +1217,9 @@ namespace Examine.Lucene.Providers
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
         /// <returns></returns>
-        private DirectoryTaxonomyWriter CreateTaxonomyWriterInternal()
+        private DirectoryTaxonomyWriter? CreateTaxonomyWriterInternal()
         {
-            Directory dir = GetLuceneTaxonomyDirectory();
+            Directory? dir = GetLuceneTaxonomyDirectory();
 
             // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
@@ -1245,7 +1251,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        protected virtual DirectoryTaxonomyWriter CreateTaxonomyWriter(Directory d)
+        protected virtual DirectoryTaxonomyWriter CreateTaxonomyWriter(Directory? d)
         {
             if (d == null)
             {
@@ -1279,7 +1285,7 @@ namespace Examine.Lucene.Providers
 
                 }
 
-                return _taxonomyWriter;
+                return _taxonomyWriter;  // TODO: should this throw when null
             }
         }
 
@@ -1558,7 +1564,8 @@ namespace Examine.Lucene.Providers
                         _nrtReopenThread.Dispose();
                     }
 
-                    if (_taxonomyNrtReopenThread != null)
+                    // The type of _taxonomyNrtReopenThread has overriden the != operator and expects a non null value to compare the references. Therefore we use is not null instead of != null.
+                    if (_taxonomyNrtReopenThread is not null)
                     {
                         _taxonomyNrtReopenThread.Interrupt();
                         _taxonomyNrtReopenThread.Dispose();

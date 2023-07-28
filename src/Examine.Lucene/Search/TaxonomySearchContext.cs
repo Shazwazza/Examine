@@ -13,7 +13,7 @@ namespace Examine.Lucene.Search
     {
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
-        private string[] _searchableFields;
+        private string[]? _searchableFields;
 
         /// <summary>
         /// Constructor

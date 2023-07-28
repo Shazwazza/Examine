@@ -357,7 +357,7 @@ namespace Examine.Lucene.Search
 
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
 
-            var facet = new FacetFullTextField(field, values, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
+            var facet = new FacetFullTextField(field, values, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
             if(facetConfiguration != null)
             {
@@ -377,7 +377,7 @@ namespace Examine.Lucene.Search
             }
 
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
-            var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
+            var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
             _facetFields.Add(facet);
 
@@ -392,7 +392,7 @@ namespace Examine.Lucene.Search
             }
 
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
-            var facet = new FacetFloatField(field, floatRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
+            var facet = new FacetFloatField(field, floatRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
             _facetFields.Add(facet);
 
@@ -407,7 +407,7 @@ namespace Examine.Lucene.Search
             }
 
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
-            var facet = new FacetLongField(field, longRanges, GetFacetField(field), isTaxonomyIndexed: valueType.IsTaxonomyFaceted);
+            var facet = new FacetLongField(field, longRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
             _facetFields.Add(facet);
 

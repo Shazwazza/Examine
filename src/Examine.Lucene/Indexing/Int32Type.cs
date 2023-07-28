@@ -46,14 +46,14 @@ namespace Examine.Lucene.Indexing
         public bool IsTaxonomyFaceted => _taxonomyIndex;
 
         /// <inheritdoc/>
-        public override void AddValue(Document doc, object value)
+        public override void AddValue(Document doc, object? value)
         {
             // Support setting taxonomy path
             if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
             {
                 if (!TryConvert(objArr[0], out int parsedVal))
                     return;
-                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                if (!TryConvert(objArr[1], out string[]? parsedPathVal))
                     return;
 
                 doc.Add(new Int32Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
@@ -65,6 +65,7 @@ namespace Examine.Lucene.Indexing
             base.AddValue(doc, value);
         }
 
+        /// <inheritdoc/>
         protected override void AddSingleValue(Document doc, object value)
         {
             if (!TryConvert(value, out int parsedVal))

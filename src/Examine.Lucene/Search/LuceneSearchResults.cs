@@ -15,7 +15,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Gets an empty search result
         /// </summary>
-        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>(), float.NaN, default);
+        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>(), float.NaN, null);
         
         private readonly IReadOnlyCollection<ISearchResult> _results;
 

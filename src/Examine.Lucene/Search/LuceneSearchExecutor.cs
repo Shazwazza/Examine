@@ -242,8 +242,8 @@ namespace Examine.Lucene.Search
 
             var facetFields = _facetFields.OrderBy(field => field.FacetField);
 
-            SortedSetDocValuesReaderState sortedSetReaderState = null;
-            Facets fastTaxonomyFacetCounts = null;
+            SortedSetDocValuesReaderState? sortedSetReaderState = null;
+            Facets? fastTaxonomyFacetCounts = null;
 
 
             foreach (var field in facetFields)

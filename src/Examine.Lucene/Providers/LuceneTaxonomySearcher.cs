@@ -7,6 +7,9 @@ using Lucene.Net.Facet.Taxonomy;
 
 namespace Examine.Lucene.Providers
 {
+    /// <summary>
+    /// A searcher for taxonomy indexes
+    /// </summary>
     public class LuceneTaxonomySearcher : BaseLuceneSearcher, IDisposable, ILuceneTaxonomySearcher
     {
         private readonly SearcherTaxonomyManager _searcherManager;
