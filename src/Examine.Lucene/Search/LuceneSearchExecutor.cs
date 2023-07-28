@@ -119,7 +119,6 @@ namespace Examine.Lucene.Search
 
                 TopDocs topDocs;
                 ICollector topDocsCollector;
-                var facetsCollector = _facetFields.Any() ? new FacetsCollector() : null;
                 bool trackMaxScore = _luceneQueryOptions == null ? false : _luceneQueryOptions.TrackDocumentMaxScore;
                 bool trackDocScores = _luceneQueryOptions == null ? false : _luceneQueryOptions.TrackDocumentScores;
 
@@ -196,7 +195,7 @@ namespace Examine.Lucene.Search
             }
         }
 
-        private static FieldDoc GetScoreDocAfter(LuceneQueryOptions luceneQueryOptions)
+        private static FieldDoc GetScoreDocAfter(SearchAfterOptions searchAfterOptions)
         {
             FieldDoc scoreDocAfter;
 
