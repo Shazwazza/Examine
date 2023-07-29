@@ -33,7 +33,7 @@ namespace Examine.Lucene.Indexing
         public bool IsTaxonomyFaceted => _taxonomyIndex;
 
         /// <inheritdoc/>
-        public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store, bool isFacetable, bool taxonomyIndex)
+        public DateTimeType(string fieldName, bool store, bool isFacetable, bool taxonomyIndex, ILoggerFactory logger, DateResolution resolution)
             : base(fieldName, logger, store)
         {
             Resolution = resolution;
@@ -42,7 +42,10 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
+        [Obsolete("To be removed in Examine V5")]
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public DateTimeType(string fieldName, ILoggerFactory logger, DateResolution resolution, bool store = true)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
             : base(fieldName, logger, store)
         {
             Resolution = resolution;

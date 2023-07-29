@@ -16,6 +16,22 @@ namespace Examine.Lucene.Providers
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private bool _disposedValue;
 
+
+        /// <summary>
+        /// Constructor allowing for creating a NRT instance based on a given writer
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="searcherManager"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="fieldValueTypeCollection"></param>
+        [Obsolete("To remove in Examine V5")]
+        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection)
+            : base(name, analyzer)
+        {
+            _searcherManager = searcherManager;
+            _fieldValueTypeCollection = fieldValueTypeCollection;
+        }
+
         /// <summary>
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>

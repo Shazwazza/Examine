@@ -19,6 +19,49 @@ namespace Examine
     /// </summary>
     public static class ServicesCollectionExtensions
     {
+        /// <summary>
+        /// Registers a file system based Lucene Examine index
+        /// </summary>
+        [Obsolete("To remove in Examine V5")]
+        public static IServiceCollection AddExamineLuceneIndex(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection fieldDefinitions = null,
+            Analyzer analyzer = null,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
+
+        /// <summary>
+        /// Registers a file system based Lucene Examine index
+        /// </summary>
+        [Obsolete("To remove in Examine V5")]
+        public static IServiceCollection AddExamineLuceneIndex<TIndex>(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection fieldDefinitions = null,
+            Analyzer analyzer = null,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            where TIndex : LuceneIndex
+            => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, null);
+
+        /// <summary>
+        /// Registers an Examine index
+        /// </summary>
+        [Obsolete("To remove in Examien V5")]
+        public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection fieldDefinitions = null,
+            Analyzer analyzer = null,
+            IValueSetValidator validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            where TIndex : LuceneIndex
+            where TDirectoryFactory : class, IDirectoryFactory
+        {
+            return serviceCollection.AddExamineLuceneIndex<TIndex, TDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, null);
+        }
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
@@ -26,12 +69,12 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex(
             this IServiceCollection serviceCollection,
             string name,
+            FacetsConfig? facetsConfig,
             FieldDefinitionCollection? fieldDefinitions = null,
             Analyzer? analyzer = null,
             IValueSetValidator? validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null,
-            FacetsConfig? facetsConfig = null)
-            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, facetsConfig);
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null)
+            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, facetsConfig, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
@@ -39,11 +82,11 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex>(
             this IServiceCollection serviceCollection,
             string name,
+            FacetsConfig? facetsConfig,
             FieldDefinitionCollection? fieldDefinitions = null,
             Analyzer? analyzer = null,
             IValueSetValidator? validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null,
-            FacetsConfig? facetsConfig = null)
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null)
             where TIndex : LuceneIndex
             => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory, facetsConfig);
 
@@ -167,8 +210,19 @@ namespace Examine
             this IServiceCollection serviceCollection,
             string name,
             string[] indexNames,
-            Analyzer analyzer = null,
-            FacetsConfig facetsConfig = null)
+            Analyzer analyzer = null)
+            => AddExamineLuceneMultiSearcher(serviceCollection, name, indexNames, default, analyzer);
+
+
+        /// <summary>
+        /// Registers a lucene multi index searcher
+        /// </summary>
+        public static IServiceCollection AddExamineLuceneMultiSearcher(
+            this IServiceCollection serviceCollection,
+            string name,
+            string[] indexNames,
+            FacetsConfig facetsConfig,
+            Analyzer analyzer = null)
             => serviceCollection.AddExamineSearcher<MultiIndexSearcher>(name, s =>
             {
                 IEnumerable<IIndex> matchedIndexes = s.GetServices<IIndex>()

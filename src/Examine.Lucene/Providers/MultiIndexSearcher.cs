@@ -15,6 +15,32 @@ namespace Examine.Lucene.Providers
     {
         private readonly Lazy<IEnumerable<ISearcher>> _searchers;
 
+        /// <summary>
+        /// Constructor to allow for creating a searcher at runtime
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="indexes"></param>
+        /// <param name="analyzer"></param>
+        [Obsolete("To remove in Examine V5")]
+        public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
+            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
+        {
+            _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.Searcher));
+        }
+
+        /// <summary>
+        /// Constructor to allow for creating a searcher at runtime
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="searchers"></param>
+        /// <param name="analyzer"></param>
+        [Obsolete("To remove in Examine V5")]
+        public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, Analyzer analyzer = null)
+            : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
+        {
+            _searchers = searchers;
+        }
+
 
         /// <summary>
         /// Constructor to allow for creating a searcher at runtime
