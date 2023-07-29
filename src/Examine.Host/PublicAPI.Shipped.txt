@@ -1,3 +1,4 @@
+#nullable enable
 Examine.AspNetCoreApplicationIdentifier
 Examine.AspNetCoreApplicationIdentifier.AspNetCoreApplicationIdentifier(System.IServiceProvider services) -> void
 Examine.AspNetCoreApplicationIdentifier.GetApplicationUniqueIdentifier() -> string

@@ -1,3 +1,4 @@
+#nullable enable
 abstract Examine.BaseIndexProvider.CreateIndex() -> void
 abstract Examine.BaseIndexProvider.IndexExists() -> bool
 abstract Examine.BaseIndexProvider.PerformDeleteFromIndex(System.Collections.Generic.IEnumerable<string> itemIds, System.Action<Examine.IndexOperationEventArgs> onComplete) -> void

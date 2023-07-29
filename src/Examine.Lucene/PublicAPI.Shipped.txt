@@ -1,3 +1,4 @@
+#nullable enable
 abstract Examine.Lucene.Directories.DirectoryFactoryBase.CreateDirectory(Examine.Lucene.Providers.LuceneIndex luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory
 abstract Examine.Lucene.Indexing.IndexFieldRangeValueType<T>.GetQuery(T? lower, T? upper, bool lowerInclusive = true, bool upperInclusive = true) -> Lucene.Net.Search.Query
 abstract Examine.Lucene.Indexing.IndexFieldValueTypeBase.AddSingleValue(Lucene.Net.Documents.Document doc, object value) -> void

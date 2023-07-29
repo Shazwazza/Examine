@@ -8,6 +8,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
     <LangVersion>9</LangVersion>
+    <NoWarn>RS0036</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
