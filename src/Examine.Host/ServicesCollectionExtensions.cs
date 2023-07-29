@@ -206,6 +206,7 @@ namespace Examine
         /// <summary>
         /// Registers a lucene multi index searcher
         /// </summary>
+        [Obsolete("Will be removed in Examine V5")]
         public static IServiceCollection AddExamineLuceneMultiSearcher(
             this IServiceCollection serviceCollection,
             string name,
