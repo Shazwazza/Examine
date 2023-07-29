@@ -21,7 +21,9 @@ namespace Examine.Lucene.Providers
         /// <param name="name"></param>
         /// <param name="indexes"></param>
         /// <param name="analyzer"></param>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public MultiIndexSearcher(string name, IEnumerable<IIndex> indexes, Analyzer analyzer = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
         {
             _searchers = new Lazy<IEnumerable<ISearcher>>(() => indexes.Select(x => x.Searcher));
@@ -33,7 +35,9 @@ namespace Examine.Lucene.Providers
         /// <param name="name"></param>
         /// <param name="searchers"></param>
         /// <param name="analyzer"></param>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public MultiIndexSearcher(string name, Lazy<IEnumerable<ISearcher>> searchers, Analyzer analyzer = null)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             : base(name, analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion))
         {
             _searchers = searchers;

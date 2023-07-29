@@ -32,7 +32,9 @@ namespace Examine.Lucene.Providers
         public abstract ISearchContext GetSearchContext();
 
         /// <inheritdoc />
-		public override IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And)
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+        public override IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
             => CreateQuery(category, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
 
         /// <summary>
