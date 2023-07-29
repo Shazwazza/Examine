@@ -1,4 +1,4 @@
-﻿using Examine.Lucene.Indexing;
+using Examine.Lucene.Indexing;
 
 namespace Examine.Lucene
 {
@@ -7,6 +7,11 @@ namespace Examine.Lucene
     /// </summary>
     public interface IFieldValueTypeFactory
     {
+        /// <summary>
+        /// Creates a <see cref="IIndexFieldValueType"/> for a field name
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
         IIndexFieldValueType Create(string fieldName);
     }
 }

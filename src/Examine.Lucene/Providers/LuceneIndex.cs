@@ -18,6 +18,9 @@ using Microsoft.Extensions.Options;
 using Lucene.Net.Analysis.Standard;
 using Examine.Lucene.Indexing;
 using Examine.Lucene.Directories;
+using Lucene.Net.Facet.Taxonomy;
+using Lucene.Net.Facet.Taxonomy.Directory;
+using static Lucene.Net.Replicator.IndexAndTaxonomyRevision;
 
 namespace Examine.Lucene.Providers
 {
@@ -30,6 +33,49 @@ namespace Examine.Lucene.Providers
     public class LuceneIndex : BaseIndexProvider, IDisposable, IIndexStats, ReferenceManager.IRefreshListener
     {
         #region Constructors
+
+        protected LuceneIndex(
+           ILoggerFactory loggerFactory,
+           string name,
+           IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions,
+           Func<LuceneIndex, IIndexCommiter> indexCommiterFactory,
+           IndexWriter writer = null)
+           : base(loggerFactory, name, indexOptions)
+        {
+            _options = indexOptions.GetNamedOptions(name);
+            _committer = indexCommiterFactory(this);
+            _logger = loggerFactory.CreateLogger<LuceneIndex>();
+
+            //initialize the field types
+            _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
+
+            if (writer != null)
+            {
+                _writer = new TrackingIndexWriter(writer ?? throw new ArgumentNullException(nameof(writer)));
+                DefaultAnalyzer = writer.Analyzer;
+            }
+            else
+            {
+                DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            }
+            LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
+
+            if (directoryOptions.DirectoryFactory == null)
+            {
+                throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
+            }
+
+            if (_options.UseTaxonomyIndex)
+            {
+                _taxonomyDirectory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex));
+            }
+
+            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
+        }
+
 
         private LuceneIndex(
             ILoggerFactory loggerFactory,
@@ -44,7 +90,17 @@ namespace Examine.Lucene.Providers
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
 
-            _searcher = new Lazy<LuceneSearcher>(CreateSearcher);
+            if (_options.UseTaxonomyIndex)
+            {
+                _taxonomySearcher = new Lazy<LuceneTaxonomySearcher>(CreateTaxonomySearcher);
+
+                _searcher = new Lazy<BaseLuceneSearcher>(() => _taxonomySearcher.Value);
+            }
+            else
+            {
+                _taxonomySearcher = new Lazy<LuceneTaxonomySearcher>(() => throw new NotSupportedException("TaxonomySearcher not supported when not using taxonomy index."));
+                _searcher = new Lazy<BaseLuceneSearcher>(CreateSearcher);
+            }
             _cancellationTokenSource = new CancellationTokenSource();
             _cancellationToken = _cancellationTokenSource.Token;
 
@@ -61,13 +117,17 @@ namespace Examine.Lucene.Providers
            : this(loggerFactory, name, (IOptionsMonitor<LuceneIndexOptions>)indexOptions)
         {
             LuceneDirectoryIndexOptions directoryOptions = indexOptions.GetNamedOptions(name);
-            
+
             if (directoryOptions.DirectoryFactory == null)
             {
                 throw new InvalidOperationException($"No {typeof(IDirectoryFactory)} assigned");
             }
 
-            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));            
+            if (_options.UseTaxonomyIndex)
+            {
+                _taxonomyDirectory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateTaxonomyDirectory(this, directoryOptions.UnlockIndex));
+            }
+            _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
         }
 
         //TODO: The problem with this is that the writer would already need to be configured with a PerFieldAnalyzerWrapper
@@ -89,15 +149,17 @@ namespace Examine.Lucene.Providers
         #endregion
 
         private readonly LuceneIndexOptions _options;
-        private PerFieldAnalyzerWrapper _fieldAnalyzer;
-        private ControlledRealTimeReopenThread<IndexSearcher> _nrtReopenThread;
+        private PerFieldAnalyzerWrapper? _fieldAnalyzer;
+        private ControlledRealTimeReopenThread<IndexSearcher>? _nrtReopenThread;
         private readonly ILogger<LuceneIndex> _logger;
-        private readonly Lazy<Directory> _directory;
-        private FileStream _logOutput;
+        private readonly Lazy<Directory>? _directory;
+#if FULLDEBUG
+        private FileStream? _logOutput;
+#endif
         private bool _disposedValue;
-        private readonly IndexCommiter _committer;
+        private readonly IIndexCommiter _committer;
 
-        private volatile TrackingIndexWriter _writer;
+        private volatile TrackingIndexWriter? _writer;
 
         private int _activeWrites = 0;
 
@@ -111,14 +173,24 @@ namespace Examine.Lucene.Providers
         /// </summary>
         private readonly object _writerLocker = new object();
 
-        private readonly Lazy<LuceneSearcher> _searcher;
+        private readonly Lazy<BaseLuceneSearcher> _searcher;
 
         private bool? _exists;
+
+        /// <summary>
+        /// Whether the Taxonomny Index exists.
+        /// </summary>
+        private bool? _taxonomyExists;
 
         /// <summary>
         /// Gets a searcher for the index
         /// </summary>
         public override ISearcher Searcher => _searcher.Value;
+
+        /// <summary>
+        /// Gets a Taxonomy searcher for the index
+        /// </summary>
+        public virtual ILuceneTaxonomySearcher TaxonomySearcher => _taxonomySearcher.Value;
 
         /// <summary>
         /// The async task that runs during an async indexing operation
@@ -140,6 +212,12 @@ namespace Examine.Lucene.Providers
         // tracks the latest Generation value of what has been indexed.This can be used to force update a searcher to this generation.
         private long? _latestGen;
 
+        private volatile DirectoryTaxonomyWriter _taxonomyWriter;
+        private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy> _taxonomyNrtReopenThread;
+
+        private readonly Lazy<LuceneTaxonomySearcher> _taxonomySearcher;
+        private readonly Lazy<Directory> _taxonomyDirectory;
+
         #region Properties
 
         /// <summary>
@@ -152,6 +230,9 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer DefaultAnalyzer { get; }
 
+        /// <summary>
+        /// Gets the field ananlyzer
+        /// </summary>
         public PerFieldAnalyzerWrapper FieldAnalyzer => _fieldAnalyzer
             ?? (_fieldAnalyzer =
                 (DefaultAnalyzer is PerFieldAnalyzerWrapper pfa)
@@ -159,6 +240,9 @@ namespace Examine.Lucene.Providers
                     : _fieldValueTypeCollection.Value.Analyzer);
 
 
+        /// <summary>
+        /// Not used, will be removed in future versions
+        /// </summary>
         [Obsolete("Not used, will be removed in future versions")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public int CommitCount { get; protected internal set; }
@@ -174,23 +258,28 @@ namespace Examine.Lucene.Providers
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
 
-        #endregion
+#endregion
 
-        #region Events
+#region Events
 
         /// <summary>
         /// Occurs when [document writing].
         /// </summary>
-        public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
+        public event EventHandler<DocumentWritingEventArgs>? DocumentWriting;
 
         /// <summary>
-        /// Occors when the index is commited
+        /// Occurs when an index is commited
         /// </summary>
-        public event EventHandler IndexCommitted;
+        public event EventHandler? IndexCommitted;
+
+        protected void RaiseIndexCommited(object sender, EventArgs e)
+        {
+            IndexCommitted?.Invoke(sender, e);
+        }
 
         #endregion
 
-        #region Event handlers
+#region Event handlers
 
         /// <summary>
         /// Called when an indexing error occurs
@@ -208,13 +297,18 @@ namespace Examine.Lucene.Providers
 
         }
 
+        /// <summary>
+        /// Called when a document in writing
+        /// </summary>
+        /// <param name="docArgs"></param>
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
             => DocumentWriting?.Invoke(this, docArgs);
 
-        #endregion
+#endregion
 
-        #region Provider implementation
+#region Provider implementation
 
+        /// <inheritdoc/>
         protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
         {
             // need to lock, we don't want to issue any node writing if there's an index rebuild occuring
@@ -305,7 +399,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public void EnsureIndex(bool forceOverwrite)
         {
-            if (!forceOverwrite && _exists.HasValue && _exists.Value)
+            if (!forceOverwrite && _exists.HasValue && _exists.Value && (!_options.UseTaxonomyIndex || (_taxonomyExists.HasValue && _taxonomyExists.Value)))
             {
                 return;
             }
@@ -319,10 +413,9 @@ namespace Examine.Lucene.Providers
                 {
                     try
                     {
-                        var dir = GetLuceneDirectory();
-
                         if (!indexExists)
                         {
+                            var dir = GetLuceneDirectory();
                             if (_logger.IsEnabled(LogLevel.Debug))
                             {
                                 _logger.LogDebug("Initializing new index {IndexName}", Name);
@@ -330,6 +423,13 @@ namespace Examine.Lucene.Providers
 
                             //if there's no index, we need to create one
                             CreateNewIndex(dir);
+
+                            if (_options.UseTaxonomyIndex)
+                            {
+                                //Now create the taxonomy index
+                                var taxonomyDir = GetLuceneTaxonomyDirectory();
+                                CreateNewTaxonomyIndex(taxonomyDir);
+                            }
                         }
                         else
                         {
@@ -347,6 +447,11 @@ namespace Examine.Lucene.Providers
                                 //Since we are already inside the writer lock and it is null, we are allowed to 
                                 // make this call with out using GetIndexWriter() to do the initialization.
                                 _writer = CreateIndexWriterInternal();
+                            }
+
+                            if (_options.UseTaxonomyIndex && _taxonomyWriter == null)
+                            {
+                                _taxonomyWriter = CreateTaxonomyWriterInternal();
                             }
 
                             //We're forcing an overwrite, 
@@ -397,9 +502,9 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Used internally to create a brand new index, this is not thread safe
         /// </summary>
-        private void CreateNewIndex(Directory dir)
+        private void CreateNewIndex(Directory? dir)
         {
-            IndexWriter writer = null;
+            IndexWriter? writer = null;
             try
             {
                 if (IsLocked(dir))
@@ -429,6 +534,33 @@ namespace Examine.Lucene.Providers
             }
         }
 
+        /// <summary>
+        /// Used internally to create a brand new taxonomy index, this is not thread safe
+        /// </summary>
+        private void CreateNewTaxonomyIndex(Directory dir)
+        {
+            DirectoryTaxonomyWriter writer = null;
+            try
+            {
+                if (IsLocked(dir))
+                {
+                    //unlock it!
+                    Unlock(dir);
+                }
+                //create the writer (this will overwrite old index files)
+                writer = new DirectoryTaxonomyWriter(dir, OpenMode.CREATE);
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs(this, "An error occurred creating the index", null, ex));
+                return;
+            }
+            finally
+            {
+                writer?.Dispose();
+                _taxonomyExists = true;
+            }
+        }
 
         /// <summary>
         /// Creates a new index, any existing index will be deleted
@@ -532,9 +664,9 @@ namespace Examine.Lucene.Providers
             return indexedNodes;
         }
 
-        #endregion
+#endregion
 
-        #region Protected
+#region Protected
 
 
 
@@ -543,7 +675,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="indexValueTypesFactory"></param>
         /// <returns></returns>
-        protected virtual FieldValueTypeCollection CreateFieldValueTypes(IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+        protected virtual FieldValueTypeCollection CreateFieldValueTypes(IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null)
         {
             //copy to writable dictionary
             var defaults = new Dictionary<string, IFieldValueTypeFactory>();
@@ -574,13 +706,22 @@ namespace Examine.Lucene.Providers
         /// Check if there is an index in the index folder
         /// </summary>
         /// <returns></returns>
-        public override bool IndexExists() => _writer != null || IndexExistsImpl();
+        public override bool IndexExists()
+        {
+            var mainIndexExists = _writer != null || IndexExistsImpl();
+            if (!_options.UseTaxonomyIndex)
+            {
+                return mainIndexExists;
+            }
+            var taxonomyIndexExists = _taxonomyWriter != null || TaxonomyIndexExistsImpl();
+            return taxonomyIndexExists && mainIndexExists;
+        }
 
         /// <summary>
         /// Check if the index is readable/healthy
         /// </summary>
         /// <returns></returns>
-        public bool IsReadable(out Exception ex)
+        public bool IsReadable(out Exception? ex)
         {
             if (_writer != null)
             {
@@ -638,18 +779,41 @@ namespace Examine.Lucene.Providers
             return _exists.Value;
         }
 
+        // <summary>
+        /// This will check one time if the taxonomny index exists, we don't want to keep using IndexReader.IndexExists because that will literally go list
+        /// every file in the index folder and we don't need any more IO ops
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// If the index does not exist, it will not store the value so subsequent calls to this will re-evaulate
+        /// </remarks>
+
+        private bool TaxonomyIndexExistsImpl()
+        {
+            //if it's been set and it's true, return true
+            if (_taxonomyExists.HasValue && _taxonomyExists.Value)
+                return true;
+
+            //if it's not been set or it just doesn't exist, re-read the lucene files
+            if (!_taxonomyExists.HasValue || !_taxonomyExists.Value)
+            {
+                _taxonomyExists = DirectoryReader.IndexExists(GetLuceneTaxonomyDirectory());
+            }
+
+            return _taxonomyExists.Value;
+        }
+
 
 
         /// <summary>
         /// Removes the specified term from the index
         /// </summary>
         /// <param name="indexTerm"></param>
-        /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         /// <returns>Boolean if it successfully deleted the term, or there were on errors</returns>
         private bool DeleteFromIndex(Term indexTerm, bool performCommit = true)
         {
-            string itemId = null;
+            string? itemId = null;
             if (indexTerm.Field == "id")
             {
                 itemId = indexTerm.Text;
@@ -678,13 +842,12 @@ namespace Examine.Lucene.Providers
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Collects the data for the fields and adds the document which is then committed into Lucene.Net's index
         /// </summary>
         /// <param name="doc"></param>
         /// <param name="valueSet">The data to index.</param>
-        /// <param name="writer">The writer that will be used to update the Lucene index.</param>
         protected virtual void AddDocument(Document doc, ValueSet valueSet)
         {
             if (_logger.IsEnabled(LogLevel.Debug))
@@ -708,43 +871,46 @@ namespace Examine.Lucene.Providers
             IIndexFieldValueType indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            foreach (KeyValuePair<string, IReadOnlyList<object>> field in valueSet.Values)
+            if(valueSet.Values != null)
             {
-                //check if we have a defined one
-                if (FieldDefinitions.TryGetValue(field.Key, out FieldDefinition definedFieldDefinition))
+                foreach (KeyValuePair<string, IReadOnlyList<object>> field in valueSet.Values)
                 {
-                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(
-                        definedFieldDefinition.Name,
-                        FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type, out var valTypeFactory)
-                            ? valTypeFactory
-                            : FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
-
-                    foreach (var o in field.Value)
+                    //check if we have a defined one
+                    if (FieldDefinitions.TryGetValue(field.Key, out FieldDefinition definedFieldDefinition))
                     {
-                        valueType.AddValue(doc, o);
+                        IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(
+                            definedFieldDefinition.Name,
+                            FieldValueTypeCollection.ValueTypeFactories.TryGetFactory(definedFieldDefinition.Type, out var valTypeFactory)
+                                ? valTypeFactory
+                                : FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+
+                        foreach (var o in field.Value)
+                        {
+                            valueType.AddValue(doc, o);
+                        }
                     }
-                }
-                else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
-                {
-                    //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
-
-                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
-                    foreach (var o in field.Value)
+                    else if (field.Key.StartsWith(ExamineFieldNames.SpecialFieldPrefix))
                     {
-                        valueType.AddValue(doc, o);
+                        //Check for the special field prefix, if this is the case it's indexed as an invariant culture value
+
+                        IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(field.Key, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
+                        foreach (var o in field.Value)
+                        {
+                            valueType.AddValue(doc, o);
+                        }
                     }
-                }
-                else
-                {
-                    // wasn't specifically defined, use FullText as the default
-
-                    IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(
-                        field.Key,
-                        FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
-
-                    foreach (var o in field.Value)
+                    else
                     {
-                        valueType.AddValue(doc, o);
+                        // wasn't specifically defined, use FullText as the default
+
+                        IIndexFieldValueType valueType = FieldValueTypeCollection.GetValueType(
+                            field.Key,
+                            FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+
+                        foreach (var o in field.Value)
+                        {
+                            valueType.AddValue(doc, o);
+                        }
                     }
                 }
             }
@@ -757,17 +923,24 @@ namespace Examine.Lucene.Providers
             }
 
             // TODO: try/catch with OutOfMemoryException (see docs on UpdateDocument), though i've never seen this in real life
-            _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), doc);
+            if (_options.UseTaxonomyIndex)
+            {
+                _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetsConfig.Build(TaxonomyWriter, doc));
+            }
+            else
+            {
+                _latestGen = IndexWriter.UpdateDocument(new Term(ExamineFieldNames.ItemIdFieldName, valueSet.Id), _options.FacetsConfig.Build(doc));
+            }
         }
 
         /// <summary>
         /// This queues up a commit for the index so that a commit doesn't happen on every individual write since that is quite expensive
         /// </summary>
-        private class IndexCommiter : DisposableObjectSlim
+        private class IndexCommiter : DisposableObjectSlim, IIndexCommiter
         {
             private readonly LuceneIndex _index;
             private DateTime _timestamp;
-            private Timer _timer;
+            private Timer? _timer;
             private readonly object _locker = new object();
             private const int WaitMilliseconds = 2000;
 
@@ -776,17 +949,24 @@ namespace Examine.Lucene.Providers
             /// </summary>
             private const int MaxWaitMilliseconds = 300000;
 
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="index">Index to commit</param>
             public IndexCommiter(LuceneIndex index)
             {
                 _index = index;
             }
 
+            /// <inheritdoc/>
             public void CommitNow()
             {
+                _index._taxonomyWriter?.Commit();
                 _index._writer?.IndexWriter?.Commit();
                 _index.IndexCommitted?.Invoke(_index, EventArgs.Empty);
             }
 
+            /// <inheritdoc/>
             public void ScheduleCommit()
             {
                 lock (_locker)
@@ -896,15 +1076,22 @@ namespace Examine.Lucene.Providers
         /// Returns the Lucene Directory used to store the index
         /// </summary>
         /// <returns></returns>
-        public Directory GetLuceneDirectory() => _writer != null ? _writer.IndexWriter.Directory : _directory.Value;
+        public Directory? GetLuceneDirectory() => _writer != null ? _writer.IndexWriter.Directory : _directory?.Value;
+
+        /// <summary>
+        /// Returns the Lucene Directory used to store the taxonomy index
+        /// </summary>
+        /// <returns></returns>
+        public Directory GetLuceneTaxonomyDirectory() => _taxonomyWriter != null ? _taxonomyWriter.Directory : _taxonomyDirectory.Value;
+
 
         /// <summary>
         /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
         /// </summary>
         /// <returns></returns>
-        private TrackingIndexWriter CreateIndexWriterInternal()
+        private TrackingIndexWriter? CreateIndexWriterInternal()
         {
-            Directory dir = GetLuceneDirectory();
+            Directory? dir = GetLuceneDirectory();
 
             // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
             // ensure that it's unlocked here in that case.
@@ -938,7 +1125,7 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="d"></param>
         /// <returns></returns>
-        protected virtual IndexWriter CreateIndexWriter(Directory d)
+        protected virtual IndexWriter CreateIndexWriter(Directory? d)
         {
             if (d == null)
             {
@@ -1016,13 +1203,89 @@ namespace Examine.Lucene.Providers
 
                 }
 
-                return _writer;
+                return _writer; // TODO: should this throw when null
+            }
+        }
+
+        /// <summary>
+        /// Used to create an index writer - this is called in GetIndexWriter (and therefore, GetIndexWriter should not be overridden)
+        /// </summary>
+        /// <returns></returns>
+        private DirectoryTaxonomyWriter CreateTaxonomyWriterInternal()
+        {
+            Directory dir = GetLuceneTaxonomyDirectory();
+
+            // Unfortunatley if the appdomain is taken down this will remain locked, so we can 
+            // ensure that it's unlocked here in that case.
+            try
+            {
+                if (IsLocked(dir))
+                {
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("Forcing index {IndexName} to be unlocked since it was left in a locked state", Name);
+                    }
+                    //unlock it!
+                    Unlock(dir);
+                }
+            }
+            catch (Exception ex)
+            {
+                OnIndexingError(new IndexingErrorEventArgs(this, "The index was locked and could not be unlocked", null, ex));
+                return null;
+            }
+
+            DirectoryTaxonomyWriter writer = CreateTaxonomyWriter(dir);
+
+            return writer;
+        }
+
+        /// <summary>
+        /// Method that creates the IndexWriter
+        /// </summary>
+        /// <param name="d"></param>
+        /// <returns></returns>
+        protected virtual DirectoryTaxonomyWriter CreateTaxonomyWriter(Directory d)
+        {
+            if (d == null)
+            {
+                throw new ArgumentNullException(nameof(d));
+            }
+            var taxonomyWriter = new SnapshotDirectoryTaxonomyWriter(d);
+
+            return taxonomyWriter;
+        }
+
+        public DirectoryTaxonomyWriter TaxonomyWriter
+        {
+            get
+            {
+                EnsureIndex(false);
+
+                if (_taxonomyWriter == null)
+                {
+                    Monitor.Enter(_writerLocker);
+                    try
+                    {
+                        if (_taxonomyWriter == null)
+                        {
+                            _taxonomyWriter = CreateTaxonomyWriterInternal();
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(_writerLocker);
+                    }
+
+                }
+
+                return _taxonomyWriter;
             }
         }
 
         #endregion
 
-        #region Private
+#region Private
 
         private LuceneSearcher CreateSearcher()
         {
@@ -1051,14 +1314,43 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection);
+            return new LuceneSearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig);
+        }
+
+        private LuceneTaxonomySearcher CreateTaxonomySearcher()
+        {
+            var possibleSuffixes = new[] { "Index", "Indexer" };
+            var name = Name;
+            foreach (var suffix in possibleSuffixes)
+            {
+                //trim the "Indexer" / "Index" suffix if it exists
+                if (!name.EndsWith(suffix))
+                    continue;
+                name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
+            }
+
+            TrackingIndexWriter writer = IndexWriter;
+            DirectoryTaxonomyWriter taxonomyWriter = TaxonomyWriter;
+            var searcherManager = new SearcherTaxonomyManager(writer.IndexWriter, true, new SearcherFactory(), taxonomyWriter);
+            searcherManager.AddListener(this);
+            _taxonomyNrtReopenThread = new ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>(writer, searcherManager, 5.0, 1.0)
+            {
+                Name = $"{Name} Taxonomy NRT Reopen Thread",
+                IsBackground = true
+            };
+
+            _taxonomyNrtReopenThread.Start();
+
+            // wait for most recent changes when first creating the searcher
+            WaitForChanges();
+
+            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig);
         }
 
         /// <summary>
         /// Deletes the item from the index either by id or by category
         /// </summary>
         /// <param name="op"></param>
-        /// <param name="iw"></param>
         /// <param name="performCommit"></param>
         private void ProcessDeleteQueueItem(IndexOperation op, bool performCommit = true)
         {
@@ -1170,7 +1462,7 @@ namespace Examine.Lucene.Providers
             }
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Blocks the calling thread until the internal searcher can see latest documents
@@ -1217,8 +1509,10 @@ namespace Examine.Lucene.Providers
             protected override void DisposeResources() => _index.RunAsync = _orig;
         }
 
+        /// <inheritdoc/>
         public long GetDocumentCount() => IndexWriter.IndexWriter.NumDocs;
 
+        /// <inheritdoc/>
         public IEnumerable<string> GetFieldNames()
         {
             var writer = IndexWriter;
@@ -1251,19 +1545,26 @@ namespace Examine.Lucene.Providers
             return false;
         }
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
                 if (disposing)
                 {
-                    if (_nrtReopenThread != null)
+                    if (_nrtReopenThread is not null)
                     {
                         _nrtReopenThread.Interrupt();
                         _nrtReopenThread.Dispose();
                     }
 
-                    if (_searcher.IsValueCreated)
+                    if (_taxonomyNrtReopenThread != null)
+                    {
+                        _taxonomyNrtReopenThread.Interrupt();
+                        _taxonomyNrtReopenThread.Dispose();
+                    }
+
+                    if (_searcher != null && _searcher.IsValueCreated)
                     {
                         _searcher.Value.Dispose();
                     }
@@ -1307,15 +1608,30 @@ namespace Examine.Lucene.Providers
 
 
                     }
+                    if (_taxonomyWriter != null)
+                    {
+                        try
+                        {
+                            // Taxonomy writer must be disposed before index writer
+                            _taxonomyWriter?.Dispose();
+                        }
+                        catch (Exception e)
+                        {
+                            OnIndexingError(new IndexingErrorEventArgs(this, "Error closing the Taxonomy index", "-1", e));
+                        }
+                    }
 
                     _cancellationTokenSource.Dispose();
 
+#if FULLDEBUG
                     _logOutput?.Close();
+#endif
                 }
                 _disposedValue = true;
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose() => Dispose(disposing: true);
 
         void ReferenceManager.IRefreshListener.BeforeRefresh() { }

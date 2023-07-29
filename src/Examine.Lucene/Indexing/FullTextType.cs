@@ -1,11 +1,16 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Examine.Lucene.Analyzers;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Miscellaneous;
 using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
@@ -20,32 +25,88 @@ namespace Examine.Lucene.Indexing
     /// do an exact match search if the term is less than 4 chars, else it will do a full text search on the phrase
     /// with a higher boost, then 
     /// </remarks>
-    public class FullTextType : IndexFieldValueTypeBase
+    public class FullTextType : IndexFieldValueTypeBase, IIndexFacetValueType
     {
         private readonly bool _sortable;
         private readonly Analyzer _analyzer;
+        private readonly bool _isFacetable;
+        private readonly bool _taxonomyIndex;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
+        /// <param name="logger"></param>
+        /// <param name="sortable"></param>
+        /// <param name="isFacetable"></param>
         /// <param name="analyzer">
+        /// <param name="taxonomyIndex"></param>
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
-        /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false)
+        public FullTextType(string fieldName, ILoggerFactory logger, bool sortable = false, bool isFacetable = false, Analyzer? analyzer = null, bool taxonomyIndex = false)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _isFacetable = isFacetable;
+            _taxonomyIndex = taxonomyIndex;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="logger"></param>
+        /// <param name="analyzer">
+        /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
+        /// </param>
+        /// <param name="sortable"></param>
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer? analyzer = null, bool sortable = false)
+            : base(fieldName, logger, true)
+        {
+            _sortable = sortable;
+            _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _isFacetable = false;
         }
 
         /// <summary>
         /// Can be sorted by a concatenated field name since to be sortable it cannot be analyzed
         /// </summary>
-        public override string SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
+        public override string? SortableFieldName => _sortable ? ExamineFieldNames.SortedFieldNamePrefix + FieldName : null;
 
+        /// <inheritdoc/>
         public override Analyzer Analyzer => _analyzer;
+
+        /// <inheritdoc/>
+        public bool IsTaxonomyFaceted => _taxonomyIndex;
+
+        /// <inheritdoc/>
+        public override void AddValue(Document doc, object value)
+        {
+            // Support setting taxonomy path
+            if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
+            {
+                if (!TryConvert(objArr[0], out string str))
+                    return;
+                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                    return;
+
+                doc.Add(new TextField(FieldName, str, Field.Store.YES));
+
+                if (_sortable)
+                {
+                    //to be sortable it cannot be analyzed so we have to make a different field
+                    doc.Add(new StringField(
+                        ExamineFieldNames.SortedFieldNamePrefix + FieldName,
+                        str,
+                        Field.Store.YES));
+                }
+
+                doc.Add(new FacetField(FieldName, parsedPathVal));
+                return;
+            }
+            base.AddValue(doc, value);
+        }
 
         protected override void AddSingleValue(Document doc, object value)
         {
@@ -61,10 +122,26 @@ namespace Examine.Lucene.Indexing
                         str,
                         Field.Store.YES));
                 }
+
+                if (_isFacetable && _taxonomyIndex)
+                {
+                    doc.Add(new FacetField(FieldName, str));
+                }
+                else if (_isFacetable && !_taxonomyIndex)
+                {
+                    doc.Add(new SortedSetDocValuesFacetField(FieldName, str));
+                }
             }
         }
 
-        public static Query GenerateQuery(string fieldName, string query, Analyzer analyzer)
+        /// <summary>
+        /// Generates a full text query
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="query"></param>
+        /// <param name="analyzer"></param>
+        /// <returns></returns>
+        public static Query? GenerateQuery(string fieldName, string query, Analyzer analyzer)
         {
             if (query == null)
             {
@@ -135,12 +212,14 @@ namespace Examine.Lucene.Indexing
         /// Builds a full text search query
         /// </summary>
         /// <param name="query"></param>
-        /// 
         /// <returns></returns>
-        public override Query GetQuery(string query)
+        public override Query? GetQuery(string query)
         {
             return GenerateQuery(FieldName, query, _analyzer);
         }
 
+        /// <inheritdoc/>
+        public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)
+            => field.ExtractFacets(facetExtractionContext);
     }
 }

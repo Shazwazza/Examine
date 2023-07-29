@@ -6,6 +6,13 @@ namespace Examine.Lucene.Search
     public class SearchAfterOptions
     {
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="documentId">The Id of the last document in the previous result set. The search will search after this document</param>
+        /// <param name="documentScore"> The Score of the last document in the previous result set. The search will search after this document</param>
+        /// <param name="fields">Search fields. Should contain null or J2N.Int</param>
+        /// <param name="shardIndex">The index of the shard the doc belongs to</param>
         public SearchAfterOptions(int documentId, float documentScore, object[] fields, int shardIndex)
         {
             DocumentId = documentId;

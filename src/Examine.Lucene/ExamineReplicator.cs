@@ -26,6 +26,7 @@ namespace Examine.Lucene
         private bool _started = false;
         private readonly ILogger<ExamineReplicator> _logger;
 
+        /// <inheritdoc/>
         public ExamineReplicator(
             ILoggerFactory loggerFactory,
             LuceneIndex sourceIndex,
@@ -89,6 +90,11 @@ namespace Examine.Lucene
             _localReplicationClient.UpdateNow();
         }
 
+        /// <summary>
+        /// Starts index replication
+        /// </summary>
+        /// <param name="milliseconds"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void StartIndexReplicationOnSchedule(int milliseconds)
         {
             lock (_locker)
@@ -119,17 +125,22 @@ namespace Examine.Lucene
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SourceIndex_IndexCommitted(object sender, EventArgs e)
+        private void SourceIndex_IndexCommitted(object? sender, EventArgs e)
         {
-            var index = (LuceneIndex)sender;
+            var index = (LuceneIndex?)sender;
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("{IndexName} committed", index.Name);
+                if(index == null)
+                {
+                    _logger.LogWarning("Index is null in {method}", nameof(ExamineReplicator.SourceIndex_IndexCommitted));
+                }
+                _logger.LogDebug("{IndexName} committed", index?.Name ?? $"({nameof(index)} is null)");
             }
             var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
             _replicator.Publish(rev);
         }
 
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -144,6 +155,7 @@ namespace Examine.Lucene
             }
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
