@@ -1,3 +1,4 @@
+using System;
 using Examine.Search;
 
 namespace Examine
@@ -29,5 +30,16 @@ namespace Examine
         /// An instance of <see cref="IQueryExecutor"/>
         /// </returns>
         IQuery CreateQuery(string? category = null, BooleanOperation defaultOperation = BooleanOperation.And);
+
+
+        /// <summary>
+        /// Creates a search criteria instance as required by the implementation
+        /// </summary>
+        /// <param name="category">The type of data in the index.</param>
+        /// <param name="defaultOperation">The default operation.</param>
+        /// <returns>
+        /// An instance of <see cref="IQueryExecutor"/>
+        /// </returns>
+        IQuery CreateQuery(Action<IFilter> filter, string? category = null, BooleanOperation defaultOperation = BooleanOperation.And);
     }
 }

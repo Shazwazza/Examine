@@ -5246,20 +5246,19 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = indexer.Searcher;
 
-                var criteria = searcher.CreateQuery("content")
-                    .Filter(
-                        filter =>
-                        {
-                            filter.Term(new FilterTerm("nodeTypeAlias", "CWS_Home"))
-                                .And()
-                                .TermPrefix(new FilterTerm("nodeName", "my name"))
-                                .And()
-                                .ChainFilters(chain =>
-                                    chain.Chain(chainedFilter => chainedFilter.FieldValueExists("nodeTypeAlias"))
-                                            .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.FieldValueNotExists("nodeTypeAlias"))
-                                            );
-                                
-                        });
+                Action<IFilter> filtering = filter =>
+                {
+                    filter.Term(new FilterTerm("nodeTypeAlias", "CWS_Home"))
+                        .And()
+                        .TermPrefix(new FilterTerm("nodeName", "my name"))
+                        .And()
+                        .ChainFilters(chain =>
+                            chain.Chain(chainedFilter => chainedFilter.FieldValueExists("nodeTypeAlias"))
+                                    .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.FieldValueNotExists("nodeTypeAlias"))
+                                    );
+
+                };
+                var criteria = searcher.CreateQuery(filtering, "content");
                 var boolOp = criteria.Field("nodeTypeAlias", "CWS_Home".Escape());
 
                 if (HasFacets(withFacets))

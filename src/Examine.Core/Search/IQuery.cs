@@ -135,11 +135,5 @@ namespace Examine.Search
         /// <returns></returns>
         IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
-        /// <summary>
-        /// Apply Filters
-        /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
-        IQuery Filter(Action<IFilter> filter);
     }
 }
