@@ -23,8 +23,6 @@ namespace Examine
 
         /// <inheritdoc />
 		public abstract IQuery CreateQuery(string? category = null, BooleanOperation defaultOperation = BooleanOperation.And);
-
-        /// <inheritdoc />
-        public abstract IQuery CreateQuery(Action<IFilter> filter, string? category = null, BooleanOperation defaultOperation = BooleanOperation.And);
+        
     }
 }
