@@ -8,3 +8,7 @@
   href: sorting.md
 - name: Paging
   href: sorting.md#paging-and-limiting-results
+- name: Suggesters
+  href: suggesting.md
+- name: Spellchecking
+  href: suggesting.md#lucene-spellcheckers
