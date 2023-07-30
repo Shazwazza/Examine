@@ -1,8 +1,8 @@
 ---
 layout: page
-title: Sorting
+title: V1/V2 Sorting
 permalink: /sorting
-ref: sorting
+uid: v2sorting
 order: 3
 ---
 
@@ -95,16 +95,6 @@ With the combination of `ISearchResult.Skip` and `maxResults`, we can tell Lucen
 
 * Skip over a certain number of results without allocating them and tell Lucene
 * only allocate a certain number of results after skipping
-
-### Deep Paging
-When using Lucene.NET as the Examine provider it is possible to more efficiently perform deep paging.
-Steps:
-1. Build and execute your query as normal.
-2. Cast the ISearchResults from IQueryExecutor.Execute to ILuceneSearchResults
-3. Store ILuceneSearchResults.SearchAfter (SearchAfterOptions) for the next page.
-4. Create the same query as the previous request.
-5. When calling IQueryExecutor.Execute. Pass in new LuceneQueryOptions(skip,take, SearchAfterOptions); Skip will be ignored, the next take documents will be retrieved after the SearchAfterOptions document.
-6. Repeat Steps 2-5 for each page.
 
 ### Example
 

@@ -24,7 +24,14 @@ namespace Examine.Search
             Take = take ?? DefaultMaxResults;
         }
 
+        /// <summary>
+        /// The number of documents to skip in the result set.
+        /// </summary>
         public int Skip { get; }
+
+        /// <summary>
+        /// The number of documents to take in the result set.
+        /// </summary>
         public int Take { get; }
     }
 }

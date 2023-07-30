@@ -24,7 +24,8 @@ namespace Examine
 
 		public long TotalItemCount => 0;
 
-	    public IEnumerable<ISearchResult> Skip(int skip)
+
+        public IEnumerable<ISearchResult> Skip(int skip)
 		{
 			return Enumerable.Empty<ISearchResult>();
 		}

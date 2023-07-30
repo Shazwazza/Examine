@@ -206,6 +206,9 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public event EventHandler<DocumentWritingEventArgs> DocumentWriting;
 
+        /// <summary>
+        /// Occors when the index is commited
+        /// </summary>
         public event EventHandler IndexCommitted;
 
         #endregion
