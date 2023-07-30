@@ -10,6 +10,14 @@ namespace Examine.Lucene.Search
 
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
+        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount)
+        {
+            _results = results;
+            TotalItemCount = totalItemCount;
+            MaxScore = float.NaN;
+            SearchAfter = null;
+        }
+
         public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount,float maxScore, SearchAfterOptions searchAfterOptions)
         {
             _results = results;
