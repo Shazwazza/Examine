@@ -4896,11 +4896,12 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 #if NET6_0_OR_GREATER
-        [TestCase(FacetTestType.TaxonomyFacets)] [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]
         public void Range_DateOnly(FacetTestType withFacets)
         {
-           FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -5184,6 +5185,98 @@ namespace Examine.Test.Examine.Lucene.Search
                 var secondResults = results2.ToArray();
                 Assert.IsFalse(firstResults.Any(x => secondResults.Any(y => y.Id == x.Id)), "The second set of results should not contain the first set of results");
 
+            }
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void BasicFilter(FacetTestType withFacets)
+        {
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"));
+                    break;
+            }
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
+            {
+
+
+                indexer.IndexItems(new[] {
+                    new ValueSet(1.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 1"},
+                            {"nodeTypeAlias", "CWS_Home"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
+                        }),
+                    new ValueSet(2.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 2"},
+                            {"nodeTypeAlias", "CWS_Home"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
+                        }),
+                    new ValueSet(3.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 3"},
+                            {"nodeTypeAlias", "CWS_Page"}
+                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Page"}
+                        })
+                    });
+
+
+
+                var searcher = indexer.Searcher;
+
+                var criteria = searcher.CreateQuery("content")
+                    .Filter(
+                        filter =>
+                        {
+                            filter.Term(new FilterTerm("nodeTypeAlias", "CWS_Home"))
+                                .And()
+                                .TermPrefix(new FilterTerm("nodeName", "my name"))
+                                .And()
+                                .ChainFilters(chain =>
+                                    chain.Chain(chainedFilter => chainedFilter.FieldValueExists("nodeTypeAlias"))
+                                            .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.FieldValueNotExists("nodeTypeAlias"))
+                                            );
+                                
+                        });
+                var boolOp = criteria.Field("nodeTypeAlias", "CWS_Home".Escape());
+
+                if (HasFacets(withFacets))
+                {
+                    var results = boolOp.WithFacets(facets => facets.Facet("nodeName")).Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = boolOp.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
             }
         }
     }
