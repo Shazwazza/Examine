@@ -45,14 +45,29 @@ namespace Examine.Lucene.Indexing
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
         /// <param name="sortable"></param>
-        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false, Analyzer searchAnalyzer = null, Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> lookup = null)
+        public FullTextType(string fieldName, ILoggerFactory logger, Analyzer analyzer = null, bool sortable = false)
+            : base(fieldName, logger, true)
+        {
+            _sortable = sortable;
+            _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
+            _searchAnalyzer = _analyzer;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="analyzer">
+        /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
+        /// </param>
+        /// <param name="sortable"></param>
+        public FullTextType(string fieldName, ILoggerFactory logger, Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> lookup, Analyzer analyzer, bool sortable, Analyzer searchAnalyzer)
             : base(fieldName, logger, true)
         {
             _sortable = sortable;
             _analyzer = analyzer ?? new CultureInvariantStandardAnalyzer();
             _searchAnalyzer = searchAnalyzer ?? _analyzer;
             _lookup = lookup;
-
         }
 
         /// <summary>

@@ -11,6 +11,19 @@ namespace Examine
     ///</summary>
     public class ExamineManager : IDisposable, IExamineManager
     {
+        public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers)
+        {
+            foreach (IIndex i in indexes)
+            {
+                AddIndex(i);
+            }
+
+            foreach (ISearcher s in searchers)
+            {
+                AddSearcher(s);
+            }
+        }
+
         public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers, IEnumerable<ISuggester> suggesters)
         {
             foreach(IIndex i in indexes)
