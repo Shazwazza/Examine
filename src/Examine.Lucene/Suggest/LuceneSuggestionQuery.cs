@@ -14,13 +14,13 @@ namespace Examine.Lucene.Suggest
         /// </summary>
         /// <param name="suggesterContext">Lucene Suggestion Query Context</param>
         /// <param name="options">Query time suggester options</param>
-        public LuceneSuggestionQuery(ISuggesterContext suggesterContext, SuggestionOptions options)
+        public LuceneSuggestionQuery(ISuggesterContext suggesterContext, SuggestionOptions? options)
         {
             _suggesterContext = suggesterContext;
         }
 
         /// <inheritdoc/>
-        public ISuggestionResults Execute(string searchText, SuggestionOptions options = null)
+        public ISuggestionResults Execute(string searchText, SuggestionOptions? options = null)
         {
             var executor = new LuceneSuggesterExecutor(searchText, options, _suggesterContext);
             var results = executor.Execute();

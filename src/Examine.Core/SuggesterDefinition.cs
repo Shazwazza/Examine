@@ -12,7 +12,7 @@ namespace Examine
         /// </summary>
         /// <param name="name">Name of the suggester</param>
         /// <param name="sourceFields">Source Index Fields for the Suggester</param>
-        public SuggesterDefinition(string name, string[] sourceFields = null)
+        public SuggesterDefinition(string name, string[]? sourceFields = null)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -31,7 +31,7 @@ namespace Examine
         /// <summary>
         /// Suggester Source Fields
         /// </summary>
-        public string[] SourceFields { get; }
+        public string[]? SourceFields { get; }
 
     }
 }

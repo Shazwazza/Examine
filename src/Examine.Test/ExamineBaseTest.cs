@@ -21,8 +21,6 @@ namespace Examine.Test
             loggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
         }
 
-        [TearDown]
-        public virtual void TearDown() => _loggerFactory.Dispose();
         public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig facetsConfig = null,SuggesterDefinitionCollection suggesterDefinitions = null)
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));

@@ -14,11 +14,14 @@ namespace Examine.Suggest
         /// Suggest query terms for the given search Text
         /// </summary>
         /// <param name="searchText">Text to suggest on</param>
-        /// <param name="sourceFieldName">Index field to suggest for</param>
         /// <param name="options">Options</param>
         /// <returns></returns>
-        ISuggestionResults Suggest(string searchText, SuggestionOptions options = null);
+        ISuggestionResults Suggest(string searchText, SuggestionOptions? options = null);
 
+        /// <summary>
+        /// Creates a Suggestion Query
+        /// </summary>
+        /// <returns>Query</returns>
         ISuggestionQuery CreateSuggestionQuery();
 
     }

@@ -22,6 +22,8 @@ namespace Examine.Lucene.Suggest
         /// </summary>
         /// <param name="readerManager">Reader Manager for IndexReader on the Suggester Index</param>
         /// <param name="fieldValueTypeCollection">Fields of Suggester Index</param>
+        /// <param name="suggesterDefinitions">Suggester definitions for the index</param>
+        /// <param name="suggesters">Suggester implementations</param>
         public SuggesterContext(ReaderManager readerManager, FieldValueTypeCollection fieldValueTypeCollection, SuggesterDefinitionCollection suggesterDefinitions,
             Dictionary<string, ILookupExecutor> suggesters)
         {
@@ -31,11 +33,13 @@ namespace Examine.Lucene.Suggest
             _suggesters = suggesters;
         }
 
-        /// <inheritdoc>/>
+        /// <inheritdoc/>
         public IIndexReaderReference GetIndexReader() => new IndexReaderReference(_readerManager);
 
+        /// <inheritdoc/>
         public SuggesterDefinitionCollection GetSuggesterDefinitions() => _suggesterDefinitions;
 
+        /// <inheritdoc/>
         public TLookup GetSuggester<TLookup>(string name) where TLookup : Lookup
         {
             if(_suggesters.TryGetValue(name, out var suggester))
@@ -45,6 +49,7 @@ namespace Examine.Lucene.Suggest
             throw new ArgumentException(name, nameof(name));
         }
 
+        /// <inheritdoc/>
         public IIndexFieldValueType GetFieldValueType(string fieldName)
         {
             //Get the value type for the field, or use the default if not defined
@@ -53,6 +58,7 @@ namespace Examine.Lucene.Suggest
                 _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
         }
 
+        /// <inheritdoc/>
         public LuceneVersion GetLuceneVersion() => LuceneVersion.LUCENE_48;
     }
 }

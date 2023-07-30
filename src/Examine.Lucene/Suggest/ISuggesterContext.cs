@@ -1,5 +1,4 @@
 using Examine.Lucene.Indexing;
-using Examine.Suggest;
 using Lucene.Net.Search.Suggest;
 using Lucene.Net.Util;
 
@@ -41,10 +40,5 @@ namespace Examine.Lucene.Suggest
         /// <param name="name">Suggester Name</param>
         /// <returns>Suggester</returns>
         TLookup GetSuggester<TLookup>(string name) where TLookup : Lookup;
-    }
-
-    public interface ILookupExecutor
-    {
-        ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext);
     }
 }

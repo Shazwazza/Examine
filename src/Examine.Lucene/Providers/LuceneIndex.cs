@@ -297,9 +297,10 @@ namespace Examine.Lucene.Providers
         public event EventHandler? IndexCommitted;
 
         /// <summary>
-        /// Occors when the index is commited
+        /// Raise Index Commited event
         /// </summary>
-        public event EventHandler IndexCommitted;
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected void RaiseIndexCommited(object sender, EventArgs e)
         {
             IndexCommitted?.Invoke(sender, e);
@@ -807,7 +808,7 @@ namespace Examine.Lucene.Providers
             return _exists.Value;
         }
 
-        // <summary>
+        /// <summary>
         /// This will check one time if the taxonomny index exists, we don't want to keep using IndexReader.IndexExists because that will literally go list
         /// every file in the index folder and we don't need any more IO ops
         /// </summary>

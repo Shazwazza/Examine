@@ -26,6 +26,12 @@ namespace Examine
             }
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="indexes">Examine Indexes</param>
+        /// <param name="searchers">Examine Searchers</param>
+        /// <param name="suggesters">Examine Suggesters</param>
         public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers, IEnumerable<ISuggester> suggesters)
         {
             foreach(IIndex i in indexes)
@@ -75,6 +81,7 @@ namespace Examine
         /// <inheritdoc />
         public IEnumerable<IIndex> Indexes => _indexers.Values;
 
+        /// <inheritdoc />
         public IEnumerable<ISuggester> RegisteredSuggesters => _suggesters.Values;
 
         private IIndex AddIndex(IIndex index)

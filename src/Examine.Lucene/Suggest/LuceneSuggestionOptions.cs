@@ -1,5 +1,5 @@
 using Examine.Suggest;
-using Lucene.Net.Analysis;
+using Lucene.Net.Search.Spell;
 
 namespace Examine.Lucene.Suggest
 {
@@ -13,13 +13,15 @@ namespace Examine.Lucene.Suggest
         /// </summary>
         /// <param name="top">Clamp number of results</param>
         /// <param name="suggesterName">The name of the Suggester to use</param>
-        /// <param name="analyzer">Query time Analyzer</param>
         /// <param name="suggestionMode">Suggestion Mode</param>
         public LuceneSuggestionOptions(int top = 5, string suggesterName = null, SuggestMode suggestionMode = default) : base(top, suggesterName)
         {
             SuggestionMode = suggestionMode;
         }
 
+        /// <summary>
+        /// Strategy for suggesting related terms
+        /// </summary>
         public SuggestMode SuggestionMode { get; }
 
         /// <summary>

@@ -23,6 +23,9 @@ namespace Examine
         /// </summary>
         public IValueSetValidator? Validator { get; set; }
 
+        /// <summary>
+        /// The suggester definitions for the <see cref="IIndex"/>
+        /// </summary>
         public SuggesterDefinitionCollection SuggesterDefinitions { get; set; }
     }
 }

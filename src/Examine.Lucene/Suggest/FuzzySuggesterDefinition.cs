@@ -8,14 +8,25 @@ using Examine.Suggest;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Lucene.NET FuzzySuggester Definition
+    /// </summary>
     public class FuzzySuggesterDefinition : LuceneSuggesterDefinition, ILookupExecutor
     {
-        public FuzzySuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null, Analyzer queryTimeAnalyzer = null)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name">Suggester Name</param>
+        /// <param name="sourceFields">Source fields for suggestions</param>
+        /// <param name="directoryFactory">Suggester Directory Factory</param>
+        /// <param name="queryTimeAnalyzer">Query Time Analyzer</param>
+        public FuzzySuggesterDefinition(string name, string[]? sourceFields = null, ISuggesterDirectoryFactory? directoryFactory = null, Analyzer? queryTimeAnalyzer = null)
             : base(name, sourceFields, directoryFactory, queryTimeAnalyzer)
         {
         }
+
         /// <inheritdoc/>
-        public Lookup Lookup { get; internal set; }
+        public Lookup? Lookup { get; internal set; }
 
         /// <inheritdoc/>
         public override ILookupExecutor BuildSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
@@ -24,6 +35,7 @@ namespace Examine.Lucene.Suggest
         /// <inheritdoc/>
         public override ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext) => ExecuteFuzzySuggester(searchText, suggestionExecutionContext);
 
+        /// <inheritdoc/>
         protected ILookupExecutor BuildFuzzySuggesterLookup(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
         {
             string field = SourceFields.First();
@@ -31,8 +43,8 @@ namespace Examine.Lucene.Suggest
             var indexTimeAnalyzer = fieldValue.Analyzer;
 
 
-            FuzzySuggester suggester = null;
-            Analyzer queryTimeAnalyzer = QueryTimeAnalyzer;
+            FuzzySuggester? suggester = null;
+            Analyzer? queryTimeAnalyzer = QueryTimeAnalyzer;
 
             if (rebuild)
             {
@@ -58,7 +70,7 @@ namespace Examine.Lucene.Suggest
 
         private ISuggestionResults ExecuteFuzzySuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext)
         {
-            FuzzySuggester suggester = Lookup as FuzzySuggester;
+            FuzzySuggester? suggester = Lookup as FuzzySuggester;
 
             var onlyMorePopular = false;
             if (suggestionExecutionContext.Options is LuceneSuggestionOptions luceneSuggestionOptions

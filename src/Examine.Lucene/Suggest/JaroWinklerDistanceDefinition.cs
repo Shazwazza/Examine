@@ -5,13 +5,26 @@ using Examine.Suggest;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Lucene.NET JaroWinklerDistance Suggester Definition
+    /// </summary>
     public class JaroWinklerDistanceDefinition : LuceneSuggesterDefinition, ILookupExecutor
     {
-        public JaroWinklerDistanceDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name">Suggester Name</param>
+        /// <param name="sourceFields">Index Source Fields</param>
+        /// <param name="directoryFactory">Suggester Directory Factory</param>
+        public JaroWinklerDistanceDefinition(string name, string[]? sourceFields = null, ISuggesterDirectoryFactory? directoryFactory = null)
             : base(name, sourceFields, directoryFactory)
         {
         }
-        DirectSpellChecker Spellchecker { get; set; }
+
+        /// <summary>
+        /// Spell Checker
+        /// </summary>
+        public DirectSpellChecker? Spellchecker { get; set; }
 
         /// <inheritdoc/>
         public override ILookupExecutor BuildSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
@@ -19,6 +32,8 @@ namespace Examine.Lucene.Suggest
 
         /// <inheritdoc/>
         public override ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext) => ExecuteDirectSpellChecker(searchText, suggestionExecutionContext);
+
+        /// <inheritdoc/>
         protected ILookupExecutor BuildDirectSpellCheckerSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
         {
             Spellchecker  = new DirectSpellChecker();

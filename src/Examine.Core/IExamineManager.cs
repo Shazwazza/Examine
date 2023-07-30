@@ -30,7 +30,7 @@ namespace Examine
         /// Gets a list of all manually configured suggester providers
         /// </summary>
         /// <remarks>
-        /// This returns only those suggesters explicitly registered with <see cref="AddSuggester"/> or config based suggesters
+        /// This returns only those suggesters explicitly registered with AddSuggester or config based suggesters
         /// </remarks>
         IEnumerable<ISuggester> RegisteredSuggesters { get; }
 
@@ -66,7 +66,7 @@ namespace Examine
         out ISearcher searcher);
 
         /// <summary>
-        /// Returns a sugesster that was registered with <see cref="AddSuggester"/> or via config
+        /// Returns a sugesster that was registered with AddSuggester or via config
         /// </summary>
         /// <param name="suggesterName"></param>
         /// <param name="suggester"></param>

@@ -1,7 +1,10 @@
-﻿using Examine.Suggest;
+using Examine.Suggest;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Context for Suggester Execution
+    /// </summary>
     public interface ISuggestionExecutionContext
     {
         /// <summary>

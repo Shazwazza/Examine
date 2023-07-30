@@ -81,6 +81,7 @@ namespace Examine
         /// <inheritdoc/>
         public abstract ISearcher Searcher { get; }
 
+        /// <inheritdoc/>
         public abstract ISuggester Suggester { get; }
 
         /// <inheritdoc />

@@ -16,7 +16,8 @@ namespace Examine.Lucene.Suggest
         /// <param name="name">Name of the suggester</param>
         /// <param name="sourceFields">Source Index Fields for the Suggester</param>
         /// <param name="directoryFactory">Directory Factory for Lucene Suggesters (Required by AnalyzingInfixSuggester)</param>
-        public LuceneSuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null, Analyzer queryTimeAnalyzer = null)
+        /// <param name="queryTimeAnalyzer">Analyzer to use at Query time</param>
+        public LuceneSuggesterDefinition(string name, string[]? sourceFields = null, ISuggesterDirectoryFactory? directoryFactory = null, Analyzer? queryTimeAnalyzer = null)
             : base(name, sourceFields)
         {
             SuggesterDirectoryFactory = directoryFactory;
@@ -26,12 +27,12 @@ namespace Examine.Lucene.Suggest
         /// <summary>
         /// Directory Factory for Lucene Suggesters
         /// </summary>
-        public ISuggesterDirectoryFactory SuggesterDirectoryFactory { get; }
+        public ISuggesterDirectoryFactory? SuggesterDirectoryFactory { get; }
 
         /// <summary>
         /// Query Time Analyzer
         /// </summary>
-        public Analyzer QueryTimeAnalyzer { get; }
+        public Analyzer? QueryTimeAnalyzer { get; }
 
         /// <summary>
         /// Build the Suggester Lookup
@@ -50,7 +51,13 @@ namespace Examine.Lucene.Suggest
         /// <returns></returns>
         public abstract ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext);
 
-        
+
+        /// <summary>
+        /// Gets the field value type of a field name
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="fieldValueTypeCollection"></param>
+        /// <returns></returns>
         protected IIndexFieldValueType GetFieldValueType(FieldValueTypeCollection fieldValueTypeCollection, string fieldName)
         {
             //Get the value type for the field, or use the default if not defined

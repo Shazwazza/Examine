@@ -10,24 +10,24 @@ namespace Examine.Test.Examine.Lucene.Suggest
     [TestFixture]
     public class SuggesterApiTests : ExamineBaseTest
     {
-        FieldDefinitionCollection fieldDefinitionCollection;
-        SuggesterDefinitionCollection suggesters;
+        FieldDefinitionCollection _fieldDefinitionCollection;
+        SuggesterDefinitionCollection _suggesters;
 
         [SetUp]
         public void Setup()
         {
-            fieldDefinitionCollection = new FieldDefinitionCollection();
-            fieldDefinitionCollection.AddOrUpdate(new FieldDefinition("nodeName", FieldDefinitionTypes.FullText));
-            fieldDefinitionCollection.AddOrUpdate(new FieldDefinition("bodyText", FieldDefinitionTypes.FullText));
+            _fieldDefinitionCollection = new FieldDefinitionCollection();
+            _fieldDefinitionCollection.AddOrUpdate(new FieldDefinition("nodeName", FieldDefinitionTypes.FullText));
+            _fieldDefinitionCollection.AddOrUpdate(new FieldDefinition("bodyText", FieldDefinitionTypes.FullText));
 
-            suggesters = new SuggesterDefinitionCollection();
-            suggesters.AddOrUpdate(new AnalyzingInfixSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "nodeName" }, new RAMSuggesterDirectoryFactory()));
-            suggesters.AddOrUpdate(new AnalyzingSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "nodeName" }));
-            suggesters.AddOrUpdate(new DirectSpellCheckerDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "nodeName" }));
-            suggesters.AddOrUpdate(new LevensteinDistanceSuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "nodeName" }));
-            suggesters.AddOrUpdate(new JaroWinklerDistanceDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, new string[] { "nodeName" }));
-            suggesters.AddOrUpdate(new NGramDistanceSuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_NGramDistance, new string[] { "nodeName" }));
-            suggesters.AddOrUpdate(new FuzzySuggesterDefinition(ExamineLuceneSuggesterNames.FuzzySuggester, new string[] { "nodeName" }));
+            _suggesters = new SuggesterDefinitionCollection();
+            _suggesters.AddOrUpdate(new AnalyzingInfixSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingInfixSuggester, new string[] { "nodeName" }, new RAMSuggesterDirectoryFactory()));
+            _suggesters.AddOrUpdate(new AnalyzingSuggesterDefinition(ExamineLuceneSuggesterNames.AnalyzingSuggester, new string[] { "nodeName" }));
+            _suggesters.AddOrUpdate(new DirectSpellCheckerDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker, new string[] { "nodeName" }));
+            _suggesters.AddOrUpdate(new LevensteinDistanceSuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_LevensteinDistance, new string[] { "nodeName" }));
+            _suggesters.AddOrUpdate(new JaroWinklerDistanceDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_JaroWinklerDistance, new string[] { "nodeName" }));
+            _suggesters.AddOrUpdate(new NGramDistanceSuggesterDefinition(ExamineLuceneSuggesterNames.DirectSpellChecker_NGramDistance, new string[] { "nodeName" }));
+            _suggesters.AddOrUpdate(new FuzzySuggesterDefinition(ExamineLuceneSuggesterNames.FuzzySuggester, new string[] { "nodeName" }));
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace Examine.Test.Examine.Lucene.Suggest
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection, suggesterDefinitions: suggesters))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, _fieldDefinitionCollection, suggesterDefinitions: _suggesters))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -98,7 +98,7 @@ namespace Examine.Test.Examine.Lucene.Suggest
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection, suggesterDefinitions: suggesters))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, _fieldDefinitionCollection, suggesterDefinitions: _suggesters))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -161,7 +161,7 @@ namespace Examine.Test.Examine.Lucene.Suggest
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection, suggesterDefinitions: suggesters))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, _fieldDefinitionCollection, suggesterDefinitions: _suggesters))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",
@@ -227,7 +227,7 @@ namespace Examine.Test.Examine.Lucene.Suggest
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             using (var luceneDir = new RandomIdRAMDirectory())
-            using (var indexer = GetTestIndex(luceneDir, analyzer, fieldDefinitionCollection, suggesterDefinitions: suggesters))
+            using (var indexer = GetTestIndex(luceneDir, analyzer, _fieldDefinitionCollection, suggesterDefinitions: _suggesters))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "content",

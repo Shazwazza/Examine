@@ -8,17 +8,33 @@ using Lucene.Net.Util;
 using Examine.Suggest;
 using static Lucene.Net.Search.Suggest.Lookup;
 using System.Collections.Generic;
+using System;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Lucene.NET AnalyzingInfixSuggester Definition
+    /// </summary>
     public class AnalyzingInfixSuggesterDefinition : LuceneSuggesterDefinition, ILookupExecutor
     {
-        public AnalyzingInfixSuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null, Analyzer queryTimeAnalyzer = null)
-            : base(name, sourceFields, directoryFactory,queryTimeAnalyzer)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="sourceFields"></param>
+        /// <param name="directoryFactory"></param>
+        /// <param name="queryTimeAnalyzer"></param>
+        public AnalyzingInfixSuggesterDefinition(string name, string[]? sourceFields = null, ISuggesterDirectoryFactory? directoryFactory = null, Analyzer? queryTimeAnalyzer = null)
+            : base(name, sourceFields, directoryFactory, queryTimeAnalyzer)
         {
+            if (directoryFactory is null)
+            {
+                throw new ArgumentNullException(nameof(directoryFactory));
+            }
         }
+
         /// <inheritdoc/>
-        public Lookup Lookup { get; internal set; }
+        public Lookup? Lookup { get; internal set; }
 
         /// <inheritdoc/>
         public override ILookupExecutor BuildSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
@@ -27,6 +43,7 @@ namespace Examine.Lucene.Suggest
         /// <inheritdoc/>
         public override ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext) => ExecuteAnalyzingInfixSuggester(searchText, suggestionExecutionContext);
 
+        /// <inheritdoc/>
         protected ILookupExecutor BuildAnalyzingInfixSuggesterLookup(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
         {
             string field = SourceFields.First();
@@ -34,8 +51,13 @@ namespace Examine.Lucene.Suggest
             var indexTimeAnalyzer = fieldValue.Analyzer;
 
 
-            AnalyzingInfixSuggester suggester = null;
-            Analyzer queryTimeAnalyzer = QueryTimeAnalyzer;
+            AnalyzingInfixSuggester? suggester = null;
+            Analyzer? queryTimeAnalyzer = QueryTimeAnalyzer;
+
+            if (SuggesterDirectoryFactory is null)
+            {
+                throw new InvalidOperationException("SuggesterDirectoryFactory must be passed to constructor");
+            }
 
             var luceneDictionary = SuggesterDirectoryFactory.CreateDirectory(Name.Replace(".", "_"), false);
             var luceneVersion = LuceneVersion.LUCENE_48;
@@ -52,7 +74,10 @@ namespace Examine.Lucene.Suggest
             {
                 suggester = new AnalyzingInfixSuggester(luceneVersion, luceneDictionary, indexTimeAnalyzer);
             }
-
+            if (suggester is null)
+            {
+                throw new NullReferenceException("Lookup or Analyzer not set");
+            }
             using (var readerReference = new IndexReaderReference(readerManager))
             {
                 var lookupDictionary = new LuceneDictionary(readerReference.IndexReader, field);
@@ -67,7 +92,7 @@ namespace Examine.Lucene.Suggest
         /// </summary>
         private LuceneSuggestionResults ExecuteAnalyzingInfixSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext)
         {
-            AnalyzingInfixSuggester suggester = Lookup as AnalyzingInfixSuggester;
+            AnalyzingInfixSuggester? suggester = Lookup as AnalyzingInfixSuggester ?? throw new InvalidCastException("Lookup is not AnalyzingInfixSuggester");
 
             var onlyMorePopular = false;
             if (suggestionExecutionContext.Options is LuceneSuggestionOptions luceneSuggestionOptions && luceneSuggestionOptions.SuggestionMode == LuceneSuggestionOptions.SuggestMode.SUGGEST_MORE_POPULAR)

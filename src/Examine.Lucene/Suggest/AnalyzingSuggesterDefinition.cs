@@ -5,18 +5,29 @@ using System.Linq;
 using Lucene.Net.Search.Suggest;
 using Lucene.Net.Search.Suggest.Analyzing;
 using Examine.Suggest;
+using System;
 
 namespace Examine.Lucene.Suggest
 {
+    /// <summary>
+    /// Lucene.Net AnalyzingSuggester 
+    /// </summary>
     public class AnalyzingSuggesterDefinition : LuceneSuggesterDefinition, ILookupExecutor
     {
-        public AnalyzingSuggesterDefinition(string name, string[] sourceFields = null, ISuggesterDirectoryFactory directoryFactory = null, Analyzer queryTimeAnalyzer = null)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="sourceFields"></param>
+        /// <param name="directoryFactory"></param>
+        /// <param name="queryTimeAnalyzer"></param>
+        public AnalyzingSuggesterDefinition(string name, string[]? sourceFields = null, ISuggesterDirectoryFactory? directoryFactory = null, Analyzer? queryTimeAnalyzer = null)
             : base(name, sourceFields, directoryFactory, queryTimeAnalyzer)
         {
         }
 
         /// <inheritdoc/>
-        public Lookup Lookup { get; internal set; }
+        public Lookup? Lookup { get; internal set; }
 
         /// <inheritdoc/>
         public override ILookupExecutor BuildSuggester(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
@@ -25,14 +36,15 @@ namespace Examine.Lucene.Suggest
         /// <inheritdoc/>
         public override ISuggestionResults ExecuteSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext) => ExecuteAnalyzingSuggester(searchText, suggestionExecutionContext);
 
+        /// <inheritdoc/>
         protected ILookupExecutor BuildAnalyzingSuggesterLookup(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
         {
             string field = SourceFields.First();
             var fieldValue = GetFieldValueType(fieldValueTypeCollection, field);
             var indexTimeAnalyzer = fieldValue.Analyzer;
 
-            AnalyzingSuggester suggester = null;
-            Analyzer queryTimeAnalyzer = QueryTimeAnalyzer;
+            AnalyzingSuggester? suggester = null;
+            Analyzer? queryTimeAnalyzer = QueryTimeAnalyzer;
 
             if (rebuild)
             {
@@ -47,17 +59,30 @@ namespace Examine.Lucene.Suggest
                 suggester = new AnalyzingSuggester(indexTimeAnalyzer);
             }
 
+            if (suggester is null)
+            {
+                throw new NullReferenceException("Lookup or Analyzer not set");
+            }
+
             using (var readerReference = new IndexReaderReference(readerManager))
             {
                 var lookupDictionary = new LuceneDictionary(readerReference.IndexReader, field);
                 suggester.Build(lookupDictionary);
             }
+
             Lookup = suggester;
             return this;
         }
+
+        /// <inheritdoc/>
         protected ISuggestionResults ExecuteAnalyzingSuggester(string searchText, ISuggestionExecutionContext suggestionExecutionContext)
         {
-            AnalyzingSuggester analyzingSuggester = Lookup as AnalyzingSuggester;
+            AnalyzingSuggester? analyzingSuggester = Lookup as AnalyzingSuggester;
+
+            if (analyzingSuggester is null)
+            {
+                throw new InvalidCastException("Lookup is not AnalyzingSuggester");
+            }
 
             var onlyMorePopular = false;
             if (suggestionExecutionContext.Options is LuceneSuggestionOptions luceneSuggestionOptions

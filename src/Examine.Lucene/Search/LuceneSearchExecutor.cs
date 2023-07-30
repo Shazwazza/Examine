@@ -20,7 +20,7 @@ namespace Examine.Lucene.Search
     public class LuceneSearchExecutor
     {
         private readonly QueryOptions _options;
-        private readonly LuceneQueryOptions _luceneQueryOptions;
+        private readonly LuceneQueryOptions? _luceneQueryOptions;
         private readonly IEnumerable<SortField> _sortField;
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
@@ -201,11 +201,12 @@ namespace Examine.Lucene.Search
             var searchAfter = luceneQueryOptions.SearchAfter;
 
             object[] searchAfterSortFields = new object[0];
-            if (luceneQueryOptions.SearchAfter.Fields != null && luceneQueryOptions.SearchAfter.Fields.Length > 0)
+
+            if (luceneQueryOptions?.SearchAfter?.Fields != null && luceneQueryOptions.SearchAfter.Fields.Length > 0)
             {
                 searchAfterSortFields = luceneQueryOptions.SearchAfter.Fields;
             }
-            if (searchAfter.ShardIndex != null)
+            if (searchAfter?.ShardIndex != null)
             {
                 scoreDocAfter = new FieldDoc(searchAfter.DocumentId, searchAfter.DocumentScore, searchAfterSortFields, searchAfter.ShardIndex.Value);
             }
@@ -299,6 +300,7 @@ namespace Examine.Lucene.Search
         /// </summary>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
+        /// <param name="shardIndex">The index(number) of the shard(Examine Index) the search result executed on</param>
         /// <returns>A populated search result object</returns>
         private LuceneSearchResult CreateSearchResult(Document doc, float score, int shardIndex)
         {

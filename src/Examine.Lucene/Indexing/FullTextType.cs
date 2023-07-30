@@ -90,6 +90,9 @@ namespace Examine.Lucene.Indexing
         /// <param name="analyzer">
         /// Defaults to <see cref="CultureInvariantStandardAnalyzer"/>
         /// </param>
+        /// <param name="logger"></param>
+        /// <param name="lookup"></param>
+        /// <param name="searchAnalyzer"></param>
         /// <param name="sortable"></param>
         public FullTextType(string fieldName, ILoggerFactory logger, Func<IIndexReaderReference, SuggestionOptions, string, LuceneSuggestionResults> lookup, Analyzer analyzer, bool sortable, Analyzer searchAnalyzer)
             : base(fieldName, logger, true)
@@ -139,6 +142,7 @@ namespace Examine.Lucene.Indexing
             base.AddValue(doc, value);
         }
 
+        /// <inheritdoc/>
         public override Analyzer SearchAnalyzer => _searchAnalyzer;
 
         protected override void AddSingleValue(Document doc, object value)
