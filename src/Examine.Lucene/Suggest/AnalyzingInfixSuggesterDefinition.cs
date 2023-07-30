@@ -24,12 +24,20 @@ namespace Examine.Lucene.Suggest
         /// <param name="sourceFields"></param>
         /// <param name="directoryFactory"></param>
         /// <param name="queryTimeAnalyzer"></param>
-        public AnalyzingInfixSuggesterDefinition(string name, string[]? sourceFields = null, ISuggesterDirectoryFactory? directoryFactory = null, Analyzer? queryTimeAnalyzer = null)
+        public AnalyzingInfixSuggesterDefinition(string name, string[] sourceFields, ISuggesterDirectoryFactory directoryFactory, Analyzer? queryTimeAnalyzer = null)
             : base(name, sourceFields, directoryFactory, queryTimeAnalyzer)
         {
             if (directoryFactory is null)
             {
                 throw new ArgumentNullException(nameof(directoryFactory));
+            }
+            if (sourceFields is null)
+            {
+                throw new ArgumentNullException(nameof(sourceFields));
+            }
+            if (sourceFields.Length == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(sourceFields));
             }
         }
 
@@ -46,7 +54,8 @@ namespace Examine.Lucene.Suggest
         /// <inheritdoc/>
         protected ILookupExecutor BuildAnalyzingInfixSuggesterLookup(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
         {
-            string field = SourceFields.First();
+            string field = (SourceFields?.FirstOrDefault()) ?? throw new InvalidOperationException("SourceFields can not be empty");
+
             var fieldValue = GetFieldValueType(fieldValueTypeCollection, field);
             var indexTimeAnalyzer = fieldValue.Analyzer;
 

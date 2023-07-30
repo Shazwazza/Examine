@@ -5,6 +5,7 @@ using System.Linq;
 using Lucene.Net.Search.Suggest;
 using Lucene.Net.Search.Suggest.Analyzing;
 using Examine.Suggest;
+using System;
 
 namespace Examine.Lucene.Suggest
 {
@@ -20,9 +21,17 @@ namespace Examine.Lucene.Suggest
         /// <param name="sourceFields">Source fields for suggestions</param>
         /// <param name="directoryFactory">Suggester Directory Factory</param>
         /// <param name="queryTimeAnalyzer">Query Time Analyzer</param>
-        public FuzzySuggesterDefinition(string name, string[]? sourceFields = null, ISuggesterDirectoryFactory? directoryFactory = null, Analyzer? queryTimeAnalyzer = null)
+        public FuzzySuggesterDefinition(string name, string[]? sourceFields, ISuggesterDirectoryFactory? directoryFactory = null, Analyzer? queryTimeAnalyzer = null)
             : base(name, sourceFields, directoryFactory, queryTimeAnalyzer)
         {
+            if (sourceFields is null)
+            {
+                throw new ArgumentNullException(nameof(sourceFields));
+            }
+            if (sourceFields.Length == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(sourceFields));
+            }
         }
 
         /// <inheritdoc/>
@@ -38,7 +47,7 @@ namespace Examine.Lucene.Suggest
         /// <inheritdoc/>
         protected ILookupExecutor BuildFuzzySuggesterLookup(FieldValueTypeCollection fieldValueTypeCollection, ReaderManager readerManager, bool rebuild)
         {
-            string field = SourceFields.First();
+            string field = (SourceFields?.FirstOrDefault()) ?? throw new InvalidOperationException("SourceFields can not be empty");
             var fieldValue = GetFieldValueType(fieldValueTypeCollection, field);
             var indexTimeAnalyzer = fieldValue.Analyzer;
 
