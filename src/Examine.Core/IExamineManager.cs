@@ -1,9 +1,13 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Suggest;
 
 namespace Examine
 {
+    /// <summary>
+    /// Exposes searchers and indexers
+    /// </summary>
     public interface IExamineManager
     {
         /// <summary>
@@ -18,7 +22,7 @@ namespace Examine
         /// Gets a list of all manually configured search providers
         /// </summary>
         /// <remarks>
-        /// This returns only those searchers explicitly registered with <see cref="AddSearcher"/> or config based searchers
+        /// This returns only those searchers explicitly registered with AddExamineSearcher or config based searchers
         /// </remarks>
         IEnumerable<ISearcher> RegisteredSearchers { get; }
 
@@ -30,6 +34,9 @@ namespace Examine
         /// </remarks>
         IEnumerable<ISuggester> RegisteredSuggesters { get; }
 
+        /// <summary>
+        /// Disposes the <see cref="IExamineManager"/>
+        /// </summary>
         void Dispose();
 
         /// <summary>
@@ -38,17 +45,25 @@ namespace Examine
         /// <param name="indexName"></param>
         /// <param name="index"></param>
         /// <returns>true if the index was found by name</returns>
-        bool TryGetIndex(string indexName, out IIndex index);
+        bool TryGetIndex(string indexName,
+#if !NETSTANDARD2_0
+            [MaybeNullWhen(false)]
+#endif
+            out IIndex index);
 
         /// <summary>
-        /// Returns a searcher that was registered with <see cref="AddSearcher"/> or via config
+        /// Returns a searcher that was registered with AddExamineSearcher or via config
         /// </summary>
         /// <param name="searcherName"></param>
         /// <param name="searcher"></param>
         /// <returns>
         /// true if the searcher was found by name
         /// </returns>
-        bool TryGetSearcher(string searcherName, out ISearcher searcher);
+        bool TryGetSearcher(string searcherName,
+#if !NETSTANDARD2_0
+            [MaybeNullWhen(false)]
+#endif
+        out ISearcher searcher);
 
         /// <summary>
         /// Returns a sugesster that was registered with <see cref="AddSuggester"/> or via config

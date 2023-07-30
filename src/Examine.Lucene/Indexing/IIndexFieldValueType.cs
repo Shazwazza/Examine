@@ -9,28 +9,44 @@ namespace Examine.Lucene.Indexing
     /// </summary>
     public interface IIndexFieldValueType
     {
+        /// <summary>
+        /// The field name
+        /// </summary>
         string FieldName { get; }
 
         /// <summary>
         /// Returns the sortable field name or null if the value isn't sortable
         /// </summary>
-        string SortableFieldName { get; }
+        /// <remarks>By default it will not be sortable</remarks>
+        string? SortableFieldName { get; }
 
+        /// <summary>
+        /// Should the value be stored
+        /// </summary>
         bool Store { get; }
 
         /// <summary>
         /// Returns the index time analyzer for this field type, or null to use the default
         /// </summary>
-        Analyzer Analyzer { get; }
+        Analyzer? Analyzer { get; }
 
+        /// <summary>
+        /// Adds a value to the document
+        /// </summary>
+        /// <param name="doc"></param>
+        /// <param name="value"></param>
+        void AddValue(Document doc, object? value);
+
+        /// <summary>
+        /// Gets a query as <see cref="Query"/>
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        Query? GetQuery(string query);
         /// <summary>
         /// Returns the search time analyzer for this field type, or null to use the default
         /// </summary>
         Analyzer SearchAnalyzer { get; }
-
-        void AddValue(Document doc, object value);
-        
-        Query GetQuery(string query);
 
         //IHighlighter GetHighlighter(Query query, Searcher searcher, FacetsLoader facetsLoader);
 

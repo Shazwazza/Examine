@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 
 namespace Examine
 {
+    /// <inheritdoc/>
     public class SearchResult : ISearchResult
     {
-        private OrderedDictionary<string, string> _fields;
+        private OrderedDictionary<string, string>? _fields;
         private readonly Lazy<OrderedDictionary<string, IReadOnlyList<string>>> _fieldValues;
 
         /// <summary>
@@ -33,7 +34,10 @@ namespace Examine
             });
         }
 
+        /// <inheritdoc/>
         public string Id { get;  }
+
+        /// <inheritdoc/>
         public float Score { get; }
 
         /// <summary>
@@ -94,14 +98,14 @@ namespace Examine
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public string this[string key] => Values.TryGetValue(key, out var single) ? single : null;
+        public string? this[string key] => Values.TryGetValue(key, out var single) ? single : null;
 
         /// <summary>
         /// Override this method so that the Distinct() operator works
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null || GetType() != obj.GetType())
                 return false;

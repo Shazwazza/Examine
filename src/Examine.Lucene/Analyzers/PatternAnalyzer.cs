@@ -14,7 +14,7 @@ namespace Examine.Lucene.Analyzers
     {
         private readonly int _regexGroup;
         private readonly bool _lowercase;
-        private readonly CharArraySet _stopWords;
+        private readonly CharArraySet? _stopWords;
         private readonly Regex _pattern;
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Examine.Lucene.Analyzers
         /// <param name="regexGroup">The regex group number to match. -1 to use as a split.</param>
         /// <param name="lowercase">Whether to lower case the tokens</param>
         /// <param name="stopWords">Any stop words that should be included</param>
-        public PatternAnalyzer(string format, int regexGroup, bool lowercase = false, CharArraySet stopWords = null)
+        public PatternAnalyzer(string format, int regexGroup, bool lowercase = false, CharArraySet? stopWords = null)
         {
             _regexGroup = regexGroup;
             _lowercase = lowercase;
@@ -32,6 +32,7 @@ namespace Examine.Lucene.Analyzers
             _pattern = new Regex(format);
         }
 
+        /// <inheritdoc/>
         protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
         {
             Tokenizer tokenizer = new PatternTokenizer(reader, _pattern, _regexGroup);

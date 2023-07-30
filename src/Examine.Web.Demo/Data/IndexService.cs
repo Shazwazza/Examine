@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Examine.Lucene.Providers;
+using Examine.Lucene.Search;
 using Examine.Search;
 using Examine.Suggest;
 using Examine.Web.Demo.Controllers;
@@ -8,7 +9,7 @@ using Lucene.Net.Search;
 
 namespace Examine.Web.Demo.Data
 {
-    public class IndexService
+    public partial class IndexService
     {
         private readonly IExamineManager _examineManager;
         private readonly BogusDataService _bogusDataService;
@@ -25,7 +26,15 @@ namespace Examine.Web.Demo.Data
 
             index.CreateIndex();
 
-            var data = _bogusDataService.GenerateData(dataSize);
+            IEnumerable<ValueSet> data;
+            if (index.Name.Contains("Facet"))
+            {
+                data = _bogusDataService.GenerateFacetData(dataSize);
+            }
+            else
+            {
+                data = _bogusDataService.GenerateData(dataSize);
+            }
 
             index.IndexItems(data);
         }
@@ -111,6 +120,17 @@ namespace Examine.Web.Demo.Data
 
             return index;
         }
+
+        public ILuceneSearchResults SearchLucene(string indexName, Func<IQuery, IQueryExecutor> queryBuilder, QueryOptions queryOptions)
+        {
+            var index = GetIndex(indexName);
+
+            var searcher = index.Searcher;
+            var criteria = searcher.CreateQuery();
+            var finalCriteria = queryBuilder(criteria);
+            return finalCriteria.ExecuteWithLucene(queryOptions);
+        }
+
 
         public ISuggestionResults Suggest(string indexName, string query)
         {

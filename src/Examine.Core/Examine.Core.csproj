@@ -5,6 +5,9 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>Examine is an abstraction for indexing and search operations with implementations such as Lucene.Net</Description>
     <PackageTags>examine search index</PackageTags>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

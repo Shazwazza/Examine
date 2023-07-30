@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
@@ -6,24 +6,34 @@ using Lucene.Net.Search.Similarities;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Represents a late bound query
+    /// </summary>
     public class LateBoundQuery : Query
     {
         private readonly Func<Query> _factory;
 
-        private Query _wrapped;
+        private Query? _wrapped;
+
+        /// <summary>
+        /// The wrapped query
+        /// </summary>
         public Query Wrapped => _wrapped ?? (_wrapped = _factory());
 
+        /// <inheritdoc/>
         public LateBoundQuery(Func<Query> factory)
         {
             _factory = factory;
         }
 
-        public override object Clone()
+        /// <inheritdoc/>
+        public override object? Clone()
         {
             return Wrapped.Clone();
         }
 
-        public override Weight CreateWeight(IndexSearcher searcher)
+        /// <inheritdoc/>
+        public override Weight? CreateWeight(IndexSearcher searcher)
         {
             return Wrapped.CreateWeight(searcher);
         }
@@ -49,17 +59,14 @@ namespace Examine.Lucene.Search
             set => Wrapped.Boost = value;
         }
 
-     
-
-        public override Query Rewrite(IndexReader reader)
+        /// <inheritdoc/>
+        public override Query? Rewrite(IndexReader reader)
         {
             return Wrapped.Rewrite(reader);
         }
 
-  
-
-
-        public override string ToString(string field)
+        /// <inheritdoc/>
+        public override string? ToString(string field)
         {
             return Wrapped.ToString(field);
         }

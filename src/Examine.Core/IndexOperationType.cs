@@ -5,7 +5,14 @@ namespace Examine
     /// </summary>
     public enum IndexOperationType
     {
+        /// <summary>
+        /// An additive operation
+        /// </summary>
         Add,
+
+        /// <summary>
+        /// A delete operation
+        /// </summary>
         Delete
     }
 }

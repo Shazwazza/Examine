@@ -1,15 +1,27 @@
 namespace Examine
 {
+    /// <summary>
+    /// Represents the index options for a <see cref="IIndex"/>
+    /// </summary>
     public class IndexOptions
     {
+        
+        /// <inheritdoc/>
         public IndexOptions()
         {
             FieldDefinitions = new FieldDefinitionCollection();
             SuggesterDefinitions = new SuggesterDefinitionCollection();
         }
 
+        /// <summary>
+        /// The field definitions for the <see cref="IIndex"/>
+        /// </summary>
         public FieldDefinitionCollection FieldDefinitions { get; set; }
-        public IValueSetValidator Validator { get; set; }
+
+        /// <summary>
+        /// The validator for the <see cref="IIndex"/>
+        /// </summary>
+        public IValueSetValidator? Validator { get; set; }
 
         public SuggesterDefinitionCollection SuggesterDefinitions { get; set; }
     }

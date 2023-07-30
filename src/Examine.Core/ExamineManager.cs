@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Suggest;
 
@@ -11,6 +12,7 @@ namespace Examine
     ///</summary>
     public class ExamineManager : IDisposable, IExamineManager
     {
+        /// <inheritdoc/>
         public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers)
         {
             foreach (IIndex i in indexes)
@@ -47,11 +49,19 @@ namespace Examine
         private readonly ConcurrentDictionary<string, ISuggester> _suggesters = new ConcurrentDictionary<string, ISuggester>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <inheritdoc />
-        public bool TryGetSearcher(string searcherName, out ISearcher searcher) => 
+        public bool TryGetSearcher(string searcherName,
+#if !NETSTANDARD2_0
+            [MaybeNullWhen(false)]
+#endif
+            out ISearcher searcher) => 
             (searcher = _searchers.TryGetValue(searcherName, out var s) ? s : null) != null;
 
         /// <inheritdoc />
-        public bool TryGetIndex(string indexName, out IIndex index) => 
+        public bool TryGetIndex(string indexName,
+#if !NETSTANDARD2_0
+            [MaybeNullWhen(false)]
+#endif
+            out IIndex index) => 
             (index = _indexers.TryGetValue(indexName, out var i) ? i : null) != null;
 
 
@@ -106,6 +116,8 @@ namespace Examine
         public void Dispose() => Dispose(true);
 
         private bool _disposed = false;
+
+        /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)

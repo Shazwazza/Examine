@@ -1,13 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Examine.Search;
 
 namespace Examine.Lucene.Search
 {
-    public class LuceneSearchResults : ILuceneSearchResults
+    /// <summary>
+    /// Represents the search results of a query
+    /// </summary>
+    public class LuceneSearchResults : ISearchResults, ILuceneSearchResults, IFacetResults
     {
-        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0,float.NaN, default);
-
+        /// <summary>
+        /// Gets an empty search result
+        /// </summary>
+        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>(), float.NaN, default);
+        
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
         public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount)
@@ -17,15 +24,17 @@ namespace Examine.Lucene.Search
             MaxScore = float.NaN;
             SearchAfter = null;
         }
-
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount,float maxScore, SearchAfterOptions searchAfterOptions)
+        /// <inheritdoc/>
+        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IReadOnlyDictionary<string, IFacetResult> facets, float maxScore, SearchAfterOptions searchAfterOptions)
         {
             _results = results;
             TotalItemCount = totalItemCount;
             MaxScore = maxScore;
             SearchAfter = searchAfterOptions;
+            Facets = facets;
         }
 
+        /// <inheritdoc/>
         public long TotalItemCount { get; }
 
         /// <summary>
@@ -34,9 +43,18 @@ namespace Examine.Lucene.Search
         /// </summary>
         public float MaxScore { get; }
 
+        /// <summary>
+        /// Options for skipping documents after a previous search
+        /// </summary>
         public SearchAfterOptions SearchAfter { get; }
 
+        /// <inheritdoc/>
+        public IReadOnlyDictionary<string, IFacetResult> Facets { get; }
+
+        /// <inheritdoc/>
         public IEnumerator<ISearchResult> GetEnumerator() => _results.GetEnumerator();
+
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

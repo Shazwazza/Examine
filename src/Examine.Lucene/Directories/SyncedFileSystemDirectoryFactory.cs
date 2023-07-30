@@ -24,8 +24,9 @@ namespace Examine.Lucene.Directories
     {
         private readonly DirectoryInfo _localDir;
         private readonly ILoggerFactory _loggerFactory;
-        private ExamineReplicator _replicator;
+        private ExamineReplicator? _replicator;
 
+        /// <inheritdoc/>
         public SyncedFileSystemDirectoryFactory(
             DirectoryInfo localDir,
             DirectoryInfo mainDir,
@@ -37,6 +38,7 @@ namespace Examine.Lucene.Directories
             _loggerFactory = loggerFactory;
         }
 
+        /// <inheritdoc/>
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
@@ -91,6 +93,7 @@ namespace Examine.Lucene.Directories
             return localLuceneDir;
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

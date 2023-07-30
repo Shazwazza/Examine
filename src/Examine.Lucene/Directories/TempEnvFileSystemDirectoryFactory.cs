@@ -12,6 +12,7 @@ namespace Examine.Lucene.Directories
     /// </remarks>
     public class TempEnvFileSystemDirectoryFactory : FileSystemDirectoryFactory
     {
+        /// <inheritdoc/>
         public TempEnvFileSystemDirectoryFactory(
             IApplicationIdentifier applicationIdentifier,
             ILockFactory lockFactory)
@@ -19,6 +20,11 @@ namespace Examine.Lucene.Directories
         {
         }
 
+        /// <summary>
+        /// Gets a temp path for examine indexes
+        /// </summary>
+        /// <param name="applicationIdentifier"></param>
+        /// <returns></returns>
         public static string GetTempPath(IApplicationIdentifier applicationIdentifier)
         {
             var appDomainHash = applicationIdentifier.GetApplicationUniqueIdentifier().GenerateHash();

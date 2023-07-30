@@ -14,7 +14,8 @@ namespace Examine.Lucene.Directories
         private readonly LockFactory _child;
 
         private static readonly object Locker = new object();
-        
+
+        /// <inheritdoc/>
         public MultiIndexLockFactory(Directory master, Directory child)
         {
             if (master == null) throw new ArgumentNullException("master");
@@ -22,7 +23,8 @@ namespace Examine.Lucene.Directories
             _master = master.LockFactory;
             _child = child.LockFactory;
         }
-        
+
+        /// <inheritdoc/>
         public MultiIndexLockFactory(LockFactory master, LockFactory child)
         {
             if (master == null) throw new ArgumentNullException("master");
@@ -34,7 +36,7 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        
+        /// <inheritdoc/>
         public override Lock MakeLock(string lockName)
         {
             lock (Locker)
@@ -43,7 +45,7 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        
+        /// <inheritdoc/>
         public override void ClearLock(string lockName)
         {
             lock (Locker)

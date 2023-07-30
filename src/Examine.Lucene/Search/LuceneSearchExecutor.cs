@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Documents;
+using Lucene.Net.Facet;
+using Lucene.Net.Facet.SortedSet;
+using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using LuceneFacetResult = Lucene.Net.Facet.FacetResult;
 
 namespace Examine.Lucene.Search
 {
@@ -19,10 +24,13 @@ namespace Examine.Lucene.Search
         private readonly IEnumerable<SortField> _sortField;
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
-        private readonly ISet<string> _fieldsToLoad;
+        private readonly ISet<string>? _fieldsToLoad;
+        private readonly IEnumerable<IFacetField> _facetFields;
+        private readonly FacetsConfig _facetsConfig;
         private int? _maxDoc;
 
-        internal LuceneSearchExecutor(QueryOptions options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext, ISet<string> fieldsToLoad)
+        internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
+            ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -30,6 +38,8 @@ namespace Examine.Lucene.Search
             _fieldsToLoad = fieldsToLoad;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
+            _facetFields = facetFields;
+            _facetsConfig = facetsConfig;
         }
 
         private int MaxDoc
@@ -47,6 +57,10 @@ namespace Examine.Lucene.Search
             }
         }
 
+        /// <summary>
+        /// Executes a query
+        /// </summary>
+        /// <returns></returns>
         public ISearchResults Execute()
         {
             var extractTermsSupported = CheckQueryForExtractTerms(_luceneQuery);
@@ -117,18 +131,41 @@ namespace Examine.Lucene.Search
                 {
                     topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
                 }
+                FacetsCollector facetsCollector = null;
+                if (_facetFields.Any() && _luceneQueryOptions != null && _luceneQueryOptions.FacetRandomSampling != null)
+                {
+                    var facetsCollectors = new RandomSamplingFacetsCollector(_luceneQueryOptions.FacetRandomSampling.SampleSize, _luceneQueryOptions.FacetRandomSampling.Seed);
+                }
+                else if (_facetFields.Any())
+                {
+                    facetsCollector = new FacetsCollector();
+                }
 
                 if (scoreDocAfter != null && sort != null)
                 {
-                    topDocs = searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, filter, _options.Take, sort, trackDocScores, trackMaxScore);
+                    if (facetsCollector != null)
+                    {
+                        topDocs = FacetsCollector.SearchAfter(searcher.IndexSearcher, scoreDocAfter, _luceneQuery, filter, _options.Take, sort, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                    }
+                    else
+                    {
+                        topDocs = searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, filter, _options.Take, sort, trackDocScores, trackMaxScore);
+                    }
                 }
                 else if (scoreDocAfter != null && sort == null)
                 {
-                    topDocs = searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, _options.Take);
+                    if (facetsCollector != null)
+                    {
+                        topDocs = facetsCollector.SearchAfter(searcher.IndexSearcher, scoreDocAfter, _luceneQuery, _options.Take, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                    }
+                    else
+                    {
+                        topDocs = searcher.IndexSearcher.SearchAfter(scoreDocAfter, _luceneQuery, _options.Take);
+                    }
                 }
                 else
                 {
-                    searcher.IndexSearcher.Search(_luceneQuery, topDocsCollector);
+                    searcher.IndexSearcher.Search(_luceneQuery, MultiCollector.Wrap(topDocsCollector, facetsCollector));
                     if (sortFields.Length > 0)
                     {
                         topDocs = ((TopFieldCollector)topDocsCollector).GetTopDocs(_options.Skip, _options.Take);
@@ -145,12 +182,16 @@ namespace Examine.Lucene.Search
                 for (int i = 0; i < topDocs.ScoreDocs.Length; i++)
                 {
                     var result = GetSearchResult(i, topDocs, searcher.IndexSearcher);
-                    results.Add(result);
+                    if (result != null)
+                    {
+                        results.Add(result);
+                    }
                 }
                 var searchAfterOptions = GetSearchAfterOptions(topDocs);
                 float maxScore = topDocs.MaxScore;
+                var facets = ExtractFacets(facetsCollector, searcher);
 
-                return new LuceneSearchResults(results, totalItemCount, maxScore, searchAfterOptions);
+                return new LuceneSearchResults(results, totalItemCount, facets, maxScore, searchAfterOptions);
             }
         }
 
@@ -192,12 +233,45 @@ namespace Examine.Lucene.Search
             return null;
         }
 
-        private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
+        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector? facetsCollector, ISearcherReference searcher)
+        {
+            var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
+            if (facetsCollector == null || !_facetFields.Any())
+            {
+                return facets;
+            }
+
+            var facetFields = _facetFields.OrderBy(field => field.FacetField);
+
+            SortedSetDocValuesReaderState sortedSetReaderState = null;
+            Facets fastTaxonomyFacetCounts = null;
+
+
+            foreach (var field in facetFields)
+            {
+                var valueType = _searchContext.GetFieldValueType(field.Field);
+                if (valueType is IIndexFacetValueType facetValueType)
+                {
+                    var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
+
+                    var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
+                    foreach(var fieldFacet in fieldFacets)
+                    {
+                        // overwrite if necessary (no exceptions thrown in case of collision)
+                        facets[fieldFacet.Key] = fieldFacet.Value;
+                    }
+                }
+            }
+
+            return facets;
+        }
+
+        private LuceneSearchResult? GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
         {
             // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
             // and from that one place "i" is always less than the size of this collection. 
             // but we'll error check here anyways
-            if (topDocs?.ScoreDocs.Length < index)
+            if (topDocs.ScoreDocs.Length < index)
             {
                 return null;
             }
@@ -221,7 +295,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <summary>
-        /// Creates the search result from a <see cref="Lucene.Net.Documents.Document"/>
+        /// Creates the search result from a <see cref="Document"/>
         /// </summary>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
