@@ -18,7 +18,7 @@ namespace Examine.Lucene.Suggest
         /// <param name="sourceFields">Source fields for suggestions</param>
         /// <param name="directoryFactory">Suggester Directory Factory</param>
         public NGramDistanceSuggesterDefinition(string name, string[]? sourceFields, ISuggesterDirectoryFactory? directoryFactory = null)
-            : base(name, sourceFields, directoryFactory)
+            : base(name, sourceFields, directoryFactory, default)
         {
             if (sourceFields is null)
             {

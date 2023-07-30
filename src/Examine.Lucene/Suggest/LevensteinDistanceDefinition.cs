@@ -18,7 +18,7 @@ namespace Examine.Lucene.Suggest
         /// <param name="sourceFields"></param>
         /// <param name="directoryFactory"></param>
         public LevensteinDistanceSuggesterDefinition(string name, string[] sourceFields, ISuggesterDirectoryFactory directoryFactory = null)
-            : base(name, sourceFields, directoryFactory)
+            : base(name, sourceFields, directoryFactory, default)
         {
             if (sourceFields is null)
             {

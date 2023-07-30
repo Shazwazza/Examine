@@ -17,7 +17,7 @@ namespace Examine.Lucene.Suggest
         /// <param name="sourceFields">Source Index Fields for the Suggester</param>
         /// <param name="directoryFactory">Directory Factory for Lucene Suggesters (Required by AnalyzingInfixSuggester)</param>
         /// <param name="queryTimeAnalyzer">Analyzer to use at Query time</param>
-        public LuceneSuggesterDefinition(string name, string[]? sourceFields = null, ISuggesterDirectoryFactory? directoryFactory = null, Analyzer? queryTimeAnalyzer = null)
+        public LuceneSuggesterDefinition(string name, string[]? sourceFields, ISuggesterDirectoryFactory? directoryFactory, Analyzer? queryTimeAnalyzer)
             : base(name, sourceFields)
         {
             SuggesterDirectoryFactory = directoryFactory;
