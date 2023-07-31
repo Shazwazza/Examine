@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Search;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Index;
 using Lucene.Net.Queries;
 using Lucene.Net.QueryParsers.Classic;
@@ -613,25 +611,66 @@ namespace Examine.Lucene.Search
         public IQuery WithFilter(Action<IFilter> filter)
         {
 
-
-            return CreateOp();
+            var op = CreateOp();
+            var queryOp = op.And();
+            return queryOp;
         }
 
-        public IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain) => throw new NotImplementedException();
-        public IBooleanFilterOperation Term(FilterTerm term) => throw new NotImplementedException();
-        public IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms) => throw new NotImplementedException();
-        public IBooleanFilterOperation TermPrefix(FilterTerm term) => throw new NotImplementedException();
-        public IBooleanFilterOperation FieldValueExists(string field) => throw new NotImplementedException();
-        public IBooleanFilterOperation FieldValueNotExists(string field) => throw new NotImplementedException();
-        public IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => throw new NotImplementedException();
-        public IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct => throw new NotImplementedException();
-        INestedBooleanFilterOperation INestedFilter.ChainFilters(Action<IFilterChainStart> chain) => throw new NotImplementedException();
-        INestedBooleanFilterOperation INestedFilter.Term(FilterTerm term) => throw new NotImplementedException();
-        INestedBooleanFilterOperation INestedFilter.Terms(IEnumerable<FilterTerm> terms) => throw new NotImplementedException();
-        INestedBooleanFilterOperation INestedFilter.TermPrefix(FilterTerm term) => throw new NotImplementedException();
-        INestedBooleanFilterOperation INestedFilter.FieldValueExists(string field) => throw new NotImplementedException();
-        INestedBooleanFilterOperation INestedFilter.FieldValueNotExists(string field) => throw new NotImplementedException();
-        INestedBooleanFilterOperation INestedFilter.QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => throw new NotImplementedException();
-        INestedBooleanFilterOperation INestedFilter.RangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => throw new NotImplementedException();
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation Term(FilterTerm term);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation TermPrefix(FilterTerm term);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation FieldValueExists(string field);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation FieldValueNotExists(string field);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+
+        protected abstract INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain);
+        protected abstract INestedBooleanFilterOperation NestedTerm(FilterTerm term);
+        protected abstract INestedBooleanFilterOperation NestedTerms(IEnumerable<FilterTerm> terms);
+        protected abstract INestedBooleanFilterOperation NestedTermPrefix(FilterTerm term);
+        protected abstract INestedBooleanFilterOperation NestedFieldValueExists(string field);
+        protected abstract INestedBooleanFilterOperation NestedFieldValueNotExists(string field);
+        protected abstract INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp);
+        protected abstract INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.ChainFilters(Action<IFilterChainStart> chain) => NestedChainFilters(chain);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.Term(FilterTerm term) => NestedTerm(term);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.Terms(IEnumerable<FilterTerm> terms) => NestedTerms(terms);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.TermPrefix(FilterTerm term) => NestedTermPrefix(term);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.FieldValueExists(string field) => NestedFieldValueExists(field);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.FieldValueNotExists(string field) => NestedFieldValueNotExists(field);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilter(inner, defaultOp);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.RangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => NestedRangeFilter<T>(field, min, max, minInclusive, maxInclusive);
     }
 }
