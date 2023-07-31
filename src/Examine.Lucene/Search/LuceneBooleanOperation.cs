@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Security.Claims;
 using Examine.Lucene.Providers;
 using Examine.Search;
 using Lucene.Net.Search;
@@ -88,49 +89,49 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public override IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain)
         {
-            throw new NotImplementedException();
+            return _search.ChainFilters(chain);
         }
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation Term(FilterTerm term)
         {
-            throw new NotImplementedException();
+            return _search.Term(term);
         }
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms)
         {
-            throw new NotImplementedException();
+            return _search.Terms(terms);
         }
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation TermPrefix(FilterTerm term)
         {
-            throw new NotImplementedException();
+            return _search.TermPrefix(term);
         }
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation FieldValueExists(string field)
         {
-            throw new NotImplementedException();
+            return _search.FieldValueExists(field);
         }
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation FieldValueNotExists(string field)
         {
-            throw new NotImplementedException();
+            return _search.FieldValueNotExists(field);
         }
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
         {
-            throw new NotImplementedException();
+            return _search.QueryFilter(inner, defaultOp);
         }
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true)
         {
-            throw new NotImplementedException();
+            return _search.RangeFilter<T>(field, min, max, minInclusive, maxInclusive );
         }
 
         #endregion

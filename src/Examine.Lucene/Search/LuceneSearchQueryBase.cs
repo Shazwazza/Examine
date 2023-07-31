@@ -14,7 +14,7 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Represents a base for <see cref="LuceneSearchQuery"/>
     /// </summary>
-    public abstract class LuceneSearchQueryBase : IQuery, INestedQuery
+    public abstract class LuceneSearchQueryBase : IQuery, INestedQuery, IFilter, INestedFilter
     {
         private readonly CustomMultiFieldQueryParser _queryParser;
 
@@ -616,5 +616,22 @@ namespace Examine.Lucene.Search
 
             return CreateOp();
         }
+
+        public IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain) => throw new NotImplementedException();
+        public IBooleanFilterOperation Term(FilterTerm term) => throw new NotImplementedException();
+        public IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms) => throw new NotImplementedException();
+        public IBooleanFilterOperation TermPrefix(FilterTerm term) => throw new NotImplementedException();
+        public IBooleanFilterOperation FieldValueExists(string field) => throw new NotImplementedException();
+        public IBooleanFilterOperation FieldValueNotExists(string field) => throw new NotImplementedException();
+        public IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => throw new NotImplementedException();
+        public IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct => throw new NotImplementedException();
+        INestedBooleanFilterOperation INestedFilter.ChainFilters(Action<IFilterChainStart> chain) => throw new NotImplementedException();
+        INestedBooleanFilterOperation INestedFilter.Term(FilterTerm term) => throw new NotImplementedException();
+        INestedBooleanFilterOperation INestedFilter.Terms(IEnumerable<FilterTerm> terms) => throw new NotImplementedException();
+        INestedBooleanFilterOperation INestedFilter.TermPrefix(FilterTerm term) => throw new NotImplementedException();
+        INestedBooleanFilterOperation INestedFilter.FieldValueExists(string field) => throw new NotImplementedException();
+        INestedBooleanFilterOperation INestedFilter.FieldValueNotExists(string field) => throw new NotImplementedException();
+        INestedBooleanFilterOperation INestedFilter.QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => throw new NotImplementedException();
+        INestedBooleanFilterOperation INestedFilter.RangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => throw new NotImplementedException();
     }
 }
