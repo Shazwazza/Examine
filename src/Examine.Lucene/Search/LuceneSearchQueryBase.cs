@@ -55,6 +55,7 @@ namespace Examine.Lucene.Search
             Category = category;
             SearchOptions = searchOptions;
             Queries.Push(new BooleanQuery());
+            Filters.Push(new BooleanFilter());
             BooleanOperation = occurance;
             _queryParser = queryParser;
         }
