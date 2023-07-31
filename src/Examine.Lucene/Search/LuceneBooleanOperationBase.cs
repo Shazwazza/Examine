@@ -8,7 +8,7 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Represents the base for a <see cref="LuceneBooleanOperation"/>
     /// </summary>
-    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFaceting
+    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFaceting, IFilter
     {
         private readonly LuceneSearchQueryBase _search;
 
@@ -138,5 +138,29 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public abstract IQueryExecutor WithFacets(Action<IFacetOperations> facets);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation Term(FilterTerm term);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation TermPrefix(FilterTerm term);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation FieldValueExists(string field);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation FieldValueNotExists(string field);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
     }
 }

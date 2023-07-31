@@ -82,5 +82,57 @@ namespace Examine.Lucene.Search
             facets.Invoke(luceneFacetOperation);
             return luceneFacetOperation;
         }
+
+        #region IFilter
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation Term(FilterTerm term)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation TermPrefix(FilterTerm term)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation FieldValueExists(string field)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation FieldValueNotExists(string field)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }
