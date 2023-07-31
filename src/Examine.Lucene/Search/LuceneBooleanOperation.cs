@@ -133,5 +133,17 @@ namespace Examine.Lucene.Search
         }
 
         #endregion
+
+        #region IBooleanFilterOperation
+
+        /// <inheritdoc/>
+        public override IFilter AndFilter() => new LuceneQuery(this._search, Occur.MUST);
+
+        /// <inheritdoc/>
+        public override IFilter OrFilter() => new LuceneQuery(this._search, Occur.SHOULD);
+
+        /// <inheritdoc/>
+        public override IFilter NotFilter() => new LuceneQuery(this._search, Occur.MUST_NOT);
+        #endregion
     }
 }

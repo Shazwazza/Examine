@@ -456,7 +456,7 @@ namespace Examine.Lucene.Search
             }
 
             var luceneTerms = terms.Select(x => new Term(x.FieldName, x.FieldValue)).ToArray();
-            var filterToAdd = new TermsFilter(luceneTerms)
+            var filterToAdd = new TermsFilter(luceneTerms);
             if (filterToAdd != null)
             {
                 Filter.Add(filterToAdd, occurance);
@@ -464,22 +464,68 @@ namespace Examine.Lucene.Search
 
             return CreateOp();
         }
+
+        /// <inheritdoc/>
         public override IBooleanFilterOperation TermPrefixFilter(FilterTerm term) => throw new NotImplementedException();
+        /// <inheritdoc/>
         public override IBooleanFilterOperation FieldValueExistsFilter(string field) => throw new NotImplementedException();
+        /// <inheritdoc/>
         public override IBooleanFilterOperation FieldValueNotExistsFilter(string field) => throw new NotImplementedException();
+        /// <inheritdoc/>
         public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => throw new NotImplementedException();
+        /// <inheritdoc/>
         public override IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) => throw new NotImplementedException();
         #endregion
 
         #region INestedFilter
-        protected override INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain) => throw new NotImplementedException();
-        protected override INestedBooleanFilterOperation NestedTermFilter(FilterTerm term) => throw new NotImplementedException();
-        protected override INestedBooleanFilterOperation NestedTermsFilter(IEnumerable<FilterTerm> terms) => throw new NotImplementedException();
-        protected override INestedBooleanFilterOperation NestedTermPrefixFilter(FilterTerm term) => throw new NotImplementedException();
-        protected override INestedBooleanFilterOperation NestedFieldValueExistsFilter(string field) => throw new NotImplementedException();
-        protected override INestedBooleanFilterOperation NestedFieldValueNotExistsFilter(string field) => throw new NotImplementedException();
-        protected override INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => throw new NotImplementedException();
-        protected override INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        protected override INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain) => NestedChainFiltersInternal(chain);
+
+        /// <inheritdoc/>
+        protected override INestedBooleanFilterOperation NestedTermFilter(FilterTerm term) => NestedTermFilterInternal(term);
+
+        /// <inheritdoc/>
+        protected override INestedBooleanFilterOperation NestedTermsFilter(IEnumerable<FilterTerm> terms) => NestedTermsFilterInternal(terms);
+
+        /// <inheritdoc/>
+        protected override INestedBooleanFilterOperation NestedTermPrefixFilter(FilterTerm term) => NestedTermPrefixFilterInternal(term);
+
+        /// <inheritdoc/>
+        protected override INestedBooleanFilterOperation NestedFieldValueExistsFilter(string field) => NestedFieldValueExistsFilterInternal(field);
+
+        /// <inheritdoc/>
+        protected override INestedBooleanFilterOperation NestedFieldValueNotExistsFilter(string field) => NestedFieldValueNotExistsFilterInternal(field);
+
+        /// <inheritdoc/>
+        protected override INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilterInternal(inner, defaultOp);
+
+        /// <inheritdoc/>
+        protected override INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => NestedRangeFilterInternal<T>(field, min, max, minInclusive, maxInclusive);
+
+        /// <inheritdoc/>
+        internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChainStart> chain) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        internal INestedBooleanFilterOperation NestedTermFilterInternal(FilterTerm term) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        internal INestedBooleanFilterOperation NestedTermsFilterInternal(IEnumerable<FilterTerm> terms) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        internal INestedBooleanFilterOperation NestedTermPrefixFilterInternal(FilterTerm term) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        internal INestedBooleanFilterOperation NestedFieldValueExistsFilterInternal(string field) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        internal INestedBooleanFilterOperation NestedFieldValueNotExistsFilterInternal(string field) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        internal INestedBooleanFilterOperation NestedQueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => throw new NotImplementedException();
+
+        /// <inheritdoc/>
+        internal INestedBooleanFilterOperation NestedRangeFilterInternal<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => throw new NotImplementedException();
         #endregion
     }
 }

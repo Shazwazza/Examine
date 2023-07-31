@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Examine.Search;
+using Lucene.Net.Queries;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -8,7 +9,7 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Represents the base for a <see cref="LuceneBooleanOperation"/>
     /// </summary>
-    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFaceting, IFilter
+    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFaceting, IFilter, IBooleanFilterOperation
     {
         private readonly LuceneSearchQueryBase _search;
 
@@ -118,6 +119,39 @@ namespace Examine.Lucene.Search
             return _search.LuceneQuery(_search.Queries.Pop(), outerOp);
         }
 
+        /// <summary>
+        /// Used to add a operation
+        /// </summary>
+        /// <param name="inner"></param>
+        /// <param name="outerOp"></param>
+        /// <param name="defaultInnerOp"></param>
+        /// <returns></returns>
+        protected internal LuceneBooleanOperationBase Op(
+            Func<INestedFilter, INestedBooleanFilterOperation> inner,
+            BooleanOperation outerOp,
+            BooleanOperation? defaultInnerOp = null)
+        {
+            _search.Filters.Push(new BooleanFilter());
+
+            //change the default inner op if specified
+            var currentOp = _search.BooleanFilterOperation;
+            if (defaultInnerOp != null)
+            {
+                _search.BooleanFilterOperation = defaultInnerOp.Value;
+            }
+
+            //run the inner search
+            inner(_search);
+
+            //reset to original op if specified
+            if (defaultInnerOp != null)
+            {
+                _search.BooleanFilterOperation = currentOp;
+            }
+
+            return _search.LuceneFilter(_search.Filters.Pop(), outerOp);
+        }
+
         /// <inheritdoc/>
         public abstract ISearchResults Execute(QueryOptions? options = null);
 
@@ -163,5 +197,29 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
+        #region IBooleanFilterOperation
+
+        /// <inheritdoc/>
+        public abstract IFilter AndFilter();
+
+        /// <inheritdoc/>
+        public IBooleanFilterOperation AndFilter(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
+            => Op(inner, BooleanOperation.And, defaultOp);
+
+        /// <inheritdoc/>
+        public abstract IFilter OrFilter();
+
+        /// <inheritdoc/>
+        public IBooleanFilterOperation OrFilter(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
+            => Op(inner, BooleanOperation.Or, defaultOp);
+
+        /// <inheritdoc/>
+        public abstract IFilter NotFilter();
+
+        /// <inheritdoc/>
+        public  IBooleanFilterOperation AndNotFilter(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
+            => Op(inner, BooleanOperation.Or, defaultOp);
+
+        #endregion
     }
 }

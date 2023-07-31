@@ -46,6 +46,9 @@ namespace Examine.Lucene.Search
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
+
+        private BooleanOperation _boolFilterOp;
+
         /// <inheritdoc/>
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string? category, LuceneSearchOptions searchOptions, BooleanOperation occurance)
@@ -74,6 +77,19 @@ namespace Examine.Lucene.Search
             {
                 _boolOp = value;
                 Occurrence = _boolOp.ToLuceneOccurrence();
+            }
+        }
+
+        /// <summary>
+        /// The type of boolean operation
+        /// </summary>
+        public BooleanOperation BooleanFilterOperation
+        {
+            get => _boolFilterOp;
+            set
+            {
+                _boolFilterOp = value;
+                Occurrence = _boolFilterOp.ToLuceneOccurrence();
             }
         }
 
@@ -650,27 +666,27 @@ namespace Examine.Lucene.Search
         protected abstract INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.ChainFilters(Action<IFilterChainStart> chain) => NestedChainFilters(chain);
+        INestedBooleanFilterOperation INestedFilter.NestedChainFilters(Action<IFilterChainStart> chain) => NestedChainFilters(chain);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.Term(FilterTerm term) => NestedTermFilter(term);
+        INestedBooleanFilterOperation INestedFilter.NestedTermFilter(FilterTerm term) => NestedTermFilter(term);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.Terms(IEnumerable<FilterTerm> terms) => NestedTermsFilter(terms);
+        INestedBooleanFilterOperation INestedFilter.NestedTermsFilter(IEnumerable<FilterTerm> terms) => NestedTermsFilter(terms);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.TermPrefix(FilterTerm term) => NestedTermPrefixFilter(term);
+        INestedBooleanFilterOperation INestedFilter.NestedTermPrefix(FilterTerm term) => NestedTermPrefixFilter(term);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.FieldValueExists(string field) => NestedFieldValueExistsFilter(field);
+        INestedBooleanFilterOperation INestedFilter.NestedFieldValueExists(string field) => NestedFieldValueExistsFilter(field);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.FieldValueNotExists(string field) => NestedFieldValueNotExistsFilter(field);
+        INestedBooleanFilterOperation INestedFilter.NestedFieldValueNotExists(string field) => NestedFieldValueNotExistsFilter(field);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilter(inner, defaultOp);
+        INestedBooleanFilterOperation INestedFilter.NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilter(inner, defaultOp);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.RangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => NestedRangeFilter<T>(field, min, max, minInclusive, maxInclusive);
+        INestedBooleanFilterOperation INestedFilter.NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => NestedRangeFilter<T>(field, min, max, minInclusive, maxInclusive);
     }
 }

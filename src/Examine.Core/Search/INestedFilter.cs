@@ -10,42 +10,42 @@ namespace Examine.Search
         /// </summary>
         /// <param name="chain"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);
+        INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain);
 
         /// <summary>
         /// Term must match
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation Term(FilterTerm term);
+        INestedBooleanFilterOperation NestedTermFilter(FilterTerm term);
 
         /// <summary>
         /// Terms must match
         /// </summary>
         /// <param name="terms"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms);
+        INestedBooleanFilterOperation NestedTermsFilter(IEnumerable<FilterTerm> terms);
 
         /// <summary>
         /// Term must match as prefix
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation TermPrefix(FilterTerm term);
+        INestedBooleanFilterOperation NestedTermPrefix(FilterTerm term);
 
         /// <summary>
         /// Document must have value for field
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation FieldValueExists(string field);
+        INestedBooleanFilterOperation NestedFieldValueExists(string field);
 
         /// <summary>
         /// Document must not have value for field
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation FieldValueNotExists(string field);
+        INestedBooleanFilterOperation NestedFieldValueNotExists(string field);
 
         /// <summary>
         /// Must match query
@@ -53,7 +53,7 @@ namespace Examine.Search
         /// <param name="inner"></param>
         /// <param name="defaultOp"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+        INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <summary>
         /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
@@ -66,6 +66,6 @@ namespace Examine.Search
         /// <param name="minInclusive"></param>
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+        INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
     }
 }

@@ -5251,12 +5251,12 @@ namespace Examine.Test.Examine.Lucene.Search
                         filter =>
                         {
                             filter.TermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home"))
-                                .And()
+                                .AndFilter()
                                 .TermPrefixFilter(new FilterTerm("nodeName", "my name"))
-                                .And()
+                                .AndFilter()
                                 .ChainFilters(chain =>
-                                    chain.Chain(chainedFilter => chainedFilter.FieldValueExists("nodeTypeAlias"))
-                                            .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.FieldValueNotExists("nodeTypeAlias"))
+                                    chain.Chain(chainedFilter => chainedFilter.NestedFieldValueExists("nodeTypeAlias"))
+                                            .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.NestedFieldValueNotExists("nodeTypeAlias"))
                                             );
                                 
                         });
