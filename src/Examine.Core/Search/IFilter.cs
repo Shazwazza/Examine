@@ -17,35 +17,35 @@ namespace Examine.Search
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
-        IBooleanFilterOperation Term(FilterTerm term);
+        IBooleanFilterOperation TermFilter(FilterTerm term);
 
         /// <summary>
         /// Terms must match
         /// </summary>
         /// <param name="terms"></param>
         /// <returns></returns>
-        IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms);
+        IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms);
 
         /// <summary>
         /// Term must match as prefix
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
-        IBooleanFilterOperation TermPrefix(FilterTerm term);
+        IBooleanFilterOperation TermPrefixFilter(FilterTerm term);
 
         /// <summary>
         /// Document must have value for field
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
-        IBooleanFilterOperation FieldValueExists(string field);
+        IBooleanFilterOperation FieldValueExistsFilter(string field);
 
         /// <summary>
         /// Document must not have value for field
         /// </summary>
         /// <param name="field"></param>
         /// <returns></returns>
-        IBooleanFilterOperation FieldValueNotExists(string field);
+        IBooleanFilterOperation FieldValueNotExistsFilter(string field);
 
         /// <summary>
         /// Must match query

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Security.Claims;
-using Examine.Lucene.Providers;
 using Examine.Search;
 using Lucene.Net.Search;
 
@@ -93,33 +91,33 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation Term(FilterTerm term)
+        public override IBooleanFilterOperation TermFilter(FilterTerm term)
         {
-            return _search.Term(term);
+            return _search.TermFilter(term);
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms)
+        public override IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms)
         {
-            return _search.Terms(terms);
+            return _search.TermsFilter(terms);
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation TermPrefix(FilterTerm term)
+        public override IBooleanFilterOperation TermPrefixFilter(FilterTerm term)
         {
-            return _search.TermPrefix(term);
+            return _search.TermPrefixFilter(term);
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation FieldValueExists(string field)
+        public override IBooleanFilterOperation FieldValueExistsFilter(string field)
         {
-            return _search.FieldValueExists(field);
+            return _search.FieldValueExistsFilter(field);
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation FieldValueNotExists(string field)
+        public override IBooleanFilterOperation FieldValueNotExistsFilter(string field)
         {
-            return _search.FieldValueNotExists(field);
+            return _search.FieldValueNotExistsFilter(field);
         }
 
         /// <inheritdoc/>

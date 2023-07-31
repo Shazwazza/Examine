@@ -5250,9 +5250,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     .WithFilter(
                         filter =>
                         {
-                            filter.Term(new FilterTerm("nodeTypeAlias", "CWS_Home"))
+                            filter.TermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home"))
                                 .And()
-                                .TermPrefix(new FilterTerm("nodeName", "my name"))
+                                .TermPrefixFilter(new FilterTerm("nodeName", "my name"))
                                 .And()
                                 .ChainFilters(chain =>
                                     chain.Chain(chainedFilter => chainedFilter.FieldValueExists("nodeTypeAlias"))

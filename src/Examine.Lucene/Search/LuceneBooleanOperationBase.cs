@@ -143,24 +143,25 @@ namespace Examine.Lucene.Search
         public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation Term(FilterTerm term);
+        public abstract IBooleanFilterOperation TermFilter(FilterTerm term);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms);
+        public abstract IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation TermPrefix(FilterTerm term);
+        public abstract IBooleanFilterOperation TermPrefixFilter(FilterTerm term);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation FieldValueExists(string field);
+        public abstract IBooleanFilterOperation FieldValueExistsFilter(string field);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation FieldValueNotExists(string field);
+        public abstract IBooleanFilterOperation FieldValueNotExistsFilter(string field);
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+
     }
 }

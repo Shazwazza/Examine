@@ -620,19 +620,19 @@ namespace Examine.Lucene.Search
         public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation Term(FilterTerm term);
+        public abstract IBooleanFilterOperation TermFilter(FilterTerm term);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation Terms(IEnumerable<FilterTerm> terms);
+        public abstract IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation TermPrefix(FilterTerm term);
+        public abstract IBooleanFilterOperation TermPrefixFilter(FilterTerm term);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation FieldValueExists(string field);
+        public abstract IBooleanFilterOperation FieldValueExistsFilter(string field);
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation FieldValueNotExists(string field);
+        public abstract IBooleanFilterOperation FieldValueNotExistsFilter(string field);
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
@@ -641,11 +641,11 @@ namespace Examine.Lucene.Search
         public abstract IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
 
         protected abstract INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain);
-        protected abstract INestedBooleanFilterOperation NestedTerm(FilterTerm term);
-        protected abstract INestedBooleanFilterOperation NestedTerms(IEnumerable<FilterTerm> terms);
-        protected abstract INestedBooleanFilterOperation NestedTermPrefix(FilterTerm term);
-        protected abstract INestedBooleanFilterOperation NestedFieldValueExists(string field);
-        protected abstract INestedBooleanFilterOperation NestedFieldValueNotExists(string field);
+        protected abstract INestedBooleanFilterOperation NestedTermFilter(FilterTerm term);
+        protected abstract INestedBooleanFilterOperation NestedTermsFilter(IEnumerable<FilterTerm> terms);
+        protected abstract INestedBooleanFilterOperation NestedTermPrefixFilter(FilterTerm term);
+        protected abstract INestedBooleanFilterOperation NestedFieldValueExistsFilter(string field);
+        protected abstract INestedBooleanFilterOperation NestedFieldValueNotExistsFilter(string field);
         protected abstract INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp);
         protected abstract INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive);
 
@@ -653,19 +653,19 @@ namespace Examine.Lucene.Search
         INestedBooleanFilterOperation INestedFilter.ChainFilters(Action<IFilterChainStart> chain) => NestedChainFilters(chain);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.Term(FilterTerm term) => NestedTerm(term);
+        INestedBooleanFilterOperation INestedFilter.Term(FilterTerm term) => NestedTermFilter(term);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.Terms(IEnumerable<FilterTerm> terms) => NestedTerms(terms);
+        INestedBooleanFilterOperation INestedFilter.Terms(IEnumerable<FilterTerm> terms) => NestedTermsFilter(terms);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.TermPrefix(FilterTerm term) => NestedTermPrefix(term);
+        INestedBooleanFilterOperation INestedFilter.TermPrefix(FilterTerm term) => NestedTermPrefixFilter(term);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.FieldValueExists(string field) => NestedFieldValueExists(field);
+        INestedBooleanFilterOperation INestedFilter.FieldValueExists(string field) => NestedFieldValueExistsFilter(field);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.FieldValueNotExists(string field) => NestedFieldValueNotExists(field);
+        INestedBooleanFilterOperation INestedFilter.FieldValueNotExists(string field) => NestedFieldValueNotExistsFilter(field);
 
         /// <inheritdoc/>
         INestedBooleanFilterOperation INestedFilter.QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilter(inner, defaultOp);
