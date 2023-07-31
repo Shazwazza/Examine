@@ -5,6 +5,7 @@ using System.Linq;
 using Examine.Search;
 using Lucene.Net.Facet.Range;
 using Lucene.Net.Index;
+using Lucene.Net.Queries;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 
@@ -33,6 +34,13 @@ namespace Examine.Lucene.Search
         /// The sort fields of the query
         /// </summary>
         public IList<SortField> SortFields { get; } = new List<SortField>();
+
+        internal Stack<BooleanFilter> Filters { get; } = new Stack<BooleanFilter>();
+
+        /// <summary>
+        /// The <see cref="BooleanFilter"/>
+        /// </summary>
+        public BooleanFilter TopFilter => Filters.Peek();
 
         /// <summary>
         /// Specifies how clauses are to occur in matching documents
@@ -586,6 +594,13 @@ namespace Examine.Lucene.Search
         public override string ToString()
         {
             return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
+        }
+
+        public IQuery WithFilter(Action<IFilter> filter)
+        {
+
+
+            return CreateOp();
         }
     }
 }

@@ -140,6 +140,6 @@ namespace Examine.Search
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
-        IQuery Filter(Action<IFilter> filter);
+        IQuery WithFilter(Action<IFilter> filter);
     }
 }

@@ -137,5 +137,8 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         INestedBooleanOperation INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive, bool maxInclusive)
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
+
+        /// <inheritdoc/>
+        public IQuery WithFilter(Action<IFilter> filter) => _search.WithFilter(filter);
     }
 }

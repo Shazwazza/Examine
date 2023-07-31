@@ -5247,7 +5247,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
 
                 var criteria = searcher.CreateQuery("content")
-                    .Filter(
+                    .WithFilter(
                         filter =>
                         {
                             filter.Term(new FilterTerm("nodeTypeAlias", "CWS_Home"))
