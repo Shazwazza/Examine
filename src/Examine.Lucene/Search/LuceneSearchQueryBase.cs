@@ -40,7 +40,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// The <see cref="BooleanFilter"/>
         /// </summary>
-        public BooleanFilter TopFilter => Filters.Peek();
+        public BooleanFilter Filter => Filters.Peek();
 
         /// <summary>
         /// Specifies how clauses are to occur in matching documents
@@ -127,6 +127,19 @@ namespace Examine.Lucene.Search
             Query.Add(query, (op ?? BooleanOperation).ToLuceneOccurrence());
             return CreateOp();
         }
+
+        /// <summary>
+        /// Adds a true Lucene Filter 
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <param name="op"></param>
+        /// <returns></returns>
+        public LuceneBooleanOperationBase LuceneFilter(Filter filter, BooleanOperation? op = null)
+        {
+            Filter.Add(filter, (op ?? BooleanOperation).ToLuceneOccurrence());
+            return CreateOp();
+        }
+
 
         /// <inheritdoc/>
         public IBooleanOperation Id(string id) => IdInternal(id, Occurrence);
