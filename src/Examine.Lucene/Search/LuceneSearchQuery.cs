@@ -9,6 +9,7 @@ using Lucene.Net.Facet;
 using Lucene.Net.Index;
 using Lucene.Net.Queries;
 using Lucene.Net.Search;
+using static Lucene.Net.Util.OfflineSorter;
 
 namespace Examine.Lucene.Search
 {
@@ -250,7 +251,14 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields,_facetsConfig);
+            // capture local
+            Filter? filter = Filter;
+            if (filter is BooleanFilter boolFilter && boolFilter.Clauses.Count == 0)
+            {
+                filter = null;
+            }
+
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields,_facetsConfig, filter);
 
             var pagesResults = executor.Execute();
 
