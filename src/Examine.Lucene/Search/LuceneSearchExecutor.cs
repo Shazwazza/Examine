@@ -101,7 +101,7 @@ namespace Examine.Lucene.Search
             SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
             Sort sort = null;
             FieldDoc scoreDocAfter = null;
-            Filter filter = null;
+            Filter? filter = _filter;
 
             using (ISearcherReference searcher = _searchContext.GetSearcher())
             {
@@ -167,7 +167,15 @@ namespace Examine.Lucene.Search
                 }
                 else
                 {
-                    searcher.IndexSearcher.Search(_luceneQuery, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                    if (facetsCollector != null)
+                    {
+                        searcher.IndexSearcher.Search(_luceneQuery, filter, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                    }
+                    else
+                    {
+                        searcher.IndexSearcher.Search(_luceneQuery, filter, topDocsCollector);
+                    }
+
                     if (sortFields.Length > 0)
                     {
                         topDocs = ((TopFieldCollector)topDocsCollector).GetTopDocs(_options.Skip, _options.Take);

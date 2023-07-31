@@ -439,18 +439,40 @@ namespace Examine.Lucene.Search
             return false;
         }
         #region IFilter
+
+        /// <inheritdoc/>
         public override IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain)
         {
-            throw new NotImplementedException();
+            if (chain is null)
+            {
+                throw new ArgumentNullException(nameof(chain));
+            }
         }
 
-        public override IBooleanFilterOperation TermFilter(FilterTerm term)
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation TermFilter(FilterTerm term) => TermFilterInternal(term);
+
+        /// <inheritdoc/>
+        internal IBooleanFilterOperation TermFilterInternal(FilterTerm term, Occur occurance = Occur.MUST)
         {
-            throw new NotImplementedException();
+            if (term.FieldName is null)
+            {
+                throw new ArgumentNullException(nameof(term.FieldName));
+            }
+
+            var filterToAdd = new TermFilter(new Term(term.FieldName, term.FieldValue));
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
         }
 
+        /// <inheritdoc/>
         public override IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms) => TermsInternal(terms);
 
+        /// <inheritdoc/>
         internal IBooleanFilterOperation TermsInternal(IEnumerable<FilterTerm> terms, Occur occurance = Occur.MUST)
         {
             if (terms is null)
@@ -474,15 +496,76 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation TermPrefixFilter(FilterTerm term) => throw new NotImplementedException();
+        public override IBooleanFilterOperation TermPrefixFilter(FilterTerm term) => TermPrefixFilterInternal(term);
+
         /// <inheritdoc/>
-        public override IBooleanFilterOperation FieldValueExistsFilter(string field) => throw new NotImplementedException();
+        internal IBooleanFilterOperation TermPrefixFilterInternal(FilterTerm term, Occur occurance = Occur.MUST)
+        {
+            if (term.FieldName is null)
+            {
+                throw new ArgumentNullException(nameof(term.FieldName));
+            }
+
+            var filterToAdd = new PrefixFilter(new Term(term.FieldName, term.FieldValue));
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
+        }
+
         /// <inheritdoc/>
-        public override IBooleanFilterOperation FieldValueNotExistsFilter(string field) => throw new NotImplementedException();
+        public override IBooleanFilterOperation FieldValueExistsFilter(string field) => FieldValueExistsFilterInternal(field);
+
         /// <inheritdoc/>
-        public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => throw new NotImplementedException();
+        internal IBooleanFilterOperation FieldValueExistsFilterInternal(string field, Occur occurance = Occur.MUST)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var filterToAdd = new FieldValueFilter(field);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
+        }
+
         /// <inheritdoc/>
-        public override IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) => throw new NotImplementedException();
+        public override IBooleanFilterOperation FieldValueNotExistsFilter(string field) => FieldValueNotExistsFilterInternal(field);
+
+        /// <inheritdoc/>
+        internal IBooleanFilterOperation FieldValueNotExistsFilterInternal(string field, Occur occurance = Occur.MUST)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var filterToAdd = new FieldValueFilter(field);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
         #region INestedFilter
@@ -512,28 +595,52 @@ namespace Examine.Lucene.Search
         protected override INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => NestedRangeFilterInternal<T>(field, min, max, minInclusive, maxInclusive);
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChainStart> chain) => throw new NotImplementedException();
+        internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChainStart> chain)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedTermFilterInternal(FilterTerm term) => throw new NotImplementedException();
+        internal INestedBooleanFilterOperation NestedTermFilterInternal(FilterTerm term)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedTermsFilterInternal(IEnumerable<FilterTerm> terms) => throw new NotImplementedException();
+        internal INestedBooleanFilterOperation NestedTermsFilterInternal(IEnumerable<FilterTerm> terms)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedTermPrefixFilterInternal(FilterTerm term) => throw new NotImplementedException();
+        internal INestedBooleanFilterOperation NestedTermPrefixFilterInternal(FilterTerm term)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedFieldValueExistsFilterInternal(string field) => throw new NotImplementedException();
+        internal INestedBooleanFilterOperation NestedFieldValueExistsFilterInternal(string field)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedFieldValueNotExistsFilterInternal(string field) => throw new NotImplementedException();
+        internal INestedBooleanFilterOperation NestedFieldValueNotExistsFilterInternal(string field)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedQueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => throw new NotImplementedException();
+        internal INestedBooleanFilterOperation NestedQueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedRangeFilterInternal<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => throw new NotImplementedException();
+        internal INestedBooleanFilterOperation NestedRangeFilterInternal<T>(string field, T min, T max, bool minInclusive, bool maxInclusive)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }
