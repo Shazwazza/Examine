@@ -447,6 +447,7 @@ namespace Examine.Lucene.Search
             {
                 throw new ArgumentNullException(nameof(chain));
             }
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
