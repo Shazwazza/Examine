@@ -5191,7 +5191,7 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.TaxonomyFacets)]
         [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]
-        public void BasicFilter(FacetTestType withFacets)
+        public void TermFilter(FacetTestType withFacets)
         {
             FieldDefinitionCollection fieldDefinitionCollection = null;
             switch (withFacets)
@@ -5216,33 +5216,26 @@ namespace Examine.Test.Examine.Lucene.Search
                 analyzer,
                 fieldDefinitionCollection))
             {
-
-
                 indexer.IndexItems(new[] {
                     new ValueSet(1.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 1"},
                             {"nodeTypeAlias", "CWS_Home"}
-                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
                     new ValueSet(2.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 2"},
                             {"nodeTypeAlias", "CWS_Home"}
-                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Home"}
                         }),
                     new ValueSet(3.ToString(), "content",
                         new Dictionary<string, object>
                         {
                             {"nodeName", "my name 3"},
                             {"nodeTypeAlias", "CWS_Page"}
-                            //{UmbracoContentIndexer.NodeTypeAliasFieldName, "CWS_Page"}
                         })
                     });
-
-
 
                 var searcher = indexer.Searcher;
 
@@ -5250,17 +5243,95 @@ namespace Examine.Test.Examine.Lucene.Search
                     .WithFilter(
                         filter =>
                         {
-                            filter.TermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home"))
-                                .AndFilter()
-                                .TermPrefixFilter(new FilterTerm("nodeName", "my name"))
-                                .AndFilter()
-                                .ChainFilters(chain =>
-                                    chain.Chain(chainedFilter => chainedFilter.NestedFieldValueExists("nodeTypeAlias"))
-                                            .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.NestedFieldValueNotExists("nodeTypeAlias"))
-                                            );
-                                
+                            filter.TermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home"));                                
                         });
-                var boolOp = criteria.Field("nodeTypeAlias", "CWS_Home".Escape());
+                var boolOp = criteria.All();
+
+                if (HasFacets(withFacets))
+                {
+                    var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = boolOp.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
+            }
+        }
+
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void TermPrefixFilter(FacetTestType withFacets)
+        {
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"), new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"));
+                    break;
+            }
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
+            {
+                indexer.IndexItems(new[] {
+                    new ValueSet(1.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 1"},
+                            {"nodeTypeAlias", "CWS_Home"}
+                        }),
+                    new ValueSet(2.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 2"},
+                            {"nodeTypeAlias", "CWS_Home"}
+                        }),
+                    new ValueSet(3.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 3"},
+                            {"nodeTypeAlias", "CWS_Page"}
+                        })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var criteria = searcher.CreateQuery("content")
+                    .WithFilter(
+                        filter =>
+                        {
+                            filter.TermPrefixFilter(new FilterTerm("nodeTypeAlias", "CWS_H"))
+                                ;//.AndFilter()
+                                 //.TermPrefixFilter(new FilterTerm("nodeName", "my name"));
+                                 //.AndFilter()
+                                 //.ChainFilters(chain =>
+                                 //    chain.Chain(chainedFilter => chainedFilter.NestedFieldValueExists("nodeTypeAlias"))
+                                 //            .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.NestedFieldValueNotExists("nodeTypeAlias"))
+                                 //            );
+
+                        });
+                var boolOp = criteria.All();//.Field("nodeTypeAlias", "CWS_Home".Escape());
 
                 if (HasFacets(withFacets))
                 {
