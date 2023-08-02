@@ -30,11 +30,24 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public override IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain)
         {
+            return ChainFiltersInternal(chain);
+        }
+
+        private IBooleanFilterOperation ChainFiltersInternal(Action<IFilterChainStart> chain, Occur occurance = Occur.MUST)
+        {
             if (chain is null)
             {
                 throw new ArgumentNullException(nameof(chain));
             }
-            throw new NotImplementedException();
+            var chaining = new FilterChainOp(this);
+            chain.Invoke(chaining);
+            var chainedFilter = chaining.Build();
+            if (chainedFilter != null)
+            {
+                Filter.Add(chainedFilter, occurance);
+            }
+
+            return CreateOp();
         }
 
         /// <inheritdoc/>
