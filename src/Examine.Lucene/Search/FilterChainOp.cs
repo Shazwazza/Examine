@@ -8,11 +8,9 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
-    internal class FilterChainOp : IFilterChainStart, IFilterChain
+    internal class FilterChainOp : FilterChainOpBase, IFilterChainStart, IFilterChain
     {
         private readonly LuceneSearchFilteringOperation _luceneFilter;
-
-        public Queue<FilterChain> ChainOps { get; set; }
 
         public FilterChainOp(LuceneSearchFilteringOperation luceneFilter)
         {
@@ -20,23 +18,7 @@ namespace Examine.Lucene.Search
             _luceneFilter = luceneFilter;
         }
 
-        public ChainedFilter Build()
-        {
-            Filter[] filters = new Filter[ChainOps.Count];
-            int[] logicArray = new int[ChainOps.Count];
-
-            for (int i = 0; i < ChainOps.Count; i++)
-            {
-                var fc = ChainOps.Dequeue();
-                filters[i] = fc.Filter;
-                logicArray[i] = fc.Operation;
-            }
-
-            ChainedFilter chainedFilter = new ChainedFilter(filters, logicArray);
-            return chainedFilter;
-        }
-
-        public IFilterChain Chain(Func<INestedFilter, INestedBooleanFilterOperation> nextFilter)
+        public override IFilterChain Chain(Func<INestedFilter, INestedBooleanFilterOperation> nextFilter)
         {
             throw new NotImplementedException();
             // Start a chain
@@ -44,7 +26,7 @@ namespace Examine.Lucene.Search
             return this;
         }
 
-        public IFilterChain Chain(ChainOperation operation, Func<INestedFilter, INestedBooleanFilterOperation> nextFilter)
+        public override IFilterChain Chain(ChainOperation operation, Func<INestedFilter, INestedBooleanFilterOperation> nextFilter)
         {
             throw new NotImplementedException();
             // Continue a chain
@@ -54,7 +36,7 @@ namespace Examine.Lucene.Search
 
     }
 
-    internal struct FilterChain
+    public struct FilterChain
     {
         public Filter Filter { get; }
 

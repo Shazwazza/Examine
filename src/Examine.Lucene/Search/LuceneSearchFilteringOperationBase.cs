@@ -52,7 +52,7 @@ namespace Examine.Lucene.Search
         public LuceneFilteringBooleanOperationBase LuceneFilter(Filter filter, BooleanOperation? op = null)
         {
             Filter.Add(filter, (op ?? BooleanFilterOperation).ToLuceneOccurrence());
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
 
@@ -60,7 +60,13 @@ namespace Examine.Lucene.Search
         /// Creates a <see cref="LuceneFilteringBooleanOperationBase"/>
         /// </summary>
         /// <returns></returns>
-        protected abstract LuceneFilteringBooleanOperationBase CreateOp();
+        protected abstract LuceneFilteringBooleanOperationBase CreateBooleanOp();
+
+        /// <summary>
+        /// Creates a new <see cref="FilterChainOpBase"/>
+        /// </summary>
+        /// <returns></returns>
+        protected abstract FilterChainOpBase CreateChainOp();
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);

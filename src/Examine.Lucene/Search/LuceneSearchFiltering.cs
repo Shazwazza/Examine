@@ -11,20 +11,22 @@ namespace Examine.Lucene.Search
     // LuceneSearchQuery
     public class LuceneSearchFilteringOperation : LuceneSearchFilteringOperationBase
     {
-        private readonly LuceneSearchQuery _luceneSearchQuery;
-
         public LuceneSearchFilteringOperation(LuceneSearchQuery luceneSearchQuery)
            : base(luceneSearchQuery)
         {
-            _luceneSearchQuery = luceneSearchQuery;
         }
 
         /// <summary>
         /// Creates a new <see cref="LuceneFilteringBooleanOperation"/>
         /// </summary>
         /// <returns></returns>
-        protected override LuceneFilteringBooleanOperationBase CreateOp() => new LuceneFilteringBooleanOperation(this);
+        protected override LuceneFilteringBooleanOperationBase CreateBooleanOp() => new LuceneFilteringBooleanOperation(this);
 
+        /// <summary>
+        /// Creates a new <see cref="FilterChainOpBase"/>
+        /// </summary>
+        /// <returns></returns>
+        protected override FilterChainOpBase CreateChainOp() => new FilterChainOp(this);
         #region IFilter
 
         /// <inheritdoc/>
@@ -39,7 +41,7 @@ namespace Examine.Lucene.Search
             {
                 throw new ArgumentNullException(nameof(chain));
             }
-            var chaining = new FilterChainOp(this);
+            var chaining = CreateChainOp();
             chain.Invoke(chaining);
             var chainedFilter = chaining.Build();
             if (chainedFilter != null)
@@ -47,7 +49,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(chainedFilter, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -67,7 +69,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -93,7 +95,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -113,7 +115,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -133,7 +135,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -153,7 +155,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -211,7 +213,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(chainedFilter, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -228,7 +230,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -251,7 +253,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -268,7 +270,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -285,7 +287,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
@@ -302,7 +304,7 @@ namespace Examine.Lucene.Search
                 Filter.Add(filterToAdd, occurance);
             }
 
-            return CreateOp();
+            return CreateBooleanOp();
         }
 
         /// <inheritdoc/>
