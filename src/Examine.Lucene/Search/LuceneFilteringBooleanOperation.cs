@@ -77,7 +77,13 @@ namespace Examine.Lucene.Search
         {
             return _search.RangeFilter<T>(field, min, max, minInclusive, maxInclusive);
         }
+        #endregion
 
+        #region INestedBooleanFilterOperation
+        public override INestedFilter And() =>  new LuceneFilter(this._search, Occur.MUST);
+        public override INestedFilter Or() => new LuceneFilter(this._search, Occur.SHOULD);
+
+        public override INestedFilter Not() => new LuceneFilter(this._search, Occur.MUST_NOT);
         #endregion
     }
 }

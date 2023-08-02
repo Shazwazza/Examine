@@ -197,39 +197,112 @@ namespace Examine.Lucene.Search
         protected override INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => NestedRangeFilterInternal<T>(field, min, max, minInclusive, maxInclusive);
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChainStart> chain)
+        internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChainStart> chain, Occur occurance = Occur.MUST)
         {
-            throw new NotImplementedException();
+            if (chain is null)
+            {
+                throw new ArgumentNullException(nameof(chain));
+            }
+            var chaining = new FilterChainOp(this);
+            chain.Invoke(chaining);
+            var chainedFilter = chaining.Build();
+            if (chainedFilter != null)
+            {
+                Filter.Add(chainedFilter, occurance);
+            }
+
+            return CreateOp();
         }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedTermFilterInternal(FilterTerm term)
+        internal INestedBooleanFilterOperation NestedTermFilterInternal(FilterTerm term, Occur occurance = Occur.MUST)
         {
-            throw new NotImplementedException();
+            if (term.FieldName is null)
+            {
+                throw new ArgumentNullException(nameof(term.FieldName));
+            }
+
+            var filterToAdd = new TermFilter(new Term(term.FieldName, term.FieldValue));
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
         }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedTermsFilterInternal(IEnumerable<FilterTerm> terms)
+        internal INestedBooleanFilterOperation NestedTermsFilterInternal(IEnumerable<FilterTerm> terms, Occur occurance = Occur.MUST)
         {
-            throw new NotImplementedException();
+            if (terms is null)
+            {
+                throw new ArgumentNullException(nameof(terms));
+            }
+
+            if (!terms.Any() || terms.Any(x => string.IsNullOrWhiteSpace(x.FieldName)))
+            {
+                throw new ArgumentOutOfRangeException(nameof(terms));
+            }
+
+            var luceneTerms = terms.Select(x => new Term(x.FieldName, x.FieldValue)).ToArray();
+            var filterToAdd = new TermsFilter(luceneTerms);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
         }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedTermPrefixFilterInternal(FilterTerm term)
+        internal INestedBooleanFilterOperation NestedTermPrefixFilterInternal(FilterTerm term, Occur occurance = Occur.MUST)
         {
-            throw new NotImplementedException();
+            if (term.FieldName is null)
+            {
+                throw new ArgumentNullException(nameof(term.FieldName));
+            }
+
+            var filterToAdd = new PrefixFilter(new Term(term.FieldName, term.FieldValue));
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
         }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedFieldValueExistsFilterInternal(string field)
+        internal INestedBooleanFilterOperation NestedFieldValueExistsFilterInternal(string field, Occur occurance = Occur.MUST)
         {
-            throw new NotImplementedException();
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var filterToAdd = new FieldValueFilter(field);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
         }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedFieldValueNotExistsFilterInternal(string field)
+        internal INestedBooleanFilterOperation NestedFieldValueNotExistsFilterInternal(string field, Occur occurance = Occur.MUST)
         {
-            throw new NotImplementedException();
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var filterToAdd = new FieldValueFilter(field);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateOp();
         }
 
         /// <inheritdoc/>

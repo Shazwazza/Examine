@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Examine.Search;
+using Lucene.Net.Index;
 using Lucene.Net.Queries;
 using Lucene.Net.Search;
 
@@ -39,20 +38,33 @@ namespace Examine.Lucene.Search
 
         public IFilterChain Chain(Func<INestedFilter, INestedBooleanFilterOperation> nextFilter)
         {
-            var nestedOp = nextFilter.Invoke(_luceneFilter);
             throw new NotImplementedException();
+            // Start a chain
+            //ChainOps.Enqueue(new FilterChain(nextFilter, (int)ChainOperation.AND));
+            return this;
         }
 
         public IFilterChain Chain(ChainOperation operation, Func<INestedFilter, INestedBooleanFilterOperation> nextFilter)
         {
             throw new NotImplementedException();
+            // Continue a chain
+            //ChainOps.Enqueue(new FilterChain(nextFilter, (int)operation));
+            return this;
         }
+
     }
 
-    internal class FilterChain
+    internal struct FilterChain
     {
-        public Filter Filter { get; set; }
+        public Filter Filter { get; }
 
-        public int Operation { get; set; }
+        public FilterChain(Filter filter, int operation)
+        {
+            Filter = filter;
+            Operation = operation;
+        }
+
+        public int Operation { get; }
+
     }
 }
