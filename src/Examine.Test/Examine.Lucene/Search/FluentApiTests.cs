@@ -5264,7 +5264,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = boolOp.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
