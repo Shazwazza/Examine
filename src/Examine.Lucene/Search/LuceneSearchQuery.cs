@@ -20,9 +20,19 @@ namespace Examine.Lucene.Search
     public class LuceneSearchQuery : LuceneSearchQueryBase, IQueryExecutor
     {
         private readonly ISearchContext _searchContext;
-        private readonly FacetsConfig _facetsConfig;
+        private readonly FacetsConfig? _facetsConfig;
         private ISet<string>? _fieldsToLoad = null;
         private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
+
+        /// <inheritdoc/>
+        [Obsolete("To be removed in Examine V5")]
+        public LuceneSearchQuery(
+            ISearchContext searchContext,
+            string category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance)
+            : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
+        {
+            _searchContext = searchContext;
+        }
 
         /// <inheritdoc/>
         public LuceneSearchQuery(
@@ -416,6 +426,11 @@ namespace Examine.Lucene.Search
 
         private string GetFacetField(string field)
         {
+            if(_facetsConfig is null)
+            {
+                throw new InvalidOperationException("FacetsConfig not set. User a LuceneSearchQuery constructor with all parameters");
+            }
+
             if (_facetsConfig.DimConfigs.ContainsKey(field))
             {
                 return _facetsConfig.DimConfigs[field].IndexFieldName;
@@ -424,6 +439,11 @@ namespace Examine.Lucene.Search
         }
         private bool GetFacetFieldIsMultiValued(string field)
         {
+            if (_facetsConfig is null)
+            {
+                throw new InvalidOperationException("FacetsConfig not set. User a LuceneSearchQuery constructor with all parameters");
+            }
+
             if (_facetsConfig.DimConfigs.ContainsKey(field))
             {
                 return _facetsConfig.DimConfigs[field].IsMultiValued;
@@ -432,6 +452,11 @@ namespace Examine.Lucene.Search
         }
         private bool GetFacetFieldIsHierarchical(string field)
         {
+            if (_facetsConfig is null)
+            {
+                throw new InvalidOperationException("FacetsConfig not set. User a LuceneSearchQuery constructor with all parameters");
+            }
+
             if (_facetsConfig.DimConfigs.ContainsKey(field))
             {
                 return _facetsConfig.DimConfigs[field].IsHierarchical;

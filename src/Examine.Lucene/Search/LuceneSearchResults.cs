@@ -10,12 +10,24 @@ namespace Examine.Lucene.Search
     /// </summary>
     public class LuceneSearchResults : ISearchResults, ILuceneSearchResults, IFacetResults
     {
+        private readonly IReadOnlyDictionary<string, IFacetResult> _noFacets = new Dictionary<string, IFacetResult>(0, StringComparer.InvariantCultureIgnoreCase);
+
         /// <summary>
         /// Gets an empty search result
         /// </summary>
         public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>(), float.NaN, default);
         
         private readonly IReadOnlyCollection<ISearchResult> _results;
+
+        /// <inheritdoc/>
+        [Obsolete("To remove in Examine V5")]
+        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount)
+        {
+            _results = results;
+            TotalItemCount = totalItemCount;
+            MaxScore = float.NaN;
+            Facets = _noFacets;
+        }
 
         /// <inheritdoc/>
         public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IReadOnlyDictionary<string, IFacetResult> facets, float maxScore, SearchAfterOptions searchAfterOptions)
@@ -39,7 +51,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Options for skipping documents after a previous search
         /// </summary>
-        public SearchAfterOptions SearchAfter { get; }
+        public SearchAfterOptions? SearchAfter { get; }
 
         /// <inheritdoc/>
         public IReadOnlyDictionary<string, IFacetResult> Facets { get; }
