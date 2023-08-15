@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
@@ -19,7 +20,7 @@ namespace Examine.Lucene.Indexing
         private readonly bool _taxonomyIndex;
 
         /// <inheritdoc/>
-        public Int32Type(string fieldName, ILoggerFactory logger, bool store, bool isFacetable, bool taxonomyIndex = false)
+        public Int32Type(string fieldName,bool isFacetable, bool taxonomyIndex, ILoggerFactory logger, bool store)
             : base(fieldName, logger, store)
         {
             _isFacetable = isFacetable;
@@ -27,7 +28,10 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
+        [Obsolete("To be removed in Examine V5")]
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         public Int32Type(string fieldName, ILoggerFactory logger, bool store = true)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
             : base(fieldName, logger, store)
         {
             _isFacetable = false;

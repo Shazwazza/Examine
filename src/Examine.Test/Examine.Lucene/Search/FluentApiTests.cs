@@ -87,7 +87,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results1 = query1.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results1 = query1.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results1.GetFacet("nodeName");
 
@@ -149,7 +149,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -212,7 +212,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -258,7 +258,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 Console.WriteLine(query);
 
-                var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                 var facetResults = results.GetFacet("nodeName");
 
@@ -299,7 +299,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(query);
 
 
-                var results = query.WithFacets(facets => facets.Facet("LongValue", new Int64Range[]
+                var results = query.WithFacets(facets => facets.FacetLongRange("LongValue", new Int64Range[]
                 {
                     new Int64Range("10", 10, true, 11, true),
                     new Int64Range("20", 20, true, 21, true),
@@ -346,7 +346,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(query);
 
 
-                var results = query.WithFacets(factes => factes.Facet("DoubleValue", new DoubleRange[]
+                var results = query.WithFacets(factes => factes.FacetDoubleRange("DoubleValue", new DoubleRange[]
                 {
                     new DoubleRange("10", 10, true, 11, true),
                     new DoubleRange("20", 20, true, 21, true),
@@ -395,7 +395,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(query);
 
 
-                var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                 var facetResults = results.GetFacet("nodeName");
 
@@ -438,7 +438,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(query);
 
 
-                var results = query.WithFacets(facets => facets.Facet("LongValue", new Int64Range[]
+                var results = query.WithFacets(facets => facets.FacetLongRange("LongValue", new Int64Range[]
                 {
                     new Int64Range("10", 10, true, 11, true),
                     new Int64Range("20", 20, true, 21, true),
@@ -487,7 +487,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine(query);
 
 
-                var results = query.WithFacets(factes => factes.Facet("DoubleValue", new DoubleRange[]
+                var results = query.WithFacets(factes => factes.FacetDoubleRange("DoubleValue", new DoubleRange[]
                 {
                     new DoubleRange("10", 10, true, 11, true),
                     new DoubleRange("20", 20, true, 21, true),
@@ -547,7 +547,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("bodyText")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("bodyText")).Execute();
 
                     var facetResults = results.GetFacet("bodyText");
 
@@ -624,7 +624,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.Facet("created", new Int64Range[]
+                    var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.FacetLongRange("created", new Int64Range[]
                     {
                         new Int64Range("First days", new DateTime(2000, 01, 01).Ticks, true, new DateTime(2000, 01, 03).Ticks, true),
                         new Int64Range("Last days", new DateTime(2000, 01, 04).Ticks, true, new DateTime(2000, 01, 06).Ticks, true)
@@ -688,7 +688,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
                     var result = searcher.CreateQuery()
                         .ManagedQuery("darkness")
-                        .WithFacets(facets => facets.Facet("item1"))
+                        .WithFacets(facets => facets.FacetString("item1"))
                         .Execute();
 
                     var facetResults = result.GetFacet("item1");
@@ -704,7 +704,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                     result = searcher.CreateQuery()
                         .ManagedQuery("total darkness")
-                        .WithFacets(facets => facets.Facet("item1"))
+                        .WithFacets(facets => facets.FacetString("item1"))
                         .Execute();
                     facetResults = result.GetFacet("item1");
 
@@ -778,7 +778,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var result = qry.WithFacets(facets => facets.Facet("item1")).Execute();
+                    var result = qry.WithFacets(facets => facets.FacetString("item1")).Execute();
 
                     var facetResults = result.GetFacet("item1");
 
@@ -793,7 +793,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     qry = searcher.CreateQuery().ManagedQuery("darkness")
                         .And(query => query.Field("item1", "value1").Or().Field("item1", "value2"), BooleanOperation.Or);
                     Console.WriteLine(qry);
-                    result = qry.WithFacets(facets => facets.Facet("item1")).Execute();
+                    result = qry.WithFacets(facets => facets.FacetString("item1")).Execute();
 
                     facetResults = result.GetFacet("item1");
 
@@ -874,7 +874,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var result = qry.WithFacets(facets => facets.Facet("item1")).Execute();
+                    var result = qry.WithFacets(facets => facets.FacetString("item1")).Execute();
 
                     var facetResults = result.GetFacet("item1");
 
@@ -967,7 +967,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     var numberSortedResult = numberSortedCriteria
-                        .WithFacets(facets => facets.Facet("parentID", new Int64Range[]
+                        .WithFacets(facets => facets.FacetLongRange("parentID", new Int64Range[]
                         {
                             new Int64Range("120-122", 120, true, 122, true),
                             new Int64Range("123-125", 123, true, 125, true)
@@ -1053,7 +1053,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.Facet("parentID")).Execute();
+                    var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.FacetString("parentID")).Execute();
 
                     var facetResults = numberSortedResult.GetFacet("parentID");
 
@@ -1136,7 +1136,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = filter.WithFacets(facets => facets.Facet("nodeTypeAlias")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("nodeTypeAlias")).Execute();
 
                     var facetResults = results.GetFacet("nodeTypeAlias");
 
@@ -1177,35 +1177,35 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedOr(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 id:2 id:3 parentID:1 parentID:2 parentID:3 blahID:1 blahID:2 blahID:3)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - MULTI FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedOr(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1 parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED OR - SINGLE FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedOr(new[] { "id" }.ToList(), new[] { "1" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(id:1)", criteria.Query.ToString());
 
@@ -1228,7 +1228,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 //We used to assert this, but it must be allowed to do an add on the same field multiple times
                 //Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
@@ -1237,7 +1237,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED AND - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedAnd(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 //The field/value array lengths are equal so we will match the key/value pairs
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2 +blahID:3)", criteria.Query.ToString());
@@ -1245,7 +1245,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED AND - MULTI FIELD, MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 //There are more than one field and there are more values than fields, in this case we align the key/value pairs
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:2)", criteria.Query.ToString());
@@ -1253,14 +1253,14 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED AND - MULTI FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedAnd(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1 +parentID:1)", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED AND - SINGLE FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedAnd(new[] { "id" }.ToList(), new[] { "1" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias +(+id:1)", criteria.Query.ToString());
             }
@@ -1282,35 +1282,35 @@ namespace Examine.Test.Examine.Lucene.Search
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, MULTI VAL");
                 var criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, EQUAL MULTI VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedNot(new[] { "id", "parentID", "blahID" }.ToList(), new[] { "1", "2", "3" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -id:2 -id:3 -parentID:1 -parentID:2 -parentID:3 -blahID:1 -blahID:2 -blahID:3", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - MULTI FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedNot(new[] { "id", "parentID" }.ToList(), new[] { "1" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1 -parentID:1", criteria.Query.ToString());
 
                 Console.WriteLine("GROUPED NOT - SINGLE FIELD, SINGLE VAL");
                 criteria = (LuceneSearchQuery)searcher.CreateQuery();
                 criteria.Field("__NodeTypeAlias", "myDocumentTypeAlias");
-                criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1" }).WithFacets(facets => facets.Facet("SomeFacet"));
+                criteria.GroupedNot(new[] { "id" }.ToList(), new[] { "1" }).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 Console.WriteLine(criteria.Query);
                 Assert.AreEqual("+__NodeTypeAlias:mydocumenttypealias -id:1", criteria.Query.ToString());
             }
@@ -1357,7 +1357,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.All().WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.All().WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -1415,7 +1415,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -1476,7 +1476,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = filter.WithFacets(facets => facets.Facet("headerText")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("headerText")).Execute();
 
                     var facetResults = results.GetFacet("headerText");
 
@@ -1534,7 +1534,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -1592,7 +1592,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
 
                     Assert.AreEqual(1, results.TotalItemCount);
@@ -1649,7 +1649,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacets();
 
@@ -1711,7 +1711,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
                     Assert.AreEqual(1, results.TotalItemCount);
@@ -1771,7 +1771,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = query.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = query.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
                     Assert.AreEqual(1, results.TotalItemCount);
@@ -1832,7 +1832,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
 
                     var results = query
-                        .WithFacets(facets => facets.Facet("start", new Int64Range("Label", 100, false, 200, false)))
+                        .WithFacets(facets => facets.FacetLongRange("start", new Int64Range("Label", 100, false, 200, false)))
                         .Execute();
 
                     var facetResults = results.GetFacet("start");
@@ -1907,7 +1907,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results1 = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results1 = filter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults1 = results1.GetFacet("nodeName");
                     Assert.AreEqual(1, results1.TotalItemCount);
                     Assert.AreEqual(1, facetResults1.Count());
@@ -1924,7 +1924,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results2 = exactfilter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results2 = exactfilter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults2 = results2.GetFacet("nodeName");
                     Assert.AreEqual(1, results2.TotalItemCount);
                     Assert.AreEqual(1, facetResults2.Count());
@@ -1943,7 +1943,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
 
-                    var results5 = nativeFilter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results5 = nativeFilter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults5 = results5.GetFacet("nodeName");
                     Assert.AreEqual(1, results5.TotalItemCount);
                     Assert.AreEqual(1, facetResults5.Count());
@@ -1960,7 +1960,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results3 = wildcardfilter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results3 = wildcardfilter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults3 = results3.GetFacet("nodeName");
                     Assert.AreEqual(2, results3.TotalItemCount);
                     Assert.AreEqual(2, facetResults3.Count());
@@ -1977,7 +1977,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results3 = wildcardfilter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results3 = wildcardfilter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults3 = results3.GetFacet("nodeName");
                     Assert.AreEqual(0, results3.TotalItemCount);
                     Assert.AreEqual(0, facetResults3?.Count() ?? 0);
@@ -2036,7 +2036,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -2107,7 +2107,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = filter.WithFacets(facets => facets.Facet("parentID")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("parentID")).Execute();
 
                     var facetResults = results.GetFacet("parentID");
 
@@ -2187,7 +2187,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -2251,7 +2251,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetDoubleRange("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -2324,7 +2324,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = criteria.WithFacets(facets => facets.Facet("nodeTypeAlias")).Execute();
+                    var results = criteria.WithFacets(facets => facets.FacetString("nodeTypeAlias")).Execute();
 
                     var facetResults = results.GetFacet("nodeTypeAlias");
 
@@ -2386,7 +2386,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = filter.WithFacets(facets => facets.Facet("nodeTypeAlias")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("nodeTypeAlias")).Execute();
 
                     var facetResults = results.GetFacet("nodeTypeAlias");
 
@@ -2448,7 +2448,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -2513,8 +2513,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
                     var results1 = sc1
                         .WithFacets(facets => facets
-                            .Facet("sortOrder")
-                            .Facet("parentID"))
+                            .FacetString("sortOrder")
+                            .FacetString("parentID"))
                         .Execute();
 
                     var facetResults = results1.GetFacet("sortOrder");
@@ -2602,8 +2602,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
                     var results1 = sc1
                         .WithFacets(facets => facets
-                            .Facet("updateDate")
-                            .Facet("parentID"))
+                            .FacetString("updateDate")
+                            .FacetString("parentID"))
                         .Execute();
 
                     var facetResults = results1.GetFacet("updateDate");
@@ -2689,8 +2689,8 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results1 = sc1.WithFacets(facets => facets.Facet("nodeName")).Execute();
-                    var results2 = sc2.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results1 = sc1.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+                    var results2 = sc2.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults1 = results1.GetFacet("nodeName");
                     var facetResults2 = results2.GetFacet("nodeName");
@@ -2756,8 +2756,8 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (withFacets)
                 {
-                    var results1 = sc1.WithFacets(facets => facets.Facet("field1")).Execute();
-                    var results2 = sc2.WithFacets(facets => facets.Facet("field1")).Execute();
+                    var results1 = sc1.WithFacets(facets => facets.FacetString("field1")).Execute();
+                    var results2 = sc2.WithFacets(facets => facets.FacetString("field1")).Execute();
 
                     var facetResults1 = results1.GetFacet("field1");
                     var facetResults2 = results2.GetFacet("field1");
@@ -2857,7 +2857,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results1 = sc1.WithFacets(facets => facets.Facet("field1").Facet("field2")).Execute();
+                    var results1 = sc1.WithFacets(facets => facets.FacetString("field1").FacetString("field2")).Execute();
 
                     var facetResults = results1.GetFacet("field1");
                     var facetResults2 = results1.GetFacet("field2");
@@ -2931,7 +2931,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = sc1.WithFacets(facets => facets.Facet("bodyText")).Execute();
+                    var results = sc1.WithFacets(facets => facets.FacetString("bodyText")).Execute();
 
                     var facetResults = results.GetFacet("bodyText");
 
@@ -3013,7 +3013,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results = sc.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = sc.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -3077,7 +3077,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results = sc.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = sc.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -3149,7 +3149,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -3214,7 +3214,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results = filter.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("nodeName")).Execute();
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -3301,12 +3301,12 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
 
                     //Act
-                    var results1 = filter1.WithFacets(facets => facets.Facet("SomeFloat", new FloatRange[]
+                    var results1 = filter1.WithFacets(facets => facets.FacetFloatRange("SomeFloat", new FloatRange[]
                         {
                             new FloatRange("1", 0, true, 12, true),
                             new FloatRange("2", 13, true, 250, true)
                         })).Execute();
-                    var results2 = filter2.WithFacets(facets => facets.Facet("SomeFloat", new FloatRange[]
+                    var results2 = filter2.WithFacets(facets => facets.FacetFloatRange("SomeFloat", new FloatRange[]
                         {
                             new FloatRange("1", 0, true, 12, true),
                             new FloatRange("2", 13, true, 250, true)
@@ -3394,8 +3394,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results1 = filter1.WithFacets(facets => facets.Facet("SomeNumber", config => config.MaxCount(1))).Execute();
-                    var results2 = filter2.WithFacets(facets => facets.Facet("SomeNumber", config => config.MaxCount(1))).Execute();
+                    var results1 = filter1.WithFacets(facets => facets.FacetString("SomeNumber", config => config.MaxCount(1))).Execute();
+                    var results2 = filter2.WithFacets(facets => facets.FacetString("SomeNumber", config => config.MaxCount(1))).Execute();
 
                     var facetResults1 = results1.GetFacet("SomeNumber");
                     var facetResults2 = results2.GetFacet("SomeNumber");
@@ -3476,12 +3476,12 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results1 = filter1.WithFacets(facets => facets.Facet("SomeDouble", new DoubleRange[]
+                    var results1 = filter1.WithFacets(facets => facets.FacetDoubleRange("SomeDouble", new DoubleRange[]
                         {
                             new DoubleRange("1", 0, true, 100, true),
                             new DoubleRange("2", 101, true, 200, true)
                         })).Execute();
-                    var results2 = filter2.WithFacets(facets => facets.Facet("SomeDouble", new DoubleRange[]
+                    var results2 = filter2.WithFacets(facets => facets.FacetDoubleRange("SomeDouble", new DoubleRange[]
                         {
                             new DoubleRange("1", 0, true, 100, true),
                             new DoubleRange("2", 101, true, 200, true)
@@ -3565,12 +3565,12 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results1 = filter1.WithFacets(facets => facets.Facet("SomeLong", new Int64Range[]
+                    var results1 = filter1.WithFacets(facets => facets.FacetLongRange("SomeLong", new Int64Range[]
                         {
                             new Int64Range("1", 0L, true, 100L, true),
                             new Int64Range("2", 101L, true, 200L, true)
                         })).Execute();
-                    var results2 = filter2.WithFacets(facets => facets.Facet("SomeLong", new Int64Range[]
+                    var results2 = filter2.WithFacets(facets => facets.FacetLongRange("SomeLong", new Int64Range[]
                         {
                             new Int64Range("1", 0L, true, 100L, true),
                             new Int64Range("2", 101L, true, 200L, true)
@@ -3657,12 +3657,12 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     ////Act
-                    var results = filter.WithFacets(facets => facets.Facet("DateCreated", new Int64Range[]
+                    var results = filter.WithFacets(facets => facets.FacetLongRange("DateCreated", new Int64Range[]
                         {
                             new Int64Range("1", reIndexDateTime.AddYears(-1).Ticks, true, reIndexDateTime.Ticks, true),
                             new Int64Range("2", reIndexDateTime.AddMinutes(1).Ticks, true, reIndexDateTime.AddDays(1).Ticks, true)
                         })).Execute();
-                    var results2 = filter2.WithFacets(facets => facets.Facet("DateCreated", new Int64Range[]
+                    var results2 = filter2.WithFacets(facets => facets.FacetLongRange("DateCreated", new Int64Range[]
                         {
                             new Int64Range("1", reIndexDateTime.AddYears(-1).Ticks, true, reIndexDateTime.Ticks, true),
                             new Int64Range("2", reIndexDateTime.AddMinutes(1).Ticks, true, reIndexDateTime.AddDays(1).Ticks, true)
@@ -3744,8 +3744,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     ////Act
-                    var results = filter.WithFacets(facets => facets.Facet("Content")).Execute();
-                    var results2 = filter2.WithFacets(facets => facets.Facet("Content")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("Content")).Execute();
+                    var results2 = filter2.WithFacets(facets => facets.FacetString("Content")).Execute();
 
                     var facetResults1 = results.GetFacet("Content");
                     var facetResults2 = results2.GetFacet("Content");
@@ -3904,7 +3904,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results = filter.WithFacets(facets => facets.Facet("Type")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("Type")).Execute();
 
                     var facetResults = results.GetFacet("Type");
 
@@ -3976,7 +3976,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results = filter.WithFacets(facets => facets.Facet("Type")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("Type")).Execute();
 
                     var facetResults = results.GetFacet("Type");
 
@@ -4048,7 +4048,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
                     //Act
-                    var results = filter.WithFacets(facets => facets.Facet("Type")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("Type")).Execute();
 
                     var facetResults = results.GetFacet("Type");
 
@@ -4129,7 +4129,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 {
 
                     //Act
-                    var results = filter.WithFacets(facets => facets.Facet("Type")).Execute();
+                    var results = filter.WithFacets(facets => facets.FacetString("Type")).Execute();
 
                     var facetResults = results.GetFacet("Type");
 
@@ -4179,7 +4179,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)).WithFacets(facets => facets.Facet("SomeFacet"));
+                    criteria.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)).WithFacets(facets => facets.FacetDoubleRange("SomeFacet"));
                 }
                 else
                 {
@@ -4338,7 +4338,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = sc1.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = sc1.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
 
                     var expectedLoadedFields = new string[] { "__Path" };
@@ -4408,7 +4408,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = sc1.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = sc1.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
 
                     var expectedLoadedFields = new string[] { "nodeName", "bodyText", "id", "__NodeId" };
@@ -4479,7 +4479,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var results = sc1.WithFacets(facets => facets.Facet("nodeName")).Execute();
+                    var results = sc1.WithFacets(facets => facets.FacetString("nodeName")).Execute();
                     var facetResults = results.GetFacet("nodeName");
 
                     var expectedLoadedFields = new string[] { "nodeName", "bodyText" };
@@ -4626,7 +4626,7 @@ namespace Examine.Test.Examine.Lucene.Search
                 if (HasFacets(withFacets))
                 {
 
-                    var results = sc.WithFacets(facets => facets.Facet("writerName"))
+                    var results = sc.WithFacets(facets => facets.FacetString("writerName"))
                         .Execute(QueryOptions.SkipTake(pageIndex * pageSize, pageSize));
                     Assert.AreEqual(2, results.Count());
                     var facetResults = results.GetFacet("writerName");
@@ -4747,7 +4747,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (withFacets)
                 {
-                    var results = sc.WithFacets(facets => facets.Facet("nodeName")).Execute(QueryOptions.SkipTake(skip, take));
+                    var results = sc.WithFacets(facets => facets.FacetString("nodeName")).Execute(QueryOptions.SkipTake(skip, take));
 
                     var facetResults = results.GetFacet("nodeName");
 
@@ -4957,7 +4957,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 if (HasFacets(withFacets))
                 {
-                    var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.Facet("created")).Execute();
+                    var numberSortedResult = numberSortedCriteria.WithFacets(facets => facets.FacetString("created")).Execute();
                     var facetResult = numberSortedResult.GetFacet("created");
 
                     Assert.AreEqual(2, numberSortedResult.TotalItemCount);
@@ -5091,7 +5091,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var sc = searcher.CreateQuery("content")
                     .Field("writerName", "administrator")
-                    .WithFacets(facets => facets.Facet("nodeName"));
+                    .WithFacets(facets => facets.FacetString("nodeName"));
 
                 //Act
 
@@ -5148,11 +5148,11 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var sc = taxonomySearcher.CreateQuery("content")
                     .Field("writerName", "administrator")
-                    .WithFacets(facets =>
+                    .WithFacets((Action<IFacetOperations>)(facets =>
                     {
-                        facets.Facet("nodeName");
-                        facets.Facet("taxonomynodeName");
-                    });
+                        facets.FacetString("nodeName");
+                        facets.FacetString("taxonomynodeName");
+                    }));
 
                 //Act
 

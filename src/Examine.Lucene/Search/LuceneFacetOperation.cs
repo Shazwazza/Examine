@@ -29,16 +29,16 @@ namespace Examine.Lucene.Search
         public IFacetOperations Facet(string field, Action<IFacetQueryField>? facetConfiguration = null) => _search.FacetInternal(field, facetConfiguration, Array.Empty<string>());
 
         /// <inheritdoc/>
-        public IFacetOperations Facet(string field, Action<IFacetQueryField>? facetConfiguration = null, params string[] values) => _search.FacetInternal(field, facetConfiguration, values);
+        public IFacetOperations FacetString(string field, Action<IFacetQueryField>? facetConfiguration = null, params string[] values) => _search.FacetInternal(field, facetConfiguration, values);
 
         /// <inheritdoc/>
-        public IFacetOperations Facet(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
+        public IFacetOperations FacetDoubleRange(string field, params DoubleRange[] doubleRanges) => _search.FacetInternal(field, doubleRanges);
 
         /// <inheritdoc/>
-        public IFacetOperations Facet(string field, params FloatRange[] floatRanges) => _search.FacetInternal(field, floatRanges);
+        public IFacetOperations FacetFloatRange(string field, params FloatRange[] floatRanges) => _search.FacetInternal(field, floatRanges);
 
         /// <inheritdoc/>
-        public IFacetOperations Facet(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
+        public IFacetOperations FacetLongRange(string field, params Int64Range[] longRanges) => _search.FacetInternal(field, longRanges);
 
         /// <inheritdoc/>
         public override string ToString() => _search.ToString();

@@ -44,7 +44,7 @@ namespace Examine.Test.Examine.Core.Options
                 }
 
                 // replace with ram dir
-                options.DirectoryFactory = new GenericDirectoryFactory(_ => new RandomIdRAMDirectory());
+                options.DirectoryFactory = new GenericDirectoryFactory(_ => new RandomIdRAMDirectory(), _ => new RandomIdRAMDirectory());
 
                 // customize some fields
                 if (options.FieldDefinitions == null)
