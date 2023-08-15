@@ -1,0 +1,15 @@
+Examine.AspNetCoreApplicationIdentifier
+Examine.AspNetCoreApplicationIdentifier.AspNetCoreApplicationIdentifier(System.IServiceProvider services) -> void
+Examine.AspNetCoreApplicationIdentifier.GetApplicationUniqueIdentifier() -> string
+Examine.CurrentEnvironmentApplicationRoot
+Examine.CurrentEnvironmentApplicationRoot.ApplicationRoot.get -> System.IO.DirectoryInfo
+Examine.CurrentEnvironmentApplicationRoot.CurrentEnvironmentApplicationRoot() -> void
+Examine.IApplicationRoot
+Examine.IApplicationRoot.ApplicationRoot.get -> System.IO.DirectoryInfo
+Examine.ServicesCollectionExtensions
+static Examine.ServicesCollectionExtensions.AddExamine(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.IO.DirectoryInfo appRootDirectory = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static Examine.ServicesCollectionExtensions.AddExamineLuceneIndex(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection, string name, Examine.FieldDefinitionCollection fieldDefinitions = null, Lucene.Net.Analysis.Analyzer analyzer = null, Examine.IValueSetValidator validator = null, System.Collections.Generic.IReadOnlyDictionary<string, Examine.Lucene.IFieldValueTypeFactory> indexValueTypesFactory = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static Examine.ServicesCollectionExtensions.AddExamineLuceneIndex<TIndex, TDirectoryFactory>(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection, string name, Examine.FieldDefinitionCollection fieldDefinitions = null, Lucene.Net.Analysis.Analyzer analyzer = null, Examine.IValueSetValidator validator = null, System.Collections.Generic.IReadOnlyDictionary<string, Examine.Lucene.IFieldValueTypeFactory> indexValueTypesFactory = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static Examine.ServicesCollectionExtensions.AddExamineLuceneIndex<TIndex>(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection, string name, Examine.FieldDefinitionCollection fieldDefinitions = null, Lucene.Net.Analysis.Analyzer analyzer = null, Examine.IValueSetValidator validator = null, System.Collections.Generic.IReadOnlyDictionary<string, Examine.Lucene.IFieldValueTypeFactory> indexValueTypesFactory = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static Examine.ServicesCollectionExtensions.AddExamineLuceneMultiSearcher(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection, string name, string[] indexNames, Lucene.Net.Analysis.Analyzer analyzer = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static Examine.ServicesCollectionExtensions.AddExamineSearcher<TSearcher>(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection, string name, System.Func<System.IServiceProvider, System.Collections.Generic.IList<object>> parameterFactory) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
