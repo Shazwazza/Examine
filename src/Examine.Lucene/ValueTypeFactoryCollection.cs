@@ -24,9 +24,11 @@ namespace Examine.Lucene
         /// </summary>
         /// <param name="valueTypeFactories"></param>
         public ValueTypeFactoryCollection(IReadOnlyDictionary<string, IFieldValueTypeFactory> valueTypeFactories)
-            => _valueTypeFactories = new ConcurrentDictionary<string, IFieldValueTypeFactory>(
-                valueTypeFactories,
-                StringComparer.InvariantCultureIgnoreCase);
+        {
+            _valueTypeFactories = new ConcurrentDictionary<string, IFieldValueTypeFactory>(
+                        valueTypeFactories,
+                        StringComparer.InvariantCultureIgnoreCase);
+        }
 
         /// <summary>
         /// Try get for the factory
@@ -49,7 +51,9 @@ namespace Examine.Lucene
         public IFieldValueTypeFactory GetRequiredFactory(string valueTypeName)
         {
             if (!TryGetFactory(valueTypeName, out var fieldValueTypeFactory))
+            {
                 throw new InvalidOperationException($"The required {typeof(IFieldValueTypeFactory).Name} was not found with name {valueTypeName}");
+            }
 
             return fieldValueTypeFactory;
         }

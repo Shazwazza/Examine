@@ -51,8 +51,23 @@ namespace Examine.Lucene.Providers
         public override ISearchContext GetSearchContext()
             => new SearchContext(_searcherManager, _fieldValueTypeCollection);
 
+        //protected override void Dispose(bool disposing)
+        //{
+        //if (!_disposedValue)
+        //{
+        //    if (disposing)
+        //    {
+        //        _searcherManager.Dispose();
+        //    }
+
+        //    _disposedValue = true;
+        //}
+        //base.Dispose(disposing);
+        //}
+
         /// <inheritdoc/>
-        protected virtual void Dispose(bool disposing)
+        [Obsolete("To remove in Examine v5")]
+        protected new virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
@@ -63,14 +78,12 @@ namespace Examine.Lucene.Providers
 
                 _disposedValue = true;
             }
+            base.Dispose(disposing);
         }
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-        }
+        [Obsolete("To remove in Examine V5 - IDisposeable is implemented in base class")]
+        public new void Dispose() => Dispose(true);
     }
 
 }

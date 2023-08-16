@@ -23,21 +23,12 @@ namespace Examine.Search
         }
 
         /// <inheritdoc/>
-        public IEnumerator<IFacetValue> GetEnumerator()
-        {
-            return _values.GetEnumerator();
-        }
+        public IEnumerator<IFacetValue> GetEnumerator() => _values.GetEnumerator();
 
 #if !NETSTANDARD2_0 && !NETSTANDARD2_1
         [MemberNotNull(nameof(_dictValues))]
 #endif
-        private void SetValuesDictionary()
-        {
-            if(_dictValues == null)
-            {
-                _dictValues = _values.ToDictionary(src => src.Label, src => src);
-            }
-        }
+        private void SetValuesDictionary() => _dictValues ??= _values.ToDictionary(src => src.Label, src => src);
 
         /// <inheritdoc/>
         public IFacetValue? Facet(string label)
@@ -54,9 +45,6 @@ namespace Examine.Search
         }
 
         /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

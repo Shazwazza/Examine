@@ -30,7 +30,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IReadOnlyDictionary<string, IFacetResult> facets, float maxScore, SearchAfterOptions searchAfterOptions)
+        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IReadOnlyDictionary<string, IFacetResult> facets, float maxScore, SearchAfterOptions? searchAfterOptions)
         {
             _results = results;
             TotalItemCount = totalItemCount;

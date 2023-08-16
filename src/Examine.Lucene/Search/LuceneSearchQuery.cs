@@ -135,7 +135,7 @@ namespace Examine.Lucene.Search
             Query.Add(new LateBoundQuery(() =>
             {
                 //if no fields are specified then use all fields
-                fields = fields ?? AllFields;
+                fields ??= AllFields;
 
                 var types = fields.Select(f => _searchContext.GetFieldValueType(f)).OfType<IIndexFieldValueType>();
 
@@ -194,10 +194,10 @@ namespace Examine.Lucene.Search
 #if !NETSTANDARD2_0 && !NETSTANDARD2_1
                     else if(typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
                     {
-                        TimeOnly minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
+                        var minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
                         var minValue = min.HasValue ? (min.Value as DateOnly?)?.ToDateTime(minValueTime) : null;
 
-                        TimeOnly maxValueTime = maxInclusive ? TimeOnly.MaxValue : TimeOnly.MinValue;
+                        var maxValueTime = maxInclusive ? TimeOnly.MaxValue : TimeOnly.MinValue;
                         var maxValue = max.HasValue ? (max.Value as DateOnly?)?.ToDateTime(maxValueTime) : null;
 
                         var q = dateOnlyType.GetQuery(minValue, maxValue, minInclusive, maxInclusive);
@@ -236,7 +236,7 @@ namespace Examine.Lucene.Search
             if (!string.IsNullOrEmpty(Category))
             {
                 // rebuild the query
-                IList<BooleanClause> existingClauses = query.Clauses;
+                var existingClauses = query.Clauses;
 
                 if (existingClauses.Count == 0)
                 {
@@ -273,7 +273,10 @@ namespace Examine.Lucene.Search
         /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
         private LuceneBooleanOperationBase OrderByInternal(bool descending, params SortableField[] fields)
         {
-            if (fields == null) throw new ArgumentNullException(nameof(fields));
+            if (fields == null)
+            {
+                throw new ArgumentNullException(nameof(fields));
+            }
 
             foreach (var f in fields)
             {
@@ -312,7 +315,9 @@ namespace Examine.Lucene.Search
                 var valType = _searchContext.GetFieldValueType(fieldName);
 
                 if (valType?.SortableFieldName != null)
+                {
                     fieldName = valType.SortableFieldName;
+                }
 
                 SortFields.Add(new SortField(fieldName, defaultSort, descending));
             }
@@ -350,19 +355,13 @@ namespace Examine.Lucene.Search
 
         internal IFacetOperations FacetInternal(string field, Action<IFacetQueryField>? facetConfiguration, params string[] values)
         {
-            if(values == null)
-            {
-                values = Array.Empty<string>();
-            }
+            values ??= Array.Empty<string>();
 
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
 
             var facet = new FacetFullTextField(field, values, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
-            if(facetConfiguration != null)
-            {
-                facetConfiguration.Invoke(new FacetQueryField(facet));
-            }
+            facetConfiguration?.Invoke(new FacetQueryField(facet));
 
             _facetFields.Add(facet);
 
@@ -371,10 +370,7 @@ namespace Examine.Lucene.Search
 
         internal IFacetOperations FacetInternal(string field, params DoubleRange[] doubleRanges)
         {
-            if(doubleRanges == null)
-            {
-                doubleRanges = Array.Empty<DoubleRange>();
-            }
+            doubleRanges ??= Array.Empty<DoubleRange>();
 
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
             var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
@@ -386,10 +382,7 @@ namespace Examine.Lucene.Search
 
         internal IFacetOperations FacetInternal(string field, params FloatRange[] floatRanges)
         {
-            if (floatRanges == null)
-            {
-                floatRanges = Array.Empty<FloatRange>();
-            }
+            floatRanges ??= Array.Empty<FloatRange>();
 
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
             var facet = new FacetFloatField(field, floatRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
@@ -401,10 +394,7 @@ namespace Examine.Lucene.Search
 
         internal IFacetOperations FacetInternal(string field, params Int64Range[] longRanges)
         {
-            if(longRanges == null)
-            {
-                longRanges = Array.Empty<Int64Range>();
-            }
+            longRanges ??= Array.Empty<Int64Range>();
 
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
             var facet = new FacetLongField(field, longRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);

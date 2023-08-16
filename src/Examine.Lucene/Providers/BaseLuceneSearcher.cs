@@ -13,6 +13,7 @@ namespace Examine.Lucene.Providers
     public abstract class BaseLuceneSearcher : BaseSearchProvider, IDisposable
     {
         private readonly FacetsConfig _facetsConfig;
+        private bool _disposedValue;
 
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
@@ -78,7 +79,9 @@ namespace Examine.Lucene.Providers
         public IQuery CreateQuery(string? category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null)
+            {
                 throw new ArgumentNullException(nameof(luceneAnalyzer));
+            }
 
             return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation, _facetsConfig);
         }
@@ -95,15 +98,26 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <returns>Facet Config</returns>
         [Obsolete("To remove in Examine V5")]
-        public virtual FacetsConfig GetDefaultFacetConfig()
+        public virtual FacetsConfig GetDefaultFacetConfig() => new FacetsConfig();
+
+        /// <summary>
+        /// Disposes of the searcher
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
         {
-            return new FacetsConfig();
+            if (!_disposedValue)
+            {
+                _disposedValue = true;
+            }
         }
 
-        /// <inheritdoc/>
-        public virtual void Dispose()
+        /// <inheritdoc />
+        public void Dispose()
         {
-
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
         ///// <summary>

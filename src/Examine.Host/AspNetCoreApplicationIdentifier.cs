@@ -8,12 +8,16 @@ namespace Examine
     public class AspNetCoreApplicationIdentifier : IApplicationIdentifier
     {
         private readonly IServiceProvider _services;
+        private static readonly Lazy<string> _applicationId = new(() => Guid.NewGuid().ToString());
 
         /// <inheritdoc/>
-        public AspNetCoreApplicationIdentifier(IServiceProvider services) => _services = services;
+        public AspNetCoreApplicationIdentifier(IServiceProvider services)
+        {
+            _services = services;
+        }
 
 
         /// <inheritdoc/>
-        public string GetApplicationUniqueIdentifier() => _services.GetApplicationUniqueIdentifier();
+        public string GetApplicationUniqueIdentifier() => _services.GetApplicationUniqueIdentifier() ?? _applicationId.Value;
     }
 }

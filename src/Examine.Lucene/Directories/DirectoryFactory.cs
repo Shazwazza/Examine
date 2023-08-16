@@ -5,6 +5,9 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
+    /// <summary>
+    /// Represents a generic directory factory
+    /// </summary>
     public class GenericDirectoryFactory : DirectoryFactoryBase
     {
         private readonly Func<string, Directory> _factory;
@@ -27,7 +30,7 @@ namespace Examine.Lucene.Directories
         /// <inheritdoc/>
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
-            Directory dir = _factory(luceneIndex.Name);
+            var dir = _factory(luceneIndex.Name);
             if (forceUnlock)
             {
                 IndexWriter.Unlock(dir);
@@ -43,7 +46,7 @@ namespace Examine.Lucene.Directories
                 throw new NullReferenceException("Taxonomy Directory factory is null. Use constructor with all parameters");
             }
 
-            Directory dir = _taxonomyDirectoryFactory(luceneIndex.Name + "taxonomy");
+            var dir = _taxonomyDirectoryFactory(luceneIndex.Name + "taxonomy");
             if (forceUnlock)
             {
                 IndexWriter.Unlock(dir);
