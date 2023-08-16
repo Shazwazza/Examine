@@ -450,3 +450,4 @@ var createdFacetResults = results.GetFacet("Created"); // Returns the facets for
 */
 
 var firstRangeValue = createdFacetResults.Facet("first"); // Gets the IFacetValue for the facet "first"
+```
