@@ -19,13 +19,6 @@ namespace Examine.Lucene.Search
         
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount)
-        {
-            _results = results;
-            TotalItemCount = totalItemCount;
-            MaxScore = float.NaN;
-            SearchAfter = null;
-        }
         /// <inheritdoc/>
         [Obsolete("To remove in Examine V5")]
         public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount)
@@ -34,6 +27,7 @@ namespace Examine.Lucene.Search
             TotalItemCount = totalItemCount;
             MaxScore = float.NaN;
             Facets = _noFacets;
+            SearchAfter = null;
         }
 
         /// <inheritdoc/>
