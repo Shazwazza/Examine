@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using Examine.Lucene.Providers;
 using Directory = Lucene.Net.Store.Directory;
@@ -24,7 +25,7 @@ namespace Examine.Lucene.Directories
         protected abstract Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock);
 
         /// <inheritdoc/>
-        protected abstract Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock);
+        protected virtual Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock) => throw new NotSupportedException("Directory Factory does not implement CreateTaxonomyDirectory ");
 
         /// <inheritdoc/>
         protected virtual void Dispose(bool disposing)

@@ -15,11 +15,15 @@ namespace Examine.Lucene.Indexing
         {
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <inheritdoc/>
         public abstract Query GetQuery(T? lower, T? upper, bool lowerInclusive = true, bool upperInclusive = true);
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <inheritdoc/>
         public Query GetQuery(string lower, string upper, bool lowerInclusive = true, bool upperInclusive = true)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             var lowerParsed = TryConvert<T>(lower, out var lowerValue);
             var upperParsed = TryConvert<T>(upper, out var upperValue);

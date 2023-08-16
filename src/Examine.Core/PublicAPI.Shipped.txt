@@ -1,0 +1,312 @@
+#nullable enable
+abstract Examine.BaseIndexProvider.CreateIndex() -> void
+abstract Examine.BaseIndexProvider.IndexExists() -> bool
+abstract Examine.BaseIndexProvider.PerformDeleteFromIndex(System.Collections.Generic.IEnumerable<string> itemIds, System.Action<Examine.IndexOperationEventArgs> onComplete) -> void
+abstract Examine.BaseIndexProvider.PerformIndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet> values, System.Action<Examine.IndexOperationEventArgs> onComplete) -> void
+abstract Examine.BaseIndexProvider.Searcher.get -> Examine.ISearcher
+abstract Examine.BaseSearchProvider.CreateQuery(string category = null, Examine.Search.BooleanOperation defaultOperation = Examine.Search.BooleanOperation.And) -> Examine.Search.IQuery
+abstract Examine.BaseSearchProvider.Search(string searchText, Examine.Search.QueryOptions options = null) -> Examine.ISearchResults
+abstract Examine.DisposableObjectSlim.DisposeResources() -> void
+const Examine.ExamineFieldNames.CategoryFieldName = "__IndexType" -> string
+const Examine.ExamineFieldNames.ItemIdFieldName = "__NodeId" -> string
+const Examine.ExamineFieldNames.ItemTypeFieldName = "__NodeTypeAlias" -> string
+const Examine.ExamineFieldNames.SortedFieldNamePrefix = "__Sort_" -> string
+const Examine.ExamineFieldNames.SpecialFieldPrefix = "__" -> string
+const Examine.FieldDefinitionTypes.DateDay = "date.day" -> string
+const Examine.FieldDefinitionTypes.DateHour = "date.hour" -> string
+const Examine.FieldDefinitionTypes.DateMinute = "date.minute" -> string
+const Examine.FieldDefinitionTypes.DateMonth = "date.month" -> string
+const Examine.FieldDefinitionTypes.DateTime = "datetime" -> string
+const Examine.FieldDefinitionTypes.DateYear = "date.year" -> string
+const Examine.FieldDefinitionTypes.Double = "double" -> string
+const Examine.FieldDefinitionTypes.EmailAddress = "emailaddress" -> string
+const Examine.FieldDefinitionTypes.Float = "float" -> string
+const Examine.FieldDefinitionTypes.FullText = "fulltext" -> string
+const Examine.FieldDefinitionTypes.FullTextSortable = "fulltextsortable" -> string
+const Examine.FieldDefinitionTypes.Integer = "int" -> string
+const Examine.FieldDefinitionTypes.InvariantCultureIgnoreCase = "invariantcultureignorecase" -> string
+const Examine.FieldDefinitionTypes.Long = "long" -> string
+const Examine.FieldDefinitionTypes.Raw = "raw" -> string
+const Examine.Search.QueryOptions.DefaultMaxResults = 500 -> int
+Examine.BaseIndexProvider
+Examine.BaseIndexProvider.BaseIndexProvider(Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, string name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.IndexOptions> indexOptions) -> void
+Examine.BaseIndexProvider.DeleteFromIndex(System.Collections.Generic.IEnumerable<string> itemIds) -> void
+Examine.BaseIndexProvider.FieldDefinitions.get -> Examine.ReadOnlyFieldDefinitionCollection
+Examine.BaseIndexProvider.IndexingError -> System.EventHandler<Examine.IndexingErrorEventArgs>
+Examine.BaseIndexProvider.IndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet> values) -> void
+Examine.BaseIndexProvider.IndexOperationComplete -> System.EventHandler<Examine.IndexOperationEventArgs>
+Examine.BaseIndexProvider.LoggerFactory.get -> Microsoft.Extensions.Logging.ILoggerFactory
+Examine.BaseIndexProvider.OnIndexOperationComplete(Examine.IndexOperationEventArgs e) -> void
+Examine.BaseIndexProvider.TransformingIndexValues -> System.EventHandler<Examine.IndexingItemEventArgs>
+Examine.BaseIndexProvider.ValidateItem(Examine.ValueSet item) -> Examine.ValueSetValidationResult
+Examine.BaseIndexProvider.ValueSetValidator.get -> Examine.IValueSetValidator
+Examine.BaseSearchProvider
+Examine.BaseSearchProvider.BaseSearchProvider(string name) -> void
+Examine.BaseSearchProvider.Name.get -> string
+Examine.DisposableObjectSlim
+Examine.DisposableObjectSlim.DisposableObjectSlim() -> void
+Examine.DisposableObjectSlim.Dispose() -> void
+Examine.DisposableObjectSlim.Disposed.get -> bool
+Examine.EmptySearchResults
+Examine.EmptySearchResults.GetEnumerator() -> System.Collections.Generic.IEnumerator<Examine.ISearchResult>
+Examine.EmptySearchResults.Skip(int skip) -> System.Collections.Generic.IEnumerable<Examine.ISearchResult>
+Examine.EmptySearchResults.SkipTake(int skip, int? take = null) -> System.Collections.Generic.IEnumerable<Examine.ISearchResult>
+Examine.EmptySearchResults.TotalItemCount.get -> long
+Examine.ExamineExtensions
+Examine.ExamineFieldNames
+Examine.ExamineManager
+Examine.ExamineManager.Dispose() -> void
+Examine.ExamineManager.ExamineManager(System.Collections.Generic.IEnumerable<Examine.IIndex> indexes, System.Collections.Generic.IEnumerable<Examine.ISearcher> searchers) -> void
+Examine.ExamineManager.Indexes.get -> System.Collections.Generic.IEnumerable<Examine.IIndex>
+Examine.ExamineManager.RegisteredSearchers.get -> System.Collections.Generic.IEnumerable<Examine.ISearcher>
+Examine.ExamineManager.TryGetIndex(string indexName, out Examine.IIndex index) -> bool
+Examine.ExamineManager.TryGetSearcher(string searcherName, out Examine.ISearcher searcher) -> bool
+Examine.FieldDefinition
+Examine.FieldDefinition.Equals(Examine.FieldDefinition other) -> bool
+Examine.FieldDefinition.FieldDefinition() -> void
+Examine.FieldDefinition.FieldDefinition(string name, string type) -> void
+Examine.FieldDefinition.Name.get -> string
+Examine.FieldDefinition.Type.get -> string
+Examine.FieldDefinitionCollection
+Examine.FieldDefinitionCollection.AddOrUpdate(Examine.FieldDefinition definition) -> void
+Examine.FieldDefinitionCollection.FieldDefinitionCollection() -> void
+Examine.FieldDefinitionCollection.FieldDefinitionCollection(params Examine.FieldDefinition[] definitions) -> void
+Examine.FieldDefinitionCollection.GetOrAdd(string fieldName, System.Func<string, Examine.FieldDefinition> add) -> Examine.FieldDefinition
+Examine.FieldDefinitionCollection.TryAdd(Examine.FieldDefinition definition) -> bool
+Examine.FieldDefinitionTypes
+Examine.IExamineManager
+Examine.IExamineManager.Dispose() -> void
+Examine.IExamineManager.Indexes.get -> System.Collections.Generic.IEnumerable<Examine.IIndex>
+Examine.IExamineManager.RegisteredSearchers.get -> System.Collections.Generic.IEnumerable<Examine.ISearcher>
+Examine.IExamineManager.TryGetIndex(string indexName, out Examine.IIndex index) -> bool
+Examine.IExamineManager.TryGetSearcher(string searcherName, out Examine.ISearcher searcher) -> bool
+Examine.IIndex
+Examine.IIndex.CreateIndex() -> void
+Examine.IIndex.DeleteFromIndex(System.Collections.Generic.IEnumerable<string> itemIds) -> void
+Examine.IIndex.FieldDefinitions.get -> Examine.ReadOnlyFieldDefinitionCollection
+Examine.IIndex.IndexExists() -> bool
+Examine.IIndex.IndexingError -> System.EventHandler<Examine.IndexingErrorEventArgs>
+Examine.IIndex.IndexItems(System.Collections.Generic.IEnumerable<Examine.ValueSet> values) -> void
+Examine.IIndex.IndexOperationComplete -> System.EventHandler<Examine.IndexOperationEventArgs>
+Examine.IIndex.Name.get -> string
+Examine.IIndex.Searcher.get -> Examine.ISearcher
+Examine.IIndex.TransformingIndexValues -> System.EventHandler<Examine.IndexingItemEventArgs>
+Examine.IIndexStats
+Examine.IIndexStats.GetDocumentCount() -> long
+Examine.IIndexStats.GetFieldNames() -> System.Collections.Generic.IEnumerable<string>
+Examine.IndexingErrorEventArgs
+Examine.IndexingErrorEventArgs.Exception.get -> System.Exception
+Examine.IndexingErrorEventArgs.Index.get -> Examine.IIndex
+Examine.IndexingErrorEventArgs.IndexingErrorEventArgs(Examine.IIndex index, string message, string itemId, System.Exception exception) -> void
+Examine.IndexingErrorEventArgs.ItemId.get -> string
+Examine.IndexingErrorEventArgs.Message.get -> string
+Examine.IndexingItemEventArgs
+Examine.IndexingItemEventArgs.Index.get -> Examine.IIndex
+Examine.IndexingItemEventArgs.IndexingItemEventArgs(Examine.IIndex index, Examine.ValueSet valueSet) -> void
+Examine.IndexingItemEventArgs.SetValues(System.Collections.Generic.IDictionary<string, System.Collections.Generic.IEnumerable<object>> values) -> void
+Examine.IndexingItemEventArgs.ValueSet.get -> Examine.ValueSet
+Examine.IndexOperation
+Examine.IndexOperation.IndexOperation() -> void
+Examine.IndexOperation.IndexOperation(Examine.ValueSet valueSet, Examine.IndexOperationType operation) -> void
+Examine.IndexOperation.Operation.get -> Examine.IndexOperationType
+Examine.IndexOperation.ValueSet.get -> Examine.ValueSet
+Examine.IndexOperationEventArgs
+Examine.IndexOperationEventArgs.Index.get -> Examine.IIndex
+Examine.IndexOperationEventArgs.IndexOperationEventArgs(Examine.IIndex index, int itemsIndexed) -> void
+Examine.IndexOperationEventArgs.ItemsIndexed.get -> int
+Examine.IndexOperationType
+Examine.IndexOperationType.Add = 0 -> Examine.IndexOperationType
+Examine.IndexOperationType.Delete = 1 -> Examine.IndexOperationType
+Examine.IndexOptions
+Examine.IndexOptions.FieldDefinitions.get -> Examine.FieldDefinitionCollection
+Examine.IndexOptions.FieldDefinitions.set -> void
+Examine.IndexOptions.IndexOptions() -> void
+Examine.IndexOptions.Validator.get -> Examine.IValueSetValidator
+Examine.IndexOptions.Validator.set -> void
+Examine.ISearcher
+Examine.ISearcher.CreateQuery(string category = null, Examine.Search.BooleanOperation defaultOperation = Examine.Search.BooleanOperation.And) -> Examine.Search.IQuery
+Examine.ISearcher.Name.get -> string
+Examine.ISearcher.Search(string searchText, Examine.Search.QueryOptions options = null) -> Examine.ISearchResults
+Examine.ISearchResult
+Examine.ISearchResult.AllValues.get -> System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>>
+Examine.ISearchResult.GetValues(string key) -> System.Collections.Generic.IEnumerable<string>
+Examine.ISearchResult.Id.get -> string
+Examine.ISearchResult.Score.get -> float
+Examine.ISearchResult.this[int resultIndex].get -> System.Collections.Generic.KeyValuePair<string, string>
+Examine.ISearchResult.this[string key].get -> string
+Examine.ISearchResult.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
+Examine.ISearchResults
+Examine.ISearchResults.TotalItemCount.get -> long
+Examine.IValueSetValidator
+Examine.IValueSetValidator.Validate(Examine.ValueSet valueSet) -> Examine.ValueSetValidationResult
+Examine.ObjectExtensions
+Examine.OrderedDictionary<TKey, TVal>
+Examine.OrderedDictionary<TKey, TVal>.Add(TKey key, TVal value) -> void
+Examine.OrderedDictionary<TKey, TVal>.ContainsKey(TKey key) -> bool
+Examine.OrderedDictionary<TKey, TVal>.GetItem(int index) -> TVal
+Examine.OrderedDictionary<TKey, TVal>.IndexOf(TKey key) -> int
+Examine.OrderedDictionary<TKey, TVal>.Keys.get -> System.Collections.Generic.ICollection<TKey>
+Examine.OrderedDictionary<TKey, TVal>.OrderedDictionary() -> void
+Examine.OrderedDictionary<TKey, TVal>.OrderedDictionary(System.Collections.Generic.IEqualityComparer<TKey> comparer) -> void
+Examine.OrderedDictionary<TKey, TVal>.TryGetValue(TKey key, out TVal value) -> bool
+Examine.OrderedDictionary<TKey, TVal>.Values.get -> System.Collections.Generic.ICollection<TVal>
+Examine.ReadOnlyFieldDefinitionCollection
+Examine.ReadOnlyFieldDefinitionCollection.Count.get -> int
+Examine.ReadOnlyFieldDefinitionCollection.Definitions.get -> System.Collections.Concurrent.ConcurrentDictionary<string, Examine.FieldDefinition>
+Examine.ReadOnlyFieldDefinitionCollection.GetEnumerator() -> System.Collections.Generic.IEnumerator<Examine.FieldDefinition>
+Examine.ReadOnlyFieldDefinitionCollection.ReadOnlyFieldDefinitionCollection() -> void
+Examine.ReadOnlyFieldDefinitionCollection.ReadOnlyFieldDefinitionCollection(params Examine.FieldDefinition[] definitions) -> void
+Examine.ReadOnlyFieldDefinitionCollection.ReadOnlyFieldDefinitionCollection(System.Collections.Generic.IEnumerable<Examine.FieldDefinition> definitions) -> void
+Examine.Search.BooleanOperation
+Examine.Search.BooleanOperation.And = 0 -> Examine.Search.BooleanOperation
+Examine.Search.BooleanOperation.Not = 2 -> Examine.Search.BooleanOperation
+Examine.Search.BooleanOperation.Or = 1 -> Examine.Search.BooleanOperation
+Examine.Search.Examineness
+Examine.Search.Examineness.Boosted = 5 -> Examine.Search.Examineness
+Examine.Search.Examineness.ComplexWildcard = 2 -> Examine.Search.Examineness
+Examine.Search.Examineness.Escaped = 4 -> Examine.Search.Examineness
+Examine.Search.Examineness.Explicit = 3 -> Examine.Search.Examineness
+Examine.Search.Examineness.Fuzzy = 0 -> Examine.Search.Examineness
+Examine.Search.Examineness.Proximity = 6 -> Examine.Search.Examineness
+Examine.Search.Examineness.SimpleWildcard = 1 -> Examine.Search.Examineness
+Examine.Search.ExamineValue
+Examine.Search.ExamineValue.Examineness.get -> Examine.Search.Examineness
+Examine.Search.ExamineValue.ExamineValue() -> void
+Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string value) -> void
+Examine.Search.ExamineValue.ExamineValue(Examine.Search.Examineness vagueness, string value, float level) -> void
+Examine.Search.ExamineValue.Level.get -> float
+Examine.Search.ExamineValue.Value.get -> string
+Examine.Search.IBooleanOperation
+Examine.Search.IBooleanOperation.And() -> Examine.Search.IQuery
+Examine.Search.IBooleanOperation.And(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.And) -> Examine.Search.IBooleanOperation
+Examine.Search.IBooleanOperation.AndNot(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.And) -> Examine.Search.IBooleanOperation
+Examine.Search.IBooleanOperation.Not() -> Examine.Search.IQuery
+Examine.Search.IBooleanOperation.Or() -> Examine.Search.IQuery
+Examine.Search.IBooleanOperation.Or(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.And) -> Examine.Search.IBooleanOperation
+Examine.Search.IExamineValue
+Examine.Search.IExamineValue.Examineness.get -> Examine.Search.Examineness
+Examine.Search.IExamineValue.Level.get -> float
+Examine.Search.IExamineValue.Value.get -> string
+Examine.Search.INestedBooleanOperation
+Examine.Search.INestedBooleanOperation.And() -> Examine.Search.INestedQuery
+Examine.Search.INestedBooleanOperation.And(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.And) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedBooleanOperation.AndNot(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.And) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedBooleanOperation.Not() -> Examine.Search.INestedQuery
+Examine.Search.INestedBooleanOperation.Or() -> Examine.Search.INestedQuery
+Examine.Search.INestedBooleanOperation.Or(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.And) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery
+Examine.Search.INestedQuery.Field(string fieldName, Examine.Search.IExamineValue fieldValue) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.Field(string fieldName, string fieldValue) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.Field<T>(string fieldName, T fieldValue) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.GroupedAnd(System.Collections.Generic.IEnumerable<string> fields, params Examine.Search.IExamineValue[] query) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.GroupedAnd(System.Collections.Generic.IEnumerable<string> fields, params string[] query) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.GroupedNot(System.Collections.Generic.IEnumerable<string> fields, params Examine.Search.IExamineValue[] query) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.GroupedNot(System.Collections.Generic.IEnumerable<string> fields, params string[] query) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.GroupedOr(System.Collections.Generic.IEnumerable<string> fields, params Examine.Search.IExamineValue[] query) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.GroupedOr(System.Collections.Generic.IEnumerable<string> fields, params string[] query) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.ManagedQuery(string query, string[] fields = null) -> Examine.Search.INestedBooleanOperation
+Examine.Search.INestedQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) -> Examine.Search.INestedBooleanOperation
+Examine.Search.IOrdering
+Examine.Search.IOrdering.OrderBy(params Examine.Search.SortableField[] fields) -> Examine.Search.IOrdering
+Examine.Search.IOrdering.OrderByDescending(params Examine.Search.SortableField[] fields) -> Examine.Search.IOrdering
+Examine.Search.IOrdering.SelectAllFields() -> Examine.Search.IOrdering
+Examine.Search.IOrdering.SelectField(string fieldName) -> Examine.Search.IOrdering
+Examine.Search.IOrdering.SelectFields(System.Collections.Generic.ISet<string> fieldNames) -> Examine.Search.IOrdering
+Examine.Search.IQuery
+Examine.Search.IQuery.All() -> Examine.Search.IOrdering
+Examine.Search.IQuery.Field(string fieldName, Examine.Search.IExamineValue fieldValue) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.Field(string fieldName, string fieldValue) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.Field<T>(string fieldName, T fieldValue) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.Group(System.Func<Examine.Search.INestedQuery, Examine.Search.INestedBooleanOperation> inner, Examine.Search.BooleanOperation defaultOp = Examine.Search.BooleanOperation.Or) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.GroupedAnd(System.Collections.Generic.IEnumerable<string> fields, params Examine.Search.IExamineValue[] query) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.GroupedAnd(System.Collections.Generic.IEnumerable<string> fields, params string[] query) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.GroupedNot(System.Collections.Generic.IEnumerable<string> fields, params Examine.Search.IExamineValue[] query) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.GroupedNot(System.Collections.Generic.IEnumerable<string> fields, params string[] query) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.GroupedOr(System.Collections.Generic.IEnumerable<string> fields, params Examine.Search.IExamineValue[] query) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.GroupedOr(System.Collections.Generic.IEnumerable<string> fields, params string[] query) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.Id(string id) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.ManagedQuery(string query, string[] fields = null) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.NativeQuery(string query) -> Examine.Search.IBooleanOperation
+Examine.Search.IQuery.RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) -> Examine.Search.IBooleanOperation
+Examine.Search.IQueryExecutor
+Examine.Search.IQueryExecutor.Execute(Examine.Search.QueryOptions options = null) -> Examine.ISearchResults
+Examine.Search.QueryOptions
+Examine.Search.QueryOptions.QueryOptions(int skip, int? take = null) -> void
+Examine.Search.QueryOptions.Skip.get -> int
+Examine.Search.QueryOptions.Take.get -> int
+Examine.Search.SortableField
+Examine.Search.SortableField.FieldName.get -> string
+Examine.Search.SortableField.SortableField() -> void
+Examine.Search.SortableField.SortableField(string fieldName) -> void
+Examine.Search.SortableField.SortableField(string fieldName, Examine.Search.SortType sortType) -> void
+Examine.Search.SortableField.SortType.get -> Examine.Search.SortType
+Examine.Search.SortType
+Examine.Search.SortType.DocumentOrder = 1 -> Examine.Search.SortType
+Examine.Search.SortType.Double = 6 -> Examine.Search.SortType
+Examine.Search.SortType.Float = 4 -> Examine.Search.SortType
+Examine.Search.SortType.Int = 3 -> Examine.Search.SortType
+Examine.Search.SortType.Long = 5 -> Examine.Search.SortType
+Examine.Search.SortType.Score = 0 -> Examine.Search.SortType
+Examine.Search.SortType.String = 2 -> Examine.Search.SortType
+Examine.SearchExtensions
+Examine.SearchResult
+Examine.SearchResult.AllValues.get -> System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<string>>
+Examine.SearchResult.GetValues(string key) -> System.Collections.Generic.IEnumerable<string>
+Examine.SearchResult.Id.get -> string
+Examine.SearchResult.Score.get -> float
+Examine.SearchResult.SearchResult(string id, float score, System.Func<System.Collections.Generic.IDictionary<string, System.Collections.Generic.List<string>>> lazyFieldVals) -> void
+Examine.SearchResult.this[int resultIndex].get -> System.Collections.Generic.KeyValuePair<string, string>
+Examine.SearchResult.this[string key].get -> string
+Examine.SearchResult.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
+Examine.ValueSet
+Examine.ValueSet.Category.get -> string
+Examine.ValueSet.Clone() -> Examine.ValueSet
+Examine.ValueSet.GetValue(string key) -> object
+Examine.ValueSet.GetValues(string key) -> System.Collections.Generic.IEnumerable<object>
+Examine.ValueSet.Id.get -> string
+Examine.ValueSet.ItemType.get -> string
+Examine.ValueSet.Values.get -> System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IReadOnlyList<object>>
+Examine.ValueSet.ValueSet(string id) -> void
+Examine.ValueSet.ValueSet(string id, string category, string itemType, System.Collections.Generic.IDictionary<string, object> values) -> void
+Examine.ValueSet.ValueSet(string id, string category, string itemType, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IEnumerable<object>> values) -> void
+Examine.ValueSet.ValueSet(string id, string category, System.Collections.Generic.IDictionary<string, object> values) -> void
+Examine.ValueSet.ValueSet(string id, string category, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IEnumerable<object>> values) -> void
+Examine.ValueSetValidationResult
+Examine.ValueSetValidationResult.Status.get -> Examine.ValueSetValidationStatus
+Examine.ValueSetValidationResult.ValueSet.get -> Examine.ValueSet
+Examine.ValueSetValidationResult.ValueSetValidationResult() -> void
+Examine.ValueSetValidationResult.ValueSetValidationResult(Examine.ValueSetValidationStatus status, Examine.ValueSet valueSet) -> void
+Examine.ValueSetValidationStatus
+Examine.ValueSetValidationStatus.Failed = 1 -> Examine.ValueSetValidationStatus
+Examine.ValueSetValidationStatus.Filtered = 2 -> Examine.ValueSetValidationStatus
+Examine.ValueSetValidationStatus.Valid = 0 -> Examine.ValueSetValidationStatus
+override Examine.FieldDefinition.Equals(object obj) -> bool
+override Examine.FieldDefinition.GetHashCode() -> int
+override Examine.OrderedDictionary<TKey, TVal>.GetKeyForItem(System.Collections.Generic.KeyValuePair<TKey, TVal> item) -> TKey
+override Examine.SearchResult.Equals(object obj) -> bool
+override Examine.SearchResult.GetHashCode() -> int
+static Examine.EmptySearchResults.Instance.get -> Examine.ISearchResults
+static Examine.ExamineExtensions.DeleteFromIndex(this Examine.IIndex index, string itemId) -> void
+static Examine.ExamineExtensions.GetIndex(this Examine.IExamineManager examineManager, string indexName) -> Examine.IIndex
+static Examine.ExamineExtensions.GetNamedOptions<T>(this Microsoft.Extensions.Options.IOptionsMonitor<T> optionsMonitor, string name) -> T
+static Examine.ExamineExtensions.IndexItem(this Examine.IIndex index, Examine.ValueSet node) -> void
+static Examine.FieldDefinition.operator !=(Examine.FieldDefinition left, Examine.FieldDefinition right) -> bool
+static Examine.FieldDefinition.operator ==(Examine.FieldDefinition left, Examine.FieldDefinition right) -> bool
+static Examine.ObjectExtensions.ConvertObjectToDictionary(object o, params string[] ignoreProperties) -> System.Collections.Generic.IDictionary<string, object>
+static Examine.Search.QueryOptions.Default.get -> Examine.Search.QueryOptions
+static Examine.Search.QueryOptions.SkipTake(int skip, int? take = null) -> Examine.Search.QueryOptions
+static Examine.SearchExtensions.Boost(this string s, float boost) -> Examine.Search.IExamineValue
+static Examine.SearchExtensions.Escape(this string s) -> Examine.Search.IExamineValue
+static Examine.SearchExtensions.Fuzzy(this string s) -> Examine.Search.IExamineValue
+static Examine.SearchExtensions.Fuzzy(this string s, float fuzzieness) -> Examine.Search.IExamineValue
+static Examine.SearchExtensions.MultipleCharacterWildcard(this string s) -> Examine.Search.IExamineValue
+static Examine.SearchExtensions.Proximity(this string s, int proximity) -> Examine.Search.IExamineValue
+static Examine.SearchExtensions.SingleCharacterWildcard(this string s) -> Examine.Search.IExamineValue
+static Examine.ValueSet.FromObject(string id, string category, object values) -> Examine.ValueSet
+static Examine.ValueSet.FromObject(string id, string category, string itemType, object values) -> Examine.ValueSet
+virtual Examine.BaseIndexProvider.Name.get -> string
+virtual Examine.BaseIndexProvider.OnIndexingError(Examine.IndexingErrorEventArgs e) -> void
+virtual Examine.BaseIndexProvider.OnTransformingIndexValues(Examine.IndexingItemEventArgs e) -> void
+virtual Examine.ExamineManager.Dispose(bool disposing) -> void
+virtual Examine.ExamineManager.Stop(bool immediate) -> void
+virtual Examine.ReadOnlyFieldDefinitionCollection.TryGetValue(string fieldName, out Examine.FieldDefinition fieldDefinition) -> bool

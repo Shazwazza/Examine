@@ -29,19 +29,19 @@ namespace Examine.Web.Demo
 
             services.AddExamineLuceneIndex(
                 "TaxonomyFacetIndex",
-                facetsConfig: taxonomyFacetIndexFacetsConfig);
+                cfg => cfg.FacetsConfig = taxonomyFacetIndexFacetsConfig);
 
             var facetIndexFacetsConfig = new FacetsConfig();
 
             services.AddExamineLuceneIndex(
                 "FacetIndex",
-                facetsConfig: facetIndexFacetsConfig);
+                cfg => cfg.FacetsConfig = taxonomyFacetIndexFacetsConfig);
 
 
             services.AddExamineLuceneMultiSearcher(
                 "MultiIndexSearcher",
                 new[] { "MyIndex", "SyncedIndex", "FacetIndex" },
-                facetsConfig: new FacetsConfig());
+                opt=> opt.FacetConfiguration = new FacetsConfig());
 
             services.ConfigureOptions<ConfigureIndexOptions>();
 

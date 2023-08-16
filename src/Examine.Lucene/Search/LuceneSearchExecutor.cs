@@ -30,7 +30,7 @@ namespace Examine.Lucene.Search
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
-            ISet<string> fieldsToLoad, IEnumerable<IFacetField> facetFields, FacetsConfig facetsConfig)
+            ISet<string> fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -132,11 +132,11 @@ namespace Examine.Lucene.Search
                     topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
                 }
                 FacetsCollector facetsCollector = null;
-                if (_facetFields.Any() && _luceneQueryOptions != null && _luceneQueryOptions.FacetRandomSampling != null)
+                if (_facetFields != null && _facetFields.Any() && _luceneQueryOptions != null && _luceneQueryOptions.FacetRandomSampling != null)
                 {
                     var facetsCollectors = new RandomSamplingFacetsCollector(_luceneQueryOptions.FacetRandomSampling.SampleSize, _luceneQueryOptions.FacetRandomSampling.Seed);
                 }
-                else if (_facetFields.Any())
+                else if (_facetFields != null && _facetFields.Any())
                 {
                     facetsCollector = new FacetsCollector();
                 }
@@ -237,7 +237,7 @@ namespace Examine.Lucene.Search
         private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector? facetsCollector, ISearcherReference searcher)
         {
             var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
-            if (facetsCollector == null || !_facetFields.Any())
+            if (facetsCollector == null || _facetFields is null || !_facetFields.Any())
             {
                 return facets;
             }
@@ -253,10 +253,15 @@ namespace Examine.Lucene.Search
                 var valueType = _searchContext.GetFieldValueType(field.Field);
                 if (valueType is IIndexFacetValueType facetValueType)
                 {
+                    if (_facetsConfig is null)
+                    {
+                        throw new InvalidOperationException("Facets Config not set. Please use a constructor that passes all parameters");
+                    }
+
                     var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
 
                     var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
-                    foreach(var fieldFacet in fieldFacets)
+                    foreach (var fieldFacet in fieldFacets)
                     {
                         // overwrite if necessary (no exceptions thrown in case of collision)
                         facets[fieldFacet.Key] = fieldFacet.Value;
