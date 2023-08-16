@@ -2,6 +2,9 @@ using Examine.Lucene.Search;
 
 namespace Examine.Lucene
 {
+    /// <summary>
+    /// Extensions for configuring Similarity on a Lucene Index
+    /// </summary>
     public static class LuceneIndexOptionsExtensions
     {
         /// <summary>

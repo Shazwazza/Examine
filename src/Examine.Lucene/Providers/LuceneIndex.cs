@@ -788,7 +788,7 @@ namespace Examine.Lucene.Providers
             return _exists.Value;
         }
 
-        // <summary>
+        /// <summary>
         /// This will check one time if the taxonomny index exists, we don't want to keep using IndexReader.IndexExists because that will literally go list
         /// every file in the index folder and we don't need any more IO ops
         /// </summary>

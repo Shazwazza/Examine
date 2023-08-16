@@ -470,7 +470,6 @@ var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make q
 query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
 var results = query.Execute();
 ```
-```
 
 ### Use a Lucene Similarity
 Simliarity defines the components of Lucene scoring.

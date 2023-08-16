@@ -9,10 +9,15 @@ namespace Examine.Lucene.Search
     public class LuceneLMDirichletSimilarityDefinition : LuceneSimilarityDefinitionBase
     {
         private readonly Lazy<LMDirichletSimilarity> _similarityLazy = new Lazy<LMDirichletSimilarity>(() => new LMDirichletSimilarity());
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public LuceneLMDirichletSimilarityDefinition() : base(ExamineLuceneSimilarityNames.LMDirichlet)
         {
         }
 
+        /// <inheritdoc/>
         public override Similarity GetSimilarity() => _similarityLazy.Value;
     }
 }

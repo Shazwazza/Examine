@@ -77,6 +77,7 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public ITaxonomySearcherReference GetTaxonomyAndSearcher() => new TaxonomySearcherReference(_searcherManager);
 
+        /// <inheritdoc/>
         public SimilarityDefinition GetSimilarity(string similarityName)
         {
             //Get the value type for the field, or use the default if not defined

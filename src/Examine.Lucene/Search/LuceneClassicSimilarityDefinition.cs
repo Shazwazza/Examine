@@ -9,6 +9,10 @@ namespace Examine.Lucene.Search
     public class LuceneClassicSimilarityDefinition : LuceneSimilarityDefinitionBase
     {
         private readonly Lazy<DefaultSimilarity> _similarityLazy = new Lazy<DefaultSimilarity>(() => new DefaultSimilarity());
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public LuceneClassicSimilarityDefinition() : base(ExamineLuceneSimilarityNames.Classic)
         {
         }

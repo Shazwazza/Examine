@@ -9,10 +9,15 @@ namespace Examine.Lucene.Search
     public class LuceneLMJelinekMercerTitleSimilarityDefinition : LuceneSimilarityDefinitionBase
     {
         private readonly Lazy<LMJelinekMercerSimilarity> _similarityLazy = new Lazy<LMJelinekMercerSimilarity>(() => new LMJelinekMercerSimilarity(0.1f));
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public LuceneLMJelinekMercerTitleSimilarityDefinition() : base(ExamineLuceneSimilarityNames.LMDirichlet)
         {
         }
 
+        /// <inheritdoc/>
         public override Similarity GetSimilarity() => _similarityLazy.Value;
     }
 }

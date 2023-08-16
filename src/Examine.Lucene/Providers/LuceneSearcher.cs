@@ -21,9 +21,10 @@ namespace Examine.Lucene.Providers
         /// Constructor allowing for creating a NRT instance based on a given writer
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="writer"></param>
+        /// <param name="searcherManager"></param>
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
+        /// <param name="similarityDefinitionCollection"></param>
         public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection similarityDefinitionCollection)
             : base(name, analyzer)
         {

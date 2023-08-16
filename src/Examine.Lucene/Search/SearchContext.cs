@@ -75,6 +75,7 @@ namespace Examine.Lucene.Search
                 _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
         }
 
+        /// <inheritdoc/>
         public SimilarityDefinition GetSimilarity(string similarityName)
         {
             //Get the value type for the field, or use the default if not defined
