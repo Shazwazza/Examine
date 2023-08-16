@@ -1,5 +1,4 @@
 ---
-layout: page
 title: V1/V2 Indexing
 permalink: /indexing
 uid: v2indexing

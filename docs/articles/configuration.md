@@ -1,5 +1,4 @@
 ---
-layout: page
 title: Configuration
 permalink: /configuration
 uid: configuration

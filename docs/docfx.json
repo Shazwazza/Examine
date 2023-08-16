@@ -66,8 +66,14 @@
     "fileMetadataFiles": [],
     "template": [
       "default",
-      "templates/material"
+      "modern",
+      "templates/examinemodern"
     ],
+    "sitemap": {
+      "baseUrl": "https://shazwazza.github.io/Examine",
+      "priority": 0.1,
+      "changefreq": "monthly"
+    },
     "postProcessors": ["ExtractSearchIndex"],
     "markdownEngineName": "markdig",
     "noLangKeyword": false,
@@ -76,6 +82,7 @@
     "disableGitFeatures": false,
     "globalMetadata": {
       "_appTitle": "Examine",
+      "_appName": "Examine",
       "_appFooter": "Examine",
       "_enableSearch": true,
       "_gitContribute": {
@@ -85,6 +92,8 @@
       },
       "_appLogoPath": "images/headerlogo.png",
       "_appFaviconPath": "images/favicon.ico"
+    },
+    "fileMetadata": {
     }
   }
 }
