@@ -5,7 +5,6 @@ using Lucene.Net.Index;
 using Lucene.Net.Replicator;
 using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
-using static Lucene.Net.Documents.Field;
 using static Lucene.Net.Replicator.IndexAndTaxonomyRevision;
 using Directory = Lucene.Net.Store.Directory;
 
