@@ -282,3 +282,61 @@ services.AddExamineLuceneIndex("MyIndex",
 To explore other configuration settings see the links below:
 - [FacetsConfig API docs](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/facet/Lucene.Net.Facet.FacetsConfig.html#methods)
 - [Facets with lucene](https://norconex.com/facets-with-lucene/). See how the config is used in the code examples.
+
+## Similarity definitions
+
+A Similarity Definition is a mapping of a similarity name to a Similarity. By default similarity is set to the default similarity Type: [`ExamineLuceneSimilarityNames.ExamineDefault`](xref:Examine.Lucene.Search.ExamineLuceneSimilarityNames#ExamineDefault).
+
+You can map a similarity name to any similarity type when configuring the index.
+
+## Similarity types
+
+These are the default similarity types provided with Examine.
+
+| Similarity Name                | Description  |
+| ------------------------------ | ------------ |
+| ExamineDefault  | Default Similarity for Examine Lucene. ( V3/V4 Classic), (V5 BM25) |
+| Classic | Classic Similarity for Lucene|
+| BM25 | BM25Similarity with default parameters for Lucene|
+| LMDirichlet  | LMDirichletSimilarity with default parameters for Lucene|
+| LMJelinekMercerTitle   | LMJelinekMercerSimilarity with parameter 0.1f which is suitable for title searches|
+| LMJelinekMercerLongText   | LMJelinekMercerSimilarity with parameter 0.7f which is suitable for long text searches.|
+
+### IConfigureNamedOptions
+
+Configuration of Examine indexes is done with [.NET's Options pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0). For Examine, this is done with named options: [`IConfigureNamedOptions`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.iconfigurenamedoptions-1).
+
+* __SimilarityDefinitions__ _[`SimilarityDefinitionCollection`](xref:Examine.SimilarityDefinitionCollection)_ - Manages the mappings between a similarity name and it's index similarity type
+
+```cs
+/// <summary>
+/// Configure Examine indexes using .NET IOptions
+/// </summary>
+public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirectoryIndexOptions>
+{
+    public void Configure(string name, LuceneDirectoryIndexOptions options)
+    {
+        switch (name)
+        {
+            case "MyIndex":
+                // Set the "BM25" similarity to map to the 'BM25Similarity' similarity type.
+                options.SimilarityDefinitions.AddOrUpdate(
+                    new FieldDefinition("BM25", new BM25Similarity()));
+                break;
+        }
+    }
+
+    public void Configure(LuceneDirectoryIndexOptions options) 
+        => Configure(string.Empty, options);
+}
+```
+
+### After construction
+
+You can modify the similarity definitions [SimilarityDefinitionCollection](xref:Examine.SimilarityDefinitionCollection) for an index after it is constructed by using any of the following methods:
+
+* `myIndex.SimilarityDefinitionCollection.TryAdd`
+* `myIndex.SimilarityDefinitionCollection.AddOrUpdate`
+* `myIndex.SimilarityDefinitionCollection.GetOrAdd`
+
+These modifications __must__ be done before any indexing or searching is executed.
