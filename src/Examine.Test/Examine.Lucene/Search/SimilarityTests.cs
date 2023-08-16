@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
+using Examine.Search;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Search.Similarities;
 using NUnit.Framework;
@@ -35,6 +36,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
                 var query = searcher.CreateQuery("cOntent",
+                    BooleanOperation.And,
+                    searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
                         SimilarityName = ExamineLuceneSimilarityNames.ExamineDefault
@@ -70,6 +73,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
                 var query = searcher.CreateQuery("cOntent",
+                    BooleanOperation.And,
+                    searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
                         SimilarityName = ExamineLuceneSimilarityNames.BM25
@@ -106,6 +111,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
                 var query = searcher.CreateQuery("cOntent",
+                    BooleanOperation.And,
+                    searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
                         SimilarityName = ExamineLuceneSimilarityNames.LMDirichlet
@@ -141,6 +148,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
                 var query = searcher.CreateQuery("cOntent",
+                    BooleanOperation.And,
+                    searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
                         SimilarityName = ExamineLuceneSimilarityNames.LMJelinekMercerTitle
@@ -176,6 +185,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 
                 var query = searcher.CreateQuery("cOntent",
+                    BooleanOperation.And,
+                    searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
                         SimilarityName = ExamineLuceneSimilarityNames.LMJelinekMercerLongText
@@ -244,6 +255,8 @@ namespace Examine.Test.Examine.Lucene.Search
 
 
                 var query = searcher.CreateQuery("cOntent",
+                    BooleanOperation.And,
+                    searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
                         SimilarityName = "dictionarySim"
