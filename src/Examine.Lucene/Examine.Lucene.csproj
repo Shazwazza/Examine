@@ -4,6 +4,10 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>A Lucene.Net search and indexing implementation for Examine</Description>
     <PackageTags>examine lucene lucene.net lucenenet search index</PackageTags>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <LangVersion>9</LangVersion>
+    <NoWarn>RS0036</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="AspExamineManager.cs.bak" />
@@ -21,11 +25,15 @@
       <Version>4.8.0-beta00016</Version>
     </PackageReference>
     <PackageReference Include="Lucene.Net.Replicator" Version="4.8.0-beta00016" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="System.Threading">
       <Version>4.3.0</Version>
     </PackageReference>
     <PackageReference Include="System.Threading.AccessControl">
-      <Version>4.7.0</Version>
+      <Version>6.0.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

@@ -98,24 +98,47 @@ Value types are responsible for:
 
 These are the default field value types provided with Examine. Each value type can be resolved from the static class [`Examine.FieldDefinitionTypes`](xref:Examine.FieldDefinitionTypes) (i.e. [`Examine.FieldDefinitionTypes.FullText`](xref:Examine.FieldDefinitionTypes#Examine_FieldDefinitionTypes_FullText)).
 
-| Value Type                 | Description                                                                                                                                                                          | Sortable |
-|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| FullText                   | __Default__.<br />The field will be indexed with the index's <br />default Analyzer without any sortability. <br />Generally this is fine for normal text searching.                                  | ❌           |
-| FullTextSortable           | Will be indexed with FullText but also <br />enable sorting on this field for search results. <br />_FullText sortability adds additional overhead <br />since it requires an additional index field._ | ✅           |
-| Integer                    | Stored as a numerical structure.                                                                                                                                                     | ✅           |
-| Float                      | Stored as a numerical structure.                                                                                                                                                     | ✅           |
-| Double                     | Stored as a numerical structure.                                                                                                                                                     | ✅           |
-| Long                       | Stored as a numerical structure.                                                                                                                                                     | ✅           |
-| DateTime                   | Stored as a DateTime, <br />represented by a numerical structure.                                                                                                                          | ✅           |
-| DateYear                   | Just like DateTime but with <br />precision only to the year.                                                                                                                              | ✅           |
-| DateMonth                  | Just like DateTime but with <br />precision only to the month.                                                                                                                             | ✅           |
-| DateDay                    | Just like DateTime but with <br />precision only to the day.                                                                                                                               | ✅           |
-| DateHour                   | Just like DateTime but with <br />precision only to the hour.                                                                                                                              | ✅           |
-| DateMinute                 | Just like DateTime but with <br />precision only to the minute.                                                                                                                            | ✅           |
-| EmailAddress               | Uses custom analyzers for dealing <br />with email address searching.                                                                                                                      | ❌           |
-| InvariantCultureIgnoreCase | Uses custom analyzers for dealing with text so it<br /> can be searched on regardless of the culture/casing.                                                                               | ❌           |
-| Raw                        | Will be indexed without analysis, searching will<br /> only match with an exact value.                                                                                                     | ❌           |
-
+| Value Type                     | Description  | Sortable | Facetable | Retrievable | Searchable | Filterable | Analyzer |
+| ------------------------------ | ------------ | -------- | --------- | ----------- | ---------- | ---------- | -------- |
+| FullText                       | **Default**. The field will be indexed with the index's default Analyzer without any sortability. Generally this is fine for normal text searching. | ❌ | ❌ | ✅ | ✅ | ✅ | CultureInvariantStandardAnalyzer or Index default |
+| FullTextSortable | Will be indexed with FullText but also enable sorting on this field for search results. *FullText sortability adds additional overhead since it requires an additional index field.*  | ✅ | ❌ | ✅ | ✅ | ✅ |  CultureInvariantStandardAnalyzer or Index default |
+| Integer | Stored as a numerical structure.| ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| Float  | Stored as a numerical structure. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| Double   | Stored as a numerical structure. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| Long   | Stored as a numerical structure. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| DateTime  | Stored as a DateTime, represented by a numerical structure. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| DateYear   | Just like DateTime but with precision only to the year. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| DateMonth  | Just like DateTime but with precision only to the month. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| DateDay   | Just like DateTime but with precision only to the day. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| DateHour | Just like DateTime but with precision only to the hour. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| DateMinute  | Just like DateTime but with precision only to the minute. | ✅ | ❌ | ✅ | ❌ | ✅ |  - |
+| EmailAddress   | Uses custom analyzers for dealing with email address searching.  | ❌ | ❌ | ✅ | ✅ | ✅ | EmailAddressAnalyzer |
+| InvariantCultureIgnoreCase  | Uses custom analyzers for dealing with text so it can be searched on regardless of the culture/casing.  | ❌ | ❌ | ✅ | ✅ | ✅ | CultureInvariantStandardAnalyzer |
+| Raw  | Will be indexed without analysis, searching will only match with an exact value. | ❌ | ❌ | ✅ | ✅ | ✅ | KeywordAnalyzer |
+| FacetFullText | The field will be indexed with the index's default Analyzer without any sortability. Generally this is fine for normal text searching. | ❌ |  ✅ | ✅ | ✅ | ✅ | CultureInvariantStandardAnalyzer or Index default |
+| FacetFullTextSortable | Will be indexed with FullText but also enable sorting on this field for search results. *FullText sortability adds additional overhead since it requires an additional index field.*  | ✅ |  ✅ | ✅ | ✅ | ✅ | CultureInvariantStandardAnalyzer or Index default |
+| FacetInteger | Stored as a numerical structure. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetFloat | Stored as a numerical structure. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetDouble  | Stored as a numerical structure. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetLong   | Stored as a numerical structure.  | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetDateTime  | Stored as a DateTime, represented by a numerical structure. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetDateYear  | Just like DateTime but with precision only to the year. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetDateMonth | Just like DateTime but with precision only to the month. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetDateDay  | Just like DateTime but with precision only to the day. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetDateHour | Just like DateTime but with precision only to the hour. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetDateMinute | Just like DateTime but with precision only to the minute. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyFullText | The field will be indexed with the index's default Analyzer without any sortability. Generally this is fine for normal text searching. Stored in the Taxonomy Facet sidecar index.  | ❌ |  ✅ | ✅ | ✅ | ✅ | CultureInvariantStandardAnalyzer or Index default |
+| FacetTaxonomyFullTextSortable | Will be indexed with FullText but also enable sorting on this field for search results. *FullText sortability adds additional overhead since it requires an additional index field.*  Stored in the Taxonomy Facet sidecar index.  | ✅ |  ✅ | ✅ | ✅ | ✅ | CultureInvariantStandardAnalyzer or Index default |
+| FacetTaxonomyInteger | Stored as a numerical structure.  Stored in the Taxonomy Facet sidecar index. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyFloat  | Stored as a numerical structure.  Stored in the Taxonomy Facet sidecar index.  | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyDouble  | Stored as a numerical structure.  Stored in the Taxonomy Facet sidecar index.   | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyLong    | Stored as a numerical structure.  Stored in the Taxonomy Facet sidecar index. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyDateTime   | Stored as a DateTime, represented by a numerical structure.  Stored in the Taxonomy Facet sidecar index. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyDateYear  | Just like DateTime but with precision only to the year.  Stored in the Taxonomy Facet sidecar index.  | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyDateMonth  | Just like DateTime but with precision only to the month.  Stored in the Taxonomy Facet sidecar index.  | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyDateDay  | Just like DateTime but with precision only to the day. Stored in the Taxonomy Facet sidecar index.   | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyDateHour  | Just like DateTime but with precision only to the hour.    Stored in the Taxonomy Facet sidecar index. | ✅ |✅ | ✅ | ❌ | ✅ |  - |
+| FacetTaxonomyDateMinute  | Just like DateTime but with precision only to the minute.   Stored in the Taxonomy Facet sidecar index.  | ✅ |✅ | ✅ | ❌ | ✅ |  - |
 ### Custom field value types
 
 A field value type is defined by [`IIndexFieldValueType`](xref:Examine.Lucene.Indexing.IIndexFieldValueType)
@@ -192,3 +215,70 @@ That returns an result [`ValueSetValidationResult`](xref:Examine.ValueSetValidat
 * `Filtered` - The ValueSet has been filtered/modified by the validator and will be indexed
 
 Examine only has one implementation: [`ValueSetValidatorDelegate`](xref:Examine.Lucene.Providers.ValueSetValidatorDelegate) which can be used by developers as a simple way to create a validator based on a callback, else developers can implement this interface if required. By default, no ValueSet validation is done with Examine.
+
+## Facets configuration
+
+When using the facets feature it's possible to add facets configuration to change the behavior of the indexing.
+
+For example, you can allow multiple values in an indexed field with the configuration below.
+```csharp
+// Create a config
+var facetsConfig = new FacetsConfig();
+
+// Set field to be able to contain multiple values (This is default for a field in Examine. But you only need this if you are actually using multiple values for a single field)
+facetsConfig.SetMultiValued("MultiIdField", true);
+
+services.AddExamineLuceneIndex("MyIndex",
+    // Set the indexing of your fields to use the facet type
+    fieldDefinitions: new FieldDefinitionCollection(
+        new FieldDefinition("Timestamp", FieldDefinitionTypes.FacetDateTime),
+
+        new FieldDefinition("MultiIdField", FieldDefinitionTypes.FacetFullText)
+        ),
+    // Pass your config
+    facetsConfig: facetsConfig
+    );
+```
+
+Without this configuration for multiple values, you'll notice that your faceted search breaks or behaves differently than expected.
+
+### Hierarchical and Taxonomy Facets configuration
+
+To enable support for hierarchical facets as well as supporting faster faceting the Taxonomy Facet sidecar index can be enabled.
+
+1. Set LuceneIndexOptions.UseTaxonomyIndex = true; for the index. This enables the use of the Taxonomy sidecar index.
+2. Change the Field Definitions to use the "FacetTaxonomy" Field Definition Types instead of the "Facet" types. E.g. FieldDefinitionTypes.FacetFullText => FieldDefinitionTypes.FacetTaxonomyFullText.
+3. To enable hierarchical facets on a field, call FacetsConfig.SetHierarchical("facetfieldname", true);
+
+Example:
+
+```csharp
+// Create a config
+var facetsConfig = new FacetsConfig();
+
+// Set field to be able to support hierarchical facets
+facetsConfig.SetHierarchical("hierarchyFacetfield", true);
+
+// Set field to be able to contain multiple values (This is default for a field in Examine. But you only need this if you are actually using multiple values for a single field)
+facetsConfig.SetMultiValued("MultiIdField", true);
+
+services.AddExamineLuceneIndex("MyIndex",
+    // Set the indexing of your fields to use the facet Taxonomy type
+    fieldDefinitions: new FieldDefinitionCollection(
+        new FieldDefinition("Timestamp", FieldDefinitionTypes.FacetTaxonomyDateTime),
+        new FieldDefinition("hierarchyFacetfield", FieldDefinitionTypes.FacetTaxonomyFullText),
+
+        new FieldDefinition("MultiIdField", FieldDefinitionTypes.FacetTaxonomyFullText)
+        ),
+    // Pass your config
+    facetsConfig: facetsConfig,
+    // Enable the Taxonomy sidecar index
+    useTaxonomyIndex: true
+    );
+```
+
+**Note: See more examples of how facets configuration can be used under [Searching](xref:searching)**
+
+To explore other configuration settings see the links below:
+- [FacetsConfig API docs](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/facet/Lucene.Net.Facet.FacetsConfig.html#methods)
+- [Facets with lucene](https://norconex.com/facets-with-lucene/). See how the config is used in the code examples.

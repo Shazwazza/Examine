@@ -3,6 +3,7 @@ using System.Linq;
 using Lucene.Net.Analysis.Standard;
 using NUnit.Framework;
 using Examine.Lucene.Providers;
+using Lucene.Net.Facet;
 
 namespace Examine.Test.Examine.Lucene.Search
 {
@@ -34,6 +35,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = new MultiIndexSearcher("testSearcher",
                     new[] { indexer1, indexer2, indexer3, indexer4 },
+                    new FacetsConfig(),
                     analyzer);
 
                 var result = searcher.Search("darkness");
@@ -69,6 +71,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var searcher = new MultiIndexSearcher("testSearcher",
                     new[] { indexer1, indexer2, indexer3, indexer4 },
+                    new FacetsConfig(),
                     analyzer);
 
                 var result = searcher.GetSearchContext().SearchableFields;

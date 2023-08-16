@@ -3,25 +3,51 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Examine.Lucene.Search;
 using Examine.Search;
+using Lucene.Net.Facet;
 
 namespace Examine.Lucene.Providers
 {
     ///<summary>
     /// Simple abstract class containing basic properties for Lucene searchers
     ///</summary>
-    public abstract class BaseLuceneSearcher : BaseSearchProvider
+    public abstract class BaseLuceneSearcher : BaseSearchProvider, IDisposable
     {
+        private readonly FacetsConfig _facetsConfig;
+
         /// <summary>
         /// Constructor to allow for creating an indexer at runtime
         /// </summary>
         /// <param name="name"></param>
         /// <param name="analyzer"></param>
+        [Obsolete("To remove in Examine V5")]
         protected BaseLuceneSearcher(string name, Analyzer analyzer)
             : base(name)
         {
             if (string.IsNullOrWhiteSpace(name))
+            {
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            }
+
             LuceneAnalyzer = analyzer;
+            _facetsConfig = GetDefaultFacetConfig();
+        }
+
+        /// <summary>
+        /// Constructor to allow for creating an indexer at runtime
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="facetsConfig"></param>
+        protected BaseLuceneSearcher(string name, Analyzer analyzer, FacetsConfig facetsConfig)
+            : base(name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            }
+
+            LuceneAnalyzer = analyzer;
+            _facetsConfig = facetsConfig;
         }
 
         /// <summary>
@@ -29,10 +55,16 @@ namespace Examine.Lucene.Providers
         /// </summary>
         public Analyzer LuceneAnalyzer { get; }
 
+        /// <summary>
+        /// Gets the seach context
+        /// </summary>
+        /// <returns></returns>
         public abstract ISearchContext GetSearchContext();
 
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         /// <inheritdoc />
-		public override IQuery CreateQuery(string category = null, BooleanOperation defaultOperation = BooleanOperation.And)
+        public override IQuery CreateQuery(string? category = null, BooleanOperation defaultOperation = BooleanOperation.And)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
             => CreateQuery(category, defaultOperation, LuceneAnalyzer, new LuceneSearchOptions());
 
         /// <summary>
@@ -53,19 +85,35 @@ namespace Examine.Lucene.Providers
         /// <param name="luceneAnalyzer"></param>
         /// <param name="searchOptions"></param>
         /// <returns></returns>
-        public IQuery CreateQuery(string category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
+        public IQuery CreateQuery(string? category, BooleanOperation defaultOperation, Analyzer luceneAnalyzer, LuceneSearchOptions searchOptions)
         {
             if (luceneAnalyzer == null)
                 throw new ArgumentNullException(nameof(luceneAnalyzer));
 
-            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation);
+            return new LuceneSearchQuery(GetSearchContext(), category, luceneAnalyzer, searchOptions, defaultOperation, _facetsConfig);
         }
 
         /// <inheritdoc />
-        public override ISearchResults Search(string searchText, QueryOptions options = null)
+        public override ISearchResults Search(string searchText, QueryOptions? options = null)
         {
             var sc = CreateQuery().ManagedQuery(searchText);
             return sc.Execute(options);
+        }
+
+        /// <summary>
+        /// Gets a FacetConfig with default configuration
+        /// </summary>
+        /// <returns>Facet Config</returns>
+        [Obsolete("To remove in Examine V5")]
+        public virtual FacetsConfig GetDefaultFacetConfig()
+        {
+            return new FacetsConfig();
+        }
+
+        /// <inheritdoc/>
+        public virtual void Dispose()
+        {
+
         }
 
         ///// <summary>

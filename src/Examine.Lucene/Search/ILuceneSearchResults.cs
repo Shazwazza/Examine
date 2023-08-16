@@ -8,7 +8,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Options for Searching After. Used for efficent deep paging.
         /// </summary>
-        SearchAfterOptions SearchAfter { get; }
+        SearchAfterOptions? SearchAfter { get; }
 
         /// <summary>
         /// Returns the maximum score value encountered. Note that in case

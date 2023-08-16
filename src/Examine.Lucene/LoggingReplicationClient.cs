@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Lucene.Net.Replicator;
 using Microsoft.Extensions.Logging;
 
@@ -11,6 +11,7 @@ namespace Examine.Lucene
     {
         private readonly ILogger<LoggingReplicationClient> _logger;
 
+        /// <inheritdoc/>
         public LoggingReplicationClient(
             ILogger<LoggingReplicationClient> logger,
             IReplicator replicator,
@@ -22,6 +23,7 @@ namespace Examine.Lucene
             InfoStream = new CustomLoggingInfoStream(logger);
         }
 
+        /// <inheritdoc/>
         protected override void HandleUpdateException(Exception exception)
             => _logger.LogError(exception, "Index replication error occurred");
 
