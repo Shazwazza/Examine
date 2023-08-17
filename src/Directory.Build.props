@@ -27,9 +27,6 @@
   
   <!-- Disable the nullable warnings when compiling for .NET Standard 2.0 -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <NoWarn>$(NoWarn);nullable;RS0036</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-    <NoWarn>RS0036</NoWarn>
+    <NoWarn>$(NoWarn);nullable</NoWarn>
   </PropertyGroup>
 </Project>
