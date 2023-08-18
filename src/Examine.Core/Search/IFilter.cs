@@ -59,13 +59,51 @@ namespace Examine.Search
         /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
         /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="min"></param>
         /// <param name="max"></param>
         /// <param name="field"></param>
         /// <param name="minInclusive"></param>
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
-        IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+        IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive);
+
+
+        /// <summary>
+        /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
+        /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="field"></param>
+        /// <param name="minInclusive"></param>
+        /// <param name="maxInclusive"></param>
+        /// <returns></returns>
+        IBooleanFilterOperation LongRangeFilter(string field, long? min, long? max, bool minInclusive, bool maxInclusive);
+
+
+        /// <summary>
+        /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
+        /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="field"></param>
+        /// <param name="minInclusive"></param>
+        /// <param name="maxInclusive"></param>
+        /// <returns></returns>
+        IBooleanFilterOperation FloatRangeFilter(string field, float? min, float? max, bool minInclusive, bool maxInclusive);
+
+
+        /// <summary>
+        /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
+        /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="field"></param>
+        /// <param name="minInclusive"></param>
+        /// <param name="maxInclusive"></param>
+        /// <returns></returns>
+        IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive);
     }
 }

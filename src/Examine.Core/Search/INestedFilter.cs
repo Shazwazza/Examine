@@ -54,18 +54,5 @@ namespace Examine.Search
         /// <param name="defaultOp"></param>
         /// <returns></returns>
         INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
-
-        /// <summary>
-        /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
-        /// If a type is not defined for a field name, or the type does not implement IIndexRangeValueType for the types of min and max, nothing will be added
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
-        /// <param name="field"></param>
-        /// <param name="minInclusive"></param>
-        /// <param name="maxInclusive"></param>
-        /// <returns></returns>
-        INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
     }
 }

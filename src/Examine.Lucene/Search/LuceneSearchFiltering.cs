@@ -165,9 +165,91 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true)
+        public override IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive)
         {
-            throw new NotImplementedException();
+            return DoubleRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
+        }
+
+        private IBooleanFilterOperation DoubleRangeFilterInternal(string field, double? min, double? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var filterToAdd = NumericRangeFilter.NewDoubleRange(field, min, max, minInclusive, maxInclusive);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateBooleanOp();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation FloatRangeFilter(string field, float? min, float? max, bool minInclusive, bool maxInclusive)
+        {
+            return FloatRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
+        }
+
+        private IBooleanFilterOperation FloatRangeFilterInternal(string field, float? min, float? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var filterToAdd = NumericRangeFilter.NewSingleRange(field, min, max, minInclusive, maxInclusive);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateBooleanOp();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive)
+        {
+            return IntRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
+        }
+
+        private IBooleanFilterOperation IntRangeFilterInternal(string field, int? min, int? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var filterToAdd = NumericRangeFilter.NewInt32Range(field, min, max, minInclusive, maxInclusive);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateBooleanOp();
+        }
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation LongRangeFilter(string field, long? min, long? max, bool minInclusive, bool maxInclusive)
+        {
+            return LongRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
+        }
+
+        private IBooleanFilterOperation LongRangeFilterInternal(string field, long? min, long? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
+        {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var filterToAdd = NumericRangeFilter.NewInt64Range(field, min, max, minInclusive, maxInclusive);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            return CreateBooleanOp();
         }
         #endregion
 
@@ -194,9 +276,6 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         protected override INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilterInternal(inner, defaultOp);
-
-        /// <inheritdoc/>
-        protected override INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive, bool maxInclusive) => NestedRangeFilterInternal<T>(field, min, max, minInclusive, maxInclusive);
 
         /// <inheritdoc/>
         internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChainStart> chain, Occur occurance = Occur.MUST)
@@ -313,11 +392,6 @@ namespace Examine.Lucene.Search
             throw new NotImplementedException();
         }
 
-        /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedRangeFilterInternal<T>(string field, T min, T max, bool minInclusive, bool maxInclusive)
-        {
-            throw new NotImplementedException();
-        }
         #endregion
 
     }

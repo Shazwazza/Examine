@@ -44,9 +44,6 @@ namespace Examine.Lucene.Search
         public IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => _search.QueryFilter(inner, defaultOp);
 
         /// <inheritdoc/>
-        public IBooleanFilterOperation RangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct => _search.RangeFilter(field, min, max, minInclusive, maxInclusive);
-
-        /// <inheritdoc/>
         INestedBooleanFilterOperation INestedFilter.NestedChainFilters(Action<IFilterChainStart> chain) => _search.NestedChainFiltersInternal(chain);
 
         /// <inheritdoc/>
@@ -68,6 +65,15 @@ namespace Examine.Lucene.Search
         public INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => _search.NestedQueryFilterInternal(inner, defaultOp);
 
         /// <inheritdoc/>
-        public INestedBooleanFilterOperation NestedRangeFilter<T>(string field, T min, T max, bool minInclusive = true, bool maxInclusive = true) where T : struct => _search.NestedRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
+        public IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive) => _search.IntRangeFilter(field, min, max, minInclusive, maxInclusive);
+
+        /// <inheritdoc/>
+        public IBooleanFilterOperation LongRangeFilter(string field, long? min, long? max, bool minInclusive, bool maxInclusive) => _search.LongRangeFilter(field, min, max, minInclusive, maxInclusive);
+
+        /// <inheritdoc/>
+        public IBooleanFilterOperation FloatRangeFilter(string field, float? min, float? max, bool minInclusive, bool maxInclusive) => _search.FloatRangeFilter(field, min, max, minInclusive, maxInclusive);
+
+        /// <inheritdoc/>
+        public IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive) => _search.DoubleRangeFilter(field, min, max, minInclusive, maxInclusive);
     }
 }
