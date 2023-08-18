@@ -5282,18 +5282,11 @@ namespace Examine.Test.Examine.Lucene.Search
                             filter =>
                             {
                                 filter.TermsFilter(new[] {
-                                    new FilterTerm("nodeName", "my name")
-                                })
-                                    ;//.AndFilter()
-                                     //.TermPrefixFilter(new FilterTerm("nodeName", "my name"));
-                                     //.AndFilter()
-                                     //.ChainFilters(chain =>
-                                     //    chain.Chain(chainedFilter => chainedFilter.NestedFieldValueExists("nodeTypeAlias"))
-                                     //            .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.NestedFieldValueNotExists("nodeTypeAlias"))
-                                     //            );
-
+                                    new FilterTerm("nodeTypeAlias", "CWS_Home"),
+                                    new FilterTerm("nodeName", "my name 2")
+                                });
                             });
-                    var boolOp = criteria.All();//.Field("nodeTypeAlias", "CWS_Home".Escape());
+                    var boolOp = criteria.All();
 
                     if (HasFacets(withFacets))
                     {
@@ -5324,15 +5317,14 @@ namespace Examine.Test.Examine.Lucene.Search
                 = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
                 =>
                 {
-
-                    var criteria = searcher.CreateQuery("content")
-                        .WithFilter(
-                            filter =>
-                            {
-                                filter.TermFilter(new FilterTerm("nodeName", "my name"))
-                                     .AndFilter()
-                                     .TermPrefixFilter(new FilterTerm("nodeTypeAlias", "CWS_H"));
-                            });
+                      var criteria = searcher.CreateQuery("content")
+                    .WithFilter(
+                        filter =>
+                        {
+                            filter.TermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home"))
+                            .AndFilter()
+                            .TermPrefixFilter(new FilterTerm("nodeTypeAlias", "CWS_H"));
+                        });
                     var boolOp = criteria.All();
 
                     if (HasFacets(withFacets))
@@ -5355,6 +5347,49 @@ namespace Examine.Test.Examine.Lucene.Search
             RunFilterTest(withFacets, actAssertAction);
         }
 
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void TermAndNotTermPrefixFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                =>
+                {
+                    var criteria = searcher.CreateQuery("content")
+                  .WithFilter(
+                      filter =>
+                      {
+                          filter.TermPrefixFilter(new FilterTerm("nodeTypeAlias", "CWS_"))
+                          .AndNotFilter(
+                              inner => inner.NestedTermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home")));
+                      });
+                    var boolOp = criteria.All();
+
+                    if (HasFacets(withFacets))
+                    {
+                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                        var facetResults = results.GetFacet("nodeName");
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.AreEqual(2, facetResults.Count());
+
+                        Assert.IsTrue(results.All(x => x.Values["nodeTypeAlias"].StartsWith("CWS_")));
+                        Assert.IsFalse(results.Any(x=> x.Values["nodeTypeAlias"] == "CWS_Home"));
+                    }
+                    else
+                    {
+                        var results = boolOp.Execute();
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.IsTrue(results.All(x => x.Values["nodeTypeAlias"].StartsWith("CWS_")));
+                        Assert.IsFalse(results.Any(x => x.Values["nodeTypeAlias"] == "CWS_Home"));
+                    }
+                };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
 
         [TestCase(FacetTestType.TaxonomyFacets)]
         [TestCase(FacetTestType.SortedSetFacets)]
@@ -5442,7 +5477,13 @@ namespace Examine.Test.Examine.Lucene.Search
                         {
                             {"nodeName", "my name 3"},
                             {"nodeTypeAlias", "CWS_Page"}
-                        })
+                        }),
+                    new ValueSet(4.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 4"},
+                            {"nodeTypeAlias", "CWS_Page"}
+                        }),
                     });
 
                 var searcher = indexer.Searcher;

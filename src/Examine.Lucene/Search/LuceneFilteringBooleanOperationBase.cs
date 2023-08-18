@@ -93,7 +93,7 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public IBooleanFilterOperation AndNotFilter(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
-            => Op(inner, BooleanOperation.Or, defaultOp);
+            => Op(inner, BooleanOperation.Not, defaultOp);
         public abstract INestedFilter And();
         public  INestedBooleanFilterOperation And(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
             => Op(inner, BooleanOperation.And, defaultOp);
@@ -102,7 +102,7 @@ namespace Examine.Lucene.Search
             => Op(inner, BooleanOperation.Or, defaultOp);
         public abstract INestedFilter Not();
         public INestedBooleanFilterOperation AndNot(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
-            => Op(inner, BooleanOperation.Or, defaultOp);
+            => Op(inner, BooleanOperation.Not, defaultOp);
 
         #endregion
     }
