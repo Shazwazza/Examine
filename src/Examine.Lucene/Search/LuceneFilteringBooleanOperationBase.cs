@@ -9,6 +9,10 @@ namespace Examine.Lucene.Search
     {
         private readonly LuceneSearchFilteringOperationBase _search;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="luceneSearch"></param>
         public LuceneFilteringBooleanOperationBase(LuceneSearchFilteringOperationBase luceneSearch)
         {
             _search = luceneSearch;
@@ -91,18 +95,38 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public IBooleanFilterOperation AndNotFilter(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
             => Op(inner, BooleanOperation.Not, defaultOp);
+
+        /// <inheritdoc/>
         public abstract INestedFilter And();
-        public  INestedBooleanFilterOperation And(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
+
+        /// <inheritdoc/>
+        public INestedBooleanFilterOperation And(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
             => Op(inner, BooleanOperation.And, defaultOp);
+
+        /// <inheritdoc/>
         public abstract INestedFilter Or();
+
+        /// <inheritdoc/>
         public INestedBooleanFilterOperation Or(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
             => Op(inner, BooleanOperation.Or, defaultOp);
+
+        /// <inheritdoc/>
         public abstract INestedFilter Not();
+
+        /// <inheritdoc/>
         public INestedBooleanFilterOperation AndNot(Func<INestedFilter, INestedBooleanFilterOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
             => Op(inner, BooleanOperation.Not, defaultOp);
+
+        /// <inheritdoc/>
         public abstract IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive);
+
+        /// <inheritdoc/>
         public abstract IBooleanFilterOperation LongRangeFilter(string field, long? min, long? max, bool minInclusive, bool maxInclusive);
+
+        /// <inheritdoc/>
         public abstract IBooleanFilterOperation FloatRangeFilter(string field, float? min, float? max, bool minInclusive, bool maxInclusive);
+
+        /// <inheritdoc/>
         public abstract IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive);
 
         #endregion

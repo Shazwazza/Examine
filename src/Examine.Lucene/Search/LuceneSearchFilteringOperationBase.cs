@@ -89,12 +89,25 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
+        /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain);
+
+        /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedTermFilter(FilterTerm term);
+
+        /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedTermsFilter(IEnumerable<FilterTerm> terms);
+
+        /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedTermPrefixFilter(FilterTerm term);
+
+        /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedFieldValueExistsFilter(string field);
+
+        /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedFieldValueNotExistsFilter(string field);
+
+        /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp);
 
         /// <inheritdoc/>
@@ -117,9 +130,17 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         INestedBooleanFilterOperation INestedFilter.NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilter(inner, defaultOp);
+
+        /// <inheritdoc/>
         public abstract IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive);
+
+        /// <inheritdoc/>
         public abstract IBooleanFilterOperation LongRangeFilter(string field, long? min, long? max, bool minInclusive, bool maxInclusive);
+
+        /// <inheritdoc/>
         public abstract IBooleanFilterOperation FloatRangeFilter(string field, float? min, float? max, bool minInclusive, bool maxInclusive);
+
+        /// <inheritdoc/>
         public abstract IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive);
     }
 }
