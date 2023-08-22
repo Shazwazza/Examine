@@ -14,7 +14,7 @@ namespace Examine.Test.Examine.Core
     {
 
         [Test]
-        public void TestYieldConvertsSingleObjectsToEnumerable()
+        public void Given_SingleValues_When_Yielding_ThenConvertsToEnumerableOfSingleValues()
         {
             /* Includes implicit test that String (which is technically IEnumerable<char>)
              *  gets passed through as a single object - NOT as multiple chars
@@ -42,7 +42,7 @@ namespace Examine.Test.Examine.Core
         }
 
         [Test]
-        public void TestYieldPassesEnumerationsThrough()
+        public void Given_Enumerable_When_Yielding_ThenConvertsToEnumerable()
         {
 
             IDictionary<string, object> input = new Dictionary<string, object>()
@@ -81,7 +81,7 @@ namespace Examine.Test.Examine.Core
 
 
         [Test]
-        public void TestYieldPassesBothSingleAndMultipleItems()
+        public void Given_SingleAndEnumerableValues_When_Yeilding_ThenConvertsToEnumerable()
         {
 
             IDictionary<string, object> input = new Dictionary<string, object>()
