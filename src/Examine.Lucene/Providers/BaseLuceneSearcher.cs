@@ -113,7 +113,8 @@ namespace Examine.Lucene.Providers
         }
 
         /// <inheritdoc />
-        public void Dispose()
+        [Obsolete("The virutal modifier will be removed in Examine V5, override Dispose(bool) instead")]
+        public virtual void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
