@@ -1237,7 +1237,7 @@ namespace Examine.Lucene.Providers
 
                 }
 
-                return _writer; // TODO: should this throw when null
+                return _writer ?? throw new NullReferenceException(nameof(_writer));
             }
         }
 
@@ -1313,7 +1313,7 @@ namespace Examine.Lucene.Providers
 
                 }
 
-                return _taxonomyWriter;  // TODO: should this throw when null
+                return _taxonomyWriter ?? throw new NullReferenceException(nameof(_taxonomyWriter));
             }
         }
 
@@ -1332,7 +1332,9 @@ namespace Examine.Lucene.Providers
                     {
                     continue;
                 }
+#pragma warning disable IDE0057 // Use range operator
                 name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
+#pragma warning restore IDE0057 // Use range operator
             }
 
             var writer = IndexWriter;
@@ -1364,7 +1366,9 @@ namespace Examine.Lucene.Providers
                     {
                     continue;
                 }
+#pragma warning disable IDE0057 // Use range operator
                 name = name.Substring(0, name.LastIndexOf(suffix, StringComparison.Ordinal));
+#pragma warning restore IDE0057 // Use range operator
             }
 
             var writer = IndexWriter;

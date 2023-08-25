@@ -22,7 +22,9 @@ namespace Examine.Lucene.Indexing
         /// <param name="store"></param>
         public RawStringType(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
-            => _analyzer = new KeywordAnalyzer();
+        {
+            _analyzer = new KeywordAnalyzer();
+        }
 
         /// <inheritdoc/>
         public override Analyzer Analyzer => _analyzer;

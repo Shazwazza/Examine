@@ -34,7 +34,7 @@ namespace Examine.Lucene.Directories
             {
                 if (disposing)
                 {                    
-                    foreach (Directory d in _createdDirectories.Values)
+                    foreach (var d in _createdDirectories.Values)
                     {
                         d.Dispose();
                     }
@@ -48,7 +48,9 @@ namespace Examine.Lucene.Directories
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+#pragma warning disable IDE0022 // Use expression body for method
             Dispose(disposing: true);
+#pragma warning restore IDE0022 // Use expression body for method
         }
     }
 }

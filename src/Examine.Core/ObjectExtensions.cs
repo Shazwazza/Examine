@@ -30,7 +30,9 @@ namespace Examine
             if (o != null)
             {
                 if (o is IDictionary)
+                {
                     throw new InvalidOperationException($"The input object is already of type {typeof(IDictionary)}");
+                }
 
                 var props = TypeDescriptor.GetProperties(o);
                 var d = new Dictionary<string, object>();

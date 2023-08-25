@@ -17,7 +17,9 @@ namespace Examine.Lucene.Indexing
     public class Int64Type : IndexFieldRangeValueType<long>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
+#pragma warning disable IDE0032 // Use auto property
         private readonly bool _taxonomyIndex;
+#pragma warning restore IDE0032 // Use auto property
 
         /// <inheritdoc/>
         public Int64Type(string fieldName, bool isFacetable, bool taxonomyIndex, ILoggerFactory logger, bool store)
@@ -52,9 +54,14 @@ namespace Examine.Lucene.Indexing
             if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
             {
                 if (!TryConvert(objArr[0], out long parsedVal))
+                {
                     return;
+                }
+
                 if (!TryConvert(objArr[1], out string[]? parsedPathVal))
+                {
                     return;
+                }
 
                 doc.Add(new Int64Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
@@ -69,7 +76,9 @@ namespace Examine.Lucene.Indexing
         protected override void AddSingleValue(Document doc, object value)
         {
             if (!TryConvert(value, out long parsedVal))
+            {
                 return;
+            }
 
             doc.Add(new Int64Field(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
@@ -86,10 +95,7 @@ namespace Examine.Lucene.Indexing
         }
 
         /// <inheritdoc/>
-        public override Query? GetQuery(string query)
-        {
-            return !TryConvert(query, out long parsedVal) ? null : GetQuery(parsedVal, parsedVal);
-        }
+        public override Query? GetQuery(string query) => !TryConvert(query, out long parsedVal) ? null : GetQuery(parsedVal, parsedVal);
 
         /// <inheritdoc/>
         public override Query GetQuery(long? lower, long? upper, bool lowerInclusive = true, bool upperInclusive = true)

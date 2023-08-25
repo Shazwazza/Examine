@@ -37,7 +37,10 @@ namespace Examine
         /// </summary>
         /// <param name="id"></param>
         /// <remarks>normally used for deletions</remarks>
-        public ValueSet(string id) => Id = id;
+        public ValueSet(string id)
+        {
+            Id = id;
+        }
 
         /// <summary>
         /// Creates a value set from an object
@@ -130,7 +133,9 @@ namespace Examine
         /// <returns></returns>
         public IEnumerable<object> GetValues(string key)
         {
+#pragma warning disable IDE0022 // Use expression body for method
             return Values != null && Values.TryGetValue(key, out var values) ? values : Enumerable.Empty<object>();
+#pragma warning restore IDE0022 // Use expression body for method
         }
 
         /// <summary>
@@ -142,7 +147,9 @@ namespace Examine
         /// </returns>
         public object? GetValue(string key)
         {
+#pragma warning disable IDE0022 // Use expression body for method
             return Values != null && Values.TryGetValue(key, out var values) ? values.Count > 0 ? values[0] : null : null;
+#pragma warning restore IDE0022 // Use expression body for method
         }
 
         /// <summary>

@@ -6,7 +6,10 @@ namespace Examine
     public class IndexOptions
     {
         /// <inheritdoc/>
-        public IndexOptions() => FieldDefinitions = new FieldDefinitionCollection();
+        public IndexOptions()
+        {
+            FieldDefinitions = new FieldDefinitionCollection();
+        }
 
         /// <summary>
         /// The field definitions for the <see cref="IIndex"/>

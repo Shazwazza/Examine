@@ -30,7 +30,9 @@ namespace Examine.Lucene.Indexing
         private readonly bool _sortable;
         private readonly Analyzer _analyzer;
         private readonly bool _isFacetable;
+#pragma warning disable IDE0032 // Use auto property
         private readonly bool _taxonomyIndex;
+#pragma warning restore IDE0032 // Use auto property
 
         /// <summary>
         /// Constructor
@@ -90,9 +92,14 @@ namespace Examine.Lucene.Indexing
             if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
             {
                 if (!TryConvert(objArr[0], out string? str))
+                {
                     return;
+                }
+
                 if (!TryConvert(objArr[1], out string[]? parsedPathVal))
+                {
                     return;
+                }
 
                 doc.Add(new TextField(FieldName, str, Field.Store.YES));
 
@@ -193,9 +200,11 @@ namespace Examine.Lucene.Indexing
                     innerQuery.Add(exactMatch, Occur.SHOULD);
 
                     //add wildcard
-                    var pq = new PrefixQuery(new Term(fieldName, term));
-                    //needed so that wildcard searches will return a score
-                    pq.MultiTermRewriteMethod = MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE; //new ErrorCheckingScoringBooleanQueryRewrite();
+                    var pq = new PrefixQuery(new Term(fieldName, term))
+                    {
+                        //needed so that wildcard searches will return a score
+                        MultiTermRewriteMethod = MultiTermQuery.SCORING_BOOLEAN_QUERY_REWRITE //new ErrorCheckingScoringBooleanQueryRewrite();
+                    };
                     innerQuery.Add(pq, Occur.SHOULD);
 
                     resultQuery.Add(innerQuery, Occur.MUST);
@@ -217,10 +226,7 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public override Query? GetQuery(string query)
-        {
-            return GenerateQuery(FieldName, query, _analyzer);
-        }
+        public override Query? GetQuery(string query) => GenerateQuery(FieldName, query, _analyzer);
 
         /// <inheritdoc/>
         public virtual IEnumerable<KeyValuePair<string, IFacetResult>> ExtractFacets(IFacetExtractionContext facetExtractionContext, IFacetField field)

@@ -8,7 +8,7 @@ namespace Examine
     public class AspNetCoreApplicationIdentifier : IApplicationIdentifier
     {
         private readonly IServiceProvider _services;
-        private static readonly Lazy<string> _applicationId = new(() => Guid.NewGuid().ToString());
+        private static readonly Lazy<string> ApplicationId = new(() => Guid.NewGuid().ToString());
 
         /// <inheritdoc/>
         public AspNetCoreApplicationIdentifier(IServiceProvider services)
@@ -18,6 +18,6 @@ namespace Examine
 
 
         /// <inheritdoc/>
-        public string GetApplicationUniqueIdentifier() => _services.GetApplicationUniqueIdentifier() ?? _applicationId.Value;
+        public string GetApplicationUniqueIdentifier() => _services.GetApplicationUniqueIdentifier() ?? ApplicationId.Value;
     }
 }
