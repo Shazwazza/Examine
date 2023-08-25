@@ -1,0 +1,92 @@
+#nullable enable
+const Examine.ExamineFieldNames.DefaultFacetsName = "$facets" -> string!
+const Examine.FieldDefinitionTypes.FacetDateDay = "facetdate.day" -> string!
+const Examine.FieldDefinitionTypes.FacetDateHour = "facetdate.hour" -> string!
+const Examine.FieldDefinitionTypes.FacetDateMinute = "facetdate.minute" -> string!
+const Examine.FieldDefinitionTypes.FacetDateMonth = "facetdate.month" -> string!
+const Examine.FieldDefinitionTypes.FacetDateTime = "facetdatetime" -> string!
+const Examine.FieldDefinitionTypes.FacetDateYear = "facetdate.year" -> string!
+const Examine.FieldDefinitionTypes.FacetDouble = "facetdouble" -> string!
+const Examine.FieldDefinitionTypes.FacetFloat = "facetfloat" -> string!
+const Examine.FieldDefinitionTypes.FacetFullText = "facetfulltext" -> string!
+const Examine.FieldDefinitionTypes.FacetFullTextSortable = "facetfulltextsortable" -> string!
+const Examine.FieldDefinitionTypes.FacetInteger = "facetint" -> string!
+const Examine.FieldDefinitionTypes.FacetLong = "facetlong" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateDay = "facettaxonomydate.day" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateHour = "facettaxonomydate.hour" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateMinute = "facettaxonomydate.minute" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateMonth = "facettaxonomydate.month" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateTime = "facettaxonomydatetime" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyDateYear = "facettaxonomydate.year" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyDouble = "facettaxonomydouble" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyFloat = "facettaxonomyfloat" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyFullText = "facettaxonomyfulltext" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyFullTextSortable = "facettaxonomyfulltextsortable" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyInteger = "facettaxonomyint" -> string!
+const Examine.FieldDefinitionTypes.FacetTaxonomyLong = "facettaxonomylong" -> string!
+Examine.Search.DoubleRange
+Examine.Search.DoubleRange.DoubleRange() -> void
+Examine.Search.DoubleRange.DoubleRange(string! label, double min, bool minInclusive, double max, bool maxInclusive) -> void
+Examine.Search.DoubleRange.Label.get -> string!
+Examine.Search.DoubleRange.Max.get -> double
+Examine.Search.DoubleRange.MaxInclusive.get -> bool
+Examine.Search.DoubleRange.Min.get -> double
+Examine.Search.DoubleRange.MinInclusive.get -> bool
+Examine.Search.FacetLabel
+Examine.Search.FacetLabel.CompareTo(Examine.Search.IFacetLabel? other) -> int
+Examine.Search.FacetLabel.Components.get -> string![]!
+Examine.Search.FacetLabel.FacetLabel() -> void
+Examine.Search.FacetLabel.FacetLabel(string! dimension, string![]! components) -> void
+Examine.Search.FacetLabel.FacetLabel(string![]! components) -> void
+Examine.Search.FacetLabel.Length.get -> int
+Examine.Search.FacetLabel.Subpath(int length) -> Examine.Search.IFacetLabel!
+Examine.Search.FacetResult
+Examine.Search.FacetResult.Facet(string! label) -> Examine.Search.IFacetValue?
+Examine.Search.FacetResult.FacetResult(System.Collections.Generic.IEnumerable<Examine.Search.IFacetValue!>! values) -> void
+Examine.Search.FacetResult.GetEnumerator() -> System.Collections.Generic.IEnumerator<Examine.Search.IFacetValue!>!
+Examine.Search.FacetResult.TryGetFacet(string! label, out Examine.Search.IFacetValue? facetValue) -> bool
+Examine.Search.FacetValue
+Examine.Search.FacetValue.FacetValue() -> void
+Examine.Search.FacetValue.FacetValue(string! label, float value) -> void
+Examine.Search.FacetValue.Label.get -> string!
+Examine.Search.FacetValue.Value.get -> float
+Examine.Search.FloatRange
+Examine.Search.FloatRange.FloatRange() -> void
+Examine.Search.FloatRange.FloatRange(string! label, float min, bool minInclusive, float max, bool maxInclusive) -> void
+Examine.Search.FloatRange.Label.get -> string!
+Examine.Search.FloatRange.Max.get -> float
+Examine.Search.FloatRange.MaxInclusive.get -> bool
+Examine.Search.FloatRange.Min.get -> float
+Examine.Search.FloatRange.MinInclusive.get -> bool
+Examine.Search.IFaceting
+Examine.Search.IFaceting.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
+Examine.Search.IFacetLabel
+Examine.Search.IFacetLabel.Components.get -> string![]!
+Examine.Search.IFacetLabel.Length.get -> int
+Examine.Search.IFacetLabel.Subpath(int length) -> Examine.Search.IFacetLabel!
+Examine.Search.IFacetOperations
+Examine.Search.IFacetOperations.FacetDoubleRange(string! field, params Examine.Search.DoubleRange[]! doubleRanges) -> Examine.Search.IFacetOperations!
+Examine.Search.IFacetOperations.FacetFloatRange(string! field, params Examine.Search.FloatRange[]! floatRanges) -> Examine.Search.IFacetOperations!
+Examine.Search.IFacetOperations.FacetLongRange(string! field, params Examine.Search.Int64Range[]! longRanges) -> Examine.Search.IFacetOperations!
+Examine.Search.IFacetOperations.FacetString(string! field, System.Action<Examine.Search.IFacetQueryField!>? facetConfiguration = null, params string![]! values) -> Examine.Search.IFacetOperations!
+Examine.Search.IFacetQueryField
+Examine.Search.IFacetQueryField.MaxCount(int count) -> Examine.Search.IFacetQueryField!
+Examine.Search.IFacetQueryField.SetPath(params string![]! path) -> Examine.Search.IFacetQueryField!
+Examine.Search.IFacetResult
+Examine.Search.IFacetResult.Facet(string! label) -> Examine.Search.IFacetValue?
+Examine.Search.IFacetResult.TryGetFacet(string! label, out Examine.Search.IFacetValue? facetValue) -> bool
+Examine.Search.IFacetResults
+Examine.Search.IFacetResults.Facets.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>!
+Examine.Search.IFacetValue
+Examine.Search.IFacetValue.Label.get -> string!
+Examine.Search.IFacetValue.Value.get -> float
+Examine.Search.Int64Range
+Examine.Search.Int64Range.Int64Range() -> void
+Examine.Search.Int64Range.Int64Range(string! label, long min, bool minInclusive, long max, bool maxInclusive) -> void
+Examine.Search.Int64Range.Label.get -> string!
+Examine.Search.Int64Range.Max.get -> long
+Examine.Search.Int64Range.MaxInclusive.get -> bool
+Examine.Search.Int64Range.Min.get -> long
+Examine.Search.Int64Range.MinInclusive.get -> bool
+Examine.Search.OrderingExtensions
+static Examine.Search.OrderingExtensions.WithFacets(this Examine.Search.IOrdering! ordering, System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
