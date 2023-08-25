@@ -30,7 +30,6 @@ Examine.Lucene.LuceneIndexOptions.FacetsConfig.set -> void
 Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.get -> bool
 Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.set -> void
 Examine.Lucene.Providers.BaseLuceneSearcher.BaseLuceneSearcher(string! name, Lucene.Net.Analysis.Analyzer! analyzer, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
-Examine.Lucene.Providers.BaseLuceneSearcher.Dispose() -> void
 Examine.Lucene.Providers.IIndexCommiter
 Examine.Lucene.Providers.IIndexCommiter.CommitNow() -> void
 Examine.Lucene.Providers.IIndexCommiter.ScheduleCommit() -> void
@@ -168,6 +167,7 @@ virtual Examine.Lucene.Indexing.FullTextType.ExtractFacets(Examine.Lucene.Search
 virtual Examine.Lucene.Indexing.Int32Type.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 virtual Examine.Lucene.Indexing.Int64Type.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
 virtual Examine.Lucene.Indexing.SingleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+virtual Examine.Lucene.Providers.BaseLuceneSearcher.Dispose() -> void
 virtual Examine.Lucene.Providers.BaseLuceneSearcher.Dispose(bool disposing) -> void
 virtual Examine.Lucene.Providers.BaseLuceneSearcher.GetDefaultFacetConfig() -> Lucene.Net.Facet.FacetsConfig!
 virtual Examine.Lucene.Providers.LuceneIndex.CreateTaxonomyWriter(Lucene.Net.Store.Directory? d) -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
