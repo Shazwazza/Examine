@@ -237,7 +237,7 @@ namespace Examine.Lucene.Providers
         private volatile DirectoryTaxonomyWriter? _taxonomyWriter;
         private ControlledRealTimeReopenThread<SearcherTaxonomyManager.SearcherAndTaxonomy>? _taxonomyNrtReopenThread;
 
-        private readonly Lazy<LuceneTaxonomySearcher>? _taxonomySearcher;
+        private readonly Lazy<LuceneTaxonomySearcher> _taxonomySearcher;
         private readonly Lazy<Directory>? _taxonomyDirectory;
 
         #region Properties

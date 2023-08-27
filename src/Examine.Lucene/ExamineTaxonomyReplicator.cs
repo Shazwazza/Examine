@@ -182,8 +182,9 @@ namespace Examine.Lucene
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+#pragma warning disable IDE0022 // Use expression body for method
             Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+#pragma warning restore IDE0022 // Use expression body for method
         }
     }
 }
