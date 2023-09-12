@@ -18,8 +18,16 @@ namespace Examine.Lucene.Directories
         /// <inheritdoc/>
         public MultiIndexLockFactory(Directory master, Directory child)
         {
-            if (master == null) throw new ArgumentNullException("master");
-            if (child == null) throw new ArgumentNullException("child");
+            if (master == null)
+            {
+                throw new ArgumentNullException("master");
+            }
+
+            if (child == null)
+            {
+                throw new ArgumentNullException("child");
+            }
+
             _master = master.LockFactory;
             _child = child.LockFactory;
         }
@@ -27,8 +35,16 @@ namespace Examine.Lucene.Directories
         /// <inheritdoc/>
         public MultiIndexLockFactory(LockFactory master, LockFactory child)
         {
-            if (master == null) throw new ArgumentNullException("master");
-            if (child == null) throw new ArgumentNullException("child");
+            if (master == null)
+            {
+                throw new ArgumentNullException("master");
+            }
+
+            if (child == null)
+            {
+                throw new ArgumentNullException("child");
+            }
+
             lock (Locker)
             {
                 _master = master;
@@ -64,7 +80,9 @@ namespace Examine.Lucene.Directories
                 {
                     //if an error occurs above for the master still attempt to release child
                     if (!isChild)
+                    {
                         _child.ClearLock(lockName);
+                    }
 
                     throw;
                 }

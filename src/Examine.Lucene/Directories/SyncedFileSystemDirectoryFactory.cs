@@ -44,7 +44,7 @@ namespace Examine.Lucene.Directories
             var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
             var localLuceneIndexFolder = new DirectoryInfo(path);
 
-            Directory mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
+            var mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
 
             // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
             var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));

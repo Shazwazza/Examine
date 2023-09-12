@@ -54,9 +54,10 @@ namespace Examine.Test
         [Test]
         public void TestRemove()
         {
-            var od = new OrderedDictionary<string, string>();
-
-            od.Add("foo", "bar");
+            var od = new OrderedDictionary<string, string>
+            {
+                { "foo", "bar" }
+            };
             Assert.AreEqual(1, od.Count);
 
             od.Remove("foo");
@@ -66,9 +67,10 @@ namespace Examine.Test
         [Test]
         public void TestRemoveAt()
         {
-            var od = new OrderedDictionary<string, string>();
-
-            od.Add("foo", "bar");
+            var od = new OrderedDictionary<string, string>
+            {
+                { "foo", "bar" }
+            };
             Assert.AreEqual(1, od.Count);
 
             od.RemoveAt(0);
@@ -112,7 +114,9 @@ namespace Examine.Test
         public void TestTryGetValue()
         {
             var alphabetDict = GetAlphabetDictionary();
+#pragma warning disable IDE0018 // Inline variable declaration
             string result = null;
+#pragma warning restore IDE0018 // Inline variable declaration
             Assert.IsFalse(alphabetDict.TryGetValue("abc", out result));
             Assert.IsNull(result);
             Assert.IsTrue(alphabetDict.TryGetValue("z", out result));

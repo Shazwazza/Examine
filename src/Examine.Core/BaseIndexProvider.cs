@@ -24,7 +24,9 @@ namespace Examine
             IOptionsMonitor<IndexOptions> indexOptions)
         {
             if (string.IsNullOrWhiteSpace(name))
+            {
                 throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            }
 
             LoggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<BaseIndexProvider>();

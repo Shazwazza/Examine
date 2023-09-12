@@ -19,12 +19,7 @@ namespace Examine
         public static T GetNamedOptions<T>(this IOptionsMonitor<T> optionsMonitor, string name)
             where T : class
         {
-            T options = optionsMonitor.Get(name);
-
-            if (options == null)
-            {
-                throw new InvalidOperationException($"No named {typeof(T)} options with name {name}");
-            }
+            var options = optionsMonitor.Get(name) ?? throw new InvalidOperationException($"No named {typeof(T)} options with name {name}");
 
             return options;
         }
@@ -37,7 +32,7 @@ namespace Examine
         /// <returns></returns>
         public static IIndex GetIndex(this IExamineManager examineManager, string indexName)
         {
-            if (examineManager.TryGetIndex(indexName, out IIndex? index))
+            if (examineManager.TryGetIndex(indexName, out var index))
             {
                 return index;
             }
@@ -49,20 +44,14 @@ namespace Examine
         /// </summary>
         /// <param name="index"></param>
         /// <param name="itemId"></param>
-        public static void DeleteFromIndex(this IIndex index, string itemId)
-        {
-            index.DeleteFromIndex(new[] {itemId});
-        }
+        public static void DeleteFromIndex(this IIndex index, string itemId) => index.DeleteFromIndex(new[] { itemId });
 
         /// <summary>
         /// Method to re-index specific data
         /// </summary>
         /// <param name="index"></param>
         /// <param name="node"></param>
-        public static void IndexItem(this IIndex index, ValueSet node)
-        {
-            index.IndexItems(new[] { node });
-        }
+        public static void IndexItem(this IIndex index, ValueSet node) => index.IndexItems(new[] { node });
 
     }
 }

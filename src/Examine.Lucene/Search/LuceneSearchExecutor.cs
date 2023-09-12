@@ -20,17 +20,17 @@ namespace Examine.Lucene.Search
     public class LuceneSearchExecutor
     {
         private readonly QueryOptions _options;
-        private readonly LuceneQueryOptions _luceneQueryOptions;
+        private readonly LuceneQueryOptions? _luceneQueryOptions;
         private readonly IEnumerable<SortField> _sortField;
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string>? _fieldsToLoad;
-        private readonly IEnumerable<IFacetField> _facetFields;
-        private readonly FacetsConfig _facetsConfig;
+        private readonly IEnumerable<IFacetField>? _facetFields;
+        private readonly FacetsConfig? _facetsConfig;
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
-            ISet<string> fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig)
+            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -48,7 +48,7 @@ namespace Examine.Lucene.Search
             {
                 if (_maxDoc == null)
                 {
-                    using (ISearcherReference searcher = _searchContext.GetSearcher())
+                    using (var searcher = _searchContext.GetSearcher())
                     {
                         _maxDoc = searcher.IndexSearcher.IndexReader.MaxDoc;
                     }
@@ -96,12 +96,12 @@ namespace Examine.Lucene.Search
             maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
             int numHits = maxResults;
 
-            SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
-            Sort sort = null;
-            FieldDoc scoreDocAfter = null;
-            Filter filter = null;
+            var sortFields = _sortField as SortField[] ?? _sortField.ToArray();
+            Sort? sort = null;
+            FieldDoc? scoreDocAfter = null;
+            Filter? filter = null;
 
-            using (ISearcherReference searcher = _searchContext.GetSearcher())
+            using (var searcher = _searchContext.GetSearcher())
             {
                 if (sortFields.Length > 0)
                 {
@@ -111,7 +111,7 @@ namespace Examine.Lucene.Search
                 if (_luceneQueryOptions != null && _luceneQueryOptions.SearchAfter != null)
                 {
                     //The document to find results after.
-                    scoreDocAfter = GetScoreDocAfter(_luceneQueryOptions);
+                    scoreDocAfter = GetScoreDocAfter(_luceneQueryOptions.SearchAfter);
 
                     // We want to only collect only the actual number of hits we want to take after the last document. We don't need to collect all previous/next docs.
                     numHits = _options.Take >= 1 ? _options.Take : QueryOptions.DefaultMaxResults;
@@ -131,7 +131,7 @@ namespace Examine.Lucene.Search
                 {
                     topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
                 }
-                FacetsCollector facetsCollector = null;
+                FacetsCollector? facetsCollector = null;
                 if (_facetFields != null && _facetFields.Any() && _luceneQueryOptions != null && _luceneQueryOptions.FacetRandomSampling != null)
                 {
                     var facetsCollectors = new RandomSamplingFacetsCollector(_luceneQueryOptions.FacetRandomSampling.SampleSize, _luceneQueryOptions.FacetRandomSampling.Seed);
@@ -195,29 +195,28 @@ namespace Examine.Lucene.Search
             }
         }
 
-        private static FieldDoc GetScoreDocAfter(LuceneQueryOptions luceneQueryOptions)
+        private static FieldDoc GetScoreDocAfter(SearchAfterOptions searchAfterOptions)
         {
             FieldDoc scoreDocAfter;
-            var searchAfter = luceneQueryOptions.SearchAfter;
 
             object[] searchAfterSortFields = new object[0];
-            if (luceneQueryOptions.SearchAfter.Fields != null && luceneQueryOptions.SearchAfter.Fields.Length > 0)
+            if (searchAfterOptions.Fields != null && searchAfterOptions.Fields.Length > 0)
             {
-                searchAfterSortFields = luceneQueryOptions.SearchAfter.Fields;
+                searchAfterSortFields = searchAfterOptions.Fields;
             }
-            if (searchAfter.ShardIndex != null)
+            if (searchAfterOptions.ShardIndex != null)
             {
-                scoreDocAfter = new FieldDoc(searchAfter.DocumentId, searchAfter.DocumentScore, searchAfterSortFields, searchAfter.ShardIndex.Value);
+                scoreDocAfter = new FieldDoc(searchAfterOptions.DocumentId, searchAfterOptions.DocumentScore, searchAfterSortFields, searchAfterOptions.ShardIndex.Value);
             }
             else
             {
-                scoreDocAfter = new FieldDoc(searchAfter.DocumentId, searchAfter.DocumentScore, searchAfterSortFields);
+                scoreDocAfter = new FieldDoc(searchAfterOptions.DocumentId, searchAfterOptions.DocumentScore, searchAfterSortFields);
             }
 
             return scoreDocAfter;
         }
 
-        private static SearchAfterOptions GetSearchAfterOptions(TopDocs topDocs)
+        private static SearchAfterOptions? GetSearchAfterOptions(TopDocs topDocs)
         {
             if (topDocs.TotalHits > 0)
             {
@@ -242,10 +241,6 @@ namespace Examine.Lucene.Search
             }
 
             var facetFields = _facetFields.OrderBy(field => field.FacetField);
-
-            SortedSetDocValuesReaderState sortedSetReaderState = null;
-            Facets fastTaxonomyFacetCounts = null;
-
 
             foreach (var field in facetFields)
             {
@@ -304,6 +299,7 @@ namespace Examine.Lucene.Search
         /// </summary>
         /// <param name="doc">The doc to convert.</param>
         /// <param name="score">The score.</param>
+        /// <param name="shardIndex"></param>
         /// <returns>A populated search result object</returns>
         private LuceneSearchResult CreateSearchResult(Document doc, float score, int shardIndex)
         {
@@ -352,7 +348,7 @@ namespace Examine.Lucene.Search
         {
             if (query is BooleanQuery bq)
             {
-                foreach (BooleanClause clause in bq.Clauses)
+                foreach (var clause in bq.Clauses)
                 {
                     //recurse
                     var check = CheckQueryForExtractTerms(clause.Query);
@@ -368,7 +364,7 @@ namespace Examine.Lucene.Search
                 return CheckQueryForExtractTerms(lbq.Wrapped);
             }
 
-            Type queryType = query.GetType();
+            var queryType = query.GetType();
 
             if (typeof(TermRangeQuery).IsAssignableFrom(queryType)
                 || typeof(WildcardQuery).IsAssignableFrom(queryType)

@@ -17,21 +17,24 @@ namespace Examine
         protected bool Disposed { get; private set; }
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            Dispose(true);
-        }
+        public void Dispose() => Dispose(true);
 
         private void Dispose(bool disposing)
         {
             lock (_locko)
             {
-                if (Disposed) return;
+                if (Disposed)
+                {
+                    return;
+                }
+
                 Disposed = true;
             }
 
             if (disposing)
+            {
                 DisposeResources();
+            }
         }
 
         /// <summary>

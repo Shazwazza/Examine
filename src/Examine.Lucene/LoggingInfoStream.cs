@@ -5,7 +5,10 @@ namespace Examine.Lucene
 {
     internal class LoggingInfoStream<T> : InfoStream
     {
-        public LoggingInfoStream(ILogger<T> logger) => Logger = logger;
+        public LoggingInfoStream(ILogger<T> logger)
+        {
+            Logger = logger;
+        }
 
         public ILogger<T> Logger { get; }
 

@@ -26,7 +26,10 @@ namespace Examine
         /// <inheritdoc/>
         public TVal GetItem(int index)
         {
-            if (index >= Count) throw new IndexOutOfRangeException();
+            if (index >= Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
 
             var found = base[index];
 
@@ -36,30 +39,31 @@ namespace Examine
         /// <inheritdoc/>
         public int IndexOf(TKey key)
         {
-            if (base.Dictionary == null) return -1;
-            if (base.Dictionary.TryGetValue(key, out KeyValuePair<TKey, TVal> found))
+            if (Dictionary == null)
             {
-                return base.Items.IndexOf(found);
+                return -1;
+            }
+
+            if (Dictionary.TryGetValue(key, out var found))
+            {
+                return Items.IndexOf(found);
             }
             return -1;
         }
 
         /// <inheritdoc/>
-        protected override TKey GetKeyForItem(KeyValuePair<TKey, TVal> item)
-        {
-            return item.Key;
-        }
+        protected override TKey GetKeyForItem(KeyValuePair<TKey, TVal> item) => item.Key;
 
         /// <inheritdoc/>
-        public bool ContainsKey(TKey key)
-        {            
-            return base.Contains(key);
-        }
+        public bool ContainsKey(TKey key) => Contains(key);
 
         /// <inheritdoc/>
         public void Add(TKey key, TVal value)
         {
-            if (base.Contains(key)) throw new ArgumentException("The key " + key + " already exists in this collection");
+            if (Contains(key))
+            {
+                throw new ArgumentException("The key " + key + " already exists in this collection");
+            }
 
             base.Add(new KeyValuePair<TKey, TVal>(key, value));
         }
@@ -74,19 +78,19 @@ namespace Examine
 #endif
             out TVal value)
         {
-            if (base.Dictionary == null)
+            if (Dictionary == null)
             {
-                value = default(TVal);
+                value = default;
                 return false;
             }
 
-            if (base.Dictionary.TryGetValue(key, out KeyValuePair<TKey, TVal> found))
+            if (Dictionary.TryGetValue(key, out var found))
             {
                 value = found.Value;
                 return true;
             }
 
-            value = default(TVal);
+            value = default;
             return false;
         }
 
@@ -100,8 +104,8 @@ namespace Examine
         {
             get
             {
-                if (base.Dictionary != null && 
-                    base.Dictionary.TryGetValue(key, out KeyValuePair<TKey, TVal> found))
+                if (Dictionary != null &&
+                    Dictionary.TryGetValue(key, out var found))
                 {
                     return found.Value;
                 }
@@ -109,15 +113,15 @@ namespace Examine
             }
             set
             {
-                if (base.Dictionary != null && 
-                    base.Dictionary.TryGetValue(key, out KeyValuePair<TKey, TVal> found))
+                if (Dictionary != null &&
+                    Dictionary.TryGetValue(key, out var found))
                 {
-                    var index = base.Items.IndexOf(found);
-                    base.SetItem(index, new KeyValuePair<TKey, TVal>(key, value));
+                    var index = Items.IndexOf(found);
+                    SetItem(index, new KeyValuePair<TKey, TVal>(key, value));
                 }
                 else
                 {
-                    base.Add(new KeyValuePair<TKey, TVal>(key, value));
+                    Add(new KeyValuePair<TKey, TVal>(key, value));
                 }
             }
         }
@@ -126,9 +130,9 @@ namespace Examine
         private static readonly ICollection<TVal> EmptyValues = new List<TVal>();
 
         /// <inheritdoc/>
-        public ICollection<TKey> Keys => base.Dictionary != null ? base.Dictionary.Keys : EmptyCollection;
+        public ICollection<TKey> Keys => Dictionary != null ? Dictionary.Keys : EmptyCollection;
 
         /// <inheritdoc/>
-        public ICollection<TVal> Values => base.Dictionary != null ? base.Dictionary.Values.Select(x => x.Value).ToArray() : EmptyValues;
+        public ICollection<TVal> Values => Dictionary != null ? Dictionary.Values.Select(x => x.Value).ToArray() : EmptyValues;
     }
 }

@@ -2944,7 +2944,9 @@ namespace Examine.Test.Examine.Lucene.Search
                         var next = results.ElementAtOrDefault(i + 1);
 
                         if (next == null)
+                        {
                             break;
+                        }
 
                         Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
                     }
@@ -2960,7 +2962,9 @@ namespace Examine.Test.Examine.Lucene.Search
                         var next = results.ElementAtOrDefault(i + 1);
 
                         if (next == null)
+                        {
                             break;
+                        }
 
                         Assert.IsTrue(curr.Score >= next.Score, string.Format("Result at index {0} must have a higher score than result at index {1}", i, i + 1));
                     }
