@@ -279,7 +279,7 @@ Filtered value example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.FacetString("Address", "Hills")) // Get facets of the Address field with specific value
+    .WithFacets(facets => facets.FacetString("Address", null, new[] { "Hills" })) // Get facets of the Address field with specific value
     .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
