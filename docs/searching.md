@@ -362,7 +362,7 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 
 Numeric range facets can be used with numbers and get facets for numeric ranges. For example, it would group documents of the same price range.
 
-There's two categories of numeric ranges - `DoubleRange` and `Int64Range` for double/float values and int/long/datetime values respectively.
+There's three categories of numeric ranges - `DoubleRange`, `FloatRange` and `Int64Range` for double, float and int/long/datetime values respectively.
 
 Double range example
 ```csharp
