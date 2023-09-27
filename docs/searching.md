@@ -260,7 +260,7 @@ Basic example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
  .Field("Address", "Hills")
- .WithFacets(facets => facets.Facet("Address")) // Get facets of the Address field
+ .WithFacets(facets => facets.FacetString("Address")) // Get facets of the Address field
  .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
@@ -279,7 +279,7 @@ Filtered value example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address", "Hills")) // Get facets of the Address field
+    .WithFacets(facets => facets.FacetString("Address", "Hills")) // Get facets of the Address field with specific value
     .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
@@ -289,7 +289,7 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 * Label: Hills, Value: 2 <-- As Hills was the only filtered value we will only get this facet
 */
 
-var hillsValue = addressFacetResults.Facet("Hills"); // Gets the IFacetValue for the facet Hills
+var hillsValue = addressFacetResults.FacetString("Hills"); // Gets the IFacetValue for the facet Hills
 ```
 
 MaxCount example
@@ -297,7 +297,7 @@ MaxCount example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address")) // Get facets of the Address field
+    .WithFacets(facets => facets.FacetString("Address")) // Get facets of the Address field
     .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
@@ -311,7 +311,7 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 
 results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address", config => config.MaxCount(2))) // Get facets of the Address field & Gets the top 2 results (The facets with the highest value)
+    .WithFacets(facets => facets.FacetString("Address", config => config.MaxCount(2))) // Get facets of the Address field & Gets the top 2 results (The facets with the highest value)
     .Execute();
 
 addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
