@@ -260,7 +260,7 @@ Basic example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
  .Field("Address", "Hills")
- .WithFacets(facets => facets.Facet("Address")) // Get facets of the Address field
+ .WithFacets(facets => facets.FacetString("Address")) // Get facets of the Address field
  .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
@@ -279,7 +279,7 @@ Filtered value example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address", "Hills")) // Get facets of the Address field
+    .WithFacets(facets => facets.FacetString("Address", null, new[] { "Hills" })) // Get facets of the Address field with specific value
     .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
@@ -289,7 +289,7 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 * Label: Hills, Value: 2 <-- As Hills was the only filtered value we will only get this facet
 */
 
-var hillsValue = addressFacetResults.Facet("Hills"); // Gets the IFacetValue for the facet Hills
+var hillsValue = addressFacetResults.FacetString("Hills"); // Gets the IFacetValue for the facet Hills
 ```
 
 MaxCount example
@@ -297,7 +297,7 @@ MaxCount example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address")) // Get facets of the Address field
+    .WithFacets(facets => facets.FacetString("Address")) // Get facets of the Address field
     .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
@@ -311,7 +311,7 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 
 results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address", config => config.MaxCount(2))) // Get facets of the Address field & Gets the top 2 results (The facets with the highest value)
+    .WithFacets(facets => facets.FacetString("Address", config => config.MaxCount(2))) // Get facets of the Address field & Gets the top 2 results (The facets with the highest value)
     .Execute();
 
 addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
@@ -346,7 +346,7 @@ services.AddExamineLuceneIndex("MyIndex",
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .Field("Address", "Hills")
-    .WithFacets(facets => facets.Facet("Address")) // Get facets of the Address field from the facet field address_facet (The facet field is automatically read from the FacetsConfig)
+    .WithFacets(facets => facets.FacetString("Address")) // Get facets of the Address field from the facet field address_facet (The facet field is automatically read from the FacetsConfig)
     .Execute();
 
 var addressFacetResults = results.GetFacet("Address"); // Returns the facets for the specific field Address
@@ -362,14 +362,14 @@ var addressFacetResults = results.GetFacet("Address"); // Returns the facets for
 
 Numeric range facets can be used with numbers and get facets for numeric ranges. For example, it would group documents of the same price range.
 
-There's two categories of numeric ranges - `DoubleRanges` and `Int64Range` for double/float values and int/long/datetime values respectively.
+There's three categories of numeric ranges - `DoubleRange`, `FloatRange` and `Int64Range` for double, float and int/long/datetime values respectively.
 
 Double range example
 ```csharp
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .All()
-    .WithFacets(facets => facets.Facet("Price", new DoubleRange[] {
+    .WithFacets(facets => facets.FacetDoubleRange("Price", new DoubleRange[] {
         new DoubleRange("0-10", 0, true, 10, true),
         new DoubleRange("11-20", 11, true, 20, true)
     })) // Get facets of the price field
@@ -391,7 +391,7 @@ Float range example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .All()
-    .WithFacets(facets => facets.Facet("Price", new FloatRange[] {
+    .WithFacets(facets => facets.FacetFloatRange("Price", new FloatRange[] {
         new FloatRange("0-10", 0, true, 10, true),
         new FloatRange("11-20", 11, true, 20, true)
     })) // Get facets of the price field
@@ -413,7 +413,7 @@ Int/Long range example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .All()
-    .WithFacets(facets => facets.Facet("Price", new Int64Range[] {
+    .WithFacets(facets => facets.FacetLongRange("Price", new Int64Range[] {
         new Int64Range("0-10", 0, true, 10, true),
         new Int64Range("11-20", 11, true, 20, true)
     })) // Get facets of the price field
@@ -435,7 +435,7 @@ DateTime range example
 var searcher = myIndex.Searcher;
 var results = searcher.CreateQuery()
     .All()
-    .WithFacets(facets => facets.Facet("Created", new Int64Range[] {
+    .WithFacets(facets => facets.FacetLongRange("Created", new Int64Range[] {
         new Int64Range("first", DateTime.UtcNow.AddDays(-1).Ticks, true, DateTime.UtcNow.Ticks, true),
         new Int64Range("last", DateTime.UtcNow.AddDays(1).Ticks, true, DateTime.UtcNow.AddDays(2).Ticks, true)
     })) // Get facets of the price field
