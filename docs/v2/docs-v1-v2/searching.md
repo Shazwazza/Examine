@@ -125,7 +125,7 @@ query.Field("nodeTypeAlias", "CWS_Home".Boost(20));
 var results = query.Execute();
 ```
 
-This will boost the term `CWS_Home` and make enteries with `nodeTypeAlias:CWS_Home` score higher in the results.
+This will boost the term `CWS_Home` and make entries with `nodeTypeAlias:CWS_Home` score higher in the results.
 
 ## Proximity
 
