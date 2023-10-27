@@ -8,7 +8,7 @@ order: 2
 Searching
 ===
 
-_**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/master/src/Examine.Test/Search/FluentApiTests.cs) to use as examples/reference._
+_**Tip**: There are many examples of searching in the [`FluentApiTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Examine.Lucene/Search/FluentApiTests.cs) to use as examples/reference._
 
 ## All fields (managed queries)
 
@@ -33,8 +33,8 @@ be searched. In most cases the field value type will be 'Full Text', others may 
 ```csharp
 var searcher = myIndex.Searcher; // Get a searcher
 var results = searcher.CreateQuery() // Create a query
- .Field("Address", "Hills") // Look for any "Hills" addresses
- .Execute(); // Execute the search
+  .Field("Address", "Hills") // Look for any "Hills" addresses
+  .Execute(); // Execute the search
 ```
 
 ### Terms and Phrases
@@ -141,7 +141,6 @@ var query = searcher.CreateQuery("content");
 query.Field("metaKeywords", "Warren creative".Proximity(5));
 var results = query.Execute();
 ```
-
 ## Fuzzy
 
 Fuzzy searching is the practice of finding spellings that are similar to each other. Examine searches based on the [Damerau-Levenshtein Distance](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance). The parameter given in the `.Fuzzy()` method is the edit distance allowed by default this value is `0.5` if not specified.
@@ -195,13 +194,11 @@ var query = searcher.CreateQuery()
 ```
 
 This will match for example: `test`, `tests` , `tester`, `testers`
-
 ### Lucene native query (Multiple characters)
 
 The multiple wildcard character is `*`. It will match 0 or more characters.
 
 Example
-
 ```csharp
 var query = searcher.CreateQuery()
     .NativeQuery("equipment:t*pad");
@@ -249,4 +246,25 @@ var query = searcher.CreateQuery();
 var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make query ready for extending
 query.LuceneQuery(NumericRangeQuery.NewInt64Range("numTest", 4, 5, true, true)); // Add the raw lucene query
 var results = query.Execute();
+```
+### Lucene Searches
+
+Sometimes you need access to the underlying Lucene.NET APIs to perform a manual Lucene search.
+
+An example of Spatial Search with the Lucene APIs is in the [Examine source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Examine.Lucene/Extensions/SpatialSearch.cs).
+
+```csharp
+var searcher = (LuceneSearcher)indexer.Searcher;
+var searchContext = searcher.GetSearchContext();
+
+using (ISearcherReference searchRef = searchContext.GetSearcher())
+{
+  // Access the instance of the underlying Lucene
+  // IndexSearcher instance.
+  var indexSearcher = searchRef.IndexSearcher;
+
+  // You can then call indexSearcher.Search(...)
+  // which is a Lucene API, customize the parameters
+  // accordingly and handle the Lucene response.
+}
 ```
