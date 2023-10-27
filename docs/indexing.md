@@ -8,7 +8,7 @@ order: 0
 
 Indexing
 ===
-_**Tip**: There are many examples of indexing in the [`LuceneIndexTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Index/LuceneIndexTests.cs) to use as examples/reference._
+_**Tip**: There are many examples of indexing in the [`LuceneIndexTests` source code](https://github.com/Shazwazza/Examine/blob/dev/src/Examine.Test/Examine.Lucene/Index/LuceneIndexTests.cs) to use as examples/reference._
 
 Examine will index any data you give it within a `ValueSet`. You can index one or multiple items at once and there's a few different ways to do that. Each field in a `ValueSet` can also contain one or more values. 
 
