@@ -10,7 +10,10 @@ namespace Examine
         private readonly IServiceProvider _services;
         private static readonly Lazy<string> ApplicationId = new(() => Guid.NewGuid().ToString());
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates a new <see cref="AspNetCoreApplicationIdentifier"/>
+        /// </summary>
+        /// <param name="services"></param>
         public AspNetCoreApplicationIdentifier(IServiceProvider services)
         {
             _services = services;
