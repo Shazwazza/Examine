@@ -15,7 +15,12 @@ namespace Examine.Lucene.Directories
 
         private static readonly object Locker = new object();
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates an instance of <see cref="MultiIndexLockFactory"/>
+        /// </summary>
+        /// <param name="master">The master directory</param>
+        /// <param name="child">The child directory</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public MultiIndexLockFactory(Directory master, Directory child)
         {
             if (master == null)
@@ -32,7 +37,12 @@ namespace Examine.Lucene.Directories
             _child = child.LockFactory;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates an instance of <see cref="MultiIndexLockFactory"/>
+        /// </summary>
+        /// <param name="master">The master lock factory</param>
+        /// <param name="child">The child lock factory</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public MultiIndexLockFactory(LockFactory master, LockFactory child)
         {
             if (master == null)
@@ -52,7 +62,11 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Makes the lock
+        /// </summary>
+        /// <param name="lockName">The lock name</param>
+        /// <returns></returns>
         public override Lock MakeLock(string lockName)
         {
             lock (Locker)
@@ -61,7 +75,10 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Clears the lock
+        /// </summary>
+        /// <param name="lockName">The lock name</param>
         public override void ClearLock(string lockName)
         {
             lock (Locker)

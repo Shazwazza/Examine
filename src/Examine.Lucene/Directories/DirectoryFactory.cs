@@ -13,14 +13,21 @@ namespace Examine.Lucene.Directories
         private readonly Func<string, Directory> _factory;
         private readonly Func<string, Directory>? _taxonomyDirectoryFactory;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates a an instance of <see cref="GenericDirectoryFactory"/>
+        /// </summary>
+        /// <param name="factory">The factory</param>
         [Obsolete("To remove in Examine V5")]
         public GenericDirectoryFactory(Func<string, Directory> factory)
         {
             _factory = factory;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates a an instance of <see cref="GenericDirectoryFactory"/>
+        /// </summary>
+        /// <param name="factory">The factory</param>
+        /// <param name="taxonomyDirectoryFactory">The taxonomy directory factory</param>
         public GenericDirectoryFactory(Func<string, Directory> factory, Func<string, Directory> taxonomyDirectoryFactory)
         {
             _factory = factory;

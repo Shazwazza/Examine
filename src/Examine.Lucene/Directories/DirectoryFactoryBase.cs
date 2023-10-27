@@ -27,7 +27,10 @@ namespace Examine.Lucene.Directories
         /// <inheritdoc/>
         protected virtual Directory CreateTaxonomyDirectory(LuceneIndex luceneIndex, bool forceUnlock) => throw new NotSupportedException("Directory Factory does not implement CreateTaxonomyDirectory ");
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        /// <param name="disposing">If the call is coming from the Dispose method</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -44,7 +47,9 @@ namespace Examine.Lucene.Directories
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Disposes this instance
+        /// </summary>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

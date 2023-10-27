@@ -13,7 +13,11 @@ namespace Examine.Lucene.Directories
     {
         private readonly DirectoryInfo _baseDir;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates an instance of <see cref="FileSystemDirectoryFactory"/>
+        /// </summary>
+        /// <param name="baseDir">The base directory</param>
+        /// <param name="lockFactory">The lock factory</param>
         public FileSystemDirectoryFactory(DirectoryInfo baseDir, ILockFactory lockFactory)
         {
             _baseDir = baseDir;

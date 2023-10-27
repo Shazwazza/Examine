@@ -163,7 +163,10 @@ namespace Examine.Lucene
             _replicator.Publish(rev);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        /// <param name="disposing">If the call is coming from Dispose</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -178,7 +181,9 @@ namespace Examine.Lucene
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
