@@ -26,17 +26,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Instal DotNet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.x'
       - name: Setup Github Pages
-        uses: actions/configure-pages@v3
-        
+        uses: actions/configure-pages@v3        
       - name: Build DocFX Site
         uses: VakuWare/docfx-pdf-action@v1.4.0
         with:
-         args: docs/v2/docfx.json
+         args: docs/docfx.json
       - name: Upload docfx built site artifact
         uses: actions/upload-pages-artifact@v1
         with:
-         path: docs/v2/_site
+         path: docs/_site
 
   # Deployment job
   deploy:

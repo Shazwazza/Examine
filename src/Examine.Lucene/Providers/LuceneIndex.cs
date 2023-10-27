@@ -299,7 +299,7 @@ namespace Examine.Lucene.Providers
         public event EventHandler<DocumentWritingEventArgs>? DocumentWriting;
 
         /// <summary>
-        /// Occurs when an index is commited
+        /// Occors when the index is commited
         /// </summary>
         public event EventHandler? IndexCommitted;
 

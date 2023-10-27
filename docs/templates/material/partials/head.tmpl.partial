@@ -18,4 +18,12 @@
   {{#_noindex}}<meta name="searchOption" content="noindex">{{/_noindex}}
   {{#_enableSearch}}<meta property="docfx:rel" content="{{_rel}}">{{/_enableSearch}}
   {{#_enableNewTab}}<meta property="docfx:newtab" content="true">{{/_enableNewTab}}
+
+  <link rel="apple-touch-icon" sizes="180x180" href="{{_rel}}apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{_rel}}favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{_rel}}favicon-16x16.png">
+  <link rel="manifest" href="{{_rel}}site.webmanifest">
+  <link rel="mask-icon" href="{{_rel}}safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#00aba9">
+  <meta name="theme-color" content="#ffffff">
 </head>

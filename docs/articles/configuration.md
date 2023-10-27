@@ -282,3 +282,7 @@ services.AddExamineLuceneIndex("MyIndex",
 To explore other configuration settings see the links below:
 - [FacetsConfig API docs](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/facet/Lucene.Net.Facet.FacetsConfig.html#methods)
 - [Facets with lucene](https://norconex.com/facets-with-lucene/). See how the config is used in the code examples.
+
+## Luke
+Lucene.NET 4.8 is compatible with Java Luke 4.8.0, a useful tool for working with Lucene Indexes. Newer versions of Luke can't be used with Lucene.NET 4.8 indexes. 
+[Luke 4.8.0](https://github.com/DmitryKey/luke/releases/download/4.8.0/luke-with-deps.jar)
