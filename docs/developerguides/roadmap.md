@@ -1,9 +1,8 @@
 ---
-layout: page
 title: Roadmap
 permalink: /devroadmap
 uid: devroadmap
-order: 1
+order: 4
 ---
 
 Examine.Lucene Roadmap

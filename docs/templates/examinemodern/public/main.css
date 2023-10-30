@@ -1,0 +1,41 @@
+/* COLOR VARIABLES*/
+:root {
+  --header-bg-color: #159957;
+  --header-ft-color: #fff;
+  --highlight-light: #5e92f3;
+  --highlight-dark: #003c8f;
+  --accent-dim: #e0e0e0;
+  --accent-super-dim: #f3f3f3;
+  --font-color: #34393e;
+  --card-box-shadow: 0 1px 2px 0 rgba(61, 65, 68, 0.06), 0 1px 3px 1px rgba(61, 65, 68, 0.16);
+  --search-box-shadow: 0 1px 2px 0 rgba(41, 45, 48, 0.36), 0 1px 3px 1px rgba(41, 45, 48, 0.46);
+  --transition: 350ms;
+}
+/* Examine Docs Overrides */
+
+/* Logo */
+#logo {
+  vertical-align: middle;
+  width: 40px;
+  height: 40px;
+  background-color: #fff;  
+  border-radius: 20px;
+  margin:5px;
+}
+/* 
+.navbar {
+  color: var(--header-ft-color);
+  --bs-navbar-active-color: #fff;
+  --bs-nav-link-color: #fff;
+  background-color: var(--hergb(2, 2, 2)-bg-color);
+  background-image: linear-gradient(120deg, #155799, var(--header-bg-color));
+}
+
+.navbar-inverse .navbar-nav > li > a,
+.navbar-inverse .navbar-text {
+  background-color: transparent;
+}
+
+h1,h2,h3,h4,h5{
+  color: var(--highlight-dark);
+} */
