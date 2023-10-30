@@ -22,20 +22,26 @@ concurrency:
 jobs:
   # Build job
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Instal DotNet
+      - name: Install DotNet
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '7.0.x'
       - name: Setup Github Pages
-        uses: actions/configure-pages@v3        
-      - name: Build DocFX Site
-        uses: VakuWare/docfx-pdf-action@v1.4.0
+        uses: actions/configure-pages@v3       
+      - name: Setup DocFX
+        uses: crazy-max/ghaction-chocolatey@v1
         with:
-         args: docs/docfx.json
+          args: install docfx
+      - name: Install dependencies
+        run: dotnet restore
+      - name: DocFX Build
+        working-directory: docs
+        run: docfx docfx.json
+        continue-on-error: false
       - name: Upload docfx built site artifact
         uses: actions/upload-pages-artifact@v1
         with:
