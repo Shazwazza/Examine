@@ -5,7 +5,9 @@ using System.Linq;
 
 namespace Examine
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Represents a search result
+    /// </summary>
     public class SearchResult : ISearchResult
     {
         private OrderedDictionary<string, string>? _fields;
@@ -47,7 +49,10 @@ namespace Examine
         {
             get
             {
-                if (_fields != null) return _fields;
+                if (_fields != null)
+                {
+                    return _fields;
+                }
 
                 //initialize from the multi fields
                 _fields = new OrderedDictionary<string, string>();
@@ -55,7 +60,9 @@ namespace Examine
                 foreach (var fieldValue in _fieldValues.Value)
                 {
                     if (fieldValue.Value.Count > 0)
+                    {
                         asWritable[fieldValue.Key] = fieldValue.Value[0];
+                    }
                 }
                 return _fields;
             }
@@ -108,7 +115,9 @@ namespace Examine
         public override bool Equals(object? obj)
         {
             if (obj == null || GetType() != obj.GetType())
+            {
                 return false;
+            }
 
             var result = (SearchResult)obj;
 
@@ -119,10 +128,7 @@ namespace Examine
         /// Override this method so that the Distinct() operator works
         /// </summary>
         /// <returns></returns>
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
+        public override int GetHashCode() => Id.GetHashCode();
 
     }
 }

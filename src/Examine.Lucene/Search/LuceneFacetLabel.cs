@@ -25,7 +25,7 @@ namespace Examine.Lucene.Search
         public int Length => _facetLabel.Length;
 
         /// <inheritdoc/>
-        public int CompareTo(Examine.Search.IFacetLabel other) => _facetLabel.CompareTo(new FacetLabel(other.Components));
+        public int CompareTo(Examine.Search.IFacetLabel? other) => _facetLabel.CompareTo(new FacetLabel(other?.Components));
 
         /// <inheritdoc/>
         public Examine.Search.IFacetLabel Subpath(int length) => new LuceneFacetLabel(_facetLabel.Subpath(length));

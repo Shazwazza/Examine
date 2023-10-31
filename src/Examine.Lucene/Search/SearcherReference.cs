@@ -25,7 +25,7 @@ namespace Examine.Lucene.Search
                 {
                     throw new ObjectDisposedException($"{nameof(SearcherReference)} is disposed");
                 }
-                return _searcher ?? (_searcher = _searcherManager.Acquire());
+                return _searcher ??= _searcherManager.Acquire();
             }
         }
 
@@ -50,7 +50,9 @@ namespace Examine.Lucene.Search
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+#pragma warning disable IDE0022 // Use expression body for method
             Dispose(disposing: true);
+#pragma warning restore IDE0022 // Use expression body for method
         }
     }
 }

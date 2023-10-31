@@ -9,7 +9,10 @@ namespace Examine.Lucene.Search
     public class MultiSearchSearcherReference : ISearcherReference
     {
         /// <inheritdoc/>
-        public MultiSearchSearcherReference(ISearcherReference[] inner) => _inner = inner;
+        public MultiSearchSearcherReference(ISearcherReference[] inner)
+        {
+            _inner = inner;
+        }
 
         private bool _disposedValue;
         private IndexSearcher? _searcher;
@@ -41,7 +44,7 @@ namespace Examine.Lucene.Search
             {
                 if (disposing)
                 {
-                    foreach(ISearcherReference i in _inner)
+                    foreach(var i in _inner)
                     {
                         i.Dispose();
                     }
@@ -55,7 +58,9 @@ namespace Examine.Lucene.Search
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+#pragma warning disable IDE0022 // Use expression body for method
             Dispose(disposing: true);
+#pragma warning restore IDE0022 // Use expression body for method
         }
     }
 }

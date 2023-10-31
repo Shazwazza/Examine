@@ -142,18 +142,31 @@ namespace Examine.Lucene
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SourceIndex_IndexCommitted(object sender, EventArgs e)
+        private void SourceIndex_IndexCommitted(object? sender, EventArgs? e)
         {
-            var index = (LuceneIndex)sender;
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if(sender == null)
             {
-                _logger.LogDebug("{IndexName} committed", index.Name);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("SourceIndex_IndexCommitted was called with the sender parameter being null");
+                }
+            }
+            else
+            {
+                var index = (LuceneIndex)sender;
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("{IndexName} committed", index.Name);
+                }
             }
             var rev = new IndexAndTaxonomyRevision(_sourceIndex.IndexWriter.IndexWriter, _sourceIndex.TaxonomyWriter as SnapshotDirectoryTaxonomyWriter);
             _replicator.Publish(rev);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        /// <param name="disposing">If the call is coming from Dispose</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -168,11 +181,15 @@ namespace Examine.Lucene
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+#pragma warning disable IDE0022 // Use expression body for method
             Dispose(disposing: true);
+#pragma warning restore IDE0022 // Use expression body for method
         }
     }
 }

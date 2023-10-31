@@ -76,10 +76,7 @@ namespace Examine.Web.Demo.Data
             index.IndexItems(data);
         }
 
-        public IEnumerable<IIndex> GetAllIndexes()
-        {
-            return _examineManager.Indexes;
-        }
+        public IEnumerable<IIndex> GetAllIndexes() => _examineManager.Indexes;
 
         public ISearchResults SearchNativeQuery(string indexName, string query)
         {

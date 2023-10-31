@@ -1,1 +1,28 @@
 #nullable enable
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.Analyzer.get -> Lucene.Net.Analysis.Analyzer?
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.Analyzer.set -> void
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.ExamineLuceneIndexConfiguration(string! name) -> void
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.FacetsConfig.get -> Lucene.Net.Facet.FacetsConfig?
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.FacetsConfig.set -> void
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.FieldDefinitions.get -> Examine.FieldDefinitionCollection?
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.FieldDefinitions.set -> void
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.IndexValueTypesFactory.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Lucene.IFieldValueTypeFactory!>?
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.IndexValueTypesFactory.set -> void
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.Name.get -> string!
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.UseTaxonomyIndex.get -> bool
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.UseTaxonomyIndex.set -> void
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.Validator.get -> Examine.IValueSetValidator?
+Examine.ExamineLuceneIndexConfiguration<TIndex, TDirectoryFactory>.Validator.set -> void
+Examine.ExamineLuceneMultiSearcherConfiguration
+Examine.ExamineLuceneMultiSearcherConfiguration.Analyzer.get -> Lucene.Net.Analysis.Analyzer?
+Examine.ExamineLuceneMultiSearcherConfiguration.Analyzer.set -> void
+Examine.ExamineLuceneMultiSearcherConfiguration.ExamineLuceneMultiSearcherConfiguration(string! name, string![]! indexNames) -> void
+Examine.ExamineLuceneMultiSearcherConfiguration.FacetConfiguration.get -> Lucene.Net.Facet.FacetsConfig?
+Examine.ExamineLuceneMultiSearcherConfiguration.FacetConfiguration.set -> void
+Examine.ExamineLuceneMultiSearcherConfiguration.IndexNames.get -> string![]!
+Examine.ExamineLuceneMultiSearcherConfiguration.Name.get -> string!
+static Examine.ServicesCollectionExtensions.AddExamineLuceneIndex(this Microsoft.Extensions.DependencyInjection.IServiceCollection! serviceCollection, string! name, System.Action<Examine.ExamineLuceneIndexConfiguration<Examine.Lucene.Providers.LuceneIndex!, Examine.Lucene.Directories.FileSystemDirectoryFactory!>!>! configuration) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Examine.ServicesCollectionExtensions.AddExamineLuceneIndex<TIndex, TDirectoryFactory>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! serviceCollection, string! name, System.Action<Examine.ExamineLuceneIndexConfiguration<TIndex!, TDirectoryFactory!>!>! configuration) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Examine.ServicesCollectionExtensions.AddExamineLuceneIndex<TIndex>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! serviceCollection, string! name, System.Action<Examine.ExamineLuceneIndexConfiguration<TIndex!, Examine.Lucene.Directories.FileSystemDirectoryFactory!>!>! configuration) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Examine.ServicesCollectionExtensions.AddExamineLuceneMultiSearcher(this Microsoft.Extensions.DependencyInjection.IServiceCollection! serviceCollection, string! name, string![]! indexNames, System.Action<Examine.ExamineLuceneMultiSearcherConfiguration!>? configuration = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

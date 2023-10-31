@@ -6,11 +6,18 @@ using Directory = Lucene.Net.Store.Directory;
 
 namespace Examine.Lucene.Directories
 {
+    /// <summary>
+    /// Represents a directory factory for creating file system directories
+    /// </summary>
     public class FileSystemDirectoryFactory : DirectoryFactoryBase
     {
         private readonly DirectoryInfo _baseDir;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates an instance of <see cref="FileSystemDirectoryFactory"/>
+        /// </summary>
+        /// <param name="baseDir">The base directory</param>
+        /// <param name="lockFactory">The lock factory</param>
         public FileSystemDirectoryFactory(DirectoryInfo baseDir, ILockFactory lockFactory)
         {
             _baseDir = baseDir;

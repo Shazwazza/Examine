@@ -28,7 +28,7 @@ namespace Examine.Lucene.Directories
         public static string GetTempPath(IApplicationIdentifier applicationIdentifier)
         {
             var appDomainHash = applicationIdentifier.GetApplicationUniqueIdentifier().GenerateHash();
-            
+
             var cachePath = Path.Combine(
                 Path.GetTempPath(),
                 "ExamineIndexes",

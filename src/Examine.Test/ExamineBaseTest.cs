@@ -47,7 +47,7 @@ namespace Examine.Test
                 writer);
         }
 
-        public TestIndex GetTaxonomyTestIndex(Directory d, Directory taxonomyDirectory, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig? facetsConfig = null)
+        public TestIndex GetTaxonomyTestIndex(Directory d, Directory taxonomyDirectory, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig facetsConfig = null)
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
             return new TestIndex(

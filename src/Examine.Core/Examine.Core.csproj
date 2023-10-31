@@ -8,8 +8,17 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
     <LangVersion>9</LangVersion>
-    <NoWarn>RS0036</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PublicAPI.Shipped.txt" />
+    <None Remove="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="..\..\assets\logo-round-small.png" Link="logo-round-small.png" Pack="true" PackagePath="" />

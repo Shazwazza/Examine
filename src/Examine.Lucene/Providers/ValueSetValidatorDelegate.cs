@@ -11,7 +11,9 @@ namespace Examine.Lucene.Providers
 
         /// <inheritdoc/>
         public ValueSetValidatorDelegate(Func<ValueSet, ValueSetValidationResult> validator)
-            => _validator = validator;
+        {
+            _validator = validator;
+        }
 
         /// <inheritdoc/>
         public ValueSetValidationResult Validate(ValueSet valueSet)

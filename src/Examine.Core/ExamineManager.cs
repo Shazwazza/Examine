@@ -15,12 +15,12 @@ namespace Examine
         /// <inheritdoc/>
         public ExamineManager(IEnumerable<IIndex> indexes, IEnumerable<ISearcher> searchers)
         {
-            foreach (IIndex i in indexes)
+            foreach (var i in indexes)
             {
                 AddIndex(i);
             }
 
-            foreach (ISearcher s in searchers)
+            foreach (var s in searchers)
             {
                 AddSearcher(s);
             }
@@ -39,7 +39,7 @@ namespace Examine
                 AddIndex(i);
             }
 
-            foreach(ISearcher s in searchers)
+            foreach(var s in searchers)
             {
                 AddSearcher(s);
             }

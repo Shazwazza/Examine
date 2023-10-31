@@ -85,13 +85,13 @@ namespace Examine.Lucene.Indexing
 
             if (val == null)
             {
-                parsedVal = default(T);
+                parsedVal = default;
                 return false;
             }
 
-            if (val is T)
+            if (val is T typedVal)
             {
-                parsedVal = (T) val;
+                parsedVal = typedVal;
                 return true;
             }
 
@@ -133,7 +133,7 @@ namespace Examine.Lucene.Indexing
                     {
                         Logger.LogDebug(ex, "An conversion error occurred with from inputConverter.ConvertTo {FromValue} to {ToValueType}", val, typeof(T));
                     }
-                    parsedVal = default(T);
+                    parsedVal = default;
                     return false;
                 }
             }
@@ -158,7 +158,7 @@ namespace Examine.Lucene.Indexing
                     {
                         Logger.LogDebug(ex, "An conversion error occurred with outputConverter.ConvertFrom from {FromValue} to {ToValueType}", val, typeof(T));
                     }
-                    parsedVal = default(T);
+                    parsedVal = default;
                     return false;
                 }
             }
@@ -175,7 +175,7 @@ namespace Examine.Lucene.Indexing
                 {
                     Logger.LogDebug(ex, "An conversion error occurred with Convert.ChangeType from {FromValue} to {ToValueType}", val, typeof(T));
                 }
-                parsedVal = default(T);
+                parsedVal = default;
                 return false;
             }
         }

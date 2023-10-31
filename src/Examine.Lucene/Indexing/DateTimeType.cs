@@ -22,7 +22,9 @@ namespace Examine.Lucene.Indexing
         public DateResolution Resolution { get; }
 
         private readonly bool _isFacetable;
+#pragma warning disable IDE0032 // Use auto property
         private readonly bool _taxonomyIndex;
+#pragma warning restore IDE0032 // Use auto property
 
         /// <summary>
         /// Can be sorted by the normal field name
@@ -52,15 +54,21 @@ namespace Examine.Lucene.Indexing
             _isFacetable = false;
         }
 
-        public override void AddValue(Document doc, object value)
+        /// <inheritdoc/>
+        public override void AddValue(Document doc, object? value)
         {
             // Support setting taxonomy path
             if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
             {
                 if (!TryConvert(objArr[0], out DateTime parsedVal))
+                {
                     return;
-                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                }
+
+                if (!TryConvert(objArr[1], out string[]? parsedPathVal))
+                {
                     return;
+                }
 
                 var val = DateToLong(parsedVal);
 
@@ -77,7 +85,9 @@ namespace Examine.Lucene.Indexing
         protected override void AddSingleValue(Document doc, object value)
         {
             if (!TryConvert(value, out DateTime parsedVal))
+            {
                 return;
+            }
 
             var val = DateToLong(parsedVal);
 
@@ -100,16 +110,15 @@ namespace Examine.Lucene.Indexing
         /// </summary>
         /// <param name="date"></param>
         /// <returns></returns>
-        protected long DateToLong(DateTime date)
-        {
-            return DateTools.Round(date, Resolution).Ticks;
-        }
+        protected long DateToLong(DateTime date) => DateTools.Round(date, Resolution).Ticks;
 
         /// <inheritdoc/>
         public override Query? GetQuery(string query)
         {
             if (!TryConvert(query, out DateTime parsedVal))
+            {
                 return null;
+            }
 
             return GetQuery(parsedVal, parsedVal);
         }

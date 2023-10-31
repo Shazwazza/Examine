@@ -7,6 +7,9 @@ using Lucene.Net.Facet.Taxonomy;
 
 namespace Examine.Lucene.Providers
 {
+    /// <summary>
+    /// A searcher for taxonomy indexes
+    /// </summary>
     public class LuceneTaxonomySearcher : BaseLuceneSearcher, IDisposable, ILuceneTaxonomySearcher
     {
         private readonly SearcherTaxonomyManager _searcherManager;
@@ -40,7 +43,7 @@ namespace Examine.Lucene.Providers
             => new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection);
 
         /// <inheritdoc/>
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
@@ -51,13 +54,7 @@ namespace Examine.Lucene.Providers
 
                 _disposedValue = true;
             }
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
+            base.Dispose(disposing);
         }
 
         /// <inheritdoc/>

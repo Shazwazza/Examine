@@ -17,8 +17,10 @@ namespace Examine.Lucene.Indexing
     public class DoubleType : IndexFieldRangeValueType<double>, IIndexFacetValueType
     {
         private readonly bool _isFacetable;
+#pragma warning disable IDE0032 // Use auto property
         private readonly bool _taxonomyIndex;
-        
+#pragma warning restore IDE0032 // Use auto property
+
         /// <inheritdoc/>
         public DoubleType(string fieldName, bool isFacetable, bool taxonomyIndex, ILoggerFactory logger, bool store)
             : base(fieldName, logger, store)
@@ -46,15 +48,20 @@ namespace Examine.Lucene.Indexing
         public bool IsTaxonomyFaceted => _taxonomyIndex;
 
         /// <inheritdoc/>
-        public override void AddValue(Document doc, object value)
+        public override void AddValue(Document doc, object? value)
         {
             // Support setting taxonomy path
             if (_isFacetable && _taxonomyIndex && value is object[] objArr && objArr != null && objArr.Length == 2)
             {
                 if (!TryConvert(objArr[0], out double parsedVal))
+                {
                     return;
-                if (!TryConvert(objArr[1], out string[] parsedPathVal))
+                }
+
+                if (!TryConvert(objArr[1], out string[]? parsedPathVal))
+                {
                     return;
+                }
 
                 doc.Add(new DoubleField(FieldName, parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
@@ -69,7 +76,9 @@ namespace Examine.Lucene.Indexing
         protected override void AddSingleValue(Document doc, object value)
         {
             if (!TryConvert(value, out double parsedVal))
+            {
                 return;
+            }
 
             doc.Add(new DoubleField(FieldName,parsedVal, Store ? Field.Store.YES : Field.Store.NO));
 
@@ -88,7 +97,14 @@ namespace Examine.Lucene.Indexing
         /// <inheritdoc/>
         public override Query? GetQuery(string query)
         {
-            return !TryConvert(query, out double parsedVal) ? null : GetQuery(parsedVal, parsedVal);
+            if (!TryConvert(query, out double parsedVal))
+            {
+                return null;
+            }
+            else
+            {
+                return (Query?)GetQuery(parsedVal, parsedVal);
+            }
         }
 
         /// <inheritdoc/>

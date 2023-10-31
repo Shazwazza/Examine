@@ -8,14 +8,14 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Represents the search results of a query
     /// </summary>
-    public class LuceneSearchResults : ISearchResults, ILuceneSearchResults, IFacetResults
+    public class LuceneSearchResults : ILuceneSearchResults, IFacetResults
     {
         private readonly IReadOnlyDictionary<string, IFacetResult> _noFacets = new Dictionary<string, IFacetResult>(0, StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// Gets an empty search result
         /// </summary>
-        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>(), float.NaN, default);
+        public static LuceneSearchResults Empty { get; } = new LuceneSearchResults(Array.Empty<ISearchResult>(), 0, new Dictionary<string, IFacetResult>(), float.NaN, null);
         
         private readonly IReadOnlyCollection<ISearchResult> _results;
 
@@ -31,7 +31,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IReadOnlyDictionary<string, IFacetResult> facets, float maxScore, SearchAfterOptions searchAfterOptions)
+        public LuceneSearchResults(IReadOnlyCollection<ISearchResult> results, int totalItemCount, IReadOnlyDictionary<string, IFacetResult> facets, float maxScore, SearchAfterOptions? searchAfterOptions)
         {
             _results = results;
             TotalItemCount = totalItemCount;

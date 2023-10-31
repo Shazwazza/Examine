@@ -44,7 +44,7 @@ namespace Examine.Lucene.Directories
             var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
             var localLuceneIndexFolder = new DirectoryInfo(path);
 
-            Directory mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
+            var mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
 
             // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
             var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
@@ -93,7 +93,10 @@ namespace Examine.Lucene.Directories
             return localLuceneDir;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        /// <param name="disposing">If the call is coming from Dispose</param>
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

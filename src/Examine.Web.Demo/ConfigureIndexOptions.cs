@@ -15,7 +15,9 @@ namespace Examine.Web.Demo
         private readonly ILoggerFactory _loggerFactory;
 
         public ConfigureIndexOptions(ILoggerFactory loggerFactory)
-            => _loggerFactory = loggerFactory;
+        {
+            _loggerFactory = loggerFactory;
+        }
 
         public void Configure(string name, LuceneDirectoryIndexOptions options)
         {
