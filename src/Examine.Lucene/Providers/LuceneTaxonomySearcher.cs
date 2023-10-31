@@ -14,7 +14,7 @@ namespace Examine.Lucene.Providers
     {
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
-        private readonly SimilarityDefinitionCollection _similarityDefinitionCollection;
+        private readonly SimilarityDefinitionCollection? _similarityDefinitionCollection;
         private bool _disposedValue;
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Examine.Lucene.Providers
         /// <param name="fieldValueTypeCollection"></param>
         /// <param name="facetsConfig"></param>
         /// <param name="similarityDefinitions"></param>
-        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig, SimilarityDefinitionCollection similarityDefinitions)
+        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig, SimilarityDefinitionCollection? similarityDefinitions)
             : base(name, analyzer, facetsConfig)
         {
             _searcherManager = searcherManager;

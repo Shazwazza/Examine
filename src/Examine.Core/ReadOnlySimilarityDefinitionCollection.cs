@@ -22,6 +22,7 @@ namespace Examine
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="defaultSimilarityName"></param>
         /// <param name="definitions"></param>
         public ReadOnlySimilarityDefinitionCollection(string? defaultSimilarityName, params SimilarityDefinition[] definitions)
             : this(defaultSimilarityName, (IEnumerable<SimilarityDefinition>)definitions)
@@ -32,6 +33,7 @@ namespace Examine
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="defaultSimilarityName"></param>
         /// <param name="definitions"></param>
         public ReadOnlySimilarityDefinitionCollection(string? defaultSimilarityName, IEnumerable<SimilarityDefinition> definitions)
         {
@@ -73,7 +75,7 @@ namespace Examine
         /// <summary>
         /// The name of the Similarity the index should use by default
         /// </summary>
-        public string DefaultSimilarityName { get; protected set; }
+        public string? DefaultSimilarityName { get; set; }
 
         /// <summary>
         /// Definitions

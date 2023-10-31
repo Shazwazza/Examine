@@ -21,7 +21,7 @@ namespace Examine.Lucene.Search
         private readonly FacetsConfig? _facetsConfig;
         private ISet<string>? _fieldsToLoad = null;
         private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
-        private string _similarityName;
+        private readonly string? _similarityName;
 
         /// <inheritdoc/>
         [Obsolete("To be removed in Examine V5")]

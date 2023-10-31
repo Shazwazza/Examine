@@ -14,7 +14,7 @@ namespace Examine.Lucene.Providers
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
-        private readonly SimilarityDefinitionCollection _similarityDefinitionCollection;
+        private readonly SimilarityDefinitionCollection? _similarityDefinitionCollection;
         private bool _disposedValue;
 
         /// <summary>

@@ -9,7 +9,7 @@ namespace Examine.Lucene.Search
     /// <remarks>In Examine V3, this is <see cref="DefaultSimilarity"/>. In Examine V4 this will change to <see cref="BM25Similarity"/></remarks>
     public class ExamineLuceneDefaultSimilarityDefinition : LuceneSimilarityDefinitionBase
     {
-        private Lazy<DefaultSimilarity> _similarityLazy = new Lazy<DefaultSimilarity>(() => new DefaultSimilarity());
+        private readonly Lazy<DefaultSimilarity> _similarityLazy = new Lazy<DefaultSimilarity>(() => new DefaultSimilarity());
 
         /// <summary>
         /// Constructor

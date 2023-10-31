@@ -28,11 +28,11 @@ namespace Examine.Lucene.Search
         private readonly ISet<string>? _fieldsToLoad;
         private readonly IEnumerable<IFacetField>? _facetFields;
         private readonly FacetsConfig? _facetsConfig;
-        private readonly string _similarityName;
+        private readonly string? _similarityName;
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
-            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig, string similarityName)
+            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig, string? similarityName)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -146,7 +146,7 @@ namespace Examine.Lucene.Search
 
 
                 var defaultSimilarityDefinition = _searchContext.GetDefaultSimilarity();
-                var similarityDefinition = _searchContext.GetSimilarity(_similarityName);
+                var similarityDefinition = string.IsNullOrWhiteSpace(_similarityName) ? null :_searchContext.GetSimilarity(_similarityName);
 
                 if (similarityDefinition != null && similarityDefinition is LuceneSimilarityDefinitionBase luceneSimilarityDefinition)
                 {

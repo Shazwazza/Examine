@@ -14,7 +14,7 @@ namespace Examine.Lucene.Search
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private string[]? _searchableFields;
-        private readonly SimilarityDefinitionCollection _similarityDefinitionCollection;
+        private readonly SimilarityDefinitionCollection? _similarityDefinitionCollection;
 
         /// <summary>
         /// Constructor
@@ -23,7 +23,7 @@ namespace Examine.Lucene.Search
         /// <param name="fieldValueTypeCollection"></param>
         /// <param name="similarityDefinitionCollection"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public TaxonomySearchContext(SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection similarityDefinitionCollection)
+        public TaxonomySearchContext(SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection? similarityDefinitionCollection)
         {
             _searcherManager = searcherManager ?? throw new ArgumentNullException(nameof(searcherManager));
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));

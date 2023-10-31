@@ -14,7 +14,7 @@ namespace Examine.Lucene.Search
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private string[]? _searchableFields;
-        private readonly SimilarityDefinitionCollection _similarityDefinitionCollection;
+        private readonly SimilarityDefinitionCollection? _similarityDefinitionCollection;
 
         /// <inheritdoc/>
         public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
@@ -25,13 +25,17 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection similarityDefinitionCollection)
+        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection? similarityDefinitionCollection)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
             _similarityDefinitionCollection = similarityDefinitionCollection;
         }
 
+        /// <summary>
+        /// Get Searcher Reference
+        /// </summary>
+        /// <returns></returns>
         public ISearcherReference GetSearcher() => new SearcherReference(_searcherManager);
 
         /// <inheritdoc/>
@@ -44,7 +48,9 @@ namespace Examine.Lucene.Search
                     // IMPORTANT! Do not resolve the IndexSearcher from the `IndexSearcher` property above since this
                     // will not release it from the searcher manager. When we are collecting fields, we are essentially
                     // performing a 'search'. We must ensure that the underlying reader has the correct reference counts.
+#pragma warning disable IDE0007 // Use implicit type
                     IndexSearcher searcher = _searcherManager.Acquire();
+#pragma warning restore IDE0007 // Use implicit type
                     try
                     {
                         var fields = MultiFields.GetMergedFieldInfos(searcher.IndexReader)

@@ -58,6 +58,7 @@ namespace Examine.Lucene.Providers
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
+            _similarityDefinitionCollection = new Lazy<SimilarityDefinitionCollection?>(() => _options.SimilarityDefinitions);
 
             if (_options.UseTaxonomyIndex)
             {
@@ -112,7 +113,7 @@ namespace Examine.Lucene.Providers
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
 
-            _similarityDefinitionCollection = new Lazy<SimilarityDefinitionCollection>(() => _options.SimilarityDefinitions);
+            _similarityDefinitionCollection = new Lazy<SimilarityDefinitionCollection?>(() => _options.SimilarityDefinitions);
 
             if (_options.UseTaxonomyIndex)
             {
@@ -242,7 +243,7 @@ namespace Examine.Lucene.Providers
         private readonly Lazy<LuceneTaxonomySearcher> _taxonomySearcher;
         private readonly Lazy<Directory>? _taxonomyDirectory;
 
-        private readonly Lazy<SimilarityDefinitionCollection> _similarityDefinitionCollection;
+        private readonly Lazy<SimilarityDefinitionCollection?> _similarityDefinitionCollection;
 
         #region Properties
 
@@ -254,7 +255,7 @@ namespace Examine.Lucene.Providers
         /// <summary>
         /// Returns the <see cref="SimilarityDefinitionCollection"/> configured for this index
         /// </summary>
-        public SimilarityDefinitionCollection SimilarityDefinitionCollection => _similarityDefinitionCollection.Value;
+        public SimilarityDefinitionCollection? SimilarityDefinitionCollection => _similarityDefinitionCollection.Value;
 
         /// <summary>
         /// The default analyzer to use when indexing content, by default, this is set to StandardAnalyzer
