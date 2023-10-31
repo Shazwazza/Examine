@@ -33,7 +33,7 @@ jobs:
       - name: Setup Github Pages
         uses: actions/configure-pages@v3        
       - name: Build DocFX Site
-        uses: nunit/docfx-action@v2.4.0
+        uses: nunit/docfx-action@v2.10.0
         with:
          args: docs/docfx.json
       - name: Upload docfx built site artifact
