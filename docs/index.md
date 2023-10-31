@@ -139,7 +139,7 @@ _**Tip**: `IExamineManager` is the gateway to working with examine. It can be re
 
 _**Tip**: There are many unit tests in the source code that can be used as Examples of how to do things. There is also a test web project that has plenty of examples of how to configure indexes and search them._
 
-* [Indexing](indexing)
-* [Configuration](configuration)
-* [Searching](searching)
-* [Sorting](sorting)
+* [Indexing](https://shazwazza.github.io/Examine/articles/indexing.html)
+* [Configuration](https://shazwazza.github.io/Examine/articles/configuration.html)
+* [Searching](https://shazwazza.github.io/Examine/articles/searching.html)
+* [Sorting](https://shazwazza.github.io/Examine/articles/sorting.html)
