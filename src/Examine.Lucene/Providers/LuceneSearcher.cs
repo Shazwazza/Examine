@@ -68,7 +68,8 @@ namespace Examine.Lucene.Providers
             => new SearchContext(_searcherManager, _fieldValueTypeCollection, _similarityDefinitionCollection);
 
         /// <inheritdoc/>
-        protected virtual void Dispose(bool disposing)
+        [Obsolete("To remove in Examine v5")]
+        protected new virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
@@ -79,15 +80,12 @@ namespace Examine.Lucene.Providers
 
                 _disposedValue = true;
             }
+            base.Dispose(disposing);
         }
 
         /// <inheritdoc/>
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-        }
+        [Obsolete("To remove in Examine V5 - IDisposable is implemented in base class")]
+        public new void Dispose() => Dispose(true);
     }
-
 }
 

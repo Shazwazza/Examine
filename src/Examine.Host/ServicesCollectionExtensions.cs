@@ -23,13 +23,13 @@ namespace Examine
         /// </summary>
         [Obsolete("To remove in Examine V5")]
         public static IServiceCollection AddExamineLuceneIndex(
-        this IServiceCollection serviceCollection,
-        string name,
-        FieldDefinitionCollection fieldDefinitions = null,
-        Analyzer analyzer = null,
-        IValueSetValidator validator = null,
-        IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
-        => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
+            this IServiceCollection serviceCollection,
+            string name,
+            FieldDefinitionCollection? fieldDefinitions = null,
+            Analyzer? analyzer = null,
+            IValueSetValidator? validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null)
+            => serviceCollection.AddExamineLuceneIndex<LuceneIndex>(name, fieldDefinitions, analyzer, validator, indexValueTypesFactory);
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
@@ -38,10 +38,10 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex>(
             this IServiceCollection serviceCollection,
             string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            FieldDefinitionCollection? fieldDefinitions = null,
+            Analyzer? analyzer = null,
+            IValueSetValidator? validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null)
             where TIndex : LuceneIndex
         {
             Action<ExamineLuceneIndexConfiguration<TIndex, FileSystemDirectoryFactory>> config = opt =>
@@ -63,10 +63,10 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex<TIndex, TDirectoryFactory>(
             this IServiceCollection serviceCollection,
             string name,
-            FieldDefinitionCollection fieldDefinitions = null,
-            Analyzer analyzer = null,
-            IValueSetValidator validator = null,
-            IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null)
+            FieldDefinitionCollection? fieldDefinitions = null,
+            Analyzer? analyzer = null,
+            IValueSetValidator? validator = null,
+            IReadOnlyDictionary<string, IFieldValueTypeFactory>? indexValueTypesFactory = null)
             where TIndex : LuceneIndex
             where TDirectoryFactory : class, IDirectoryFactory
         {
@@ -114,10 +114,10 @@ namespace Examine
 
             return serviceCollection.AddSingleton<IIndex>(services =>
             {
-                IOptionsMonitor<LuceneDirectoryIndexOptions> options
+                var options
                         = services.GetRequiredService<IOptionsMonitor<LuceneDirectoryIndexOptions>>();
 
-                TIndex index = ActivatorUtilities.CreateInstance<TIndex>(
+                var index = ActivatorUtilities.CreateInstance<TIndex>(
                     services,
                     new object[] { name, options });
 
@@ -131,10 +131,7 @@ namespace Examine
         public static IServiceCollection AddExamineLuceneIndex(
             this IServiceCollection serviceCollection,
             string name,
-            Action<ExamineLuceneIndexConfiguration<LuceneIndex, FileSystemDirectoryFactory>> configuration)
-        {
-            return serviceCollection.AddExamineLuceneIndex<LuceneIndex, FileSystemDirectoryFactory>(name, configuration);
-        }
+            Action<ExamineLuceneIndexConfiguration<LuceneIndex, FileSystemDirectoryFactory>> configuration) => serviceCollection.AddExamineLuceneIndex<LuceneIndex, FileSystemDirectoryFactory>(name, configuration);
 
         /// <summary>
         /// Registers a file system based Lucene Examine index
@@ -143,10 +140,7 @@ namespace Examine
             this IServiceCollection serviceCollection,
             string name,
             Action<ExamineLuceneIndexConfiguration<TIndex, FileSystemDirectoryFactory>> configuration)
-            where TIndex : LuceneIndex
-        {
-            return serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, configuration);
-        }
+            where TIndex : LuceneIndex => serviceCollection.AddExamineLuceneIndex<TIndex, FileSystemDirectoryFactory>(name, configuration);
 
         /// <summary>
         /// Registers a standalone Examine searcher
@@ -165,10 +159,10 @@ namespace Examine
             where TSearcher : ISearcher
            => serviceCollection.AddTransient<ISearcher>(services =>
            {
-               IList<object> parameters = parameterFactory(services);
+               var parameters = parameterFactory(services);
                parameters.Insert(0, name);
 
-               TSearcher searcher = ActivatorUtilities.CreateInstance<TSearcher>(
+               var searcher = ActivatorUtilities.CreateInstance<TSearcher>(
                    services,
                    parameters.ToArray());
 
@@ -183,7 +177,7 @@ namespace Examine
             this IServiceCollection serviceCollection,
             string name,
             string[] indexNames,
-            Analyzer analyzer = null)
+            Analyzer? analyzer = null)
         {
             var cfg = new Action<ExamineLuceneMultiSearcherConfiguration>(opt =>
             {
@@ -201,13 +195,13 @@ namespace Examine
             this IServiceCollection serviceCollection,
             string name,
             string[] indexNames,
-            Action<ExamineLuceneMultiSearcherConfiguration> configuration = null)
+            Action<ExamineLuceneMultiSearcherConfiguration>? configuration = null)
         {
             var cfg = new ExamineLuceneMultiSearcherConfiguration(name, indexNames);
             configuration?.Invoke(cfg);
             return serviceCollection.AddExamineSearcher<MultiIndexSearcher>(name, s =>
                     {
-                        IEnumerable<IIndex> matchedIndexes = s.GetServices<IIndex>()
+                        var matchedIndexes = s.GetServices<IIndex>()
                              .Where(x => indexNames.Contains(x.Name));
 
                         var parameters = new List<object>

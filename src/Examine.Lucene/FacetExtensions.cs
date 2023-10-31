@@ -20,7 +20,7 @@ namespace Examine.Lucene
                 throw new NotSupportedException("Result does not support facets");
             }
 
-            facetResults.Facets.TryGetValue(field, out Examine.Search.IFacetResult? facet);
+            facetResults.Facets.TryGetValue(field, out var facet);
 
             return facet;
         }

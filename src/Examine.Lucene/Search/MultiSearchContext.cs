@@ -14,14 +14,17 @@ namespace Examine.Lucene.Search
         private string[]? _fields;
 
         /// <inheritdoc/>
-        public MultiSearchContext(ISearchContext[] inner) => _inner = inner;
+        public MultiSearchContext(ISearchContext[] inner)
+        {
+            _inner = inner;
+        }
 
         /// <inheritdoc/>
         public ISearcherReference GetSearcher()
             => new MultiSearchSearcherReference(_inner.Select(x => x.GetSearcher()).ToArray());
 
         /// <inheritdoc/>
-        public string[] SearchableFields => _fields ?? (_fields = _inner.SelectMany(x => x.SearchableFields).Distinct().ToArray());
+        public string[] SearchableFields => _fields ??= _inner.SelectMany(x => x.SearchableFields).Distinct().ToArray();
 
         /// <inheritdoc/>
         public IIndexFieldValueType? GetFieldValueType(string fieldName)

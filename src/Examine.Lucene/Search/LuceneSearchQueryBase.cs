@@ -147,9 +147,14 @@ namespace Examine.Lucene.Search
         public IBooleanOperation GroupedAnd(IEnumerable<string> fields, params IExamineValue[]? fieldVals)
         {
             if (fields == null)
+            {
                 throw new ArgumentNullException(nameof(fields));
+            }
+
             if (fieldVals == null)
+            {
                 throw new ArgumentNullException(nameof(fieldVals));
+            }
 
             return GroupedAndInternal(fields.ToArray(), fieldVals, Occurrence);
         }
@@ -162,9 +167,14 @@ namespace Examine.Lucene.Search
         public IBooleanOperation GroupedOr(IEnumerable<string> fields, params IExamineValue[]? query)
         {
             if (fields == null)
+            {
                 throw new ArgumentNullException(nameof(fields));
+            }
+
             if (query == null)
+            {
                 throw new ArgumentNullException(nameof(query));
+            }
 
             return GroupedOrInternal(fields.ToArray(), query, Occurrence);
         }
@@ -177,16 +187,21 @@ namespace Examine.Lucene.Search
         public IBooleanOperation GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
         {
             if (fields == null)
+            {
                 throw new ArgumentNullException(nameof(fields));
+            }
+
             if (query == null)
+            {
                 throw new ArgumentNullException(nameof(query));
+            }
 
             return GroupedNotInternal(fields.ToArray(), query);
         }
 
         #region INested
 
-        private static readonly string[] s_emptyStringArray = new string[0];
+        private static readonly string[] EmptyStringArray = new string[0];
 
         /// <summary>
         /// Query on a specific field
@@ -225,22 +240,22 @@ namespace Examine.Lucene.Search
             => FieldInternal(fieldName, fieldValue, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params string[] query)
-            => GroupedAndInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedAnd(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedAndInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query, Occurrence);
+            => GroupedAndInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params string[] query)
-            => GroupedOrInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query?.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray(), Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedOr(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedOrInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query, Occurrence);
+            => GroupedOrInternal(fields == null ? EmptyStringArray : fields.ToArray(), query, Occurrence);
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params string[] query)
-            => GroupedNotInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query.Select(f => new ExamineValue(Examineness.Explicit, f)).Cast<IExamineValue>().ToArray());
 
         INestedBooleanOperation INestedQuery.GroupedNot(IEnumerable<string> fields, params IExamineValue[] query)
-            => GroupedNotInternal(fields == null ? s_emptyStringArray : fields.ToArray(), query);
+            => GroupedNotInternal(fields == null ? EmptyStringArray : fields.ToArray(), query);
 
         INestedBooleanOperation INestedQuery.ManagedQuery(string query, string[]? fields) => ManagedQueryNested(query, fields);
 
@@ -257,19 +272,27 @@ namespace Examine.Lucene.Search
         protected internal LuceneBooleanOperationBase FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence)
         {
             if (fieldName == null)
+            {
                 throw new ArgumentNullException(nameof(fieldName));
+            }
+
             if (fieldValue == null)
+            {
                 throw new ArgumentNullException(nameof(fieldValue));
+            }
+
             return FieldInternal(fieldName, fieldValue, occurrence, true);
         }
 
         /// <inheritdoc/>
         private LuceneBooleanOperationBase FieldInternal(string fieldName, IExamineValue fieldValue, Occur occurrence, bool useQueryParser)
         {
-            Query? queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
+            var queryToAdd = GetFieldInternalQuery(fieldName, fieldValue, useQueryParser);
 
             if (queryToAdd != null)
+            {
                 Query.Add(queryToAdd, occurrence);
+            }
 
             return CreateOp();
         }
@@ -278,9 +301,14 @@ namespace Examine.Lucene.Search
         protected internal LuceneBooleanOperationBase GroupedAndInternal(string[] fields, IExamineValue[]? fieldVals, Occur occurrence)
         {
             if (fields == null)
+            {
                 throw new ArgumentNullException(nameof(fields));
+            }
+
             if (fieldVals == null)
+            {
                 throw new ArgumentNullException(nameof(fieldVals));
+            }
 
             //if there's only 1 query text we want to build up a string like this:
             //(+field1:query +field2:query +field3:query)
@@ -295,9 +323,14 @@ namespace Examine.Lucene.Search
         protected internal LuceneBooleanOperationBase GroupedNotInternal(string[] fields, IExamineValue[] fieldVals)
         {
             if (fields == null)
+            {
                 throw new ArgumentNullException(nameof(fields));
+            }
+
             if (fieldVals == null)
+            {
                 throw new ArgumentNullException(nameof(fieldVals));
+            }
 
             // if there's only one field and one value then deal with this like a normal And().Not()
             if (fields.Length == 1 && fieldVals.Length == 1)
@@ -331,9 +364,14 @@ namespace Examine.Lucene.Search
         protected internal LuceneBooleanOperationBase GroupedOrInternal(string[] fields, IExamineValue[]? fieldVals, Occur occurrence)
         {
             if (fields == null)
+            {
                 throw new ArgumentNullException(nameof(fields));
+            }
+
             if (fieldVals == null)
+            {
                 throw new ArgumentNullException(nameof(fieldVals));
+            }
 
             //if there's only 1 query text we want to build up a string like this:
             //(field1:query field2:query field3:query)
@@ -348,7 +386,9 @@ namespace Examine.Lucene.Search
         protected internal LuceneBooleanOperationBase IdInternal(string id, Occur occurrence)
         {
             if (id == null)
+            {
                 throw new ArgumentNullException(nameof(id));
+            }
 
             //use a query parser (which uses the analyzer) to build up the field query which we want
             Query.Add(_queryParser.GetFieldQueryInternal(ExamineFieldNames.ItemIdFieldName, id), occurrence);
@@ -368,11 +408,19 @@ namespace Examine.Lucene.Search
         protected virtual Query? GetFieldInternalQuery(string fieldName, IExamineValue fieldValue, bool useQueryParser)
         {
             if (string.IsNullOrEmpty(fieldName))
+            {
                 throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
+            }
+
             if (fieldValue is null)
+            {
                 throw new ArgumentNullException(nameof(fieldValue));
+            }
+
             if (string.IsNullOrEmpty(fieldValue.Value))
+            {
                 throw new ArgumentException($"'{nameof(fieldName)}' cannot be null or empty", nameof(fieldName));
+            }
 
             Query? queryToAdd;
 
@@ -578,14 +626,11 @@ namespace Examine.Lucene.Search
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
-        public override string ToString()
-        {
-            return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
-        }
+        public override string ToString() => $"{{ Category: {Category}, LuceneQuery: {Query} }}";
     }
 }

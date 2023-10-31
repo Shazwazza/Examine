@@ -8,15 +8,13 @@ namespace Examine.Search
     /// </summary>
     public readonly struct FacetLabel : IFacetLabel
     {
-        private readonly string[] _components;
-
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="components">The components of this FacetLabel</param>
         public FacetLabel(string[] components)
         {
-            _components = components;
+            Components = components;
         }
 
         /// <summary>
@@ -26,20 +24,32 @@ namespace Examine.Search
         /// <param name="components">>The components of this FacetLabel</param>
         public FacetLabel(string dimension, string[] components)
         {
-            _components = new string[1 + components.Length];
-            _components[0] = dimension;
-            Array.Copy(components, 0, _components, 1, components.Length);
+            Components = new string[1 + components.Length];
+            Components[0] = dimension;
+            Array.Copy(components, 0, Components, 1, components.Length);
         }
 
         /// <inheritdoc/>
-        public string[] Components => _components;
+        public string[] Components { get; }
 
         /// <inheritdoc/>
-        public int Length => _components.Length;
+        public int Length => Components.Length;
 
-        // From Lucene.NET
-        public int CompareTo(IFacetLabel other)
+        /// <summary>
+        /// Compares one facet label to another.
+        /// </summary>
+        /// <remarks>
+        /// From Lucene.NET
+        /// </remarks>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public int CompareTo(IFacetLabel? other)
         {
+            if (other == null)
+            {
+                return 1; // null sorts last
+            }
+
             int len = Length < other.Length ? Length : other.Length;
             for (int i = 0, j = 0; i < len; i++, j++)
             {
@@ -67,11 +77,11 @@ namespace Examine.Search
                 return new FacetLabel(Components);
             }
 
-            List<string> subpathComponents = new List<string>(length);
+            var subpathComponents = new List<string>(length);
             int index = 0;
-            while (index < length && index < _components.Length)
+            while (index < length && index < Components.Length)
             {
-                subpathComponents.Add(_components[index]);
+                subpathComponents.Add(Components[index]);
                 index++;
             }
             return new FacetLabel(subpathComponents.ToArray());

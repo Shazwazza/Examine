@@ -23,8 +23,7 @@ namespace Examine
             {
                 return false;
             }
-            int parsedId;
-            if (int.TryParse(id, out parsedId))
+            if (int.TryParse(id, out var parsedId))
             {
                 if (parsedId > 0)
                 {
@@ -95,7 +94,7 @@ namespace Examine
             //we will use this as the item type, but we also need to add this as the 'nodeTypeAlias' as part of the properties
             //since this is what Umbraco expects
             var nodeTypeAlias = xml.ExamineNodeTypeAlias();
-            Dictionary<string, object> allVals = xml.SelectExamineAllValues();
+            var allVals = xml.SelectExamineAllValues();
             allVals["nodeTypeAlias"] = nodeTypeAlias;
 
             var set = new ValueSet(id, indexCategory, nodeTypeAlias, allVals);
@@ -138,7 +137,9 @@ namespace Examine
                 }
 
                 if (string.IsNullOrEmpty(key))
+                {
                     continue;
+                }
 
                 if (!x.HasElements)
                 {

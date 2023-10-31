@@ -11,7 +11,11 @@ namespace Examine
         /// <inheritdoc/>
         protected BaseSearchProvider(string name)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            }
+
             Name = name;
         }
 
