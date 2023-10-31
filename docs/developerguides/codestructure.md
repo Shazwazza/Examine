@@ -1,9 +1,8 @@
 ---
-layout: page
 title: Code Structure
 permalink: /devcodestructure
 uid: devcodestructure
-order: 1
+order: 2
 ---
 
 Code Structure

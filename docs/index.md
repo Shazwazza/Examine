@@ -36,6 +36,7 @@ Releases are available [here](https://github.com/Shazwazza/Examine/releases) and
 
 | Examine Version | .NET |
 | --------------- | ---- |
+| V4 | .NET Standard 2.0 |
 | V3 | .NET Standard 2.0 |
 | V2 | .NET Standard 2.0 |
 | V1 | .NET Framework 4.5.2 |
@@ -47,7 +48,7 @@ Releases are available [here](https://github.com/Shazwazza/Examine/releases) and
 1. Install
 
     ```powershell
-    > dotnet add package Examine --version 3.0.1
+    > dotnet add package Examine --version 4.0.0-beta1
     ```
 
 1. Configure Services and create an index

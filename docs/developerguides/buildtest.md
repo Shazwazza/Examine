@@ -1,5 +1,4 @@
 ---
-layout: page
 title: Build and Test
 permalink: /devbuildtest
 uid: devbuildtest

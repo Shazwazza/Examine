@@ -1,9 +1,8 @@
 ---
-layout: page
 title: Documentation Site
 permalink: /devdocsite
 uid: devdocsite
-order: 1
+order: 3
 ---
 
 Documentation Site
@@ -16,7 +15,7 @@ The easiest way to get started is to edit an existing page by clicking the Impro
 
 ## Building documentation
 
-1. Download [docfx](https://github.com/dotnet/docfx/releases).
+1. Install [docfx](https://github.com/dotnet/docfx/releases) dotnet tool update -g docfx.
 2. Unzip the release and add the folder to your system path variables.
 3. Open a terminal, for example PowerShell or the VS Code terminal.
 4. Change directory to /docs

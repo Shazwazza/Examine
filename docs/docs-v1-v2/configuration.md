@@ -1,5 +1,4 @@
 ---
-layout: page
 title: V1/V2 Configuration
 permalink: /configuration
 uid: v2configuration
