@@ -15,7 +15,7 @@ namespace Examine
         /// Constructor
         /// </summary>
         public ReadOnlySimilarityDefinitionCollection()
-            : this(Enumerable.Empty<SimilarityDefinition>())
+            : this(default, Enumerable.Empty<SimilarityDefinition>())
         {
         }
 
@@ -23,8 +23,8 @@ namespace Examine
         /// Constructor
         /// </summary>
         /// <param name="definitions"></param>
-        public ReadOnlySimilarityDefinitionCollection(params SimilarityDefinition[] definitions)
-            : this((IEnumerable<SimilarityDefinition>)definitions)
+        public ReadOnlySimilarityDefinitionCollection(string? defaultSimilarityName, params SimilarityDefinition[] definitions)
+            : this(defaultSimilarityName, (IEnumerable<SimilarityDefinition>)definitions)
         {
 
         }
@@ -33,17 +33,20 @@ namespace Examine
         /// Constructor
         /// </summary>
         /// <param name="definitions"></param>
-        public ReadOnlySimilarityDefinitionCollection(IEnumerable<SimilarityDefinition> definitions)
+        public ReadOnlySimilarityDefinitionCollection(string? defaultSimilarityName, IEnumerable<SimilarityDefinition> definitions)
         {
+            DefaultSimilarityName = defaultSimilarityName;
             if (definitions == null)
+            {
                 return;
+            }
 
             foreach (var s in definitions.GroupBy(x => x.Name))
             {
-                var suggester = s.FirstOrDefault();
-                if (suggester != default)
+                var similarity = s.FirstOrDefault();
+                if (similarity != default)
                 {
-                    Definitions.TryAdd(s.Key, suggester);
+                    Definitions.TryAdd(s.Key, similarity);
                 }
             }
         }
@@ -66,6 +69,11 @@ namespace Examine
         /// Count
         /// </summary>
         public int Count => Definitions.Count;
+
+        /// <summary>
+        /// The name of the Similarity the index should use by default
+        /// </summary>
+        public string DefaultSimilarityName { get; }
 
         /// <summary>
         /// Definitions

@@ -76,7 +76,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public SimilarityDefinition GetSimilarity(string similarityName)
+        public SimilarityDefinition? GetSimilarity(string similarityName)
         {
             //Get the value type for the field, or use the default if not defined
             if(_similarityDefinitionCollection == null || string.IsNullOrEmpty(similarityName))
@@ -85,6 +85,22 @@ namespace Examine.Lucene.Search
             }
 
             if (_similarityDefinitionCollection.TryGetValue(similarityName, out var similarity))
+            {
+                return similarity;
+            };
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public SimilarityDefinition? GetDefaultSimilarity()
+        {
+            //Get the value type for the field, or use the default if not defined
+            if (_similarityDefinitionCollection == null || string.IsNullOrEmpty(_similarityDefinitionCollection.DefaultSimilarityName))
+            {
+                return null;
+            }
+
+            if (_similarityDefinitionCollection.TryGetValue(_similarityDefinitionCollection.DefaultSimilarityName, out var similarity))
             {
                 return similarity;
             };

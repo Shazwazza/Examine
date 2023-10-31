@@ -10,8 +10,9 @@ namespace Examine
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="defaultSimilarityName">Name of the default Similarity to use for the index</param>
         /// <param name="definitions"></param>
-        public SimilarityDefinitionCollection(params SimilarityDefinition[] definitions) : base(definitions)
+        public SimilarityDefinitionCollection(string? defaultSimilarityName, params SimilarityDefinition[] definitions) : base(defaultSimilarityName,definitions)
         {
         }
 

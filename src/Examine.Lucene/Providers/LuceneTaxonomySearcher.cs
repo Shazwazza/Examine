@@ -25,6 +25,21 @@ namespace Examine.Lucene.Providers
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
         /// <param name="facetsConfig"></param>
+        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig)
+            : base(name, analyzer, facetsConfig)
+        {
+            _searcherManager = searcherManager;
+            _fieldValueTypeCollection = fieldValueTypeCollection;
+        }
+
+        /// <summary>
+        /// Constructor allowing for creating a NRT instance based on a given writer
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="searcherManager"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="fieldValueTypeCollection"></param>
+        /// <param name="facetsConfig"></param>
         /// <param name="similarityDefinitions"></param>
         public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig, SimilarityDefinitionCollection similarityDefinitions)
             : base(name, analyzer, facetsConfig)

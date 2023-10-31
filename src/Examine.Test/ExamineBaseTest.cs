@@ -35,7 +35,7 @@ namespace Examine.Test
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
                     FacetsConfig = facetsConfig ?? new FacetsConfig(),
-                    SimilarityDefinitions = similarityDefinitions ?? new SimilarityDefinitionCollection().AddExamineLuceneSimilarities()
+                    SimilarityDefinitions = similarityDefinitions ?? new SimilarityDefinitionCollection(ExamineLuceneSimilarityNames.ExamineDefault).AddExamineLuceneSimilarities()
                 }));
         }
 

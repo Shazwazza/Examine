@@ -144,11 +144,21 @@ namespace Examine.Lucene.Search
                     facetsCollector = new FacetsCollector();
                 }
 
+
+                var defaultSimilarityDefinition = _searchContext.GetDefaultSimilarity();
                 var similarityDefinition = _searchContext.GetSimilarity(_similarityName);
 
                 if (similarityDefinition != null && similarityDefinition is LuceneSimilarityDefinitionBase luceneSimilarityDefinition)
                 {
                     var similarity = luceneSimilarityDefinition?.GetSimilarity();
+                    if (similarity != null)
+                    {
+                        searcher.IndexSearcher.Similarity = similarity;
+                    }
+                }
+                else if (defaultSimilarityDefinition != null && defaultSimilarityDefinition is LuceneSimilarityDefinitionBase luceneDefaultSimilarityDefinition)
+                {
+                    var similarity = luceneDefaultSimilarityDefinition?.GetSimilarity();
                     if (similarity != null)
                     {
                         searcher.IndexSearcher.Similarity = similarity;

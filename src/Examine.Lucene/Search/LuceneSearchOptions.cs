@@ -81,6 +81,6 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Similarity Name
         /// </summary>
-        public string SimilarityName { get; set; }
+        public string? SimilarityName { get; set; }
     }
 }

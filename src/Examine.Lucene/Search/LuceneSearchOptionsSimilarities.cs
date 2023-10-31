@@ -10,7 +10,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Default Similarity for Examine Lucene.
         /// </summary>
-        /// <remarks>In Examine V3, this is <see cref="DefaultSimilarity"/>. In Examine V4 this will change to <see cref="BM25Similarity"/></remarks>
+        /// <remarks>In Examine V3 and V4, this is <see cref="DefaultSimilarity"/>. In Examine V5 this will change to <see cref="BM25Similarity"/></remarks>
         public static readonly Similarity ExamineDefault = new DefaultSimilarity();
 
         /// <summary>

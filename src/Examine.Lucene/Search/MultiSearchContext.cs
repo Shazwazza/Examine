@@ -30,6 +30,10 @@ namespace Examine.Lucene.Search
         public IIndexFieldValueType? GetFieldValueType(string fieldName)
             => _inner.Select(cc => cc.GetFieldValueType(fieldName)).FirstOrDefault(type => type != null);
 
-        public SimilarityDefinition GetSimilarity(string similarityName) => _inner.Select(cc => cc.GetSimilarity(similarityName)).FirstOrDefault(similarityDefinition => similarityDefinition != null);
+        /// <inheritdoc/>
+        public SimilarityDefinition? GetSimilarity(string similarityName) => _inner.Select(cc => cc.GetSimilarity(similarityName)).FirstOrDefault(similarityDefinition => similarityDefinition != null);
+
+        /// <inheritdoc/>
+        public SimilarityDefinition? GetDefaultSimilarity() => _inner.Select(cc => cc.GetDefaultSimilarity()).FirstOrDefault(similarityDefinition => similarityDefinition != null);
     }
 }
