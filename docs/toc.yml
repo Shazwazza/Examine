@@ -1,9 +1,9 @@
 - name: User Guide
-  href: articles/
+  href: articles/toc.yml
 - name: Api Documentation
   href: api/
   homepage: api/index.md
 - name: Developer Guide
-  href: developerguides/
+  href: developerguides/toc.yml
 - name: Source Code
   href: https://github.com/Shazwazza/Examine

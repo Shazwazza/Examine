@@ -1,5 +1,4 @@
 ---
-layout: page
 title: Sorting
 permalink: /sorting
 uid: sorting
