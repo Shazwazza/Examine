@@ -282,13 +282,15 @@ To explore other configuration settings see the links below:
 - [FacetsConfig API docs](https://lucenenet.apache.org/docs/4.8.0-beta00016/api/facet/Lucene.Net.Facet.FacetsConfig.html#methods)
 - [Facets with lucene](https://norconex.com/facets-with-lucene/). See how the config is used in the code examples.
 
-## Similarity definitions
+## Relevance
+
+### Similarity definitions
 
 A Similarity Definition is a mapping of a similarity name to a Similarity. By default similarity is set to the default similarity Type: [`ExamineLuceneSimilarityNames.ExamineDefault`](xref:Examine.Lucene.Search.ExamineLuceneSimilarityNames#ExamineDefault).
 
 You can map a similarity name to any similarity type when configuring the index.
 
-## Similarity types
+### Similarity types
 
 These are the default similarity types provided with Examine.
 
@@ -301,7 +303,7 @@ These are the default similarity types provided with Examine.
 | LMJelinekMercerTitle   | LMJelinekMercerSimilarity with parameter 0.1f which is suitable for title searches|
 | LMJelinekMercerLongText   | LMJelinekMercerSimilarity with parameter 0.7f which is suitable for long text searches.|
 
-### IConfigureNamedOptions
+### Similarity Configuration
 
 Configuration of Examine indexes is done with [.NET's Options pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0). For Examine, this is done with named options: [`IConfigureNamedOptions`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.iconfigurenamedoptions-1).
 
@@ -321,6 +323,9 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
                 // Set the "BM25" similarity to map to the 'BM25Similarity' similarity type.
                 options.SimilarityDefinitions.AddOrUpdate(
                     new FieldDefinition("BM25", new BM25Similarity()));
+
+                // Set the "BM25" similarity to be the default similarity to use when searching the Index.
+                options.SimilarityDefinitions.SetDefaultSimilarityName("BM25");
                 break;
         }
     }
@@ -330,7 +335,7 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
 }
 ```
 
-### After construction
+#### After construction
 
 You can modify the similarity definitions [SimilarityDefinitionCollection](xref:Examine.SimilarityDefinitionCollection) for an index after it is constructed by using any of the following methods:
 

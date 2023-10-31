@@ -34,5 +34,11 @@ namespace Examine
 
         /// <inheritdoc/>
         public bool TryAdd(SimilarityDefinition definition) => Definitions.TryAdd(definition.Name, definition);
+
+        /// <summary>
+        /// Set the name of the Similarity to use by default for the index when not specified at query time
+        /// </summary>
+        /// <param name="defaultSimilarityName">Similarity Name</param>
+        public void SetDefaultSimilarityName(string defaultSimilarityName) => DefaultSimilarityName = defaultSimilarityName;
     }
 }

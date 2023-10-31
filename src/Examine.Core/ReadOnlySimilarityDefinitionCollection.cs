@@ -73,7 +73,7 @@ namespace Examine
         /// <summary>
         /// The name of the Similarity the index should use by default
         /// </summary>
-        public string DefaultSimilarityName { get; }
+        public string DefaultSimilarityName { get; protected set; }
 
         /// <summary>
         /// Definitions
