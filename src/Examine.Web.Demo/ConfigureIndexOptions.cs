@@ -39,6 +39,7 @@ namespace Examine.Web.Demo
                     // Add the field definition for a field called "phone" which maps
                     // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
+
                     break;
                 case "TaxonomyFacetIndex":
                     options.UseTaxonomyIndex = true;

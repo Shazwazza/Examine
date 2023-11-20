@@ -5,7 +5,7 @@ namespace Examine.Lucene.Indexing
     /// <summary>
     /// Responsible for generating a Similarity
     /// </summary>
-    public interface IIndexSimilarity
+    public interface IIndexSimilarityType
     {
         /// <summary>
         /// The Similarity name

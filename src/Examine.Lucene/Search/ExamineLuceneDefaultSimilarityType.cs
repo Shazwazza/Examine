@@ -7,14 +7,14 @@ namespace Examine.Lucene.Search
     /// Default Similarity for Examine Lucene.
     /// </summary>
     /// <remarks>In Examine V3, this is <see cref="DefaultSimilarity"/>. In Examine V4 this will change to <see cref="BM25Similarity"/></remarks>
-    public class ExamineLuceneDefaultSimilarity : LuceneSimilarityBase
+    public class ExamineLuceneDefaultSimilarityType : LuceneSimilarityTypeBase
     {
         private readonly Lazy<DefaultSimilarity> _similarityLazy = new Lazy<DefaultSimilarity>(() => new DefaultSimilarity());
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public ExamineLuceneDefaultSimilarity() : base(ExamineLuceneSimilarityNames.ExamineDefault)
+        public ExamineLuceneDefaultSimilarityType() : base(ExamineLuceneSimilarityNames.ExamineDefault)
         {
         }
 

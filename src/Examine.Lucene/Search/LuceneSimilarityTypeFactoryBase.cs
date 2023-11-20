@@ -5,14 +5,14 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Base Class for Lucene.NET Similarity Defintions
     /// </summary>
-    public abstract class LuceneSimilarityFactoryBase
-        : ISimilarityFactory
+    public abstract class LuceneSimilarityTypeFactoryBase
+        : ISimilarityTypeFactory
     {
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="name">Similarity Name</param>
-        public LuceneSimilarityFactoryBase(string name) 
+        public LuceneSimilarityTypeFactoryBase(string name) 
         {
             Name = name;
         }
@@ -22,7 +22,8 @@ namespace Examine.Lucene.Search
         /// </summary>
         public string Name { get; }
 
-        public abstract IIndexSimilarity Create();
+        /// <inheritdoc/>
+        public abstract IIndexSimilarityType Create();
 
     }
 }

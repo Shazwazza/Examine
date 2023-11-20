@@ -296,18 +296,20 @@ These are the default similarity types provided with Examine.
 
 | Similarity Name                | Description  |
 | ------------------------------ | ------------ |
-| ExamineDefault  | Default Similarity for Examine Lucene. ( V3/V4 Classic), (V5 BM25) |
-| Classic | Classic Similarity for Lucene|
-| BM25 | BM25Similarity with default parameters for Lucene|
-| LMDirichlet  | LMDirichletSimilarity with default parameters for Lucene|
-| LMJelinekMercerTitle   | LMJelinekMercerSimilarity with parameter 0.1f which is suitable for title searches|
-| LMJelinekMercerLongText   | LMJelinekMercerSimilarity with parameter 0.7f which is suitable for long text searches.|
+| Examine.Default  | Default Similarity for Examine Lucene. ( V3/V4 Lucene.Classic), (V5 Lucene.BM25) |
+| Lucene.Classic | Classic Similarity for Lucene|
+| Lucene.BM25 | BM25Similarity with default parameters for Lucene|
+| Lucene.LMDirichlet  | LMDirichletSimilarity with default parameters for Lucene|
+| Lucene.LMJelinekMercerTitle   | LMJelinekMercerSimilarity with parameter 0.1f which is suitable for title searches|
+| Lucene.LMJelinekMercerLongText   | LMJelinekMercerSimilarity with parameter 0.7f which is suitable for long text searches.|
 
 ### Similarity Configuration
 
 Configuration of Examine indexes is done with [.NET's Options pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0). For Examine, this is done with named options: [`IConfigureNamedOptions`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.iconfigurenamedoptions-1).
 
-* __SimilarityDefinitions__ _[`SimilarityDefinitionCollection`](xref:Examine.SimilarityDefinitionCollection)_ - Manages the mappings between a similarity name and it's index similarity type
+* __SimilarityDefinitions__ _[`SimilarityDefinitionCollection`](xref:Examine.SimilarityDefinitionCollection)_ - Manages the mappings between a similarity name and it's similarity type
+
+* __[ISimilarityTypeFactory](xref:Examine.Lucene.ISimilarityTypeFactory)__ _`IReadOnlyDictionary<string, ISimilarityTypeFactory>`_ - Allows you to define custom Similarity Types
 
 ```cs
 /// <summary>
@@ -320,12 +322,12 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
         switch (name)
         {
             case "MyIndex":
-                // Set the "BM25" similarity to map to the 'BM25Similarity' similarity type.
+                // Set the "Examine.Default" similarity to map to the 'Classic' similarity type.
                 options.SimilarityDefinitions.AddOrUpdate(
-                    new SimilarityDefinition("BM25", new BM25Similarity()));
+                    new SimilarityDefinition("Examine.Default", "Lucene.Classic"));
 
-                // Set the "BM25" similarity to be the default similarity to use when searching the Index.
-                options.SimilarityDefinitions.SetDefaultSimilarityName("BM25");
+                // Set the "Lucene.BM25" similarity to be the default similarity to use when searching the Index.
+                options.SimilarityDefinitions.SetDefaultSimilarityName("Lucene.BM25");
                 break;
         }
     }

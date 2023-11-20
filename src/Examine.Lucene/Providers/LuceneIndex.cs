@@ -59,7 +59,7 @@ namespace Examine.Lucene.Providers
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
-            _indexSimilarityCollection = new Lazy<IndexSimilarityCollection?>(() => CreateSimilarities(_options.IndexSimilaritiesFactory));
+            _indexSimilarityCollection = new Lazy<IndexSimilarityCollection>(() => CreateSimilarities(_options.IndexSimilaritiesFactory));
 
             if (_options.UseTaxonomyIndex)
             {
@@ -98,6 +98,7 @@ namespace Examine.Lucene.Providers
             }
 
             _directory = new Lazy<Directory>(() => directoryOptions.DirectoryFactory.CreateDirectory(this, directoryOptions.UnlockIndex));
+            DefaultSimilarityName = _options.DefaultSimilarityName ?? ExamineLuceneSimilarityNames.ExamineDefault;
         }
 
 
@@ -751,12 +752,12 @@ namespace Examine.Lucene.Providers
         /// </summary>
         /// <param name="similaritiesFactory"></param>
         /// <returns></returns>
-        protected virtual IndexSimilarityCollection CreateSimilarities(IReadOnlyDictionary<string, ISimilarityFactory>? similaritiesFactory = null)
+        protected virtual IndexSimilarityCollection CreateSimilarities(IReadOnlyDictionary<string, ISimilarityTypeFactory>? similaritiesFactory = null)
         {
             //copy to writable dictionary
-            var defaults = new Dictionary<string, ISimilarityFactory>();
+            var defaults = new Dictionary<string, ISimilarityTypeFactory>();
             var defaultDefinitions = new SimilarityDefinitionCollection();
-            foreach (var defaultIndexValueType in SimilarityFactoryCollection.GetDefaultSimilarities(LoggerFactory))
+            foreach (var defaultIndexValueType in SimilarityFactoryCollection.GetDefaultSimilarities())
             {
                 defaults[defaultIndexValueType.Key] = defaultIndexValueType.Value;
                 defaultDefinitions.TryAdd(new SimilarityDefinition(defaultIndexValueType.Key, defaultIndexValueType.Key));

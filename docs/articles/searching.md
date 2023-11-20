@@ -473,7 +473,7 @@ var results = query.Execute();
 ### Use a Lucene Similarity
 Simliarity defines the components of Lucene scoring.
 
-See LuceneSearchOptionsSimilarities for Similarities that are available by default.
+See [LuceneSearchOptionsSimilarities](xref:Examine.Lucene.Search.LuceneSearchOptionsSimilarities) for Similarities that are available by default.
 
 - LuceneSearchOptionsSimilarities.ExamineDefault is the default Similarity used by Examine
 - LuceneSearchOptionsSimilarities.Classic is the default Similarity used by Lucene.NET 4
@@ -514,21 +514,60 @@ var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
 #### Per Field Similarity Example
 
 ```csharp
-Dictionary<string, Similarity> fieldSimilarities = new Dictionary<string, Similarity>(StringComparer.OrdinalIgnoreCase)
+
+/// <summary>
+/// Configure Examine indexes using .NET IOptions
+/// </summary>
+public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirectoryIndexOptions>
+{
+    public void Configure(string name, LuceneDirectoryIndexOptions options)
+    {
+        switch (name)
+        {
+            case "MyIndex":
+                // Set the "Lucene.BM25" similarity to be the default similarity to use when searching the Index when Similarity not specified at query time.
+                options.SimilarityDefinitions.SetDefaultSimilarityName("Lucene.BM25");
+
+                // Create mapping from field to Similarity
+                Dictionary<string, Similarity> fieldSimilarities = new Dictionary<string, Similarity>(StringComparer.OrdinalIgnoreCase)
                 {
                     // Set the title field to use the LMJelinekMercerTitle Similarity
                     { "title", LuceneSearchOptionsSimilarities.LMJelinekMercerTitle },
                     // Set the bodyText field to use the LMJelinekMercerLongText Similarity
                     { "bodyText", LuceneSearchOptionsSimilarities.LMJelinekMercerLongText }
                 };
-DictionaryPerFieldSimilarityWrapper sampleSimilarity = new DictionaryPerFieldSimilarityWrapper(
-    fieldSimilarities, // Set per field similarities
-    LuceneSearchOptionsSimilarities.BM25 // Set fallback similarity for non specified fields
-    );
-var sampleSimilarityDefinition = new LuceneSimilarityDefinition("sampleSimilarity", testSimilarity);
-// Add to Similarity Definition
-SimilarityDefinitionCollection similarityDefinitions = new SimilarityDefinitionCollection().AddExamineLuceneSimilarities();
-similarityDefinitions.AddOrUpdate(sampleSimilarityDefinition);
+
+                // Wrap into single Similarity instance
+                DictionaryPerFieldSimilarityWrapper sampleSimilarity = new DictionaryPerFieldSimilarityWrapper(
+                    fieldSimilarities, // Set per field similarities
+                    LuceneSearchOptionsSimilarities.BM25 // Set fallback similarity for non specified fields
+                    );
+
+                // Define delegate to create the similarity
+                var luceneDelegateSimilarity = new LuceneDelegateSimilarityType("sampleSimilarityType", () => sampleSimilarity);
+                // Wrap in delegate Factory
+                var luceneDelegateSimilarityFactory = new DelegateSimilarityTypeFactory(() => luceneDelegateSimilarity);
+
+                // Add to factories
+                options.IndexSimilaritiesFactory = new Dictionary<string, ISimilarityTypeFactory>()
+                {
+                    ["sampleSimilarityType"] = luceneDelegateSimilarityFactory
+                };
+
+                var sampleSimilarityDefinition = new LuceneSimilarityDefinition("sampleSimilarity", "sampleSimilarityType");
+
+                // Add to Similarity Definition
+                options.SimilarityDefinitions.AddOrUpdate(sampleSimilarityDefinition);
+                break;
+        }
+    }
+
+    public void Configure(LuceneDirectoryIndexOptions options) 
+        => Configure(string.Empty, options);
+}
+
+
+// At search time
 var searcher = (BaseLuceneSearcher)indexer.Searcher;
 var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
                     {

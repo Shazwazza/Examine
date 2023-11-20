@@ -79,7 +79,7 @@ namespace Examine.Lucene.Search
         public ITaxonomySearcherReference GetTaxonomyAndSearcher() => new TaxonomySearcherReference(_searcherManager);
 
         /// <inheritdoc/>
-        public IIndexSimilarity? GetSimilarity(string similarityName)
+        public IIndexSimilarityType? GetSimilarity(string similarityName)
         {
             //Get the value type for the field, or use the default if not defined
             if (_indexSimilarityCollection == null || string.IsNullOrEmpty(similarityName))
@@ -91,7 +91,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public IIndexSimilarity? GetDefaultSimilarity()
+        public IIndexSimilarityType? GetDefaultSimilarity()
         {
             //Get the value type for the field, or use the default if not defined
             if (_indexSimilarityCollection == null || string.IsNullOrEmpty(_indexSimilarityCollection.DefaultSimilarityName))

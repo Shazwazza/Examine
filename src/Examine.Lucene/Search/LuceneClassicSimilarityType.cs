@@ -6,14 +6,14 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Classic Similarity for Lucene. <see cref="DefaultSimilarity"/>
     /// </summary>
-    public class LuceneClassicSimilarity : LuceneSimilarityBase
+    public class LuceneClassicSimilarityType : LuceneSimilarityTypeBase
     {
         private readonly Lazy<DefaultSimilarity> _similarityLazy = new Lazy<DefaultSimilarity>(() => new DefaultSimilarity());
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public LuceneClassicSimilarity() : base(ExamineLuceneSimilarityNames.Classic)
+        public LuceneClassicSimilarityType() : base(ExamineLuceneSimilarityNames.Classic)
         {
         }
 

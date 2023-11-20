@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
-using Lucene.Net.Search.Similarities;
 
 namespace Examine.Lucene.Search
 {

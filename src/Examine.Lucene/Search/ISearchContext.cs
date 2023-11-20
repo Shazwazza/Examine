@@ -30,13 +30,13 @@ namespace Examine.Lucene.Search
         /// Get Index Default Similarity
         /// </summary>
         /// <returns></returns>
-        IIndexSimilarity? GetDefaultSimilarity();
+        IIndexSimilarityType? GetDefaultSimilarity();
 
         /// <summary>
         /// Get Index Similarity
         /// </summary>
         /// <param name="similarityName"></param>
         /// <returns></returns>
-        IIndexSimilarity? GetSimilarity(string similarityName);
+        IIndexSimilarityType? GetSimilarity(string similarityName);
     }
 }

@@ -210,9 +210,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     { "bodyText", LuceneSearchOptionsSimilarities.LMJelinekMercerLongText }
                 };
 
-            var luceneDelSim = new LuceneDelegateSimilarity("dictionarySim", () => new DictionaryPerFieldSimilarityWrapper(fieldSimilarities, LuceneSearchOptionsSimilarities.BM25));
-            var luceneDelegateSimilarityFactory = new DelegateSimilarityFactory(() => luceneDelSim);
-            Dictionary<string, ISimilarityFactory> indexSimilarityFactory = new Dictionary<string, ISimilarityFactory>();
+            var luceneDelegateSimilarity = new LuceneDelegateSimilarityType("dictionarySim", () => new DictionaryPerFieldSimilarityWrapper(fieldSimilarities, LuceneSearchOptionsSimilarities.BM25));
+            var luceneDelegateSimilarityFactory = new DelegateSimilarityTypeFactory(() => luceneDelegateSimilarity);
+            Dictionary<string, ISimilarityTypeFactory> indexSimilarityFactory = new Dictionary<string, ISimilarityTypeFactory>();
             indexSimilarityFactory.Add("dictionarySim", luceneDelegateSimilarityFactory);
 
             var sim = new SimilarityDefinition("multiField", "dictionarySim");
