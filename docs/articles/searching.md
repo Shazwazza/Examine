@@ -512,6 +512,7 @@ var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
 ```
 
 #### Per Field Similarity Example
+Example of a custom Similarity per index field.
 
 ```csharp
 
