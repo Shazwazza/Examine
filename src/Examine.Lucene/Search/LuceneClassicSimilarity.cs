@@ -4,17 +4,16 @@ using Lucene.Net.Search.Similarities;
 namespace Examine.Lucene.Search
 {
     /// <summary>
-    /// Default Similarity for Examine Lucene.
+    /// Classic Similarity for Lucene. <see cref="DefaultSimilarity"/>
     /// </summary>
-    /// <remarks>In Examine V3, this is <see cref="DefaultSimilarity"/>. In Examine V4 this will change to <see cref="BM25Similarity"/></remarks>
-    public class ExamineLuceneDefaultSimilarityDefinition : LuceneSimilarityDefinitionBase
+    public class LuceneClassicSimilarity : LuceneSimilarityBase
     {
         private readonly Lazy<DefaultSimilarity> _similarityLazy = new Lazy<DefaultSimilarity>(() => new DefaultSimilarity());
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public ExamineLuceneDefaultSimilarityDefinition() : base(ExamineLuceneSimilarityNames.ExamineDefault)
+        public LuceneClassicSimilarity() : base(ExamineLuceneSimilarityNames.Classic)
         {
         }
 

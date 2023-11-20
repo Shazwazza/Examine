@@ -3,6 +3,7 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Index;
+using Lucene.Net.Search.Similarities;
 
 namespace Examine.Lucene.Search
 {
@@ -14,20 +15,20 @@ namespace Examine.Lucene.Search
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private string[]? _searchableFields;
-        private readonly SimilarityDefinitionCollection? _similarityDefinitionCollection;
+        private readonly IndexSimilarityCollection? _indexSimilarityCollection;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="searcherManager"></param>
         /// <param name="fieldValueTypeCollection"></param>
-        /// <param name="similarityDefinitionCollection"></param>
+        /// <param name="indexSimilarityCollection"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public TaxonomySearchContext(SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection? similarityDefinitionCollection)
+        public TaxonomySearchContext(SearcherTaxonomyManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, IndexSimilarityCollection? indexSimilarityCollection)
         {
             _searcherManager = searcherManager ?? throw new ArgumentNullException(nameof(searcherManager));
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
-            _similarityDefinitionCollection = similarityDefinitionCollection ?? throw new ArgumentNullException(nameof(similarityDefinitionCollection));
+            _indexSimilarityCollection = indexSimilarityCollection ?? throw new ArgumentNullException(nameof(indexSimilarityCollection));
         }
 
         /// <inheritdoc/>
@@ -78,35 +79,27 @@ namespace Examine.Lucene.Search
         public ITaxonomySearcherReference GetTaxonomyAndSearcher() => new TaxonomySearcherReference(_searcherManager);
 
         /// <inheritdoc/>
-        public SimilarityDefinition? GetSimilarity(string similarityName)
+        public IIndexSimilarity? GetSimilarity(string similarityName)
         {
             //Get the value type for the field, or use the default if not defined
-            if (_similarityDefinitionCollection == null || string.IsNullOrEmpty(similarityName))
+            if (_indexSimilarityCollection == null || string.IsNullOrEmpty(similarityName))
             {
                 return null;
             }
 
-            if (_similarityDefinitionCollection.TryGetValue(similarityName, out var similarity))
-            {
-                return similarity;
-            };
-            return null;
+            return _indexSimilarityCollection.GetIndexSimilarity(similarityName);
         }
 
         /// <inheritdoc/>
-        public SimilarityDefinition? GetDefaultSimilarity()
+        public IIndexSimilarity? GetDefaultSimilarity()
         {
             //Get the value type for the field, or use the default if not defined
-            if (_similarityDefinitionCollection == null || string.IsNullOrEmpty(_similarityDefinitionCollection.DefaultSimilarityName))
+            if (_indexSimilarityCollection == null || string.IsNullOrEmpty(_indexSimilarityCollection.DefaultSimilarityName))
             {
                 return null;
             }
 
-            if (_similarityDefinitionCollection.TryGetValue(_similarityDefinitionCollection.DefaultSimilarityName, out var similarity))
-            {
-                return similarity;
-            };
-            return null;
+            return _indexSimilarityCollection.GetIndexSimilarity(_indexSimilarityCollection.DefaultSimilarityName);
         }
     }
 }

@@ -6,14 +6,14 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// BM25Similarity with default parameters for Lucene. <see cref="BM25Similarity"/>
     /// </summary>
-    public class LuceneBM25imilarityDefinition : LuceneSimilarityDefinitionBase
+    public class LuceneBM25imilarity : LuceneSimilarityBase
     {
         private readonly Lazy<BM25Similarity> _similarityLazy = new Lazy<BM25Similarity>(() => new BM25Similarity());
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public LuceneBM25imilarityDefinition() : base(ExamineLuceneSimilarityNames.BM25)
+        public LuceneBM25imilarity() : base(ExamineLuceneSimilarityNames.BM25)
         {
         }
 

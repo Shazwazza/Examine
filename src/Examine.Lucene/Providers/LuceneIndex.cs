@@ -21,6 +21,7 @@ using Examine.Lucene.Directories;
 using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Facet.Taxonomy.Directory;
 using static Lucene.Net.Replicator.IndexAndTaxonomyRevision;
+using Examine.Lucene.Search;
 
 namespace Examine.Lucene.Providers
 {
@@ -58,7 +59,7 @@ namespace Examine.Lucene.Providers
 
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
-            _similarityDefinitionCollection = new Lazy<SimilarityDefinitionCollection?>(() => _options.SimilarityDefinitions);
+            _indexSimilarityCollection = new Lazy<IndexSimilarityCollection?>(() => CreateSimilarities(_options.IndexSimilaritiesFactory));
 
             if (_options.UseTaxonomyIndex)
             {
@@ -113,7 +114,7 @@ namespace Examine.Lucene.Providers
             //initialize the field types
             _fieldValueTypeCollection = new Lazy<FieldValueTypeCollection>(() => CreateFieldValueTypes(_options.IndexValueTypesFactory));
 
-            _similarityDefinitionCollection = new Lazy<SimilarityDefinitionCollection?>(() => _options.SimilarityDefinitions);
+            _indexSimilarityCollection = new Lazy<IndexSimilarityCollection>(() => CreateSimilarities(_options.IndexSimilaritiesFactory));
 
             if (_options.UseTaxonomyIndex)
             {
@@ -130,6 +131,7 @@ namespace Examine.Lucene.Providers
             _cancellationToken = _cancellationTokenSource.Token;
 
             DefaultAnalyzer = _options.Analyzer ?? new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            DefaultSimilarityName = _options.DefaultSimilarityName ?? ExamineLuceneSimilarityNames.ExamineDefault;
         }
 
         /// <summary>
@@ -243,7 +245,7 @@ namespace Examine.Lucene.Providers
         private readonly Lazy<LuceneTaxonomySearcher> _taxonomySearcher;
         private readonly Lazy<Directory>? _taxonomyDirectory;
 
-        private readonly Lazy<SimilarityDefinitionCollection?> _similarityDefinitionCollection;
+        private readonly Lazy<IndexSimilarityCollection> _indexSimilarityCollection;
 
         #region Properties
 
@@ -253,14 +255,19 @@ namespace Examine.Lucene.Providers
         public FieldValueTypeCollection FieldValueTypeCollection => _fieldValueTypeCollection.Value;
 
         /// <summary>
-        /// Returns the <see cref="SimilarityDefinitionCollection"/> configured for this index
+        /// Returns the <see cref="IndexSimilarityCollection"/> configured for this index
         /// </summary>
-        public SimilarityDefinitionCollection? SimilarityDefinitionCollection => _similarityDefinitionCollection.Value;
+        public IndexSimilarityCollection? IndexSimilarityCollection => _indexSimilarityCollection.Value;
 
         /// <summary>
         /// The default analyzer to use when indexing content, by default, this is set to StandardAnalyzer
         /// </summary>
         public Analyzer DefaultAnalyzer { get; }
+
+        /// <summary>
+        /// The name of the Similarity to use by default
+        /// </summary>
+        public string DefaultSimilarityName { get; }
 
         /// <summary>
         /// Gets the field ananlyzer
@@ -299,9 +306,9 @@ namespace Examine.Lucene.Providers
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool IsCancellationRequested => _cancellationToken.IsCancellationRequested;
 
-#endregion
+        #endregion
 
-#region Events
+        #region Events
 
         /// <summary>
         /// Occurs when [document writing].
@@ -347,9 +354,9 @@ namespace Examine.Lucene.Providers
         protected virtual void OnDocumentWriting(DocumentWritingEventArgs docArgs)
             => DocumentWriting?.Invoke(this, docArgs);
 
-#endregion
+        #endregion
 
-#region Provider implementation
+        #region Provider implementation
 
         /// <inheritdoc/>
         protected override void PerformIndexItems(IEnumerable<ValueSet> values, Action<IndexOperationEventArgs> onComplete)
@@ -707,9 +714,9 @@ namespace Examine.Lucene.Providers
             return indexedNodes;
         }
 
-#endregion
+        #endregion
 
-#region Protected
+        #region Protected
 
 
 
@@ -736,6 +743,43 @@ namespace Examine.Lucene.Providers
             }
 
             var result = new FieldValueTypeCollection(DefaultAnalyzer, defaults, FieldDefinitions);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates the <see cref="IndexSimilarityCollection"/> for this index
+        /// </summary>
+        /// <param name="similaritiesFactory"></param>
+        /// <returns></returns>
+        protected virtual IndexSimilarityCollection CreateSimilarities(IReadOnlyDictionary<string, ISimilarityFactory>? similaritiesFactory = null)
+        {
+            //copy to writable dictionary
+            var defaults = new Dictionary<string, ISimilarityFactory>();
+            var defaultDefinitions = new SimilarityDefinitionCollection();
+            foreach (var defaultIndexValueType in SimilarityFactoryCollection.GetDefaultSimilarities(LoggerFactory))
+            {
+                defaults[defaultIndexValueType.Key] = defaultIndexValueType.Value;
+                defaultDefinitions.TryAdd(new SimilarityDefinition(defaultIndexValueType.Key, defaultIndexValueType.Key));
+            }
+            //copy the factory over the defaults
+            if (similaritiesFactory != null)
+            {
+                foreach (var value in similaritiesFactory)
+                {
+                    defaults[value.Key] = value.Value;
+                }
+            }
+            //copy the configured over the defaults
+            if (SimilarityDefinitions != null)
+            {
+                foreach (var value in SimilarityDefinitions)
+                {
+                    defaultDefinitions.AddOrUpdate(value);
+                }
+            }
+
+
+            var result = new IndexSimilarityCollection(defaults, DefaultSimilarityName, defaultDefinitions);
             return result;
         }
 
@@ -918,7 +962,7 @@ namespace Examine.Lucene.Providers
             var indexTypeValueType = FieldValueTypeCollection.GetValueType(ExamineFieldNames.ItemTypeFieldName, FieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.InvariantCultureIgnoreCase));
             indexTypeValueType.AddValue(doc, valueSet.ItemType);
 
-            if(valueSet.Values != null)
+            if (valueSet.Values != null)
             {
                 foreach (var field in valueSet.Values)
                 {
@@ -1329,7 +1373,7 @@ namespace Examine.Lucene.Providers
 
         #endregion
 
-#region Private
+        #region Private
 
         private LuceneSearcher CreateSearcher()
         {
@@ -1339,7 +1383,7 @@ namespace Examine.Lucene.Providers
             {
                 //trim the "Indexer" / "Index" suffix if it exists
                 if (!name.EndsWith(suffix))
-                    {
+                {
                     continue;
                 }
 #pragma warning disable IDE0057 // Use range operator
@@ -1373,7 +1417,7 @@ namespace Examine.Lucene.Providers
             {
                 //trim the "Indexer" / "Index" suffix if it exists
                 if (!name.EndsWith(suffix))
-                    {
+                {
                     continue;
                 }
 #pragma warning disable IDE0057 // Use range operator
@@ -1396,7 +1440,7 @@ namespace Examine.Lucene.Providers
             // wait for most recent changes when first creating the searcher
             WaitForChanges();
 
-            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig, SimilarityDefinitionCollection);
+            return new LuceneTaxonomySearcher(name + "Searcher", searcherManager, FieldAnalyzer, FieldValueTypeCollection, _options.FacetsConfig, IndexSimilarityCollection);
         }
 
         /// <summary>
@@ -1514,7 +1558,7 @@ namespace Examine.Lucene.Providers
             }
         }
 
-#endregion
+        #endregion
 
         /// <summary>
         /// Blocks the calling thread until the internal searcher can see latest documents

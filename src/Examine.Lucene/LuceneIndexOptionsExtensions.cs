@@ -14,12 +14,12 @@ namespace Examine.Lucene
         /// <returns></returns>
         public static SimilarityDefinitionCollection AddExamineLuceneSimilarities(this SimilarityDefinitionCollection similarityDefinitions)
         {
-            similarityDefinitions.AddOrUpdate(new ExamineLuceneDefaultSimilarityDefinition());
-            similarityDefinitions.AddOrUpdate(new LuceneClassicSimilarityDefinition());
-            similarityDefinitions.AddOrUpdate(new LuceneBM25imilarityDefinition());
-            similarityDefinitions.AddOrUpdate(new LuceneLMDirichletSimilarityDefinition());
-            similarityDefinitions.AddOrUpdate(new LuceneLMJelinekMercerTitleSimilarityDefinition());
-            similarityDefinitions.AddOrUpdate(new LuceneLMJelinekMercerLongTextSimilarityDefinition());
+            similarityDefinitions.AddOrUpdate(new SimilarityDefinition(ExamineLuceneSimilarityNames.ExamineDefault, ExamineLuceneSimilarityNames.ExamineDefault));
+            similarityDefinitions.AddOrUpdate(new SimilarityDefinition(ExamineLuceneSimilarityNames.Classic, ExamineLuceneSimilarityNames.Classic));
+            similarityDefinitions.AddOrUpdate(new SimilarityDefinition(ExamineLuceneSimilarityNames.BM25, ExamineLuceneSimilarityNames.BM25));
+            similarityDefinitions.AddOrUpdate(new SimilarityDefinition(ExamineLuceneSimilarityNames.LMDirichlet, ExamineLuceneSimilarityNames.LMDirichlet));
+            similarityDefinitions.AddOrUpdate(new SimilarityDefinition(ExamineLuceneSimilarityNames.LMJelinekMercerTitle, ExamineLuceneSimilarityNames.LMJelinekMercerTitle));
+            similarityDefinitions.AddOrUpdate(new SimilarityDefinition(ExamineLuceneSimilarityNames.LMJelinekMercerLongText, ExamineLuceneSimilarityNames.LMJelinekMercerLongText));
             return similarityDefinitions;
         }
     }

@@ -64,5 +64,16 @@ namespace Examine
         /// The similarties for the <see cref="IIndex"/>
         /// </summary>
         public SimilarityDefinitionCollection? SimilarityDefinitions { get; set; }
+
+        /// <summary>
+        /// Specifies the index Similarity types to use for this index, if this is not specified then the result of <see cref="SimilarityFactoryCollection.GetDefaultSimilarities"/> will be used.
+        /// This is generally used to initialize any custom similarity types for your searcher since the Similarity collection cannot be modified at runtime.
+        /// </summary>
+        public IReadOnlyDictionary<string, ISimilarityFactory>? IndexSimilaritiesFactory { get; set; }
+
+        /// <summary>
+        /// Index Searcher Default Similarity Name
+        /// </summary>
+        public string? DefaultSimilarityName { get; set; }
     }
 }

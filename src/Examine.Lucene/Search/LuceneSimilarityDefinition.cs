@@ -1,3 +1,5 @@
+using System;
+using Examine.Lucene.Indexing;
 using Lucene.Net.Search.Similarities;
 
 namespace Examine.Lucene.Search
@@ -5,21 +7,21 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Lucene.NET Similarity Defintion
     /// </summary>
-    public class LuceneSimilarityDefinition : LuceneSimilarityDefinitionBase
+    public abstract class LuceneSimilarityBase : IIndexSimilarity
     {
-        private readonly Similarity _similarity;
-
         /// <summary>
         /// Construtor
         /// </summary>
         /// <param name="name">Similarity Name</param>
-        /// <param name="similarity">Lucene Similarity</param>
-        public LuceneSimilarityDefinition(string name, Similarity similarity) : base(name)
+        public LuceneSimilarityBase(string name)
         {
-            _similarity = similarity;
+            SimilarityName = name;
         }
 
         /// <inheritdoc/>
-        public override Similarity GetSimilarity() => _similarity;
+        public string SimilarityName { get; }
+
+        /// <inheritdoc/>
+        public abstract Similarity GetSimilarity();
     }
 }

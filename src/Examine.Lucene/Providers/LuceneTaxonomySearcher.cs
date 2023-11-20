@@ -14,7 +14,7 @@ namespace Examine.Lucene.Providers
     {
         private readonly SearcherTaxonomyManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
-        private readonly SimilarityDefinitionCollection? _similarityDefinitionCollection;
+        private readonly IndexSimilarityCollection? _indexSimilarityCollection;
         private bool _disposedValue;
 
         /// <summary>
@@ -40,25 +40,25 @@ namespace Examine.Lucene.Providers
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
         /// <param name="facetsConfig"></param>
-        /// <param name="similarityDefinitions"></param>
-        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig, SimilarityDefinitionCollection? similarityDefinitions)
+        /// <param name="indexSimilarityCollection"></param>
+        public LuceneTaxonomySearcher(string name, SearcherTaxonomyManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig, IndexSimilarityCollection? indexSimilarityCollection)
             : base(name, analyzer, facetsConfig)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
-            _similarityDefinitionCollection = similarityDefinitions;
+            _indexSimilarityCollection = indexSimilarityCollection;
         }
 
         /// <inheritdoc/>
         public override ISearchContext GetSearchContext()
-            => new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection, _similarityDefinitionCollection);
+            => new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection, _indexSimilarityCollection);
 
         /// <summary>
         /// Gets the Taxonomy SearchContext
         /// </summary>
         /// <returns></returns>
         public virtual ITaxonomySearchContext GetTaxonomySearchContext()
-            => new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection, _similarityDefinitionCollection);
+            => new TaxonomySearchContext(_searcherManager, _fieldValueTypeCollection, _indexSimilarityCollection);
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)

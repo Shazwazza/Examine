@@ -6,14 +6,14 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// LMJelinekMercerSimilarity with parameter 0.1f which is suitable for title searches. <see cref="LMJelinekMercerSimilarity"/>
     /// </summary>
-    public class LuceneLMJelinekMercerTitleSimilarityDefinition : LuceneSimilarityDefinitionBase
+    public class LuceneLMJelinekMercerTitleSimilarity : LuceneSimilarityBase
     {
         private readonly Lazy<LMJelinekMercerSimilarity> _similarityLazy = new Lazy<LMJelinekMercerSimilarity>(() => new LMJelinekMercerSimilarity(0.1f));
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public LuceneLMJelinekMercerTitleSimilarityDefinition() : base(ExamineLuceneSimilarityNames.LMDirichlet)
+        public LuceneLMJelinekMercerTitleSimilarity() : base(ExamineLuceneSimilarityNames.LMDirichlet)
         {
         }
 

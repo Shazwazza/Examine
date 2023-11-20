@@ -31,9 +31,9 @@ namespace Examine.Lucene.Search
             => _inner.Select(cc => cc.GetFieldValueType(fieldName)).FirstOrDefault(type => type != null);
 
         /// <inheritdoc/>
-        public SimilarityDefinition? GetSimilarity(string similarityName) => _inner.Select(cc => cc.GetSimilarity(similarityName)).FirstOrDefault(similarityDefinition => similarityDefinition != null);
+        public IIndexSimilarity? GetSimilarity(string similarityName) => _inner.Select(cc => cc.GetSimilarity(similarityName)).FirstOrDefault(similarityDefinition => similarityDefinition != null);
 
         /// <inheritdoc/>
-        public SimilarityDefinition? GetDefaultSimilarity() => _inner.Select(cc => cc.GetDefaultSimilarity()).FirstOrDefault(similarityDefinition => similarityDefinition != null);
+        public IIndexSimilarity? GetDefaultSimilarity() => _inner.Select(cc => cc.GetDefaultSimilarity()).FirstOrDefault(similarityDefinition => similarityDefinition != null);
     }
 }

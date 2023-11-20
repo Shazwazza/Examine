@@ -11,7 +11,8 @@ namespace Examine
         /// Constructor
         /// </summary>
         /// <param name="name">Name of the similarity</param>
-        public SimilarityDefinition(string name)
+        /// <param name="type">Name of the similarity Type</param>
+        public SimilarityDefinition(string name, string type)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -19,11 +20,18 @@ namespace Examine
             }
 
             Name = name;
+            Type = type;
         }
 
         /// <summary>
         /// The name of the Similarity
         /// </summary>
         public string Name { get; }
+
+
+        /// <summary>
+        /// The name of Type of Similarity
+        /// </summary>
+        public string Type { get; }
     }
 }

@@ -27,16 +27,16 @@ namespace Examine.Lucene.Search
         IIndexFieldValueType? GetFieldValueType(string fieldName);
 
         /// <summary>
-        /// Get Index Default Similarity Definition
+        /// Get Index Default Similarity
         /// </summary>
         /// <returns></returns>
-        SimilarityDefinition? GetDefaultSimilarity();
+        IIndexSimilarity? GetDefaultSimilarity();
 
         /// <summary>
-        /// Get Index Similarity Definition
+        /// Get Index Similarity
         /// </summary>
         /// <param name="similarityName"></param>
         /// <returns></returns>
-        SimilarityDefinition? GetSimilarity(string similarityName);
+        IIndexSimilarity? GetSimilarity(string similarityName);
     }
 }

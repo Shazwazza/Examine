@@ -22,7 +22,7 @@ namespace Examine.Test
             loggerFactory.CreateLogger(typeof(ExamineBaseTest)).LogDebug("Initializing test");
         }
 
-        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig facetsConfig = null, SimilarityDefinitionCollection similarityDefinitions = null)
+        public TestIndex GetTestIndex(Directory d, Analyzer analyzer, FieldDefinitionCollection fieldDefinitions = null, IndexDeletionPolicy indexDeletionPolicy = null, IReadOnlyDictionary<string, IFieldValueTypeFactory> indexValueTypesFactory = null, FacetsConfig facetsConfig = null, SimilarityDefinitionCollection similarityDefinitions = null, IReadOnlyDictionary<string, ISimilarityFactory> indexSimilarityFactory = null)
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
             return new TestIndex(
@@ -35,7 +35,8 @@ namespace Examine.Test
                     IndexDeletionPolicy = indexDeletionPolicy,
                     IndexValueTypesFactory = indexValueTypesFactory,
                     FacetsConfig = facetsConfig ?? new FacetsConfig(),
-                    SimilarityDefinitions = similarityDefinitions ?? new SimilarityDefinitionCollection(ExamineLuceneSimilarityNames.ExamineDefault).AddExamineLuceneSimilarities()
+                    SimilarityDefinitions = similarityDefinitions ?? new SimilarityDefinitionCollection(ExamineLuceneSimilarityNames.ExamineDefault).AddExamineLuceneSimilarities(),
+                    IndexSimilaritiesFactory = indexSimilarityFactory
                 }));
         }
 

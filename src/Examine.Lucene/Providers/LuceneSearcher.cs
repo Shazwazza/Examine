@@ -14,7 +14,7 @@ namespace Examine.Lucene.Providers
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
-        private readonly SimilarityDefinitionCollection? _similarityDefinitionCollection;
+        private readonly IndexSimilarityCollection? _indexSimilarityCollection;
         private bool _disposedValue;
 
         /// <summary>
@@ -24,13 +24,17 @@ namespace Examine.Lucene.Providers
         /// <param name="searcherManager"></param>
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
-        /// <param name="similarityDefinitionCollection"></param>
-        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection similarityDefinitionCollection)
+        /// <param name="indexSimilarityCollection"></param>
+        public LuceneSearcher(string name,
+                              SearcherManager searcherManager,
+                              Analyzer analyzer,
+                              FieldValueTypeCollection fieldValueTypeCollection,
+                              IndexSimilarityCollection indexSimilarityCollection)
             : base(name, analyzer)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
-            _similarityDefinitionCollection = similarityDefinitionCollection;
+            _indexSimilarityCollection = indexSimilarityCollection;
         }
 
         /// <summary>
@@ -56,16 +60,43 @@ namespace Examine.Lucene.Providers
         /// <param name="analyzer"></param>
         /// <param name="fieldValueTypeCollection"></param>
         /// <param name="facetsConfig"></param>
-        public LuceneSearcher(string name, SearcherManager searcherManager, Analyzer analyzer, FieldValueTypeCollection fieldValueTypeCollection, FacetsConfig facetsConfig)
+        [Obsolete("To remove in Examine V5")]
+        public LuceneSearcher(string name,
+                              SearcherManager searcherManager,
+                              Analyzer analyzer,
+                              FieldValueTypeCollection fieldValueTypeCollection,
+                              FacetsConfig facetsConfig)
             : base(name, analyzer, facetsConfig)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection;
         }
 
+        /// <summary>
+        /// Constructor allowing for creating a NRT instance based on a given writer
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="searcherManager"></param>
+        /// <param name="analyzer"></param>
+        /// <param name="fieldValueTypeCollection"></param>
+        /// <param name="facetsConfig"></param>
+        /// <param name="indexSimilarityCollection"></param>
+        public LuceneSearcher(string name,
+                              SearcherManager searcherManager,
+                              Analyzer analyzer,
+                              FieldValueTypeCollection fieldValueTypeCollection,
+                              FacetsConfig facetsConfig,
+                              IndexSimilarityCollection indexSimilarityCollection)
+            : base(name, analyzer, facetsConfig)
+        {
+            _searcherManager = searcherManager;
+            _fieldValueTypeCollection = fieldValueTypeCollection;
+            _indexSimilarityCollection = indexSimilarityCollection;
+        }
+
         /// <inheritdoc/>
         public override ISearchContext GetSearchContext()
-            => new SearchContext(_searcherManager, _fieldValueTypeCollection, _similarityDefinitionCollection);
+            => new SearchContext(_searcherManager, _fieldValueTypeCollection, _indexSimilarityCollection);
 
         /// <inheritdoc/>
         [Obsolete("To remove in Examine v5")]

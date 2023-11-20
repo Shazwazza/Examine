@@ -6,14 +6,14 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// LMDirichletSimilarity with default parameters for Lucene. <see cref="LMDirichletSimilarity"/>
     /// </summary>
-    public class LuceneLMDirichletSimilarityDefinition : LuceneSimilarityDefinitionBase
+    public class LuceneLMDirichletSimilarity : LuceneSimilarityBase
     {
         private readonly Lazy<LMDirichletSimilarity> _similarityLazy = new Lazy<LMDirichletSimilarity>(() => new LMDirichletSimilarity());
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public LuceneLMDirichletSimilarityDefinition() : base(ExamineLuceneSimilarityNames.LMDirichlet)
+        public LuceneLMDirichletSimilarity() : base(ExamineLuceneSimilarityNames.LMDirichlet)
         {
         }
 

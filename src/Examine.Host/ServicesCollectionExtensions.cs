@@ -110,6 +110,8 @@ namespace Examine
                         options.DirectoryFactory = services.GetRequiredService<TDirectoryFactory>();
                         options.FacetsConfig = config.FacetsConfig ?? new FacetsConfig();
                         options.UseTaxonomyIndex = config.UseTaxonomyIndex;
+                        options.IndexSimilaritiesFactory = config.IndexSimilaritiesFactory;
+                        options.DefaultSimilarityName = config.DefaultSimilarityName;
                         options.SimilarityDefinitions = config.SimilarityDefinitions ?? new SimilarityDefinitionCollection(ExamineLuceneSimilarityNames.ExamineDefault).AddExamineLuceneSimilarities();
                     }));
 

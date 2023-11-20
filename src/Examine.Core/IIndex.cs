@@ -43,6 +43,11 @@ namespace Examine
         ReadOnlyFieldDefinitionCollection FieldDefinitions { get; }
 
         /// <summary>
+        /// Returns the similarity definitions for the index
+        /// </summary>
+        ReadOnlySimilarityDefinitionCollection SimilarityDefinitions { get; }
+
+        /// <summary>
         /// determines whether the index exsists or not
         /// </summary>
         bool IndexExists();

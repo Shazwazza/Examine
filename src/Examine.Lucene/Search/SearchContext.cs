@@ -4,6 +4,7 @@ using System.Linq;
 using Examine.Lucene.Indexing;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Similarities;
 
 namespace Examine.Lucene.Search
 {
@@ -14,22 +15,22 @@ namespace Examine.Lucene.Search
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
         private string[]? _searchableFields;
-        private readonly SimilarityDefinitionCollection? _similarityDefinitionCollection;
+        private readonly IndexSimilarityCollection? _indexSimilarityCollection;
 
         /// <inheritdoc/>
         public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
-            _similarityDefinitionCollection = null;
+            _indexSimilarityCollection = null;
         }
 
         /// <inheritdoc/>
-        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, SimilarityDefinitionCollection? similarityDefinitionCollection)
+        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, IndexSimilarityCollection? indexSimilarityCollection)
         {
             _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
-            _similarityDefinitionCollection = similarityDefinitionCollection;
+            _indexSimilarityCollection = indexSimilarityCollection;
         }
 
         /// <summary>
@@ -82,35 +83,27 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public SimilarityDefinition? GetSimilarity(string similarityName)
+        public IIndexSimilarity? GetSimilarity(string similarityName)
         {
             //Get the value type for the field, or use the default if not defined
-            if(_similarityDefinitionCollection == null || string.IsNullOrEmpty(similarityName))
+            if(_indexSimilarityCollection == null || string.IsNullOrEmpty(similarityName))
             {
                 return null;
             }
 
-            if (_similarityDefinitionCollection.TryGetValue(similarityName, out var similarity))
-            {
-                return similarity;
-            };
-            return null;
+            return _indexSimilarityCollection.GetIndexSimilarity(similarityName);
         }
 
         /// <inheritdoc/>
-        public SimilarityDefinition? GetDefaultSimilarity()
+        public IIndexSimilarity? GetDefaultSimilarity()
         {
             //Get the value type for the field, or use the default if not defined
-            if (_similarityDefinitionCollection == null || string.IsNullOrEmpty(_similarityDefinitionCollection.DefaultSimilarityName))
+            if (_indexSimilarityCollection == null || string.IsNullOrEmpty(_indexSimilarityCollection.DefaultSimilarityName))
             {
                 return null;
             }
 
-            if (_similarityDefinitionCollection.TryGetValue(_similarityDefinitionCollection.DefaultSimilarityName, out var similarity))
-            {
-                return similarity;
-            };
-            return null;
+            return _indexSimilarityCollection.GetIndexSimilarity(_indexSimilarityCollection.DefaultSimilarityName);
         }
     }
 }

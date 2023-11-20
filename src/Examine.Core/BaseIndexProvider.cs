@@ -104,6 +104,11 @@ namespace Examine
         public ReadOnlyFieldDefinitionCollection FieldDefinitions =>
             _indexOptions.FieldDefinitions ?? new FieldDefinitionCollection();
 
+
+        /// <inheritdoc/>
+        public ReadOnlySimilarityDefinitionCollection SimilarityDefinitions =>
+            _indexOptions.SimilarityDefinitions ?? new SimilarityDefinitionCollection();
+
         /// <inheritdoc/>
         public abstract bool IndexExists();
 

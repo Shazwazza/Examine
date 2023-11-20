@@ -1,24 +1,28 @@
-using Lucene.Net.Search.Similarities;
+using Examine.Lucene.Indexing;
 
 namespace Examine.Lucene.Search
 {
     /// <summary>
     /// Base Class for Lucene.NET Similarity Defintions
     /// </summary>
-    public abstract class LuceneSimilarityDefinitionBase : SimilarityDefinition
+    public abstract class LuceneSimilarityFactoryBase
+        : ISimilarityFactory
     {
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="name">Similarity Name</param>
-        public LuceneSimilarityDefinitionBase(string name) : base(name)
+        public LuceneSimilarityFactoryBase(string name) 
         {
+            Name = name;
         }
 
         /// <summary>
-        /// Gets the Lucene.NET Similarity Definition
+        /// Similarity Name
         /// </summary>
-        /// <returns></returns>
-        public abstract Similarity GetSimilarity();
+        public string Name { get; }
+
+        public abstract IIndexSimilarity Create();
+
     }
 }

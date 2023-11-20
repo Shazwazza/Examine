@@ -200,26 +200,6 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        internal class TestPerFieldSimilarityWrapper : PerFieldSimilarityWrapper
-        {
-            private readonly Similarity _defaultSimilarity;
-            private readonly IDictionary<string, Similarity> _fieldSimilarities;
-
-            public TestPerFieldSimilarityWrapper(Similarity defaultSimilarity, IDictionary<string, Similarity> fieldSimilarities)
-            {
-                _defaultSimilarity = defaultSimilarity;
-                _fieldSimilarities = fieldSimilarities;
-            }
-
-            public override Similarity Get(string field)
-            {
-                if (_fieldSimilarities.TryGetValue(field, out var similarity))
-                {
-                    return similarity;
-                }
-                return _defaultSimilarity;
-            }
-        }
 
         [Test]
         public void Custom_PerField_Similarity()
@@ -229,9 +209,13 @@ namespace Examine.Test.Examine.Lucene.Search
                     { "title", LuceneSearchOptionsSimilarities.LMJelinekMercerTitle },
                     { "bodyText", LuceneSearchOptionsSimilarities.LMJelinekMercerLongText }
                 };
-            DictionaryPerFieldSimilarityWrapper testSimilarity = new DictionaryPerFieldSimilarityWrapper(fieldSimilarities, LuceneSearchOptionsSimilarities.BM25);
 
-            var sim = new LuceneSimilarityDefinition("dictionarySim", testSimilarity);
+            var luceneDelSim = new LuceneDelegateSimilarity("dictionarySim", () => new DictionaryPerFieldSimilarityWrapper(fieldSimilarities, LuceneSearchOptionsSimilarities.BM25));
+            var luceneDelegateSimilarityFactory = new DelegateSimilarityFactory(() => luceneDelSim);
+            Dictionary<string, ISimilarityFactory> indexSimilarityFactory = new Dictionary<string, ISimilarityFactory>();
+            indexSimilarityFactory.Add("dictionarySim", luceneDelegateSimilarityFactory);
+
+            var sim = new SimilarityDefinition("multiField", "dictionarySim");
             SimilarityDefinitionCollection similarityDefinitions = new SimilarityDefinitionCollection().AddExamineLuceneSimilarities();
             similarityDefinitions.AddOrUpdate(sim);
 
@@ -240,7 +224,8 @@ namespace Examine.Test.Examine.Lucene.Search
             using (var indexer = GetTestIndex(
                 luceneDir,
                 analyzer,
-                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)), similarityDefinitions: similarityDefinitions))
+                new FieldDefinitionCollection(new FieldDefinition("parentID", FieldDefinitionTypes.Integer)), similarityDefinitions: similarityDefinitions,
+                indexSimilarityFactory: indexSimilarityFactory))
             {
                 indexer.IndexItems(new[] {
                     ValueSet.FromObject(1.ToString(), "cOntent",
@@ -259,7 +244,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     searcher.LuceneAnalyzer,
                     searchOptions: new LuceneSearchOptions
                     {
-                        SimilarityName = "dictionarySim"
+                        SimilarityName = "multiField"
                     }).All();
 
                 Console.WriteLine(query);

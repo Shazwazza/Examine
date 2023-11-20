@@ -148,17 +148,17 @@ namespace Examine.Lucene.Search
                 var defaultSimilarityDefinition = _searchContext.GetDefaultSimilarity();
                 var similarityDefinition = string.IsNullOrWhiteSpace(_similarityName) ? null :_searchContext.GetSimilarity(_similarityName);
 
-                if (similarityDefinition != null && similarityDefinition is LuceneSimilarityDefinitionBase luceneSimilarityDefinition)
+                if (similarityDefinition != null)
                 {
-                    var similarity = luceneSimilarityDefinition?.GetSimilarity();
+                    var similarity = similarityDefinition?.GetSimilarity();
                     if (similarity != null)
                     {
                         searcher.IndexSearcher.Similarity = similarity;
                     }
                 }
-                else if (defaultSimilarityDefinition != null && defaultSimilarityDefinition is LuceneSimilarityDefinitionBase luceneDefaultSimilarityDefinition)
+                else if (defaultSimilarityDefinition != null)
                 {
-                    var similarity = luceneDefaultSimilarityDefinition?.GetSimilarity();
+                    var similarity = similarityDefinition?.GetSimilarity();
                     if (similarity != null)
                     {
                         searcher.IndexSearcher.Similarity = similarity;
