@@ -5213,15 +5213,15 @@ namespace Examine.Test.Examine.Lucene.Search
             {
                 var items = new ValueSet[] {
                     ValueSet.FromObject("1", "content",
-                    new { publishDate = new object[]{ new object[] { "2010", "10", "15" } }, nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                    new { publishDate = new FacetLabel("publishDate", new string[] { "2010", "10", "15" }), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
                      ValueSet.FromObject("2", "content",
-                    new { publishDate =  new object[]{ new object[] {"2010", "10", "20"} }, nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                    new { publishDate =  new FacetLabel("publishDate", new string[]  {"2010", "10", "20"} ), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
                       ValueSet.FromObject("3", "content",
-                    new { publishDate =  new object[]{ new object[] {"2012", "1", "1"} }, nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                    new { publishDate = new FacetLabel("publishDate", new string[] { "2012", "1", "1"} ), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
                        ValueSet.FromObject("4", "content",
-                    new { publishDate =  new object[]{ new object[] {"2012", "1", "7"} }, nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                    new { publishDate = new FacetLabel("publishDate", new string[] { "2012", "1", "7"}), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
                         ValueSet.FromObject("5", "content",
-                    new { publishDate =  new object[]{ new object[] { "1999", "5", "5"} }, nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" })
+                    new { publishDate =  new FacetLabel("publishDate", new string[] { "1999", "5", "5"} ), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" })
                 };
 
                 indexer.IndexItems(items);

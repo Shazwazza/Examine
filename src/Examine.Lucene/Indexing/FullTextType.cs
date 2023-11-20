@@ -11,6 +11,7 @@ using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
 using Lucene.Net.Facet;
 using Lucene.Net.Facet.SortedSet;
+using Lucene.Net.Facet.Taxonomy;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
@@ -134,7 +135,15 @@ namespace Examine.Lucene.Indexing
                         Field.Store.YES));
                 }
 
-                if (_isFacetable && _taxonomyIndex)
+                if (_isFacetable && _taxonomyIndex && value is IFacetLabel taxonomyFacetLabel)
+                {
+                    doc.Add(new FacetField(taxonomyFacetLabel.Components[0], taxonomyFacetLabel.Components.AsSpan().Slice(1).ToArray()));
+                }
+                else if (_isFacetable && !_taxonomyIndex && value is IFacetLabel facetLabel)
+                {
+                    doc.Add(new SortedSetDocValuesFacetField(facetLabel.Components[0], facetLabel.Components[1]));
+                }
+                else if(_isFacetable && _taxonomyIndex)
                 {
                     doc.Add(new FacetField(FieldName, str));
                 }
