@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Search;
+using Lucene.Net.Facet;
 using Lucene.Net.Facet.Range;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
@@ -198,6 +199,9 @@ namespace Examine.Lucene.Search
 
             return GroupedNotInternal(fields.ToArray(), query);
         }
+
+        /// <inheritdoc/>
+        public abstract IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions);
 
         #region INested
 

@@ -130,6 +130,10 @@ namespace Examine.Lucene.Search
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
+        /// <inheritdoc/>
+        public override IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions) =>
+            DrillDownQueryInternal(dimensions,Occurrence);
+
         internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[]? fields, Occur occurance)
         {
             Query.Add(new LateBoundQuery(() =>
@@ -215,6 +219,32 @@ namespace Examine.Lucene.Search
                 }
 
                 outer.Add(inner, Occur.SHOULD);
+
+                return outer;
+            }), occurance);
+
+            return CreateOp();
+        }
+
+        internal LuceneBooleanOperationBase DrillDownQueryInternal(Action<IDrillDownQueryDimensions> dimensions, Occur occurance)
+        {
+            Query.Add(new LateBoundQuery(() =>
+            {
+                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
+                //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
+                //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
+                //so it might be the ToString() that is the issue.
+                var outer = new BooleanQuery();
+                var inner = new BooleanQuery();
+
+                LuceneDrillDownQueryDimensions luceneDrillDownQueryDimensions = new LuceneDrillDownQueryDimensions();
+                dimensions(luceneDrillDownQueryDimensions);
+
+                DrillDownQuery drillDownQuery = new DrillDownQuery(this._facetsConfig);
+                luceneDrillDownQueryDimensions.Apply(drillDownQuery);
+              
+
+                outer.Add(drillDownQuery, Occur.SHOULD);
 
                 return outer;
             }), occurance);
@@ -443,5 +473,6 @@ namespace Examine.Lucene.Search
             }
             return false;
         }
+
     }
 }
