@@ -511,7 +511,6 @@ var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
  .Execute();
 ```
 
-
 #### Per Field Similarity Example
 
 ```csharp
@@ -538,3 +537,4 @@ var query = searcher.CreateQuery(searchOptions: new LuceneSearchOptions
   // Look for any addresses with the exact phrase "Hills Rockyroad Hollywood"
  .Field("Address", "Hills Rockyroad Hollywood".Escape())
  .Execute();
+ ```

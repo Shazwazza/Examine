@@ -322,7 +322,7 @@ public sealed class ConfigureIndexOptions : IConfigureNamedOptions<LuceneDirecto
             case "MyIndex":
                 // Set the "BM25" similarity to map to the 'BM25Similarity' similarity type.
                 options.SimilarityDefinitions.AddOrUpdate(
-                    new FieldDefinition("BM25", new BM25Similarity()));
+                    new SimilarityDefinition("BM25", new BM25Similarity()));
 
                 // Set the "BM25" similarity to be the default similarity to use when searching the Index.
                 options.SimilarityDefinitions.SetDefaultSimilarityName("BM25");
