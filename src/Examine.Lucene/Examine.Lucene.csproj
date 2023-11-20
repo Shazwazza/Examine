@@ -6,7 +6,8 @@
     <PackageTags>examine lucene lucene.net lucenenet search index</PackageTags>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
-    <LangVersion>9</LangVersion>
+    <LangVersion>10</LangVersion>
+    <TargetFrameworks>net6.0;</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="AspExamineManager.cs.bak" />
