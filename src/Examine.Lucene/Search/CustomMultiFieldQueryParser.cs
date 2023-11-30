@@ -19,7 +19,8 @@ namespace Examine.Lucene.Search
             : base(matchVersion, fields, analyzer)
             => SearchableFields = fields;
 
-        internal static QueryParser KeywordAnalyzerQueryParser { get; } = new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer());
+        // NOTE: Query parsers are not thread safe so we need to create a new instance here
+        internal QueryParser KeywordAnalyzerQueryParser { get; } = new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer());
 
         public string[] SearchableFields { get; }
 

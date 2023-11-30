@@ -11,6 +11,7 @@ namespace Examine.Lucene.Search
     public abstract class LuceneSearchQueryBase : IQuery, INestedQuery
     {
         private readonly CustomMultiFieldQueryParser _queryParser;
+
         public QueryParser QueryParser => _queryParser;
 
         internal Stack<BooleanQuery> Queries { get; } = new Stack<BooleanQuery>();
@@ -392,7 +393,7 @@ namespace Examine.Lucene.Search
         /// <param name="rawQuery"></param>
         /// <returns></returns>
         private Query ParseRawQuery(string rawQuery)
-            => CustomMultiFieldQueryParser.KeywordAnalyzerQueryParser.Parse(rawQuery);
+            => _queryParser.KeywordAnalyzerQueryParser.Parse(rawQuery);
 
         /// <summary>
         /// Uses a PhraseQuery to build a 'raw/exact' match
