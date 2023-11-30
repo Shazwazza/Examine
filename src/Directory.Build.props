@@ -23,6 +23,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Examine.Web.Demo' AND '$(MSBuildProjectName)' != 'Examine.Test'">
     <TargetFrameworks>net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
 </Project>

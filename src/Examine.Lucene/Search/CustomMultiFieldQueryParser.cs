@@ -14,13 +14,16 @@ namespace Examine.Lucene.Search
     /// </summary>
     public class CustomMultiFieldQueryParser : MultiFieldQueryParser
     {
+        private QueryParser _keywordAnalyzerQueryParser;
 
         public CustomMultiFieldQueryParser(LuceneVersion matchVersion, string[] fields, Analyzer analyzer)
             : base(matchVersion, fields, analyzer)
-            => SearchableFields = fields;
+        {
+            SearchableFields = fields;
+        }
 
         // NOTE: Query parsers are not thread safe so we need to create a new instance here
-        internal QueryParser KeywordAnalyzerQueryParser { get; } = new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer());
+        internal QueryParser KeywordAnalyzerQueryParser => _keywordAnalyzerQueryParser ??= new QueryParser(LuceneInfo.CurrentVersion, string.Empty, new KeywordAnalyzer());
 
         public string[] SearchableFields { get; }
 
