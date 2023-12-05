@@ -24,9 +24,14 @@ namespace Examine.Lucene.Search
         ISearcherReference SearcherReference { get; }
 
         /// <summary>
-        /// SortedSetReaderState
+        /// SortedSetReaderState (Non taxonomy indexed)
         /// </summary>
         SortedSetDocValuesReaderState? SortedSetReaderState { get; }
+
+        /// <summary>
+        /// Drill Sideways Result Facets
+        /// </summary>
+        Facets? DrillSidewaysResultFacets { get; }
 
         /// <summary>
         /// Get the facet counts for the faceted field
