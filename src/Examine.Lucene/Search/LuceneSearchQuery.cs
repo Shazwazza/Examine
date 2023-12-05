@@ -251,23 +251,10 @@ namespace Examine.Lucene.Search
                 bo.OpBaseQuery(buildQuery, baseQuery, occurance.ToBooleanOperation(), defaultOp);
                 return bo;
             }
-            Query.Add(new LateBoundQuery(() =>
-            {
-                //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
-                //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
-                //is producing the resulting lucene string syntax. It might not be needed internally within Lucene since it's an object
-                //so it might be the ToString() that is the issue.
-                var outer = new BooleanQuery();
-                var inner = new BooleanQuery();
 
-                var drillDownQuery = new DrillDownQuery(this._facetsConfig);
-                luceneDrillDownQueryDimensions.Apply(drillDownQuery);
-
-                outer.Add(drillDownQuery, Occur.SHOULD);
-
-                return outer;
-            }), occurance);
-
+            var drillDownQuery = new DrillDownQuery(this._facetsConfig);
+            luceneDrillDownQueryDimensions.Apply(drillDownQuery);
+            Query.Add(drillDownQuery, occurance);
             return CreateOp();
         }
 
