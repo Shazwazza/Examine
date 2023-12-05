@@ -5349,12 +5349,12 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        private static void BasicDrillSidewaysTests(ISearcher taxonomySearcher)
+        private static void BasicDrillSidewaysTests(ISearcher searcher)
         {
             //  case: drill-down on a single field; in this
             // case the drill-sideways + drill-down counts ==
             // drill-down of just the query: 
-            var sc = taxonomySearcher.CreateQuery("content")
+            var sc = searcher.CreateQuery("content")
                 .DrillDownQuery(
                  dims =>
                  {
@@ -5393,7 +5393,7 @@ namespace Examine.Test.Examine.Lucene.Search
             //  case: drill-down on a single field; in this
             // case the drill-sideways + drill-down counts ==
             // drill-down of just the query: 
-            var sc2 = taxonomySearcher.CreateQuery("content")
+            var sc2 = searcher.CreateQuery("content")
                 .DrillDownQuery(
                  dims =>
                  {
@@ -5429,7 +5429,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             // Publish Date is only drill-down: Lisa and Bob
             // (drill-down) published twice in 2010 and once in 2012:
-            var sc3 = taxonomySearcher.CreateQuery("content")
+            var sc3 = searcher.CreateQuery("content")
                .DrillDownQuery(
                 dims =>
                 {
@@ -5455,7 +5455,7 @@ namespace Examine.Test.Examine.Lucene.Search
             Assert.AreEqual(3, facetResults3All.Count());
 
             // More interesting case: drill-down on two fields
-            var sc4 = taxonomySearcher.CreateQuery("content")
+            var sc4 = searcher.CreateQuery("content")
                .DrillDownQuery(
                 dims =>
                 {
@@ -5490,7 +5490,7 @@ namespace Examine.Test.Examine.Lucene.Search
 
             // Even more interesting case: drill down on two fields,
             // but one of them is OR
-            var sc5 = taxonomySearcher.CreateQuery("content")
+            var sc5 = searcher.CreateQuery("content")
                .DrillDownQuery(
                 dims =>
                 {
