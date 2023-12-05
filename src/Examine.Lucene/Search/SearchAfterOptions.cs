@@ -1,3 +1,6 @@
+using System;
+using Examine.Search;
+
 namespace Examine.Lucene.Search
 {
     /// <summary>
@@ -5,7 +8,6 @@ namespace Examine.Lucene.Search
     /// </summary>
     public class SearchAfterOptions
     {
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -19,6 +21,31 @@ namespace Examine.Lucene.Search
             DocumentScore = documentScore;
             Fields = fields;
             ShardIndex = shardIndex;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="searchAfter">Search After</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public SearchAfterOptions(SearchAfter searchAfter)
+        {
+            if (searchAfter is null)
+            {
+                throw new ArgumentNullException(nameof(searchAfter));
+            }
+            if (string.IsNullOrWhiteSpace(searchAfter.Value))
+            {
+                throw new ArgumentException(nameof(searchAfter));
+            }
+            var searchAfterVals = searchAfter.Value.Split('|');
+            DocumentId = int.Parse(searchAfterVals[0]);
+            DocumentScore = int.Parse(searchAfterVals[1]);
+            if (!string.IsNullOrEmpty(searchAfterVals[2]))
+            {
+                ShardIndex = int.Parse(searchAfterVals[2]);
+            }
         }
 
         /// <summary>
@@ -42,5 +69,15 @@ namespace Examine.Lucene.Search
         /// Search fields. Should contain null or J2N.Int
         /// </summary>
         public object[]? Fields { get; }
+
+        /// <summary>
+        /// To Search After
+        /// </summary>
+        /// <returns></returns>
+        public SearchAfter ToSearchAfter()
+        {
+            var searchAfterSerialized = string.Join("|", DocumentId, DocumentScore, ShardIndex);
+            return new SearchAfter(searchAfterSerialized);
+        }
     }
 }
