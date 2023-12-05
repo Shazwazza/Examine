@@ -4900,11 +4900,12 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 #if NET6_0_OR_GREATER
-        [TestCase(FacetTestType.TaxonomyFacets)] [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]
         public void Range_DateOnly(FacetTestType withFacets)
         {
-           FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -5189,6 +5190,235 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.IsFalse(firstResults.Any(x => secondResults.Any(y => y.Id == x.Id)), "The second set of results should not contain the first set of results");
 
             }
+        }
+
+
+        [TestCase()]
+        public void GivenTaxonomyIndexFacetDrillDownSubquery_Returns_ExpectedTotals_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            var facetConfigs = new FacetsConfig();
+            facetConfigs.SetIndexFieldName("taxonomynodeName", "taxonomy_nodeName");
+            //facetConfigs.SetIndexFieldName("publishDate", "taxonomy_publishDate"); //Not working
+            facetConfigs.SetHierarchical("publishDate", true);
+
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(luceneDir, luceneTaxonomyDir, analyzer, new FieldDefinitionCollection(
+                new FieldDefinition("publishDate", FieldDefinitionTypes.FacetTaxonomyFullText),
+                new FieldDefinition("Author", FieldDefinitionTypes.FacetTaxonomyFullText),
+                new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText),
+                new FieldDefinition("taxonomynodeName", FieldDefinitionTypes.FacetTaxonomyFullText)
+
+                ), facetsConfig: facetConfigs))
+            {
+                var items = new ValueSet[] {
+                    ValueSet.FromObject(
+                        "1",
+                        "content",
+                        new { publishDate = new FacetLabel("publishDate", new string[] { "2010", "10", "15" }),
+                            nodeName = "umbraco",
+                            Author = "Bob",
+                            writerName = "administrator",
+                            taxonomynodeName = "umbraco" }),
+                     ValueSet.FromObject("2", "content",
+                    new { publishDate =  new FacetLabel("publishDate", new string[]  {"2010", "10", "20"} ),
+                        nodeName = "umbraco", Author = "Lisa", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                      ValueSet.FromObject("3", "content",
+                    new { publishDate = new FacetLabel("publishDate", new string[] { "2012", "1", "1"} ),
+                        nodeName = "umbraco", Author = "Lisa", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                       ValueSet.FromObject("4", "content",
+                    new { publishDate = new FacetLabel("publishDate", new string[] { "2012", "1", "7"}),
+                        nodeName = "umbraco", Author = "Susan", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                        ValueSet.FromObject("5", "content",
+                    new { publishDate =  new FacetLabel("publishDate", new string[] { "1999", "5", "5"} ),
+                        nodeName = "umbraco", Author = "Frank", writerName = "administrator", taxonomynodeName = "umbraco" })
+                };
+
+                indexer.IndexItems(items);
+
+                var taxonomySearcher = indexer.TaxonomySearcher;
+                var taxonomyCategoryCount = taxonomySearcher.CategoryCount;
+
+
+                //Act
+                BasicDrillSidewaysTests(taxonomySearcher);
+            }
+        }
+
+        private static void BasicDrillSidewaysTests(ISearcher searcher)
+        {
+            //  case: drill-down on a single field; in this
+            // case the drill-sideways + drill-down counts ==
+            // drill-down of just the query: 
+            var sc = searcher.CreateQuery("content")
+                .DrillDownQuery(
+                 dims =>
+                 {
+                     dims.AddDimension("Author", "Lisa");
+                 },
+                 null
+                ,
+                sideways =>
+                {
+                    sideways.SetTopN(10);
+                },
+                BooleanOperation.Or)
+                .WithFacets((Action<IFacetOperations>)(facets =>
+                {
+                    facets.FacetString("publishDate", x => x.MaxCount(10));
+                    facets.FacetString("Author", x => x.MaxCount(10));
+                }));
+            var results1 = sc.ExecuteWithLucene();
+
+            Assert.AreEqual(2, results1.Count());
+
+            var facetResults1PublishDate = results1.GetFacet("publishDate");
+            // Publish Date is only drill-down, and Lisa published
+            // one in 2012 and one in 2010:
+            Assert.AreEqual(2, facetResults1PublishDate.Count());
+
+            // Author is drill-sideways + drill-down: Lisa
+            // (drill-down) published twice, and Frank/Susan/Bob
+            // published once:
+            var facetResults1Author = results1.GetFacet("Author");
+            Assert.AreEqual(4, facetResults1Author.Count());
+
+            // Another simple case: drill-down on single fields
+            // but OR of two values
+            //Act
+            //  case: drill-down on a single field; in this
+            // case the drill-sideways + drill-down counts ==
+            // drill-down of just the query: 
+            var sc2 = searcher.CreateQuery("content")
+                .DrillDownQuery(
+                 dims =>
+                 {
+                     dims.AddDimension("Author", "Lisa");
+                     dims.AddDimension("Author", "Bob");
+                 },
+                 null
+                ,
+                sideways =>
+                {
+                    sideways.SetTopN(10);
+                },
+                BooleanOperation.Or)
+                .WithFacets((Action<IFacetOperations>)(facets =>
+                {
+                    facets.FacetString("publishDate", x => x.MaxCount(10));
+                    facets.FacetString("Author", x => x.MaxCount(10));
+                }));
+            var results2 = sc2.ExecuteWithLucene();
+            Assert.AreEqual(3, results2.Count());
+
+            // Publish Date is only drill-down: Lisa and Bob
+            // (drill-down) published twice in 2010 and once in 2012:
+            var facetResults2PublishDate = results2.GetFacet("publishDate");
+            Assert.AreEqual(2, facetResults2PublishDate.Count());
+
+            // Author is drill-sideways + drill-down: Lisa
+            // (drill-down) published twice, and Frank/Susan/Bob
+            // published once:
+            var facetResults2Author = results2.GetFacet("Author");
+            Assert.AreEqual(4, facetResults2Author.Count());
+
+
+            // Publish Date is only drill-down: Lisa and Bob
+            // (drill-down) published twice in 2010 and once in 2012:
+            var sc3 = searcher.CreateQuery("content")
+               .DrillDownQuery(
+                dims =>
+                {
+                    dims.AddDimension("Author", "Lisa");
+                    dims.AddDimension("Author", "Bob");
+                },
+                null
+               ,
+               sideways =>
+               {
+                   sideways.SetTopN(10);
+               },
+               BooleanOperation.Or)
+               .WithFacets((Action<IFacetOperations>)(facets =>
+               {
+                   facets.FacetAllDimensions(10);
+               }));
+            var results3 = sc3.ExecuteWithLucene();
+            // Author is drill-sideways + drill-down: Lisa
+            // (drill-down) published twice, and Frank/Susan/Bob
+            // published once:
+            var facetResults3All = results3.GetFacets();
+            Assert.AreEqual(3, facetResults3All.Count());
+
+            // More interesting case: drill-down on two fields
+            var sc4 = searcher.CreateQuery("content")
+               .DrillDownQuery(
+                dims =>
+                {
+                    dims.AddDimension("Author", "Lisa");
+                    dims.AddDimension("publishDate", "2010");
+                },
+                null
+               ,
+               sideways =>
+               {
+                   sideways.SetTopN(10);
+               },
+               BooleanOperation.Or)
+               .WithFacets((Action<IFacetOperations>)(facets =>
+               {
+                   facets.FacetString("publishDate", x => x.MaxCount(10));
+                   facets.FacetString("Author", x => x.MaxCount(10));
+               }));
+            var results4 = sc4.ExecuteWithLucene();
+            Assert.AreEqual(1, results4.Count());
+
+            // Publish Date is drill-sideways + drill-down: Lisa
+            // (drill-down) published once in 2010 and once in 2012:
+            var facetResults4PublishDate = results4.GetFacet("publishDate");
+            Assert.AreEqual(2, facetResults4PublishDate.Count());
+
+            // Author is drill-sideways + drill-down:
+            // only Lisa & Bob published (once each) in 2010:
+            var facetResults4Author = results4.GetFacet("Author");
+            Assert.AreEqual(2, facetResults4Author.Count());
+
+
+            // Even more interesting case: drill down on two fields,
+            // but one of them is OR
+            var sc5 = searcher.CreateQuery("content")
+               .DrillDownQuery(
+                dims =>
+                {
+                    dims.AddDimension("Author", "Lisa");
+                    dims.AddDimension("publishDate", "2010");
+                    dims.AddDimension("Author", "Bob");
+                },
+                null
+               ,
+               sideways =>
+               {
+                   sideways.SetTopN(10);
+               },
+               BooleanOperation.Or)
+               .WithFacets((Action<IFacetOperations>)(facets =>
+               {
+                   facets.FacetString("publishDate", x => x.MaxCount(10));
+                   facets.FacetString("Author", x => x.MaxCount(10));
+               }));
+            var results5 = sc5.ExecuteWithLucene();
+            Assert.AreEqual(2, results5.Count());
+
+            // Publish Date is both drill-sideways + drill-down:
+            // Lisa or Bob published twice in 2010 and once in 2012:
+            var facetResults5PublishDate = results5.GetFacet("publishDate");
+            Assert.AreEqual(2, facetResults5PublishDate.Count());
+
+            // Author is drill-sideways + drill-down:
+            // only Lisa & Bob published (once each) in 2010:
+            var facetResults5Author = results5.GetFacet("Author");
+            Assert.AreEqual(2, facetResults5Author.Count());
         }
     }
 }

@@ -134,5 +134,15 @@ namespace Examine.Search
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
         IBooleanOperation RangeQuery<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true) where T : struct;
+
+        /// <summary>
+        /// Query for drill-down over facet categories. Call dimensions.Add() for each group of categories to drill-down over
+        /// </summary>
+        /// <param name="baseQuery">Base Query to Drill Down on</param>
+        /// <param name="dimensions">Facet Dimensions to Drill Down</param>
+        /// <param name="drillSideways">Facet Dimensions to Drill Sideways</param>
+        /// <param name="defaultOp">Base Query default Op</param>
+        /// <returns></returns>
+        IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Func<INestedQuery, INestedBooleanOperation>? baseQuery = null, Action<IDrillSideways>? drillSideways = null, BooleanOperation defaultOp = BooleanOperation.Or);
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Examine.Lucene.Providers;
 using Examine.Search;
 using Lucene.Net.Search;
 
@@ -81,6 +80,13 @@ namespace Examine.Lucene.Search
             var luceneFacetOperation = new LuceneFacetOperation(_search);
             facets.Invoke(luceneFacetOperation);
             return luceneFacetOperation;
+        }
+
+        /// <inheritdoc/>
+        public override IOrdering SetSearchAfter(SearchAfter searchAfter)
+        {
+            _search.SetSearchAfter(searchAfter);
+            return this;
         }
     }
 }

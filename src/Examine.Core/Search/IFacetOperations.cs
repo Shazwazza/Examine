@@ -31,5 +31,12 @@ namespace Examine.Search
         /// Add a range facet to the current query
         /// </summary>
         IFacetOperations FacetLongRange(string field, params Int64Range[] longRanges);
+
+        /// <summary>
+        /// Return all Facet Dimensions that had hits
+        /// </summary>
+        /// <param name="maxCount">Maximum number of terms to return</param>
+        /// <returns></returns>
+        IFacetOperations FacetAllDimensions(int maxCount);
     }
 }

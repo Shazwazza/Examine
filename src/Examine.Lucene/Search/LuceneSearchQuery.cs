@@ -19,7 +19,9 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly FacetsConfig? _facetsConfig;
         private ISet<string>? _fieldsToLoad = null;
-        private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
+        private readonly LuceneFacetSelectionOptions _facetSelectionOptions = new LuceneFacetSelectionOptions();
+        private SearchAfterOptions? _searchAfter;
+        private LuceneDrillDownQueryDrillSideways? _drillDownQueryDrillSideways;
 
         /// <inheritdoc/>
         [Obsolete("To be removed in Examine V5")]
@@ -36,7 +38,7 @@ namespace Examine.Lucene.Search
             ISearchContext searchContext,
             string? category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance, FacetsConfig facetsConfig)
             : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
-        {   
+        {
             _searchContext = searchContext;
             _facetsConfig = facetsConfig;
         }
@@ -130,6 +132,11 @@ namespace Examine.Lucene.Search
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
+
+        /// <inheritdoc/>
+        public override IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Func<INestedQuery, INestedBooleanOperation>? baseQuery = null, Action<IDrillSideways>? drillSideways = null, BooleanOperation defaultOp = BooleanOperation.Or) =>
+            DrillDownQueryInternal(baseQuery, dimensions, drillSideways, defaultOp, Occurrence);
+
         internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[]? fields, Occur occurance)
         {
             Query.Add(new LateBoundQuery(() =>
@@ -192,7 +199,7 @@ namespace Examine.Lucene.Search
                         }
                     }
 #if !NETSTANDARD2_0 && !NETSTANDARD2_1
-                    else if(typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
+                    else if (typeof(T) == typeof(DateOnly) && valueType is IIndexRangeValueType<DateTime> dateOnlyType)
                     {
                         var minValueTime = minInclusive ? TimeOnly.MinValue : TimeOnly.MaxValue;
                         var minValue = min.HasValue ? (min.Value as DateOnly?)?.ToDateTime(minValueTime) : null;
@@ -221,6 +228,41 @@ namespace Examine.Lucene.Search
 
             return CreateOp();
         }
+
+        internal LuceneBooleanOperationBase DrillDownQueryInternal(Func<INestedQuery, INestedBooleanOperation>? baseQuery, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways>? drillSideways, BooleanOperation defaultOp, Occur occurance)
+        {
+            var luceneDrillDownQueryDimensions = new LuceneDrillDownQueryDimensions(_facetsConfig);
+            dimensions(luceneDrillDownQueryDimensions);
+
+            if (drillSideways is not null)
+            {
+                _drillDownQueryDrillSideways = new LuceneDrillDownQueryDrillSideways();
+                drillSideways(_drillDownQueryDrillSideways);
+            }
+            if (baseQuery != null)
+            {
+                Func<Query, Query> buildQuery = (baseQuery) =>
+                {
+                    var drillDownQuery = new DrillDownQuery(_facetsConfig, baseQuery);
+                    luceneDrillDownQueryDimensions.Apply(drillDownQuery);
+                    return drillDownQuery;
+                };
+                var bo = new LuceneBooleanOperation(this);
+                bo.OpBaseQuery(buildQuery, baseQuery, occurance.ToBooleanOperation(), defaultOp);
+                return bo;
+            }
+
+            var drillDownQuery = new DrillDownQuery(this._facetsConfig);
+            luceneDrillDownQueryDimensions.Apply(drillDownQuery);
+            Query.Add(drillDownQuery, occurance);
+            return CreateOp();
+        }
+
+        /// <summary>
+        /// Set the SearchAfter to continue the search from a previous position
+        /// </summary>
+        /// <param name="searchAfter">Search After Options</param>
+        public virtual void SetSearchAfter(SearchAfter searchAfter) => _searchAfter = new SearchAfterOptions(searchAfter);
 
         /// <inheritdoc />
         public ISearchResults Execute(QueryOptions? options = null) => Search(options);
@@ -258,12 +300,12 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetSelectionOptions, _facetsConfig, _searchAfter, _drillDownQueryDrillSideways);
 
             var pagesResults = executor.Execute();
 
             return pagesResults;
-        }        
+        }
 
         /// <summary>
         /// Internal operation for adding the ordered results
@@ -282,7 +324,7 @@ namespace Examine.Lucene.Search
             {
                 var fieldName = f.FieldName;
 
-                var defaultSort =  SortFieldType.STRING;
+                var defaultSort = SortFieldType.STRING;
 
                 switch (f.SortType)
                 {
@@ -306,7 +348,7 @@ namespace Examine.Lucene.Search
                         break;
                     case SortType.Double:
                         defaultSort = SortFieldType.DOUBLE;
-                        break;                   
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -363,7 +405,7 @@ namespace Examine.Lucene.Search
 
             facetConfiguration?.Invoke(new FacetQueryField(facet));
 
-            _facetFields.Add(facet);
+            _facetSelectionOptions.FacetFields.Add(facet);
 
             return new LuceneFacetOperation(this);
         }
@@ -375,7 +417,7 @@ namespace Examine.Lucene.Search
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
             var facet = new FacetDoubleField(field, doubleRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
-            _facetFields.Add(facet);
+            _facetSelectionOptions.FacetFields.Add(facet);
 
             return new LuceneFacetOperation(this);
         }
@@ -387,7 +429,7 @@ namespace Examine.Lucene.Search
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
             var facet = new FacetFloatField(field, floatRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
-            _facetFields.Add(facet);
+            _facetSelectionOptions.FacetFields.Add(facet);
 
             return new LuceneFacetOperation(this);
         }
@@ -399,14 +441,21 @@ namespace Examine.Lucene.Search
             var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
             var facet = new FacetLongField(field, longRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
-            _facetFields.Add(facet);
+            _facetSelectionOptions.FacetFields.Add(facet);
 
+            return new LuceneFacetOperation(this);
+        }
+
+        internal IFacetOperations FacetAllDimensionsInternal(int maxCount)
+        {
+            _facetSelectionOptions.FacetAllFieldsWithHits = true;
+            _facetSelectionOptions.FacetAllFieldsWithHitsMaxCount = maxCount;
             return new LuceneFacetOperation(this);
         }
 
         private string GetFacetField(string field)
         {
-            if(_facetsConfig is null)
+            if (_facetsConfig is null)
             {
                 throw new InvalidOperationException("FacetsConfig not set. User a LuceneSearchQuery constructor with all parameters");
             }

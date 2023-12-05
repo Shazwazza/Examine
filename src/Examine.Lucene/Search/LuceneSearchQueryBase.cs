@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Search;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
@@ -632,5 +630,8 @@ namespace Examine.Lucene.Search
         /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public override string ToString() => $"{{ Category: {Category}, LuceneQuery: {Query} }}";
+
+        /// <inheritdoc/>
+        public abstract IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Func<INestedQuery, INestedBooleanOperation>? baseQuery = null, Action<IDrillSideways>? drillSideways = null, BooleanOperation defaultOp = BooleanOperation.Or);
     }
 }

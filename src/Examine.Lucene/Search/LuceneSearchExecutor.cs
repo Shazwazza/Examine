@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Examine.Lucene.Indexing;
 using Examine.Search;
@@ -25,12 +26,15 @@ namespace Examine.Lucene.Search
         private readonly ISearchContext _searchContext;
         private readonly Query _luceneQuery;
         private readonly ISet<string>? _fieldsToLoad;
-        private readonly IEnumerable<IFacetField>? _facetFields;
+        private readonly LuceneFacetSelectionOptions _facetFieldsSelectionOptions;
         private readonly FacetsConfig? _facetsConfig;
+        private readonly LuceneDrillDownQueryDrillSideways? _drillDownQueryDrillSideways;
+        private readonly SearchAfterOptions? _searchAfter;
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
-            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig)
+            ISet<string>? fieldsToLoad, LuceneFacetSelectionOptions facetFieldsSelectionOptions, FacetsConfig? facetsConfig, SearchAfterOptions? searchAfter,
+            LuceneDrillDownQueryDrillSideways? drillDownQueryDrillSideways)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -38,8 +42,10 @@ namespace Examine.Lucene.Search
             _fieldsToLoad = fieldsToLoad;
             _sortField = sortField ?? throw new ArgumentNullException(nameof(sortField));
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
-            _facetFields = facetFields;
+            _facetFieldsSelectionOptions = facetFieldsSelectionOptions;
             _facetsConfig = facetsConfig;
+            _drillDownQueryDrillSideways = drillDownQueryDrillSideways;
+            _searchAfter = _luceneQueryOptions?.SearchAfter ?? searchAfter;
         }
 
         private int MaxDoc
@@ -100,18 +106,30 @@ namespace Examine.Lucene.Search
             Sort? sort = null;
             FieldDoc? scoreDocAfter = null;
             Filter? filter = null;
-
-            using (var searcher = _searchContext.GetSearcher())
+            ISearcherReference? searcher = null;
+            ITaxonomySearcherReference? taxonomySearcherReference = null;
+            try
             {
+                if (_searchContext is ITaxonomySearchContext taxonomySearchContext)
+                {
+                    taxonomySearcherReference = taxonomySearchContext.GetTaxonomyAndSearcher();
+                    searcher = taxonomySearcherReference;
+                }
+                else
+                {
+                    searcher = _searchContext.GetSearcher();
+                }
+
                 if (sortFields.Length > 0)
                 {
                     sort = new Sort(sortFields);
                     sort.Rewrite(searcher.IndexSearcher);
                 }
-                if (_luceneQueryOptions != null && _luceneQueryOptions.SearchAfter != null)
+
+                if (_searchAfter != null)
                 {
                     //The document to find results after.
-                    scoreDocAfter = GetScoreDocAfter(_luceneQueryOptions.SearchAfter);
+                    scoreDocAfter = GetScoreDocAfter(_searchAfter);
 
                     // We want to only collect only the actual number of hits we want to take after the last document. We don't need to collect all previous/next docs.
                     numHits = _options.Take >= 1 ? _options.Take : QueryOptions.DefaultMaxResults;
@@ -132,16 +150,60 @@ namespace Examine.Lucene.Search
                     topDocsCollector = TopScoreDocCollector.Create(numHits, scoreDocAfter, true);
                 }
                 FacetsCollector? facetsCollector = null;
-                if (_facetFields != null && _facetFields.Any() && _luceneQueryOptions != null && _luceneQueryOptions.FacetRandomSampling != null)
+                if (_facetFieldsSelectionOptions != null &&
+                    (_facetFieldsSelectionOptions.FacetFields.Any() || _facetFieldsSelectionOptions.FacetAllFieldsWithHits)
+                    && _luceneQueryOptions != null && _luceneQueryOptions.FacetRandomSampling != null)
                 {
                     var facetsCollectors = new RandomSamplingFacetsCollector(_luceneQueryOptions.FacetRandomSampling.SampleSize, _luceneQueryOptions.FacetRandomSampling.Seed);
                 }
-                else if (_facetFields != null && _facetFields.Any())
+                else if (_facetFieldsSelectionOptions != null &&
+                    (_facetFieldsSelectionOptions.FacetFields.Any() || _facetFieldsSelectionOptions.FacetAllFieldsWithHits))
                 {
                     facetsCollector = new FacetsCollector();
                 }
 
-                if (scoreDocAfter != null && sort != null)
+                var drillDownQuery = _luceneQuery as DrillDownQuery;
+                if (drillDownQuery is null && _luceneQuery is BooleanQuery boolQuery)
+                {
+                    drillDownQuery = boolQuery.Clauses.Where(x => x.Query is DrillDownQuery).SingleOrDefault()?.Query as DrillDownQuery;
+                }
+
+                DrillSidewaysResult? drillSidewaysResult = null;
+                if (drillDownQuery is not null && _drillDownQueryDrillSideways != null)
+                {
+                    DrillSideways ds;
+                    if (taxonomySearcherReference is null)
+                    {
+                        var sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader);
+                        ds = new DrillSideways(searcher.IndexSearcher, _facetsConfig, sortedSetReaderState);
+                    }
+                    else
+                    {
+                        ds = new DrillSideways(taxonomySearcherReference.IndexSearcher, _facetsConfig, taxonomySearcherReference.TaxonomyReader);
+                    }
+                    int drillSidewaysTopN = _drillDownQueryDrillSideways.TopN;
+                    bool doDocScores = true;
+                    bool doMaxScores = true;
+
+                    if (facetsCollector != null)
+                    {
+                        drillSidewaysResult = ds.Search(drillDownQuery, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                        if (sortFields.Length > 0)
+                        {
+                            topDocs = ((TopFieldCollector)topDocsCollector).GetTopDocs(_options.Skip, _options.Take);
+                        }
+                        else
+                        {
+                            topDocs = ((TopScoreDocCollector)topDocsCollector).GetTopDocs(_options.Skip, _options.Take);
+                        }
+                    }
+                    else
+                    {
+                        drillSidewaysResult = ds.Search(drillDownQuery, filter, scoreDocAfter, drillSidewaysTopN, sort, doDocScores, doMaxScores);
+                        topDocs = drillSidewaysResult.Hits;
+                    }
+                }
+                else if (scoreDocAfter != null && sort != null)
                 {
                     if (facetsCollector != null)
                     {
@@ -189,9 +251,29 @@ namespace Examine.Lucene.Search
                 }
                 var searchAfterOptions = GetSearchAfterOptions(topDocs);
                 float maxScore = topDocs.MaxScore;
-                var facets = ExtractFacets(facetsCollector, searcher);
+
+
+                IFacetExtractionContext? facetExtractionContext = null;
+                if (facetsCollector is not null)
+                {
+                    facetExtractionContext = GetFacetExtractionContext(facetsCollector, searcher, drillSidewaysResult?.Facets);
+                }
+
+                IReadOnlyDictionary<string, IFacetResult> facets;
+                if (facetExtractionContext is null)
+                {
+                    facets = new Dictionary<string, IFacetResult>(0, StringComparer.InvariantCultureIgnoreCase);
+                }
+                else
+                {
+                    facets = ExtractFacets(facetExtractionContext);
+                }
 
                 return new LuceneSearchResults(results, totalItemCount, facets, maxScore, searchAfterOptions);
+            }
+            finally
+            {
+                searcher?.Dispose();
             }
         }
 
@@ -232,15 +314,34 @@ namespace Examine.Lucene.Search
             return null;
         }
 
-        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector? facetsCollector, ISearcherReference searcher)
+        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
+
             var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
-            if (facetsCollector == null || _facetFields is null || !_facetFields.Any())
+            if (facetExtractionContext == null || _facetFieldsSelectionOptions is null)
+            {
+                return facets;
+            }
+            if (_facetFieldsSelectionOptions.FacetAllFieldsWithHits)
+            {
+                // May not be the only Facets implementation that could be supported
+                var facetCounts = facetExtractionContext.DrillSidewaysResultFacets;
+                var luceneFacetResults = facetCounts.GetAllDims(_facetFieldsSelectionOptions.FacetAllFieldsWithHitsMaxCount);
+                Dictionary<string, IFacetResult> results = new Dictionary<string, IFacetResult>();
+                foreach (var luceneFacetResult in luceneFacetResults)
+                {
+                    var facetAllResults = new KeyValuePair<string, IFacetResult>(luceneFacetResult.Dim, new Examine.Search.FacetResult(luceneFacetResult.LabelValues.Select(labelValue => new FacetValue(labelValue.Label, labelValue.Value) as IFacetValue)));
+                    results.Add(facetAllResults.Key, facetAllResults.Value);
+                }
+                return results;
+            }
+
+            if (!_facetFieldsSelectionOptions.FacetFields.Any())
             {
                 return facets;
             }
 
-            var facetFields = _facetFields.OrderBy(field => field.FacetField);
+            var facetFields = _facetFieldsSelectionOptions.FacetFields.OrderBy(field => field.FacetField);
 
             foreach (var field in facetFields)
             {
@@ -252,7 +353,6 @@ namespace Examine.Lucene.Search
                         throw new InvalidOperationException("Facets Config not set. Please use a constructor that passes all parameters");
                     }
 
-                    var facetExtractionContext = new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
 
                     var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
                     foreach (var fieldFacet in fieldFacets)
@@ -265,6 +365,9 @@ namespace Examine.Lucene.Search
 
             return facets;
         }
+
+        private LuceneFacetExtractionContext GetFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcher, Facets? drillSidewaysResultFacets) =>
+            new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig, drillSidewaysResultFacets);
 
         private LuceneSearchResult? GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
         {
