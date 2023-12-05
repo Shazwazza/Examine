@@ -42,5 +42,8 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public override string ToString() => _search.ToString();
+
+        /// <inheritdoc/>
+        public IFacetOperations FacetAllDimensions(int maxCount) => _search.FacetAllDimensionsInternal(maxCount);
     }
 }

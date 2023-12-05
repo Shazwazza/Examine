@@ -5318,6 +5318,33 @@ namespace Examine.Test.Examine.Lucene.Search
                 var facetResults2Author = results2.GetFacet("Author");
                 Assert.AreEqual(4, facetResults1Author.Count());
 
+
+                // Publish Date is only drill-down: Lisa and Bob
+                // (drill-down) published twice in 2010 and once in 2012:
+                var sc3 = taxonomySearcher.CreateQuery("content")
+                   .DrillDownQuery(
+                    dims =>
+                    {
+                        dims.AddDimension("Author", "Lisa");
+                        dims.AddDimension("Author", "Bob");
+                    },
+                    null
+                   ,
+                   sideways =>
+                   {
+                       sideways.SetTopN(10);
+                   },
+                   BooleanOperation.Or)
+                   .WithFacets((Action<IFacetOperations>)(facets =>
+                   {
+                       facets.FacetAllDimensions(10);
+                   }));
+                var results3 = sc3.ExecuteWithLucene();
+                // Author is drill-sideways + drill-down: Lisa
+                // (drill-down) published twice, and Frank/Susan/Bob
+                // published once:
+                var facetResults3All = results3.GetFacets();
+                Assert.AreEqual(3, facetResults3All.Count());
             }
         }
     }
