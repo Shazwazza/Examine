@@ -231,7 +231,7 @@ namespace Examine.Lucene.Search
 
         internal LuceneBooleanOperationBase DrillDownQueryInternal(Func<INestedQuery, INestedBooleanOperation>? baseQuery, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways>? drillSideways, BooleanOperation defaultOp, Occur occurance)
         {
-            var luceneDrillDownQueryDimensions = new LuceneDrillDownQueryDimensions();
+            var luceneDrillDownQueryDimensions = new LuceneDrillDownQueryDimensions(_facetsConfig);
             dimensions(luceneDrillDownQueryDimensions);
 
             if (drillSideways is not null)

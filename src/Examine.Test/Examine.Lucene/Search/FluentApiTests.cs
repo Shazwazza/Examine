@@ -5192,8 +5192,10 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [Test]
-        public void GivenTaxonomyIndexFacetDrillDown_Returns_ExpectedTotals_Facet()
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void GivenTaxonomyIndexFacetDrillDown_Returns_ExpectedTotals_Facet(FacetTestType withFacets)
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             var facetConfigs = new FacetsConfig();
@@ -5260,8 +5262,10 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 
-        [Test]
-        public void GivenTaxonomyIndexFacetDrillDownSubquery_Returns_ExpectedTotals_Facet()
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void GivenTaxonomyIndexFacetDrillDownSubquery_Returns_ExpectedTotals_Facet(FacetTestType withFacets)
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             var facetConfigs = new FacetsConfig();
@@ -5330,8 +5334,10 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [Test]
-        public void GivenTaxonomyIndexFacetDrillDownSubquerySideways_Returns_ExpectedTotals_Facet()
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void GivenTaxonomyIndexFacetDrillDownSubquerySideways_Returns_ExpectedTotals_Facet(FacetTestType withFacets)
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             var facetConfigs = new FacetsConfig();

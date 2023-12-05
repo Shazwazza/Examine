@@ -10,10 +10,12 @@ namespace Examine.Lucene.Search
     {
 
         /// <inheritdoc/>
-        public LuceneFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcherReference, FacetsConfig facetConfig)
+        public LuceneFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcherReference, FacetsConfig facetConfig,
+            Facets? drillSidewaysResultFacets)
         {
             FacetsCollector = facetsCollector;
             FacetConfig = facetConfig;
+            DrillSidewaysResultFacets = drillSidewaysResultFacets;
             SearcherReference = searcherReference;
         }
 
@@ -22,6 +24,9 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public FacetsConfig FacetConfig { get; }
+
+        /// <inheritdoc/>
+        public Facets? DrillSidewaysResultFacets { get; }
 
         /// <inheritdoc/>
         public ISearcherReference SearcherReference { get; }

@@ -171,8 +171,8 @@ namespace Examine.Lucene.Search
                     DrillSideways ds;
                     if (taxonomySearcherReference is null)
                     {
-                        var facetExtractionContext = GetFacetExtractionContext(facetsCollector, searcher);
-                        ds = new DrillSideways(searcher.IndexSearcher, _facetsConfig, facetExtractionContext.SortedSetReaderState);
+                        var sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(searcher.IndexSearcher.IndexReader);
+                        ds = new DrillSideways(searcher.IndexSearcher, _facetsConfig, sortedSetReaderState);
                     }
                     else
                     {
@@ -249,7 +249,22 @@ namespace Examine.Lucene.Search
                 var searchAfterOptions = GetSearchAfterOptions(topDocs);
                 float maxScore = topDocs.MaxScore;
 
-                var facets = ExtractFacets(facetsCollector, searcher);
+
+                IFacetExtractionContext? facetExtractionContext = null;
+                if (facetsCollector is not null)
+                {
+                    facetExtractionContext = GetFacetExtractionContext(facetsCollector, searcher, drillSidewaysResult?.Facets);
+                }
+
+                IReadOnlyDictionary<string, IFacetResult> facets;
+                if (facetExtractionContext is null)
+                {
+                    facets = new Dictionary<string, IFacetResult>(0, StringComparer.InvariantCultureIgnoreCase);
+                }
+                else
+                {
+                    facets = ExtractFacets(facetExtractionContext);
+                }
 
                 return new LuceneSearchResults(results, totalItemCount, facets, maxScore, searchAfterOptions);
             }
@@ -296,10 +311,16 @@ namespace Examine.Lucene.Search
             return null;
         }
 
-        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(FacetsCollector? facetsCollector, ISearcherReference searcher)
+        private IReadOnlyDictionary<string, IFacetResult> ExtractFacets(IFacetExtractionContext facetExtractionContext)
         {
+
             var facets = new Dictionary<string, IFacetResult>(StringComparer.InvariantCultureIgnoreCase);
-            if (facetsCollector == null || _facetFields is null || !_facetFields.Any())
+            if (facetExtractionContext == null)
+            {
+                return facets;
+            }
+
+            if (_facetFields is null || !_facetFields.Any())
             {
                 return facets;
             }
@@ -316,7 +337,6 @@ namespace Examine.Lucene.Search
                         throw new InvalidOperationException("Facets Config not set. Please use a constructor that passes all parameters");
                     }
 
-                    var facetExtractionContext = GetFacetExtractionContext(facetsCollector, searcher);
 
                     var fieldFacets = facetValueType.ExtractFacets(facetExtractionContext, field);
                     foreach (var fieldFacet in fieldFacets)
@@ -330,7 +350,8 @@ namespace Examine.Lucene.Search
             return facets;
         }
 
-        private LuceneFacetExtractionContext GetFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcher) => new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig);
+        private LuceneFacetExtractionContext GetFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcher, Facets? drillSidewaysResultFacets) =>
+            new LuceneFacetExtractionContext(facetsCollector, searcher, _facetsConfig, drillSidewaysResultFacets);
 
         private LuceneSearchResult? GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
         {
