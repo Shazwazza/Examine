@@ -132,11 +132,11 @@ namespace Examine.Lucene.Search
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
         /// <inheritdoc/>
-        public override IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways) =>
+        public override IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways) =>
             DrillDownQueryInternal(dimensions, drillSideways, Occurrence);
 
         /// <inheritdoc/>
-        public override IBooleanOperation DrillDownQuery(Func<INestedQuery, INestedBooleanOperation> inner, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp = BooleanOperation.Or) =>
+        public override IOrdering DrillDownQuery(Func<INestedQuery, INestedBooleanOperation> inner, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp = BooleanOperation.Or) =>
             DrillDownQueryInternal(inner, dimensions, drillSideways, defaultOp, Occurrence);
 
         internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[]? fields, Occur occurance)
