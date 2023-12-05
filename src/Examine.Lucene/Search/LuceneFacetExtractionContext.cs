@@ -37,6 +37,10 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public virtual Facets GetFacetCounts(string facetIndexFieldName, bool isTaxonomyIndexed)
         {
+            if(DrillSidewaysResultFacets is not null)
+            {
+                return DrillSidewaysResultFacets;
+            }
             if (isTaxonomyIndexed)
             {
                 if (SearcherReference is ITaxonomySearcherReference taxonomySearcher)
