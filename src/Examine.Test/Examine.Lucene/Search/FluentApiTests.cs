@@ -5262,6 +5262,7 @@ namespace Examine.Test.Examine.Lucene.Search
                     .WithFacets((Action<IFacetOperations>)(facets =>
                     {
                         facets.FacetString("publishDate");
+                        facets.FacetString("Author");
                     }));
                 var results1 = sc.ExecuteWithLucene();
 
@@ -5271,7 +5272,11 @@ namespace Examine.Test.Examine.Lucene.Search
                 Assert.AreEqual(2, results1.Count());
                 Assert.AreEqual(2, facetResults1.Count());
 
-
+                // Author is drill-sideways + drill-down: Lisa
+                // (drill-down) published twice, and Frank/Susan/Bob
+                // published once:
+                var facetResults2 = results1.GetFacet("Author");
+                Assert.AreEqual(4, facetResults2.Count());
             }
         }
     }
