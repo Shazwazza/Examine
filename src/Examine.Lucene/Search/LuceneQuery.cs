@@ -1,11 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Search;
-using Lucene.Net.Facet.Range;
-using Lucene.Net.Index;
-using Lucene.Net.QueryParsers.Surround.Query;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -141,7 +137,12 @@ namespace Examine.Lucene.Search
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
 
         /// <inheritdoc/>
-        public IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions)
-            => _search.DrillDownQueryInternal(dimensions, _occurrence);
+        public IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways)
+            => _search.DrillDownQueryInternal(dimensions, drillSideways, _occurrence);
+
+
+        /// <inheritdoc/>
+        public IBooleanOperation DrillDownQuery(Func<INestedQuery, INestedBooleanOperation> inner, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp = BooleanOperation.Or)
+            => _search.DrillDownQueryInternal(inner, dimensions, drillSideways, defaultOp, _occurrence);
     }
 }

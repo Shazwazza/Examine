@@ -1,4 +1,4 @@
-﻿using Lucene.Net.Facet;
+using Lucene.Net.Facet;
 
 namespace Examine.Lucene.Search
 {
@@ -23,9 +23,6 @@ namespace Examine.Lucene.Search
         public string[] Paths { get; }
 
         /// <inheritdoc/>
-        public override void Apply(DrillDownQuery drillDownQuery)
-        {
-            drillDownQuery.Add(DimensionName, Paths);
-        }
+        public override void Apply(DrillDownQuery drillDownQuery) => drillDownQuery.Add(DimensionName, Paths);
     }
 }

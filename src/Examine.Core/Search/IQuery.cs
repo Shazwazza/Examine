@@ -138,8 +138,19 @@ namespace Examine.Search
         /// <summary>
         /// Query for drill-down over facet categories. Call dimensions.Add() for each group of categories to drill-down over
         /// </summary>
-        /// <param name="dimensions"></param>
+        /// <param name="dimensions">Facet Dimensions to Drill Down</param>
+        /// <param name="drillSideways">Facet Dimensions to Drill Sideways</param>
         /// <returns></returns>
-        IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions);
+        IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways);
+
+        /// <summary>
+        /// Query for drill-down over facet categories. Call dimensions.Add() for each group of categories to drill-down over
+        /// </summary>
+        /// <param name="baseQuery">Base Query to Drill Down on</param>
+        /// <param name="dimensions">Facet Dimensions to Drill Down</param>
+        /// <param name="drillSideways">Facet Dimensions to Drill Sideways</param>
+        /// <param name="defaultOp">Base Query default Op</param>
+        /// <returns></returns>
+        IBooleanOperation DrillDownQuery(Func<INestedQuery, INestedBooleanOperation> baseQuery, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp = BooleanOperation.Or);
     }
 }

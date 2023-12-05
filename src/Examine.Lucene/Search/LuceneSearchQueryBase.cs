@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Examine.Search;
-using Lucene.Net.Facet;
-using Lucene.Net.Facet.Range;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
@@ -199,9 +196,6 @@ namespace Examine.Lucene.Search
 
             return GroupedNotInternal(fields.ToArray(), query);
         }
-
-        /// <inheritdoc/>
-        public abstract IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions);
 
         #region INested
 
@@ -636,5 +630,11 @@ namespace Examine.Lucene.Search
         /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public override string ToString() => $"{{ Category: {Category}, LuceneQuery: {Query} }}";
+
+        /// <inheritdoc/>
+        public abstract IBooleanOperation DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways);
+
+        /// <inheritdoc/>
+        public abstract IBooleanOperation DrillDownQuery(Func<INestedQuery, INestedBooleanOperation> inner, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp = BooleanOperation.Or);
     }
 }

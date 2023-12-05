@@ -27,10 +27,11 @@ namespace Examine.Lucene.Search
         private readonly ISet<string>? _fieldsToLoad;
         private readonly IEnumerable<IFacetField>? _facetFields;
         private readonly FacetsConfig? _facetsConfig;
+        private readonly SearchAfterOptions _searchAfter;
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
-            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig)
+            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig, SearchAfterOptions searchAfter)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -40,6 +41,7 @@ namespace Examine.Lucene.Search
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
             _facetFields = facetFields;
             _facetsConfig = facetsConfig;
+            _searchAfter = _luceneQueryOptions?.SearchAfter ?? searchAfter;
         }
 
         private int MaxDoc
@@ -108,10 +110,11 @@ namespace Examine.Lucene.Search
                     sort = new Sort(sortFields);
                     sort.Rewrite(searcher.IndexSearcher);
                 }
-                if (_luceneQueryOptions != null && _luceneQueryOptions.SearchAfter != null)
+
+                if (_searchAfter != null)
                 {
                     //The document to find results after.
-                    scoreDocAfter = GetScoreDocAfter(_luceneQueryOptions.SearchAfter);
+                    scoreDocAfter = GetScoreDocAfter(_searchAfter);
 
                     // We want to only collect only the actual number of hits we want to take after the last document. We don't need to collect all previous/next docs.
                     numHits = _options.Take >= 1 ? _options.Take : QueryOptions.DefaultMaxResults;
