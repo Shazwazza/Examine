@@ -137,12 +137,7 @@ namespace Examine.Lucene.Search
             => _search.RangeQueryInternal(fields, min, max, minInclusive: minInclusive, maxInclusive: maxInclusive, _occurrence);
 
         /// <inheritdoc/>
-        public IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways)
-            => _search.DrillDownQueryInternal(dimensions, drillSideways, _occurrence);
-
-
-        /// <inheritdoc/>
-        public IOrdering DrillDownQuery(Func<INestedQuery, INestedBooleanOperation> inner, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp = BooleanOperation.Or)
-            => _search.DrillDownQueryInternal(inner, dimensions, drillSideways, defaultOp, _occurrence);
+        public IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Func<INestedQuery, INestedBooleanOperation>? baseQuery = null, Action<IDrillSideways>? drillSideways = null, BooleanOperation defaultOp = BooleanOperation.Or) =>
+            _search.DrillDownQueryInternal(baseQuery, dimensions, drillSideways, defaultOp, _occurrence);
     }
 }
