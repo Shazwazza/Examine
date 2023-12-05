@@ -632,9 +632,6 @@ namespace Examine.Lucene.Search
         public override string ToString() => $"{{ Category: {Category}, LuceneQuery: {Query} }}";
 
         /// <inheritdoc/>
-        public abstract IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways);
-
-        /// <inheritdoc/>
-        public abstract IOrdering DrillDownQuery(Func<INestedQuery, INestedBooleanOperation> inner, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp = BooleanOperation.Or);
+        public abstract IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Func<INestedQuery, INestedBooleanOperation>? baseQuery = null, Action<IDrillSideways>? drillSideways = null, BooleanOperation defaultOp = BooleanOperation.Or);
     }
 }

@@ -10,7 +10,7 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// Top N Documents
         /// </summary>
-        public int TopN { get; private set; }
+        public int TopN { get; private set; } = 10;
 
         /// <inheritdoc/>
         public IDrillSideways SetTopN(int topN)

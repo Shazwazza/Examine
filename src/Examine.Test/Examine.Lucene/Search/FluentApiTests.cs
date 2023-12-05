@@ -5232,11 +5232,13 @@ namespace Examine.Test.Examine.Lucene.Search
                 //Arrange
 
                 var sc = taxonomySearcher.CreateQuery("content")
-                    .DrillDownQuery(dims =>
+                    .DrillDownQuery(
+                    dims =>
                     {
                         // Filter the nodePath to the 2010 category
                         dims.AddDimension("publishDate", "2010", "10");
                     },
+                    null,
                     sideways =>
                     {
 
@@ -5299,17 +5301,87 @@ namespace Examine.Test.Examine.Lucene.Search
 
                 var sc = taxonomySearcher.CreateQuery("content")
                     .DrillDownQuery(
-                    baseQuery =>
+                     dims =>
+                     {
+                         // Filter the nodePath to the 2010 category
+                         dims.AddDimension("publishDate", "2010", "10");
+                     },
+                     baseQuery =>
                         baseQuery.Field(ExamineFieldNames.CategoryFieldName, "content")
                     ,
+                    sideways =>
+                    {
+
+                    },
+                    BooleanOperation.Or)
+                    .WithFacets((Action<IFacetOperations>)(facets =>
+                    {
+                        facets.FacetString("publishDate");
+                    }));
+
+                //Act
+
+                var results1 = sc.ExecuteWithLucene();
+
+                var facetResults1 = results1.GetFacet("publishDate");
+
+                Assert.AreEqual(2, results1.Count());
+                Assert.AreEqual(1, facetResults1.Count());
+            }
+        }
+
+        [Test]
+        public void GivenTaxonomyIndexFacetDrillDownSubquerySideways_Returns_ExpectedTotals_Facet()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            var facetConfigs = new FacetsConfig();
+            facetConfigs.SetIndexFieldName("taxonomynodeName", "taxonomy_nodeName");
+
+            facetConfigs.SetIndexFieldName("publishDate", "taxonomy_publishDate");
+            facetConfigs.SetHierarchical("publishDate", true);
+
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(luceneDir, luceneTaxonomyDir, analyzer, new FieldDefinitionCollection(
+                new FieldDefinition("publishDate", FieldDefinitionTypes.FacetTaxonomyFullText),
+                new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText),
+                new FieldDefinition("taxonomynodeName", FieldDefinitionTypes.FacetTaxonomyFullText)
+
+                ), facetsConfig: facetConfigs))
+            {
+                var items = new ValueSet[] {
+                    ValueSet.FromObject("1", "content",
+                    new { publishDate = new FacetLabel("publishDate", new string[] { "2010", "10", "15" }), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                     ValueSet.FromObject("2", "content",
+                    new { publishDate =  new FacetLabel("publishDate", new string[]  {"2010", "10", "20"} ), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                      ValueSet.FromObject("3", "content",
+                    new { publishDate = new FacetLabel("publishDate", new string[] { "2012", "1", "1"} ), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                       ValueSet.FromObject("4", "content",
+                    new { publishDate = new FacetLabel("publishDate", new string[] { "2012", "1", "7"}), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" }),
+                        ValueSet.FromObject("5", "content",
+                    new { publishDate =  new FacetLabel("publishDate", new string[] { "1999", "5", "5"} ), nodeName = "umbraco", headerText = "world", writerName = "administrator", taxonomynodeName = "umbraco" })
+                };
+
+                indexer.IndexItems(items);
+
+                var taxonomySearcher = indexer.TaxonomySearcher;
+                var taxonomyCategoryCount = taxonomySearcher.CategoryCount;
+
+                //Arrange
+
+                var sc = taxonomySearcher.CreateQuery("content")
+                    .DrillDownQuery(
                     dims =>
                     {
                         // Filter the nodePath to the 2010 category
                         dims.AddDimension("publishDate", "2010", "10");
                     },
+                    baseQuery =>
+                        baseQuery.Field(ExamineFieldNames.CategoryFieldName, "content")
+                    ,
                     sideways =>
                     {
-
+                        sideways.SetTopN(20);
                     },
                     BooleanOperation.Or)
                     .WithFacets((Action<IFacetOperations>)(facets =>

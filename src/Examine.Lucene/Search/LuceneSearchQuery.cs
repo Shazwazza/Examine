@@ -21,6 +21,7 @@ namespace Examine.Lucene.Search
         private ISet<string>? _fieldsToLoad = null;
         private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
         private SearchAfterOptions? _searchAfter;
+        private LuceneDrillDownQueryDrillSideways? _drillDownQueryDrillSideways;
 
         /// <inheritdoc/>
         [Obsolete("To be removed in Examine V5")]
@@ -131,13 +132,10 @@ namespace Examine.Lucene.Search
         protected override INestedBooleanOperation RangeQueryNested<T>(string[] fields, T? min, T? max, bool minInclusive = true, bool maxInclusive = true)
             => RangeQueryInternal(fields, min, max, minInclusive, maxInclusive, Occurrence);
 
-        /// <inheritdoc/>
-        public override IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways) =>
-            DrillDownQueryInternal(dimensions, drillSideways, Occurrence);
 
         /// <inheritdoc/>
-        public override IOrdering DrillDownQuery(Func<INestedQuery, INestedBooleanOperation> inner, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp = BooleanOperation.Or) =>
-            DrillDownQueryInternal(inner, dimensions, drillSideways, defaultOp, Occurrence);
+        public override IOrdering DrillDownQuery(Action<IDrillDownQueryDimensions> dimensions, Func<INestedQuery, INestedBooleanOperation>? baseQuery = null, Action<IDrillSideways>? drillSideways = null, BooleanOperation defaultOp = BooleanOperation.Or) =>
+            DrillDownQueryInternal(baseQuery, dimensions, drillSideways, defaultOp, Occurrence);
 
         internal LuceneBooleanOperationBase ManagedQueryInternal(string query, string[]? fields, Occur occurance)
         {
@@ -231,8 +229,28 @@ namespace Examine.Lucene.Search
             return CreateOp();
         }
 
-        internal LuceneBooleanOperationBase DrillDownQueryInternal(Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, Occur occurance)
+        internal LuceneBooleanOperationBase DrillDownQueryInternal(Func<INestedQuery, INestedBooleanOperation>? baseQuery, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways>? drillSideways, BooleanOperation defaultOp, Occur occurance)
         {
+            var luceneDrillDownQueryDimensions = new LuceneDrillDownQueryDimensions();
+            dimensions(luceneDrillDownQueryDimensions);
+
+            if (drillSideways is not null)
+            {
+                _drillDownQueryDrillSideways = new LuceneDrillDownQueryDrillSideways();
+                drillSideways(_drillDownQueryDrillSideways);
+            }
+            if (baseQuery != null)
+            {
+                Func<Query, Query> buildQuery = (baseQuery) =>
+                {
+                    var drillDownQuery = new DrillDownQuery(_facetsConfig, baseQuery);
+                    luceneDrillDownQueryDimensions.Apply(drillDownQuery);
+                    return drillDownQuery;
+                };
+                var bo = new LuceneBooleanOperation(this);
+                bo.OpBaseQuery(buildQuery, baseQuery, occurance.ToBooleanOperation(), defaultOp);
+                return bo;
+            }
             Query.Add(new LateBoundQuery(() =>
             {
                 //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
@@ -242,15 +260,8 @@ namespace Examine.Lucene.Search
                 var outer = new BooleanQuery();
                 var inner = new BooleanQuery();
 
-                var luceneDrillDownQueryDimensions = new LuceneDrillDownQueryDimensions();
-                dimensions(luceneDrillDownQueryDimensions);
-
-                var luceneDrillDownQueryDrillSideways = new LuceneDrillDownQueryDrillSideways();
-                drillSideways(luceneDrillDownQueryDrillSideways);
-
                 var drillDownQuery = new DrillDownQuery(this._facetsConfig);
                 luceneDrillDownQueryDimensions.Apply(drillDownQuery);
-
 
                 outer.Add(drillDownQuery, Occur.SHOULD);
 
@@ -258,25 +269,6 @@ namespace Examine.Lucene.Search
             }), occurance);
 
             return CreateOp();
-        }
-
-        internal LuceneBooleanOperationBase DrillDownQueryInternal(Func<INestedQuery, INestedBooleanOperation> baseQuery, Action<IDrillDownQueryDimensions> dimensions, Action<IDrillSideways> drillSideways, BooleanOperation defaultOp, Occur occurance)
-        {
-            var luceneDrillDownQueryDimensions = new LuceneDrillDownQueryDimensions();
-            dimensions(luceneDrillDownQueryDimensions);
-
-            var luceneDrillDownQueryDrillSideways = new LuceneDrillDownQueryDrillSideways();
-            drillSideways(luceneDrillDownQueryDrillSideways);
-
-            Func<Query, Query> buildQuery = (baseQuery) =>
-            {
-                var drillDownQuery = new DrillDownQuery(_facetsConfig, baseQuery);
-                luceneDrillDownQueryDimensions.Apply(drillDownQuery);
-                return drillDownQuery;
-            };
-            var bo = new LuceneBooleanOperation(this);
-            bo.OpBaseQuery(buildQuery, baseQuery, occurance.ToBooleanOperation(), defaultOp);
-            return bo;
         }
 
         /// <summary>
@@ -321,7 +313,7 @@ namespace Examine.Lucene.Search
                 }
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig, _searchAfter);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields, _facetsConfig, _searchAfter, _drillDownQueryDrillSideways);
 
             var pagesResults = executor.Execute();
 
@@ -506,6 +498,5 @@ namespace Examine.Lucene.Search
             }
             return false;
         }
-
     }
 }

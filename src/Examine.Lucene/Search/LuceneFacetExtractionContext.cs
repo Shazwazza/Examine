@@ -9,8 +9,6 @@ namespace Examine.Lucene.Search
     public class LuceneFacetExtractionContext : IFacetExtractionContext
     {
 
-        private SortedSetDocValuesReaderState? _sortedSetReaderState = null;
-
         /// <inheritdoc/>
         public LuceneFacetExtractionContext(FacetsCollector facetsCollector, ISearcherReference searcherReference, FacetsConfig facetConfig)
         {
@@ -29,6 +27,9 @@ namespace Examine.Lucene.Search
         public ISearcherReference SearcherReference { get; }
 
         /// <inheritdoc/>
+        public SortedSetDocValuesReaderState? SortedSetReaderState { get; private set; }
+
+        /// <inheritdoc/>
         public virtual Facets GetFacetCounts(string facetIndexFieldName, bool isTaxonomyIndexed)
         {
             if (isTaxonomyIndexed)
@@ -41,11 +42,11 @@ namespace Examine.Lucene.Search
             }
             else
             {
-                if (_sortedSetReaderState == null || !_sortedSetReaderState.Field.Equals(facetIndexFieldName))
+                if (SortedSetReaderState == null || !SortedSetReaderState.Field.Equals(facetIndexFieldName))
                 {
-                    _sortedSetReaderState = new DefaultSortedSetDocValuesReaderState(SearcherReference.IndexSearcher.IndexReader, facetIndexFieldName);
+                    SortedSetReaderState = new DefaultSortedSetDocValuesReaderState(SearcherReference.IndexSearcher.IndexReader, facetIndexFieldName);
                 }
-                return new SortedSetDocValuesFacetCounts(_sortedSetReaderState, FacetsCollector);
+                return new SortedSetDocValuesFacetCounts(SortedSetReaderState, FacetsCollector);
             }
         }
     }
