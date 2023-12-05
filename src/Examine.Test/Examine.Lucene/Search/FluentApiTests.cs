@@ -5192,10 +5192,7 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
-        [TestCase(FacetTestType.TaxonomyFacets)]
-        //[TestCase(FacetTestType.SortedSetFacets)]
-        //[TestCase(FacetTestType.NoFacets)]
-        public void GivenTaxonomyIndexFacetDrillDownSubquery_Returns_ExpectedTotals_Facet(FacetTestType withFacets)
+        public void GivenTaxonomyIndexFacetDrillDownSubquery_Returns_ExpectedTotals_Facet()
         {
             var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
             var facetConfigs = new FacetsConfig();
