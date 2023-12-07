@@ -46,11 +46,11 @@ var orderedDescendingResults = searcher
 var orderedDescendingResults = searcher
    .CreateQuery("content")
    .Field("writerName", "administrator")
-   .OrderBy(
-      new Sorting(new SortableField("name", SortType.String), SortDirection.Descending),
-      new Sorting(new SortableField("date", SortType.String), SortDirection.Ascending)
-   ).Execute();
+      .OrderByDescending(new SortableField("name", SortType.String)),
+      .OrderBy(new SortableField("date", SortType.String))
+      .Execute();
 ```
+
 ### Spatial Sorting
 
 Example order by distance from a Point.

@@ -42,3 +42,24 @@ var orderedDescendingResults = searcher
    .OrderByDescending(new SortableField("name", SortType.String))
    .Execute();
 ```
+
+## Spatial Sorting
+
+Example order by distance from a Point.
+
+```cs
+ // Retrieve the Shape Factory from the field
+ var geoSpatialFieldType = myIndex.FieldValueTypeCollection.ValueTypes.First(f
+                    => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeBase;
+
+var fieldShapeFactory = geoSpatialFieldType.ExamineSpatialShapeFactory;
+
+// Define the location to compare against
+var searchLocation = fieldShapeFactory.CreatePoint(0.0, 0.0);
+
+// Order by the distance between the center of the Shape in the "spatialWKT" vs the search location, Ascending.
+var orderedDescendingResults = searcher
+   .CreateQuery("content")
+   .OrderBy(new SortableField("spatialWKT", searchLocation))
+   ).Execute();
+```

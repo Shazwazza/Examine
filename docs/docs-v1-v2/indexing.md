@@ -129,35 +129,6 @@ using (myIndex.ProcessNonAsync())
 }
 ```
 
-### Indexing Spatial Shapes
-
-For the Lucene Provider, the package Examine.Lucene.Spatial must be installed.
-
-As you can see, the values being passed into the ValueSet are type `IExamineSpatialShape` created using the `IExamineSpatialShapeFactory` retrieved from the ValueType of the field. A [field definition](configuration#custom-field-definitions) must be set.
-
-Example for Geo Spatial field storing WKT:
-
-```cs
-{FieldDefinitionTypes.GeoSpatialWKT, name => new WKTSpatialIndexFieldValueType(name, loggerFactory, SpatialIndexFieldValueTypeBase.GeoSpatialPrefixTreeStrategyFactory(),true)},
-```
-Indexing example:
-
-```cs
-var geoSpatialFieldType = myIndex.FieldValueTypeCollection.ValueTypes.First(f
-                    => f.FieldName.Equals("spatialWKT", StringComparison.InvariantCultureIgnoreCase)) as ISpatialIndexFieldValueTypeShapesBase;
-
-var fieldShapeFactory = geoSpatialFieldType.ExamineSpatialShapeFactory;
-
-  myIndex.IndexItem(
-    ValueSet.FromObject(1.ToString(), "content",
-      new { 
-        nodeName = "my name 1", 
-      updateDate = now.AddDays(2).ToString("yyyy-MM-dd"), 
-      spatialWKT = fieldShapeFactory.CreatePoint(0.0,0.0) })
-    );
-```
-
-
 ## Deleting index data
 
 Data is easily deleted from the index by the unique identifier you provided in your `ValueSet` by using the `DeleteFromIndex` method. For example:

@@ -223,7 +223,37 @@ var results = searcher.CreateQuery()
  .Execute();
 ```
 
-### Custom lucene filter
+## Spatial
+
+Examine supports Spatial Filtering.
+The Examine.Lucene.Spatial package needs to be installed.
+
+### Spatial Operations
+
+Below are the available Spatial Operations in Examine that are supported by the Examine.Lucene.Spatial package. Available operations may vary by provider.
+
+- ExamineSpatialOperation.Intersects
+- ExamineSpatialOperation.Overlaps
+- ExamineSpatialOperation.IsWithin
+- ExamineSpatialOperation.BoundingBoxIntersects
+- ExamineSpatialOperation.BoundingBoxWithin
+- ExamineSpatialOperation.Contains
+- ExamineSpatialOperation.IsDisjointTo
+- ExamineSpatialOperation.IsEqualTo
+
+### Spatial Filtering
+
+The `.SpatialOperationFilter()` method adds a filter to the query results to remove any results that do not pass the filter.
+The example below demonstrates filtering results where the shape stored in the "spatialWKT" field must intersect the rectangle defined.
+
+```csharp
+var query = searcher.CreateQuery()
+                .WithFilter(
+                        filter => filter.SpatialOperationFilter("spatialWKT", ExamineSpatialOperation.Intersects, (shapeFactory) => shapeFactory.CreateRectangle(0.0, 1.0, 0.0, 1.0))
+                );
+```
+
+## Custom lucene filter
 
 ```csharp
 var searcher = indexer.Searcher;
