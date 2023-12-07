@@ -11,9 +11,12 @@ namespace Examine.Lucene.Search
     // LuceneSearchQuery
     public class LuceneSearchFilteringOperation : LuceneSearchFilteringOperationBase
     {
+        private readonly LuceneSearchQuery _luceneSearchQuery;
+
         public LuceneSearchFilteringOperation(LuceneSearchQuery luceneSearchQuery)
            : base(luceneSearchQuery)
         {
+            _luceneSearchQuery = luceneSearchQuery;
         }
 
         /// <summary>
@@ -161,7 +164,30 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
         {
-            throw new NotImplementedException();
+            return QueryFilterInternal(inner, defaultOp);
+        }
+
+        /// <inheritdoc/>
+        private IBooleanFilterOperation QueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp, Occur occurance = Occur.MUST)
+        {
+            if (inner is null)
+            {
+                throw new ArgumentNullException(nameof(inner));
+            }
+
+            Func<Query, Filter> buildFilter = (baseQuery) =>
+            {
+                var queryWrapperFilter = new QueryWrapperFilter(baseQuery);
+
+                return queryWrapperFilter;
+            };
+
+            var bo = new LuceneBooleanOperation(_luceneSearchQuery);
+
+            var baseOp = bo.OpBaseFilter(buildFilter, inner, occurance.ToBooleanOperation(), defaultOp);
+
+            var op = CreateBooleanOp();
+            return op;
         }
 
         /// <inheritdoc/>

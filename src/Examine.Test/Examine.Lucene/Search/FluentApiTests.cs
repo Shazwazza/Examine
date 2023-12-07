@@ -5438,6 +5438,46 @@ namespace Examine.Test.Examine.Lucene.Search
             RunFilterTest(withFacets, actAssertAction);
         }
 
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void FilterQuery(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                =>
+                {
+
+                    var criteria = searcher.CreateQuery("content")
+                        .WithFilter(
+                            filter =>
+                            {
+                                filter.QueryFilter(
+                                    query =>
+                                        query.Field("nodeTypeAlias", "CWS_Home"));
+                            });
+                    var boolOp = criteria.All();
+
+                    if (HasFacets(withFacets))
+                    {
+                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                        var facetResults = results.GetFacet("nodeName");
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.AreEqual(2, facetResults.Count());
+                    }
+                    else
+                    {
+                        var results = boolOp.Execute();
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                    }
+                };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
         private void RunFilterTest(FacetTestType withFacets, Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction)
         {
             FieldDefinitionCollection fieldDefinitionCollection = null;
