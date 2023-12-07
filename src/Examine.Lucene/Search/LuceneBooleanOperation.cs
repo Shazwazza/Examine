@@ -57,8 +57,6 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public override IOrdering OrderByDescending(params SortableField[] fields) => _search.OrderByDescending(fields);
 
-        public override IOrdering OrderBy(params Sorting[] sorts) => _search.OrderBy(sorts);
-
         #endregion
 
         #region Select Fields

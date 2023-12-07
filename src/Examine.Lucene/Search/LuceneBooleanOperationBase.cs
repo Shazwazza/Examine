@@ -176,6 +176,5 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public abstract IQueryExecutor WithFacets(Action<IFacetOperations> facets);
 
-        public abstract IOrdering OrderBy(params Sorting[] sorts);
     }
 }

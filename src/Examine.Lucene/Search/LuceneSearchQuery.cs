@@ -112,8 +112,6 @@ namespace Examine.Lucene.Search
 
         public virtual IBooleanOperation OrderByDescending(params SortableField[] fields) => OrderByInternal(true, fields);
 
-        internal IOrdering OrderBy(Sorting[] sorts) => OrderByInternal(sorts);
-
         /// <inheritdoc/>
         public override IBooleanOperation Field<T>(string fieldName, T fieldValue)
             => RangeQueryInternal<T>(new[] { fieldName }, fieldValue, fieldValue, true, true, Occurrence);
@@ -273,7 +271,7 @@ namespace Examine.Lucene.Search
                 filter = null;
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, SearchContext, _fieldsToLoad, _facetFields,_facetsConfig, filter, Sortings);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, SearchContext, _fieldsToLoad, _facetFields, _facetsConfig, filter);
 
             var pagesResults = executor.Execute();
 
@@ -322,6 +320,9 @@ namespace Examine.Lucene.Search
                     case SortType.Double:
                         defaultSort = SortFieldType.DOUBLE;
                         break;
+                    case SortType.SpatialDistance:
+                        defaultSort = SortFieldType.CUSTOM;
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -333,41 +334,19 @@ namespace Examine.Lucene.Search
                 {
                     fieldName = valType.SortableFieldName;
                 }
-
-                SortFields.Add(new SortField(fieldName, defaultSort, descending));
-            }
-
-            return CreateOp();
-        }
-
-        /// <summary>
-        /// Internal operation for adding the ordered results
-        /// </summary>
-        /// <returns>A new <see cref="IBooleanOperation"/> with the clause appended</returns>
-        private LuceneBooleanOperationBase OrderByInternal(params Sorting[] sorting)
-        {
-            if (sorting == null)
-                throw new ArgumentNullException(nameof(sorting));
-
-            SortFields.Clear();
-            Sortings.Clear();
-            foreach (var item in sorting)
-            {
-                switch (item.Field.SortType)
+                if (f.SortType == SortType.SpatialDistance)
                 {
-                    case SortType.SpatialDistance:
-                    case SortType.Score:
-                    case SortType.DocumentOrder:
-                    case SortType.String:
-                    case SortType.Int:
-                    case SortType.Float:
-                    case SortType.Long:
-                    case SortType.Double:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    var spatialField = valType as ISpatialIndexFieldValueTypeBase;
+                    if (spatialField is null)
+                    {
+                        throw new NotSupportedException("Spatial Distance Sort requires the field to implement ISpatialIndexFieldValueTypeBase");
+                    }
+                    SortFields.Add(spatialField.ToSpatialDistanceSortField(f, descending ? SortDirection.Descending : SortDirection.Ascending));
                 }
-                Sortings.Add(item);
+                else
+                {
+                    SortFields.Add(new SortField(fieldName, defaultSort, descending));
+                }
             }
 
             return CreateOp();
@@ -454,7 +433,7 @@ namespace Examine.Lucene.Search
 
         private string GetFacetField(string field)
         {
-            if(_facetsConfig is null)
+            if (_facetsConfig is null)
             {
                 throw new InvalidOperationException("FacetsConfig not set. User a LuceneSearchQuery constructor with all parameters");
             }

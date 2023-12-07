@@ -31,7 +31,6 @@ namespace Examine.Lucene.Search
         /// <summary>
         /// The sort fields of the query
         /// </summary>
-        [Obsolete("Use Sortings")]
         public IList<SortField> SortFields { get; } = new List<SortField>();
 
         internal Stack<BooleanFilter> Filters { get; } = new Stack<BooleanFilter>();
@@ -40,11 +39,6 @@ namespace Examine.Lucene.Search
         /// The <see cref="BooleanFilter"/>
         /// </summary>
         public BooleanFilter Filter => Filters.Peek();
-
-        /// <summary>
-        /// Specifies how clauses are to occur in matching documents
-        /// </summary>
-        public IList<Sorting> Sortings { get; } = new List<Sorting>();
 
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;

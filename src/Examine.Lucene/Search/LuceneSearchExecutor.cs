@@ -28,11 +28,10 @@ namespace Examine.Lucene.Search
         private readonly IEnumerable<IFacetField>? _facetFields;
         private readonly FacetsConfig? _facetsConfig;
         private readonly Filter? _filter;
-        private readonly IList<Sorting>? _sortings;
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
-            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig, Filter? filter, IList<Sorting> sortings)
+            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig, Filter? filter)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -43,7 +42,6 @@ namespace Examine.Lucene.Search
             _facetFields = facetFields;
             _facetsConfig = facetsConfig;
             _filter = filter;
-            _sortings = sortings;
         }
 
         private int MaxDoc
@@ -100,70 +98,7 @@ namespace Examine.Lucene.Search
             maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
             int numHits = maxResults;
 
-            SortField[] sortFields;
-            if (_sortings.Count > 0)
-            {
-                List<SortField> sortFieldsList = new List<SortField>();
-                foreach (var s in _sortings)
-                {
-                    var f = s.Field;
-                    var fieldName = f.FieldName;
-
-                    var defaultSort = SortFieldType.STRING;
-
-                    switch (f.SortType)
-                    {
-                        case SortType.Score:
-                            defaultSort = SortFieldType.SCORE;
-                            break;
-                        case SortType.DocumentOrder:
-                            defaultSort = SortFieldType.DOC;
-                            break;
-                        case SortType.String:
-                            defaultSort = SortFieldType.STRING;
-                            break;
-                        case SortType.Int:
-                            defaultSort = SortFieldType.INT32;
-                            break;
-                        case SortType.Float:
-                            defaultSort = SortFieldType.SINGLE;
-                            break;
-                        case SortType.Long:
-                            defaultSort = SortFieldType.INT64;
-                            break;
-                        case SortType.Double:
-                            defaultSort = SortFieldType.DOUBLE;
-                            break;
-                        case SortType.SpatialDistance:
-                            defaultSort = SortFieldType.CUSTOM;
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    //get the sortable field name if this field type has one
-                    var valType = _searchContext.GetFieldValueType(fieldName);
-
-                    if (valType?.SortableFieldName != null)
-                    {
-                        fieldName = valType.SortableFieldName;
-                    }
-                    if (f.SortType == SortType.SpatialDistance)
-                    {
-                        var spatialField = valType as ISpatialIndexFieldValueTypeBase;
-                        sortFieldsList.Add(spatialField.ToSpatialDistanceSortField(f, s.Direction));
-                    }
-                    else
-                    {
-                        sortFieldsList.Add(new SortField(fieldName, defaultSort, s.Direction == SortDirection.Descending));
-                    }
-                }
-                sortFields = sortFieldsList.ToArray();
-            }
-            else
-            {
-                sortFields = _sortField as SortField[] ?? _sortField.ToArray();
-            }
+            SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
             Sort? sort = null;
             FieldDoc? scoreDocAfter = null;
             Filter? filter = _filter;

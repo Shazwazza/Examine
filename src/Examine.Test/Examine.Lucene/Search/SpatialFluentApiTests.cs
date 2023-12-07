@@ -58,13 +58,8 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
                 var searchLocation = fieldShapeFactory.CreatePoint(0.0, 0.0);
                 var sc = searcher.CreateQuery("content");
-                var sorting = new Sorting[]
-                {
-                    new Sorting(new SortableField("spatialWKT",searchLocation),SortDirection.Ascending),
-                    //new Sorting(new SortableField("updateDate", SortType.Long), SortDirection.Ascending)
-                };
                 var sc1 = sc.Field("parentID", 1143)
-                    .OrderBy(sorting);
+                    .OrderBy(new SortableField("spatialWKT", searchLocation));
 
                 var results1 = sc1.Execute().ToArray();
 
@@ -116,15 +111,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
                 var searchLocation = fieldShapeFactory.CreatePoint(0.0, 0.0);
                 var sc = searcher.CreateQuery("content");
-                var sorting = new Sorting[]
-                {
-                    new Sorting(new SortableField("spatialWKT",searchLocation),SortDirection.Ascending),
-                    //new Sorting(new SortableField("updateDate", SortType.Long), SortDirection.Ascending)
-                };
                 var sc1 = sc.WithFilter(
                         filter => filter.SpatialOperationFilter("spatialWKT", ExamineSpatialOperation.Intersects, (shapeFactory) => shapeFactory.CreateRectangle(0.0, 1.0, 0.0, 1.0)))
                     .Field("parentID", 1143)
-                    .OrderBy(sorting);
+                    .OrderBy(new SortableField("spatialWKT", searchLocation));
 
                 var results1 = sc1.Execute().ToArray();
 
@@ -176,15 +166,10 @@ namespace Examine.Test.Examine.Lucene.Search
                 var searcher = indexer.Searcher;
                 var searchLocation = fieldShapeFactory.CreatePoint(0.0, 0.0);
                 var sc = searcher.CreateQuery("content");
-                var sorting = new Sorting[]
-                {
-                    new Sorting(new SortableField("spatialWKT",searchLocation),SortDirection.Ascending),
-                    //new Sorting(new SortableField("updateDate", SortType.Long), SortDirection.Ascending)
-                };
                 var sc1 = sc.Field("parentID", 1143)
                     .And()
                     .SpatialOperationQuery("spatialWKT", ExamineSpatialOperation.Intersects, (shapeFactory) => shapeFactory.CreateRectangle(0.0, 1.0, 0.0, 1.0))
-                    .OrderBy(sorting);
+                    .OrderBy(new SortableField("spatialWKT", searchLocation));
 
                 var results1 = sc1.Execute().ToArray();
 
