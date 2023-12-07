@@ -480,6 +480,8 @@ namespace Examine.Lucene.Search
             var queryOp = op.And();
             return queryOp;
         }
+
+        /// <inheritdoc/>
         public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
             => SpatialOperationQueryInternal(field, spatialOperation, shape, Occurrence);
 

@@ -447,6 +447,7 @@ namespace Examine.Lucene.Search
 
         #endregion
 
+        /// <inheritdoc/>
         public override IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
            => SpatialOperationFilterInternal(field, spatialOperation, shape, Occurrence);
 
@@ -476,6 +477,7 @@ namespace Examine.Lucene.Search
             return op;
         }
 
+        /// <inheritdoc/>
         protected override INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
             => NestedSpatialOperationFilterInternal(field, spatialOperation, shape, Occurrence);
     }

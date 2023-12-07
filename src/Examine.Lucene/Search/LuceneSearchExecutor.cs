@@ -98,7 +98,7 @@ namespace Examine.Lucene.Search
             maxResults = maxResults >= 1 ? maxResults : QueryOptions.DefaultMaxResults;
             int numHits = maxResults;
 
-            SortField[] sortFields = _sortField as SortField[] ?? _sortField.ToArray();
+            var sortFields = _sortField as SortField[] ?? _sortField.ToArray();
             Sort? sort = null;
             FieldDoc? scoreDocAfter = null;
             Filter? filter = _filter;

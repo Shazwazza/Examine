@@ -139,6 +139,7 @@ namespace Examine.Lucene.Search
         /// <inheritdoc/>
         public IQuery WithFilter(Action<IFilter> filter) => _search.WithFilter(filter);
 
+        /// <inheritdoc/>
         public IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
             => _search.SpatialOperationQueryInternal(field, spatialOperation, shape, _occurrence);
     }

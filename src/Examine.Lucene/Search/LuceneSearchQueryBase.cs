@@ -40,11 +40,15 @@ namespace Examine.Lucene.Search
         /// </summary>
         public BooleanFilter Filter => Filters.Peek();
 
+        /// <summary>
+        /// Specifies how clauses are to occur in matching documents
+        /// </summary>
         protected Occur Occurrence { get; set; }
         private BooleanOperation _boolOp;
 
         private BooleanOperation _boolFilterOp;
 
+        /// <inheritdoc/>
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string? category, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
