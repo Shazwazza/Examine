@@ -222,3 +222,14 @@ var results = searcher.CreateQuery()
      .All()
  .Execute();
 ```
+
+### Custom lucene filter
+
+```csharp
+var searcher = indexer.Searcher;
+var query = searcher.CreateQuery();
+
+var query = (LuceneSearchQuery)query.NativeQuery("hello:world").And(); // Make query ready for extending
+query.LuceneFilter(new TermFilter(new Term("nodeTypeAlias", "CWS_Home"))); // Add the raw lucene query
+var results = query.Execute();
+```

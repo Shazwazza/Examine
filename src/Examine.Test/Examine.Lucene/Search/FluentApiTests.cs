@@ -9,11 +9,12 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
+using Lucene.Net.Queries;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using NUnit.Framework;
-
+using LuceneTerm = Lucene.Net.Index.Term;
 
 
 namespace Examine.Test.Examine.Lucene.Search
@@ -5669,6 +5670,40 @@ namespace Examine.Test.Examine.Lucene.Search
                      }
                  };
 
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Custom_Lucene_Filter(FacetTestType withFacets)
+        {
+
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+            = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+            =>
+            {
+                var criteria = (LuceneSearchQuery)searcher.CreateQuery("content");
+
+                criteria.LuceneFilter(new TermFilter(new LuceneTerm("nodeTypeAlias", "CWS_Home")));
+                var boolOp = criteria.All();
+
+                if (HasFacets(withFacets))
+                {
+                    var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = boolOp.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
+            };
             RunFilterTest(withFacets, actAssertAction);
         }
 
