@@ -26,7 +26,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain) => _search.ChainFiltersInternal(chain, _occurrence);
+        public IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain) => _search.ChainFiltersInternal(chain, _occurrence);
 
         /// <inheritdoc/>
         public IBooleanFilterOperation TermFilter(FilterTerm term) => _search.TermFilterInternal(term,_occurrence);
@@ -47,7 +47,7 @@ namespace Examine.Lucene.Search
         public IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => _search.QueryFilterInternal(inner, defaultOp, _occurrence);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.NestedChainFilters(Action<IFilterChainStart> chain) => _search.NestedChainFiltersInternal(chain, _occurrence);
+        INestedBooleanFilterOperation INestedFilter.NestedChainFilters(Action<IFilterChain> chain) => _search.NestedChainFiltersInternal(chain, _occurrence);
 
         /// <inheritdoc/>
         public INestedBooleanFilterOperation NestedTermFilter(FilterTerm term) => _search.NestedTermFilterInternal(term, _occurrence);

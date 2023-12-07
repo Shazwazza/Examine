@@ -10,7 +10,7 @@ namespace Examine.Search
         /// </summary>
         /// <param name="chain"></param>
         /// <returns></returns>
-        IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);
+        IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain);
 
         /// <summary>
         /// Term must match

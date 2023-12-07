@@ -5410,11 +5410,12 @@ namespace Examine.Test.Examine.Lucene.Search
                             filter =>
                             {
                                 filter.ChainFilters(chain =>
-                                    chain.Chain(chainedFilter => chainedFilter.NestedFieldValueExists("nodeTypeAlias"))
+                                    chain.Chain(ChainOperation.OR, chainedFilter => chainedFilter.NestedFieldValueExists("nodeTypeAlias"))
                                             .Chain(ChainOperation.AND, chainedFilter => chainedFilter.NestedTermPrefix(new FilterTerm("nodeTypeAlias", "CWS_H")))
                                                 .Chain(ChainOperation.OR, chainedFilter => chainedFilter.NestedTermFilter(new FilterTerm("nodeName", "my name")))
+                                                    .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.NestedTermFilter(new FilterTerm("nodeName", "someone elses name")))
+                                                        .Chain(ChainOperation.XOR, chainedFilter => chainedFilter.NestedTermPrefix(new FilterTerm("nodeName", "my")))
                                             );
-
                             });
                     var boolOp = criteria.All();
 

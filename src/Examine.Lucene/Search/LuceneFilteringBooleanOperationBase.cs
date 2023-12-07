@@ -88,7 +88,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);
+        public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain);
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation TermFilter(FilterTerm term);

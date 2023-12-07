@@ -7,7 +7,7 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Filter Chain Operation
     /// </summary>
-    public class FilterChainOp : FilterChainOpBase, IFilterChainStart, IFilterChain
+    public class FilterChainOp : FilterChainOpBase, IFilterChain
     {
         private readonly LuceneSearchFilteringOperation _luceneFilter;
 

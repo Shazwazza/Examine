@@ -75,7 +75,7 @@ namespace Examine.Lucene.Search
         protected abstract FilterChainOpBase CreateChainOp();
 
         /// <inheritdoc/>
-        public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);
+        public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain);
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation TermFilter(FilterTerm term);
@@ -96,7 +96,7 @@ namespace Examine.Lucene.Search
         public abstract IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
 
         /// <inheritdoc/>
-        protected abstract INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain);
+        protected abstract INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChain> chain);
 
         /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedTermFilter(FilterTerm term);
@@ -117,7 +117,7 @@ namespace Examine.Lucene.Search
         protected abstract INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp);
 
         /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.NestedChainFilters(Action<IFilterChainStart> chain) => NestedChainFilters(chain);
+        INestedBooleanFilterOperation INestedFilter.NestedChainFilters(Action<IFilterChain> chain) => NestedChainFilters(chain);
 
         /// <inheritdoc/>
         INestedBooleanFilterOperation INestedFilter.NestedTermFilter(FilterTerm term) => NestedTermFilter(term);

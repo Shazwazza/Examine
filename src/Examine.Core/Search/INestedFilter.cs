@@ -10,7 +10,7 @@ namespace Examine.Search
         /// </summary>
         /// <param name="chain"></param>
         /// <returns></returns>
-        INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain);
+        INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChain> chain);
 
         /// <summary>
         /// Term must match

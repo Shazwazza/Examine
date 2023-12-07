@@ -9,7 +9,7 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Filter Chain Operation
     /// </summary>
-    public abstract class FilterChainOpBase : IFilterChainStart, IFilterChain
+    public abstract class FilterChainOpBase : IFilterChain
     {
         /// <summary>
         /// Constructor

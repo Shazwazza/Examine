@@ -44,13 +44,13 @@ namespace Examine.Lucene.Search
         #region IFilter
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain)
+        public override IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain)
         {
             return ChainFiltersInternal(chain);
         }
 
         /// <inheritdoc/>
-        internal IBooleanFilterOperation ChainFiltersInternal(Action<IFilterChainStart> chain, Occur occurance = Occur.MUST)
+        internal IBooleanFilterOperation ChainFiltersInternal(Action<IFilterChain> chain, Occur occurance = Occur.MUST)
         {
             if (chain is null)
             {
@@ -292,7 +292,7 @@ namespace Examine.Lucene.Search
         #region INestedFilter
 
         /// <inheritdoc/>
-        protected override INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChainStart> chain) => NestedChainFiltersInternal(chain);
+        protected override INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChain> chain) => NestedChainFiltersInternal(chain);
 
         /// <inheritdoc/>
         protected override INestedBooleanFilterOperation NestedTermFilter(FilterTerm term) => NestedTermFilterInternal(term);
@@ -313,7 +313,7 @@ namespace Examine.Lucene.Search
         protected override INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilterInternal(inner, defaultOp);
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChainStart> chain, Occur occurance = Occur.MUST)
+        internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChain> chain, Occur occurance = Occur.MUST)
         {
             if (chain is null)
             {

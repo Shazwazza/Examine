@@ -36,7 +36,7 @@ namespace Examine.Lucene.Search
         #region IFilter
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain) => _search.ChainFilters(chain);
+        public override IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain) => _search.ChainFilters(chain);
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation TermFilter(FilterTerm term) => _search.TermFilter(term);
