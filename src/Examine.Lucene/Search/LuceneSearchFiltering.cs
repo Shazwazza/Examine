@@ -16,6 +16,11 @@ namespace Examine.Lucene.Search
         private readonly LuceneSearchQuery _luceneSearchQuery;
 
         /// <summary>
+        /// Search Query
+        /// </summary>
+        public LuceneSearchQuery LuceneSearchQuery => _luceneSearchQuery;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="luceneSearchQuery"></param>

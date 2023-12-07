@@ -1,52 +1,48 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Examine.Search;
-using Lucene.Net.Index;
-using Lucene.Net.Queries;
-using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
-    internal class FilterChainOp : FilterChainOpBase, IFilterChainStart, IFilterChain
+    /// <summary>
+    /// Filter Chain Operation
+    /// </summary>
+    public class FilterChainOp : FilterChainOpBase, IFilterChainStart, IFilterChain
     {
         private readonly LuceneSearchFilteringOperation _luceneFilter;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="luceneFilter"></param>
         public FilterChainOp(LuceneSearchFilteringOperation luceneFilter)
         {
             ChainOps = new Queue<FilterChain>();
             _luceneFilter = luceneFilter;
         }
 
+        /// <inheritdoc/>
         public override IFilterChain Chain(Func<INestedFilter, INestedBooleanFilterOperation> nextFilter)
         {
-            throw new NotImplementedException();
+            var filterOp = new LuceneSearchFilteringOperation(_luceneFilter.LuceneSearchQuery);
+            var bo = new LuceneBooleanOperation(_luceneFilter.LuceneSearchQuery);
+            var fbo = new LuceneFilteringBooleanOperation(filterOp);
+            var filter = fbo.GetNestedFilterOp(nextFilter, BooleanOperation.And);
             // Start a chain
-            //ChainOps.Enqueue(new FilterChain(nextFilter, (int)ChainOperation.AND));
+            ChainOps.Enqueue(new FilterChain(filter, (int)ChainOperation.AND));
             return this;
         }
 
+        /// <inheritdoc/>
         public override IFilterChain Chain(ChainOperation operation, Func<INestedFilter, INestedBooleanFilterOperation> nextFilter)
         {
-            throw new NotImplementedException();
+            var filterOp = new LuceneSearchFilteringOperation(_luceneFilter.LuceneSearchQuery);
+            var bo = new LuceneBooleanOperation(_luceneFilter.LuceneSearchQuery);
+            var fbo = new LuceneFilteringBooleanOperation(filterOp);
+            var filter = fbo.GetNestedFilterOp(nextFilter, BooleanOperation.And);
             // Continue a chain
-            //ChainOps.Enqueue(new FilterChain(nextFilter, (int)operation));
+            ChainOps.Enqueue(new FilterChain(filter, (int)operation));
             return this;
         }
-
-    }
-
-    public struct FilterChain
-    {
-        public Filter Filter { get; }
-
-        public FilterChain(Filter filter, int operation)
-        {
-            Filter = filter;
-            Operation = operation;
-        }
-
-        public int Operation { get; }
-
     }
 }

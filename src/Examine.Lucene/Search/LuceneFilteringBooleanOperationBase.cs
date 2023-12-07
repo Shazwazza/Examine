@@ -2,9 +2,13 @@ using System;
 using System.Collections.Generic;
 using Examine.Search;
 using Lucene.Net.Queries;
+using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Boolean Lucene Filtering Operation Base
+    /// </summary>
     public abstract class LuceneFilteringBooleanOperationBase : IFilter, IBooleanFilterOperation, INestedBooleanFilterOperation
     {
         private readonly LuceneSearchFilteringOperationBase _search;
@@ -25,7 +29,7 @@ namespace Examine.Lucene.Search
         /// <param name="outerOp"></param>
         /// <param name="defaultInnerOp"></param>
         /// <returns></returns>
-        protected internal LuceneFilteringBooleanOperationBase Op(
+        internal LuceneFilteringBooleanOperationBase Op(
             Func<INestedFilter, INestedBooleanFilterOperation> inner,
             BooleanOperation outerOp,
             BooleanOperation? defaultInnerOp = null)
@@ -50,7 +54,38 @@ namespace Examine.Lucene.Search
 
             return _search.LuceneFilter(_search.Filters.Pop(), outerOp);
         }
+        /// <summary>
+        /// Used to add a operation
+        /// </summary>
+        /// <param name="inner"></param>
+        /// <param name="outerOp"></param>
+        /// <param name="defaultInnerOp"></param>
+        /// <returns></returns>
+        internal Filter GetNestedFilterOp(
+            Func<INestedFilter, INestedBooleanFilterOperation> inner,
+            BooleanOperation outerOp,
+            BooleanOperation? defaultInnerOp = null)
+        {
+            _search.Filters.Push(new BooleanFilter());
 
+            //change the default inner op if specified
+            var currentOp = _search.BooleanFilterOperation;
+            if (defaultInnerOp != null)
+            {
+                _search.BooleanFilterOperation = defaultInnerOp.Value;
+            }
+
+            //run the inner search
+            inner(_search);
+
+            //reset to original op if specified
+            if (defaultInnerOp != null)
+            {
+                _search.BooleanFilterOperation = currentOp;
+            }
+
+            return _search.Filters.Pop();
+        }
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain);

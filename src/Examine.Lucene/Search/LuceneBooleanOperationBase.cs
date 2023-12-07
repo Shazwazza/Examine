@@ -127,7 +127,7 @@ namespace Examine.Lucene.Search
         /// <param name="outerOp"></param>
         /// <param name="defaultInnerOp"></param>
         /// <returns></returns>
-        protected internal LuceneBooleanOperationBase OpBaseFilter(
+        internal LuceneBooleanOperationBase OpBaseFilter(
             Func<Query, Filter> baseFilterBuilder,
             Func<INestedQuery, INestedBooleanOperation> inner,
             BooleanOperation outerOp,
