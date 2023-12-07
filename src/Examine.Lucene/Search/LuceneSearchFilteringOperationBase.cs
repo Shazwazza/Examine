@@ -117,6 +117,9 @@ namespace Examine.Lucene.Search
         protected abstract INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp);
 
         /// <inheritdoc/>
+        protected abstract INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+
+        /// <inheritdoc/>
         INestedBooleanFilterOperation INestedFilter.NestedChainFilters(Action<IFilterChain> chain) => NestedChainFilters(chain);
 
         /// <inheritdoc/>
@@ -136,6 +139,9 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         INestedBooleanFilterOperation INestedFilter.NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilter(inner, defaultOp);
+
+        /// <inheritdoc/>
+        INestedBooleanFilterOperation INestedFilter.NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape) => NestedSpatialOperationFilter(field, spatialOperation, shape);
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive);

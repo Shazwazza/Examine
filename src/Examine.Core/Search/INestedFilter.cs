@@ -54,5 +54,13 @@ namespace Examine.Search
         /// <param name="defaultOp"></param>
         /// <returns></returns>
         INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
+
+        /// <summary>
+        /// Executes Spatial operation as a Filter on field and shape
+        /// </summary>
+        /// <param name="field">Index field name</param>
+        /// <param name="shape">Shape</param>
+        /// <returns></returns>
+        INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

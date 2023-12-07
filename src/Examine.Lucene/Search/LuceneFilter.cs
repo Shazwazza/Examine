@@ -68,6 +68,10 @@ namespace Examine.Lucene.Search
         public INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => _search.NestedQueryFilterInternal(inner, defaultOp, _occurrence);
 
         /// <inheritdoc/>
+        public INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+           => _search.NestedSpatialOperationFilterInternal(field, spatialOperation, shape, _occurrence);
+
+        /// <inheritdoc/>
         public IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive) => _search.IntRangeFilterInternal(field, min, max, minInclusive, maxInclusive, _occurrence);
 
         /// <inheritdoc/>

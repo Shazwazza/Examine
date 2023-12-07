@@ -463,5 +463,20 @@ namespace Examine.Lucene.Search
             return op;
         }
 
+        internal INestedBooleanFilterOperation NestedSpatialOperationFilterInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
+        {
+            var spatialField = _luceneSearchQuery.SearchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
+            var filterToAdd = spatialField.GetFilter(field, spatialOperation, shape);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            var op = CreateBooleanOp();
+            return op;
+        }
+
+        protected override INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+            => NestedSpatialOperationFilterInternal(field, spatialOperation, shape, Occurrence);
     }
 }
