@@ -19,19 +19,30 @@ namespace Examine.Lucene.Analyzers
         private readonly bool _caseInsensitive;
         private readonly bool _ignoreLanguageAccents;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates an instance of <see cref="CultureInvariantWhitespaceAnalyzer"/>
+        /// </summary>
         public CultureInvariantWhitespaceAnalyzer() : this(true, true)
         {
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates an instance of <see cref="CultureInvariantWhitespaceAnalyzer"/>
+        /// </summary>
+        /// <param name="caseInsensitive">Whether or not the analyzer is case sensitive</param>
+        /// <param name="ignoreLanguageAccents">Whether or not to ignore language accents</param>
         public CultureInvariantWhitespaceAnalyzer(bool caseInsensitive, bool ignoreLanguageAccents)
         {
             _caseInsensitive = caseInsensitive;
             _ignoreLanguageAccents = ignoreLanguageAccents;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates the analyzer components
+        /// </summary>
+        /// <param name="fieldName">The field name</param>
+        /// <param name="reader">The <see cref="TextReader"/></param>
+        /// <returns>The <see cref="TokenStreamComponents"/></returns>
         protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
         {
             Tokenizer tokenizer = new LetterOrDigitTokenizer(reader);

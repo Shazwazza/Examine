@@ -12,7 +12,9 @@ namespace Examine.Lucene.Directories
     {
         private readonly Lock _dirMaster;
         private readonly Lock _dirChild;
+#pragma warning disable IDE0044 // Add readonly modifier
         private bool _isDisposed = false;
+#pragma warning restore IDE0044 // Add readonly modifier
 
 
         public MultiIndexLock(Lock dirMaster, Lock dirChild)
@@ -32,7 +34,11 @@ namespace Examine.Lucene.Directories
         public override bool Obtain()
         {
             var master = _dirMaster.Obtain();
-            if (!master) return false;
+            if (!master)
+            {
+                return false;
+            }
+
             var child = _dirChild.Obtain();
             return child;
         }
@@ -58,7 +64,9 @@ namespace Examine.Lucene.Directories
                     {
                         //if an error occurs above for the master still attempt to release child
                         if (!isChild)
+                        {
                             _dirChild.Dispose();
+                        }
 
                         throw;
                     }
@@ -73,9 +81,6 @@ namespace Examine.Lucene.Directories
         ///             still call <see cref="M:Lucene.Net.Store.Lock.Obtain"/> before using the resource.
         /// </summary>
 
-        public override bool IsLocked()
-        {
-            return _dirMaster.IsLocked() || _dirChild.IsLocked();
-        }
+        public override bool IsLocked() => _dirMaster.IsLocked() || _dirChild.IsLocked();
     }
 }

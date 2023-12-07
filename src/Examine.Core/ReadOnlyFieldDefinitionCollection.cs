@@ -27,7 +27,10 @@ namespace Examine
         /// <inheritdoc/>
         public ReadOnlyFieldDefinitionCollection(IEnumerable<FieldDefinition> definitions)
         {
-            if (definitions == null) return;
+            if (definitions == null)
+            {
+                return;
+            }
 
             foreach (var f in definitions.GroupBy(x => x.Name))
             {

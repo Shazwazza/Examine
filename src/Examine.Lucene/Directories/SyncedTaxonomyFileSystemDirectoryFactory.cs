@@ -100,7 +100,10 @@ namespace Examine.Lucene.Directories
             return localLuceneDir;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        /// <param name="disposing">If the call is coming from Dispose</param>
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

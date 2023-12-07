@@ -23,14 +23,14 @@ namespace Examine.Test.Examine.Lucene.Sync
 
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
-            using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+            using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
             using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
             {
                 mainIndex.CreateIndex();
 
                 mainIndex.IndexItems(mainIndex.AllData());
 
-                DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
+                var mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                 Assert.AreEqual(100, mainReader.NumDocs);
 
                 // TODO: Ok so replication CANNOT occur on an open index with an open IndexWriter.
@@ -42,9 +42,9 @@ namespace Examine.Test.Examine.Lucene.Sync
                 // publish on a schedule.
                 replicator.ReplicateIndex();
 
-                using (TestIndex localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                using (var localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                 {
-                    DirectoryReader localReader = localIndex.IndexWriter.IndexWriter.GetReader(true);
+                    var localReader = localIndex.IndexWriter.IndexWriter.GetReader(true);
                     Assert.AreEqual(100, localReader.NumDocs);
                 }
             }
@@ -58,9 +58,9 @@ namespace Examine.Test.Examine.Lucene.Sync
 
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
-            using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+            using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
             using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
-            using (TestIndex localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+            using (var localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
             {
                 mainIndex.CreateIndex();
 
@@ -87,7 +87,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
             {
-                using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
@@ -95,7 +95,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                     replicator.ReplicateIndex();
                 }
 
-                using (TestIndex localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (var localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 {
                     localIndex.IndexItem(new ValueSet(9999.ToString(), "content",
                             new Dictionary<string, IEnumerable<object>>
@@ -110,9 +110,9 @@ namespace Examine.Test.Examine.Lucene.Sync
                         replicator.ReplicateIndex();
                     }
 
-                    using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                    using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                     {
-                        DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
+                        var mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                         Assert.AreEqual(101, mainReader.NumDocs);
                     }
                 }
@@ -129,7 +129,7 @@ namespace Examine.Test.Examine.Lucene.Sync
             using (var mainDir = new RandomIdRAMDirectory())
             using (var localDir = new RandomIdRAMDirectory())
             {
-                using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 using (var replicator = new ExamineReplicator(GetLoggerFactory(), mainIndex, localDir, tempStorage))
                 {
                     mainIndex.CreateIndex();
@@ -137,7 +137,7 @@ namespace Examine.Test.Examine.Lucene.Sync
                     replicator.ReplicateIndex();
                 }
 
-                using (TestIndex localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
+                using (var localIndex = GetTestIndex(localDir, new StandardAnalyzer(LuceneInfo.CurrentVersion), indexDeletionPolicy: indexDeletionPolicy))
                 {
                     using (var replicator = new ExamineReplicator(
                         GetLoggerFactory(),
@@ -164,9 +164,9 @@ namespace Examine.Test.Examine.Lucene.Sync
                         Thread.Sleep(2000);
                     }
 
-                    using (TestIndex mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
+                    using (var mainIndex = GetTestIndex(mainDir, new StandardAnalyzer(LuceneInfo.CurrentVersion)))
                     {
-                        DirectoryReader mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
+                        var mainReader = mainIndex.IndexWriter.IndexWriter.GetReader(true);
                         Assert.AreEqual(110, mainReader.NumDocs);
                     }
                 }

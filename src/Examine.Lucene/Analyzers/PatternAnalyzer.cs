@@ -32,7 +32,12 @@ namespace Examine.Lucene.Analyzers
             _pattern = new Regex(format);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates the analyzer components
+        /// </summary>
+        /// <param name="fieldName">The field name</param>
+        /// <param name="reader">The <see cref="TextReader"/></param>
+        /// <returns>The <see cref="TokenStreamComponents"/></returns>
         protected override TokenStreamComponents CreateComponents(string fieldName, TextReader reader)
         {
             Tokenizer tokenizer = new PatternTokenizer(reader, _pattern, _regexGroup);
