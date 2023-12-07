@@ -8,11 +8,17 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
-    // LuceneSearchQuery
+    /// <summary>
+    /// Lucene Search Filter Operation
+    /// </summary>
     public class LuceneSearchFilteringOperation : LuceneSearchFilteringOperationBase
     {
         private readonly LuceneSearchQuery _luceneSearchQuery;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="luceneSearchQuery"></param>
         public LuceneSearchFilteringOperation(LuceneSearchQuery luceneSearchQuery)
            : base(luceneSearchQuery)
         {
@@ -38,7 +44,8 @@ namespace Examine.Lucene.Search
             return ChainFiltersInternal(chain);
         }
 
-        private IBooleanFilterOperation ChainFiltersInternal(Action<IFilterChainStart> chain, Occur occurance = Occur.MUST)
+        /// <inheritdoc/>
+        internal IBooleanFilterOperation ChainFiltersInternal(Action<IFilterChainStart> chain, Occur occurance = Occur.MUST)
         {
             if (chain is null)
             {
