@@ -4,6 +4,8 @@
   href: indexing.md
 - name: Searching
   href: searching.md
+- name: Filtering
+  href: filtering.md
 - name: Sorting
   href: sorting.md
 - name: Paging

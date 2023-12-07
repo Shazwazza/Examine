@@ -66,6 +66,40 @@ var results = searcher.CreateQuery()
 
 Range Filters allow one to match documents whose field(s) values are between the lower and upper bound specified by the Range Filter
 
+### Int Range
+
+Example:
+
+```csharp
+var searcher = myIndex.Searcher;
+var query = searcher.CreateQuery();
+ query.WithFilter(
+     filter =>
+     {
+         filter.IntRangeFilter("SomeInt", 0, 100, minInclusive: true, maxInclusive: true);
+     }).All();
+var results = query.Execute(QueryOptions.Default);
+```
+
+This will return results where the field `SomeInt` is within the range 0 - 100 (min value and max value included).
+
+### Long Range
+
+Example:
+
+```csharp
+var searcher = myIndex.Searcher;
+var query = searcher.CreateQuery();
+ query.WithFilter(
+     filter =>
+     {
+         filter.LongRangeFilter("SomeLong", 0, 100, minInclusive: true, maxInclusive: true);
+     }).All();
+var results = query.Execute(QueryOptions.Default);
+```
+
+This will return results where the field `SomeLong` is within the range 0 - 100 (min value and max value included).
+
 ### Float Range
 
 Example:
@@ -73,11 +107,32 @@ Example:
 ```csharp
 var searcher = myIndex.Searcher;
 var query = searcher.CreateQuery();
-query.RangeQuery<float>(new[] { "SomeFloat" }, 0f, 100f, minInclusive: true, maxInclusive: true);
+ query.WithFilter(
+     filter =>
+     {
+         filter.FloatRangeFilter("SomeFloat", 0f, 100f, minInclusive: true, maxInclusive: true);
+     }).All();
 var results = query.Execute(QueryOptions.Default);
 ```
 
 This will return results where the field `SomeFloat` is within the range 0 - 100 (min value and max value included).
+
+### Double Range
+
+Example:
+
+```csharp
+var searcher = myIndex.Searcher;
+var query = searcher.CreateQuery();
+ query.WithFilter(
+     filter =>
+     {
+         filter.FloatRangeFilter("SomeDouble", 0.0, 100.0, minInclusive: true, maxInclusive: true);
+     }).All();
+var results = query.Execute(QueryOptions.Default);
+```
+
+This will return results where the field `SomeDouble` is within the range 0 - 100 (min value and max value included).
 
 ## Booleans and Chains
 
