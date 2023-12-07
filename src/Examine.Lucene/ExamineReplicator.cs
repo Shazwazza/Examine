@@ -26,6 +26,13 @@ namespace Examine.Lucene
         private bool _started = false;
         private readonly ILogger<ExamineReplicator> _logger;
 
+        /// <summary>
+        /// Creates an instance of <see cref="ExamineReplicator"/>
+        /// </summary>
+        /// <param name="loggerFactory">The logger factory</param>
+        /// <param name="sourceIndex">The source index</param>
+        /// <param name="destinationDirectory">The destination directory</param>
+        /// <param name="tempStorage">The temp storage directory info</param>
         public ExamineReplicator(
             ILoggerFactory loggerFactory,
             LuceneIndex sourceIndex,
@@ -89,6 +96,11 @@ namespace Examine.Lucene
             _localReplicationClient.UpdateNow();
         }
 
+        /// <summary>
+        /// Starts index replication
+        /// </summary>
+        /// <param name="milliseconds"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void StartIndexReplicationOnSchedule(int milliseconds)
         {
             lock (_locker)
@@ -119,17 +131,25 @@ namespace Examine.Lucene
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void SourceIndex_IndexCommitted(object sender, EventArgs e)
+        private void SourceIndex_IndexCommitted(object? sender, EventArgs e)
         {
-            var index = (LuceneIndex)sender;
+            var index = (LuceneIndex?)sender;
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("{IndexName} committed", index.Name);
+                if(index == null)
+                {
+                    _logger.LogWarning("Index is null in {method}", nameof(ExamineReplicator.SourceIndex_IndexCommitted));
+                }
+                _logger.LogDebug("{IndexName} committed", index?.Name ?? $"({nameof(index)} is null)");
             }
             var rev = new IndexRevision(_sourceIndex.IndexWriter.IndexWriter);
             _replicator.Publish(rev);
         }
 
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        /// <param name="disposing">If the call is coming from Dispose</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -144,10 +164,15 @@ namespace Examine.Lucene
             }
         }
 
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+#pragma warning disable IDE0022 // Use expression body for method
             Dispose(disposing: true);
+#pragma warning restore IDE0022 // Use expression body for method
         }
     }
 }

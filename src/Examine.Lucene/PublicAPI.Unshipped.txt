@@ -1,0 +1,177 @@
+#nullable enable
+abstract Examine.Lucene.Search.LuceneBooleanOperationBase.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
+Examine.Lucene.Directories.GenericDirectoryFactory.GenericDirectoryFactory(System.Func<string!, Lucene.Net.Store.Directory!>! factory, System.Func<string!, Lucene.Net.Store.Directory!>! taxonomyDirectoryFactory) -> void
+Examine.Lucene.Directories.IDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+Examine.Lucene.Directories.SyncedTaxonomyFileSystemDirectoryFactory
+Examine.Lucene.Directories.SyncedTaxonomyFileSystemDirectoryFactory.SyncedTaxonomyFileSystemDirectoryFactory(System.IO.DirectoryInfo! localDir, System.IO.DirectoryInfo! mainDir, Examine.Lucene.Directories.ILockFactory! lockFactory, Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory) -> void
+Examine.Lucene.ExamineTaxonomyReplicator
+Examine.Lucene.ExamineTaxonomyReplicator.Dispose() -> void
+Examine.Lucene.ExamineTaxonomyReplicator.ExamineTaxonomyReplicator(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, Examine.Lucene.Providers.LuceneIndex! sourceIndex, Lucene.Net.Store.Directory! destinationDirectory, Lucene.Net.Store.Directory! destinationTaxonomyDirectory, System.IO.DirectoryInfo! tempStorage) -> void
+Examine.Lucene.ExamineTaxonomyReplicator.ReplicateIndex() -> void
+Examine.Lucene.ExamineTaxonomyReplicator.StartIndexReplicationOnSchedule(int milliseconds) -> void
+Examine.Lucene.FacetExtensions
+Examine.Lucene.Indexing.DateTimeType.DateTimeType(string! fieldName, bool store, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, Lucene.Net.Documents.DateResolution resolution) -> void
+Examine.Lucene.Indexing.DateTimeType.IsTaxonomyFaceted.get -> bool
+Examine.Lucene.Indexing.DoubleType.DoubleType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool store) -> void
+Examine.Lucene.Indexing.DoubleType.IsTaxonomyFaceted.get -> bool
+Examine.Lucene.Indexing.FullTextType.FullTextType(string! fieldName, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool isFacetable, bool taxonomyIndex, bool sortable, Lucene.Net.Analysis.Analyzer! analyzer) -> void
+Examine.Lucene.Indexing.FullTextType.IsTaxonomyFaceted.get -> bool
+Examine.Lucene.Indexing.IIndexFacetValueType
+Examine.Lucene.Indexing.IIndexFacetValueType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+Examine.Lucene.Indexing.IIndexFacetValueType.IsTaxonomyFaceted.get -> bool
+Examine.Lucene.Indexing.Int32Type.Int32Type(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool store) -> void
+Examine.Lucene.Indexing.Int32Type.IsTaxonomyFaceted.get -> bool
+Examine.Lucene.Indexing.Int64Type.Int64Type(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool store) -> void
+Examine.Lucene.Indexing.Int64Type.IsTaxonomyFaceted.get -> bool
+Examine.Lucene.Indexing.SingleType.IsTaxonomyFaceted.get -> bool
+Examine.Lucene.Indexing.SingleType.SingleType(string! fieldName, bool isFacetable, bool taxonomyIndex, Microsoft.Extensions.Logging.ILoggerFactory! logger, bool store) -> void
+Examine.Lucene.LuceneIndexOptions.FacetsConfig.get -> Lucene.Net.Facet.FacetsConfig!
+Examine.Lucene.LuceneIndexOptions.FacetsConfig.set -> void
+Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.get -> bool
+Examine.Lucene.LuceneIndexOptions.UseTaxonomyIndex.set -> void
+Examine.Lucene.Providers.BaseLuceneSearcher.BaseLuceneSearcher(string! name, Lucene.Net.Analysis.Analyzer! analyzer, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
+Examine.Lucene.Providers.IIndexCommiter
+Examine.Lucene.Providers.IIndexCommiter.CommitNow() -> void
+Examine.Lucene.Providers.IIndexCommiter.ScheduleCommit() -> void
+Examine.Lucene.Providers.ILuceneTaxonomySearcher
+Examine.Lucene.Providers.ILuceneTaxonomySearcher.CategoryCount.get -> int
+Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetOrdinal(string! dim, string![]! path) -> int
+Examine.Lucene.Providers.ILuceneTaxonomySearcher.GetPath(int ordinal) -> Examine.Search.IFacetLabel!
+Examine.Lucene.Providers.LuceneIndex.GetLuceneTaxonomyDirectory() -> Lucene.Net.Store.Directory?
+Examine.Lucene.Providers.LuceneIndex.LuceneIndex(Microsoft.Extensions.Logging.ILoggerFactory! loggerFactory, string! name, Microsoft.Extensions.Options.IOptionsMonitor<Examine.Lucene.LuceneDirectoryIndexOptions!>! indexOptions, System.Func<Examine.Lucene.Providers.LuceneIndex!, Examine.Lucene.Providers.IIndexCommiter!>! indexCommiterFactory, Lucene.Net.Index.IndexWriter? writer = null) -> void
+Examine.Lucene.Providers.LuceneIndex.RaiseIndexCommited(object! sender, System.EventArgs! e) -> void
+Examine.Lucene.Providers.LuceneIndex.TaxonomyWriter.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
+Examine.Lucene.Providers.LuceneSearcher.LuceneSearcher(string! name, Lucene.Net.Search.SearcherManager! searcherManager, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
+Examine.Lucene.Providers.LuceneTaxonomySearcher
+Examine.Lucene.Providers.LuceneTaxonomySearcher.CategoryCount.get -> int
+Examine.Lucene.Providers.LuceneTaxonomySearcher.GetOrdinal(string! dimension, string![]! path) -> int
+Examine.Lucene.Providers.LuceneTaxonomySearcher.GetPath(int ordinal) -> Examine.Search.IFacetLabel!
+Examine.Lucene.Providers.LuceneTaxonomySearcher.LuceneTaxonomySearcher(string! name, Lucene.Net.Facet.Taxonomy.SearcherTaxonomyManager! searcherManager, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
+Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, System.Collections.Generic.IEnumerable<Examine.IIndex!>! indexes, Lucene.Net.Facet.FacetsConfig! facetsConfig, Lucene.Net.Analysis.Analyzer? analyzer = null) -> void
+Examine.Lucene.Providers.MultiIndexSearcher.MultiIndexSearcher(string! name, System.Lazy<System.Collections.Generic.IEnumerable<Examine.ISearcher!>!>! searchers, Lucene.Net.Facet.FacetsConfig! facetsConfig, Lucene.Net.Analysis.Analyzer? analyzer = null) -> void
+Examine.Lucene.Search.FacetDoubleField
+Examine.Lucene.Search.FacetDoubleField.DoubleRanges.get -> Examine.Search.DoubleRange[]!
+Examine.Lucene.Search.FacetDoubleField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+Examine.Lucene.Search.FacetDoubleField.FacetDoubleField() -> void
+Examine.Lucene.Search.FacetDoubleField.FacetDoubleField(string! field, Examine.Search.DoubleRange[]! doubleRanges, string! facetField, bool isTaxonomyIndexed = false) -> void
+Examine.Lucene.Search.FacetDoubleField.FacetField.get -> string!
+Examine.Lucene.Search.FacetDoubleField.Field.get -> string!
+Examine.Lucene.Search.FacetDoubleField.IsTaxonomyIndexed.get -> bool
+Examine.Lucene.Search.FacetFloatField
+Examine.Lucene.Search.FacetFloatField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+Examine.Lucene.Search.FacetFloatField.FacetField.get -> string!
+Examine.Lucene.Search.FacetFloatField.FacetFloatField() -> void
+Examine.Lucene.Search.FacetFloatField.FacetFloatField(string! field, Examine.Search.FloatRange[]! floatRanges, string! facetField, bool isTaxonomyIndexed = false) -> void
+Examine.Lucene.Search.FacetFloatField.Field.get -> string!
+Examine.Lucene.Search.FacetFloatField.FloatRanges.get -> Examine.Search.FloatRange[]!
+Examine.Lucene.Search.FacetFloatField.IsTaxonomyIndexed.get -> bool
+Examine.Lucene.Search.FacetFullTextField
+Examine.Lucene.Search.FacetFullTextField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+Examine.Lucene.Search.FacetFullTextField.FacetField.get -> string!
+Examine.Lucene.Search.FacetFullTextField.FacetFullTextField(string! field, string![]! values, string! facetField, int maxCount = 10, string![]? path = null, bool isTaxonomyIndexed = false) -> void
+Examine.Lucene.Search.FacetFullTextField.Field.get -> string!
+Examine.Lucene.Search.FacetFullTextField.IsTaxonomyIndexed.get -> bool
+Examine.Lucene.Search.FacetFullTextField.MaxCount.get -> int
+Examine.Lucene.Search.FacetFullTextField.Path.get -> string![]?
+Examine.Lucene.Search.FacetFullTextField.Values.get -> string![]!
+Examine.Lucene.Search.FacetLongField
+Examine.Lucene.Search.FacetLongField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+Examine.Lucene.Search.FacetLongField.FacetField.get -> string!
+Examine.Lucene.Search.FacetLongField.FacetLongField() -> void
+Examine.Lucene.Search.FacetLongField.FacetLongField(string! field, Examine.Search.Int64Range[]! longRanges, string! facetField, bool isTaxonomyIndexed = false) -> void
+Examine.Lucene.Search.FacetLongField.Field.get -> string!
+Examine.Lucene.Search.FacetLongField.IsTaxonomyIndexed.get -> bool
+Examine.Lucene.Search.FacetLongField.LongRanges.get -> Examine.Search.Int64Range[]!
+Examine.Lucene.Search.FacetQueryField
+Examine.Lucene.Search.FacetQueryField.FacetQueryField(Examine.Lucene.Search.FacetFullTextField! field) -> void
+Examine.Lucene.Search.FacetQueryField.MaxCount(int count) -> Examine.Search.IFacetQueryField!
+Examine.Lucene.Search.FacetQueryField.SetPath(params string![]! path) -> Examine.Search.IFacetQueryField!
+Examine.Lucene.Search.IFacetExtractionContext
+Examine.Lucene.Search.IFacetExtractionContext.FacetConfig.get -> Lucene.Net.Facet.FacetsConfig!
+Examine.Lucene.Search.IFacetExtractionContext.FacetsCollector.get -> Lucene.Net.Facet.FacetsCollector!
+Examine.Lucene.Search.IFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!
+Examine.Lucene.Search.IFacetExtractionContext.SearcherReference.get -> Examine.Lucene.Search.ISearcherReference!
+Examine.Lucene.Search.IFacetField
+Examine.Lucene.Search.IFacetField.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+Examine.Lucene.Search.IFacetField.FacetField.get -> string!
+Examine.Lucene.Search.IFacetField.Field.get -> string!
+Examine.Lucene.Search.IFacetField.IsTaxonomyIndexed.get -> bool
+Examine.Lucene.Search.ITaxonomySearchContext
+Examine.Lucene.Search.ITaxonomySearchContext.GetTaxonomyAndSearcher() -> Examine.Lucene.Search.ITaxonomySearcherReference!
+Examine.Lucene.Search.ITaxonomySearcherReference
+Examine.Lucene.Search.ITaxonomySearcherReference.TaxonomyReader.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyReader!
+Examine.Lucene.Search.LuceneFacetExtractionContext
+Examine.Lucene.Search.LuceneFacetExtractionContext.FacetConfig.get -> Lucene.Net.Facet.FacetsConfig!
+Examine.Lucene.Search.LuceneFacetExtractionContext.FacetsCollector.get -> Lucene.Net.Facet.FacetsCollector!
+Examine.Lucene.Search.LuceneFacetExtractionContext.LuceneFacetExtractionContext(Lucene.Net.Facet.FacetsCollector! facetsCollector, Examine.Lucene.Search.ISearcherReference! searcherReference, Lucene.Net.Facet.FacetsConfig! facetConfig) -> void
+Examine.Lucene.Search.LuceneFacetExtractionContext.SearcherReference.get -> Examine.Lucene.Search.ISearcherReference!
+Examine.Lucene.Search.LuceneFacetLabel
+Examine.Lucene.Search.LuceneFacetLabel.CompareTo(Examine.Search.IFacetLabel? other) -> int
+Examine.Lucene.Search.LuceneFacetLabel.Components.get -> string![]!
+Examine.Lucene.Search.LuceneFacetLabel.Length.get -> int
+Examine.Lucene.Search.LuceneFacetLabel.LuceneFacetLabel(Lucene.Net.Facet.Taxonomy.FacetLabel! facetLabel) -> void
+Examine.Lucene.Search.LuceneFacetLabel.Subpath(int length) -> Examine.Search.IFacetLabel!
+Examine.Lucene.Search.LuceneFacetOperation
+Examine.Lucene.Search.LuceneFacetOperation.Execute(Examine.Search.QueryOptions? options = null) -> Examine.ISearchResults!
+Examine.Lucene.Search.LuceneFacetOperation.Facet(string! field, System.Action<Examine.Search.IFacetQueryField!>? facetConfiguration = null) -> Examine.Search.IFacetOperations!
+Examine.Lucene.Search.LuceneFacetOperation.FacetDoubleRange(string! field, params Examine.Search.DoubleRange[]! doubleRanges) -> Examine.Search.IFacetOperations!
+Examine.Lucene.Search.LuceneFacetOperation.FacetFloatRange(string! field, params Examine.Search.FloatRange[]! floatRanges) -> Examine.Search.IFacetOperations!
+Examine.Lucene.Search.LuceneFacetOperation.FacetLongRange(string! field, params Examine.Search.Int64Range[]! longRanges) -> Examine.Search.IFacetOperations!
+Examine.Lucene.Search.LuceneFacetOperation.FacetString(string! field, System.Action<Examine.Search.IFacetQueryField!>? facetConfiguration = null, params string![]! values) -> Examine.Search.IFacetOperations!
+Examine.Lucene.Search.LuceneFacetOperation.LuceneFacetOperation(Examine.Lucene.Search.LuceneSearchQuery! search) -> void
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.LuceneFacetSamplingQueryOptions(int sampleSize) -> void
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.LuceneFacetSamplingQueryOptions(int sampleSize, long seed) -> void
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.SampleSize.get -> int
+Examine.Lucene.Search.LuceneFacetSamplingQueryOptions.Seed.get -> long
+Examine.Lucene.Search.LuceneQueryOptions.FacetRandomSampling.get -> Examine.Lucene.Search.LuceneFacetSamplingQueryOptions?
+Examine.Lucene.Search.LuceneQueryOptions.LuceneQueryOptions(Examine.Lucene.Search.LuceneFacetSamplingQueryOptions? facetSampling, int skip, int? take, Examine.Lucene.Search.SearchAfterOptions? searchAfter, bool trackDocumentScores, bool trackDocumentMaxScore) -> void
+Examine.Lucene.Search.LuceneSearchQuery.LuceneSearchQuery(Examine.Lucene.Search.ISearchContext! searchContext, string? category, Lucene.Net.Analysis.Analyzer! analyzer, Examine.Lucene.Search.LuceneSearchOptions! searchOptions, Examine.Search.BooleanOperation occurance, Lucene.Net.Facet.FacetsConfig! facetsConfig) -> void
+Examine.Lucene.Search.LuceneSearchResults.Facets.get -> System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>!
+Examine.Lucene.Search.LuceneSearchResults.LuceneSearchResults(System.Collections.Generic.IReadOnlyCollection<Examine.ISearchResult!>! results, int totalItemCount, System.Collections.Generic.IReadOnlyDictionary<string!, Examine.Search.IFacetResult!>! facets, float maxScore, Examine.Lucene.Search.SearchAfterOptions? searchAfterOptions) -> void
+Examine.Lucene.Search.LuceneSearchResults.MaxScore.get -> float
+Examine.Lucene.Search.LuceneSearchResults.SearchAfter.get -> Examine.Lucene.Search.SearchAfterOptions?
+Examine.Lucene.Search.TaxonomySearchContext
+Examine.Lucene.Search.TaxonomySearchContext.GetFieldValueType(string! fieldName) -> Examine.Lucene.Indexing.IIndexFieldValueType!
+Examine.Lucene.Search.TaxonomySearchContext.GetSearcher() -> Examine.Lucene.Search.ISearcherReference!
+Examine.Lucene.Search.TaxonomySearchContext.GetTaxonomyAndSearcher() -> Examine.Lucene.Search.ITaxonomySearcherReference!
+Examine.Lucene.Search.TaxonomySearchContext.SearchableFields.get -> string![]!
+Examine.Lucene.Search.TaxonomySearchContext.TaxonomySearchContext(Lucene.Net.Facet.Taxonomy.SearcherTaxonomyManager! searcherManager, Examine.Lucene.FieldValueTypeCollection! fieldValueTypeCollection) -> void
+Examine.Lucene.Search.TaxonomySearcherReference
+Examine.Lucene.Search.TaxonomySearcherReference.Dispose() -> void
+Examine.Lucene.Search.TaxonomySearcherReference.IndexSearcher.get -> Lucene.Net.Search.IndexSearcher!
+Examine.Lucene.Search.TaxonomySearcherReference.TaxonomyReader.get -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyReader!
+Examine.Lucene.Search.TaxonomySearcherReference.TaxonomySearcherReference(Lucene.Net.Facet.Taxonomy.SearcherTaxonomyManager! searcherManager) -> void
+override Examine.Lucene.Directories.FileSystemDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+override Examine.Lucene.Directories.GenericDirectoryFactory.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+override Examine.Lucene.Directories.SyncedTaxonomyFileSystemDirectoryFactory.CreateDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+override Examine.Lucene.Directories.SyncedTaxonomyFileSystemDirectoryFactory.Dispose(bool disposing) -> void
+override Examine.Lucene.Indexing.DateTimeType.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
+override Examine.Lucene.Indexing.DoubleType.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
+override Examine.Lucene.Indexing.FullTextType.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
+override Examine.Lucene.Indexing.Int32Type.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
+override Examine.Lucene.Indexing.Int64Type.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
+override Examine.Lucene.Indexing.SingleType.AddValue(Lucene.Net.Documents.Document! doc, object? value) -> void
+override Examine.Lucene.Providers.LuceneTaxonomySearcher.Dispose(bool disposing) -> void
+override Examine.Lucene.Providers.LuceneTaxonomySearcher.GetSearchContext() -> Examine.Lucene.Search.ISearchContext!
+override Examine.Lucene.Search.LuceneBooleanOperation.WithFacets(System.Action<Examine.Search.IFacetOperations!>! facets) -> Examine.Search.IQueryExecutor!
+override Examine.Lucene.Search.LuceneFacetOperation.ToString() -> string!
+static Examine.Lucene.FacetExtensions.GetFacet(this Examine.ISearchResults! searchResults, string! field) -> Examine.Search.IFacetResult?
+static Examine.Lucene.FacetExtensions.GetFacets(this Examine.ISearchResults! searchResults) -> System.Collections.Generic.IEnumerable<Examine.Search.IFacetResult!>!
+static Examine.Lucene.Search.LuceneSearchExtensions.ExecuteWithLucene(this Examine.Search.IQueryExecutor! queryExecutor, Examine.Search.QueryOptions? options = null) -> Examine.Lucene.Search.ILuceneSearchResults!
+virtual Examine.Lucene.Directories.DirectoryFactoryBase.CreateTaxonomyDirectory(Examine.Lucene.Providers.LuceneIndex! luceneIndex, bool forceUnlock) -> Lucene.Net.Store.Directory!
+virtual Examine.Lucene.ExamineTaxonomyReplicator.Dispose(bool disposing) -> void
+virtual Examine.Lucene.Indexing.DateTimeType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+virtual Examine.Lucene.Indexing.DoubleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+virtual Examine.Lucene.Indexing.FullTextType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+virtual Examine.Lucene.Indexing.Int32Type.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+virtual Examine.Lucene.Indexing.Int64Type.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+virtual Examine.Lucene.Indexing.SingleType.ExtractFacets(Examine.Lucene.Search.IFacetExtractionContext! facetExtractionContext, Examine.Lucene.Search.IFacetField! field) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, Examine.Search.IFacetResult!>>!
+virtual Examine.Lucene.Providers.BaseLuceneSearcher.Dispose() -> void
+virtual Examine.Lucene.Providers.BaseLuceneSearcher.Dispose(bool disposing) -> void
+virtual Examine.Lucene.Providers.BaseLuceneSearcher.GetDefaultFacetConfig() -> Lucene.Net.Facet.FacetsConfig!
+virtual Examine.Lucene.Providers.LuceneIndex.CreateTaxonomyWriter(Lucene.Net.Store.Directory? d) -> Lucene.Net.Facet.Taxonomy.Directory.DirectoryTaxonomyWriter!
+virtual Examine.Lucene.Providers.LuceneIndex.TaxonomySearcher.get -> Examine.Lucene.Providers.ILuceneTaxonomySearcher?
+virtual Examine.Lucene.Providers.LuceneTaxonomySearcher.GetTaxonomySearchContext() -> Examine.Lucene.Search.ITaxonomySearchContext!
+virtual Examine.Lucene.Search.LuceneFacetExtractionContext.GetFacetCounts(string! facetIndexFieldName, bool isTaxonomyIndexed) -> Lucene.Net.Facet.Facets!
+virtual Examine.Lucene.Search.TaxonomySearcherReference.Dispose(bool disposing) -> void

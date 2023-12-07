@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,20 +11,26 @@ namespace Examine
     /// </summary>
     public class ReadOnlyFieldDefinitionCollection : IEnumerable<FieldDefinition>
     {
+        /// <inheritdoc/>
         public ReadOnlyFieldDefinitionCollection()
             : this(Enumerable.Empty<FieldDefinition>())
         {   
         }
 
+        /// <inheritdoc/>
         public ReadOnlyFieldDefinitionCollection(params FieldDefinition[] definitions)
             : this((IEnumerable<FieldDefinition>)definitions)
         {
             
         }
 
+        /// <inheritdoc/>
         public ReadOnlyFieldDefinitionCollection(IEnumerable<FieldDefinition> definitions)
         {
-            if (definitions == null) return;
+            if (definitions == null)
+            {
+                return;
+            }
 
             foreach (var f in definitions.GroupBy(x => x.Name))
             {
@@ -50,12 +56,20 @@ namespace Examine
         /// </remarks>
         public virtual bool TryGetValue(string fieldName, out FieldDefinition fieldDefinition) => Definitions.TryGetValue(fieldName, out fieldDefinition);
 
+        /// <summary>
+        /// Gets the ammount of key/value paris in the <see cref="Definitions"/> collection
+        /// </summary>
         public int Count => Definitions.Count;
 
+        /// <summary>
+        /// A collection of field definitions
+        /// </summary>
         protected ConcurrentDictionary<string, FieldDefinition> Definitions { get; } = new ConcurrentDictionary<string, FieldDefinition>(StringComparer.InvariantCultureIgnoreCase);
 
+        /// <inheritdoc/>
         public IEnumerator<FieldDefinition> GetEnumerator() => Definitions.Values.GetEnumerator();
 
+        /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

@@ -120,7 +120,7 @@ namespace Examine.Search
         /// <param name="query"></param>
         /// <param name="fields"></param>
         /// <returns></returns>
-        IBooleanOperation ManagedQuery(string query, string[] fields = null);
+        IBooleanOperation ManagedQuery(string query, string[]? fields = null);
 
         /// <summary>
         /// Matches items as defined by the IIndexFieldValueType used for the fields specified. 
@@ -142,5 +142,12 @@ namespace Examine.Search
         /// <param name="shape">Shape</param>
         /// <returns></returns>
         IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+
+        /// <summary>
+        /// Apply Filters
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        IQuery WithFilter(Action<IFilter> filter);
     }
 }

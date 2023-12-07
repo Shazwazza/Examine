@@ -24,5 +24,9 @@
   <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Examine.Web.Demo' AND '$(MSBuildProjectName)' != 'Examine.Test'">
     <TargetFrameworks>net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
   </PropertyGroup>
-
+  
+  <!-- Disable the nullable warnings when compiling for .NET Standard 2.0 -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <NoWarn>$(NoWarn);nullable</NoWarn>
+  </PropertyGroup>
 </Project>

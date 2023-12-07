@@ -9,9 +9,13 @@ namespace Examine.Lucene.Providers
     {
         private readonly Func<ValueSet, ValueSetValidationResult> _validator;
 
+        /// <inheritdoc/>
         public ValueSetValidatorDelegate(Func<ValueSet, ValueSetValidationResult> validator)
-            => _validator = validator;
+        {
+            _validator = validator;
+        }
 
+        /// <inheritdoc/>
         public ValueSetValidationResult Validate(ValueSet valueSet)
             => _validator(valueSet);
     }

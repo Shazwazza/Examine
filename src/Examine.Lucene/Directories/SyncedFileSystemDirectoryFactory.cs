@@ -24,8 +24,9 @@ namespace Examine.Lucene.Directories
     {
         private readonly DirectoryInfo _localDir;
         private readonly ILoggerFactory _loggerFactory;
-        private ExamineReplicator _replicator;
+        private ExamineReplicator? _replicator;
 
+        /// <inheritdoc/>
         public SyncedFileSystemDirectoryFactory(
             DirectoryInfo localDir,
             DirectoryInfo mainDir,
@@ -37,12 +38,13 @@ namespace Examine.Lucene.Directories
             _loggerFactory = loggerFactory;
         }
 
+        /// <inheritdoc/>
         protected override Directory CreateDirectory(LuceneIndex luceneIndex, bool forceUnlock)
         {
             var path = Path.Combine(_localDir.FullName, luceneIndex.Name);
             var localLuceneIndexFolder = new DirectoryInfo(path);
 
-            Directory mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
+            var mainDir = base.CreateDirectory(luceneIndex, forceUnlock);
 
             // used by the replicator, will be a short lived directory for each synced revision and deleted when finished.
             var tempDir = new DirectoryInfo(Path.Combine(_localDir.FullName, "Rep", Guid.NewGuid().ToString("N")));
@@ -91,6 +93,10 @@ namespace Examine.Lucene.Directories
             return localLuceneDir;
         }
 
+        /// <summary>
+        /// Disposes the instance
+        /// </summary>
+        /// <param name="disposing">If the call is coming from Dispose</param>
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

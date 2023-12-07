@@ -20,7 +20,7 @@ namespace Examine.Test.Examine.Core.Options
         {
             Assert.DoesNotThrowAsync(async () =>
             {
-                IHost host = Host.CreateDefaultBuilder()
+                var host = Host.CreateDefaultBuilder()
                     .ConfigureServices((hostContext, services) =>
                         services
                             .AddHostedService<TestService>()
@@ -44,13 +44,10 @@ namespace Examine.Test.Examine.Core.Options
                 }
 
                 // replace with ram dir
-                options.DirectoryFactory = new GenericDirectoryFactory(_ => new RandomIdRAMDirectory());
+                options.DirectoryFactory = new GenericDirectoryFactory(_ => new RandomIdRAMDirectory(), _ => new RandomIdRAMDirectory());
 
                 // customize some fields
-                if (options.FieldDefinitions == null)
-                {
-                    options.FieldDefinitions = new FieldDefinitionCollection();
-                }
+                options.FieldDefinitions ??= new FieldDefinitionCollection();
                 options.FieldDefinitions.AddOrUpdate(
                     new FieldDefinition("lat", FieldDefinitionTypes.Double));
                 options.FieldDefinitions.AddOrUpdate(
@@ -65,11 +62,14 @@ namespace Examine.Test.Examine.Core.Options
         {
             private readonly IExamineManager _examineManager;
 
-            public TestService(IExamineManager examineManager) => _examineManager = examineManager;
+            public TestService(IExamineManager examineManager)
+            {
+                _examineManager = examineManager;
+            }
 
             public Task StartAsync(CancellationToken cancellationToken)
             {
-                IIndex index = _examineManager.GetIndex("TestIndex");
+                var index = _examineManager.GetIndex("TestIndex");
 
                 var luceneIndex = index as LuceneIndex;
                 Assert.IsNotNull(luceneIndex);
@@ -93,10 +93,10 @@ namespace Examine.Test.Examine.Core.Options
                     var ramDir = luceneIndex.GetLuceneDirectory() as RandomIdRAMDirectory;
                     Assert.IsNotNull(ramDir);
 
-                    luceneIndex.FieldDefinitions.TryGetValue("lat", out FieldDefinition def1);
+                    luceneIndex.FieldDefinitions.TryGetValue("lat", out var def1);
                     Assert.AreEqual(FieldDefinitionTypes.Double, def1.Type);
 
-                    luceneIndex.FieldDefinitions.TryGetValue("lng", out FieldDefinition def2);
+                    luceneIndex.FieldDefinitions.TryGetValue("lng", out var def2);
                     Assert.AreEqual(FieldDefinitionTypes.Double, def2.Type);
 
                     return Task.CompletedTask;

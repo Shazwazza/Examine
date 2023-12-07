@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -31,24 +31,18 @@ namespace Examine
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static string GenerateSha1Hash(this string str)
-        {
-            return str.GenerateHash("SHA1");
-        }
+        public static string GenerateSha1Hash(this string str) => str.GenerateHash("SHA1");
 
         /// <summary>Generate a MD5 hash of a string
         /// </summary>
-        public static string GenerateMd5(this string str)
-        {
-            return str.GenerateHash("MD5");
-        }
+        public static string GenerateMd5(this string str) => str.GenerateHash("MD5");
 
         /// <summary>Generate a MD5 hash of a string
         /// </summary>
         private static string GenerateHash(this string str, string hashType)
         {
-            var hasher = HashAlgorithm.Create(hashType);
-            if (hasher == null) throw new InvalidOperationException("No hashing type found by name " + hashType);
+            var hasher = HashAlgorithm.Create(hashType) ?? throw new InvalidOperationException("No hashing type found by name " + hashType);
+
             using (hasher)
             {
                 //convert our string into byte array
@@ -74,7 +68,14 @@ namespace Examine
 
         internal static string EnsureEndsWith(this string input, char value)
         {
-            return input.EndsWith(value.ToString(CultureInfo.InvariantCulture)) ? input : input + value;
+            if (input.EndsWith(value.ToString(CultureInfo.InvariantCulture)))
+            {
+                return input;
+            }
+            else
+            {
+                return input + value;
+            }
         }
 
         internal static string ReplaceNonAlphanumericChars(this string input, string replacement)
@@ -155,7 +156,9 @@ namespace Examine
                     {
                         nextCarrat = searchText.Length;
                     }
+#pragma warning disable IDE0057 // Use range operator
                     var terms = searchText.Substring(carrat, nextCarrat - carrat).Trim();
+#pragma warning restore IDE0057 // Use range operator
                     if (!string.IsNullOrWhiteSpace(terms))
                     {
                         removeWords(terms, builder);    

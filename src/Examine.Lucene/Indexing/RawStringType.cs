@@ -18,13 +18,18 @@ namespace Examine.Lucene.Indexing
         /// Constructor
         /// </summary>
         /// <param name="fieldName"></param>
+        /// <param name="logger"></param>
         /// <param name="store"></param>
         public RawStringType(string fieldName, ILoggerFactory logger, bool store = true)
             : base(fieldName, logger, store)
-            => _analyzer = new KeywordAnalyzer();
+        {
+            _analyzer = new KeywordAnalyzer();
+        }
 
+        /// <inheritdoc/>
         public override Analyzer Analyzer => _analyzer;
 
+        /// <inheritdoc/>
         protected override void AddSingleValue(Document doc, object value)
         {
             switch (value)

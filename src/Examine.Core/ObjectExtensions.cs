@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,6 +14,9 @@ using System.Xml;
 
 namespace Examine
 {
+    /// <summary>
+    /// Extensions for objects
+    /// </summary>
     public static class ObjectExtensions
     {
         /// <summary>
@@ -27,7 +30,9 @@ namespace Examine
             if (o != null)
             {
                 if (o is IDictionary)
+                {
                     throw new InvalidOperationException($"The input object is already of type {typeof(IDictionary)}");
+                }
 
                 var props = TypeDescriptor.GetProperties(o);
                 var d = new Dictionary<string, object>();

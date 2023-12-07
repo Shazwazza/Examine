@@ -14,8 +14,16 @@ namespace Examine
         /// <param name="type"></param>
         public FieldDefinition(string name, string type)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
-            if (string.IsNullOrWhiteSpace(type)) throw new ArgumentException("Value cannot be null or whitespace.", nameof(type));
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            }
+
+            if (string.IsNullOrWhiteSpace(type))
+            {
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(type));
+            }
+
             Name = name;
             Type = type;
         }
@@ -30,14 +38,21 @@ namespace Examine
         /// </summary>
         public string Type { get; }
 
+        /// <inheritdoc/>
         public bool Equals(FieldDefinition other) => string.Equals(Name, other.Name) && string.Equals(Type, other.Type);
 
-        public override bool Equals(object obj)
+        /// <inheritdoc/>
+        public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
+            if (obj is null)
+            {
+                return false;
+            }
+
             return obj is FieldDefinition definition && Equals(definition);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             unchecked
@@ -46,8 +61,10 @@ namespace Examine
             }
         }
 
+        /// <inheritdoc/>
         public static bool operator ==(FieldDefinition left, FieldDefinition right) => left.Equals(right);
 
+        /// <inheritdoc/>
         public static bool operator !=(FieldDefinition left, FieldDefinition right) => !left.Equals(right);
     }
 }

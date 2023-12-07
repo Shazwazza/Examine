@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Examine.Lucene;
 using Examine.Lucene.Analyzers;
-using Examine.Lucene.Directories;
 using Examine.Lucene.Indexing;
-using Lucene.Net.Index;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Examine.Web.Demo
@@ -19,7 +13,9 @@ namespace Examine.Web.Demo
         private readonly ILoggerFactory _loggerFactory;
 
         public ConfigureIndexOptions(ILoggerFactory loggerFactory)
-            => _loggerFactory = loggerFactory;
+        {
+            _loggerFactory = loggerFactory;
+        }
 
         public void Configure(string name, LuceneDirectoryIndexOptions options)
         {
@@ -44,6 +40,22 @@ namespace Examine.Web.Demo
                     // to a Value Type called "phone" defined above.
                     options.FieldDefinitions.AddOrUpdate(new FieldDefinition("phone", "phone"));
                     break;
+                case "TaxonomyFacetIndex":
+                    options.UseTaxonomyIndex = true;
+                    options.FacetsConfig.SetMultiValued("Tags", true);
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressStateCity", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("Tags", FieldDefinitionTypes.FacetTaxonomyFullText));
+                   break;
+
+                case "FacetIndex":
+                    options.UseTaxonomyIndex = false;
+                    options.FacetsConfig.SetMultiValued("Tags", true);
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressState", FieldDefinitionTypes.FacetFullText));
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("AddressStateCity", FieldDefinitionTypes.FacetFullText));
+                    options.FieldDefinitions.AddOrUpdate(new FieldDefinition("Tags", FieldDefinitionTypes.FacetFullText));
+                    break;
+
             }
         }
 

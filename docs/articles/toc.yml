@@ -1,0 +1,12 @@
+- name: Configuration
+  href: configuration.md
+- name: Indexing
+  href: indexing.md
+- name: Searching
+  href: searching.md
+- name: Filtering
+  href: filtering.md
+- name: Sorting
+  href: sorting.md
+- name: Paging
+  href: paging.md
