@@ -5,16 +5,21 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
+    /// <summary>
+    /// Filter Boolean Operation
+    /// </summary>
     public class LuceneFilteringBooleanOperation : LuceneFilteringBooleanOperationBase
     {
         private readonly LuceneSearchFilteringOperation _search;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="luceneSearch"></param>
         public LuceneFilteringBooleanOperation(LuceneSearchFilteringOperation luceneSearch) : base(luceneSearch)
         {
             _search = luceneSearch;
         }
-
-
 
         #region IBooleanFilterOperation
 
@@ -31,71 +36,51 @@ namespace Examine.Lucene.Search
         #region IFilter
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain)
-        {
-            return _search.ChainFilters(chain);
-        }
+        public override IBooleanFilterOperation ChainFilters(Action<IFilterChainStart> chain) => _search.ChainFilters(chain);
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation TermFilter(FilterTerm term)
-        {
-            return _search.TermFilter(term);
-        }
+        public override IBooleanFilterOperation TermFilter(FilterTerm term) => _search.TermFilter(term);
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms)
-        {
-            return _search.TermsFilter(terms);
-        }
+        public override IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms) => _search.TermsFilter(terms);
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation TermPrefixFilter(FilterTerm term)
-        {
-            return _search.TermPrefixFilter(term);
-        }
+        public override IBooleanFilterOperation TermPrefixFilter(FilterTerm term) => _search.TermPrefixFilter(term);
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation FieldValueExistsFilter(string field)
-        {
-            return _search.FieldValueExistsFilter(field);
-        }
+        public override IBooleanFilterOperation FieldValueExistsFilter(string field) => _search.FieldValueExistsFilter(field);
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation FieldValueNotExistsFilter(string field)
-        {
-            return _search.FieldValueNotExistsFilter(field);
-        }
+        public override IBooleanFilterOperation FieldValueNotExistsFilter(string field) => _search.FieldValueNotExistsFilter(field);
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
-        {
-            return _search.QueryFilter(inner, defaultOp);
-        }
+        public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => _search.QueryFilter(inner, defaultOp);
 
         #endregion
 
         #region INestedBooleanFilterOperation
-        public override INestedFilter And() =>  new LuceneFilter(this._search, Occur.MUST);
-        public override INestedFilter Or() => new LuceneFilter(this._search, Occur.SHOULD);
 
-        public override INestedFilter Not() => new LuceneFilter(this._search, Occur.MUST_NOT);
-        public override IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive)
-        {
-            return _search.IntRangeFilter(field, min, max, minInclusive, maxInclusive);
-        }
+        /// <inheritdoc/>
+        public override INestedFilter And() =>  new LuceneFilter(_search, Occur.MUST);
 
-        public override IBooleanFilterOperation LongRangeFilter(string field, long? min, long? max, bool minInclusive, bool maxInclusive)
-        {
-            return _search.LongRangeFilter(field, min, max, minInclusive, maxInclusive);
-        }
-        public override IBooleanFilterOperation FloatRangeFilter(string field, float? min, float? max, bool minInclusive, bool maxInclusive)
-        {
-            return _search.FloatRangeFilter(field, min, max, minInclusive, maxInclusive);
-        }
-        public override IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive)
-        {
-            return _search.DoubleRangeFilter(field, min, max, minInclusive, maxInclusive);
-        }
+        /// <inheritdoc/>
+        public override INestedFilter Or() => new LuceneFilter(_search, Occur.SHOULD);
+
+        /// <inheritdoc/>
+        public override INestedFilter Not() => new LuceneFilter(_search, Occur.MUST_NOT);
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation IntRangeFilter(string field, int? min, int? max, bool minInclusive, bool maxInclusive) => _search.IntRangeFilter(field, min, max, minInclusive, maxInclusive);
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation LongRangeFilter(string field, long? min, long? max, bool minInclusive, bool maxInclusive) => _search.LongRangeFilter(field, min, max, minInclusive, maxInclusive);
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation FloatRangeFilter(string field, float? min, float? max, bool minInclusive, bool maxInclusive) => _search.FloatRangeFilter(field, min, max, minInclusive, maxInclusive);
+
+        /// <inheritdoc/>
+        public override IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive) => _search.DoubleRangeFilter(field, min, max, minInclusive, maxInclusive);
+
         #endregion
     }
 }

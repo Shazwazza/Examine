@@ -6,7 +6,9 @@ using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
 {
-    // LuceneSearchQueryBase
+    /// <summary>
+    /// Filtering Operation
+    /// </summary>
     public abstract class LuceneSearchFilteringOperationBase : IFilter, INestedFilter
     {
         internal Stack<BooleanFilter> Filters => _luceneSearchQueryBase.Filters;
@@ -24,6 +26,10 @@ namespace Examine.Lucene.Search
         /// </summary>
         protected Occur Occurrence { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="luceneSearchQueryBase"></param>
         public LuceneSearchFilteringOperationBase(LuceneSearchQueryBase luceneSearchQueryBase)
         {
             _boolFilterOp = BooleanOperation.And;
