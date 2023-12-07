@@ -15,18 +15,12 @@ namespace Examine
         /// <summary>
         /// Will be indexed as a single
         /// </summary>
-        [Obsolete("To remove in Examine V5. In Examine V3, this was indexed as a Double field. Use FloatV2")]
         public const string Float = "float";
-
-        /// <summary>
-        /// Will be indexed as a float
-        /// </summary>
-        public const string FloatV2 = "float";
 
         /// <summary>
         /// Will be indexed as a single
         /// </summary>
-        [Obsolete("To remove in Examine V5. Use FloatV2")]
+        [Obsolete("To remove in Examine V5. Use Float")]
         public const string Single = "single";
 
         /// <summary>
