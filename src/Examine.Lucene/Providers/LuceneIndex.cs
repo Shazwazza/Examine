@@ -44,7 +44,7 @@ namespace Examine.Lucene.Providers
         /// <param name="writer"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public LuceneIndex(
+        protected LuceneIndex(
            ILoggerFactory loggerFactory,
            string name,
            IOptionsMonitor<LuceneDirectoryIndexOptions> indexOptions,
