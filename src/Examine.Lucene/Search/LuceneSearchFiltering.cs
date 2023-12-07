@@ -88,10 +88,10 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms) => TermsInternal(terms);
+        public override IBooleanFilterOperation TermsFilter(IEnumerable<FilterTerm> terms) => TermsFilterInternal(terms);
 
         /// <inheritdoc/>
-        internal IBooleanFilterOperation TermsInternal(IEnumerable<FilterTerm> terms, Occur occurance = Occur.MUST)
+        internal IBooleanFilterOperation TermsFilterInternal(IEnumerable<FilterTerm> terms, Occur occurance = Occur.MUST)
         {
             if (terms is null)
             {
