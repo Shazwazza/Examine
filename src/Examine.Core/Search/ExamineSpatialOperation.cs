@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Examine.Search
 {
+    /// <summary>
+    /// Spatial Operation Type
+    /// </summary>
     public enum ExamineSpatialOperation
     {
         Intersects = 0,

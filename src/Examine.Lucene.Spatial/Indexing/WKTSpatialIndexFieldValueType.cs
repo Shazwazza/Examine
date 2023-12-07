@@ -13,10 +13,15 @@ using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Spatial.Indexing
 {
+    /// <summary>
+    /// WKT Spatial Index Field Value Type
+    /// </summary>
     public class WKTSpatialIndexFieldValueType : SpatialIndexFieldValueTypeBase
     {
         private readonly bool _stored;
         private Spatial4nShapeFactory _shapeFactory;
+
+        /// <inheritdoc/>
         public override IExamineSpatialShapeFactory ExamineSpatialShapeFactory => _shapeFactory;
 
         /// <summary>
@@ -33,6 +38,7 @@ namespace Examine.Lucene.Spatial.Indexing
             _shapeFactory = new Spatial4nShapeFactory(SpatialStrategy.SpatialContext);
         }
 
+        /// <inheritdoc/>
         protected override void AddSingleValue(Document doc, object value)
         {
             if (TryConvert<ExamineLuceneShape>(value, out var examineLuceneShape))
@@ -62,23 +68,27 @@ namespace Examine.Lucene.Spatial.Indexing
                 }
             }
         }
+
+        /// <inheritdoc/>
         public override Query GetQuery(string query)
         {
             var spatialArgs = SpatialArgsParser.Parse(query, SpatialStrategy.SpatialContext);
             return SpatialStrategy.MakeQuery(spatialArgs);
         }
 
+        /// <inheritdoc/>
         public override SortField ToSpatialDistanceSortField(SortableField sortableField, SortDirection sortDirection)
         {
-            IPoint pt = (sortableField.SpatialPoint as ExamineLucenePoint).Shape as IPoint;
+            var pt = (sortableField.SpatialPoint as ExamineLucenePoint).Shape as IPoint;
             if (!SpatialStrategy.SpatialContext.IsGeo)
             {
                 throw new NotSupportedException("This implementation may not be suitable for non GeoSpatial SpatialContext");
             }
-            ValueSource valueSource = SpatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
+            var valueSource = SpatialStrategy.MakeDistanceValueSource(pt, DistanceUtils.DegreesToKilometers);//the distance (in km)
             return(valueSource.GetSortField(sortDirection == SortDirection.Descending));
         }
 
+        /// <inheritdoc/>
         public override Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
         {
             var shapeVal = shape(ExamineSpatialShapeFactory);
@@ -89,6 +99,7 @@ namespace Examine.Lucene.Spatial.Indexing
             return query;
         }
 
+        /// <inheritdoc/>
         public override Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
         {
             var shapeVal = shape(ExamineSpatialShapeFactory);

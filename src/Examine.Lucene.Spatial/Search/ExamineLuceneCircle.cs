@@ -1,22 +1,25 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Examine.Search;
 using Spatial4n.Shapes;
 
 namespace Examine.Lucene.Spatial.Search
 {
+    /// <summary>
+    /// Spatial Circle Shape
+    /// </summary>
     public class ExamineLuceneCircle : ExamineLuceneShape, IExamineSpatialCircle
     {
         private readonly ICircle _circle;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="circle">Circle</param>
         public ExamineLuceneCircle(ICircle circle) : base(circle)
         {
             _circle = circle;
         }
 
+        /// <inheritdoc/>
         public double Radius => _circle.Radius;
 
     }

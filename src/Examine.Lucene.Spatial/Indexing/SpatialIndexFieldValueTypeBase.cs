@@ -11,24 +11,40 @@ using Examine.Lucene.Indexing;
 
 namespace Examine.Lucene.Spatial.Indexing
 {
+    /// <summary>
+    /// Spatial Index Field Value Type
+    /// </summary>
     public abstract class SpatialIndexFieldValueTypeBase : IndexFieldValueTypeBase, ISpatialIndexFieldValueTypeBase
     {
-        private readonly SpatialStrategy _spatialStrategy;
-        private readonly SpatialArgsParser _spatialArgsParser;
+        /// <summary>
+        /// Spatial Strategy for Field
+        /// </summary>
+        public SpatialStrategy SpatialStrategy { get; }
 
-        public SpatialStrategy SpatialStrategy => _spatialStrategy;
+        /// <summary>
+        /// Spatial Args Parser for Field
+        /// </summary>
+        public SpatialArgsParser SpatialArgsParser { get; }
 
-        public SpatialArgsParser SpatialArgsParser => _spatialArgsParser;
 
+        /// <inheritdoc/>
         public abstract IExamineSpatialShapeFactory ExamineSpatialShapeFactory { get; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="loggerFactory"></param>
+        /// <param name="spatialStrategyFactory"></param>
+        /// <param name="store"></param>
         protected SpatialIndexFieldValueTypeBase(string fieldName, ILoggerFactory loggerFactory, Func<string, SpatialStrategy> spatialStrategyFactory, bool store = true)
             : base(fieldName, loggerFactory, store)
         {
-            _spatialStrategy = spatialStrategyFactory(fieldName);
-            _spatialArgsParser = new SpatialArgsParser();
+            SpatialStrategy = spatialStrategyFactory(fieldName);
+            SpatialArgsParser = new SpatialArgsParser();
         }
 
+        /// <inheritdoc/>
         public abstract SortField ToSpatialDistanceSortField(SortableField sortableField, SortDirection sortDirection);
 
         /// <summary>
@@ -40,7 +56,7 @@ namespace Examine.Lucene.Spatial.Indexing
         {
             Func<string, SpatialStrategy> geoSpatialPrefixTreeStrategy = (fieldName) =>
             {
-                SpatialContext ctx = SpatialContext.Geo;
+                var ctx = SpatialContext.Geo;
 
                 SpatialPrefixTree grid = new GeohashPrefixTree(ctx, maxLevels);
                 var strategy = new RecursivePrefixTreeStrategy(grid, fieldName);
@@ -49,7 +65,10 @@ namespace Examine.Lucene.Spatial.Indexing
             return geoSpatialPrefixTreeStrategy;
         }
 
+        /// <inheritdoc/>
         public abstract Query GetQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
+
+        /// <inheritdoc/>
         public abstract Filter GetFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

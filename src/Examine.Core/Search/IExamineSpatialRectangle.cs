@@ -1,5 +1,8 @@
-﻿namespace Examine.Search
+namespace Examine.Search
 {
+    /// <summary>
+    /// Spatial Rectangle Shape
+    /// </summary>
     public interface IExamineSpatialRectangle : IExamineSpatialShape
     {
         /// <summary>The left edge of the X coordinate.</summary>
