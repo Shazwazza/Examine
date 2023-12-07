@@ -165,7 +165,7 @@ namespace Examine.Lucene.Search
         public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => QueryFilterInternal(inner, defaultOp);
 
         /// <inheritdoc/>
-        private IBooleanFilterOperation QueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp, Occur occurance = Occur.MUST)
+        internal IBooleanFilterOperation QueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp, Occur occurance = Occur.MUST)
         {
             if (inner is null)
             {
@@ -193,7 +193,7 @@ namespace Examine.Lucene.Search
             return DoubleRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
         }
 
-        private IBooleanFilterOperation DoubleRangeFilterInternal(string field, double? min, double? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
+        internal IBooleanFilterOperation DoubleRangeFilterInternal(string field, double? min, double? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
         {
             if (field is null)
             {
@@ -215,7 +215,7 @@ namespace Examine.Lucene.Search
             return FloatRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
         }
 
-        private IBooleanFilterOperation FloatRangeFilterInternal(string field, float? min, float? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
+        internal IBooleanFilterOperation FloatRangeFilterInternal(string field, float? min, float? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
         {
             if (field is null)
             {
@@ -237,7 +237,7 @@ namespace Examine.Lucene.Search
             return IntRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
         }
 
-        private IBooleanFilterOperation IntRangeFilterInternal(string field, int? min, int? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
+        internal IBooleanFilterOperation IntRangeFilterInternal(string field, int? min, int? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
         {
             if (field is null)
             {
@@ -259,7 +259,7 @@ namespace Examine.Lucene.Search
             return LongRangeFilterInternal(field, min, max, minInclusive, maxInclusive);
         }
 
-        private IBooleanFilterOperation LongRangeFilterInternal(string field, long? min, long? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
+        internal IBooleanFilterOperation LongRangeFilterInternal(string field, long? min, long? max, bool minInclusive, bool maxInclusive, Occur occurance = Occur.MUST)
         {
             if (field is null)
             {
