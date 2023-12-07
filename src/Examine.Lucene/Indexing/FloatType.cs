@@ -101,7 +101,7 @@ namespace Examine.Lucene.Indexing
         /// <inheritdoc/>
         public override Query GetQuery(float? lower, float? upper, bool lowerInclusive = true, bool upperInclusive = true)
         {
-            return NumericRangeQuery.NewDoubleRange(FieldName,
+            return NumericRangeQuery.NewSingleRange(FieldName,
                 lower ?? float.MinValue,
                 upper ?? float.MaxValue, lowerInclusive, upperInclusive);
         }
