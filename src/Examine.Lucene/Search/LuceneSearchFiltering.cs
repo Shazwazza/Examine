@@ -162,10 +162,7 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And)
-        {
-            return QueryFilterInternal(inner, defaultOp);
-        }
+        public override IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And) => QueryFilterInternal(inner, defaultOp);
 
         /// <inheritdoc/>
         private IBooleanFilterOperation QueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp, Occur occurance = Occur.MUST)
@@ -413,9 +410,26 @@ namespace Examine.Lucene.Search
         }
 
         /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedQueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp)
+        internal INestedBooleanFilterOperation NestedQueryFilterInternal(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp, Occur occurance = Occur.MUST)
         {
-            throw new NotImplementedException();
+            if (inner is null)
+            {
+                throw new ArgumentNullException(nameof(inner));
+            }
+
+            Func<Query, Filter> buildFilter = (baseQuery) =>
+            {
+                var queryWrapperFilter = new QueryWrapperFilter(baseQuery);
+
+                return queryWrapperFilter;
+            };
+
+            var bo = new LuceneBooleanOperation(_luceneSearchQuery);
+
+            var baseOp = bo.OpBaseFilter(buildFilter, inner, occurance.ToBooleanOperation(), defaultOp);
+
+            var op = CreateBooleanOp();
+            return op;
         }
 
         #endregion
