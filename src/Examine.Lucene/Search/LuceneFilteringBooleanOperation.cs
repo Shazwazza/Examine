@@ -82,5 +82,11 @@ namespace Examine.Lucene.Search
         public override IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive) => _search.DoubleRangeFilter(field, min, max, minInclusive, maxInclusive);
 
         #endregion
+
+
+        /// <inheritdoc />
+        public override IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+            => _search.SpatialOperationFilter(field, spatialOperation, shape);
+
     }
 }

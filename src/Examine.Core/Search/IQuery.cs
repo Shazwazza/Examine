@@ -6,7 +6,7 @@ namespace Examine.Search
     /// <summary>
     /// Defines the query methods for the fluent search API
     /// </summary>
-    public interface IQuery : IFiltering
+    public interface IQuery
     {
         /// <summary>
         /// Passes a text string which is preformatted for the underlying search API. Examine will not modify this

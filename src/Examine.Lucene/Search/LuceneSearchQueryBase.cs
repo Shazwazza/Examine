@@ -51,13 +51,6 @@ namespace Examine.Lucene.Search
 
         private BooleanOperation _boolFilterOp;
 
-
-        /// <inheritdoc/>
-        internal Stack<BooleanFilter> Filters { get; } = new Stack<BooleanFilter>();
-
-        internal BooleanFilter Filter => Filters.Peek();
-
-
         protected LuceneSearchQueryBase(CustomMultiFieldQueryParser queryParser,
             string? category, LuceneSearchOptions searchOptions, BooleanOperation occurance)
         {
@@ -676,10 +669,6 @@ namespace Examine.Lucene.Search
         /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public override string ToString() => $"{{ Category: {Category}, LuceneQuery: {Query} }}";
-        public override string ToString()
-        {
-            return $"{{ Category: {Category}, LuceneQuery: {Query} }}";
-        }
 
         /// <inheritdoc/>
         public abstract IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
@@ -690,7 +679,5 @@ namespace Examine.Lucene.Search
         /// <param name="filter"></param>
         /// <returns></returns>
         public abstract IQuery WithFilter(Action<IFilter> filter);
-        /// <inheritdoc/>
-        public abstract IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

@@ -21,7 +21,7 @@ namespace Examine.Test.Examine.Lucene.Search
 {
     [TestFixture]
     [Parallelizable(ParallelScope.All)]
-    public class FluentApiTests : ExamineBaseTest
+    public partial class FluentApiTests : ExamineBaseTest
     {
         public enum FacetTestType
         {

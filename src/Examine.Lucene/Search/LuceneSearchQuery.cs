@@ -24,6 +24,8 @@ namespace Examine.Lucene.Search
         private ISet<string>? _fieldsToLoad = null;
         private readonly IList<IFacetField> _facetFields = new List<IFacetField>();
 
+        public ISearchContext SearchContext => _searchContext;
+
         /// <inheritdoc/>
         [Obsolete("To be removed in Examine V5")]
         public LuceneSearchQuery(
@@ -39,7 +41,7 @@ namespace Examine.Lucene.Search
             ISearchContext searchContext,
             string? category, Analyzer analyzer, LuceneSearchOptions searchOptions, BooleanOperation occurance, FacetsConfig facetsConfig)
             : base(CreateQueryParser(searchContext, analyzer, searchOptions), category, searchOptions, occurance)
-        {   
+        {
             _searchContext = searchContext;
             _facetsConfig = facetsConfig;
         }
@@ -143,7 +145,7 @@ namespace Examine.Lucene.Search
                 //if no fields are specified then use all fields
                 fields ??= AllFields;
 
-                var types = fields.Select(f => _searchContext.GetFieldValueType(f)).OfType<IIndexFieldValueType>();
+                var types = fields.Select(f => SearchContext.GetFieldValueType(f)).OfType<IIndexFieldValueType>();
 
                 //Strangely we need an inner and outer query. If we don't do this then the lucene syntax returned is incorrect 
                 //since it doesn't wrap in parenthesis properly. I'm unsure if this is a lucene issue (assume so) since that is what
@@ -185,7 +187,7 @@ namespace Examine.Lucene.Search
 
                 foreach (var f in fields)
                 {
-                    var valueType = _searchContext.GetFieldValueType(f);
+                    var valueType = SearchContext.GetFieldValueType(f);
 
                     if (valueType is IIndexRangeValueType<T> type)
                     {
@@ -271,7 +273,7 @@ namespace Examine.Lucene.Search
                 filter = null;
             }
 
-            var executor = new LuceneSearchExecutor(options, query, SortFields, _searchContext, _fieldsToLoad, _facetFields,_facetsConfig, filter, Sortings);
+            var executor = new LuceneSearchExecutor(options, query, SortFields, SearchContext, _fieldsToLoad, _facetFields,_facetsConfig, filter, Sortings);
 
             var pagesResults = executor.Execute();
 
@@ -325,7 +327,7 @@ namespace Examine.Lucene.Search
                 }
 
                 //get the sortable field name if this field type has one
-                var valType = _searchContext.GetFieldValueType(fieldName);
+                var valType = SearchContext.GetFieldValueType(fieldName);
 
                 if (valType?.SortableFieldName != null)
                 {
@@ -442,7 +444,7 @@ namespace Examine.Lucene.Search
         {
             longRanges ??= Array.Empty<Int64Range>();
 
-            var valueType = _searchContext.GetFieldValueType(field) as IIndexFacetValueType;
+            var valueType = SearchContext.GetFieldValueType(field) as IIndexFacetValueType;
             var facet = new FacetLongField(field, longRanges, GetFacetField(field), isTaxonomyIndexed: valueType?.IsTaxonomyFaceted ?? false);
 
             _facetFields.Add(facet);
@@ -502,27 +504,13 @@ namespace Examine.Lucene.Search
         public override IBooleanOperation SpatialOperationQuery(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
             => SpatialOperationQueryInternal(field, spatialOperation, shape, Occurrence);
 
-        public override IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
-            => SpatialOperationFilterInternal(field, spatialOperation, shape, Occurrence);
         internal IBooleanOperation SpatialOperationQueryInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
         {
-            var spatialField = _searchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
+            var spatialField = SearchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
             var queryToAdd = spatialField.GetQuery(field, spatialOperation, shape);
             if (queryToAdd != null)
             {
                 Query.Add(queryToAdd, occurance);
-            }
-
-            return CreateOp();
-        }
-
-        internal IBooleanOperation SpatialOperationFilterInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
-        {
-            var spatialField = _searchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
-            var filterToAdd = spatialField.GetFilter(field, spatialOperation, shape);
-            if (filterToAdd != null)
-            {
-                Filter.Add(filterToAdd, occurance);
             }
 
             return CreateOp();

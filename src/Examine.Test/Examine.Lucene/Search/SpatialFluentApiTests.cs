@@ -121,9 +121,9 @@ namespace Examine.Test.Examine.Lucene.Search
                     new Sorting(new SortableField("spatialWKT",searchLocation),SortDirection.Ascending),
                     //new Sorting(new SortableField("updateDate", SortType.Long), SortDirection.Ascending)
                 };
-                var sc1 = sc.Field("parentID", 1143)
-                    .And()
-                    .SpatialOperationFilter("spatialWKT", ExamineSpatialOperation.Intersects, (shapeFactory) => shapeFactory.CreateRectangle(0.0, 1.0, 0.0, 1.0))
+                var sc1 = sc.WithFilter(
+                        filter => filter.SpatialOperationFilter("spatialWKT", ExamineSpatialOperation.Intersects, (shapeFactory) => shapeFactory.CreateRectangle(0.0, 1.0, 0.0, 1.0)))
+                    .Field("parentID", 1143)
                     .OrderBy(sorting);
 
                 var results1 = sc1.Execute().ToArray();

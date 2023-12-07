@@ -85,12 +85,6 @@ namespace Examine.Lucene.Search
             return luceneFacetOperation;
         }
 
-        #region Filter Fields
-
-        /// <inheritdoc />
-        public override IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
-            => _search.SpatialOperationFilter(field, spatialOperation, shape);
-
-        #endregion
+       
     }
 }

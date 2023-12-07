@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Examine.Lucene.Indexing;
 using Examine.Search;
 using Lucene.Net.Index;
 using Lucene.Net.Queries;
@@ -445,6 +446,22 @@ namespace Examine.Lucene.Search
         }
 
         #endregion
+
+        public override IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape)
+           => SpatialOperationFilterInternal(field, spatialOperation, shape, Occurrence);
+
+        internal IBooleanFilterOperation SpatialOperationFilterInternal(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape, Occur occurance)
+        {
+            var spatialField = _luceneSearchQuery.SearchContext.GetFieldValueType(field) as ISpatialIndexFieldValueTypeBase;
+            var filterToAdd = spatialField.GetFilter(field, spatialOperation, shape);
+            if (filterToAdd != null)
+            {
+                Filter.Add(filterToAdd, occurance);
+            }
+
+            var op = CreateBooleanOp();
+            return op;
+        }
 
     }
 }

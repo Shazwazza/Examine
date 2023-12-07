@@ -9,7 +9,7 @@ namespace Examine.Lucene.Search
     /// <summary>
     /// Represents the base for a <see cref="LuceneBooleanOperation"/>
     /// </summary>
-    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFaceting, IFiltering
+    public abstract class LuceneBooleanOperationBase : IBooleanOperation, INestedBooleanOperation, IOrdering, IFaceting
     {
         private readonly LuceneSearchQueryBase _search;
 
@@ -177,6 +177,5 @@ namespace Examine.Lucene.Search
         public abstract IQueryExecutor WithFacets(Action<IFacetOperations> facets);
 
         public abstract IOrdering OrderBy(params Sorting[] sorts);
-        public abstract IBooleanOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

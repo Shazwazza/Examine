@@ -148,5 +148,8 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive);
+
+        /// <inheritdoc/>
+        public abstract IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }

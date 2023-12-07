@@ -173,7 +173,7 @@ namespace Examine.Lucene.Search
                 if (sortFields.Length > 0)
                 {
                     sort = new Sort(sortFields);
-                    sort.Rewrite(searcher.IndexSearcher);
+                    sort = sort.Rewrite(searcher.IndexSearcher);
                 }
                 if (_luceneQueryOptions != null && _luceneQueryOptions.SearchAfter != null)
                 {

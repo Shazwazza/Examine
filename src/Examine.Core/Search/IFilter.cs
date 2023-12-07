@@ -105,5 +105,13 @@ namespace Examine.Search
         /// <param name="maxInclusive"></param>
         /// <returns></returns>
         IBooleanFilterOperation DoubleRangeFilter(string field, double? min, double? max, bool minInclusive, bool maxInclusive);
+
+        /// <summary>
+        /// Executes Spatial operation as a Filter on field and shape
+        /// </summary>
+        /// <param name="field">Index field name</param>
+        /// <param name="shape">Shape</param>
+        /// <returns></returns>
+        IBooleanFilterOperation SpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
     }
 }
