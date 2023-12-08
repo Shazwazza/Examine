@@ -6,6 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\..\assets\logo-round-small.png" Link="logo-round-small.png">
+      <PackagePath></PackagePath>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Lucene.Net.QueryParser" Version="4.8.0-beta00016" />
     <PackageReference Include="Lucene.Net.Replicator" Version="4.8.0-beta00016" />
     <PackageReference Include="Lucene.Net.Spatial" Version="4.8.0-beta00016" />
