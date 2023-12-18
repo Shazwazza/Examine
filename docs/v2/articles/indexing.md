@@ -116,7 +116,7 @@ myIndex.IndexItem(new ValueSet(
 Be default all indexing is done asynchronously. If you need to run indexing synchronously you should create a synchronous scope. This is for instance a necessary step for unit tests.
 
 ```cs
-using (var luceneIndex = (myIndex as LuceneIndex))
+using (var luceneIndex = (LuceneIndex)myIndex)
 using (var syncIndexContext = luceneIndex.WithThreadingMode(IndexThreadingMode.Synchronous))
 {
     luceneIndex.IndexItem(new ValueSet(
