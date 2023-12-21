@@ -2200,6 +2200,34 @@ namespace Examine.Test.Examine.Lucene.Search
             }
         }
 
+        [Test]
+        public void By_Id()
+        {
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTestIndex(luceneDir, analyzer))
+            {
+                indexer.IndexItems(new[] {
+                    ValueSet.FromObject(1.ToString(), "content",
+                        new { Content = "hello world", Type = "type1" }),
+                    ValueSet.FromObject(2.ToString(), "content",
+                        new { Content = "hello something or other", Type = "type1" }),
+                    ValueSet.FromObject(3.ToString(), "content",
+                        new { Content = "hello you guys", Type = "type1" })
+                    });
+
+                var searcher = indexer.Searcher;
+
+                var query = searcher.CreateQuery().Id(2.ToString());
+                Console.WriteLine(query);
+
+                var results = query.Execute();
+
+                //Assert
+                Assert.AreEqual(1, results.TotalItemCount);
+            }
+        }
+        
         [Ignore("This test needs to be updated to ensure that searching calls GetFieldInternalQuery with useQueryParser = false, see https://github.com/Shazwazza/Examine/issues/335#issuecomment-1834677581")]
         [Test]
         public void Query_With_Category_Multi_Threaded()
