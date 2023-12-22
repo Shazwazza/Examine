@@ -3,6 +3,8 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Search;
 using Examine.Lucene.Search;
 using Examine.Search;
+using System.Collections.Generic;
+using Examine.Lucene.Scoring;
 
 namespace Examine.Lucene.Providers
 {
@@ -62,7 +64,7 @@ namespace Examine.Lucene.Providers
 
         ///// <summary>
         ///// This is NOT used! however I'm leaving this here as example code
-        ///// 
+        /////
         ///// This is used to recursively set any query type that supports <see cref="MultiTermQuery.RewriteMethod"/> parameters for rewriting
         ///// before the search executes.
         ///// </summary>
@@ -72,10 +74,10 @@ namespace Examine.Lucene.Providers
         ///// that would need to be set eagerly before any query parsing takes place but if we want to do it lazily here's how.
         ///// So we need to manually update any query within the outer boolean query with the correct rewrite method, then the underlying LuceneSearcher will call rewrite
         ///// to update everything.
-        ///// 
+        /////
         ///// see https://github.com/Shazwazza/Examine/pull/89
         ///// see https://lists.gt.net/lucene/java-user/92194
-        ///// 
+        /////
         ///// </remarks>
         //private void SetScoringBooleanQueryRewriteMethod(Query query)
         //{

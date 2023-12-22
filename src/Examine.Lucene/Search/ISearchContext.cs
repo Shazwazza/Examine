@@ -9,5 +9,7 @@ namespace Examine.Lucene.Search
 
         string[] SearchableFields { get; }
         IIndexFieldValueType GetFieldValueType(string fieldName);
+
+        RelevanceScorerDefinition GetRelevanceScorer(string scorerName);
     }
 }

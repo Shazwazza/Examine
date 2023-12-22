@@ -13,7 +13,7 @@ namespace Examine.Lucene.Search
     public class LuceneBooleanOperation : LuceneBooleanOperationBase, IQueryExecutor
     {
         private readonly LuceneSearchQuery _search;
-        
+
         public LuceneBooleanOperation(LuceneSearchQuery search)
             : base(search)
         {
@@ -65,5 +65,6 @@ namespace Examine.Lucene.Search
         #endregion
 
         public override string ToString() => _search.ToString();
+        public override IScoreQuery ScoreWith(params string[] scorers) => _search.ScoreWith(scorers);
     }
 }

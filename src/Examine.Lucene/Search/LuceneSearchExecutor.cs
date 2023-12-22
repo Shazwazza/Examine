@@ -4,6 +4,7 @@ using System.Linq;
 using Examine.Search;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Lucene.Net.Queries;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -195,7 +196,7 @@ namespace Examine.Lucene.Search
         private LuceneSearchResult GetSearchResult(int index, TopDocs topDocs, IndexSearcher luceneSearcher)
         {
             // I have seen IndexOutOfRangeException here which is strange as this is only called in one place
-            // and from that one place "i" is always less than the size of this collection. 
+            // and from that one place "i" is always less than the size of this collection.
             // but we'll error check here anyways
             if (topDocs?.ScoreDocs.Length < index)
             {
@@ -289,6 +290,11 @@ namespace Examine.Lucene.Search
                 return CheckQueryForExtractTerms(lbq.Wrapped);
             }
 
+            if(query is CustomScoreQuery csq)
+            {
+                return CheckQueryForExtractTerms(csq.SubQuery);
+            }
+
             Type queryType = query.GetType();
 
             if (typeof(TermRangeQuery).IsAssignableFrom(queryType)
@@ -296,7 +302,7 @@ namespace Examine.Lucene.Search
                 || typeof(FuzzyQuery).IsAssignableFrom(queryType)
                 || (queryType.IsGenericType && queryType.GetGenericTypeDefinition().IsAssignableFrom(typeof(NumericRangeQuery<>))))
             {
-                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException 
+                return false; //ExtractTerms() not supported by TermRangeQuery, WildcardQuery,FuzzyQuery and will throw NotSupportedException
             }
 
             return true;

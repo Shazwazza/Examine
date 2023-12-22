@@ -6,7 +6,7 @@ namespace Examine.Search
     /// <summary>
     /// Defines the supported operation for addition of additional clauses in the fluent API
     /// </summary>
-    public interface IBooleanOperation : IOrdering
+    public interface IBooleanOperation : IScoreQuery
     {
         /// <summary>
         /// Sets the next operation to be AND

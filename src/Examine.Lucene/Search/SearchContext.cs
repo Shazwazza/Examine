@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Examine.Lucene.Indexing;
+using Examine.Lucene.Scoring;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 
@@ -12,12 +13,14 @@ namespace Examine.Lucene.Search
     {
         private readonly SearcherManager _searcherManager;
         private readonly FieldValueTypeCollection _fieldValueTypeCollection;
+        private readonly RelevanceScorerDefinitionCollection _relevanceScorerDefinitionCollection;
         private string[] _searchableFields;
 
-        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection)
+        public SearchContext(SearcherManager searcherManager, FieldValueTypeCollection fieldValueTypeCollection, RelevanceScorerDefinitionCollection relevanceScorerDefinitionCollection)
         {
-            _searcherManager = searcherManager;            
+            _searcherManager = searcherManager;
             _fieldValueTypeCollection = fieldValueTypeCollection ?? throw new ArgumentNullException(nameof(fieldValueTypeCollection));
+            _relevanceScorerDefinitionCollection = relevanceScorerDefinitionCollection ?? throw new ArgumentNullException(nameof(relevanceScorerDefinitionCollection));
         }
 
         public ISearcherReference GetSearcher() => new SearcherReference(_searcherManager);
@@ -33,7 +36,7 @@ namespace Examine.Lucene.Search
                     // performing a 'search'. We must ensure that the underlying reader has the correct reference counts.
                     IndexSearcher searcher = _searcherManager.Acquire();
                     try
-                    {                        
+                    {
                         var fields = MultiFields.GetMergedFieldInfos(searcher.IndexReader)
                                     .Select(x => x.Name)
                                     .ToList();
@@ -57,8 +60,18 @@ namespace Examine.Lucene.Search
         {
             //Get the value type for the field, or use the default if not defined
             return _fieldValueTypeCollection.GetValueType(
-                fieldName, 
+                fieldName,
                 _fieldValueTypeCollection.ValueTypeFactories.GetRequiredFactory(FieldDefinitionTypes.FullText));
+        }
+
+        public RelevanceScorerDefinition GetRelevanceScorer(string scorerName)
+        {
+            if (!_relevanceScorerDefinitionCollection.TryGetValue(scorerName, out var scorer))
+            {
+                throw new InvalidOperationException($"No {nameof(RelevanceScorerDefinition)} was found for scorer name {scorerName}");
+            }
+
+            return scorer;
         }
     }
 }
