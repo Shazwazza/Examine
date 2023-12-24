@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Examine.Search;
+using Lucene.Net.Queries;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search
@@ -118,6 +119,42 @@ namespace Examine.Lucene.Search
             return _search.LuceneQuery(_search.Queries.Pop(), outerOp);
         }
 
+        /// <summary>
+        /// Used to add a operation
+        /// </summary>
+        /// <param name="baseFilterBuilder">Function that the base query will be passed into to create the outer Filter</param>
+        /// <param name="inner"></param>
+        /// <param name="outerOp"></param>
+        /// <param name="defaultInnerOp"></param>
+        /// <returns></returns>
+        internal LuceneBooleanOperationBase OpBaseFilter(
+            Func<Query, Filter> baseFilterBuilder,
+            Func<INestedQuery, INestedBooleanOperation> inner,
+            BooleanOperation outerOp,
+            BooleanOperation? defaultInnerOp = null)
+        {
+            _search.Queries.Push(new BooleanQuery());
+
+            //change the default inner op if specified
+            var currentOp = _search.BooleanOperation;
+            if (defaultInnerOp != null)
+            {
+                _search.BooleanOperation = defaultInnerOp.Value;
+            }
+
+            //run the inner search
+            inner(_search);
+
+            //reset to original op if specified
+            if (defaultInnerOp != null)
+            {
+                _search.BooleanOperation = currentOp;
+            }
+            var baseBoolQuery = _search.Queries.Pop();
+            var baseFilter = baseFilterBuilder(baseBoolQuery);
+            return _search.LuceneFilter(baseFilter, outerOp);
+        }
+
         /// <inheritdoc/>
         public abstract ISearchResults Execute(QueryOptions? options = null);
 
@@ -138,5 +175,6 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public abstract IQueryExecutor WithFacets(Action<IFacetOperations> facets);
+
     }
 }

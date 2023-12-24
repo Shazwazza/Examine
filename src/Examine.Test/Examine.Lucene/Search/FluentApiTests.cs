@@ -5,13 +5,16 @@ using Examine.Lucene;
 using Examine.Lucene.Providers;
 using Examine.Lucene.Search;
 using Examine.Search;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Facet;
+using Lucene.Net.Queries;
 using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
+using Lucene.Net.Store;
 using NUnit.Framework;
-
+using LuceneTerm = Lucene.Net.Index.Term;
 
 
 namespace Examine.Test.Examine.Lucene.Search
@@ -4900,11 +4903,12 @@ namespace Examine.Test.Examine.Lucene.Search
         }
 
 #if NET6_0_OR_GREATER
-        [TestCase(FacetTestType.TaxonomyFacets)] [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]
         public void Range_DateOnly(FacetTestType withFacets)
         {
-           FieldDefinitionCollection fieldDefinitionCollection = null;
+            FieldDefinitionCollection fieldDefinitionCollection = null;
             switch (withFacets)
             {
                 case FacetTestType.TaxonomyFacets:
@@ -5188,6 +5192,562 @@ namespace Examine.Test.Examine.Lucene.Search
                 var secondResults = results2.ToArray();
                 Assert.IsFalse(firstResults.Any(x => secondResults.Any(y => y.Id == x.Id)), "The second set of results should not contain the first set of results");
 
+            }
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void TermFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                 = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                 =>
+                 {
+                     var criteria = searcher.CreateQuery("content")
+                    .WithFilter(
+                        filter =>
+                        {
+                            filter.TermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home"));
+                        });
+                     var boolOp = criteria.All();
+
+                     if (HasFacets(withFacets))
+                     {
+                         var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                         var facetResults = results.GetFacet("nodeName");
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                         Assert.AreEqual(2, facetResults.Count());
+                     }
+                     else
+                     {
+                         var results = boolOp.Execute();
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                     }
+                 };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void TermPrefixFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                =>
+                {
+
+                    var criteria = searcher.CreateQuery("content")
+                        .WithFilter(
+                            filter =>
+                            {
+                                filter.TermPrefixFilter(new FilterTerm("nodeTypeAlias", "CWS_H"));
+                            });
+                    var boolOp = criteria.All();//.Field("nodeTypeAlias", "CWS_Home".Escape());
+
+                    if (HasFacets(withFacets))
+                    {
+                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                        var facetResults = results.GetFacet("nodeName");
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.AreEqual(2, facetResults.Count());
+                    }
+                    else
+                    {
+                        var results = boolOp.Execute();
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                    }
+                };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void TermsFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                =>
+                {
+
+                    var criteria = searcher.CreateQuery("content")
+                        .WithFilter(
+                            filter =>
+                            {
+                                filter.TermsFilter(new[] {
+                                    new FilterTerm("nodeTypeAlias", "CWS_Home"),
+                                    new FilterTerm("nodeName", "my name 2")
+                                });
+                            });
+                    var boolOp = criteria.All();
+
+                    if (HasFacets(withFacets))
+                    {
+                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                        var facetResults = results.GetFacet("nodeName");
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.AreEqual(2, facetResults.Count());
+                    }
+                    else
+                    {
+                        var results = boolOp.Execute();
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                    }
+                };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void TermAndTermPrefixFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                =>
+                {
+                    var criteria = searcher.CreateQuery("content")
+                .WithFilter(
+                    filter =>
+                    {
+                        filter.TermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home"))
+                        .AndFilter()
+                        .TermPrefixFilter(new FilterTerm("nodeTypeAlias", "CWS_H"));
+                    });
+                    var boolOp = criteria.All();
+
+                    if (HasFacets(withFacets))
+                    {
+                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                        var facetResults = results.GetFacet("nodeName");
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.AreEqual(2, facetResults.Count());
+                    }
+                    else
+                    {
+                        var results = boolOp.Execute();
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                    }
+                };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void TermAndNotTermPrefixFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                =>
+                {
+                    var criteria = searcher.CreateQuery("content")
+                  .WithFilter(
+                      filter =>
+                      {
+                          filter.TermPrefixFilter(new FilterTerm("nodeTypeAlias", "CWS_"))
+                          .AndNotFilter(
+                              inner => inner.NestedTermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home")));
+                      });
+                    var boolOp = criteria.All();
+
+                    if (HasFacets(withFacets))
+                    {
+                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                        var facetResults = results.GetFacet("nodeName");
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.AreEqual(2, facetResults.Count());
+
+                        Assert.IsTrue(results.All(x => x.Values["nodeTypeAlias"].StartsWith("CWS_")));
+                        Assert.IsFalse(results.Any(x => x.Values["nodeTypeAlias"] == "CWS_Home"));
+
+                    }
+                    else
+                    {
+                        var results = boolOp.Execute();
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.IsTrue(results.All(x => x.Values["nodeTypeAlias"].StartsWith("CWS_")));
+                        Assert.IsFalse(results.Any(x => x.Values["nodeTypeAlias"] == "CWS_Home"));
+                    }
+                };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void QueryFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                =>
+                {
+
+                    var criteria = searcher.CreateQuery("content")
+                        .WithFilter(
+                            filter =>
+                            {
+                                filter.QueryFilter(
+                                    query =>
+                                        query.Field("nodeTypeAlias", "CWS_Home"));
+                            });
+                    var boolOp = criteria.All();
+
+                    if (HasFacets(withFacets))
+                    {
+                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                        var facetResults = results.GetFacet("nodeName");
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.AreEqual(2, facetResults.Count());
+                    }
+                    else
+                    {
+                        var results = boolOp.Execute();
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                    }
+                };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void NestedQueryFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                =>
+                {
+
+                    var criteria = searcher.CreateQuery("content")
+                        .WithFilter(
+                            filter =>
+                            {
+                                filter.TermFilter(new FilterTerm("nodeTypeAlias", "CWS_Home"))
+                                .AndFilter(
+                                    innerFilter => innerFilter.NestedQueryFilter(
+                                    query => query.Field("nodeTypeAlias", "CWS_Home"))
+                                    );
+
+                            });
+                    var boolOp = criteria.All();
+
+                    if (HasFacets(withFacets))
+                    {
+                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                        var facetResults = results.GetFacet("nodeName");
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                        Assert.AreEqual(2, facetResults.Count());
+                    }
+                    else
+                    {
+                        var results = boolOp.Execute();
+
+                        Assert.AreEqual(2, results.TotalItemCount);
+                    }
+                };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void IntRangeFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                 = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                 =>
+                 {
+                     var criteria = searcher.CreateQuery("content")
+                    .WithFilter(
+                        filter =>
+                        {
+                            filter.IntRangeFilter("intNumber", 2, 3, true, true);
+                        });
+                     var boolOp = criteria.All();
+
+                     if (HasFacets(withFacets))
+                     {
+                         var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                         var facetResults = results.GetFacet("nodeName");
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                         Assert.AreEqual(2, facetResults.Count());
+                     }
+                     else
+                     {
+                         var results = boolOp.Execute();
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                     }
+                 };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void LongRangeFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                 = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                 =>
+                 {
+                     var criteria = searcher.CreateQuery("content")
+                    .WithFilter(
+                        filter =>
+                        {
+                            filter.LongRangeFilter("longNumber", 2, 3, true, true);
+                        });
+                     var boolOp = criteria.All();
+
+                     if (HasFacets(withFacets))
+                     {
+                         var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                         var facetResults = results.GetFacet("nodeName");
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                         Assert.AreEqual(2, facetResults.Count());
+                     }
+                     else
+                     {
+                         var results = boolOp.Execute();
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                     }
+                 };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void FloatRangeFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                 = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                 =>
+                 {
+                     var criteria = searcher.CreateQuery("content")
+                    .WithFilter(
+                        filter =>
+                        {
+                            filter.FloatRangeFilter("floatNumber", 2.0f, 3.0f, true, true);
+                        });
+                     var boolOp = criteria.All();
+
+                     if (HasFacets(withFacets))
+                     {
+                         var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                         var facetResults = results.GetFacet("nodeName");
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                         Assert.AreEqual(2, facetResults.Count());
+                     }
+                     else
+                     {
+                         var results = boolOp.Execute();
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                     }
+                 };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void DoubleRangeFilter(FacetTestType withFacets)
+        {
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+                 = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+                 =>
+                 {
+                     var criteria = searcher.CreateQuery("content")
+                    .WithFilter(
+                        filter =>
+                        {
+                            filter.DoubleRangeFilter("doubleNumber", 2.0, 3.0, true, true);
+                        });
+                     var boolOp = criteria.All();
+
+                     if (HasFacets(withFacets))
+                     {
+                         var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                         var facetResults = results.GetFacet("nodeName");
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                         Assert.AreEqual(2, facetResults.Count());
+                     }
+                     else
+                     {
+                         var results = boolOp.Execute();
+
+                         Assert.AreEqual(2, results.TotalItemCount);
+                     }
+                 };
+
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        [TestCase(FacetTestType.TaxonomyFacets)]
+        [TestCase(FacetTestType.SortedSetFacets)]
+        [TestCase(FacetTestType.NoFacets)]
+        public void Custom_Lucene_Filter(FacetTestType withFacets)
+        {
+
+            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
+            = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
+            =>
+            {
+                var criteria = (LuceneSearchQuery)searcher.CreateQuery("content");
+
+                criteria.LuceneFilter(new TermFilter(new LuceneTerm("nodeTypeAlias", "CWS_Home")));
+                var boolOp = criteria.All();
+
+                if (HasFacets(withFacets))
+                {
+                    var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
+
+                    var facetResults = results.GetFacet("nodeName");
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                    Assert.AreEqual(2, facetResults.Count());
+                }
+                else
+                {
+                    var results = boolOp.Execute();
+
+                    Assert.AreEqual(2, results.TotalItemCount);
+                }
+            };
+            RunFilterTest(withFacets, actAssertAction);
+        }
+
+        private void RunFilterTest(FacetTestType withFacets, Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction)
+        {
+            FieldDefinitionCollection fieldDefinitionCollection = null;
+            switch (withFacets)
+            {
+                case FacetTestType.TaxonomyFacets:
+
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"),
+                                                                              new FieldDefinition("longNumber", FieldDefinitionTypes.Long),
+                                                                              new FieldDefinition("intNumber", FieldDefinitionTypes.Integer),
+                                                                              new FieldDefinition("floatNumber", FieldDefinitionTypes.Float),
+                                                                              new FieldDefinition("doubleNumber", FieldDefinitionTypes.Double),
+                                                                              new FieldDefinition("nodeName", FieldDefinitionTypes.FacetTaxonomyFullText));
+                    break;
+                case FacetTestType.SortedSetFacets:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"),
+                                                                              new FieldDefinition("longNumber", FieldDefinitionTypes.Long),
+                                                                              new FieldDefinition("intNumber", FieldDefinitionTypes.Integer),
+                                                                              new FieldDefinition("floatNumber", FieldDefinitionTypes.Float),
+                                                                              new FieldDefinition("doubleNumber", FieldDefinitionTypes.Double),
+                                                                              new FieldDefinition("nodeName", FieldDefinitionTypes.FacetFullText));
+                    break;
+                default:
+                    fieldDefinitionCollection = new FieldDefinitionCollection(new FieldDefinition("nodeTypeAlias", "raw"),
+                                                                              new FieldDefinition("intNumber", FieldDefinitionTypes.Integer),
+                                                                              new FieldDefinition("floatNumber", FieldDefinitionTypes.Float),
+                                                                              new FieldDefinition("doubleNumber", FieldDefinitionTypes.Double),
+                                                                              new FieldDefinition("longNumber", FieldDefinitionTypes.Long));
+                    break;
+            }
+
+            var analyzer = new StandardAnalyzer(LuceneInfo.CurrentVersion);
+            using (var luceneDir = new RandomIdRAMDirectory())
+            using (var luceneTaxonomyDir = new RandomIdRAMDirectory())
+            using (var indexer = GetTaxonomyTestIndex(
+                luceneDir,
+                luceneTaxonomyDir,
+                analyzer,
+                fieldDefinitionCollection))
+            {
+                indexer.IndexItems(new[] {
+                    new ValueSet(1.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 1"},
+                            {"nodeTypeAlias", "CWS_Home"},
+                            { "longNumber", 1 },
+                            { "intNumber", 1 },
+                            { "floatNumber", 1.0f },
+                            { "doubleNumber", 1.0 }
+                        }),
+                    new ValueSet(2.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 2"},
+                            {"nodeTypeAlias", "CWS_Home"},
+                            { "longNumber",2 },
+                            { "intNumber", 2 },
+                            { "floatNumber", 2.0f },
+                            { "doubleNumber", 2.0 }
+                        }),
+                    new ValueSet(3.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 3"},
+                            {"nodeTypeAlias", "CWS_Page"},
+                            { "longNumber", 3 },
+                            { "intNumber", 3 },
+                            { "floatNumber", 3.0f },
+                            { "doubleNumber", 3.0 }
+                        }),
+                    new ValueSet(4.ToString(), "content",
+                        new Dictionary<string, object>
+                        {
+                            {"nodeName", "my name 4"},
+                            {"nodeTypeAlias", "CWS_Page"},
+                            { "longNumber", 4 },
+                            { "intNumber", 4 },
+                            { "floatNumber", 4.0f },
+                            { "doubleNumber", 4.0 }
+                        }),
+                    });
+
+                var searcher = indexer.Searcher;
+                actAssertAction.Invoke(fieldDefinitionCollection, analyzer, luceneDir, luceneTaxonomyDir, indexer, searcher);
             }
         }
     }

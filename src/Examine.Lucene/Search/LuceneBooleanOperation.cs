@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Examine.Lucene.Providers;
 using Examine.Search;
+using Lucene.Net.Facet;
 using Lucene.Net.Search;
 
 namespace Examine.Lucene.Search

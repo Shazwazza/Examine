@@ -27,10 +27,11 @@ namespace Examine.Lucene.Search
         private readonly ISet<string>? _fieldsToLoad;
         private readonly IEnumerable<IFacetField>? _facetFields;
         private readonly FacetsConfig? _facetsConfig;
+        private readonly Filter? _filter;
         private int? _maxDoc;
 
         internal LuceneSearchExecutor(QueryOptions? options, Query query, IEnumerable<SortField> sortField, ISearchContext searchContext,
-            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig)
+            ISet<string>? fieldsToLoad, IEnumerable<IFacetField>? facetFields, FacetsConfig? facetsConfig, Filter? filter)
         {
             _options = options ?? QueryOptions.Default;
             _luceneQueryOptions = _options as LuceneQueryOptions;
@@ -40,6 +41,7 @@ namespace Examine.Lucene.Search
             _searchContext = searchContext ?? throw new ArgumentNullException(nameof(searchContext));
             _facetFields = facetFields;
             _facetsConfig = facetsConfig;
+            _filter = filter;
         }
 
         private int MaxDoc
@@ -99,7 +101,7 @@ namespace Examine.Lucene.Search
             var sortFields = _sortField as SortField[] ?? _sortField.ToArray();
             Sort? sort = null;
             FieldDoc? scoreDocAfter = null;
-            Filter? filter = null;
+            Filter? filter = _filter;
 
             using (var searcher = _searchContext.GetSearcher())
             {
@@ -165,7 +167,15 @@ namespace Examine.Lucene.Search
                 }
                 else
                 {
-                    searcher.IndexSearcher.Search(_luceneQuery, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                    if (facetsCollector != null)
+                    {
+                        searcher.IndexSearcher.Search(_luceneQuery, filter, MultiCollector.Wrap(topDocsCollector, facetsCollector));
+                    }
+                    else
+                    {
+                        searcher.IndexSearcher.Search(_luceneQuery, filter, topDocsCollector);
+                    }
+
                     if (sortFields.Length > 0)
                     {
                         topDocs = ((TopFieldCollector)topDocsCollector).GetTopDocs(_options.Skip, _options.Take);
