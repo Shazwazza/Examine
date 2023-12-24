@@ -134,7 +134,7 @@ var results = query.Execute(QueryOptions.Default);
 
 This will return results where the field `SomeDouble` is within the range 0 - 100 (min value and max value included).
 
-## Booleans and Chains
+## Booleans
 
 ### Or
 
@@ -199,26 +199,6 @@ var results = searcher.CreateQuery()
          filter.TermFilter(new FilterTerm("Address", "Hills"))
          .AndNotFilter(innerFilter => innerFilter.TermFilter(new FilterTerm("Keyword", "Examine")));
      })
-     .All()
- .Execute();
-```
-
-### Chaining
-
-```csharp
-var searcher = myIndex.Searcher;
-var results = searcher.CreateQuery()
-   .WithFilter(
-    filter =>
-    {
-        filter.ChainFilters(chain =>
-            chain.Chain(ChainOperation.AND, chainedFilter => chainedFilter.NestedFieldValueExists("nodeTypeAlias")) //AND
-                    .Chain(ChainOperation.AND, chainedFilter => chainedFilter.NestedTermPrefix(new FilterTerm("nodeTypeAlias", "CWS_H")))
-                        .Chain(ChainOperation.OR, chainedFilter => chainedFilter.NestedTermFilter(new FilterTerm("nodeName", "my name")))
-                            .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.NestedTermFilter(new FilterTerm("nodeName", "someone elses name")))
-                                .Chain(ChainOperation.XOR, chainedFilter => chainedFilter.NestedTermPrefix(new FilterTerm("nodeName", "my")))
-                    );
-    })
      .All()
  .Execute();
 ```

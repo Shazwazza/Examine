@@ -37,36 +37,7 @@ namespace Examine.Lucene.Search
         /// <returns></returns>
         protected override LuceneFilteringBooleanOperationBase CreateBooleanOp() => new LuceneFilteringBooleanOperation(this);
 
-        /// <summary>
-        /// Creates a new <see cref="FilterChainOpBase"/>
-        /// </summary>
-        /// <returns></returns>
-        protected override FilterChainOpBase CreateChainOp() => new FilterChainOp(this);
         #region IFilter
-
-        /// <inheritdoc/>
-        public override IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain)
-        {
-            return ChainFiltersInternal(chain);
-        }
-
-        /// <inheritdoc/>
-        internal IBooleanFilterOperation ChainFiltersInternal(Action<IFilterChain> chain, Occur occurance = Occur.MUST)
-        {
-            if (chain is null)
-            {
-                throw new ArgumentNullException(nameof(chain));
-            }
-            var chaining = CreateChainOp();
-            chain.Invoke(chaining);
-            var chainedFilter = chaining.Build();
-            if (chainedFilter != null)
-            {
-                Filter.Add(chainedFilter, occurance);
-            }
-
-            return CreateBooleanOp();
-        }
 
         /// <inheritdoc/>
         public override IBooleanFilterOperation TermFilter(FilterTerm term) => TermFilterInternal(term);
@@ -293,9 +264,6 @@ namespace Examine.Lucene.Search
         #region INestedFilter
 
         /// <inheritdoc/>
-        protected override INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChain> chain) => NestedChainFiltersInternal(chain);
-
-        /// <inheritdoc/>
         protected override INestedBooleanFilterOperation NestedTermFilter(FilterTerm term) => NestedTermFilterInternal(term);
 
         /// <inheritdoc/>
@@ -312,24 +280,6 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         protected override INestedBooleanFilterOperation NestedQueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp) => NestedQueryFilterInternal(inner, defaultOp);
-
-        /// <inheritdoc/>
-        internal INestedBooleanFilterOperation NestedChainFiltersInternal(Action<IFilterChain> chain, Occur occurance = Occur.MUST)
-        {
-            if (chain is null)
-            {
-                throw new ArgumentNullException(nameof(chain));
-            }
-            var chaining = new FilterChainOp(this);
-            chain.Invoke(chaining);
-            var chainedFilter = chaining.Build();
-            if (chainedFilter != null)
-            {
-                Filter.Add(chainedFilter, occurance);
-            }
-
-            return CreateBooleanOp();
-        }
 
         /// <inheritdoc/>
         internal INestedBooleanFilterOperation NestedTermFilterInternal(FilterTerm term, Occur occurance = Occur.MUST)

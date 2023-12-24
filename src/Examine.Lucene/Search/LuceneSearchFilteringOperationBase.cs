@@ -68,15 +68,6 @@ namespace Examine.Lucene.Search
         /// <returns></returns>
         protected abstract LuceneFilteringBooleanOperationBase CreateBooleanOp();
 
-        /// <summary>
-        /// Creates a new <see cref="FilterChainOpBase"/>
-        /// </summary>
-        /// <returns></returns>
-        protected abstract FilterChainOpBase CreateChainOp();
-
-        /// <inheritdoc/>
-        public abstract IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain);
-
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation TermFilter(FilterTerm term);
 
@@ -94,9 +85,6 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         public abstract IBooleanFilterOperation QueryFilter(Func<INestedQuery, INestedBooleanOperation> inner, BooleanOperation defaultOp = BooleanOperation.And);
-
-        /// <inheritdoc/>
-        protected abstract INestedBooleanFilterOperation NestedChainFilters(Action<IFilterChain> chain);
 
         /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedTermFilter(FilterTerm term);
@@ -118,9 +106,6 @@ namespace Examine.Lucene.Search
 
         /// <inheritdoc/>
         protected abstract INestedBooleanFilterOperation NestedSpatialOperationFilter(string field, ExamineSpatialOperation spatialOperation, Func<IExamineSpatialShapeFactory, IExamineSpatialShape> shape);
-
-        /// <inheritdoc/>
-        INestedBooleanFilterOperation INestedFilter.NestedChainFilters(Action<IFilterChain> chain) => NestedChainFilters(chain);
 
         /// <inheritdoc/>
         INestedBooleanFilterOperation INestedFilter.NestedTermFilter(FilterTerm term) => NestedTermFilter(term);
