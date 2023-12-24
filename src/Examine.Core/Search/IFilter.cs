@@ -6,13 +6,6 @@ namespace Examine.Search
     public interface IFilter
     {
         /// <summary>
-        /// Chain filters
-        /// </summary>
-        /// <param name="chain"></param>
-        /// <returns></returns>
-        IBooleanFilterOperation ChainFilters(Action<IFilterChain> chain);
-
-        /// <summary>
         /// Term must match
         /// </summary>
         /// <param name="term"></param>

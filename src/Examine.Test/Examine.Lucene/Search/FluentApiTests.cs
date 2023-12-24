@@ -5400,50 +5400,6 @@ namespace Examine.Test.Examine.Lucene.Search
         [TestCase(FacetTestType.TaxonomyFacets)]
         [TestCase(FacetTestType.SortedSetFacets)]
         [TestCase(FacetTestType.NoFacets)]
-        public void ChainedFilters(FacetTestType withFacets)
-        {
-            Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
-                = (fieldDefinitionCollection, indexAnalyzer, indexDirectory, taxonomyDirectory, testIndex, searcher)
-                =>
-                {
-
-                    var criteria = searcher.CreateQuery("content")
-                        .WithFilter(
-                            filter =>
-                            {
-                                filter.ChainFilters(chain =>
-                                    chain.Chain(ChainOperation.OR, chainedFilter => chainedFilter.NestedFieldValueExists("nodeTypeAlias"))
-                                            .Chain(ChainOperation.AND, chainedFilter => chainedFilter.NestedTermPrefix(new FilterTerm("nodeTypeAlias", "CWS_H")))
-                                                .Chain(ChainOperation.OR, chainedFilter => chainedFilter.NestedTermFilter(new FilterTerm("nodeName", "my name")))
-                                                    .Chain(ChainOperation.ANDNOT, chainedFilter => chainedFilter.NestedTermFilter(new FilterTerm("nodeName", "someone elses name")))
-                                                        .Chain(ChainOperation.XOR, chainedFilter => chainedFilter.NestedTermPrefix(new FilterTerm("nodeName", "my")))
-                                            );
-                            });
-                    var boolOp = criteria.All();
-
-                    if (HasFacets(withFacets))
-                    {
-                        var results = boolOp.WithFacets(facets => facets.FacetString("nodeName")).Execute();
-
-                        var facetResults = results.GetFacet("nodeName");
-
-                        Assert.AreEqual(2, results.TotalItemCount);
-                        Assert.AreEqual(2, facetResults.Count());
-                    }
-                    else
-                    {
-                        var results = boolOp.Execute();
-
-                        Assert.AreEqual(2, results.TotalItemCount);
-                    }
-                };
-
-            RunFilterTest(withFacets, actAssertAction);
-        }
-
-        [TestCase(FacetTestType.TaxonomyFacets)]
-        [TestCase(FacetTestType.SortedSetFacets)]
-        [TestCase(FacetTestType.NoFacets)]
         public void QueryFilter(FacetTestType withFacets)
         {
             Action<FieldDefinitionCollection, Analyzer, Directory, Directory, TestIndex, ISearcher> actAssertAction
